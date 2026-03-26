@@ -1,6 +1,7 @@
 import { pool } from "../db/connection.js";
 import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
 import { resolveScope, scopeFilterSQL } from "./scope.js";
+import { withDBFallback } from "./lifecycle.js";
 import { logger } from "../logger.js";
 import type { SearchMemoryInput } from "../schemas/memory-item.js";
 
@@ -17,6 +18,12 @@ export interface SearchResult {
 }
 
 export async function searchMemory(
+  input: SearchMemoryInput
+): Promise<SearchResult[]> {
+  return withDBFallback(() => searchMemoryImpl(input), "search_memory");
+}
+
+async function searchMemoryImpl(
   input: SearchMemoryInput
 ): Promise<SearchResult[]> {
   let scope = null;

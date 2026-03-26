@@ -3,6 +3,7 @@ import { pool, withTransaction } from "../db/connection.js";
 import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
 import { resolveScope } from "./scope.js";
 import { resolveContextPriority, resolveCompressionPolicy, normalizeTags } from "./context-policy.js";
+import { withDBFallback } from "./lifecycle.js";
 import { logger } from "../logger.js";
 import type { CaptureMemoryInput } from "../schemas/memory-item.js";
 import type pg from "pg";
@@ -14,6 +15,12 @@ interface CaptureResult {
 }
 
 export async function captureMemory(
+  input: CaptureMemoryInput
+): Promise<CaptureResult> {
+  return withDBFallback(() => captureMemoryImpl(input), "capture_memory");
+}
+
+async function captureMemoryImpl(
   input: CaptureMemoryInput
 ): Promise<CaptureResult> {
   const content = normalizeContent(input.content);

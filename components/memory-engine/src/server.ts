@@ -1,6 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { healthCheck, pool } from "./db/connection.js";
+import { pool } from "./db/connection.js";
+import { checkServices, shutdown } from "./services/lifecycle.js";
 import { logger } from "./logger.js";
 import { captureMemory } from "./services/capture.js";
 import { searchMemory } from "./services/search.js";
@@ -128,11 +129,14 @@ server.setRequestHandler(
 // --- Startup ---
 
 async function main() {
-  const dbOk = await healthCheck();
-  if (!dbOk) {
+  const status = await checkServices();
+  logger.info(`Startup check — DB: ${status.db}, Ollama: ${status.ollama}`);
+
+  if (!status.db) {
     logger.warn("Database not reachable — memory engine starting in degraded mode.");
-  } else {
-    logger.info("Database connected.");
+  }
+  if (!status.ollama) {
+    logger.warn("Ollama not reachable — embeddings will fail until available.");
   }
 
   const transport = new StdioServerTransport();
@@ -142,17 +146,13 @@ async function main() {
 
 // --- Graceful shutdown ---
 
-process.on("SIGINT", async () => {
-  logger.info("Shutting down...");
-  await pool.end();
+async function handleShutdown() {
+  await shutdown();
   process.exit(0);
-});
+}
 
-process.on("SIGTERM", async () => {
-  logger.info("Shutting down...");
-  await pool.end();
-  process.exit(0);
-});
+process.on("SIGINT", handleShutdown);
+process.on("SIGTERM", handleShutdown);
 
 main().catch((err) => {
   logger.error("Fatal:", err);
