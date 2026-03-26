@@ -85,10 +85,13 @@ ADF/
   - prompt (string)
 - Create `invoker.ts` — generic invoke function:
   - Takes params → builds CLI-specific args → spawns process → captures output
-  - Handles fallback: if primary fails, retry with fallback params
+  - **Assigns a UUID to every LLM invocation** — returned alongside the response
+  - Handles fallback: if primary fails, retry with fallback params (new UUID for fallback call)
   - Handles temp files (Codex `-o` flag), cleanup
-  - **Emits telemetry** after every call (tokens, latency, model, cost, primary vs fallback)
+  - **Emits telemetry** after every call (invocation UUID, tokens, latency, model, cost, primary vs fallback)
   - No opinions about caller identity or purpose
+- Return type includes: `{ invocationId: string, response: string, model: string, provider: string, wasFallback: boolean, latencyMs: number }`
+- **LLM UUID flows downstream**: thread events, telemetry, commits, logs — every output is traceable to its source LLM call
 
 **Telemetry** (`shared/telemetry/`):
 - Create `types.ts` — Zod schemas for metric events:
@@ -192,3 +195,18 @@ ADF/
 | `COO/controller/cli.ts` | create — REPL entry point |
 | `tools/role-builder/` | create — TS port of agent-role-builder |
 | `tools/tool-builder/` | create — TS port of tool-builder |
+
+## Tool Governance (carry forward from ProjectBrain)
+
+| Tool | Governance Model | Review Board? | Own Role? |
+|---|---|---|---|
+| **agent-role-builder** | Live multi-LLM review board (Codex+Claude pairs) | Yes — always | No (it IS the role creator, COO infrastructure) |
+| **tool-builder** | Contract-based autonomy, fire-and-forget | No (per-contract optional) | Yes — created through role-builder |
+
+Both tools carry forward their existing governance models. The learning cycle (after-action reviews → rule candidates → rules guide) ports as-is.
+
+## Open Loops (deferred)
+
+| Loop | Target | Logged |
+|---|---|---|
+| Commit contract + tool | Step 3 (Resilience) | Brain (working/p1) |
