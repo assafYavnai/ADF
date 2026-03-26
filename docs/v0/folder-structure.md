@@ -1,6 +1,6 @@
-# ADF Suggested Folder Structure
+# ADF Folder Structure
 
-Status: proposed
+Status: approved direction
 Last updated: 2026-03-26
 
 ---
@@ -9,43 +9,64 @@ Last updated: 2026-03-26
 
 ```
 ADF/
-  controller/                    # Node.js/TS stateless reducer
+  COO/                              # COO: controller + reasoning layer
     src/
-      loop.ts                    # main control loop
-      context-engineer.ts        # thread_to_prompt()
-      classifier.ts              # intent classification
-      thread.ts                  # Thread + Event types (Zod)
-      tools.ts                   # tool registry + dispatch
+      loop.ts                       # main control loop (stateless reducer)
+      context-engineer.ts           # thread_to_prompt() — per-turn context assembly
+      classifier.ts                 # intent classification (bounded LLM call)
+      thread.ts                     # Thread + Event types (Zod schemas)
+      tools.ts                      # tool registry + dispatch
     package.json
     tsconfig.json
-  memory/                        # Layer D (daily residue)
-    YYYY-MM-DD.md
-  knowledge/                     # Layer C (PARA)
-    projects/
-    areas/
-    resources/
-    archives/
-  tools/                         # tool packages (contract-based)
-  roles/                         # role packages (slug-prefixed)
-  schemas/                       # shared Zod schemas + JSON Schema exports
-  prompts/                       # owned prompt templates (versioned)
-  decisions/                     # decision board
-  threads/                       # persisted thread state (JSON)
-  docs/                          # documentation
-    v0/                          # current version docs
-  MEMORY.md                      # Layer A (routing index)
-  AGENTS.md                      # thin rules that survive compaction
-  CLAUDE.md                      # agent bootstrap pointer
+
+  components/
+    memory-engine/                  # all memory infrastructure (Tier 3)
+      src/
+        server.ts                   # Brain MCP server (TS)
+        db/
+          connection.ts             # PostgreSQL pool
+          migrations/               # DB schema migrations
+          queries/                  # query modules
+        services/
+          capture.ts                # memory capture + deduplication
+          search.ts                 # hybrid semantic + keyword search
+          context.ts                # context summary assembly
+          scope.ts                  # scope hierarchy resolution
+        schemas/                    # Zod schemas for memory types
+        tools/                      # MCP tool definitions
+      package.json
+      tsconfig.json
+
+  threads/                          # Tier 1: persisted thread state (JSON)
+  memory/                           # Tier 2: daily residue
+  prompts/                          # owned prompt templates (versioned)
+  decisions/                        # imported decision board from handoff
+
+  docs/
+    VISION.md                       # living vision document
+    bootstrap/
+      cli-agent.md                  # bootstrap doc for CLI agents
+      vscode-agent.md              # bootstrap doc for VS Code agents
+    v0/                             # current version docs
+      architecture.md
+      folder-structure.md           # this file
+      implementation-phases.md
+      memory_stack_strategy.md
+
+  adf_coo_handoff_pack/             # reference: original handoff pack
+
+  AGENTS.md                         # thin router → docs/bootstrap/
+  CLAUDE.md                         # → read AGENTS.md
+  GEMINI.md                         # → read AGENTS.md
 ```
 
 ## Key Conventions
 
-- **controller/** — the core deterministic orchestrator. All TypeScript. This is the brain of ADF.
-- **memory/** — daily residue files named by date. Short-horizon context recovery.
-- **knowledge/** — PARA structure. The single source of truth for durable facts.
-- **tools/** — each tool lives in its own subfolder with a contract (input/output schemas, side effects, approval requirements).
-- **roles/** — role packages use slug-prefixed artifact names (e.g., `coo-role.md`, `coo-role-contract.json`).
-- **schemas/** — shared Zod schemas that multiple components depend on. JSON Schema exports for external consumers.
+- **COO/** — the core deterministic orchestrator + reasoning layer. All TypeScript. Named COO because this IS the COO's brain — controller, classifier, context engineer, tool dispatch.
+- **components/memory-engine/** — all memory infrastructure under one roof. Brain MCP server (ported to TS), PostgreSQL queries, semantic search, memory capture, MCP tool definitions.
+- **threads/** — Tier 1 (hot). Serialized thread state per session (JSON). Enables pause/resume/replay.
+- **memory/** — Tier 2 (warm). Daily residue files named by date (`YYYY-MM-DD.md`). Short-horizon context.
 - **prompts/** — versioned prompt templates. Prompts are code, not incidental strings.
 - **decisions/** — locked decisions carried forward from the handoff pack.
-- **threads/** — serialized thread state (JSON). Enables pause/resume/replay.
+- **AGENTS.md** — thin router only. Detects runtime (CLI vs VS Code) and points to the right bootstrap doc. Rules live in the memory engine, not here.
+- **CLAUDE.md / GEMINI.md** — minimal pointer files: "read AGENTS.md and follow links."
