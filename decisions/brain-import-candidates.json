@@ -1,0 +1,197 @@
+[
+    {
+        "id": "3748bb9e-62ae-49a6-8ecb-c04806ae5ee0",
+        "content": {
+            "text": "Requirement: MCP pre-merge safety gate for new/changed tools is mandatory.\nRequired checks:\n1) Query boundedness: every list/join path has explicit LIMIT/cursor strategy.\n2) Structured dedup correctness: JSONB equality uses containment semantics where key order may vary.\n3) Input token/cursor/schema validation via Zod for externally supplied fields.\n4) Error normalization: unknown throws must render stable operator-visible messages.\n5) Runtime resilience: startup DB probe + graceful shutdown hooks for pool/process cleanup.\n6) Doc parity gate: tool/test counts in docs must match actual harness.\nMerge is blocked if any check is missing or not evidenced."
+        },
+        "content_type": "requirement",
+        "trust_level": "reviewed",
+        "tags": [
+            "governance",
+            "phase0-5",
+            "pre-merge",
+            "quality-gate"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T23:09:51.104487+02:00"
+    },
+    {
+        "id": "b3cbcab0-e231-4dd2-9f67-8946b4055fc0",
+        "content": {
+            "text": "Requirement: new retrieval/summarization tools must ship with minimum regression coverage.\nMinimum tests:\n- deterministic fallback path when summary model is unavailable\n- explicit idempotency test (same input returns same UUID)\n- include_low_priority=true positive-path assertion\n- pagination completeness across 3+ pages (no gaps/overlaps)\n- decision-link integrity for decisions returned with context/full-context\n- backward-compatibility check for legacy tools\nCoverage is mandatory before closeout unless explicitly deferred by logged decision."
+        },
+        "content_type": "requirement",
+        "trust_level": "reviewed",
+        "tags": [
+            "coverage",
+            "governance",
+            "phase0-5",
+            "testing"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T23:09:51.221075+02:00"
+    },
+    {
+        "id": "1ef6a0bb-ac8d-4f03-95e4-bd171d29e03a",
+        "content": {
+            "text": "CEO/CTO Role Definitions\n\nRoles:\n- User = CEO: Owns the vision, business logic, \"what\" and \"why.\" Technical background but hasn't coded in years. Non-native English speaker \u2014 knows what they want but describing it precisely is the bottleneck.\n- Claude = CTO: Bridge between vision and implementation. Transforms ideas into specs that execution agents can build without ambiguity. Does not implement \u2014 designs what gets built.\n\nCTO Responsibilities:\n- Adaptive mentoring: Facilitate first (ask sharp questions to extract CEO's vision). Switch to teaching when CEO hits knowledge gaps.\n- Top-down enforcer: When CEO starts bottom-up (how/what), redirect to top-down (why/vision) first.\n- Language partner: Decode intent, reflect back in precise English, confirm before formalizing.\n- Challenge on risk: Don't slow down sound decisions. Push back on architectural risk, missing edge cases, or when a simpler alternative exists.\n- System-wide gatekeeper: Hold full architecture in memory. Surface side effects AND consequences (\"this works, but are you aware it forces us to refactor X?\").\n- Consequence spreader: Map blast radius before any design \u2014 affected components, forced follow-up work.\n- Tool scout when relevant: Check for existing tools/MCP/frameworks when custom path looks expensive.\n- CEO skill builder: Help CEO sharpen articulation, scoping, decision-making skills.\n- Mutual governance: We're learning each other. CEO governs CTO (stop, redirect, add rules). CTO governs technical direction.\n\nTrust goal: The process itself must be trustworthy. CEO should reach a point where process completion = spec correctness, without reading every line. The design process itself is the quality gate.\n\nResearch persistence rule: During design sessions, save research notes to a temp file incrementally. After each section is confirmed/locked, update the file. Never lose context on compression/session switches.\n\nDefault mode: Design partner mode \u2014 always active, question-first, read-only by default. Edit mode requires explaining scope and rationale, then asking for conceptual-level permission. Skills are temporary overlays \u2014 return to default when task completes."
+        },
+        "content_type": "convention",
+        "trust_level": "reviewed",
+        "tags": [
+            "roles",
+            "ceo-cto"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T16:25:38.865223+02:00"
+    },
+    {
+        "id": "29f7f6d9-2382-4026-9209-630d8b466187",
+        "content": {
+            "text": "CTO/CEO Anti-Patterns (What to Never Do)\n\n1. Never jump to implementation \u2014 design IS implementation in CTO context. Going straight to code/specs without discovery is a failure mode.\n2. Never declare anything \"locked\" or \"done\" without explicit CEO approval \u2014 CEO owns all phase transitions and final sign-off.\n3. Never override product/business decisions \u2014 challenge them, surface consequences, let CEO decide. CTO governs technical direction only.\n4. Never say just \"yes\" to \"is it clear?\" \u2014 reflect back understanding in own words, in full. Ask CEO to approve/reject/refine.\n5. Never auto-accept input uncritically \u2014 when receiving review feedback, user instructions, or any external input, evaluate critically, push back on anything that seems wrong or incomplete.\n\nThese anti-patterns apply to ALL agents operating in CTO role, across all projects under this organization. They are negative guidance \u2014 patterns that have been identified as harmful to the CEO-CTO collaboration model and must be actively avoided."
+        },
+        "content_type": "lesson",
+        "trust_level": "reviewed",
+        "tags": [
+            "rules",
+            "anti-pattern"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T16:26:00.495787+02:00"
+    },
+    {
+        "id": "cc2c77b6-9fd6-4e9d-84e2-f0e1b7a2d3f4",
+        "content": {
+            "text": "Design Self-Check Gate (Before Finalizing Any Spec)\n\nBefore marking any design document as ready for review:\n- \u00a76 (Architecture Decision + Reasoning): Verify at least 2 rejected alternatives are listed with reasoning.\n  If you cannot name alternatives, the design space was not explored sufficiently.\n\nThis is a mandatory quality gate, not a suggestion. Every design document must pass this check before it can be presented for CEO review. The purpose is to ensure that the CTO has genuinely explored the solution space rather than anchoring on the first viable approach.\n\nFailure mode: If a spec reaches review without rejected alternatives, it indicates insufficient exploration and must be sent back for deeper analysis."
+        },
+        "content_type": "requirement",
+        "trust_level": "reviewed",
+        "tags": [
+            "design",
+            "quality-gate"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T16:26:05.858307+02:00"
+    },
+    {
+        "id": "6cb25c0b-23a3-4ef0-bdfa-be81a8d8576b",
+        "content": {
+            "text": "\"No DB Magic\" Preference \u2014 CEO Design Rule\n\nDB magic means triggers and stored procedures. They hide the logic of actions, making debugging hard, code less readable, and the consequences of \"innocent\" commits unknown.\n\nRules:\n- TRIGGERS: Forbidden by default. Only allowed for security and data integrity (internal checks, immutability enforcement, etc.). Reasoning: triggers hide consequences of normal operations.\n- STORED PROCEDURES: Avoid at all cost. Requires explicit CEO approval before implementation with strong reasoning for why it's required, to ease decision-making.\n- APPLICATION-LAYER PREFERRED: In any place where it's possible, the code should reflect the true logic for readability, clear intent, and debugging.\n- LOCAL DB EXCEPTION: Since the DB is local, latency, overhead, and cost are no concern \u2014 the usual arguments for DB-side logic don't apply. The trade-off always favors application-layer logic.\n\nExisting practice confirming this rule:\n- Phase 0 contract: \"Allowed DB trigger(s): trust immutability on memory_items only\"\n- Phase 0 contract: \"Scope-chain cross-reference consistency is app-layer in Phase 0\"\n- These decisions were made because of this preference.\n\nScope: Global (all projects). This is a strict design rule, not a suggestion."
+        },
+        "content_type": "requirement",
+        "trust_level": "reviewed",
+        "tags": [
+            "design",
+            "db-logic",
+            "no-db-magic"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T17:16:27.33824+02:00"
+    },
+    {
+        "id": "b221fac1-a9e4-4655-839b-7fa02db8e97b",
+        "content": {
+            "text": "Brain Governance v1 integration model.\nThe 8 governance rules are internal enforcement behind the 2-command workflow, not extra user steps.\nInternal checks include:\n- Session Closeout Gate\n- Decision Logging Rule\n- Open Loops Rule\n- Artifact Persistence Rule\n- Trust Lifecycle Rule\n- Tag Taxonomy Rule\n- Bootstrap Query Rule\n- Verification Rule\nUser interface remains: sync to brain / catch up."
+        },
+        "content_type": "convention",
+        "trust_level": "reviewed",
+        "tags": [
+            "brain-governance",
+            "workflow",
+            "internal-enforcement"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T17:39:00.449516+02:00"
+    },
+    {
+        "id": "e672397e-5934-49e8-81f5-131ffb228552",
+        "content": {
+            "text": "Requirement: Brain update is mandatory after every environment/config change.\n\nScope of 'environment/config change' includes:\n- any file edit affecting behavior (code/docs/spec/scripts/config)\n- MCP config changes (.claude.json)\n- DB/schema/migration changes\n- service/scheduler/ACL changes\n- path, branch, or runtime launcher changes\n\nMandatory timing:\n- capture update immediately after the change is validated\n- must occur before next implementation action\n\nMandatory payload fields:\n1) what changed\n2) why changed\n3) exact files/paths touched\n4) commands executed\n5) validation result\n6) commit hash (if committed)\n7) rollback/impact note\n\nOperator prompt template:\n<sync-to-brain-env-change>\nCapture environment/config change to brain with reviewed trust and UUID evidence.\nInclude before/after state, touched artifacts, verification output, and commit hash.\nReturn concise evidence table (title, UUID, scope, trust, tags).\n</sync-to-brain-env-change>"
+        },
+        "content_type": "requirement",
+        "trust_level": "reviewed",
+        "tags": [
+            "audit",
+            "brain-governance",
+            "env-change",
+            "mandatory"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T18:38:59.160141+02:00"
+    },
+    {
+        "id": "28b05709-9473-4a14-8eb6-00ed54d5f7ec",
+        "content": {
+            "text": "Requirement: Brain implementation summary is mandatory at each completed implementation step/phase.\n\nTrigger:\n- when a planned step is marked complete\n- when a phase/lane/gate is completed\n\nMandatory payload fields:\n1) completed scope (step/phase)\n2) implementation summary\n3) tests run + pass/fail\n4) commits/tags\n5) artifacts produced\n6) remaining open items\n7) handoff recommendation\n\nGate rule:\n- step/phase is NOT done until UUID evidence is posted\n\nOperator prompt template:\n<sync-to-brain-implementation-closeout>\nCapture completed implementation step/phase into brain as reviewed context.\nInclude outcome summary, tests, commit hashes, artifacts, pending items, and next action.\nReturn evidence table with UUIDs.\n</sync-to-brain-implementation-closeout>"
+        },
+        "content_type": "requirement",
+        "trust_level": "reviewed",
+        "tags": [
+            "brain-governance",
+            "implementation-summary",
+            "mandatory",
+            "phase-closeout"
+        ],
+        "context_priority": "p3",
+        "compression_policy": "drop",
+        "created_at": "2026-03-04T18:39:00.112894+02:00"
+    },
+    {
+        "id": "dac5be6d-f0f8-4bb0-9dce-9f89fdae1d75",
+        "content": {
+            "text": "Lesson learned from Phase 0.5 review: most defects were avoidable quality misses, not surprises.\nClassification rule:\n- Intentional tradeoff: known, documented scope choice with rationale and follow-up owner.\n- Avoidable miss: should be caught by pre-merge checks/tests.\nExamples of avoidable misses from 0.5: unbounded decision query, fragile JSONB exact match, weak cursor validation, unsafe error formatting, stale test-count docs.\nAction: every future review output must classify each finding as intentional tradeoff vs avoidable miss before merge decision."
+        },
+        "content_type": "lesson",
+        "trust_level": "reviewed",
+        "tags": [
+            "governance",
+            "phase0-5",
+            "quality",
+            "review-learning"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-04T23:09:50.229599+02:00"
+    },
+    {
+        "id": "fd85171f-9e27-4e6c-bbd3-fbd95e824cf1",
+        "content": {
+            "text": "Operational lesson from ADF workflow closure on 2026-03-14: the system needs an explicit front-door command surface (ADF help, ADF add requirement, ADF execute), explicit artifact classification and hard-stop routing, a separate setup-analysis workflow after planning, a centralized first-pass approval learning artifact, and a standardized run-closeout report. Without these, the internal full cycle remains usable but the user-facing invocation contract is too implicit."
+        },
+        "content_type": "lesson",
+        "trust_level": "reviewed",
+        "tags": [
+            "adf",
+            "learning",
+            "workflow"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-14T23:38:51.405409+02:00"
+    },
+    {
+        "id": "194c1319-447a-4833-9260-224ef5871160",
+        "content": {
+            "text": "Operational lesson from ADF execution-gap closure on 2026-03-14: file existence is not enough for cycle closeout. Brain evidence and commit evidence must either contain recorded entries or be explicitly marked blocked/waived. Per-subject execution folders under .tmp/executions provide a safer boundary for long autonomous runs, later GC, and subject-level audit than shared global temp summaries."
+        },
+        "content_type": "lesson",
+        "trust_level": "reviewed",
+        "tags": [
+            "adf",
+            "execution-evidence",
+            "learning",
+            "workflow"
+        ],
+        "context_priority": "p0",
+        "compression_policy": "full",
+        "created_at": "2026-03-14T23:56:52.630397+02:00"
+    }
+]
