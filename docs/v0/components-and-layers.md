@@ -44,6 +44,17 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 | Module | Directory | Purpose |
 |---|---|---|
 | **LLM Invoker** | `shared/llm-invoker/` | Generic CLI-based LLM caller. Takes invocation params (cli, model, reasoning, timeout, etc.) → spawns process → captures output → handles fallback. No hardcoded profiles — each caller passes its own params. Callable by any component or external user. |
+| **Telemetry** | `shared/telemetry/` | Project-wide metrics collection. Async fire-and-forget via MCP. Writes to PostgreSQL `telemetry` table. Every resource-consuming operation must emit telemetry. Queryable by COO for cost/performance governance. |
+
+### Telemetry Flow
+
+```
+Any component (llm-invoker, memory-engine, tools, controller)
+  → emit_metric via MCP (async, zero latency to caller)
+  → Memory Engine MCP server receives
+  → Batches and writes to telemetry table
+  → COO queries via query_metrics / get_cost_summary when needed
+```
 
 ### Future Layers
 

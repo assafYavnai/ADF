@@ -143,6 +143,36 @@ Roles are created via governed multi-LLM review (Codex + Claude pairs), validate
 
 See [components-and-layers.md](components-and-layers.md) for the full component/layer taxonomy.
 
+### Telemetry Rule
+
+**Every operation that consumes resources must emit telemetry.** This includes:
+- LLM calls (tokens in/out, cost estimate, latency, model, primary vs fallback)
+- Memory engine operations (query latency, embedding time, op counts)
+- Tool executions (run time, board rounds, review budget consumed)
+- Turn lifecycle (total time, per-phase breakdown)
+
+Telemetry is:
+- **Async and atomic** — zero latency to caller, fire-and-forget via MCP
+- **Stored in PostgreSQL** — same DB as the memory engine, dedicated `telemetry` table
+- **Queryable by the COO** — via `query_metrics` and `get_cost_summary` MCP tools
+- **Used for governance** — COO warns CEO about costly operations, identifies bottlenecks, drives self-improvement
+
+### Governance Source of Truth
+
+The **memory engine is the single source of truth** for all governance once it's live:
+
+| What | Storage | Trust Level |
+|---|---|---|
+| Decisions | `content_type: "decision"` | locked (immutable) |
+| Rules | `content_type: "rule"` | locked (immutable) |
+| Conventions | `content_type: "convention"` | reviewed or locked |
+| Settings/thresholds | `content_type: "setting"` | reviewed |
+| Telemetry | `telemetry` table | append-only |
+
+Docs in `docs/v0/` are scaffolding — they get imported as locked database records. After import, the database is truth, docs are read-only references.
+
+The controller loads locked rules from the memory engine at turn start and injects them into classifier + intelligence context. Rules are not markdown files — they're database records with trust levels and enforcement.
+
 ---
 
 ## 6-Layer Memory Stack

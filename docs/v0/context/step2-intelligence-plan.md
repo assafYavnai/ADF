@@ -36,6 +36,9 @@ ADF/
     llm-invoker/                    # generic LLM CLI invoker
       invoker.ts                    # core: params → CLI args → spawn → capture → fallback
       types.ts                      # Zod schemas for invocation params
+    telemetry/                      # project-wide metrics
+      collector.ts                  # async fire-and-forget metric emission via MCP
+      types.ts                      # Zod schemas for metric events
 
   COO/
     controller/                     # deterministic loop — no LLM
@@ -72,17 +75,37 @@ ADF/
 
 ## Implementation Plan (reordered for dependencies)
 
-### Phase 2a: Create shared LLM invoker
-- Create `shared/llm-invoker/types.ts` — Zod schemas for invocation params:
+### Phase 2a: Create shared infrastructure (LLM invoker + telemetry)
+
+**LLM Invoker** (`shared/llm-invoker/`):
+- Create `types.ts` — Zod schemas for invocation params:
   - cli (codex | claude | gemini)
   - model, reasoning/effort level, sandbox, bypass, timeout
   - fallback config (optional, same shape)
   - prompt (string)
-- Create `shared/llm-invoker/invoker.ts` — generic invoke function:
+- Create `invoker.ts` — generic invoke function:
   - Takes params → builds CLI-specific args → spawns process → captures output
   - Handles fallback: if primary fails, retry with fallback params
   - Handles temp files (Codex `-o` flag), cleanup
+  - **Emits telemetry** after every call (tokens, latency, model, cost, primary vs fallback)
   - No opinions about caller identity or purpose
+
+**Telemetry** (`shared/telemetry/`):
+- Create `types.ts` — Zod schemas for metric events:
+  - category (llm | memory | tool | turn | system)
+  - operation name, latency_ms, success/failure
+  - LLM-specific: tokens_in, tokens_out, model, provider, estimated_cost_usd, was_fallback
+  - Memory-specific: results_count, embedding_generated
+  - Tool-specific: board_rounds, participants, budget_consumed
+  - Turn-specific: total_ms, classifier_ms, intelligence_ms, context_ms
+- Create `collector.ts` — async fire-and-forget emission:
+  - `emit(metric)` — sends metric to memory engine MCP server, returns immediately
+  - Zero latency to caller — non-blocking
+  - Batching if needed for performance
+- Add to memory engine:
+  - New SQL migration: `006_telemetry.sql` — dedicated `telemetry` table (append-only)
+  - New MCP tools: `emit_metric` (fire-and-forget write), `query_metrics` (filtered read), `get_cost_summary` (aggregated read)
+  - Batch insert support for efficiency
 
 ### Phase 2b: Restructure COO folders
 - Move files from `COO/src/` to new layer structure:
@@ -152,7 +175,11 @@ ADF/
 |---|---|
 | `shared/llm-invoker/invoker.ts` | create — generic LLM CLI invoker |
 | `shared/llm-invoker/types.ts` | create — Zod schemas for invocation params |
-| `COO/controller/loop.ts` | move from src/, update imports |
+| `shared/telemetry/collector.ts` | create — async fire-and-forget metric emission via MCP |
+| `shared/telemetry/types.ts` | create — Zod schemas for metric events |
+| `components/memory-engine/src/db/migrations/006_telemetry.sql` | create — telemetry table |
+| `components/memory-engine/src/tools/telemetry-tools.ts` | create — emit_metric, query_metrics, get_cost_summary |
+| `COO/controller/loop.ts` | move from src/, update imports, add turn telemetry |
 | `COO/controller/thread.ts` | move from src/, update imports |
 | `COO/classifier/classifier.ts` | move from src/, update imports |
 | `COO/classifier/role/` | create via role-builder |
