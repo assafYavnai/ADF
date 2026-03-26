@@ -13,6 +13,7 @@ A component is a top-level bounded system within ADF. Each component has its own
 |---|---|---|
 | **COO** | `COO/` | The user-facing operational core. Deterministic controller + LLM-powered reasoning. The CEO talks to the COO. |
 | **Memory Engine** | `components/memory-engine/` | Durable knowledge store. PostgreSQL + pgvector + MCP server. Semantic search, decisions, rules, governance. |
+| **Shared** | `shared/` | Project-wide utilities callable by any component or external user. Not a component itself — infrastructure. |
 | **Role Builder** | `tools/role-builder/` | Governed tool for creating agent role packages. Live multi-LLM review board. Every agent role must be created through this tool. |
 | **Tool Builder** | `tools/tool-builder/` | Governed tool for creating specialist tools. Contract-based, schema-validated, with after-action review. |
 
@@ -28,7 +29,7 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 | **Classifier** | `COO/classifier/` | Yes (fast/cheap) | Intent classification per turn. Reads user message, outputs structured JSON routing decision. No action permissions. |
 | **Intelligence** | `COO/intelligence/` | Yes (strongest) | COO executive reasoning. Receives assembled context, produces responses, extracts decisions, handles memory operations. Full permissions. |
 | **Context Engineer** | `COO/context-engineer/` | No | Assembles per-turn LLM context from all 3 tiers (thread + files + Brain MCP). Deterministic pre-fetch. |
-| **Shared** | `COO/shared/` | — | Cross-layer utilities: LLM CLI caller, tool registry, common types. |
+| **Shared** | `COO/shared/` | — | COO-internal utilities: tool registry, common types. |
 
 ### Layer Rules
 
@@ -37,6 +38,12 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 - Every layer has its own **prompt** file if LLM-powered
 - Non-LLM layers are pure TypeScript — no role needed
 - Layers do not call each other directly — the Controller orchestrates all interaction
+
+## Shared Infrastructure
+
+| Module | Directory | Purpose |
+|---|---|---|
+| **LLM Invoker** | `shared/llm-invoker/` | Generic CLI-based LLM caller. Takes invocation params (cli, model, reasoning, timeout, etc.) → spawns process → captures output → handles fallback. No hardcoded profiles — each caller passes its own params. Callable by any component or external user. |
 
 ### Future Layers
 
