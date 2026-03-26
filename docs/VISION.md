@@ -45,6 +45,10 @@ The COO reports back to the CEO in CEO language, not technical jargon. The CEO's
 
 Whatever the case, the process and the results are predictable, coherent, and consistent.
 
+## OS Agnostic
+
+ADF is OS-agnostic. It runs on any platform that supports Node.js and Bash. Bash is the primary shell and the entry point for the ADF CLI. PowerShell is used only for Windows-specific leaf tasks where Bash cannot reach. No core ADF behavior depends on a specific operating system.
+
 ## Current Form and Future Direction
 
 ADF is currently a wrapper around projects. In the future it will be a full native application.
@@ -73,3 +77,4 @@ This check is a mandatory self-check gate before any artifact passes to review.
 | 2026-03-25 | Initial vision statement created from user discussion during langgraph-intent-proof-gaps requirements gathering | User (verbal, meeting minutes Topic 10) |
 | 2026-03-25 | Added COO organizational model: ADF is the COO to the user's CEO | User (verbal, meeting minutes Topic 19) |
 | 2026-03-25 | Added mission statement in user's voice: CEO↔COO trust contract | User (written, meeting minutes Topic 19) |
+| 2026-03-26 | Added OS-agnostic statement: Bash primary shell, PowerShell for Windows-only leaf tasks | User (direct instruction) |
