@@ -1,7 +1,8 @@
-# ADF v0 Implementation Plan
+# ADF v0 Implementation Plan — Phase 1 Foundation
 
-Status: active
-Last updated: 2026-03-26
+Status: **done**
+Last updated: 2026-03-27
+Completed: 2026-03-27
 
 ---
 
@@ -66,9 +67,55 @@ These are direct instructions from the CEO that override defaults in the strateg
 | `AGENTS.md` | Thin router (CLI vs VS Code) |
 | `CLAUDE.md` / `GEMINI.md` | Pointer files → AGENTS.md |
 
+## Implementation Results
+
+### COO Controller (COO/src/)
+- **thread.ts** — 9 Zod-typed event types (`user_input`, `classifier_result`, `tool_call`, `tool_result`, `coo_response`, `error`, `human_request`, `state_commit`, `memory_operation`). Thread schema with status tracking. `FileSystemThreadStore` persists to `threads/` as dual-format (JSON + serialized text). `serializeForLLM()` produces XML-tagged event stream. State queries: `lastEvent`, `isAwaitingHuman`, `isAwaitingApproval`, `consecutiveErrors`.
+- **context-engineer.ts** — `assembleContext()` pulls from 3 tiers per turn: Tier 1 (thread serialization), Tier 2 (daily residue + system prompt from files), Tier 3 (Brain MCP search via injected callback). `buildPrompt()` combines into XML-tagged sections. Falls back to default COO prompt if `prompts/coo-system.md` missing.
+- **classifier.ts** — Bounded LLM call for intent classification. Outputs Zod-validated JSON: `intent`, `workflow` (6 types), `tool`, `confidence`, `reasoning`. Handles markdown code block wrapping in responses.
+- **tools.ts** — 7 tool types as Zod discriminated union: `memory_capture`, `memory_search`, `decision_log`, `rule_create`, `context_load`, `direct_response`, `clarification`. Each has example phrases for classification.
+- **loop.ts** — `handleTurn()` is the stateless reducer. Flow: load thread → append user input → classify intent → route to workflow handler → append response → commit to store. Memory operation handlers for capture/search/decision/rule/context. Error escalation after 3 consecutive failures.
+
+### Memory Engine (components/memory-engine/src/)
+- **server.ts** — MCP server (stdio transport) with 16 registered tools. Health check on startup, graceful shutdown on SIGINT/SIGTERM.
+- **schemas/** — 5 Zod schema files: `memory-item.ts` (ContentType, TrustLevel, ContextPriority, CompressionPolicy, ScopeLevel, CaptureInput, SearchInput, ManageInput), `decision.ts` (DecisionAlternative, LogDecisionInput), `discussion.ts` (append/list/get/close inputs), `plan.ts` (create/get/list/revision/finalize/diff/CR inputs), `governance.ts` (7 family types, CRUD actions).
+- **services/capture.ts** — Memory capture with exact + semantic deduplication (cosine >= 0.985). Content normalization, text extraction, auto-embedding via Ollama. Transaction-safe writes.
+- **services/search.ts** — Hybrid semantic + keyword search. Configurable weighting (default 0.7 semantic). Scope filtering, content type filtering. Falls back to keyword-only if embedding fails.
+- **services/context.ts** — Priority-sorted context summaries (p0→p3). Paginated `listRecent` with total counts.
+- **services/scope.ts** — Hierarchical scope resolution (org/project/initiative/phase/thread). SQL filter builder for scope-based queries.
+- **services/context-policy.ts** — Auto-resolves context priority and compression policy from content type + tags.
+- **tools/** — 3 tool modules: memory (5 tools), decisions (1 tool with enrichment), governance (6 tools for rules/roles/requirements/settings/findings/open_loops).
+- **db/connection.ts** — PostgreSQL pool (max 10, idle 30s) with transaction helper.
+- **db/migrations/001-005** — Full schema: organizations → projects → initiatives → phases → threads hierarchy, memory_items with JSONB content, memory_embeddings with pgvector (768-d HNSW), decisions, context_priority, workflow metadata, authority workflow tables (plan, plan_revision, change_request, discussion, discussion_entry).
+
+### Infrastructure
+- **AGENTS.md** — Thin router: CLI agents → `docs/bootstrap/cli-agent.md`, VS Code agents → `docs/bootstrap/vscode-agent.md`. Rules live in memory engine, not here.
+- **CLAUDE.md / GEMINI.md** — One-liner pointer files: "Read AGENTS.md if it exists and follow links."
+- **docs/bootstrap/cli-agent.md** — CLI agent bootstrap: identity (COO/CEO), architecture overview, key directories, rules-from-memory-engine principle.
+- **docs/bootstrap/vscode-agent.md** — VS Code agent bootstrap: same identity/architecture, scoped to file editing, defers architectural decisions to CLI COO.
+- **prompts/coo-system.md** — Default COO system prompt: identity, communication style, behavior rules, memory engine usage.
+- **decisions/brain-import-candidates.json** — 12 generic items triaged from 3158 Brain entries (4 conventions, 6 lessons, 2 requirements). Discarded: 3146 ProjectBrain-specific entries.
+- **.gitignore** — node_modules, dist, .env files.
+
+### Build Verification
+- COO: `npx tsc --noEmit` — clean, zero errors
+- Memory Engine: `npx tsc --noEmit` — clean, zero errors
+- Both: `npx tsc` (full build) — clean, dist/ artifacts generated
+
+### Environment Setup (also completed this session)
+- Node.js v24.13.1, npm 11.8.0, TypeScript 6.0.2, Python 3.14.3
+- Bash 5.2.12 (MSYS2 UCRT64), Git 2.39.1
+- Claude CLI 2.1.84, Codex CLI 0.116.0, Gemini CLI 0.34.0
+- MSYS2 `/tmp` remapped to user temp via fstab + permissions
+- MSYS2 PATH inheritance via `-full-path` flag in VS Code profile
+- `~/.bashrc` adds `~/.local/bin` and npm global to PATH
+- Git identity: Assaf Yavnai <sufinoon@gmail.com>
+
+---
+
 ## What's Next
 
-Phase 1 (Foundation) is complete. Next phases:
+Phase 1 (Foundation) is complete. Next context file: `step2-intelligence.md`
 
 ### Phase 2: Intelligence
 - Wire up actual LLM API calls (Anthropic SDK) in the controller
@@ -96,3 +143,4 @@ Phase 1 (Foundation) is complete. Next phases:
 - Brain MCP (ported to TS) is the durable knowledge store
 - Architecture-first, step by step, no scope creep
 - "Commit" always means commit + push to origin
+- When hitting errors, fix root cause — never work around it
