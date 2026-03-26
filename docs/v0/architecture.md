@@ -1,7 +1,7 @@
 # ADF Architecture
 
 Status: locked decisions
-Last updated: 2026-03-26
+Last updated: 2026-03-27
 
 ---
 
@@ -13,8 +13,8 @@ Last updated: 2026-03-26
 | **Process orchestration** | `node:child_process` |
 | **Schemas / validation** | Zod (TS-native) + JSON Schema (external consumers) |
 | **Thread persistence** | JSON files initially, DB later if needed |
-| **Memory persistence** | Files (PARA structure) |
-| **LLM calls** | Direct API (Anthropic SDK / OpenAI SDK), no framework |
+| **Memory persistence** | PostgreSQL + pgvector (Brain MCP engine) |
+| **LLM calls** | CLI-based (Codex CLI primary, Claude CLI fallback). No SDK dependency — uses existing CLI auth and token pools. |
 | **Shell** | Bash is the primary supported shell. ADF CLI launches from Bash. PowerShell only for Windows-specific leaf tasks. |
 | **Python** | Allowed for specialist tools, not the controller |
 
@@ -23,6 +23,33 @@ Last updated: 2026-03-26
 - **Bash** is the default shell for ADF operations, scripts, and CLI entry point
 - **PowerShell** is restricted to Windows-specific tasks where Bash cannot reach (e.g., Windows registry, COM objects, native Windows APIs)
 - ADF is OS-agnostic — Bash provides the cross-platform baseline
+
+### LLM Model Configuration
+
+ADF uses CLI-based LLM calls via `node:child_process`. No API SDKs. Codex is the primary provider (more tokens available), Claude is the fallback.
+
+| Role | Primary (Codex) | Reasoning | Fallback (Claude) | Effort |
+|---|---|---|---|---|
+| **Classifier** | `gpt-5.3-codex-spark` | `medium` | `claude --model haiku` | `medium` |
+| **COO** | `gpt-5.4` | `xhigh` | `claude --model opus` | `max` |
+
+**Classifier**: intent classification only. Fast, cheap model. No action permissions (`--sandbox read-only`). No bypass.
+
+**COO**: executive reasoning, planning, memory operations. Strongest available model. Full permissions:
+- Codex: `--dangerously-bypass-approvals-and-sandbox`
+- Claude: `--dangerously-skip-permissions`
+
+### LLM Call Pattern
+
+```
+User input → Controller
+  → Classifier call (Codex spark, fast)
+  → Route to workflow
+  → COO call (Codex gpt-5.4 or Claude opus, strong)
+  → Validate + commit state
+```
+
+Both calls use `codex exec` / `claude --print` for non-interactive execution. Prompt passed as argument, response captured from stdout/file.
 
 ---
 
