@@ -131,6 +131,18 @@ Return response
 
 Every component must have: root folder, contract, source files, build artifacts, runtime artifacts, test surface, and audit surface.
 
+### Agent Role Governance Rule
+
+**Every LLM-powered agent must have a defined role and strict contract created through the agent-role-builder tool.** No exceptions — this applies to all models regardless of capability level (including cheap/fast classifier models). The review board exists because:
+
+1. A single LLM never thinks about everything
+2. Different LLMs think differently and catch blind spots of other LLMs
+3. There are only a handful of core agents — the high effort is justified to prevent drift
+
+Roles are created via governed multi-LLM review (Codex + Claude pairs), validated against schemas, and frozen only when no material pushback remains.
+
+See [components-and-layers.md](components-and-layers.md) for the full component/layer taxonomy.
+
 ---
 
 ## 6-Layer Memory Stack
