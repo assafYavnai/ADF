@@ -36,47 +36,54 @@ These are direct instructions from the CEO that override defaults in the strateg
 | Environment verified (Node, TS, Bash, CLIs) | done | 2026-03-26 |
 | MSYS2 temp dir + PATH permissions fixed | done | 2026-03-26 |
 | Git identity configured (global) | done | 2026-03-26 |
+| Step 1: Scaffold project structure | done | 2026-03-26 |
+| Step 2: Initialize COO + memory-engine packages | done | 2026-03-26 |
+| Step 3: Thread model (COO/src/thread.ts) | done | 2026-03-26 |
+| Step 4: Brain MCP ported to TypeScript | done | 2026-03-26 |
+| Step 5: Brain data triage (12 items from 3158) | done | 2026-03-26 |
+| Step 6: Context engineer (COO/src/context-engineer.ts) | done | 2026-03-26 |
+| Step 7: Controller loop + classifier + tools | done | 2026-03-26 |
+
+## Key Files Created
+
+| File | Purpose |
+|---|---|
+| `COO/src/thread.ts` | 9 event types, Thread schema, FileSystemThreadStore, serializeForLLM |
+| `COO/src/context-engineer.ts` | 3-tier context assembly (thread + files + Brain MCP) |
+| `COO/src/classifier.ts` | Intent classification via bounded LLM call |
+| `COO/src/tools.ts` | Tool registry (7 tools) with Zod schemas |
+| `COO/src/loop.ts` | handleTurn() — the stateless reducer main loop |
+| `components/memory-engine/src/server.ts` | MCP server entry point (16 tools) |
+| `components/memory-engine/src/services/capture.ts` | Memory capture with dedup |
+| `components/memory-engine/src/services/search.ts` | Hybrid semantic + keyword search |
+| `components/memory-engine/src/services/context.ts` | Context summary + list recent |
+| `components/memory-engine/src/services/scope.ts` | Scope hierarchy resolution |
+| `components/memory-engine/src/tools/decision-tools.ts` | Decision logging with alternatives |
+| `components/memory-engine/src/tools/governance-tools.ts` | Rules, roles, requirements CRUD |
+| `components/memory-engine/src/db/migrations/001-005` | PostgreSQL schema (from ProjectBrain) |
+| `decisions/brain-import-candidates.json` | 12 generic items triaged for import |
+| `prompts/coo-system.md` | Default COO system prompt |
+| `AGENTS.md` | Thin router (CLI vs VS Code) |
+| `CLAUDE.md` / `GEMINI.md` | Pointer files → AGENTS.md |
 
 ## What's Next
 
-### Step 1: Scaffold project structure
-- Create `COO/` with `src/`, `package.json`, `tsconfig.json`
-- Create `components/memory-engine/` with `src/` subdirs
-- Create `threads/`, `memory/`, `prompts/`, `decisions/`
-- Create `AGENTS.md` (thin router)
-- Create `CLAUDE.md`, `GEMINI.md` (pointer files)
-- Create `docs/bootstrap/cli-agent.md`, `docs/bootstrap/vscode-agent.md`
+Phase 1 (Foundation) is complete. Next phases:
 
-### Step 2: Initialize COO package
-- `package.json` with dependencies (Zod, Anthropic SDK, etc.)
-- `tsconfig.json` for strict TypeScript
-- Install dependencies
+### Phase 2: Intelligence
+- Wire up actual LLM API calls (Anthropic SDK) in the controller
+- End-to-end test: user message → classify → respond
+- Connect Brain MCP as live service
 
-### Step 3: Build Thread model
-- `COO/src/thread.ts` — Zod schemas for Thread, Event, all event types
-- `FileSystemThreadStore` — create/get/update persisting to `threads/`
-- `serializeForLLM()` method
+### Phase 3: Resilience
+- Pause/resume (thread serialization)
+- Approval gates for high-stakes operations
+- Error compaction
 
-### Step 4: Port Brain MCP to TypeScript
-- Port server code from JS/MJS → TypeScript
-- Port database queries, MCP tool definitions
-- Set up under `components/memory-engine/`
-
-### Step 5: Brain data triage
-- Export all existing Brain entries
-- Classify: generic vs ProjectBrain-specific
-- Import only generic entries into ADF Brain instance
-- Regenerate embeddings
-
-### Step 6: Context engineer
-- `COO/src/context-engineer.ts`
-- Integrate Tier 1 (thread) + Tier 2 (files) + Tier 3 (Brain MCP)
-- Pre-fetch relevant knowledge before each LLM call
-
-### Step 7: Manual memory commands
-- Register memory engine tools in tool schema registry
-- Classifier recognizes memory-related intents
-- COO routes to appropriate memory engine operations
+### Phase 4: Scale
+- Specialist agents
+- Cross-session recall
+- Multi-channel triggers
 
 ---
 
