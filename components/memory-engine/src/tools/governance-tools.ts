@@ -67,9 +67,11 @@ async function createGovernance(input: GovernanceManageInput) {
   const content = { text: input.title, ...input.body };
 
   await pool.query(
-    `INSERT INTO memory_items (id, content, content_type, trust_level, scope_level, tags, context_priority, compression_policy)
-     VALUES ($1, $2, $3, 'working', 'organization', $4, 'p0', 'full')`,
-    [id, JSON.stringify(content), input.family, input.tags ?? []]
+    `INSERT INTO memory_items (id, content, content_type, trust_level, scope_level, tags, context_priority, compression_policy,
+       invocation_id, provider, model, reasoning, was_fallback, source_path)
+     VALUES ($1, $2, $3, 'working', 'organization', $4, 'p0', 'full',
+       '00000000-0000-0000-0000-000000000000', 'system', 'none', 'none', FALSE, $5)`,
+    [id, JSON.stringify(content), input.family, input.tags ?? [], `memory-engine/governance/${input.family}/create`]
   );
 
   return { content: [{ type: "text", text: JSON.stringify({ id, status: "created" }, null, 2) }] };

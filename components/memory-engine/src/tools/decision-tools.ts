@@ -32,8 +32,10 @@ export async function logDecision(
       `INSERT INTO memory_items
         (id, content, content_type, trust_level, scope_level,
          org_id, project_id, initiative_id, phase_id, thread_id,
-         tags, context_priority, compression_policy)
-       VALUES ($1, $2, 'decision', 'working', $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+         tags, context_priority, compression_policy,
+         invocation_id, provider, model, reasoning, was_fallback, source_path)
+       VALUES ($1, $2, 'decision', 'working', $3, $4, $5, $6, $7, $8, $9, $10, $11,
+               '00000000-0000-0000-0000-000000000000', 'system', 'none', 'none', FALSE, 'memory-engine/decision/log')`,
       [
         memoryId,
         JSON.stringify(content),
