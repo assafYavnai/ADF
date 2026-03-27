@@ -9,6 +9,7 @@ import { getContextSummary, listRecent } from "./services/context.js";
 import { logDecision, DECISION_TOOL_DEFINITIONS } from "./tools/decision-tools.js";
 import { handleGovernance, GOVERNANCE_TOOL_DEFINITIONS } from "./tools/governance-tools.js";
 import { MEMORY_TOOL_DEFINITIONS } from "./tools/memory-tools.js";
+import { handleEmitMetric, handleQueryMetrics, handleGetCostSummary, TELEMETRY_TOOL_DEFINITIONS } from "./tools/telemetry-tools.js";
 import { CaptureMemoryInput, SearchMemoryInput, MemoryManageInput } from "./schemas/memory-item.js";
 
 const server = new Server(
@@ -22,6 +23,7 @@ const ALL_TOOLS = [
   ...MEMORY_TOOL_DEFINITIONS,
   ...DECISION_TOOL_DEFINITIONS,
   ...GOVERNANCE_TOOL_DEFINITIONS,
+  ...TELEMETRY_TOOL_DEFINITIONS,
 ];
 
 server.setRequestHandler(
@@ -108,6 +110,14 @@ server.setRequestHandler(
           return handleGovernance({ ...args, family: "finding" });
         case "open_loops_manage":
           return handleGovernance({ ...args, family: "open_loop" });
+
+        // Telemetry tools
+        case "emit_metric":
+          return handleEmitMetric(args);
+        case "query_metrics":
+          return handleQueryMetrics(args);
+        case "get_cost_summary":
+          return handleGetCostSummary(args);
 
         default:
           return {

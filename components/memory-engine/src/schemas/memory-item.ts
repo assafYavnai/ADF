@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProvenanceSchema } from "../provenance.js";
 
 export const ContentType = z.enum([
   "text",
@@ -58,6 +59,7 @@ export const CaptureMemoryInput = z.object({
   tags: z.array(z.string()).default([]),
   trust_level: TrustLevel.default("working"),
   skip_dedup: z.boolean().default(false),
+  provenance: ProvenanceSchema.optional(),
 });
 export type CaptureMemoryInput = z.infer<typeof CaptureMemoryInput>;
 

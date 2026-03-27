@@ -1,20 +1,27 @@
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { join } from "node:path";
+import { ProvenanceSchema, createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
+
+// --- Base event fields (shared by all events) ---
+
+const BaseEvent = z.object({
+  timestamp: z.string().datetime(),
+  id: z.string().uuid(),
+  provenance: ProvenanceSchema,
+});
 
 // --- Event Types ---
 
-export const UserInputEvent = z.object({
+export const UserInputEvent = BaseEvent.extend({
   type: z.literal("user_input"),
   data: z.object({
     message: z.string(),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const ClassifierResultEvent = z.object({
+export const ClassifierResultEvent = BaseEvent.extend({
   type: z.literal("classifier_result"),
   data: z.object({
     intent: z.string(),
@@ -29,22 +36,18 @@ export const ClassifierResultEvent = z.object({
     ]),
     reasoning: z.string().optional(),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const ToolCallEvent = z.object({
+export const ToolCallEvent = BaseEvent.extend({
   type: z.literal("tool_call"),
   data: z.object({
     tool: z.string(),
     parameters: z.record(z.unknown()),
     requiresApproval: z.boolean().default(false),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const ToolResultEvent = z.object({
+export const ToolResultEvent = BaseEvent.extend({
   type: z.literal("tool_result"),
   data: z.object({
     tool: z.string(),
@@ -52,22 +55,18 @@ export const ToolResultEvent = z.object({
     success: z.boolean(),
     durationMs: z.number().optional(),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const CooResponseEvent = z.object({
+export const CooResponseEvent = BaseEvent.extend({
   type: z.literal("coo_response"),
   data: z.object({
     message: z.string(),
     model: z.string().optional(),
     tokensUsed: z.number().optional(),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const ErrorEvent = z.object({
+export const ErrorEvent = BaseEvent.extend({
   type: z.literal("error"),
   data: z.object({
     source: z.string(),
@@ -75,11 +74,9 @@ export const ErrorEvent = z.object({
     recoverable: z.boolean(),
     attemptNumber: z.number().optional().default(1),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const HumanRequestEvent = z.object({
+export const HumanRequestEvent = BaseEvent.extend({
   type: z.literal("human_request"),
   data: z.object({
     question: z.string(),
@@ -88,22 +85,18 @@ export const HumanRequestEvent = z.object({
     responseFormat: z.enum(["free_text", "yes_no", "multiple_choice"]).optional().default("free_text"),
     options: z.array(z.string()).optional(),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const StateCommitEvent = z.object({
+export const StateCommitEvent = BaseEvent.extend({
   type: z.literal("state_commit"),
   data: z.object({
     summary: z.string(),
     openLoops: z.array(z.string()).default([]),
     decisions: z.array(z.string()).default([]),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
-export const MemoryOperationEvent = z.object({
+export const MemoryOperationEvent = BaseEvent.extend({
   type: z.literal("memory_operation"),
   data: z.object({
     operation: z.enum(["capture", "search", "log_decision", "make_rule", "load_context", "archive"]),
@@ -111,8 +104,6 @@ export const MemoryOperationEvent = z.object({
     result: z.unknown().optional(),
     success: z.boolean().optional(),
   }),
-  timestamp: z.string().datetime(),
-  id: z.string().uuid(),
 });
 
 // --- Union Event Type ---
@@ -156,13 +147,15 @@ export type Thread = z.infer<typeof ThreadSchema>;
 
 export function createEvent<T extends ThreadEvent["type"]>(
   type: T,
-  data: Extract<ThreadEvent, { type: T }>["data"]
+  data: Extract<ThreadEvent, { type: T }>["data"],
+  provenance?: Provenance
 ): Extract<ThreadEvent, { type: T }> {
   return {
     type,
     data,
     timestamp: new Date().toISOString(),
     id: randomUUID(),
+    provenance: provenance ?? createSystemProvenance(`COO/controller/create-event/${type}`),
   } as Extract<ThreadEvent, { type: T }>;
 }
 
@@ -261,7 +254,6 @@ export class FileSystemThreadStore implements ThreadStore {
   }
 
   async list(): Promise<string[]> {
-    const { readdir } = await import("node:fs/promises");
     const files = await readdir(this.threadsDir);
     return files
       .filter((f) => f.endsWith(".json"))

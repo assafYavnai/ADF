@@ -4,6 +4,7 @@ import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
 import { resolveScope } from "./scope.js";
 import { resolveContextPriority, resolveCompressionPolicy, normalizeTags } from "./context-policy.js";
 import { withDBFallback } from "./lifecycle.js";
+import { LEGACY_PROVENANCE } from "../provenance.js";
 import { logger } from "../logger.js";
 import type { CaptureMemoryInput } from "../schemas/memory-item.js";
 import type pg from "pg";
@@ -57,12 +58,14 @@ async function captureMemoryImpl(
   const id = randomUUID();
 
   return withTransaction(async (client: pg.PoolClient) => {
+    const prov = input.provenance ?? LEGACY_PROVENANCE;
     await client.query(
       `INSERT INTO memory_items
         (id, content, content_type, trust_level, scope_level,
          org_id, project_id, initiative_id, phase_id, thread_id,
-         tags, context_priority, compression_policy)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+         tags, context_priority, compression_policy,
+         invocation_id, provider, model, reasoning, was_fallback, source_path)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
       [
         id,
         JSON.stringify(content),
@@ -77,6 +80,12 @@ async function captureMemoryImpl(
         tags,
         priority,
         compression,
+        prov.invocation_id,
+        prov.provider,
+        prov.model,
+        prov.reasoning,
+        prov.was_fallback,
+        prov.source_path,
       ]
     );
 

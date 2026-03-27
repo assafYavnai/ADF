@@ -1,7 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
-import type { Thread } from "./thread.js";
-import { serializeForLLM } from "./thread.js";
+import type { Thread } from "../controller/thread.js";
+import { serializeForLLM } from "../controller/thread.js";
 
 /**
  * Context Engineer — assembles per-turn LLM context from all 3 tiers.
