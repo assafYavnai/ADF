@@ -4,6 +4,9 @@ export async function handleEmitMetric(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
   const p = args.provenance as Record<string, unknown> | undefined;
+  if (!p || !p.invocation_id || !p.source_path) {
+    throw new Error("emit_metric requires provenance with at least invocation_id and source_path");
+  }
 
   await pool.query(
     `INSERT INTO telemetry
@@ -156,6 +159,7 @@ export const TELEMETRY_TOOL_DEFINITIONS = [
         since: { type: "string" },
         until: { type: "string" },
         limit: { type: "number", default: 100 },
+        provenance: { type: "object", description: "Provenance object from caller" },
       },
     },
   },
@@ -167,6 +171,7 @@ export const TELEMETRY_TOOL_DEFINITIONS = [
       properties: {
         since: { type: "string", description: "ISO 8601 start (default: 24h ago)" },
         until: { type: "string", description: "ISO 8601 end (default: now)" },
+        provenance: { type: "object", description: "Provenance object from caller" },
       },
     },
   },

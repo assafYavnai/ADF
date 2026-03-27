@@ -75,8 +75,10 @@ server.setRequestHandler(
           const p = args.provenance as Record<string, unknown> | undefined;
           const srcPath = (p?.source_path as string) ?? "memory-engine/manage/unknown";
           const invId = (p?.invocation_id as string) ?? LEGACY_PROVENANCE.invocation_id;
-          const prov = (p?.provider as string) ?? "system";
+          const prvdr = (p?.provider as string) ?? "system";
           const mdl = (p?.model as string) ?? "none";
+          const rsn = (p?.reasoning as string) ?? "none";
+          const wasFb = (p?.was_fallback as boolean) ?? false;
           switch (input.action) {
             case "delete":
               await db.query("DELETE FROM memory_embeddings WHERE memory_item_id = $1", [input.memory_id]);
@@ -86,21 +88,21 @@ server.setRequestHandler(
             case "archive":
               await db.query(
                 `UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW(),
-                 invocation_id = $2, provider = $3, model = $4, source_path = $5 WHERE id = $1`,
-                [input.memory_id, invId, prov, mdl, srcPath]
+                 invocation_id = $2, provider = $3, model = $4, reasoning = $5, was_fallback = $6, source_path = $7 WHERE id = $1`,
+                [input.memory_id, invId, prvdr, mdl, rsn, wasFb, srcPath]
               );
               return { content: [{ type: "text", text: `Archived ${input.memory_id}` }] };
             case "update_tags":
               await db.query(
                 `UPDATE memory_items SET tags = $1, updated_at = NOW(),
-                 invocation_id = $3, provider = $4, model = $5, source_path = $6 WHERE id = $2`,
-                [input.tags, input.memory_id, invId, prov, mdl, srcPath]);
+                 invocation_id = $3, provider = $4, model = $5, reasoning = $6, was_fallback = $7, source_path = $8 WHERE id = $2`,
+                [input.tags, input.memory_id, invId, prvdr, mdl, rsn, wasFb, srcPath]);
               return { content: [{ type: "text", text: `Tags updated` }] };
             case "update_trust_level":
               await db.query(
                 `UPDATE memory_items SET trust_level = $1, updated_at = NOW(),
-                 invocation_id = $3, provider = $4, model = $5, source_path = $6 WHERE id = $2`,
-                [input.trust_level, input.memory_id, invId, prov, mdl, srcPath]);
+                 invocation_id = $3, provider = $4, model = $5, reasoning = $6, was_fallback = $7, source_path = $8 WHERE id = $2`,
+                [input.trust_level, input.memory_id, invId, prvdr, mdl, rsn, wasFb, srcPath]);
               return { content: [{ type: "text", text: `Trust level -> ${input.trust_level}` }] };
           }
           break;
