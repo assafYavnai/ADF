@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "tool_name": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-001",
+  "role_slug": "agent-role-builder",
+  "operation": "create",
+  "status": "resume_required",
+  "execution_mode": "live-roster-v1",
+  "summary": "Agent Role Builder role resume_required: Review budget exhausted after 2 rounds. 6 unresolved issues remain.",
+  "status_reason": "Review budget exhausted after 2 rounds. 6 unresolved issues remain.",
+  "output_dir": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-001",
+  "canonical_role_directory": null,
+  "canonical_role_markdown_path": null,
+  "canonical_role_contract_path": null,
+  "canonical_decision_log_path": null,
+  "canonical_board_summary_path": null,
+  "pushback_path": null,
+  "resume_package_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-001\\resume-package.json",
+  "board": {
+    "profile": "medium",
+    "leader_count": 1,
+    "reviewer_count": 2,
+    "rounds_executed": 2,
+    "arbitration_used": false,
+    "participant_records": [
+      {
+        "participant_id": "reviewer-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "reviewer",
+        "verdict": "{\"verdict\":\"changes_required\",\"findings\":[\"The `<outputs>` tag is incomplete. Step 5 and `<completion>` both depend on `result.json`, and the workflow can also emit pushback or resume artifacts, but `<outputs>` lists only four role-package files.\",\"The `<inputs>` tag narrows `source_refs` to 'authority documents', but the draft request and workflow rely on broader evidence, including implementation and board-execution sources. That is a scope mismatch in the role description.\",\"Authority boundaries are not fully clear: `<authority>` says the role owns 'Multi-LLM board execution for role review' while also not owning 'Runtime orchestration'. Step 4 is an orchestration activity, so the role should distinguish board-local review orchestration from broader runtime orchestration.\",\"Board governance is underspecified. The markdown requires Codex+Claude composition per reviewer pair, but it does not state that at least one reviewer pair must exist, leaving 'live multi-LLM review' open to a zero-reviewer interpretation.\"],\"strengths\":[\"All core tags are present: `<role>`, `<authority>`, `<scope>`, `<context-gathering>`, `<inputs>`, `<guardrails>`, `<steps>`, `<outputs>`, and `<completion>`.\",\"The role purpose is focused and consistent with the architecture's dogfooding requirement for `agent-role-builder`.\",\"The draft has strong guardrails against invented semantics, authority expansion, and freezing with unresolved material pushback.\",\"Scope is mostly well bounded: tool creation, code implementation, direct code execution, and broader runtime decisions are excluded.\",\"The workflow steps are structured, traceable, and tied to named artifacts, which makes review and auditability straightforward.\"],\"open_questions\":[\"Should non-frozen terminal artifacts such as `result.json`, pushback evidence, and resume packages be treated as canonical outputs, or explicitly marked as runtime-only outputs?\",\"Is at least one Codex+Claude reviewer pair mandatory for every board run, or are zero-reviewer runs intentionally allowed?\",\"How should the authority text distinguish board-review orchestration owned by this role from the broader 'runtime orchestration' it does not own?\"]}",
+        "round": 0,
+        "latency_ms": 136733,
+        "invocation_id": "4cb6915c-e03b-4828-9b89-7e4175fa5472"
+      },
+      {
+        "participant_id": "reviewer-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "role": "reviewer",
+        "verdict": "```json\n{\n  \"verdict\": \"approve\",\n  \"findings\": [],\n  \"strengths\": [\n    \"All required XML tags present and well-formed: <role>, <authority>, <scope>, <context-gathering>, <inputs>, <guardrails>, <steps>, <outputs>, <completion>\",\n    \"Authority section clearly defines reports-to chain, ownership, and explicit non-ownership boundaries\",\n    \"Scope section has both positive (use when) and negative (not in scope) clauses — no ambiguity about boundaries\",\n    \"Guardrails are unambiguous and non-negotiable: never-invent, never-expand, never-freeze-with-pushback\",\n    \"Board composition constraint ('every reviewer pair must contain one Codex and one Claude reviewer') is explicit and enforceable\",\n    \"Steps map cleanly to named outputs — each step produces named artifacts with no orphaned outputs\",\n    \"Out-of-scope items in <authority> and <scope> are consistent with the contract summary\",\n    \"Self-governance clause ('agent-role-builder's own role needs self-governance') closes the bootstrap loop — tool eats its own dog food\",\n    \"Provenance and slug-prefix requirements are called out explicitly in guardrails\",\n    \"Completion criteria are terminal and deterministic — no open-ended 'until satisfied' language\"\n  ],\n  \"open_questions\": [\n    \"RoleBuilderRequest schema is referenced in <inputs> and <steps> but not defined or linked — is it defined elsewhere (e.g., a source_ref) or does it need a schema artifact?\",\n    \"max_review_rounds is referenced in Step 4 but its value is not defined in this role package — is it sourced from the request JSON or from a config document?\",\n    \"The 'resume package' input and resume_required terminal status imply a resume protocol, but no schema or format for resume packages is specified — intentional deferral or gap?\",\n    \"self-check.json (Step 3 output) is not listed in <outputs> — is it considered ephemeral/internal only, or should it be promoted to a canonical artifact?\"\n  ]\n}\n```",
+        "round": 0,
+        "latency_ms": 15630,
+        "invocation_id": "3ad397c4-03e0-4049-86a5-bd44c936e78a"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "leader",
+        "verdict": "{\n  \"status\": \"pushback\",\n  \"rationale\": \"Do not freeze. Material reviewer pushback remains unresolved. One reviewer approved, but the Codex reviewer identified substantive package issues: the declared outputs do not cover workflow-emitted artifacts such as result/pushback/resume evidence, and the inputs section narrows source_refs too far relative to the workflow's stated evidence requirements. A third Codex finding was truncated in the provided feedback and therefore cannot be treated as resolved.\",\n  \"disagreements\": [\n    \"Reviewer split: `reviewer-claude-r0` approved with no findings, while `reviewer-codex-r0` returned `changes_required` on material specification gaps.\"\n  ],\n  \"unresolved\": [\n    \"The `<outputs>` section is incomplete relative to Step 5 and `<completion>`; it does not account for `result.json` and other possible emitted artifacts such as pushback or resume evidence.\",\n    \"The `<inputs>` section defines `source_refs` as only 'authority documents', but the workflow depends on broader sources/evidence, creating a scope mismatch in the role description.\",\n    \"A third Codex finding is present only as a truncated fragment (`Authority boundar...`) in the supplied feedback, so that issue remains unresolved rather than assumed fixed.\"\n  ],\n  \"improvements_applied\": []\n}",
+        "round": 0,
+        "latency_ms": 80603,
+        "invocation_id": "071cc8fc-6e95-4963-b27e-87dde7260f2f"
+      },
+      {
+        "participant_id": "reviewer-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "reviewer",
+        "verdict": "{\"verdict\":\"changes_required\",\"findings\":[\"The `<outputs>` section is still incomplete relative to `<steps>` and `<completion>`. It omits `result.json`, and it does not clarify whether conditional artifacts such as pushback evidence, resume packages, `rounds/`, and `runtime/session-registry.json` are required package outputs or transient runtime byproducts.\",\"The scope boundary is too ambiguous in `Not in scope: Creating tools or workflows` / `Workflow creation`. This role explicitly produces tagged workflow markdown for role packages, so the current wording appears to prohibit part of its own stated deliverable.\",\"The `<inputs>` section narrows `source_refs` to `authority documents`, but the workflow and provenance model depend on a broader evidence set than authority alone. As written, input requirements and execution steps are not fully aligned.\",\"One prior issue remains unresolved from the supplied history: the earlier Codex finding is only preserved as a truncated fragment (`Authority boundar...`), so there is no evidence in this draft package that the underlying authority-boundary concern was actually addressed rather than dropped.\"],\"strengths\":[\"Tag coverage is broadly strong: the draft includes role, authority, scope, context-gathering, inputs, guardrails, steps, outputs, and completion sections.\",\"Authority ownership is mostly well bounded: it clearly excludes tool creation, code implementation, runtime orchestration, and direct code execution.\",\"The guardrails align well with the architecture docs on governed multi-LLM review, preserved decision history, provenance, and freezing only when no material pushback remains.\",\"The board composition rule is explicit and testable: every reviewer pair must contain one Codex and one Claude reviewer.\"],\"open_questions\":[\"What is the canonical set of required final artifacts for this role package: only the four listed in `<outputs>`, or also `result.json`, review-round artifacts, pushback evidence, and resume packages?\",\"Should `source_refs` be defined as all governing/evidence references required for the role build, with authority documents as a subset, rather than authority-only inputs?\",\"What was the full unresolved `Authority boundar...` finding from the prior round, and has it actually been resolved in this draft or merely lost in transmission?\",\"Should the out-of-scope wording be narrowed to exclude generic workflow/tool creation while still allowing workflow markdown that defines the role package itself?\"]}",
+        "round": 1,
+        "latency_ms": 77633,
+        "invocation_id": "63f5a83f-ec6e-400c-9fc9-bb444c89bd9d"
+      },
+      {
+        "participant_id": "reviewer-claude-r1",
+        "provider": "claude",
+        "model": "sonnet",
+        "role": "reviewer",
+        "verdict": "```json\n{\n  \"verdict\": \"changes_required\",\n  \"findings\": [\n    \"<outputs> still missing result.json: <completion> explicitly states 'Result.json contains full evidence chain' but result.json is absent from the <outputs> artifact list. This was flagged in Round 0 and remains unresolved.\",\n    \"<outputs> still missing conditional artifacts: pushback evidence files and resume packages are emitted by Step 5 branches but appear nowhere in <outputs>. Round 0 flagged this; it is still unresolved.\",\n    \"<inputs> source_refs scope still too narrow: 'Source refs pointing to authority documents' constrains source_refs to authority documents only, but Step 2 merges 'request + baseline + sources' and the workflow clearly depends on any referenced document. Round 0 flagged this; it is still unresolved.\",\n    \"Truncated Round 0 finding ('Authority boundar...') remains unresolved and cannot be independently verified as addressed. It must be surfaced in full and either resolved with evidence or carried forward as an explicit open issue.\",\n    \"<authority> does not grant authority to launch sub-agents: Step 4 instructs the agent to 'Launch reviewers (Codex+Claude pairs)' and 'Launch leader with reviewer results', but the authority section grants no explicit right to invoke or orchestrate other agents. This is a missing authority grant.\",\n    \"Self-check reports 'passed (no issues)' but three Round 0 findings remain present in the draft. Either the self-check did not run against the submitted draft or its verification logic is insufficient; the self-check result is not credible as stated.\",\n    \"Board roster is not named as an input: Step 1 validates 'board roster pair composition' but neither <inputs> nor <context-gathering> lists the board roster as a required or optional input. The validator cannot validate something that was never loaded.\",\n    \"Casing inconsistency: <completion> uses 'Result.json' (capital R) while Step 5 and the findings above reference 'result.json' (lowercase). Artifact names must be consistent throughout the document.\"\n  ],\n  \"strengths\": [\n    \"All required structural tags are present: <role>, <authority>, <scope>, <context-gathering>, <inputs>, <guardrails>, <steps>, <outputs>, <completion>.\",\n    \"The guardrails section is precise and enforceable: 'never invent missing role semantics', 'never freeze with material pushback remaining', and 'every reviewer pair must contain one Codex and one Claude reviewer' are clear, testable rules.\",\n    \"The 'Does not own' list in <authority> is explicit and avoids overlap with llm-tool-builder, which is good boundary hygiene.\",\n    \"Step outputs are enumerated per step, making traceability straightforward.\",\n    \"The self-governance framing ('the tool creates its own role, eating its own dog food') is coherent and the scope is appropriately narrow.\"\n  ],\n  \"open_questions\": [\n    \"What is the full text of the truncated Round 0 Codex finding ('Authority boundar...')? It cannot be evaluated or closed without the complete text.\",\n    \"Should result.json and conditional artifacts (pushback evidence, resume package) be listed in <outputs> as conditional entries (e.g., 'result.json — always', 'pushback-evidence.json — if status is pushback/blocked'), or is the intent that only frozen artifacts appear there?\",\n    \"By what mechanism does the agent-role-builder gain authority to launch Codex and Claude reviewer sub-agents? Is this delegated by the COO, inherited from the runtime, or does it require an explicit grant in <authority>?\",\n    \"What is the correct scope of source_refs — should the description be 'documents referenced in the role definition request' rather than 'authority documents'?\"\n  ]\n}\n```",
+        "round": 1,
+        "latency_ms": 43901,
+        "invocation_id": "c634bfd7-e896-4d76-8ec6-ad37a69be321"
+      },
+      {
+        "participant_id": "leader-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "leader",
+        "verdict": "{\n  \"status\": \"pushback\",\n  \"rationale\": \"Material pushback remains from both reviewers, and prior unresolved issues are not shown as fixed. The package still has a contract mismatch between <steps>/<completion> and <outputs>, an unresolved scope contradiction around workflow creation, and prior feedback on source_refs/authority boundaries that cannot be treated as resolved from the supplied evidence. Freezing would violate the role rule against promoting with material pushback outstanding.\",\n  \"disagreements\": [],\n  \"unresolved\": [\n    \"<outputs> is still incomplete: it omits result.json even though Step 5 and <completion> require it.\",\n    \"<outputs> still does not account for conditional artifacts emitted by Step 5, including pushback evidence and resume packages.\",\n    \"The package does not clearly distinguish canonical package outputs from transient runtime byproducts such as rounds/ and runtime/session-registry.json.\",\n    \"The scope boundary remains internally ambiguous: the role produces tagged workflow markdown, but 'Creating tools or workflows' / 'Workflow creation' is listed as out of scope.\",\n    \"The prior Round 0 source_refs mismatch remains unresolved: <inputs> restricts source_refs to authority documents even though the workflow depends on broader sources/evidence.\",\n    \"A prior Codex finding was only preserved as a truncated fragment ('Authority boundar...'); without the full issue text, it cannot be considered resolved.\"\n  ],\n  \"improvements_applied\": []\n}",
+        "round": 1,
+        "latency_ms": 76071,
+        "invocation_id": "85a63ef8-93f2-4888-8568-cbbce5a4671c"
+      }
+    ]
+  },
+  "evidence": {
+    "source_count": 5,
+    "missing_required_source_count": 0,
+    "validation_issue_count": 0,
+    "self_check_issue_count": 0
+  },
+  "validation_issues": [],
+  "open_questions": [
+    "The `<outputs>` section is incomplete relative to Step 5 and `<completion>`; it does not account for `result.json` and other possible emitted artifacts such as pushback or resume evidence.",
+    "The `<inputs>` section defines `source_refs` as only 'authority documents', but the workflow depends on broader sources/evidence, creating a scope mismatch in the role description.",
+    "A third Codex finding is present only as a truncated fragment (`Authority boundar...`) in the supplied feedback, so that issue remains unresolved rather than assumed fixed.",
+    "<outputs> is still incomplete: it omits result.json even though Step 5 and <completion> require it.",
+    "<outputs> still does not account for conditional artifacts emitted by Step 5, including pushback evidence and resume packages.",
+    "The package does not clearly distinguish canonical package outputs from transient runtime byproducts such as rounds/ and runtime/session-registry.json.",
+    "The scope boundary remains internally ambiguous: the role produces tagged workflow markdown, but 'Creating tools or workflows' / 'Workflow creation' is listed as out of scope.",
+    "The prior Round 0 source_refs mismatch remains unresolved: <inputs> restricts source_refs to authority documents even though the workflow depends on broader sources/evidence.",
+    "A prior Codex finding was only preserved as a truncated fragment ('Authority boundar...'); without the full issue text, it cannot be considered resolved."
+  ],
+  "red_flags": []
+}

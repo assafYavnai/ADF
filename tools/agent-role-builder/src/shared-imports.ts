@@ -7,7 +7,9 @@ import { z } from "zod";
 import { execFile } from "node:child_process";
 import { readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+const TEMP_DIR = process.env.USERPROFILE
+  ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp`
+  : process.env.TEMP ?? process.env.TMP ?? ".";
 import { randomUUID } from "node:crypto";
 
 // --- Provenance ---
@@ -124,14 +126,30 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
 }
 
 async function callCodex(params: InvocationParams, id: string): Promise<string> {
-  const tmpFile = join(tmpdir(), `adf-codex-${id}.txt`);
+  const tmpFile = join(TEMP_DIR, `adf-codex-${id}.txt`);
   try {
     const args = ["exec", "-m", params.model];
     if (params.reasoning) args.push("-c", `model_reasoning_effort="${params.reasoning}"`);
     if (params.sandbox) args.push("-s", params.sandbox);
     if (params.bypass) args.push("--dangerously-bypass-approvals-and-sandbox");
-    args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check", params.prompt);
-    await execPromise("codex", args, params.timeout_ms ?? 120_000);
+    args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check");
+
+    const { spawn } = await import("node:child_process");
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn("codex", args, {
+        timeout: params.timeout_ms ?? 120_000,
+        shell: true, env: { ...process.env },
+      });
+      let stderr = "";
+      proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+      proc.on("close", (code: number | null) => {
+        if (code !== 0) reject(new Error(`codex failed (exit ${code}): ${stderr}`));
+        else resolve();
+      });
+      proc.on("error", (err: Error) => reject(new Error(`codex failed: ${err.message}`)));
+      proc.stdin?.write(params.prompt);
+      proc.stdin?.end();
+    });
     return (await readFile(tmpFile, "utf-8")).trim();
   } finally { await unlink(tmpFile).catch(() => {}); }
 }
@@ -140,8 +158,25 @@ async function callClaude(params: InvocationParams): Promise<string> {
   const args = ["--print", "--model", params.model];
   if (params.effort) args.push("--effort", params.effort);
   if (params.bypass) args.push("--dangerously-skip-permissions");
-  args.push("--prompt", params.prompt);
-  return (await execPromise("claude", args, params.timeout_ms ?? 120_000)).trim();
+  args.push("--no-session-persistence");
+
+  const { spawn } = await import("node:child_process");
+  return new Promise((resolve, reject) => {
+    const proc = spawn("claude", args, {
+      timeout: params.timeout_ms ?? 120_000,
+      shell: true, env: { ...process.env },
+    });
+    let stdout = "", stderr = "";
+    proc.stdout?.on("data", (d: Buffer) => { stdout += d.toString(); });
+    proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+    proc.on("close", (code: number | null) => {
+      if (code !== 0) reject(new Error(`claude failed (exit ${code}): ${stderr}`));
+      else resolve(stdout.trim());
+    });
+    proc.on("error", (err: Error) => reject(new Error(`claude failed: ${err.message}`)));
+    proc.stdin?.write(params.prompt);
+    proc.stdin?.end();
+  });
 }
 
 async function callGemini(params: InvocationParams): Promise<string> {
@@ -153,7 +188,10 @@ async function callGemini(params: InvocationParams): Promise<string> {
 
 function execPromise(command: string, args: string[], timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFile(command, args, { timeout: timeoutMs, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
+    execFile(command, args, {
+      timeout: timeoutMs, maxBuffer: 10 * 1024 * 1024,
+      shell: true, env: { ...process.env },
+    }, (err, stdout, stderr) => {
       if (err) { reject(new Error(`${command} failed: ${err.message}${stderr ? `\n${stderr}` : ""}`)); return; }
       resolve(stdout);
     });

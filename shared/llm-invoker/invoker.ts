@@ -1,7 +1,10 @@
 import { execFile } from "node:child_process";
 import { writeFile, readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+// Use Windows user temp, not MSYS2 /tmp which may not be accessible to child processes
+const TEMP_DIR = process.env.USERPROFILE
+  ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp`
+  : process.env.TEMP ?? process.env.TMP ?? ".";
 import { randomUUID } from "node:crypto";
 import { createLLMProvenance, type Provenance, type Provider } from "../provenance/types.js";
 import type { InvocationParams, InvocationResult } from "./types.js";
@@ -94,7 +97,7 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
 }
 
 async function callCodex(params: InvocationParams, invocationId: string): Promise<string> {
-  const tmpFile = join(tmpdir(), `adf-codex-${invocationId}.txt`);
+  const tmpFile = join(TEMP_DIR, `adf-codex-${invocationId}.txt`);
 
   try {
     const args = ["exec", "-m", params.model];
@@ -110,9 +113,28 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
     }
 
     args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check");
-    args.push(params.prompt);
 
-    await execPromise("codex", args, params.timeout_ms ?? 120_000);
+    // Pipe prompt via stdin to avoid shell argument length limits
+    const { spawn } = await import("node:child_process");
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn("codex", args, {
+        timeout: params.timeout_ms ?? 120_000,
+        shell: true,
+        env: { ...process.env },
+      });
+
+      let stderr = "";
+      proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
+
+      proc.on("close", (code: number | null) => {
+        if (code !== 0) reject(new Error(`codex failed (exit ${code}): ${stderr}`));
+        else resolve();
+      });
+      proc.on("error", (err: Error) => reject(new Error(`codex failed: ${err.message}`)));
+
+      proc.stdin?.write(params.prompt);
+      proc.stdin?.end();
+    });
 
     const result = await readFile(tmpFile, "utf-8");
     return result.trim();
@@ -131,10 +153,37 @@ async function callClaude(params: InvocationParams): Promise<string> {
     args.push("--dangerously-skip-permissions");
   }
 
-  args.push("--prompt", params.prompt);
+  args.push("--no-session-persistence");
 
-  const result = await execPromise("claude", args, params.timeout_ms ?? 120_000);
-  return result.trim();
+  // Pipe prompt via stdin to avoid shell argument length limits
+  return new Promise((resolve, reject) => {
+    const { spawn } = require("node:child_process") as typeof import("node:child_process");
+    const proc = spawn("claude", args, {
+      timeout: params.timeout_ms ?? 120_000,
+      shell: true,
+      env: { ...process.env },
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout?.on("data", (data: Buffer) => { stdout += data.toString(); });
+    proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
+
+    proc.on("close", (code: number | null) => {
+      if (code !== 0) {
+        reject(new Error(`claude failed (exit ${code}): ${stderr}`));
+      } else {
+        resolve(stdout.trim());
+      }
+    });
+
+    proc.on("error", (err: Error) => reject(new Error(`claude failed: ${err.message}`)));
+
+    // Write prompt to stdin
+    proc.stdin?.write(params.prompt);
+    proc.stdin?.end();
+  });
 }
 
 async function callGemini(params: InvocationParams): Promise<string> {
@@ -157,7 +206,12 @@ function execPromise(command: string, args: string[], timeoutMs: number): Promis
     execFile(
       command,
       args,
-      { timeout: timeoutMs, maxBuffer: 10 * 1024 * 1024 },
+      {
+        timeout: timeoutMs,
+        maxBuffer: 10 * 1024 * 1024,
+        shell: true,
+        env: { ...process.env },
+      },
       (err, stdout, stderr) => {
         if (err) {
           reject(
