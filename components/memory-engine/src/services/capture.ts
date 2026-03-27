@@ -92,9 +92,11 @@ async function captureMemoryImpl(
     try {
       const embedding = await generateEmbedding(text);
       await client.query(
-        `INSERT INTO memory_embeddings (id, memory_item_id, model, version, embedding, is_active)
-         VALUES ($1, $2, $3, $4, $5::vector, TRUE)`,
-        [randomUUID(), id, "nomic-embed-text", "1", toVectorLiteral(embedding)]
+        `INSERT INTO memory_embeddings (id, memory_item_id, model, version, embedding, is_active,
+           invocation_id, source_path)
+         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7)`,
+        [randomUUID(), id, "nomic-embed-text", "1", toVectorLiteral(embedding),
+         prov.invocation_id, prov.source_path]
       );
     } catch (err) {
       logger.warn("Embedding generation failed, item saved without embedding:", err);

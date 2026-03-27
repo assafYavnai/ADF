@@ -140,7 +140,7 @@ export const TELEMETRY_TOOL_DEFINITIONS = [
         estimated_cost_usd: { type: "number" },
         metadata: { type: "object" },
       },
-      required: ["category", "operation", "latency_ms", "success"],
+      required: ["provenance", "category", "operation", "latency_ms", "success"],
     },
   },
   {

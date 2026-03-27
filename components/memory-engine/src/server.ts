@@ -11,6 +11,7 @@ import { handleGovernance, GOVERNANCE_TOOL_DEFINITIONS } from "./tools/governanc
 import { MEMORY_TOOL_DEFINITIONS } from "./tools/memory-tools.js";
 import { handleEmitMetric, handleQueryMetrics, handleGetCostSummary, TELEMETRY_TOOL_DEFINITIONS } from "./tools/telemetry-tools.js";
 import { CaptureMemoryInput, SearchMemoryInput, MemoryManageInput } from "./schemas/memory-item.js";
+import { LEGACY_PROVENANCE } from "./provenance.js";
 
 const server = new Server(
   { name: "ADF Memory Engine", version: "0.1.0" },
@@ -71,6 +72,11 @@ server.setRequestHandler(
         case "memory_manage": {
           const input = MemoryManageInput.parse(args);
           const { pool: db } = await import("./db/connection.js");
+          const p = args.provenance as Record<string, unknown> | undefined;
+          const srcPath = (p?.source_path as string) ?? "memory-engine/manage/unknown";
+          const invId = (p?.invocation_id as string) ?? LEGACY_PROVENANCE.invocation_id;
+          const prov = (p?.provider as string) ?? "system";
+          const mdl = (p?.model as string) ?? "none";
           switch (input.action) {
             case "delete":
               await db.query("DELETE FROM memory_embeddings WHERE memory_item_id = $1", [input.memory_id]);
@@ -79,17 +85,22 @@ server.setRequestHandler(
               return { content: [{ type: "text", text: `Deleted ${input.memory_id}` }] };
             case "archive":
               await db.query(
-                "UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW(), source_path = $2 WHERE id = $1",
-                [input.memory_id, "memory-engine/manage/archive"]
+                `UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW(),
+                 invocation_id = $2, provider = $3, model = $4, source_path = $5 WHERE id = $1`,
+                [input.memory_id, invId, prov, mdl, srcPath]
               );
               return { content: [{ type: "text", text: `Archived ${input.memory_id}` }] };
             case "update_tags":
-              await db.query("UPDATE memory_items SET tags = $1, updated_at = NOW(), source_path = $3 WHERE id = $2",
-                [input.tags, input.memory_id, "memory-engine/manage/update-tags"]);
+              await db.query(
+                `UPDATE memory_items SET tags = $1, updated_at = NOW(),
+                 invocation_id = $3, provider = $4, model = $5, source_path = $6 WHERE id = $2`,
+                [input.tags, input.memory_id, invId, prov, mdl, srcPath]);
               return { content: [{ type: "text", text: `Tags updated` }] };
             case "update_trust_level":
-              await db.query("UPDATE memory_items SET trust_level = $1, updated_at = NOW(), source_path = $3 WHERE id = $2",
-                [input.trust_level, input.memory_id, "memory-engine/manage/update-trust"]);
+              await db.query(
+                `UPDATE memory_items SET trust_level = $1, updated_at = NOW(),
+                 invocation_id = $3, provider = $4, model = $5, source_path = $6 WHERE id = $2`,
+                [input.trust_level, input.memory_id, invId, prov, mdl, srcPath]);
               return { content: [{ type: "text", text: `Trust level -> ${input.trust_level}` }] };
           }
           break;

@@ -1,3 +1,17 @@
+const PROVENANCE_SCHEMA = {
+  type: "object",
+  description: "Provenance object from caller (invocation_id, provider, model, reasoning, was_fallback, source_path, timestamp)",
+  properties: {
+    invocation_id: { type: "string", format: "uuid" },
+    provider: { type: "string" },
+    model: { type: "string" },
+    reasoning: { type: "string" },
+    was_fallback: { type: "boolean" },
+    source_path: { type: "string" },
+    timestamp: { type: "string" },
+  },
+};
+
 export const MEMORY_TOOL_DEFINITIONS = [
   {
     name: "capture_memory",
@@ -11,6 +25,7 @@ export const MEMORY_TOOL_DEFINITIONS = [
         tags: { type: "array", items: { type: "string" }, default: [] },
         trust_level: { type: "string", enum: ["working", "reviewed", "locked"], default: "working" },
         skip_dedup: { type: "boolean", default: false },
+        provenance: PROVENANCE_SCHEMA,
       },
       required: ["content"],
     },
@@ -26,6 +41,7 @@ export const MEMORY_TOOL_DEFINITIONS = [
         content_type: { type: "string", enum: ["text", "decision", "intent", "context", "lesson", "convention", "requirement", "note"] },
         semantic_weight: { type: "number", minimum: 0, maximum: 1, default: 0.7 },
         max_results: { type: "number", minimum: 1, maximum: 100, default: 10 },
+        provenance: PROVENANCE_SCHEMA,
       },
       required: ["query"],
     },
@@ -39,6 +55,7 @@ export const MEMORY_TOOL_DEFINITIONS = [
         scope: { type: "string" },
         content_type: { type: "string" },
         limit: { type: "number", default: 50 },
+        provenance: PROVENANCE_SCHEMA,
       },
     },
   },
@@ -52,6 +69,7 @@ export const MEMORY_TOOL_DEFINITIONS = [
         content_type: { type: "string" },
         limit: { type: "number", default: 20 },
         offset: { type: "number", default: 0 },
+        provenance: PROVENANCE_SCHEMA,
       },
     },
   },
@@ -66,6 +84,7 @@ export const MEMORY_TOOL_DEFINITIONS = [
         tags: { type: "array", items: { type: "string" } },
         trust_level: { type: "string", enum: ["working", "reviewed", "locked"] },
         reason: { type: "string" },
+        provenance: PROVENANCE_SCHEMA,
       },
       required: ["action", "memory_id"],
     },

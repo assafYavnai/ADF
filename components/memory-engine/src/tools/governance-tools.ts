@@ -1,6 +1,21 @@
 import { pool } from "../db/connection.js";
 import { GovernanceManageInput } from "../schemas/governance.js";
 import { resolveScope, scopeFilterSQL } from "../services/scope.js";
+import { LEGACY_PROVENANCE, type Provenance } from "../provenance.js";
+
+function extractProvenance(args: Record<string, unknown>): Provenance {
+  const p = args.provenance as Record<string, unknown> | undefined;
+  if (!p) return { ...LEGACY_PROVENANCE, source_path: `memory-engine/governance/unknown` };
+  return {
+    invocation_id: (p.invocation_id as string) ?? LEGACY_PROVENANCE.invocation_id,
+    provider: (p.provider as Provenance["provider"]) ?? "system",
+    model: (p.model as string) ?? "none",
+    reasoning: (p.reasoning as string) ?? "none",
+    was_fallback: (p.was_fallback as boolean) ?? false,
+    source_path: (p.source_path as string) ?? "memory-engine/governance/unknown",
+    timestamp: (p.timestamp as string) ?? new Date().toISOString(),
+  };
+}
 
 const FAMILY_TABLE: Record<string, string> = {
   rule: "memory_items",
@@ -16,6 +31,7 @@ export async function handleGovernance(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
   const input = GovernanceManageInput.parse(args);
+  const prov = extractProvenance(args);
 
   switch (input.action) {
     case "list":
@@ -23,7 +39,7 @@ export async function handleGovernance(
     case "get":
       return getGovernance(input);
     case "create":
-      return createGovernance(input);
+      return createGovernance(input, prov);
     case "search":
       return searchGovernance(input);
     default:
@@ -60,7 +76,7 @@ async function getGovernance(input: GovernanceManageInput) {
   return { content: [{ type: "text", text: JSON.stringify(rows[0], null, 2) }] };
 }
 
-async function createGovernance(input: GovernanceManageInput) {
+async function createGovernance(input: GovernanceManageInput, prov: Provenance) {
   if (!input.title) throw new Error("title required for create");
   const { randomUUID } = await import("node:crypto");
   const id = randomUUID();
@@ -70,8 +86,10 @@ async function createGovernance(input: GovernanceManageInput) {
     `INSERT INTO memory_items (id, content, content_type, trust_level, scope_level, tags, context_priority, compression_policy,
        invocation_id, provider, model, reasoning, was_fallback, source_path)
      VALUES ($1, $2, $3, 'working', 'organization', $4, 'p0', 'full',
-       '00000000-0000-0000-0000-000000000000', 'system', 'none', 'none', FALSE, $5)`,
-    [id, JSON.stringify(content), input.family, input.tags ?? [], `memory-engine/governance/${input.family}/create`]
+       $5, $6, $7, $8, $9, $10)`,
+    [id, JSON.stringify(content), input.family, input.tags ?? [],
+     prov.invocation_id, prov.provider, prov.model, prov.reasoning,
+     prov.was_fallback, prov.source_path]
   );
 
   return { content: [{ type: "text", text: JSON.stringify({ id, status: "created" }, null, 2) }] };
@@ -135,6 +153,7 @@ function governanceSchema(family: string) {
       status: { type: "string" },
       query: { type: "string" },
       tags: { type: "array", items: { type: "string" } },
+      provenance: { type: "object", description: "Provenance object from caller" },
     },
     required: ["action"],
   };
