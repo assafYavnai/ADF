@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.1",
+  "tool_name": "llm-tool-builder",
+  "tool_slug": "llm-tool-builder",
+  "operation": "create",
+  "goal": "Register llm-tool-builder with imported role from ProjectBrain. Role will be superseded by a governed version created through agent-role-builder in a future step.",
+  "business_context": "llm-tool-builder needs to be a governed tool. Importing the existing role from ProjectBrain as a starting point, to be replaced by a governed version later.",
+  "owner": "COO",
+  "entry_point": "tools/llm-tool-builder/src/index.ts",
+  "baseline_contract_path": null,
+  "imported_role_directory": "tools/llm-tool-builder/role",
+  "role_directory": "C:\\ADF\\tools\\llm-tool-builder\\role",
+  "skip_build_agent_role": false,
+  "required_outputs": [
+    "tools/llm-tool-builder/tool-contract.json"
+  ],
+  "notes": [
+    "Role imported from ProjectBrain ADF/COO/roles/tool-builder.md",
+    "To be superseded by governed version via agent-role-builder"
+  ],
+  "generated_at_utc": "2026-03-27T12:27:39.516Z",
+  "previous_contract": null
+}

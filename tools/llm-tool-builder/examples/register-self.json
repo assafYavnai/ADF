@@ -1,0 +1,20 @@
+{
+  "schema_version": "2.1",
+  "operation": "create",
+  "job_id": "register-llm-tool-builder-001",
+  "tool_name": "llm-tool-builder",
+  "tool_slug": "llm-tool-builder",
+  "tool_root": "tools/llm-tool-builder",
+  "goal": "Register llm-tool-builder with imported role from ProjectBrain. Role will be superseded by a governed version created through agent-role-builder in a future step.",
+  "business_context": "llm-tool-builder needs to be a governed tool. Importing the existing role from ProjectBrain as a starting point, to be replaced by a governed version later.",
+  "owner": "COO",
+  "entry_point": "tools/llm-tool-builder/src/index.ts",
+  "import_existing_role": "tools/llm-tool-builder/role",
+  "notes": [
+    "Role imported from ProjectBrain ADF/COO/roles/tool-builder.md",
+    "To be superseded by governed version via agent-role-builder"
+  ],
+  "required_outputs": [
+    "tools/llm-tool-builder/tool-contract.json"
+  ]
+}

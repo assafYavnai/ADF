@@ -1,24 +1,21 @@
 {
   "schema_version": "2.1",
+  "operation": "update",
+  "job_id": "attach-role-agent-role-builder-001",
   "tool_name": "agent-role-builder",
   "tool_slug": "agent-role-builder",
-  "operation": "update",
+  "tool_root": "tools/agent-role-builder",
   "goal": "Attach the governed role package to agent-role-builder, replacing the bootstrap registration.",
   "business_context": "agent-role-builder created its own role through 9 rounds of governed multi-LLM review. The role is now promoted. This update attaches it formally, completing the bootstrap sequence.",
   "owner": "COO",
   "entry_point": "tools/agent-role-builder/src/index.ts",
-  "baseline_contract_path": null,
-  "imported_role_directory": "tools/agent-role-builder/role",
-  "role_directory": "C:\\ADF\\tools\\agent-role-builder\\role",
-  "skip_build_agent_role": false,
-  "required_outputs": [
-    "tools/agent-role-builder/tool-contract.json"
-  ],
+  "import_existing_role": "tools/agent-role-builder/role",
   "notes": [
     "Replaces bootstrap mode registration with governed role",
     "Role was created by agent-role-builder itself (dog food)",
     "Evidence: 4 runs, 9 review rounds, 24+ improvements applied"
   ],
-  "generated_at_utc": "2026-03-27T12:26:51.311Z",
-  "previous_contract": null
+  "required_outputs": [
+    "tools/agent-role-builder/tool-contract.json"
+  ]
 }
