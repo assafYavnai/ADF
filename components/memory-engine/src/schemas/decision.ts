@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProvenanceSchema } from "../provenance.js";
 
 export const DecisionAlternative = z.object({
   option: z.string(),
@@ -15,6 +16,7 @@ export const LogDecisionInput = z.object({
   scope: z.string().optional(),
   tags: z.array(z.string()).default([]),
   decided_by: z.string().default("ceo"),
+  provenance: ProvenanceSchema.optional(),
 });
 export type LogDecisionInput = z.infer<typeof LogDecisionInput>;
 

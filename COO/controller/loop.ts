@@ -35,7 +35,7 @@ export interface ControllerConfig {
   memoryDir: string;
   classifierParams: Omit<InvocationParams, "prompt" | "source_path">;
   intelligenceParams: Omit<InvocationParams, "prompt" | "source_path">;
-  brainSearch?: (query: string) => Promise<BrainSearchResult[]>;
+  brainSearch?: (query: string, provenance: Provenance) => Promise<BrainSearchResult[]>;
   brainCapture?: (content: string, contentType: string, tags: string[], provenance: Provenance) => Promise<unknown>;
   brainLogDecision?: (title: string, reasoning: string, alternatives: unknown[], provenance: Provenance) => Promise<unknown>;
   brainCreateRule?: (title: string, body: string, tags: string[], provenance: Provenance) => Promise<unknown>;
@@ -233,7 +233,7 @@ async function handleMemoryOperation(
       thread.events.push(createEvent("memory_operation", {
         operation: "search", input: { query: userMessage },
       }, classifierProv));
-      const results = await config.brainSearch(userMessage);
+      const results = await config.brainSearch(userMessage, classifierProv);
       if (results.length === 0) return "No relevant memories found.";
       const summary = results.slice(0, 5)
         .map((r, i) => `${i + 1}. [${r.content_type}] ${r.preview}`)

@@ -13,8 +13,8 @@ export type BoardParticipant = z.infer<typeof BoardParticipant>;
 export const BoardRoster = z.object({
   profile: BoardProfile,
   leader_count: z.literal(1),
-  reviewer_count: z.number().refine((n) => [0, 2, 4, 6].includes(n), {
-    message: "reviewer_count must be 0, 2, 4, or 6 (pair-based growth)",
+  reviewer_count: z.number().refine((n) => [2, 4, 6].includes(n), {
+    message: "reviewer_count must be 2, 4, or 6 (at least one Codex/Claude reviewer pair)",
   }),
   growth_rule: z.string().default("reviewers grow in Codex/Claude pairs only"),
   leader: BoardParticipant,

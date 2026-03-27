@@ -71,6 +71,7 @@ export const SearchMemoryInput = z.object({
   content_type: ContentType.optional(),
   semantic_weight: z.number().min(0).max(1).default(0.7),
   max_results: z.number().min(1).max(100).default(10),
+  provenance: ProvenanceSchema.optional(),
 });
 export type SearchMemoryInput = z.infer<typeof SearchMemoryInput>;
 
@@ -80,5 +81,6 @@ export const MemoryManageInput = z.object({
   tags: z.array(z.string()).optional(),
   trust_level: TrustLevel.optional(),
   reason: z.string().optional(),
+  provenance: ProvenanceSchema.optional(),
 });
 export type MemoryManageInput = z.infer<typeof MemoryManageInput>;

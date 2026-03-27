@@ -1,16 +1,15 @@
 {
   "name": "@adf/coo",
   "version": "0.1.0",
-  "description": "ADF COO — deterministic controller and reasoning layer",
+  "description": "ADF COO - deterministic controller and reasoning layer",
   "type": "module",
-  "main": "dist/loop.js",
+  "main": "dist/COO/controller/cli.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/loop.ts",
-    "start": "node dist/loop.js"
+    "dev": "tsx watch controller/cli.ts",
+    "start": "node dist/COO/controller/cli.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.52.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {

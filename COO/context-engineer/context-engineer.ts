@@ -2,6 +2,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Thread } from "../controller/thread.js";
 import { serializeForLLM } from "../controller/thread.js";
+import { createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
 
 /**
  * Context Engineer — assembles per-turn LLM context from all 3 tiers.
@@ -23,7 +24,7 @@ export interface ContextEngineerConfig {
   projectRoot: string;
   promptsDir: string;
   memoryDir: string;
-  brainSearch?: (query: string) => Promise<BrainSearchResult[]>;
+  brainSearch?: (query: string, provenance: Provenance) => Promise<BrainSearchResult[]>;
   maxKnowledgeItems?: number;
 }
 
@@ -101,10 +102,13 @@ async function loadSystemPrompt(
   config: ContextEngineerConfig
 ): Promise<string> {
   try {
-    const promptPath = join(config.promptsDir, "coo-system.md");
-    return await readFile(promptPath, "utf-8");
+    return await readFile(join(config.promptsDir, "prompt.md"), "utf-8");
   } catch {
-    return getDefaultSystemPrompt();
+    try {
+      return await readFile(join(config.promptsDir, "coo-system.md"), "utf-8");
+    } catch {
+      return getDefaultSystemPrompt();
+    }
   }
 }
 
@@ -130,7 +134,10 @@ async function loadKnowledge(
 
   try {
     const maxItems = config.maxKnowledgeItems ?? 10;
-    const results = await config.brainSearch(query);
+    const results = await config.brainSearch(
+      query,
+      createSystemProvenance("COO/context-engineer/load-knowledge")
+    );
     const topResults = results.slice(0, maxItems);
 
     if (topResults.length === 0) return "";
