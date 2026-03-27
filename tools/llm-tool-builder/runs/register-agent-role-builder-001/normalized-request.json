@@ -1,0 +1,20 @@
+{
+  "schema_version": "2.1",
+  "operation": "create",
+  "job_id": "register-agent-role-builder-001",
+  "tool_name": "agent-role-builder",
+  "tool_slug": "agent-role-builder",
+  "tool_root": "tools/agent-role-builder",
+  "goal": "Register agent-role-builder as a governed tool in bootstrap mode. Role creation is deferred.",
+  "business_context": "agent-role-builder is the first tool in the ADF bootstrap sequence. It must be registered before it can create its own role (chicken-and-egg). This registration uses bootstrap mode (skip_build_agent_role=true) as a documented exception.",
+  "owner": "COO",
+  "entry_point": "tools/agent-role-builder/src/index.ts",
+  "skip_build_agent_role": true,
+  "notes": [
+    "Bootstrap mode: role creation deferred. Will be attached in subsequent step.",
+    "See docs/v0/context/step2e-tool-bootstrap-plan.md for full bootstrap sequence."
+  ],
+  "required_outputs": [
+    "tools/agent-role-builder/tool-contract.json"
+  ]
+}
