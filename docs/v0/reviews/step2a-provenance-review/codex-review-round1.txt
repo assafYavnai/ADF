@@ -1,0 +1,46 @@
+FAIL. The shared provenance primitives are correct in [types.ts](C:/ADF/shared/provenance/types.ts), [invoker.ts](C:/ADF/shared/llm-invoker/invoker.ts), [collector.ts](C:/ADF/shared/telemetry/collector.ts), and [thread.ts](C:/ADF/COO/controller/thread.ts), and every current `createEvent(...)` / `emit(...)` call site passes provenance. The failures are in the memory-engine DB write layer and the MCP tool boundary.
+
+1. DB writes (`INSERT`/`UPDATE`) in runtime source
+- [collector.ts#L80](C:/ADF/shared/telemetry/collector.ts#L80): `INSERT INTO telemetry` — Yes.
+- [telemetry-tools.ts#L9](C:/ADF/components/memory-engine/src/tools/telemetry-tools.ts#L9): `INSERT INTO telemetry` — Yes.
+- [capture.ts#L63](C:/ADF/components/memory-engine/src/services/capture.ts#L63): `INSERT INTO memory_items` — Yes.
+- [capture.ts#L95](C:/ADF/components/memory-engine/src/services/capture.ts#L95): `INSERT INTO memory_embeddings` — No.
+- [decision-tools.ts#L32](C:/ADF/components/memory-engine/src/tools/decision-tools.ts#L32): `INSERT INTO memory_items` — Yes.
+- [decision-tools.ts#L55](C:/ADF/components/memory-engine/src/tools/decision-tools.ts#L55): `INSERT INTO decisions` — No.
+- [decision-tools.ts#L71](C:/ADF/components/memory-engine/src/tools/decision-tools.ts#L71): `INSERT INTO memory_embeddings` — No.
+- [governance-tools.ts#L70](C:/ADF/components/memory-engine/src/tools/governance-tools.ts#L70): `INSERT INTO memory_items` — Yes.
+- [server.ts#L82](C:/ADF/components/memory-engine/src/server.ts#L82): `UPDATE memory_items SET tags = array_append(...)` — No.
+- [server.ts#L87](C:/ADF/components/memory-engine/src/server.ts#L87): `UPDATE memory_items SET tags = ...` — No.
+- [server.ts#L90](C:/ADF/components/memory-engine/src/server.ts#L90): `UPDATE memory_items SET trust_level = ...` — No.
+
+2. `createEvent(...)` calls
+- [loop.ts#L79](C:/ADF/COO/controller/loop.ts#L79): `user_input` — Yes.
+- [loop.ts#L84](C:/ADF/COO/controller/loop.ts#L84): `coo_response` escalation — Yes.
+- [loop.ts#L110](C:/ADF/COO/controller/loop.ts#L110): `classifier_result` — Yes.
+- [loop.ts#L145](C:/ADF/COO/controller/loop.ts#L145): final `coo_response` — Yes.
+- [loop.ts#L165](C:/ADF/COO/controller/loop.ts#L165): `error` — Yes.
+- [loop.ts#L198](C:/ADF/COO/controller/loop.ts#L198): `memory_operation` capture — Yes.
+- [loop.ts#L213](C:/ADF/COO/controller/loop.ts#L213): `memory_operation` log_decision — Yes.
+- [loop.ts#L224](C:/ADF/COO/controller/loop.ts#L224): `memory_operation` make_rule — Yes.
+- [loop.ts#L233](C:/ADF/COO/controller/loop.ts#L233): `memory_operation` search/context_load — Yes.
+- [loop.ts#L276](C:/ADF/COO/controller/loop.ts#L276): `human_request` — Yes.
+
+3. `emit(...)` calls
+- [loop.ts#L149](C:/ADF/COO/controller/loop.ts#L149): turn success metric — Yes.
+- [loop.ts#L174](C:/ADF/COO/controller/loop.ts#L174): turn failure metric — Yes.
+- [index.ts#L118](C:/ADF/tools/agent-role-builder/src/index.ts#L118): tool summary metric — Yes.
+- [board.ts#L150](C:/ADF/tools/agent-role-builder/src/services/board.ts#L150): participant success metric — Yes.
+- [board.ts#L174](C:/ADF/tools/agent-role-builder/src/services/board.ts#L174): participant failure metric — Yes.
+
+4. Gaps
+- [capture_memory](C:/ADF/components/memory-engine/src/tools/memory-tools.ts#L3) does not publish `provenance` in its MCP schema, [CaptureMemoryInput](C:/ADF/components/memory-engine/src/schemas/memory-item.ts#L55) makes provenance optional, and [capture.ts#L61](C:/ADF/components/memory-engine/src/services/capture.ts#L61) falls back to `LEGACY_PROVENANCE`. That means real caller provenance is not enforced.
+- [log_decision](C:/ADF/components/memory-engine/src/schemas/decision.ts#L11) accepts no provenance. Its [memory_items insert](C:/ADF/components/memory-engine/src/tools/decision-tools.ts#L32) hardcodes sentinel/system provenance instead of using caller provenance, and its [decisions insert](C:/ADF/components/memory-engine/src/tools/decision-tools.ts#L55) plus [memory_embeddings insert](C:/ADF/components/memory-engine/src/tools/decision-tools.ts#L71) carry no provenance columns at all.
+- Governance create paths accept no provenance in [GovernanceManageInput](C:/ADF/components/memory-engine/src/schemas/governance.ts#L14), and [createGovernance](C:/ADF/components/memory-engine/src/tools/governance-tools.ts#L70) hardcodes sentinel/system provenance instead of forwarding caller provenance.
+- `memory_manage` accepts no provenance in [MemoryManageInput](C:/ADF/components/memory-engine/src/schemas/memory-item.ts#L75), and all three runtime `UPDATE memory_items` statements in [server.ts](C:/ADF/components/memory-engine/src/server.ts#L71) omit `invocation_id`, `provider`, `model`, `reasoning`, `was_fallback`, and `source_path`.
+- Search/context MCP calls are not provenance-complete. `brainSearch` has no provenance parameter in [loop.ts#L38](C:/ADF/COO/controller/loop.ts#L38) and [context-engineer.ts#L26](C:/ADF/COO/context-engineer/context-engineer.ts#L26), and the MCP schemas for [search_memory / get_context_summary / list_recent / memory_manage](C:/ADF/components/memory-engine/src/tools/memory-tools.ts#L19) expose no provenance field.
+- [emit_metric](C:/ADF/components/memory-engine/src/tools/telemetry-tools.ts#L128) does not require provenance, and [handleEmitMetric](C:/ADF/components/memory-engine/src/tools/telemetry-tools.ts#L6) silently substitutes sentinel/system values when it is missing. `query_metrics` and `get_cost_summary` also expose no provenance on the MCP boundary in [telemetry-tools.ts#L147](C:/ADF/components/memory-engine/src/tools/telemetry-tools.ts#L147) and [telemetry-tools.ts#L163](C:/ADF/components/memory-engine/src/tools/telemetry-tools.ts#L163).
+
+5. Grade
+- FAIL
+
+Note: [thread.ts#L9](C:/ADF/COO/controller/thread.ts#L9) correctly requires provenance on `BaseEvent`, every current `createEvent(...)` call in [loop.ts](C:/ADF/COO/controller/loop.ts) passes provenance, and I found no `emit(...)` call missing provenance. [cli.ts](C:/ADF/COO/controller/cli.ts) has no provenance-field omission of its own.

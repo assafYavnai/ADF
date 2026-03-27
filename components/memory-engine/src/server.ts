@@ -79,16 +79,18 @@ server.setRequestHandler(
               return { content: [{ type: "text", text: `Deleted ${input.memory_id}` }] };
             case "archive":
               await db.query(
-                "UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW() WHERE id = $1",
-                [input.memory_id]
+                "UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW(), source_path = $2 WHERE id = $1",
+                [input.memory_id, "memory-engine/manage/archive"]
               );
               return { content: [{ type: "text", text: `Archived ${input.memory_id}` }] };
             case "update_tags":
-              await db.query("UPDATE memory_items SET tags = $1, updated_at = NOW() WHERE id = $2", [input.tags, input.memory_id]);
+              await db.query("UPDATE memory_items SET tags = $1, updated_at = NOW(), source_path = $3 WHERE id = $2",
+                [input.tags, input.memory_id, "memory-engine/manage/update-tags"]);
               return { content: [{ type: "text", text: `Tags updated` }] };
             case "update_trust_level":
-              await db.query("UPDATE memory_items SET trust_level = $1, updated_at = NOW() WHERE id = $2", [input.trust_level, input.memory_id]);
-              return { content: [{ type: "text", text: `Trust level → ${input.trust_level}` }] };
+              await db.query("UPDATE memory_items SET trust_level = $1, updated_at = NOW(), source_path = $3 WHERE id = $2",
+                [input.trust_level, input.memory_id, "memory-engine/manage/update-trust"]);
+              return { content: [{ type: "text", text: `Trust level -> ${input.trust_level}` }] };
           }
           break;
         }
