@@ -1,6 +1,6 @@
 # Step 2: Intelligence — Tools, Roles, LLM Wiring
 
-Status: **planned**
+Status: **in progress** (Phase 2a-2d complete, 2e-2g pending CEO roles)
 Last updated: 2026-03-27
 
 ---
