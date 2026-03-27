@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "role_slug": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-003",
+  "next_step": "resume_board_review",
+  "unresolved": [
+    "Align Step 3 self-check claims with the actual validator/generator behavior, or expand the implementation so the claimed checks are real; the reported clean self-check pass is not credible as written.",
+    "Resolve authority modeling mechanically: clarify the relationship between `reports_to`, `authority.subordinate_to`, and governing references, and remove the ambiguity between board-review orchestration ownership and review-execution ownership.",
+    "Make the full contract reviewable and complete for reviewers, including `board_roster`, `source_refs`, `required_outputs`, canonical promotion targets, and emitted package paths.",
+    "Define the exact preservation mechanism for prior frozen decision history and board-summary history on `update` and `fix` runs.",
+    "Define or cite the authoritative meaning of `Codex` in `Codex+Claude reviewer pairs` so participant identity is machine-resolvable.",
+    "Clarify whether the role package describes current implementation truth or target-state behavior; that answer affects whether Step 2 and Step 3 claims are acceptable."
+  ],
+  "latest_markdown_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\agent-role-builder-role.md",
+  "latest_contract_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\agent-role-builder-role-contract.json",
+  "latest_board_summary_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\agent-role-builder-board-summary.md",
+  "latest_decision_log_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\agent-role-builder-decision-log.md",
+  "round_files": [
+    "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\rounds\\round-0.json",
+    "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\rounds\\round-1.json",
+    "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-003\\rounds\\round-2.json"
+  ]
+}

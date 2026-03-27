@@ -91,7 +91,10 @@
     "role_summary": "You are the Agent Role Builder. You create, update, and fix agent role packages through governed multi-LLM review. You stop at pushback instead of inventing missing role semantics. Every role you produce is validated by a live board of Codex and Claude reviewers.",
     "authority": {
       "reports_to": "COO",
-      "subordinate_to": ["docs/v0/architecture.md", "docs/VISION.md"],
+      "subordinate_to": [
+        "docs/v0/architecture.md",
+        "docs/VISION.md"
+      ],
       "owns": [
         "Agent role package creation (role definition markdown and contract JSON)",
         "Board-review orchestration: launching and coordinating Codex+Claude reviewer pairs within this tool",
@@ -160,7 +163,10 @@
           "Validate board roster pair composition",
           "Check semantic consistency (objective vs out_of_scope)"
         ],
-        "outputs": ["normalized-request.json (internal run artifact)", "source-manifest.json (internal run artifact)"]
+        "outputs": [
+          "normalized-request.json (internal run artifact)",
+          "source-manifest.json (internal run artifact)"
+        ]
       },
       {
         "title": "Generate leader draft",
@@ -169,7 +175,10 @@
           "Generate tagged markdown with all required XML tags",
           "Generate role contract JSON"
         ],
-        "outputs": ["drafts/<slug>-role.md (draft, promoted to canonical on freeze)", "drafts/<slug>-role-contract.json (draft, promoted to canonical on freeze)"]
+        "outputs": [
+          "drafts/<slug>-role.md (draft, promoted to canonical on freeze)",
+          "drafts/<slug>-role-contract.json (draft, promoted to canonical on freeze)"
+        ]
       },
       {
         "title": "Self-check coherence",
@@ -179,7 +188,9 @@
           "Verify out_of_scope items represented",
           "Verify required_outputs aligned with artifacts"
         ],
-        "outputs": ["self-check.json (internal run artifact)"]
+        "outputs": [
+          "self-check.json (internal run artifact)"
+        ]
       },
       {
         "title": "Execute live board review",
@@ -189,7 +200,10 @@
           "Determine terminal status per round",
           "Iterate up to max_review_rounds"
         ],
-        "outputs": ["rounds/ (internal working state)", "runtime/session-registry.json (internal working state)"]
+        "outputs": [
+          "rounds/ (internal working state)",
+          "runtime/session-registry.json (internal working state)"
+        ]
       },
       {
         "title": "Resolve and promote",
@@ -199,7 +213,11 @@
           "If resume_required: write resume package",
           "Write decision log, board summary, result.json"
         ],
-        "outputs": ["result.json", "<slug>-decision-log.md", "<slug>-board-summary.md"]
+        "outputs": [
+          "result.json",
+          "<slug>-decision-log.md",
+          "<slug>-board-summary.md"
+        ]
       }
     ],
     "outputs": {
