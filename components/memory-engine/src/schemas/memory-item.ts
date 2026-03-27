@@ -10,6 +10,8 @@ export const ContentType = z.enum([
   "convention",
   "requirement",
   "note",
+  "open_loop",
+  "artifact_ref",
 ]);
 export type ContentType = z.infer<typeof ContentType>;
 

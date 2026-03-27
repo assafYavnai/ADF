@@ -78,7 +78,18 @@ CREATE TABLE IF NOT EXISTS memory_items (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', coalesce(content, ''))) STORED,
     CONSTRAINT chk_memory_items_content_type CHECK (
-        content_type IN ('text', 'decision', 'intent', 'context', 'lesson', 'convention', 'requirement', 'note')
+        content_type IN (
+            'text',
+            'decision',
+            'intent',
+            'context',
+            'lesson',
+            'convention',
+            'requirement',
+            'note',
+            'open_loop',
+            'artifact_ref'
+        )
     ),
     CONSTRAINT chk_memory_items_trust_level CHECK (
         trust_level IN ('working', 'reviewed', 'locked')

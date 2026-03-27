@@ -24,6 +24,7 @@ export function resolveContextPriority(
   if (
     contentType === "requirement" ||
     contentType === "convention" ||
+    contentType === "open_loop" ||
     normalizedTags.some((t) => HIGH_PRIORITY_TAGS.has(t))
   ) {
     return "p0";
