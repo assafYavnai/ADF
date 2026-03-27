@@ -14,8 +14,8 @@ A component is a top-level bounded system within ADF. Each component has its own
 | **COO** | `COO/` | The user-facing operational core. Deterministic controller + LLM-powered reasoning. The CEO talks to the COO. |
 | **Memory Engine** | `components/memory-engine/` | Durable knowledge store. PostgreSQL + pgvector + MCP server. Semantic search, decisions, rules, governance. |
 | **Shared** | `shared/` | Project-wide utilities callable by any component or external user. Not a component itself — infrastructure. |
-| **Role Builder** | `tools/role-builder/` | Governed tool for creating agent role packages. Live multi-LLM review board. Every agent role must be created through this tool. |
-| **Tool Builder** | `tools/tool-builder/` | Governed tool for creating specialist tools. Contract-based, schema-validated, with after-action review. |
+| **agent-role-builder** | `tools/agent-role-builder/` | Governed tool for creating agent role packages. Live multi-LLM review board. Every agent role must be created through this tool. Creates its own role as first act (eats own dog food). |
+| **llm-tool-builder** | `tools/llm-tool-builder/` | Governed tool for creating LLM-powered tools. Contract-based, schema-validated, with after-action review. Always calls agent-role-builder — no tool exists without a role. |
 
 ## Layers (COO Internal)
 

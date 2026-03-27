@@ -143,6 +143,28 @@ Roles are created via governed multi-LLM review (Codex + Claude pairs), validate
 
 See [components-and-layers.md](components-and-layers.md) for the full component/layer taxonomy.
 
+### No Shortcuts Rule
+
+**No component is done until it has been through its own governance process and the evidence exists.** This means:
+
+- No manual seeds, no happy path assumptions, no deferred fixes
+- Every tool must eat its own dog food
+- Evidence-based development: if there is no artifact proving it works, it does not work
+- This applies to every tool, role, and component without exception
+- If something cannot be fully completed now, it probably never will be — do it right the first time
+
+### Tool Integration Rule
+
+**llm-tool-builder must always call agent-role-builder** when creating a new tool. Every LLM tool gets a governed role. No tool exists without a role.
+
+**agent-role-builder creates its own role** as the first act of the system — proving it works by eating its own dog food.
+
+Bootstrap order:
+1. agent-role-builder creates its own role (proves it works)
+2. llm-tool-builder is fixed to always call agent-role-builder
+3. llm-tool-builder(update) attaches the role from step 1 to agent-role-builder
+4. Verify: both tools produced valid governed artifacts — evidence exists
+
 ### Telemetry Rule
 
 **Every operation that consumes resources must emit telemetry.** This includes:

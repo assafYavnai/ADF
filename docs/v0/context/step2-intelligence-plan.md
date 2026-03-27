@@ -64,8 +64,8 @@ ADF/
     tsconfig.json
 
   tools/
-    role-builder/                   # agent-role-builder (TS port)
-    tool-builder/                   # tool-builder (TS port)
+    agent-role-builder/             # agent-role-builder (TS port, creates its own role)
+    llm-tool-builder/               # llm-tool-builder (TS port, always calls agent-role-builder)
 
   components/
     memory-engine/                  # (already built)
@@ -122,9 +122,9 @@ ADF/
 - Remove `COO/src/`
 - Verify compile
 
-### Phase 2c: Import agent-role-builder to TypeScript
+### Phase 2c: Port agent-role-builder to TypeScript
 - Port from PowerShell (`C:\ProjectBrain\ADF\COO\tools\agent-role-builder\`) to TS
-- Place under `tools/role-builder/`
+- Place under `tools/agent-role-builder/`
 - Keep core architecture:
   - Live board with Codex+Claude reviewer pairs
   - Multi-round review with arbitration
@@ -134,14 +134,35 @@ ADF/
   - Decision log + board summary + after-action review
 - Uses `shared/llm-invoker/` for all CLI calls
 - Port 5 schemas to Zod
+- **First act: agent-role-builder creates its own role** (eats own dog food, proves it works)
 
-### Phase 2d: Import tool-builder to TypeScript
+### Phase 2d: Port llm-tool-builder to TypeScript
 - Port from PowerShell (`C:\ProjectBrain\ADF\COO\tools\tool-builder\`) to TS
-- Place under `tools/tool-builder/`
-- Uses same patterns as role-builder
-- Deep analysis needed before implementation (deferred to implementation time)
+- **Rename from tool-builder to llm-tool-builder** (it builds LLM tools, not generic utilities)
+- Place under `tools/llm-tool-builder/`
+- **Fix: must always call agent-role-builder** when creating a new tool — no tool exists without a role
+- Uses `shared/llm-invoker/` for all CLI calls
+- Deep analysis of existing tool-builder needed before implementation
 
-### Phase 2e: Create COO roles via role-builder
+### Phase 2e: Bootstrap verification (no shortcuts)
+This is the evidence-based validation that the tools work:
+
+1. **agent-role-builder creates its own role** — proves agent-role-builder works
+   - Input: role definition request for agent-role-builder itself
+   - Output: frozen role package at `tools/agent-role-builder/role/`
+   - Evidence: role.md + role-contract.json + decision-log.md + board-summary.md
+
+2. **llm-tool-builder(update) attaches the role to agent-role-builder** — proves llm-tool-builder works and integrates with agent-role-builder
+   - Input: update request for agent-role-builder with role from step 1
+   - Output: updated tool package
+   - Evidence: tool contract + role contract aligned
+
+3. **llm-tool-builder creates tool-builder's own role via agent-role-builder** — proves the integration pipeline end-to-end
+   - Evidence: llm-tool-builder has a governed role created through agent-role-builder
+
+4. **Verify all artifacts** — no artifact = not done
+
+### Phase 2f: Create COO roles via agent-role-builder
 - Build **Intelligence role** (COO reasoning agent):
   - Authority: reports to CEO, owns execution/planning/memory operations
   - Scope: executive reasoning, structured responses, decision extraction
@@ -152,10 +173,11 @@ ADF/
   - Scope: classify user intent into workflow routing
   - Guardrails: JSON-only output, no actions, no reasoning beyond classification
 
-### Phase 2f: Wire controller loop + end-to-end test
+### Phase 2g: Wire controller loop + end-to-end test
 - Update `COO/controller/loop.ts` to use `shared/llm-invoker/`
 - Create `COO/controller/cli.ts` — REPL entry point
 - End-to-end test: user input → classify → context → COO response → thread commit
+- Telemetry verified: LLM UUIDs flowing through thread events and telemetry table
 
 ---
 
@@ -169,7 +191,7 @@ ADF/
 - Should the COO CLI entry point also start the memory engine server, or assume it's running separately?
 - Do we need `--no-color` or similar flag for clean stdout parsing from Claude?
 - Max buffer size for LLM responses — 10MB enough?
-- Tool-builder: what is the minimal port scope? Full board review or simplified for v1?
+- llm-tool-builder: what is the minimal port scope? Full contract governance or simplified for v1?
 - Gemini as third provider in review board — include now or defer?
 
 ## Files to Create/Modify
@@ -193,15 +215,19 @@ ADF/
 | `COO/context-engineer/context-engineer.ts` | move from src/, update imports |
 | `COO/shared/tools.ts` | move from src/, update imports |
 | `COO/controller/cli.ts` | create — REPL entry point |
-| `tools/role-builder/` | create — TS port of agent-role-builder |
-| `tools/tool-builder/` | create — TS port of tool-builder |
+| `tools/agent-role-builder/` | create — TS port, creates its own role first |
+| `tools/agent-role-builder/role/` | created BY agent-role-builder (eats own dog food) |
+| `tools/llm-tool-builder/` | create — TS port, renamed from tool-builder |
+| `tools/llm-tool-builder/role/` | created BY agent-role-builder via llm-tool-builder |
 
-## Tool Governance (carry forward from ProjectBrain)
+## Tool Governance (carry forward from ProjectBrain, updated)
 
-| Tool | Governance Model | Review Board? | Own Role? |
-|---|---|---|---|
-| **agent-role-builder** | Live multi-LLM review board (Codex+Claude pairs) | Yes — always | No (it IS the role creator, COO infrastructure) |
-| **tool-builder** | Contract-based autonomy, fire-and-forget | No (per-contract optional) | Yes — created through role-builder |
+| Tool | Governance Model | Review Board? | Own Role? | Role Created By |
+|---|---|---|---|---|
+| **agent-role-builder** | Live multi-LLM review board (Codex+Claude pairs) | Yes — always | Yes (creates its own) | Itself (first act, bootstrap) |
+| **llm-tool-builder** | Contract-based autonomy, fire-and-forget | No (per-contract optional) | Yes | agent-role-builder (via llm-tool-builder integration) |
+
+**Rule: llm-tool-builder must always call agent-role-builder** when creating a new tool. No tool exists without a governed role.
 
 Both tools carry forward their existing governance models. The learning cycle (after-action reviews → rule candidates → rules guide) ports as-is.
 
