@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS telemetry (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_telemetry_created_at ON telemetry (created_at DESC);
-CREATE INDEX idx_telemetry_category ON telemetry (category);
-CREATE INDEX idx_telemetry_source_path ON telemetry (source_path);
-CREATE INDEX idx_telemetry_invocation_id ON telemetry (invocation_id);
-CREATE INDEX idx_telemetry_provider_model ON telemetry (provider, model);
+CREATE INDEX IF NOT EXISTS idx_telemetry_created_at ON telemetry (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_telemetry_category ON telemetry (category);
+CREATE INDEX IF NOT EXISTS idx_telemetry_source_path ON telemetry (source_path);
+CREATE INDEX IF NOT EXISTS idx_telemetry_invocation_id ON telemetry (invocation_id);
+CREATE INDEX IF NOT EXISTS idx_telemetry_provider_model ON telemetry (provider, model);

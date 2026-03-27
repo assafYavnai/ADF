@@ -7,7 +7,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "migrate:status": "node dist/db/migrate.js status",
+    "migrate:apply": "node dist/db/migrate.js apply"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.0",
