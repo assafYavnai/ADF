@@ -1,80 +1,106 @@
-# ADF (Adaptive Development Framework) Vision
+# ADF Vision
 
-Status: living document
-Last updated: 2026-03-25
-Update authority: user approval required — agents may propose amendments but not change unilaterally
+Status: living strategic vision
+Last updated: 2026-03-27
+Update authority: user approval required - agents may propose amendments but not change unilaterally
 
 ## Mission Statement
 
-You are the CEO of your ideas, project, or company. ADF is your COO — he will make sure that what you want gets done.
+You are the CEO of your ideas, product, or company. ADF is the virtual company you can run in natural language.
 
-He will not make your life easy, as he wants to verify that he understands your true intent, and push back on decisions that don't make sense for him.
+It starts as your COO. Over time it grows into a disciplined company around you: executives, departments, workers, memory, governance, and operational infrastructure that can carry your intent into execution without losing the plot.
 
-As a COO, he will bring proofs to his work. No high words and false promises.
+ADF exists so a CEO does not have to personally hold every queue, dependency, handoff, and implementation detail in their head.
 
-The journey begins now as you learn each other's way of thought. ADF will adapt as fast as he can to the way you see the world.
+## Long-Range Vision
 
-## Vision
+ADF will become a virtual company operating system. The user remains the CEO. ADF provides the executive layer, the departments, the workers, and the durable company memory that let ideas turn into coordinated execution.
 
-ADF is a self-learning, self-healing, and self-improving framework for complicated implementations. Its goal is to deliver high-quality implementation from vague concepts to working code.
+The long-range product is not "one smart agent." It is a governed company in software:
 
-## Interface
+- a COO that always knows company state
+- a CTO that admits, sequences, and manages technical execution
+- a Board that verifies quality and catches drift
+- specialist departments and workers that execute bounded jobs
+- durable operational memory, telemetry, and governance that survive sessions and team changes
 
-The interface must resemble natural discussion, with permanent memory about concepts, ideas, goals, and targets. ADF's role is to help the user take a concept and turn it into production-level reality.
+## Why This Matters
 
-Discussion can be casual — a user starts to talk and request something — ADF needs to figure out what it is (a Feature, Task, Research, Bug fix) and create the flow as a background activity while the discussion continues. The user can also specifically ask for something, like a new feature.
+Most founders and project owners fail at the same seam: intent does not survive execution. State is scattered, queues drift, teams lose context, work conflicts, and every new session starts with reconstruction.
 
-## Starting Point
+ADF's job is to hold the company state so the CEO can keep moving.
 
-The starting point can be from an existing project (local or remote) or a new one. ADF is responsible to create the environment setup for the user.
+## Company Model
 
-## Organizational Model
+In the long run, ADF can support a fuller executive structure:
 
-ADF is the **COO** to the user's **CEO**.
+- CEO (user) - sets direction, priorities, and final decisions
+- COO - holds the operational picture, shapes demand, routes work, and keeps the company aligned
+- CTO - performs technical preflight, manages delivery admission and sequencing, and protects implementation reality
+- Board - reviews, audits, and prevents quality drift
+- Future executives such as CFO, CHO, or CMO - added only when a real operational loop exists and repeated workload justifies them
 
-The CEO (user) provides vision, goals, priorities, and decisions in natural language. The COO (ADF) translates that into executable plans, delegates to specialists, and ensures the CEO's intent survives through every layer of execution.
+ADF is not trying to simulate titles for their own sake. Every role must correspond to a real operating function, clear authority, and measurable value.
 
-- **CEO (user)** — provides goals, approves outcomes, makes strategic decisions
-- **COO (ADF core)** — routes, structures, orchestrates, translates between CEO language and technical execution
-- **CTO (designer/planner/implementer)** — receives structured briefings from the COO, produces technical artifacts
-- **Board (reviewers/auditors)** — verify that execution matches intent, catch drift
+## Phase Discipline
 
-The COO reports back to the CEO in CEO language, not technical jargon. The CEO's original words must always be traceable through to the delivered result.
+ADF will be built in phases.
 
-## Core Promise
+Phase 1 is intentionally narrow: build the startup that can reliably shape, queue, and ship implementation work.
 
-Whatever the case, the process and the results are predictable, coherent, and consistent.
+Later phases may add:
 
-## OS Agnostic
+- finance and cost governance
+- staffing and worker-capacity management
+- marketing and growth operations
+- broader business functions beyond software delivery
 
-ADF is OS-agnostic. It runs on any platform that supports Node.js and Bash. Bash is the primary shell and the entry point for the ADF CLI. PowerShell is used only for Windows-specific leaf tasks where Bash cannot reach. No core ADF behavior depends on a specific operating system.
+The rule is simple: do not broaden the company before the current company actually works.
 
-## Current Form and Future Direction
+## Product Shape
 
-ADF is currently a wrapper around projects. In the future it will be a full native application.
+The enduring product characteristics are:
 
-## Vision Enforcement
+- natural-language operation
+- durable company memory
+- governed role and tool creation
+- explicit queue, ownership, and audit
+- deterministic operational control with LLM reasoning in bounded places
+- continuous adaptation without silent drift
 
-Every feature, requirement, and design decision must be testable against this vision:
+## Business Horizon
 
-- **Does this support the vision?** — proceed
-- **Does this drift from or weaken the vision?** — stop and justify or redesign
-- **Does this extend the vision?** — propose a vision amendment for user approval
+ADF can grow from a founder/startup product into larger operating tiers over time.
 
-This check is a mandatory self-check gate before any artifact passes to review.
+Illustrative progression:
+
+- startup mode
+- small company mode
+- large company mode
+- enterprise or corporation mode
+
+Those are packaging outcomes, not the current implementation plan. The implementation plan must stay phase-bound.
+
+## Strategic Constraints
+
+Every proposal should be tested against this long-range vision:
+
+- Does this help build a real virtual company, or just another isolated agent trick?
+- Does this strengthen operational state, delegation, governance, or durable execution?
+- Does this fit the active phase, or is it a later-company function that should be logged and deferred?
+- Does the role or department correspond to a real repeated workload?
+
+If the answer is "later, not now," record it for the future instead of forcing it into the current phase.
 
 ## Amendment Process
 
 1. Agent identifies a potential vision update based on user discussion or project evolution
 2. Agent proposes the amendment with rationale
 3. User approves or rejects
-4. If approved, this document is updated with the amendment and a dated changelog entry
+4. If approved, this document is updated with a dated changelog entry
 
 ## Changelog
 
 | Date | Amendment | Approved by |
 |------|-----------|-------------|
-| 2026-03-25 | Initial vision statement created from user discussion during langgraph-intent-proof-gaps requirements gathering | User (verbal, meeting minutes Topic 10) |
-| 2026-03-25 | Added COO organizational model: ADF is the COO to the user's CEO | User (verbal, meeting minutes Topic 19) |
-| 2026-03-25 | Added mission statement in user's voice: CEO↔COO trust contract | User (written, meeting minutes Topic 19) |
-| 2026-03-26 | Added OS-agnostic statement: Bash primary shell, PowerShell for Windows-only leaf tasks | User (direct instruction) |
+| 2026-03-27 | Recast `VISION.md` as the long-range strategic vision for ADF as a virtual company operating system | User (direct instruction) |
