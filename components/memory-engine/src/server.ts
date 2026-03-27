@@ -1,5 +1,6 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { pool } from "./db/connection.js";
 import { checkServices, shutdown } from "./services/lifecycle.js";
 import { logger } from "./logger.js";
@@ -28,15 +29,15 @@ const ALL_TOOLS = [
 ];
 
 server.setRequestHandler(
-  { method: "tools/list" } as never,
+  ListToolsRequestSchema,
   async () => ({ tools: ALL_TOOLS })
 );
 
 // --- Tool dispatch ---
 
 server.setRequestHandler(
-  { method: "tools/call" } as never,
-  async (request: { params: { name: string; arguments?: Record<string, unknown> } }) => {
+  CallToolRequestSchema,
+  async (request) => {
     const { name, arguments: args = {} } = request.params;
 
     try {

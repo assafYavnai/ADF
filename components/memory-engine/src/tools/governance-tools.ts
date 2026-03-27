@@ -1,6 +1,6 @@
 import { pool } from "../db/connection.js";
 import { GovernanceManageInput } from "../schemas/governance.js";
-import { resolveScope, scopeFilterSQL } from "../services/scope.js";
+import { resolveScope, scopeFilterSQL, type ResolvedScope } from "../services/scope.js";
 import { LEGACY_PROVENANCE, type Provenance } from "../provenance.js";
 
 function extractProvenance(args: Record<string, unknown>): Provenance {
@@ -81,18 +81,56 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
   const { randomUUID } = await import("node:crypto");
   const id = randomUUID();
   const content = { text: input.title, ...input.body };
+  const scope = input.scope ? await resolveScope(input.scope) : await getDefaultOrganizationScope();
 
   await pool.query(
-    `INSERT INTO memory_items (id, content, content_type, trust_level, scope_level, tags, context_priority, compression_policy,
-       invocation_id, provider, model, reasoning, was_fallback, source_path)
-     VALUES ($1, $2, $3, 'working', 'organization', $4, 'p0', 'full',
-       $5, $6, $7, $8, $9, $10)`,
-    [id, JSON.stringify(content), input.family, input.tags ?? [],
+    `INSERT INTO memory_items (
+       id, content, content_type, trust_level, scope_level,
+       org_id, project_id, initiative_id, phase_id, thread_id,
+       tags, context_priority, compression_policy,
+       invocation_id, provider, model, reasoning, was_fallback, source_path
+     )
+     VALUES (
+       $1, $2, $3, 'working', $4,
+       $5, $6, $7, $8, $9,
+       $10, 'p0', 'full',
+       $11, $12, $13, $14, $15, $16
+     )`,
+    [
+     id,
+     JSON.stringify(content),
+     input.family,
+     scope.scope_level,
+     scope.org_id,
+     scope.project_id,
+     scope.initiative_id,
+     scope.phase_id,
+     scope.thread_id,
+     input.tags ?? [],
      prov.invocation_id, prov.provider, prov.model, prov.reasoning,
      prov.was_fallback, prov.source_path]
   );
 
   return { content: [{ type: "text", text: JSON.stringify({ id, status: "created" }, null, 2) }] };
+}
+
+async function getDefaultOrganizationScope(): Promise<ResolvedScope> {
+  const { rows } = await pool.query(
+    "SELECT id FROM organizations ORDER BY created_at ASC LIMIT 1"
+  );
+
+  if (rows.length === 0) {
+    throw new Error("No organization scope available. Seed an organization or pass scope explicitly.");
+  }
+
+  return {
+    org_id: rows[0].id as string,
+    project_id: null,
+    initiative_id: null,
+    phase_id: null,
+    thread_id: null,
+    scope_level: "organization",
+  };
 }
 
 async function searchGovernance(input: GovernanceManageInput) {
