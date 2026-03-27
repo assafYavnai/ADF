@@ -208,7 +208,7 @@ function buildBrief(
     : "";
 
   const reviewerContext = currentRoundReviewers
-    ? `\n\nReviewer verdicts this round:\n${currentRoundReviewers.map((r) => `${r.participant_id}: ${(r.verdict ?? "").slice(0, 500)}`).join("\n")}`
+    ? `\n\nReviewer verdicts this round (full text, not truncated):\n${currentRoundReviewers.map((r) => `${r.participant_id}:\n${r.verdict ?? "(no verdict)"}`).join("\n\n")}`
     : "";
 
   const selfCheckContext = selfCheckIssues.length > 0
