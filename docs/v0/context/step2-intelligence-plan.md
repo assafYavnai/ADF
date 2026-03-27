@@ -33,6 +33,8 @@ Each component sets its own invocation params. These are the current defaults:
 ```
 ADF/
   shared/                           # project-wide utilities
+    provenance/                     # operation identity and traceability
+      types.ts                      # Provenance schema, factory, sentinel
     llm-invoker/                    # generic LLM CLI invoker
       invoker.ts                    # core: params → CLI args → spawn → capture → fallback
       types.ts                      # Zod schemas for invocation params
@@ -75,7 +77,24 @@ ADF/
 
 ## Implementation Plan (reordered for dependencies)
 
-### Phase 2a: Create shared infrastructure (LLM invoker + telemetry)
+### Phase 2a: Create shared infrastructure (provenance + LLM invoker + telemetry)
+
+**Provenance** (`shared/provenance/`):
+- Create `types.ts` — Zod schema for the Provenance object:
+  - `invocation_id`: UUID (from llm-invoker, or sentinel for non-LLM ops)
+  - `provider`: codex | claude | gemini | system
+  - `model`: string (gpt-5.4, opus, haiku, "none" for non-LLM)
+  - `reasoning`: string (xhigh, medium, max, "none" for non-LLM)
+  - `was_fallback`: boolean
+  - `source_path`: string — `<component>/<layer>/<action>` pattern
+  - `timestamp`: ISO 8601
+- Factory functions:
+  - `createProvenance(invocationResult, sourcePath)` — from LLM invoker result
+  - `createSystemProvenance(sourcePath)` — for non-LLM operations (system provider, model "none")
+  - `LEGACY_PROVENANCE` — sentinel for pre-provenance data:
+    - `invocation_id: "00000000-0000-0000-0000-000000000000"`
+    - `provider: "system"`, `model: "none"`, `source_path: "system/pre-provenance"`
+- **Every DB write, MCP call, thread event, telemetry emit, commit, and tool artifact must include provenance — no exceptions**
 
 **LLM Invoker** (`shared/llm-invoker/`):
 - Create `types.ts` — Zod schemas for invocation params:
@@ -83,21 +102,23 @@ ADF/
   - model, reasoning/effort level, sandbox, bypass, timeout
   - fallback config (optional, same shape)
   - prompt (string)
+  - `source_path` (required — caller must identify themselves)
 - Create `invoker.ts` — generic invoke function:
   - Takes params → builds CLI-specific args → spawns process → captures output
-  - **Assigns a UUID to every LLM invocation** — returned alongside the response
-  - Handles fallback: if primary fails, retry with fallback params (new UUID for fallback call)
+  - **Assigns a UUID to every LLM invocation**
+  - **Returns full Provenance object** alongside the response
+  - Handles fallback: if primary fails, retry with fallback params (new UUID, was_fallback=true)
   - Handles temp files (Codex `-o` flag), cleanup
-  - **Emits telemetry** after every call (invocation UUID, tokens, latency, model, cost, primary vs fallback)
+  - **Emits telemetry** after every call (with full provenance)
   - No opinions about caller identity or purpose
-- Return type includes: `{ invocationId: string, response: string, model: string, provider: string, wasFallback: boolean, latencyMs: number }`
-- **LLM UUID flows downstream**: thread events, telemetry, commits, logs — every output is traceable to its source LLM call
+- Return type: `{ provenance: Provenance, response: string, latencyMs: number }`
 
 **Telemetry** (`shared/telemetry/`):
 - Create `types.ts` — Zod schemas for metric events:
+  - **provenance**: full Provenance object (mandatory on every event)
   - category (llm | memory | tool | turn | system)
   - operation name, latency_ms, success/failure
-  - LLM-specific: tokens_in, tokens_out, model, provider, estimated_cost_usd, was_fallback
+  - LLM-specific: tokens_in, tokens_out, estimated_cost_usd
   - Memory-specific: results_count, embedding_generated
   - Tool-specific: board_rounds, participants, budget_consumed
   - Turn-specific: total_ms, classifier_ms, intelligence_ms, context_ms
@@ -105,10 +126,53 @@ ADF/
   - `emit(metric)` — sends metric to memory engine MCP server, returns immediately
   - Zero latency to caller — non-blocking
   - Batching if needed for performance
-- Add to memory engine:
-  - New SQL migration: `006_telemetry.sql` — dedicated `telemetry` table (append-only)
-  - New MCP tools: `emit_metric` (fire-and-forget write), `query_metrics` (filtered read), `get_cost_summary` (aggregated read)
-  - Batch insert support for efficiency
+
+**Memory Engine Updates**:
+- New SQL migration `006_telemetry.sql`:
+  - `telemetry` table (append-only) with provenance columns
+- New SQL migration `007_provenance.sql`:
+  - Add provenance columns to `memory_items` table (invocation_id, provider, model, reasoning, was_fallback, source_path)
+  - Backfill all existing rows with sentinel provenance (`00000000...`, `system/pre-provenance`)
+- New MCP tools:
+  - `emit_metric` — fire-and-forget write (accepts provenance)
+  - `query_metrics` — filtered read with provenance fields
+  - `get_cost_summary` — aggregated read by provider/model/source_path
+- Update ALL existing MCP tools to accept and store provenance:
+  - `capture_memory` — provenance stored with item
+  - `search_memory` — provenance in telemetry for the search op
+  - `log_decision` — provenance stored with decision
+  - `memory_manage` — provenance in telemetry for the manage op
+  - All governance tools (rules_manage, roles_manage, etc.) — provenance stored
+  - All discussion/plan tools — provenance stored
+
+**Refactor existing components for provenance:**
+
+| Component | Change |
+|---|---|
+| `COO/controller/thread.ts` | Add `provenance` field to every ThreadEvent type |
+| `COO/controller/loop.ts` | Pass provenance from invoker into all events |
+| `COO/classifier/` | Attach provenance to classifier_result events |
+| `COO/intelligence/` | Attach provenance to coo_response events |
+| `COO/context-engineer/` | System provenance with source_path `COO/context-engineer/assemble` |
+| `components/memory-engine/server.ts` | All tool handlers accept and forward provenance |
+| `components/memory-engine/services/capture.ts` | Store provenance with captured item |
+| `components/memory-engine/services/search.ts` | Emit telemetry with provenance per search |
+| `components/memory-engine/services/context.ts` | Emit telemetry with provenance per query |
+| `components/memory-engine/services/lifecycle.ts` | System provenance for health checks |
+
+**Provenance verification sweep (mandatory before moving to Phase 2b):**
+1. Automated scan: grep all DB writes — every INSERT/UPDATE must include provenance columns
+2. Automated scan: grep all MCP tool calls — every call must pass provenance
+3. Automated scan: grep all ThreadEvent creation — every createEvent must include provenance
+4. Automated scan: grep all telemetry emit calls — every emit must include provenance
+5. No exceptions found = pass. Any exception = fix before proceeding.
+
+**Independent review cycle (mandatory before moving to Phase 2b):**
+1. Spin up Codex gpt-5.4 with xhigh reasoning, no permissions (read-only)
+2. Prompt: "Review the entire shared/ and components/memory-engine/ implementation for provenance completeness. Every DB write, MCP call, thread event, and telemetry emit must include provenance. Report any gaps."
+3. Fix all reported gaps
+4. Re-review until Codex reports zero gaps
+5. Save review artifacts as evidence in `docs/v0/reviews/step2a-provenance-review/`
 
 ### Phase 2b: Restructure COO folders
 - Move files from `COO/src/` to new layer structure:
@@ -177,7 +241,8 @@ This is the evidence-based validation that the tools work:
 - Update `COO/controller/loop.ts` to use `shared/llm-invoker/`
 - Create `COO/controller/cli.ts` — REPL entry point
 - End-to-end test: user input → classify → context → COO response → thread commit
-- Telemetry verified: LLM UUIDs flowing through thread events and telemetry table
+- Telemetry verified: provenance flowing through thread events and telemetry table
+- Full provenance chain verified: every LLM call, DB write, and MCP op traceable
 
 ---
 
@@ -198,14 +263,20 @@ This is the evidence-based validation that the tools work:
 
 | File | Action |
 |---|---|
-| `shared/llm-invoker/invoker.ts` | create — generic LLM CLI invoker |
+| `shared/provenance/types.ts` | create — Provenance schema, factory, sentinel |
+| `shared/llm-invoker/invoker.ts` | create — generic LLM CLI invoker (returns Provenance) |
 | `shared/llm-invoker/types.ts` | create — Zod schemas for invocation params |
 | `shared/telemetry/collector.ts` | create — async fire-and-forget metric emission via MCP |
-| `shared/telemetry/types.ts` | create — Zod schemas for metric events |
-| `components/memory-engine/src/db/migrations/006_telemetry.sql` | create — telemetry table |
+| `shared/telemetry/types.ts` | create — Zod schemas for metric events (includes Provenance) |
+| `components/memory-engine/src/db/migrations/006_telemetry.sql` | create — telemetry table with provenance columns |
+| `components/memory-engine/src/db/migrations/007_provenance.sql` | create — add provenance to memory_items, backfill sentinel |
 | `components/memory-engine/src/tools/telemetry-tools.ts` | create — emit_metric, query_metrics, get_cost_summary |
-| `COO/controller/loop.ts` | move from src/, update imports, add turn telemetry |
-| `COO/controller/thread.ts` | move from src/, update imports |
+| `components/memory-engine/src/server.ts` | update — all MCP tools accept/store provenance |
+| `components/memory-engine/src/services/capture.ts` | update — store provenance with items |
+| `components/memory-engine/src/services/search.ts` | update — emit provenance in telemetry |
+| `components/memory-engine/src/services/context.ts` | update — emit provenance in telemetry |
+| `COO/controller/loop.ts` | move from src/, add provenance to all events |
+| `COO/controller/thread.ts` | move from src/, add provenance field to ThreadEvent |
 | `COO/classifier/classifier.ts` | move from src/, update imports |
 | `COO/classifier/role/` | create via role-builder |
 | `COO/classifier/prompt.md` | create |
@@ -219,6 +290,7 @@ This is the evidence-based validation that the tools work:
 | `tools/agent-role-builder/role/` | created BY agent-role-builder (eats own dog food) |
 | `tools/llm-tool-builder/` | create — TS port, renamed from tool-builder |
 | `tools/llm-tool-builder/role/` | created BY agent-role-builder via llm-tool-builder |
+| `docs/v0/reviews/step2a-provenance-review/` | Codex review artifacts — evidence of independent verification |
 
 ## Tool Governance (carry forward from ProjectBrain, updated)
 
