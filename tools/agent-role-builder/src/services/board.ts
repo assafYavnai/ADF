@@ -3,25 +3,24 @@ import type { RoleBuilderRequest, BoardParticipant } from "../schemas/request.js
 import type { ParticipantRecord, RoleBuilderStatus } from "../schemas/result.js";
 import { selfCheck } from "./validator.js";
 import { reviseRoleMarkdown } from "./role-generator.js";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 
-/**
- * Structured review feedback — not flat string lists.
- * Findings grouped by root cause, with severity and redesign guidance.
- */
+// --- Structured types ---
+
 interface ReviewerVerdict {
   verdict: "approved" | "conditional" | "reject";
   conceptual_groups: Array<{
     id: string;
     summary: string;
     severity: "blocking" | "major" | "minor" | "suggestion";
-    findings: Array<{
-      id: string;
-      description: string;
-      source_section: string;
-    }>;
+    findings: Array<{ id: string; description: string; source_section: string }>;
     redesign_guidance: string;
+  }>;
+  fix_decisions?: Array<{
+    finding_group_id: string;
+    decision: "accept_fix" | "reject_fix" | "accept_rejection" | "reject_rejection";
+    reason: string;
   }>;
   residual_risks: string[];
   strengths: string[];
@@ -36,6 +35,21 @@ interface LeaderVerdict {
   arbitration_rationale: string | null;
 }
 
+interface ComplianceEntry {
+  rule_id: string;
+  status: "compliant" | "not_applicable";
+  evidence_location: string;
+  evidence_summary: string;
+}
+
+interface FixItem {
+  finding_group_id: string;
+  action: "accepted" | "rejected";
+  summary: string;
+  evidence_location?: string;
+  rejection_reason?: string;
+}
+
 export interface BoardRoundResult {
   round: number;
   participants: ParticipantRecord[];
@@ -46,6 +60,8 @@ export interface BoardRoundResult {
   markdown: string;
   selfCheckIssues: Array<{ code: string; message: string }>;
   reviewerVerdicts: Map<string, ReviewerVerdict>;
+  complianceMap?: ComplianceEntry[];
+  fixItemsMap?: FixItem[];
 }
 
 let runDir: string | null = null;
@@ -53,6 +69,8 @@ let runDir: string | null = null;
 export function setRunDir(dir: string): void {
   runDir = dir;
 }
+
+// --- Main board execution ---
 
 export async function executeBoard(
   request: RoleBuilderRequest,
@@ -73,87 +91,118 @@ export async function executeBoard(
   let currentMarkdown = draftMarkdown;
   let currentSelfCheckIssues = selfCheckIssues;
 
-  // Track per-reviewer verdict history for split-verdict strategy
   const reviewerStatus = new Map<string, "approved" | "conditional" | "reject" | "pending">();
   for (const r of request.board_roster.reviewers) {
     reviewerStatus.set(`reviewer-${r.provider}`, "pending");
   }
-
-  // Track consecutive dispute count for arbitration trigger
   let consecutiveDisputeRounds = 0;
 
+  // Load rulebook once
+  let currentRulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }> = [];
+  try {
+    const rulebookRaw = JSON.parse(await readFile(join("tools/agent-role-builder", "rulebook.json"), "utf-8"));
+    currentRulebook = rulebookRaw.rules ?? [];
+  } catch { /* no rulebook yet */ }
+
   for (let round = 0; round < maxRounds; round++) {
-    // Split-verdict strategy: only run reviewers that haven't approved yet
+    const roundDir = runDir ? join(runDir, "rounds", `round-${round}`) : null;
+    if (roundDir) await mkdir(roundDir, { recursive: true });
+
+    // --- Step 1: Implementer produces compliance map ---
+    const isFullSweep = round === 0; // full on first round, delta on middle, full on last if no pushbacks
+    const complianceMap = await generateComplianceMap(
+      request, currentMarkdown, currentRulebook, round, isFullSweep
+    );
+    if (roundDir) {
+      await writeFile(join(roundDir, "compliance-map.json"), JSON.stringify({
+        schema_version: "1.0", component: "agent-role-builder",
+        scope: isFullSweep ? "full" : "delta", round, entries: complianceMap,
+        generated_at: new Date().toISOString(),
+      }, null, 2), "utf-8");
+    }
+
+    // --- Step 2: Implementer produces fix items map (round 1+) ---
+    let fixItemsMap: FixItem[] | undefined;
+    if (round > 0 && rounds.length > 0) {
+      const priorRound = rounds[rounds.length - 1];
+      fixItemsMap = await generateFixItemsMap(request, currentMarkdown, priorRound);
+      if (roundDir) {
+        await writeFile(join(roundDir, "fix-items-map.json"), JSON.stringify({
+          schema_version: "1.0", component: "agent-role-builder",
+          round, items: fixItemsMap, generated_at: new Date().toISOString(),
+        }, null, 2), "utf-8");
+      }
+    }
+
+    // --- Step 3: Review ---
     const reviewersToRun = request.board_roster.reviewers.filter((r) => {
       const key = `reviewer-${r.provider}`;
-      const status = reviewerStatus.get(key);
-      return status !== "approved"; // run pending, conditional, reject
+      return reviewerStatus.get(key) !== "approved";
     });
-
-    // If all reviewers approved in prior round, run sanity check with all
     const isSanityCheck = reviewersToRun.length === 0;
     const activeReviewers = isSanityCheck ? request.board_roster.reviewers : reviewersToRun;
 
     const roundResult = await executeRound(
       request, currentMarkdown, draftContract, currentSelfCheckIssues,
-      round, rounds, activeReviewers, isSanityCheck
+      round, rounds, activeReviewers, isSanityCheck, complianceMap, fixItemsMap
     );
+    roundResult.complianceMap = complianceMap;
+    roundResult.fixItemsMap = fixItemsMap;
     rounds.push(roundResult);
     allParticipants.push(...roundResult.participants);
 
+    // Save round result
+    if (roundDir) {
+      await writeFile(join(roundDir, "review.json"), JSON.stringify({
+        round: roundResult.round, leaderVerdict: roundResult.leaderVerdict,
+        leaderRationale: roundResult.leaderRationale,
+        unresolved: roundResult.unresolved,
+        improvementsApplied: roundResult.improvementsApplied,
+        reviewerVerdicts: Object.fromEntries(roundResult.reviewerVerdicts),
+        participants: roundResult.participants.map((p) => ({
+          participant_id: p.participant_id, provider: p.provider,
+          model: p.model, role: p.role, round: p.round,
+          latency_ms: p.latency_ms, invocation_id: p.invocation_id,
+        })),
+      }, null, 2), "utf-8");
+    }
+
     // Update per-reviewer status
     for (const [pid, verdict] of roundResult.reviewerVerdicts) {
-      const key = pid.replace(/-r\d+$/, ""); // strip round suffix
+      const key = pid.replace(/-r\d+$/, "");
       if (verdict.verdict === "approved") reviewerStatus.set(key, "approved");
       else if (verdict.verdict === "conditional") reviewerStatus.set(key, "conditional");
       else reviewerStatus.set(key, "reject");
     }
 
-    // Check for frozen
     if (roundResult.leaderVerdict === "frozen") {
-      return {
-        status: "frozen", rounds, allParticipants,
+      return { status: "frozen", rounds, allParticipants,
         statusReason: "All reviewers approved/conditional, leader confirmed freeze.",
-        finalMarkdown: roundResult.markdown,
-        finalSelfCheckIssues: roundResult.selfCheckIssues,
-      };
+        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
     }
-
     if (roundResult.leaderVerdict === "blocked") {
-      return {
-        status: "blocked", rounds, allParticipants,
+      return { status: "blocked", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
-        finalMarkdown: roundResult.markdown,
-        finalSelfCheckIssues: roundResult.selfCheckIssues,
-      };
+        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
     }
 
-    // Check dispute pattern for arbitration
+    // Arbitration check
     const hasReject = [...reviewerStatus.values()].some((s) => s === "reject");
     const hasApprove = [...reviewerStatus.values()].some((s) => s === "approved" || s === "conditional");
-    if (hasReject && hasApprove) {
-      consecutiveDisputeRounds++;
-    } else {
-      consecutiveDisputeRounds = 0;
-    }
+    if (hasReject && hasApprove) consecutiveDisputeRounds++;
+    else consecutiveDisputeRounds = 0;
 
-    // Arbitration trigger: same split for 2+ consecutive rounds
     if (consecutiveDisputeRounds >= 2 && request.governance.allow_single_arbitration_round) {
-      // Leader makes final call with full evidence
       const lastRound = rounds[rounds.length - 1];
-      return {
-        status: lastRound.unresolved.length <= 2 ? "frozen" : "resume_required",
+      return { status: lastRound.unresolved.length <= 2 ? "frozen" : "resume_required",
         rounds, allParticipants,
-        statusReason: `Arbitration triggered after ${consecutiveDisputeRounds} consecutive split verdicts. Leader arbitration: ${lastRound.leaderRationale}`,
-        finalMarkdown: lastRound.markdown,
-        finalSelfCheckIssues: lastRound.selfCheckIssues,
-      };
+        statusReason: `Arbitration after ${consecutiveDisputeRounds} consecutive splits: ${lastRound.leaderRationale}`,
+        finalMarkdown: lastRound.markdown, finalSelfCheckIssues: lastRound.selfCheckIssues };
     }
 
-    // Revise draft for next round if there are unresolved issues
+    // --- Step 4: Learning engine + revision ---
     if (round < maxRounds - 1 && roundResult.unresolved.length > 0) {
       try {
-        // Step 1: Learning engine — extract rules from review feedback
         const fixChecklist: Array<{
           groupId: string; severity: string; summary: string;
           redesignGuidance: string; findingCount: number;
@@ -162,72 +211,46 @@ export async function executeBoard(
         for (const [, rv] of roundResult.reviewerVerdicts) {
           for (const group of rv.conceptual_groups) {
             fixChecklist.push({
-              groupId: group.id,
-              severity: group.severity,
-              summary: group.summary,
-              redesignGuidance: group.redesign_guidance,
+              groupId: group.id, severity: group.severity,
+              summary: group.summary, redesignGuidance: group.redesign_guidance,
               findingCount: group.findings.length,
             });
           }
         }
 
-        let currentRulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }> = [];
+        // Learning engine call
+        let learningOutput = { new_rules: [] as unknown[], existing_rules_covering: [] as unknown[], no_rule_needed: [] as unknown[] };
         try {
-          const rulebookPath = join("tools/agent-role-builder", "rulebook.json");
-          const rulebookRaw = JSON.parse(await readFile(rulebookPath, "utf-8"));
-          currentRulebook = rulebookRaw.rules ?? [];
-        } catch { /* no rulebook yet */ }
-
-        // Call learning engine
-        let learningOutput: { new_rules: unknown[]; existing_rules_covering: unknown[]; no_rule_needed: unknown[] } = {
-          new_rules: [], existing_rules_covering: [], no_rule_needed: [],
-        };
-        try {
-          const learningPrompt = buildLearningPrompt(
-            request, fixChecklist, currentRulebook, roundResult.unresolved, round
-          );
           const learningResult = await invoke({
             cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
-            model: request.board_roster.leader.model,
-            reasoning: "high",
-            bypass: false,
-            timeout_ms: 120_000,
-            prompt: learningPrompt,
+            model: request.board_roster.leader.model, reasoning: "high",
+            bypass: false, timeout_ms: 120_000,
+            prompt: buildLearningPrompt(request, fixChecklist, currentRulebook, roundResult.unresolved, round),
             source_path: "tools/agent-role-builder/learning-engine",
           });
-          const cleaned = learningResult.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-          learningOutput = JSON.parse(cleaned);
-        } catch { /* learning engine failure is non-blocking */ }
+          learningOutput = JSON.parse(learningResult.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
+        } catch { /* non-blocking */ }
 
-        // Step 2: Revision with rulebook + fix checklist
+        if (roundDir) {
+          await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
+        }
+
+        // Revision
         currentMarkdown = await reviseRoleMarkdown(
           request, roundResult.markdown, draftContract,
-          {
-            round: roundResult.round,
-            leaderRationale: roundResult.leaderRationale,
-            unresolved: roundResult.unresolved,
-            fixChecklist,
+          { round: roundResult.round, leaderRationale: roundResult.leaderRationale,
+            unresolved: roundResult.unresolved, fixChecklist,
             priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
-            rulebook: currentRulebook,
-          },
-          rounds.map((pr) => ({
-            round: pr.round,
-            leaderRationale: pr.leaderRationale,
-            unresolved: pr.unresolved,
-          }))
+            rulebook: currentRulebook },
+          rounds.map((pr) => ({ round: pr.round, leaderRationale: pr.leaderRationale, unresolved: pr.unresolved }))
         );
-        currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({
-          code: i.code, message: i.message,
-        }));
+        currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({ code: i.code, message: i.message }));
 
-        // Save learning output for audit
-        if (runDir) {
-          const roundDir = join(runDir, "rounds", `round-${round}`);
-          try {
-            const { mkdir } = await import("node:fs/promises");
-            await mkdir(roundDir, { recursive: true });
-            await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
-          } catch { /* audit write non-blocking */ }
+        if (roundDir) {
+          await writeFile(join(roundDir, "diff-summary.json"), JSON.stringify({
+            prior_length: roundResult.markdown.length, new_length: currentMarkdown.length,
+            changed: roundResult.markdown !== currentMarkdown,
+          }, null, 2), "utf-8");
         }
       } catch {
         currentMarkdown = roundResult.markdown;
@@ -237,24 +260,107 @@ export async function executeBoard(
   }
 
   const lastRound = rounds[rounds.length - 1];
-  return {
-    status: "resume_required",
-    rounds, allParticipants,
-    statusReason: `Review budget exhausted after ${rounds.length} rounds. ${lastRound?.unresolved.length ?? 0} unresolved.`,
+  return { status: "resume_required", rounds, allParticipants,
+    statusReason: `Budget exhausted after ${rounds.length} rounds. ${lastRound?.unresolved.length ?? 0} unresolved.`,
     finalMarkdown: lastRound?.markdown ?? currentMarkdown,
-    finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues,
-  };
+    finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues };
 }
 
-async function executeRound(
+// --- Compliance map generation ---
+
+async function generateComplianceMap(
   request: RoleBuilderRequest,
   markdown: string,
+  rulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string }>,
+  round: number,
+  fullSweep: boolean
+): Promise<ComplianceEntry[]> {
+  if (rulebook.length === 0) return [];
+
+  const rulesText = rulebook.map((r) =>
+    `${r.id}: ${r.rule}\n  Applies to: ${r.applies_to.join(", ")}\n  DO: ${r.do.slice(0, 150)}\n  DONT: ${r.dont.slice(0, 150)}`
+  ).join("\n\n");
+
+  try {
+    const result = await invoke({
+      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+      model: request.board_roster.leader.model, reasoning: "high",
+      bypass: false, timeout_ms: 120_000,
+      prompt: `You are checking a role definition markdown against a rulebook. For each rule, determine if the markdown is compliant.
+
+RESPOND WITH JSON ONLY — an array of objects:
+[{ "rule_id": "ARB-001", "status": "compliant" | "not_applicable", "evidence_location": "<section> or line", "evidence_summary": "how it satisfies the rule" }]
+
+RULES TO CHECK (${fullSweep ? "FULL SWEEP" : "DELTA — focus on changed sections"}):
+${rulesText}
+
+MARKDOWN:
+${markdown}
+
+JSON array:`,
+      source_path: "tools/agent-role-builder/compliance-map",
+    });
+
+    const parsed = JSON.parse(result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// --- Fix items map generation ---
+
+async function generateFixItemsMap(
+  request: RoleBuilderRequest,
+  currentMarkdown: string,
+  priorRound: BoardRoundResult
+): Promise<FixItem[]> {
+  const findings: string[] = [];
+  for (const [pid, rv] of priorRound.reviewerVerdicts) {
+    for (const group of rv.conceptual_groups) {
+      if (group.severity === "blocking" || group.severity === "major") {
+        findings.push(`[${group.id}] (${group.severity}) from ${pid}: ${group.summary}\n  Guidance: ${group.redesign_guidance}`);
+      }
+    }
+  }
+  if (findings.length === 0) return [];
+
+  try {
+    const result = await invoke({
+      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+      model: request.board_roster.leader.model, reasoning: "high",
+      bypass: false, timeout_ms: 120_000,
+      prompt: `You are the implementer. The prior review round had these findings. For each, determine if the current markdown fixes it or if you reject the finding.
+
+RESPOND WITH JSON ONLY — an array:
+[{ "finding_group_id": "group-1", "action": "accepted" | "rejected", "summary": "what was changed or why rejected", "evidence_location": "<section>", "rejection_reason": "only if rejected" }]
+
+PRIOR FINDINGS:
+${findings.join("\n\n")}
+
+CURRENT MARKDOWN (after revision):
+${currentMarkdown}
+
+JSON array:`,
+      source_path: "tools/agent-role-builder/fix-items-map",
+    });
+
+    const parsed = JSON.parse(result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// --- Round execution ---
+
+async function executeRound(
+  request: RoleBuilderRequest, markdown: string,
   contract: Record<string, unknown>,
   selfCheckIssues: Array<{ code: string; message: string }>,
-  roundIndex: number,
-  priorRounds: BoardRoundResult[],
-  activeReviewers: BoardParticipant[],
-  isSanityCheck: boolean
+  roundIndex: number, priorRounds: BoardRoundResult[],
+  activeReviewers: BoardParticipant[], isSanityCheck: boolean,
+  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[]
 ): Promise<BoardRoundResult> {
   const participants: ParticipantRecord[] = [];
   const reviewerVerdicts = new Map<string, ReviewerVerdict>();
@@ -262,7 +368,7 @@ async function executeRound(
   for (const reviewer of activeReviewers) {
     const record = await executeParticipant(
       reviewer, request, markdown, contract, selfCheckIssues,
-      roundIndex, "reviewer", priorRounds
+      roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap
     );
     participants.push(record);
     reviewerVerdicts.set(record.participant_id, parseReviewerResponse(record.verdict ?? ""));
@@ -270,203 +376,154 @@ async function executeRound(
 
   const leaderRecord = await executeParticipant(
     request.board_roster.leader, request, markdown, contract, selfCheckIssues,
-    roundIndex, "leader", priorRounds, participants
+    roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap
   );
   participants.push(leaderRecord);
-
   const leaderResponse = parseLeaderResponse(leaderRecord.verdict ?? "pushback");
 
   return {
-    round: roundIndex,
-    participants,
-    leaderVerdict: leaderResponse.status,
-    leaderRationale: leaderResponse.rationale,
-    unresolved: leaderResponse.unresolved,
+    round: roundIndex, participants, leaderVerdict: leaderResponse.status,
+    leaderRationale: leaderResponse.rationale, unresolved: leaderResponse.unresolved,
     improvementsApplied: leaderResponse.improvements_applied,
-    markdown,
-    selfCheckIssues,
-    reviewerVerdicts,
+    markdown, selfCheckIssues, reviewerVerdicts,
   };
 }
 
 async function executeParticipant(
-  participant: BoardParticipant,
-  request: RoleBuilderRequest,
-  markdown: string,
-  contract: Record<string, unknown>,
+  participant: BoardParticipant, request: RoleBuilderRequest,
+  markdown: string, contract: Record<string, unknown>,
   selfCheckIssues: Array<{ code: string; message: string }>,
-  round: number,
-  role: "leader" | "reviewer",
+  round: number, role: "leader" | "reviewer",
   priorRounds: BoardRoundResult[],
-  currentRoundReviewers?: ParticipantRecord[]
+  currentRoundReviewers?: ParticipantRecord[],
+  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[]
 ): Promise<ParticipantRecord> {
   const participantId = `${role}-${participant.provider}-r${round}`;
   const sourcePath = `tools/agent-role-builder/${role === "leader" ? "leader-synthesis" : "review"}`;
 
   const brief = buildBrief(
     request, markdown, contract, selfCheckIssues,
-    round, role, priorRounds, currentRoundReviewers
+    round, role, priorRounds, currentRoundReviewers, complianceMap, fixItemsMap
   );
 
   const start = Date.now();
   try {
     const result = await invoke({
       cli: participant.provider as "codex" | "claude" | "gemini",
-      model: participant.model,
-      reasoning: participant.throttle,
-      bypass: false,
-      timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
-      prompt: brief,
-      source_path: sourcePath,
+      model: participant.model, reasoning: participant.throttle,
+      bypass: false, timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+      prompt: brief, source_path: sourcePath,
     });
-
     const latency_ms = Date.now() - start;
-    emit({
-      provenance: result.provenance,
-      category: "tool",
-      operation: `role-builder-${role}`,
-      latency_ms, success: true,
-      board_rounds: round + 1, participants: 1,
-    });
-
-    return {
-      participant_id: participantId,
-      provider: participant.provider,
-      model: participant.model,
-      role, verdict: result.response,
-      round, latency_ms,
-      invocation_id: result.provenance.invocation_id,
-    };
+    emit({ provenance: result.provenance, category: "tool",
+      operation: `role-builder-${role}`, latency_ms, success: true,
+      board_rounds: round + 1, participants: 1 });
+    return { participant_id: participantId, provider: participant.provider,
+      model: participant.model, role, verdict: result.response,
+      round, latency_ms, invocation_id: result.provenance.invocation_id };
   } catch (err) {
     const latency_ms = Date.now() - start;
     const errorMsg = err instanceof Error ? err.message : String(err);
-    emit({
-      provenance: createSystemProvenance(sourcePath),
-      category: "tool",
-      operation: `role-builder-${role}`,
-      latency_ms, success: false,
-      metadata: { error: errorMsg },
-    });
-    return {
-      participant_id: participantId,
-      provider: participant.provider,
-      model: participant.model,
-      role, verdict: `ERROR: ${errorMsg}`,
-      round, latency_ms,
-    };
+    emit({ provenance: createSystemProvenance(sourcePath), category: "tool",
+      operation: `role-builder-${role}`, latency_ms, success: false,
+      metadata: { error: errorMsg } });
+    return { participant_id: participantId, provider: participant.provider,
+      model: participant.model, role, verdict: `ERROR: ${errorMsg}`,
+      round, latency_ms };
   }
 }
 
-// --- Structured prompts ---
+// --- Prompts ---
 
 function buildBrief(
-  request: RoleBuilderRequest,
-  markdown: string,
+  request: RoleBuilderRequest, markdown: string,
   contract: Record<string, unknown>,
   selfCheckIssues: Array<{ code: string; message: string }>,
-  round: number,
-  role: "leader" | "reviewer",
+  round: number, role: "leader" | "reviewer",
   priorRounds: BoardRoundResult[],
-  currentRoundReviewers?: ParticipantRecord[]
+  currentRoundReviewers?: ParticipantRecord[],
+  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[]
 ): string {
   const priorContext = priorRounds.length > 0
     ? `\n\nPrior rounds:\n${priorRounds.map((r) =>
         `Round ${r.round}: Leader=${r.leaderVerdict}. Unresolved: ${r.unresolved.length}. Improvements: ${r.improvementsApplied.length}.`
-      ).join("\n")}`
-    : "";
+      ).join("\n")}` : "";
 
   const selfCheckContext = selfCheckIssues.length > 0
     ? `\n\nSelf-check issues:\n${selfCheckIssues.map((i) => `- [${i.code}] ${i.message}`).join("\n")}`
     : "\n\nSelf-check: passed";
 
+  const complianceContext = complianceMap && complianceMap.length > 0
+    ? `\n\nCompliance map (${complianceMap.length} rules checked):\n${complianceMap.map((e) =>
+        `- ${e.rule_id}: ${e.status} — ${e.evidence_summary}`
+      ).join("\n")}` : "";
+
+  const fixItemsContext = fixItemsMap && fixItemsMap.length > 0
+    ? `\n\nFix items map from implementer:\n${fixItemsMap.map((f) =>
+        `- [${f.finding_group_id}] ${f.action}: ${f.summary}${f.rejection_reason ? ` (REJECTED: ${f.rejection_reason})` : ""}`
+      ).join("\n")}` : "";
+
   const contractSummary = JSON.stringify({
-    intent: request.intent,
-    primary_objective: request.primary_objective,
-    out_of_scope: request.out_of_scope,
-    governance: request.governance,
-    runtime: request.runtime,
-    package_files: contract["package_files"],
+    intent: request.intent, primary_objective: request.primary_objective,
+    out_of_scope: request.out_of_scope, governance: request.governance,
+    runtime: request.runtime, package_files: contract["package_files"],
   }, null, 2);
 
   if (role === "reviewer") {
+    const fixDecisionInstruction = fixItemsMap && fixItemsMap.length > 0
+      ? `\n\nIMPORTANT: The implementer provided a fix items map. For each item, you MUST respond with a fix_decisions array:
+[{ "finding_group_id": "...", "decision": "accept_fix" | "reject_fix" | "accept_rejection" | "reject_rejection", "reason": "..." }]
+Include this in your JSON response as "fix_decisions".` : "";
+
     return `You are a REVIEWER for the agent-role-builder tool (round ${round}).
 Review the draft role package for ${request.role_name} (slug: ${request.role_slug}).
 
-RESPOND WITH JSON ONLY matching this schema:
+RESPOND WITH JSON ONLY:
 {
   "verdict": "approved" | "conditional" | "reject",
-  "conceptual_groups": [
-    {
-      "id": "group-1",
-      "summary": "root cause description",
-      "severity": "blocking" | "major" | "minor" | "suggestion",
-      "findings": [
-        { "id": "f1", "description": "specific issue", "source_section": "<tag> or line" }
-      ],
-      "redesign_guidance": "what to do about it"
-    }
-  ],
-  "residual_risks": ["risks that are not blocking but need tracking"],
-  "strengths": ["what is good"]
+  "conceptual_groups": [{ "id": "group-1", "summary": "...", "severity": "blocking"|"major"|"minor"|"suggestion",
+    "findings": [{ "id": "f1", "description": "...", "source_section": "..." }], "redesign_guidance": "..." }],
+  ${fixItemsMap && fixItemsMap.length > 0 ? '"fix_decisions": [{ "finding_group_id": "...", "decision": "accept_fix"|"reject_fix"|"accept_rejection"|"reject_rejection", "reason": "..." }],' : ''}
+  "residual_risks": ["..."], "strengths": ["..."]
 }
 
 VERDICT RULES:
-- "approved" = no blocking or major issues, ready to freeze
-- "conditional" = minor issues only, can freeze after these specific fixes
-- "reject" = blocking or major issues require redesign before freeze
-- Group findings by root cause, not as flat lists
-- Every finding must have severity and source_section
-- Include redesign_guidance for every group with blocking/major severity
+- "approved" = no blocking or major issues
+- "conditional" = minor issues only
+- "reject" = blocking or major issues
+- Group findings by root cause with severity and source_section
+${fixDecisionInstruction}
 
-REVIEW SCOPE:
-- Tag completeness and structural coherence
-- Authority clarity and boundary consistency
-- Scope delineation (no contradictions between sections)
-- Artifact lifecycle consistency (outputs match completion criteria)
-- No invented semantics or authority expansion
+REVIEW SCOPE: tag completeness, authority clarity, scope boundaries, artifact lifecycle, no invented semantics
 
 Draft role markdown:
 ${markdown}
 
 Contract summary:
 ${contractSummary}
-${selfCheckContext}${priorContext}
+${selfCheckContext}${complianceContext}${fixItemsContext}${priorContext}
 
 JSON response:`;
   }
 
-  // Leader prompt
   const reviewerContext = currentRoundReviewers
-    ? `\n\nReviewer verdicts this round:\n${currentRoundReviewers.map((r) =>
-        `${r.participant_id}:\n${r.verdict ?? "(no verdict)"}`
-      ).join("\n\n")}`
-    : "";
+    ? `\n\nReviewer verdicts:\n${currentRoundReviewers.map((r) =>
+        `${r.participant_id}:\n${r.verdict ?? "(no verdict)"}`).join("\n\n")}` : "";
 
   return `You are the LEADER for the agent-role-builder tool (round ${round}).
 Synthesize reviewer feedback and determine terminal status for ${request.role_name}.
 
 RESPOND WITH JSON ONLY:
-{
-  "status": "frozen" | "pushback" | "blocked",
-  "rationale": "explanation",
-  "unresolved": ["only blocking/major issues still open"],
-  "improvements_applied": ["what was fixed since last round"],
-  "arbitration_used": false,
-  "arbitration_rationale": null
-}
+{ "status": "frozen"|"pushback"|"blocked", "rationale": "...",
+  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],
+  "arbitration_used": false, "arbitration_rationale": null }
 
-DECISION RULES:
-- "frozen" = ALL reviewers approved or conditional, no blocking groups remain
-- "pushback" = any reviewer has reject verdict with blocking/major groups
-- "blocked" = non-recoverable structural issue
-- Ignore "suggestion" severity findings for freeze decision
-- "minor" severity findings can be frozen with (conditional status from reviewer)
-- If one reviewer approved and another rejected, flag the split but focus only on the rejecting reviewer's blocking findings
-- Count only blocking and major severity groups as material pushback
+RULES: frozen = all approved/conditional, no blocking. pushback = any reject with blocking/major.
+Count only blocking+major as material. Minor/suggestion don't block freeze.
 
 Draft:
 ${markdown}
-${selfCheckContext}${reviewerContext}${priorContext}
+${selfCheckContext}${complianceContext}${fixItemsContext}${reviewerContext}${priorContext}
 
 JSON response:`;
 }
@@ -477,20 +534,17 @@ function parseReviewerResponse(raw: string): ReviewerVerdict {
   try {
     const cleaned = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
     const parsed = JSON.parse(cleaned);
-    const verdict = parsed.verdict === "approve" ? "approved" : parsed.verdict;
     return {
-      verdict: verdict ?? "reject",
+      verdict: parsed.verdict === "approve" ? "approved" : (parsed.verdict ?? "reject"),
       conceptual_groups: Array.isArray(parsed.conceptual_groups) ? parsed.conceptual_groups : [],
+      fix_decisions: Array.isArray(parsed.fix_decisions) ? parsed.fix_decisions : undefined,
       residual_risks: Array.isArray(parsed.residual_risks) ? parsed.residual_risks : [],
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
     };
   } catch {
-    return {
-      verdict: "reject",
-      conceptual_groups: [{ id: "parse-error", summary: "Failed to parse reviewer response", severity: "blocking", findings: [], redesign_guidance: "Fix reviewer output format" }],
-      residual_risks: [],
-      strengths: [],
-    };
+    return { verdict: "reject",
+      conceptual_groups: [{ id: "parse-error", summary: "Failed to parse", severity: "blocking", findings: [], redesign_guidance: "Fix output format" }],
+      residual_risks: [], strengths: [] };
   }
 }
 
@@ -499,71 +553,48 @@ function parseLeaderResponse(raw: string): LeaderVerdict {
     const cleaned = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
     const parsed = JSON.parse(cleaned);
     return {
-      status: parsed.status ?? "pushback",
-      rationale: parsed.rationale ?? "No rationale",
+      status: parsed.status ?? "pushback", rationale: parsed.rationale ?? "No rationale",
       unresolved: Array.isArray(parsed.unresolved) ? parsed.unresolved : [],
       improvements_applied: Array.isArray(parsed.improvements_applied) ? parsed.improvements_applied : [],
       arbitration_used: parsed.arbitration_used ?? false,
       arbitration_rationale: parsed.arbitration_rationale ?? null,
     };
   } catch {
-    return {
-      status: "pushback",
-      rationale: `Parse failed: ${raw.slice(0, 200)}`,
-      unresolved: ["Leader response parsing failed"],
-      improvements_applied: [],
-      arbitration_used: false,
-      arbitration_rationale: null,
-    };
+    return { status: "pushback", rationale: `Parse failed: ${raw.slice(0, 200)}`,
+      unresolved: ["Parse failed"], improvements_applied: [],
+      arbitration_used: false, arbitration_rationale: null };
   }
 }
 
-// --- Learning prompt builder ---
+// --- Learning prompt ---
 
 function buildLearningPrompt(
   request: RoleBuilderRequest,
-  findings: Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string; findingCount: number }>,
-  currentRulebook: Array<{ id: string; rule: string }>,
-  unresolved: string[],
-  round: number
+  findings: Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string }>,
+  rulebook: Array<{ id: string; rule: string }>,
+  unresolved: string[], round: number
 ): string {
-  const existingRules = currentRulebook.map((r) => `${r.id}: ${r.rule}`).join("\n");
-  const findingsList = findings.map((f) => `[${f.groupId}] (${f.severity}) ${f.summary}\n  Guidance: ${f.redesignGuidance}`).join("\n\n");
-  const unresolvedList = unresolved.map((u, i) => `${i + 1}. ${u}`).join("\n");
-
-  return `You are the ADF Learning Engine. Analyze review feedback and extract generalizable rules.
+  return `You are the ADF Learning Engine. Extract generalizable rules from review feedback.
 
 DOMAIN: design (role definition)
 COMPONENT: agent-role-builder
 ROUND: ${round}
 
-EXISTING RULEBOOK (${currentRulebook.length} rules):
-${existingRules || "(empty)"}
+EXISTING RULEBOOK (${rulebook.length} rules):
+${rulebook.map((r) => `${r.id}: ${r.rule}`).join("\n") || "(empty)"}
 
-REVIEW FINDINGS THIS ROUND:
-${findingsList || "(none)"}
+FINDINGS:
+${findings.map((f) => `[${f.groupId}] (${f.severity}) ${f.summary}\n  Guidance: ${f.redesignGuidance}`).join("\n\n") || "(none)"}
 
-LEADER'S UNRESOLVED ISSUES:
-${unresolvedList || "(none)"}
+UNRESOLVED:
+${unresolved.map((u, i) => `${i + 1}. ${u}`).join("\n") || "(none)"}
 
-For each finding, determine ONE of:
-1. NEW rule needed (not covered by existing rules) -> propose it
-2. ALREADY COVERED by existing rule -> cite which and explain
-3. TOO SPECIFIC to generalize -> explain why
+For each finding: NEW rule, ALREADY COVERED, or TOO SPECIFIC.
 
-For new rules use ID format ARB-NNN (next after existing). Each rule needs:
-- rule: one-sentence principle (understandable without context)
-- applies_to: which sections
-- do: concrete compliance example
-- dont: concrete violation example
-- source: "Round ${round}: [brief description]"
-
-RESPOND WITH JSON:
-{
-  "new_rules": [{"id","rule","applies_to","do","dont","source","version":1}],
+RESPOND JSON:
+{ "new_rules": [{"id","rule","applies_to","do","dont","source","version":1}],
   "existing_rules_covering": [{"finding_group_id","covered_by_rule_id","explanation"}],
-  "no_rule_needed": [{"finding_group_id","reason"}]
-}
+  "no_rule_needed": [{"finding_group_id","reason"}] }
 
 JSON:`;
 }
