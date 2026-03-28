@@ -1,5 +1,4 @@
-import { execFile } from "node:child_process";
-import { writeFile, readFile, unlink } from "node:fs/promises";
+import { readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 // Use Windows user temp, not MSYS2 /tmp which may not be accessible to child processes
 const TEMP_DIR = process.env.USERPROFILE
@@ -212,30 +211,5 @@ async function callGemini(params: InvocationParams): Promise<string> {
 
     proc.stdin?.write(params.prompt);
     proc.stdin?.end();
-  });
-}
-
-// --- Shared exec helper ---
-
-function execPromise(command: string, args: string[], timeoutMs: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    execFile(
-      command,
-      args,
-      {
-        timeout: timeoutMs,
-        maxBuffer: 10 * 1024 * 1024,
-        env: { ...process.env },
-      },
-      (err, stdout, stderr) => {
-        if (err) {
-          reject(
-            new Error(`${command} failed: ${err.message}${stderr ? `\nstderr: ${stderr}` : ""}`)
-          );
-          return;
-        }
-        resolve(stdout);
-      }
-    );
   });
 }

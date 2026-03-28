@@ -163,7 +163,7 @@ async function callClaude(params: InvocationParams): Promise<string> {
   return new Promise((resolve, reject) => {
     const proc = spawn("claude", args, {
       timeout: params.timeout_ms ?? 120_000,
-      shell: true, env: { ...process.env },
+      env: { ...process.env },
     });
     let stdout = "", stderr = "";
     proc.stdout?.on("data", (d: Buffer) => { stdout += d.toString(); });
