@@ -134,17 +134,37 @@ The CEO is not expected to provide technical details unless they want to.
 
 The COO should guide the CEO through questions, reflection, and clarification to understand what the CEO actually wants.
 
-### ADF must extract at least 3 things
+### COO must clarify the outer shell first
 
-For a feature, ADF must determine:
+For a feature, the COO must first clarify:
 
-#### A. Feature goal
+#### A. Topic and goal
 
 Example:
 
-- add a dashboard to the project to track open tickets
+- build an execution monitor for ADF
 
-#### B. High-level requirements list
+#### B. Expected result
+
+Example:
+
+- a URL the CEO can open locally
+- live updates that show current company state
+
+#### C. Success view from the CEO point of view
+
+Example:
+
+- the CEO can open the page and understand what the system is doing now
+- the CEO can click into a feature and inspect its progress and audit trail
+
+Only after those outer-shell items are clear should the COO peel inward.
+
+### Once the outer shell is clear, peel into feature parts
+
+After topic, goal, expected result, and success view are clear enough, the COO then clarifies the high-level feature parts.
+
+#### Example feature-parts list
 
 Example:
 
@@ -180,37 +200,130 @@ The intent is:
 
 ---
 
+## Requirements Gathering Uses An Onion Model
+
+The requirements-gathering discussion should be treated as an **onion**, not as a flat checklist.
+
+The COO starts with the outer shell and only peels inward when the current layer is clear enough.
+
+The COO should not jump to technical detail too early.
+
+The onion is complete only when the full human-facing feature scope is clear enough that the COO can show the whole onion back to the CEO for approval.
+
+### Suggested human-facing onion layers
+
+1. `Topic`
+   - what this thing is
+2. `Goal`
+   - why the CEO wants it
+3. `Expected result`
+   - what should exist when the work is done
+4. `Success view`
+   - how the CEO expects to test it or recognize success
+5. `Major parts`
+   - the main feature items or building blocks
+6. `Part clarification`
+   - what each part actually means
+7. `Experience / UI`
+   - what the user should see and do when UI meaning matters
+8. `Boundaries`
+   - non-goals, constraints, and out-of-scope edges
+9. `Open decisions`
+   - anything still missing before freeze
+10. `Whole-onion freeze`
+   - the COO shows the complete picture back to the CEO for approval
+
+For the dedicated discussion model and a concrete example, see:
+
+- [requirements-gathering-onion-model.md](C:/ADF/docs/v0/context/requirements-gathering-onion-model.md)
+
+---
+
 ## Combined Requirements-Gathering Flow
 
 This is the current best combined flow when the ProjectBrain workflow, the seed requirement artifact, the referenced Claude/Codex discussions, and the current ADF discussion are read together.
 
 ### High-level flow
 
-1. The CEO starts with a vague or high-level feature request.
-2. The COO stays operator-facing and asks one question at a time.
-3. The COO saves a live working requirements artifact early so the truth is not trapped in chat.
-4. The COO determines whether UI is part of the request.
-5. If UI is involved, the COO creates or reuses a mockup or preview path and loops until UI understanding is frozen enough for requirement shaping.
-6. The COO sharpens:
-   - feature goal
-   - high-level requirements
-   - expected result
-   - scope boundary
-   - important non-goals or constraints
-7. The COO separates real user-facing open questions from internal derivation work.
-8. The COO reflects the current high-level understanding back to the CEO in human language.
-9. If the CEO pushes back, clarification continues.
-10. When the open user-facing gaps appear closed, the COO asks the explicit close-or-continue question instead of silently freezing.
-11. Requirements freeze happens only after the CEO has had the chance to add more and gives approval or an equivalent continue signal.
-12. After freeze, the COO writes the detailed contract-compatible requirement artifact while preserving the approved high-level meaning.
-13. The COO runs a self-check pass.
-14. The detailed requirement artifact passes through governed readiness review before downstream handoff.
-15. Lessons from failures and review cycles are promoted into future guidance.
+#### 1. High-level definition
+
+The CEO starts with a vague or high-level feature request.
+
+The COO should:
+
+- understand the topic and goal of the request
+- check prior sources before asking broad questions
+- get the expected result from the CEO point of view
+- get how the CEO expects to test it or recognize success
+
+This completes the outer shell.
+
+#### 2. Feature frame / scope
+
+Once the outer shell is clear, the COO peels inward and clarifies the feature parts.
+
+The COO should:
+
+- gather the major feature items or capabilities
+- clarify what each part means
+- suggest a mockup first when UI is involved
+- run a mockup approval loop when needed
+
+The end state of this stage is:
+
+- the human-facing feature scope is clear enough to describe as one coherent onion
+
+#### 3. Readiness check
+
+The COO should then check whether the scope is complete enough to write the formal requirement package.
+
+That means:
+
+- check the current scope against prior sources and the component rulebook
+- identify missing business decisions
+- ask only the missing questions
+
+#### 4. Feature scope freeze
+
+When the COO believes the onion is complete enough, the COO should:
+
+- show the whole onion back to the CEO
+- state that the feature appears ready to freeze
+- ask for approval instead of freezing silently
+
+Outcomes:
+
+- approved -> move forward
+- rejected or corrected -> return to feature scope clarification
+
+The end state of this step is:
+
+- the feature scope is frozen
+
+#### 5. Requirement package and CTO handoff
+
+After freeze, the COO writes the detailed requirement package while preserving the approved human meaning.
+
+If writing the requirement package exposes a missing business decision, the COO should float that gap back to the CEO rather than guessing.
+
+When the requirement package is ready:
+
+- send it to the CTO for technical review, queueing, and downstream movement
+- update the CEO that the feature is now with the company
+- suggest the next agenda item when appropriate
+
+#### 6. Pushback / CEO alert
+
+If the CTO or any later phase pushes back and a CEO decision is needed:
+
+- the COO must alert the CEO immediately
+- no silent stall is allowed
 
 ### Critical combined rules
 
 - requirements freeze is explicit, not silent
-- the user must be shown the current high-level understanding before freeze
+- the COO should peel from the outer shell inward, not jump to deep details too early
+- the CEO must be shown the whole onion before freeze
 - if UI is relevant, UI alignment belongs inside requirements shaping
 - the detailed requirement artifact must preserve approved meaning, not reinterpret it silently
 - the next lane should not have to guess core intent
@@ -222,14 +335,17 @@ This is the current best combined flow when the ProjectBrain workflow, the seed 
 
 ### High-level acceptance loop
 
-When ADF believes it has enough high-level information, it should present a high-level summary to the CEO.
+When the COO believes the feature onion is complete enough, the COO should present the gathered scope back to the CEO.
 
-At minimum, that summary should include:
+At minimum, that approval view should include:
 
-- goal
-- features / high-level requirements
+- topic and goal
+- expected result
+- success view
+- major feature parts
 - expected results
 - approved UI direction when UI is part of the feature
+- important boundaries, constraints, or open decisions if they still matter to the freeze decision
 
 If the CEO pushes back, the requirement-gathering process repeats until acceptance is reached.
 
@@ -238,14 +354,14 @@ If the CEO pushes back, the requirement-gathering process repeats until acceptan
 The strongest current answer from the legacy sources is:
 
 - requirements freeze should not be silent
-- the COO should explicitly show the current high-level requirements view
+- the COO should explicitly show the current whole-onion view
 - the COO should explicitly check whether the CEO has more to add
 - the COO should get approval to freeze, or an equivalent continue signal, before freezing
 - the COO should verify it has enough information to pass the artifact to review; if not, it should keep clarifying
 
 So the current draft recommendation is:
 
-- the COO should not auto-freeze requirements just because the conversation feels complete
+- the COO should not auto-freeze scope just because the conversation feels complete
 - the COO should explicitly close the clarification round and get a freeze signal
 - once that signal exists, the COO can proceed autonomously without further approval-to-proceed behavior for ordinary downstream work
 

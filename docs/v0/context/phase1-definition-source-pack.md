@@ -64,6 +64,7 @@ Use the sources in this order:
   - reinforces that the agent must verify enough information exists to pass to review
   - carries the learning-loop orientation around review failures, guides, and repeated self-checking
   - is the reference thread mentioned by the CEO for phase, run, and cycle-level postmortem thinking
+  - contains the strongest early statement of an outer-scope object before technical requirements, including goal, executive summary, expected result, testing view, and later subtopic clarification
 
 Key preserved finding:
 
@@ -72,6 +73,7 @@ Key preserved finding:
   - get user approval to freeze the requirements
   - verify enough information exists to pass to review
   - otherwise keep clarifying
+- a feature should first be understood as a human-facing scope object before it is turned into a technical requirement package
 
 ### 4. Codex discussion thread `019cdbb4-e909-7491-b583-efaa955ea5c1`
 
@@ -81,6 +83,7 @@ Key preserved finding:
   - preserves the feature-mode intake direction before it was fully documented in ADF
   - contains user expectations around feature terminology, expected-result markers, and source-trace fidelity
   - is one of the main discussion sources later preserved inside the LangGraph seed requirement artifact
+  - preserves the distinction between outer-scope clarification and later low-level contract writing
 
 Key preserved finding:
 
@@ -147,19 +150,29 @@ When the sources above are combined, the current requirements-gathering understa
 1. The user may start vague and high-level.
 2. The COO should stay operator-facing and non-technical by default.
 3. The COO should ask one question at a time.
-4. The COO should extract:
-   - feature goal
-   - high-level requirements or capabilities
+4. The COO should gather the feature as a human-facing **onion**, peeling from the outside in.
+5. The outer shell should lock:
+   - topic and goal
    - expected result
-   - non-goals and major constraints when relevant
-5. If UI is involved, UI alignment and a mockup or preview loop belong inside requirements shaping.
-6. The COO should present a reflected high-level summary for user approval before deriving the detailed requirement contract.
-7. Requirements freeze must be explicit, not silent.
-8. Before freeze, the COO must check whether the user has more to add.
-9. Before handoff, the COO must verify the requirements are complete enough to pass review without guessing.
-10. After freeze, the detailed requirement artifact must preserve the approved high-level meaning rather than replacing it.
-11. Review failure and phase failure should feed learning and guide improvement.
-12. Audit trace and agent/session traceability matter and should not be treated as optional.
+   - success view from the CEO point of view
+6. Only after the outer shell is clear should the COO peel inward into:
+   - major feature parts
+   - per-part clarification
+   - UI/experience meaning when relevant
+   - boundaries, non-goals, and constraints
+7. If UI is involved, UI alignment and a mockup or preview loop belong inside requirements shaping.
+8. The COO should present the **whole onion** for user approval before deriving the detailed requirement contract.
+9. Requirements freeze must be explicit, not silent.
+10. Before freeze, the COO must check whether the user has more to add.
+11. Before handoff, the COO must verify the scope is complete enough to pass review without guessing.
+12. After freeze, the detailed requirement artifact must preserve the approved human meaning rather than replacing it.
+13. Review failure and phase failure should feed learning and guide improvement.
+14. Audit trace and agent/session traceability matter and should not be treated as optional.
+
+Related local synthesis:
+
+- [phase1-feature-flow-and-executive-briefing-draft.md](C:/ADF/docs/v0/context/phase1-feature-flow-and-executive-briefing-draft.md)
+- [requirements-gathering-onion-model.md](C:/ADF/docs/v0/context/requirements-gathering-onion-model.md)
 
 ---
 

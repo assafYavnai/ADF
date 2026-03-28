@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Standard questions to ask after every review cycle. These are the post-mortem rulebook — never skip these questions.",
+  "last_updated": "2026-03-28",
+  "questions": [
+    {
+      "id": "PM-001",
+      "question": "How was the communication between implementer and reviewer?",
+      "what_to_look_for": "Did the fix items map give enough context? Were rejections clear enough to be accepted without argument? Did the reviewer waste time re-discovering things the implementer should have flagged?",
+      "output": "Communication quality score and specific gaps"
+    },
+    {
+      "id": "PM-002",
+      "question": "How long did it take? (rounds, time, tokens, tool calls)",
+      "what_to_look_for": "Compare against baseline. Round 1 cold start cost vs incremental rounds. Total tokens consumed. Is the cost justified by the quality improvement?",
+      "output": "Timing table (per round + total) and comparison to prior cycles"
+    },
+    {
+      "id": "PM-003",
+      "question": "What did you learn from this review cycle?",
+      "what_to_look_for": "New patterns discovered. Recurring blind spots. What the implementer missed that the reviewer caught. What the reviewer missed that should be added to the checklist.",
+      "output": "Lessons learned list with rule candidates"
+    },
+    {
+      "id": "PM-004",
+      "question": "Should the communication contract be updated?",
+      "what_to_look_for": "Did the fix items map format work? Did the reviewer's structured feedback have enough detail? Were rejection reasons actionable? Is there a new artifact type that would improve the next cycle?",
+      "output": "Contract change proposals (if any)"
+    },
+    {
+      "id": "PM-005",
+      "question": "Should new rules be added to the component rulebook?",
+      "what_to_look_for": "Any finding that was a new pattern (not covered by existing rules). Any finding that was a recurring pattern (existing rule not strong enough).",
+      "output": "New rule proposals following rule-book-guide.json format"
+    },
+    {
+      "id": "PM-006",
+      "question": "Should the rule-book-guide itself be updated?",
+      "what_to_look_for": "Did the rule format work for the reviewers? Were DO/DONT examples actionable enough? Is the quality checklist complete?",
+      "output": "Guide change proposals (if any)"
+    },
+    {
+      "id": "PM-007",
+      "question": "What is the convergence trend?",
+      "what_to_look_for": "Are we converging faster than prior cycles? What is the unresolved count trend? Are improvements being applied and acknowledged?",
+      "output": "Convergence data table with comparison to prior runs"
+    }
+  ]
+}
