@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Template for component-specific review prompts. Copy this to your component directory as review-prompt.json and customize.",
+  "domain": "design | code | prompt | architecture",
+  "domain_description": "What kind of artifact is being reviewed",
+  "focus_areas": [
+    "List the specific areas reviewers should focus on for this component",
+    "These should align with the rulebook rules",
+    "Example: authority model clarity, scope boundary consistency, artifact lifecycle"
+  ],
+  "severity_definitions": {
+    "blocking": "Prevents the artifact from being used safely. Must be fixed before freeze.",
+    "major": "Significant gap that will cause problems downstream. Must be fixed before freeze.",
+    "minor": "Small inconsistency or improvement. Can be frozen with conditions.",
+    "suggestion": "Nice-to-have improvement. Does not affect freeze decision."
+  },
+  "compliance_map_required": true,
+  "fix_items_map_required_from_round": 1,
+  "learning_engine_between_rounds": true,
+  "full_sweep_rounds": "first and last (when no pushbacks found)",
+  "notes": [
+    "Customize focus_areas based on your component's rulebook",
+    "Keep severity_definitions consistent across all components",
+    "compliance_map_required should always be true"
+  ]
+}

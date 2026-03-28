@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "domain": "design",
+  "domain_description": "Role definition design — structured markdown with XML tags defining agent identity, authority, scope, behavior, and governance.",
+  "focus_areas": [
+    "Authority model: strict precedence chain, operative vs reference, no flat lists (ARB-001)",
+    "Semantic consistency: one canonical definition per concept across all sections (ARB-002)",
+    "Artifact lifecycle: canonical vs run-scoped separation with explicit paths (ARB-003, ARB-008)",
+    "Terminal state triggers: mutually exclusive, testable predicates (ARB-004, ARB-009)",
+    "Self-check credibility: claims match actual behavior, semantic not literal matching (ARB-005)",
+    "Scope deduplication: no contradictory or duplicate exclusions (ARB-006)",
+    "Arbitration mechanics: mechanical trigger, actor, evidence, effect on outcomes (ARB-007)",
+    "Context-gathering as precondition, not numbered step (ARB-010)",
+    "Cross-round finding tracking: explicit carry-forward by ID (ARB-011)",
+    "Reviewer pair validation: hard gate at request time (ARB-012)",
+    "Decision history preservation: defined mechanism for update/fix (ARB-013)",
+    "Implementation truth vs target-state: labeled per step (ARB-014)"
+  ],
+  "severity_definitions": {
+    "blocking": "Prevents the role from being used safely. Must be fixed before freeze.",
+    "major": "Significant gap that will cause downstream confusion or governance failure. Must be fixed before freeze.",
+    "minor": "Small inconsistency or phrasing improvement. Can be frozen with conditions.",
+    "suggestion": "Nice-to-have improvement. Does not affect freeze decision."
+  },
+  "compliance_map_required": true,
+  "fix_items_map_required_from_round": 1,
+  "learning_engine_between_rounds": true,
+  "full_sweep_rounds": "first and last (when no pushbacks found)"
+}

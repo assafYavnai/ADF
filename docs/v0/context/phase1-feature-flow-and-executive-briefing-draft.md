@@ -58,13 +58,22 @@ The current intended feature lifecycle is:
 
 This order is still **draft high-level direction**.
 
-The exact contract of each phase, and whether `finalization -> postmortem` remains the final order, still needs to be frozen later.
+However, one best-practice decision has now been chosen:
+
+- `finalization -> postmortem` is intentional
+
+Reasoning:
+
+- finalization should close the operational delivery and handoff path
+- postmortem should happen after the full outcome is known
+- learning should be based on the actual completed run, not a partial pre-close snapshot
 
 For now, the important thing is:
 
 - every meaningful phase has its own workflow
 - every meaningful phase has a review gate
 - learning can be captured from both phase work and phase review failure
+- the feature should not be treated as truly complete until postmortem is captured
 
 ---
 
@@ -356,6 +365,12 @@ Example interaction:
 - COO gives a compact current snapshot
 - CEO decides what needs focus, what the priorities are, and how the day should look
 
+The CEO may also implicitly mean:
+
+- how my day is likely to look
+- what needs my focus
+- what is next
+
 ### Draft executive briefing sections
 
 #### 1. Issues That Need Your Attention
@@ -368,6 +383,19 @@ This section contains:
 - any feature stall that requires CEO attention
 
 This is the highest-priority section.
+
+Important communication rule:
+
+- issue descriptions must be concrete and executive-usable
+- avoid internal shorthand or vague labels that force the CEO to decode the problem
+
+Bad example:
+
+- `The boiling eggs crisis`
+
+Good example:
+
+- `Boiling eggs is blocked. Throughput is too low. I need you to decide its priority and how many resources you want dedicated to it. Current allocation is XXXX.`
 
 #### 2. On The Table
 
@@ -389,6 +417,18 @@ This section contains:
 
 It should stay business-level and concise.
 
+#### 4. What's Next
+
+The COO should also provide a very short forward frame.
+
+Current draft direction:
+
+- 1 to 2 items maximum
+- focus frame only
+- not a long roadmap
+
+The intent is to support the CEO's short attention span and let the COO help set today's direction without overwhelming the CEO.
+
 ### Behavioral rule
 
 By default:
@@ -396,6 +436,33 @@ By default:
 - compress
 - do not enumerate everything
 - reveal detail only when asked or when a problem requires it
+- keep the forward-looking frame to 1-2 items maximum
+
+### Brief style adaptation
+
+The COO should not stay a fixed reporting robot.
+
+Current draft direction:
+
+- executive briefs and CEO responses should be saved in the memory engine
+- periodically, for example every 5 briefs, a background process should analyze the COO brief and the CEO response
+- the goal is to learn the CEO's briefing preferences and adapt over time
+
+This is considered critical to the COO role.
+
+### Future feature: brief level
+
+Current requested future capability:
+
+- `focused`
+- `balanced`
+- `detailed`
+
+This should become a user-settable briefing style later.
+
+For now, the default expected style is closest to:
+
+- `focused`
 
 ---
 
@@ -448,9 +515,13 @@ If a contextless agent needs the current practical understanding in one block, u
 - No silent feature stall is allowed.
 - The CEO-facing interface is not a state dump; it is an executive brief.
 - The executive brief should center on:
-  - Issues That Need Your Attention
-  - On The Table
-  - In Motion
+- Issues That Need Your Attention
+- On The Table
+- In Motion
+- What's Next
+- Issue descriptions must be concrete and tell the CEO what failed and what decision or attention is needed.
+- The forward-looking frame should be capped at 1-2 items.
+- Briefs should eventually be learned and personalized from memory-engine analysis of repeated COO-CEO briefing interactions.
 
 ---
 
