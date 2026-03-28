@@ -108,6 +108,7 @@ export interface RevisionFeedback {
     findingCount: number;
   }>;
   priorRoundIssueCount: number[];
+  rulebook?: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string }>;
 }
 
 export async function reviseRoleMarkdown(
@@ -138,11 +139,19 @@ export async function reviseRoleMarkdown(
       }`
     : "";
 
+  // Build rulebook compliance checklist if available
+  const rulebookSection = feedback.rulebook && feedback.rulebook.length > 0
+    ? `=== RULEBOOK (check EVERY rule before submitting) ===\n${feedback.rulebook.map((r) =>
+        `${r.id}: ${r.rule}\n  DO: ${r.do.slice(0, 200)}\n  DONT: ${r.dont.slice(0, 200)}\n  Applies to: ${r.applies_to.join(", ")}`
+      ).join("\n\n")}`
+    : "";
+
   const revisionPrompt = [
     `You are revising a role markdown draft for ${request.role_name}.`,
     `Return ONLY the full updated markdown document. Do not wrap it in code fences.`,
     ``,
     `CRITICAL: You MUST fix every blocking/major item below. Each has specific guidance.`,
+    `CRITICAL: You MUST check every rule in the RULEBOOK below. Violations will be caught by the reviewer.`,
     `If you do not fix an item, the next review round will reject again for the same reason.`,
     ``,
     convergenceNote,
@@ -158,6 +167,7 @@ export async function reviseRoleMarkdown(
     `=== UNRESOLVED FROM LEADER ===`,
     ...feedback.unresolved.map((u) => `- ${u}`),
     ``,
+    rulebookSection ? `\n${rulebookSection}\n` : "",
     `=== CONSTRAINTS ===`,
     `- Keep required XML tags exactly once each: ${REQUIRED_XML_TAGS.map((t) => `<${t}>`).join(", ")}`,
     `- Do not invent new authority, scope, runtime modes, or artifacts not in the request`,

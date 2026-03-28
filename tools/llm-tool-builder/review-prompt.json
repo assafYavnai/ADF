@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "domain": "code",
+  "domain_description": "LLM tool creation and update pipeline -- TypeScript implementation that validates contracts, orchestrates role governance via agent-role-builder, detects create vs update operations, and produces governed tool artifacts.",
+  "focus_areas": [
+    "Contract completeness: all required fields present, Zod schema enforced, no silent defaults for critical fields (LTB-001)",
+    "Role governance integration: must call agent-role-builder for role creation unless skip_build_agent_role=true with explicit justification (LTB-002)",
+    "Operation detection: create vs update semantics enforced -- update requires baseline_contract_path, create must not silently overwrite (LTB-003)",
+    "Validation gates: contract parsed and validated before any side effects (mkdir, writeFile, role build) (LTB-004)",
+    "Artifact lifecycle: run-scoped outputs (normalized-request.json, result.json) vs canonical outputs (tool-contract.json, role directory) clearly separated (LTB-005)",
+    "Bootstrap mode safety: skip_build_agent_role is an escape hatch -- must be gated, logged, and never the silent default (LTB-006)",
+    "Import vs build role path: import_existing_role and agent_role_request_path are mutually exclusive strategies -- no ambiguous fallthrough (LTB-007)",
+    "Result status fidelity: status must accurately reflect what happened -- blocked means no artifacts produced, success means all artifacts written and verified (LTB-008)",
+    "Baseline contract handling: on update, previous_contract must be read and preserved for diff auditing (LTB-009)",
+    "Error propagation: agent-role-builder failures must surface with actionable status_reason, not generic messages (LTB-010)"
+  ],
+  "severity_definitions": {
+    "blocking": "Prevents the tool from being used safely. Must be fixed before freeze.",
+    "major": "Significant gap that will cause downstream governance failure or silent data loss. Must be fixed before freeze.",
+    "minor": "Small inconsistency or improvement. Can be frozen with conditions.",
+    "suggestion": "Nice-to-have improvement. Does not affect freeze decision."
+  },
+  "compliance_map_required": true,
+  "fix_items_map_required_from_round": 1,
+  "learning_engine_between_rounds": true,
+  "full_sweep_rounds": "first and last (when no pushbacks found)"
+}

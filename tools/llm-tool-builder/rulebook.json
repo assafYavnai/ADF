@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "component": "llm-tool-builder",
+  "last_updated": "2026-03-28",
+  "rules": [
+    {
+      "id": "LTB-001",
+      "rule": "Validate the full contract against the Zod schema before performing any side effects. No mkdir, no writeFile, no role build until validation passes.",
+      "applies_to": ["buildTool() entry point", "ToolBuilderRequest schema", "contract.ts"],
+      "do": "Call ToolBuilderRequest.parse(rawRequest) as the first meaningful operation after reading the file. If parse throws, return a blocked result immediately with the Zod error message. Example: 'const request = ToolBuilderRequest.parse(rawRequest);' followed by 'await mkdir(runDir, { recursive: true });' -- parse happens before any filesystem mutation.",
+      "dont": "Create the run directory or write any files before schema validation. Example of violation: 'await mkdir(runDir); const request = ToolBuilderRequest.parse(raw);' -- if parse fails, an empty directory is left behind with no cleanup.",
+      "source": "Derived from role <contract-validation-rules>: 'Before implementation, verify that the contract is sufficiently clear.' Applied to the tool's own contract ingestion pipeline.",
+      "version": 1
+    },
+    {
+      "id": "LTB-002",
+      "rule": "Role governance is mandatory by default. The agent-role-builder must be called for every tool build unless skip_build_agent_role is explicitly true in the request.",
+      "applies_to": ["buildTool() role integration block", "index.ts lines 36-75"],
+      "do": "When skip_build_agent_role is false (the default), require either agent_role_request_path or import_existing_role. If neither is provided, return blocked with a clear reason. When agent_role_request_path is provided, call buildRole() and gate on frozen status. Example: 'if (roleResult.status !== \"frozen\") return writeResult(runDir, { status: \"blocked\", ... });'",
+      "dont": "Silently skip role governance when neither path is provided. Example of violation: defaulting to an empty role directory and proceeding to write the tool contract without a governed role -- this produces an ungoverned tool with no traceability.",
+      "source": "Derived from role <delegation-mode> and <operating-principles> #3: 'Never silently invent behavior that is not grounded in the contract.' Role governance is a core ADF requirement.",
+      "version": 1
+    },
+    {
+      "id": "LTB-003",
+      "rule": "Create and update operations have distinct preconditions. An update requires a baseline contract; a create must not silently overwrite an existing contract.",
+      "applies_to": ["ToolBuilderRequest schema (operation field)", "buildTool() contract generation block"],
+      "do": "For operation='update': require baseline_contract_path to be present and readable. Load the previous contract and store it in previous_contract for audit trail. For operation='create': verify that tool_root/tool-contract.json does not already exist, or if it does, require explicit acknowledgment. Example: 'if (request.operation === \"update\" && !request.baseline_contract_path) return blocked;'",
+      "dont": "Treat create and update identically. Example of violation: both operations write tool-contract.json unconditionally -- an accidental create on an existing tool silently overwrites the governed contract with no diff trail.",
+      "source": "Derived from role <ambiguity-scan>: 'unclear ownership of files, state, or side effects' and <operating-principles> #7: 'Prefer explicit validation over silent fallback.' Operation semantics must be enforced, not assumed.",
+      "version": 1
+    },
+    {
+      "id": "LTB-004",
+      "rule": "Run-scoped artifacts and canonical artifacts must be written to distinct paths with clear lifecycle rules. Run artifacts are always written; canonical artifacts are only written on success.",
+      "applies_to": ["buildTool() writeResult calls", "runDir vs toolRoot paths"],
+      "do": "Write normalized-request.json and result.json to the run directory (tools/llm-tool-builder/runs/<job_id>/). Write tool-contract.json to the tool root only on success status. Example: 'Run-scoped: runs/ltb-job-001/result.json (always written). Canonical: tools/my-tool/tool-contract.json (written only when status=success).'",
+      "dont": "Write canonical artifacts on blocked or failure status. Example of violation: writing tool-contract.json to toolRoot before checking whether the role build succeeded -- if role build fails, a partial contract exists at the canonical path with no governed role.",
+      "source": "Derived from agent-role-builder ARB-003 pattern: canonical vs evidence artifact separation. Applied to tool-builder's output lifecycle.",
+      "version": 1
+    },
+    {
+      "id": "LTB-005",
+      "rule": "Bootstrap mode (skip_build_agent_role=true) is an escape hatch for self-registration. It must be explicitly logged in the result and must never become the default path.",
+      "applies_to": ["ToolBuilderRequest schema (skip_build_agent_role field)", "buildTool() status_reason"],
+      "do": "When skip_build_agent_role is true, set status_reason to include 'bootstrap mode' explicitly. The result must make it visible that governance was skipped. Example: 'status_reason: \"Tool contract written in bootstrap mode.\"' The schema default for skip_build_agent_role must be false.",
+      "dont": "Allow bootstrap mode to be invisible in the result. Example of violation: returning status='success' with status_reason='Tool contract written.' when role governance was skipped -- downstream consumers cannot distinguish governed from ungoverned tools.",
+      "source": "Derived from role <operating-principles> #6: 'Never proceed on destructive, security-sensitive, or compatibility-sensitive ambiguity.' Bootstrap mode skips a governance gate and must be traceable.",
+      "version": 1
+    },
+    {
+      "id": "LTB-006",
+      "rule": "The import_existing_role and agent_role_request_path fields represent mutually exclusive role-sourcing strategies. When both are provided, the precedence must be explicit and deterministic.",
+      "applies_to": ["buildTool() role resolution logic", "index.ts lines 36-88"],
+      "do": "Define clear precedence: if agent_role_request_path is provided, it takes priority and the role is built through agent-role-builder. If only import_existing_role is provided, the role is copied into the tool root. If both are provided, either reject as ambiguous or document the precedence in the result. Example: 'if (request.agent_role_request_path) { /* build via ARB */ } else if (request.import_existing_role) { /* import */ }'",
+      "dont": "Execute both paths sequentially without conflict resolution. Example of violation: building the role via agent-role-builder, then overwriting it with the imported role because import_existing_role is also set -- the governed role is silently replaced.",
+      "source": "Derived from role <ambiguity-scan>: 'unclear ownership of files, state, or side effects' and current index.ts where both paths can execute if both fields are set.",
+      "version": 1
+    },
+    {
+      "id": "LTB-007",
+      "rule": "Result status must accurately reflect the actual state of produced artifacts. 'success' means all declared artifacts exist and are valid. 'blocked' means no canonical artifacts were produced.",
+      "applies_to": ["ToolBuilderResult schema", "writeResult() calls"],
+      "do": "Before returning success, verify that tool_contract_path points to a file that was actually written, and role_directory points to a directory that actually contains the role. Set nullable fields to null when the corresponding artifact was not produced. Example: 'status: \"blocked\", tool_contract_path: null, role_directory: null' when role build fails.",
+      "dont": "Return success with null artifact paths. Example of violation: 'status: \"success\", tool_contract_path: null' -- contradictory: success claims completion but the primary artifact is missing.",
+      "source": "Derived from role <completion-rules>: 'Do not return success when the task should have been blocked.' Applied to result JSON fidelity.",
+      "version": 1
+    },
+    {
+      "id": "LTB-008",
+      "rule": "When agent-role-builder returns a non-frozen status, the tool-builder must propagate the original status and reason, not a generic wrapper message.",
+      "applies_to": ["buildTool() role build error handling", "index.ts lines 60-74"],
+      "do": "Include the upstream role builder's status and status_reason in the tool builder's result. Example: 'status_reason: `agent-role-builder did not freeze the tool role: ${roleResult.status_reason}`' preserving the original failure context. Also pass role_build_status from the upstream result.",
+      "dont": "Swallow the upstream error into a generic message. Example of violation: 'status_reason: \"Role build failed.\"' -- this loses the specific reason (e.g., 'reviewer found blocking findings in round 3'), making diagnosis impossible without reading the role builder's run directory.",
+      "source": "Derived from role <operating-principles> #12: 'If uncertainty remains, make it visible in the result JSON.' Error context must flow through the delegation chain.",
+      "version": 1
+    },
+    {
+      "id": "LTB-009",
+      "rule": "On update operations, the baseline contract must be loaded and preserved in the generated contract's previous_contract field for audit trail and diff capability.",
+      "applies_to": ["buildTool() baseline contract handling", "toolContract.previous_contract field"],
+      "do": "When baseline_contract_path is provided, read and parse the file. Store the full parsed object in previous_contract. On failure to read the baseline, return blocked rather than proceeding without it. Example: 'const baselineContract = JSON.parse(await readFile(request.baseline_contract_path, \"utf-8\"));' then 'previous_contract: baselineContract' in the output contract.",
+      "dont": "Silently set previous_contract to null when baseline_contract_path is provided but the file is unreadable. Example of violation: the baseline path points to a deleted file, previous_contract is set to null, and the update proceeds -- the audit trail is broken with no indication of what changed.",
+      "source": "Derived from role <workflow-separation>: behavior vs execution workflow must be explicit. An update without a baseline comparison is a create in disguise.",
+      "version": 1
+    },
+    {
+      "id": "LTB-010",
+      "rule": "The tool slug must be validated against the tool_root path to ensure consistency. A mismatch between slug and directory name indicates a contract error.",
+      "applies_to": ["ToolBuilderRequest schema", "buildTool() validation"],
+      "do": "After parsing the request, verify that tool_root ends with a path segment matching tool_slug. Example: for tool_slug='my-tool', tool_root should end in '/my-tool' or '\\my-tool'. If they diverge, surface it as a warning in the result or block if the divergence implies a targeting error.",
+      "dont": "Accept any combination of tool_slug and tool_root without cross-validation. Example of violation: tool_slug='classifier' but tool_root='tools/llm-tool-builder' -- the contract is written to the wrong tool's directory, potentially overwriting another tool's governance artifacts.",
+      "source": "Derived from role <ambiguity-scan>: 'hidden path assumptions' and <operating-principles> #7: 'Prefer explicit validation over silent fallback.' Path-slug consistency is a basic safety check.",
+      "version": 1
+    }
+  ]
+}

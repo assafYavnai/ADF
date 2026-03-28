@@ -68,6 +68,53 @@ Reasoning:
 - postmortem should happen after the full outcome is known
 - learning should be based on the actual completed run, not a partial pre-close snapshot
 
+### CEO completion view
+
+From the CEO's point of view, a feature is not truly complete after finalization alone.
+
+The feature should be treated as truly complete only **after postmortem**.
+
+That CEO-facing completion closeout should include:
+
+- result
+- short implementation-run summary
+- improvements and learnings
+
+The current intended CEO-facing postmortem closeout should cover:
+
+#### 1. Result
+
+Clear business outcome such as:
+
+- done
+- failed
+- partial
+- completed with errors
+
+#### 2. Run summary
+
+A short business-level summary of the run, for example:
+
+- time
+- tokens / cost / effort
+- blockers
+- major friction points
+
+#### 3. Improvements
+
+What the company learned from the run, for example:
+
+- what improved compared with prior runs
+- what degraded
+- what needs watching
+- where the company became more efficient
+
+Example direction from discussion:
+
+- a previous implementation needed 7 review cycles
+- this run needed 4
+- therefore the company improved
+
 For now, the important thing is:
 
 - every meaningful phase has its own workflow
@@ -179,6 +226,22 @@ The intent is:
 
 - repeated pitfalls become explicit rules, checks, or guidance
 - agents should self-check against those learned rules before passing artifacts forward
+
+### KPI ownership
+
+The COO should think about which KPIs the company needs in order to show:
+
+- improvement
+- degradation
+- cost
+- effort
+- recurring friction
+
+Current draft ownership model:
+
+- the COO defines the initial `v1` KPI set
+- the CTO may add CTO-side KPIs for implementation management
+- the CEO sees the reporting and may add, remove, or reshape KPIs based on preference
 
 ### Important governance note
 
@@ -492,7 +555,6 @@ These points remain open or draft-only:
 - exact rule-promotion authority path
 - exact internal operational state model beneath the CEO-facing brief
 - exact resume semantics after pushback across all phases
-- whether `finalization -> postmortem` remains the correct order
 - exact CEO approval boundaries between phases
 - exact git/branch/merge governance for implementation execution
 - effort modes such as production vs ad-hoc and how they affect phase intensity
@@ -522,6 +584,9 @@ If a contextless agent needs the current practical understanding in one block, u
 - Issue descriptions must be concrete and tell the CEO what failed and what decision or attention is needed.
 - The forward-looking frame should be capped at 1-2 items.
 - Briefs should eventually be learned and personalized from memory-engine analysis of repeated COO-CEO briefing interactions.
+- A feature is truly complete for the CEO only after postmortem.
+- That completion closeout should include result, run summary, and improvements.
+- The COO defines the initial `v1` KPI set, the CTO may add delivery KPIs, and the CEO may reshape the KPI view by preference.
 
 ---
 

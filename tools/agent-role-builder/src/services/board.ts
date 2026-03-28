@@ -3,6 +3,8 @@ import type { RoleBuilderRequest, BoardParticipant } from "../schemas/request.js
 import type { ParticipantRecord, RoleBuilderStatus } from "../schemas/result.js";
 import { selfCheck } from "./validator.js";
 import { reviseRoleMarkdown } from "./role-generator.js";
+import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
 /**
  * Structured review feedback — not flat string lists.
@@ -44,6 +46,12 @@ export interface BoardRoundResult {
   markdown: string;
   selfCheckIssues: Array<{ code: string; message: string }>;
   reviewerVerdicts: Map<string, ReviewerVerdict>;
+}
+
+let runDir: string | null = null;
+
+export function setRunDir(dir: string): void {
+  runDir = dir;
 }
 
 export async function executeBoard(
@@ -145,7 +153,7 @@ export async function executeBoard(
     // Revise draft for next round if there are unresolved issues
     if (round < maxRounds - 1 && roundResult.unresolved.length > 0) {
       try {
-        // Build actionable fix checklist from parsed reviewer feedback
+        // Step 1: Learning engine — extract rules from review feedback
         const fixChecklist: Array<{
           groupId: string; severity: string; summary: string;
           redesignGuidance: string; findingCount: number;
@@ -163,6 +171,35 @@ export async function executeBoard(
           }
         }
 
+        let currentRulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }> = [];
+        try {
+          const rulebookPath = join("tools/agent-role-builder", "rulebook.json");
+          const rulebookRaw = JSON.parse(await readFile(rulebookPath, "utf-8"));
+          currentRulebook = rulebookRaw.rules ?? [];
+        } catch { /* no rulebook yet */ }
+
+        // Call learning engine
+        let learningOutput: { new_rules: unknown[]; existing_rules_covering: unknown[]; no_rule_needed: unknown[] } = {
+          new_rules: [], existing_rules_covering: [], no_rule_needed: [],
+        };
+        try {
+          const learningPrompt = buildLearningPrompt(
+            request, fixChecklist, currentRulebook, roundResult.unresolved, round
+          );
+          const learningResult = await invoke({
+            cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+            model: request.board_roster.leader.model,
+            reasoning: "high",
+            bypass: false,
+            timeout_ms: 120_000,
+            prompt: learningPrompt,
+            source_path: "tools/agent-role-builder/learning-engine",
+          });
+          const cleaned = learningResult.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
+          learningOutput = JSON.parse(cleaned);
+        } catch { /* learning engine failure is non-blocking */ }
+
+        // Step 2: Revision with rulebook + fix checklist
         currentMarkdown = await reviseRoleMarkdown(
           request, roundResult.markdown, draftContract,
           {
@@ -171,6 +208,7 @@ export async function executeBoard(
             unresolved: roundResult.unresolved,
             fixChecklist,
             priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
+            rulebook: currentRulebook,
           },
           rounds.map((pr) => ({
             round: pr.round,
@@ -181,6 +219,16 @@ export async function executeBoard(
         currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({
           code: i.code, message: i.message,
         }));
+
+        // Save learning output for audit
+        if (runDir) {
+          const roundDir = join(runDir, "rounds", `round-${round}`);
+          try {
+            const { mkdir } = await import("node:fs/promises");
+            await mkdir(roundDir, { recursive: true });
+            await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
+          } catch { /* audit write non-blocking */ }
+        }
       } catch {
         currentMarkdown = roundResult.markdown;
         currentSelfCheckIssues = roundResult.selfCheckIssues;
@@ -468,4 +516,54 @@ function parseLeaderResponse(raw: string): LeaderVerdict {
       arbitration_rationale: null,
     };
   }
+}
+
+// --- Learning prompt builder ---
+
+function buildLearningPrompt(
+  request: RoleBuilderRequest,
+  findings: Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string; findingCount: number }>,
+  currentRulebook: Array<{ id: string; rule: string }>,
+  unresolved: string[],
+  round: number
+): string {
+  const existingRules = currentRulebook.map((r) => `${r.id}: ${r.rule}`).join("\n");
+  const findingsList = findings.map((f) => `[${f.groupId}] (${f.severity}) ${f.summary}\n  Guidance: ${f.redesignGuidance}`).join("\n\n");
+  const unresolvedList = unresolved.map((u, i) => `${i + 1}. ${u}`).join("\n");
+
+  return `You are the ADF Learning Engine. Analyze review feedback and extract generalizable rules.
+
+DOMAIN: design (role definition)
+COMPONENT: agent-role-builder
+ROUND: ${round}
+
+EXISTING RULEBOOK (${currentRulebook.length} rules):
+${existingRules || "(empty)"}
+
+REVIEW FINDINGS THIS ROUND:
+${findingsList || "(none)"}
+
+LEADER'S UNRESOLVED ISSUES:
+${unresolvedList || "(none)"}
+
+For each finding, determine ONE of:
+1. NEW rule needed (not covered by existing rules) -> propose it
+2. ALREADY COVERED by existing rule -> cite which and explain
+3. TOO SPECIFIC to generalize -> explain why
+
+For new rules use ID format ARB-NNN (next after existing). Each rule needs:
+- rule: one-sentence principle (understandable without context)
+- applies_to: which sections
+- do: concrete compliance example
+- dont: concrete violation example
+- source: "Round ${round}: [brief description]"
+
+RESPOND WITH JSON:
+{
+  "new_rules": [{"id","rule","applies_to","do","dont","source","version":1}],
+  "existing_rules_covering": [{"finding_group_id","covered_by_rule_id","explanation"}],
+  "no_rule_needed": [{"finding_group_id","reason"}]
+}
+
+JSON:`;
 }
