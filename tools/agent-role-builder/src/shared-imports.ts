@@ -136,6 +136,7 @@ async function callCodex(params: InvocationParams, id: string): Promise<string> 
     const { spawn } = await import("node:child_process");
     await new Promise<void>((resolve, reject) => {
       const proc = spawn("codex", args, {
+        shell: true,   // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
         timeout: params.timeout_ms ?? 120_000,
         env: { ...process.env },
       });
@@ -162,6 +163,7 @@ async function callClaude(params: InvocationParams): Promise<string> {
   const { spawn } = await import("node:child_process");
   return new Promise((resolve, reject) => {
     const proc = spawn("claude", args, {
+      shell: true,   // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
       timeout: params.timeout_ms ?? 120_000,
       env: { ...process.env },
     });
@@ -185,6 +187,7 @@ async function callGemini(params: InvocationParams): Promise<string> {
   const { spawn } = await import("node:child_process");
   return new Promise((resolve, reject) => {
     const proc = spawn("gemini", args, {
+      shell: true,   // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
       timeout: params.timeout_ms ?? 120_000,
       env: { ...process.env },
     });

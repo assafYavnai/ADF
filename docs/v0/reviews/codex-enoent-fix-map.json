@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "fix_id": "codex-enoent-windows-cmd-resolution",
+  "title": "Re-add shell:true for Windows .cmd CLI resolution (spawn ENOENT fix)",
+  "date": "2026-03-28",
+  "root_cause": "On Windows/MSYS2, npm global binaries (codex, claude, gemini) are .cmd wrapper files. spawn() without shell:true cannot resolve .cmd files — it needs shell resolution. The prior removal of shell:true (step2f security fix) broke Windows CLI invocation.",
+  "fix_summary": "Re-added shell:true to all 6 spawn calls across both invoker copies. This is safe because prompt is piped via stdin in every case — never in the args array.",
+  "locations_fixed": [
+    {
+      "file": "shared/llm-invoker/invoker.ts",
+      "function": "callCodex",
+      "line_approx": 120,
+      "change": "Added shell:true to spawn options"
+    },
+    {
+      "file": "shared/llm-invoker/invoker.ts",
+      "function": "callClaude",
+      "line_approx": 161,
+      "change": "Added shell:true to spawn options"
+    },
+    {
+      "file": "shared/llm-invoker/invoker.ts",
+      "function": "callGemini",
+      "line_approx": 199,
+      "change": "Added shell:true to spawn options"
+    },
+    {
+      "file": "tools/agent-role-builder/src/shared-imports.ts",
+      "function": "callCodex",
+      "line_approx": 139,
+      "change": "Added shell:true to spawn options"
+    },
+    {
+      "file": "tools/agent-role-builder/src/shared-imports.ts",
+      "function": "callClaude",
+      "line_approx": 166,
+      "change": "Added shell:true to spawn options"
+    },
+    {
+      "file": "tools/agent-role-builder/src/shared-imports.ts",
+      "function": "callGemini",
+      "line_approx": 190,
+      "change": "Added shell:true to spawn options"
+    }
+  ],
+  "rule_compliance": {
+    "IMP-004": {
+      "status": "compliant",
+      "evidence": "Fix applied to all 6 spawn calls across both files: shared/llm-invoker/invoker.ts (canonical) and tools/agent-role-builder/src/shared-imports.ts (local copy). Grep for 'shell: true' confirms exactly 6 instances in these 2 files, 3 per file."
+    },
+    "IMP-009": {
+      "status": "compliant",
+      "evidence": "Grep for 'args.push(params.prompt)' returns zero matches in current code. All 6 spawn calls pipe prompt via proc.stdin.write(params.prompt) followed by proc.stdin.end(). shell:true is used only for command resolution (.cmd files on Windows), not for argument processing. No injection vector exists because user input never enters the shell argument string."
+    }
+  },
+  "verification": {
+    "prompt_not_in_args": "grep 'args.push(params.prompt)' returns 0 matches in source files",
+    "stdin_pipe_confirmed": "grep 'proc.stdin?.write(params.prompt)' returns 6 matches (3 per file)",
+    "shell_true_count": "grep 'shell: true' returns exactly 6 matches in the 2 invoker files",
+    "tsc_shared": "npx tsc --noEmit in shared/ passed with 0 errors",
+    "tsc_agent_role_builder": "npx tsc --noEmit in tools/agent-role-builder/ passed with 0 errors"
+  }
+}
