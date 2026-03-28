@@ -238,6 +238,44 @@ All run artifacts are committed to git. Nothing is volatile. The structure:
 
 ---
 
+## Error Escalation Pattern (System-Wide)
+
+When any governed component hits an unrecoverable error during execution:
+
+### Step 1: Stop Immediately
+Do not retry, do not parse-hack, do not silently continue. The component stops at the point of failure.
+
+### Step 2: Produce Structured Bug Report
+The bug report (`bug-report.json` in the run directory) must include:
+- **What failed**: error type, error message, stack trace if available
+- **Where**: which step/phase the component was in (e.g., "Round 2, leader response parsing")
+- **Context**: current execution state — round number, reviewer verdicts so far, terminal status, what step was being executed
+- **Input that caused the failure**: if it's a file, the full path. If it's JSON input (e.g., raw LLM response), include verbatim or truncated with full version saved to a separate file in the run directory
+- **Expected format**: what the component expected to receive (schema name, example)
+- **Component**: which tool/layer produced the error (source_path)
+- **Provenance**: who was running, which LLM, which model, invocation UUID
+
+### Step 3: Governance Script Receives Bug Report
+The governance layer (board orchestrator, or COO controller) receives the bug report and decides the next action.
+
+### Step 4: Auto-Fix Attempt
+- Call the builder (llm-tool-builder when complete, Codex agent as interim) with the bug report
+- Builder analyzes the error, proposes a fix, applies it
+- If fix applied: relaunch the component from the step where it stopped (not from scratch)
+
+### Step 5: Verify Fix
+- If relaunched component succeeds: continue execution
+- If same error persists or new error occurs: full stop
+
+### Step 6: Full Stop and Report
+- If auto-fix fails: produce a final error report for the CEO
+- Include: original bug report + fix attempt details + why it failed
+- Run exits as `blocked` with the error chain documented
+
+This pattern applies to **every governed component** in ADF. Any unrecoverable error follows this escalation path.
+
+---
+
 ## Three-Tier Post-Mortem
 
 The system learns at three different scopes. Each tier has its own trigger, focus, and output. They are NOT nested supersets — each has a distinct scope.

@@ -6,6 +6,65 @@ import { reviseRoleMarkdown } from "./role-generator.js";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 
+// --- Bug Report (Error Escalation Pattern) ---
+
+interface BugReport {
+  what_failed: string;
+  error_message: string;
+  where: string;
+  context: Record<string, unknown>;
+  input_that_caused_failure: string;
+  expected_format: string;
+  component: string;
+  provenance: { invocation_id?: string; provider?: string; model?: string };
+  timestamp: string;
+}
+
+async function writeBugReport(report: BugReport): Promise<string | null> {
+  if (!runDir) return null;
+  const path = join(runDir, "bug-report.json");
+  await writeFile(path, JSON.stringify(report, null, 2), "utf-8");
+  console.error(`[board] Bug report written to ${path}`);
+  return path;
+}
+
+async function attemptAutoFix(
+  bugReport: BugReport,
+  request: RoleBuilderRequest,
+  rawInput: string
+): Promise<string | null> {
+  // TODO: Wire llm-tool-builder when complete. For now, use Codex agent.
+  try {
+    const fixPrompt = `You are fixing a parse error in the agent-role-builder board.
+The leader LLM returned a response that could not be parsed as JSON.
+
+ERROR: ${bugReport.error_message}
+EXPECTED FORMAT: ${bugReport.expected_format}
+RAW INPUT (first 2000 chars):
+${rawInput.slice(0, 2000)}
+
+Extract the JSON from the raw input. The response may contain markdown, explanatory text, or multiple JSON blocks.
+Return ONLY the valid JSON object matching the expected format. Nothing else.`;
+
+    const result = await invoke({
+      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+      model: request.board_roster.leader.model,
+      reasoning: "medium",
+      bypass: false,
+      timeout_ms: 60_000,
+      prompt: fixPrompt,
+      source_path: "tools/agent-role-builder/auto-fix/parse-error",
+    });
+
+    const cleaned = result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
+    JSON.parse(cleaned); // validate it's actual JSON
+    return cleaned;
+  } catch (e) {
+    console.error("[board] Auto-fix attempt failed:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
 // --- Structured types ---
 
 interface ReviewerVerdict {
@@ -380,7 +439,7 @@ async function executeRound(
       roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap
     );
     participants.push(record);
-    reviewerVerdicts.set(record.participant_id, parseReviewerResponse(record.verdict ?? ""));
+    reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex));
   }
 
   const leaderRecord = await executeParticipant(
@@ -388,7 +447,7 @@ async function executeRound(
     roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap
   );
   participants.push(leaderRecord);
-  const leaderResponse = parseLeaderResponse(leaderRecord.verdict ?? "pushback");
+  const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex);
 
   return {
     round: roundIndex, participants, leaderVerdict: leaderResponse.status,
@@ -537,11 +596,24 @@ ${selfCheckContext}${complianceContext}${fixItemsContext}${reviewerContext}${pri
 JSON response:`;
 }
 
-// --- Response parsing ---
+// --- Response parsing with error escalation ---
 
-function parseReviewerResponse(raw: string): ReviewerVerdict {
+function cleanJsonResponse(raw: string): string {
+  let cleaned = raw.trim();
+  // Strip markdown code fences
+  cleaned = cleaned.replace(/```json?\n?/g, "").replace(/\n?```/g, "").trim();
+  // If response starts with text before JSON, try to extract the JSON object
+  const jsonStart = cleaned.indexOf("{");
+  if (jsonStart > 0) cleaned = cleaned.slice(jsonStart);
+  // Find the last closing brace
+  const jsonEnd = cleaned.lastIndexOf("}");
+  if (jsonEnd > 0) cleaned = cleaned.slice(0, jsonEnd + 1);
+  return cleaned;
+}
+
+async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, round: number): Promise<ReviewerVerdict> {
+  const cleaned = cleanJsonResponse(raw);
   try {
-    const cleaned = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
     const parsed = JSON.parse(cleaned);
     return {
       verdict: parsed.verdict === "approve" ? "approved" : (parsed.verdict ?? "reject"),
@@ -550,17 +622,46 @@ function parseReviewerResponse(raw: string): ReviewerVerdict {
       residual_risks: Array.isArray(parsed.residual_risks) ? parsed.residual_risks : [],
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
     };
-  } catch (e) {
-    console.error("[board] Reviewer response parse failed:", e instanceof Error ? e.message : e);
+  } catch (firstError) {
+    // Error escalation: write bug report, attempt auto-fix
+    const bugReport: BugReport = {
+      what_failed: "Reviewer response JSON parse",
+      error_message: firstError instanceof Error ? firstError.message : String(firstError),
+      where: `Round ${round}, reviewer response parsing`,
+      context: { round, raw_length: raw.length },
+      input_that_caused_failure: raw.slice(0, 3000),
+      expected_format: '{"verdict":"approved|conditional|reject","conceptual_groups":[...],"residual_risks":[...],"strengths":[...]}',
+      component: "tools/agent-role-builder/board/parseReviewerResponse",
+      provenance: {},
+      timestamp: new Date().toISOString(),
+    };
+    await writeBugReport(bugReport);
+
+    const fixed = await attemptAutoFix(bugReport, request, raw);
+    if (fixed) {
+      try {
+        const parsed = JSON.parse(fixed);
+        console.error("[board] Auto-fix succeeded for reviewer response parse");
+        return {
+          verdict: parsed.verdict === "approve" ? "approved" : (parsed.verdict ?? "reject"),
+          conceptual_groups: Array.isArray(parsed.conceptual_groups) ? parsed.conceptual_groups : [],
+          fix_decisions: Array.isArray(parsed.fix_decisions) ? parsed.fix_decisions : undefined,
+          residual_risks: Array.isArray(parsed.residual_risks) ? parsed.residual_risks : [],
+          strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+        };
+      } catch { /* auto-fix produced invalid JSON too */ }
+    }
+
+    console.error("[board] Reviewer parse failed and auto-fix failed. Returning reject with parse-error.");
     return { verdict: "reject",
-      conceptual_groups: [{ id: "parse-error", summary: "Failed to parse", severity: "blocking", findings: [], redesign_guidance: "Fix output format" }],
+      conceptual_groups: [{ id: "parse-error", summary: `Parse failed: ${(firstError instanceof Error ? firstError.message : String(firstError)).slice(0, 100)}`, severity: "blocking", findings: [], redesign_guidance: "LLM response was not valid JSON. Bug report written." }],
       residual_risks: [], strengths: [] };
   }
 }
 
-function parseLeaderResponse(raw: string): LeaderVerdict {
+async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, round: number): Promise<LeaderVerdict> {
+  const cleaned = cleanJsonResponse(raw);
   try {
-    const cleaned = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
     const parsed = JSON.parse(cleaned);
     return {
       status: parsed.status ?? "pushback", rationale: parsed.rationale ?? "No rationale",
@@ -569,10 +670,39 @@ function parseLeaderResponse(raw: string): LeaderVerdict {
       arbitration_used: parsed.arbitration_used ?? false,
       arbitration_rationale: parsed.arbitration_rationale ?? null,
     };
-  } catch (e) {
-    console.error("[board] Leader response parse failed:", e instanceof Error ? e.message : e);
-    return { status: "pushback", rationale: `Parse failed: ${raw.slice(0, 200)}`,
-      unresolved: ["Parse failed"], improvements_applied: [],
+  } catch (firstError) {
+    // Error escalation: write bug report, attempt auto-fix
+    const bugReport: BugReport = {
+      what_failed: "Leader response JSON parse",
+      error_message: firstError instanceof Error ? firstError.message : String(firstError),
+      where: `Round ${round}, leader response parsing`,
+      context: { round, raw_length: raw.length },
+      input_that_caused_failure: raw.slice(0, 3000),
+      expected_format: '{"status":"frozen|pushback|blocked","rationale":"...","unresolved":[...],"improvements_applied":[...],"arbitration_used":false,"arbitration_rationale":null}',
+      component: "tools/agent-role-builder/board/parseLeaderResponse",
+      provenance: {},
+      timestamp: new Date().toISOString(),
+    };
+    await writeBugReport(bugReport);
+
+    const fixed = await attemptAutoFix(bugReport, request, raw);
+    if (fixed) {
+      try {
+        const parsed = JSON.parse(fixed);
+        console.error("[board] Auto-fix succeeded for leader response parse");
+        return {
+          status: parsed.status ?? "pushback", rationale: parsed.rationale ?? "No rationale",
+          unresolved: Array.isArray(parsed.unresolved) ? parsed.unresolved : [],
+          improvements_applied: Array.isArray(parsed.improvements_applied) ? parsed.improvements_applied : [],
+          arbitration_used: parsed.arbitration_used ?? false,
+          arbitration_rationale: parsed.arbitration_rationale ?? null,
+        };
+      } catch { /* auto-fix produced invalid JSON too */ }
+    }
+
+    console.error("[board] Leader parse failed and auto-fix failed. Full stop.");
+    return { status: "pushback", rationale: `Parse failed after auto-fix attempt: ${raw.slice(0, 200)}`,
+      unresolved: ["Leader response parse failed — bug report written"], improvements_applied: [],
       arbitration_used: false, arbitration_rationale: null };
   }
 }

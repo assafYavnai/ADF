@@ -196,6 +196,14 @@ Every governed component has three levels of post-mortem:
 - **Cycle post-mortem** (on terminal verdict): job summary + deeper learning + self-healing. Lightweight if frozen in budget.
 - **Jobs post-mortem** (every N cycles, background): component-wide KPIs + systemic improvement. Deletes raw data, keeps commit IDs for audit.
 
+### Error Escalation Rule
+
+**When any governed component hits an unrecoverable error, it must stop immediately and produce a structured bug report.** No silent retries, no parse hacks. The governance layer receives the bug report and attempts auto-fix via builder (llm-tool-builder when complete, Codex agent interim). If fix succeeds, relaunch from the failed step. If fix fails or error persists, full stop with error chain documented.
+
+Bug report must include: what failed, where (step/phase), execution context, input that caused failure (file path or verbatim JSON), expected format, component source_path, and provenance.
+
+See [review-process-architecture.md](review-process-architecture.md) for full specification.
+
 ### Telemetry Rule
 
 **Every operation that consumes resources must emit telemetry.** This includes:
