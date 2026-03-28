@@ -113,6 +113,7 @@ These three components are not competing — they are three different layers.
 - Scope hierarchy
 - MCP tool interface
 - **Existing data** — after triage (see below)
+- **Governance storage** — rulebook entries, review decisions, and learning engine outputs are stored as memory_items with appropriate content_types and trust levels
 
 ### From Brain MCP: CONVERT
 - All JavaScript/MJS scripts → TypeScript

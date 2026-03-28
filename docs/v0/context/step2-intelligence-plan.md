@@ -41,6 +41,9 @@ ADF/
     telemetry/                      # project-wide metrics
       collector.ts                  # async fire-and-forget metric emission via MCP
       types.ts                      # Zod schemas for metric events
+    learning-engine/                # generic rule extraction from review feedback
+      engine.ts                     # extracts rules, updates component rulebook.json
+      types.ts                      # Zod schemas for learning input/output
 
   COO/
     controller/                     # deterministic loop — no LLM
@@ -51,12 +54,16 @@ ADF/
       role/
         classifier-role.md
         classifier-role-contract.json
+      rulebook.json                 # accumulated rules from review failures
+      review-prompt.json            # domain-specific review focus
       prompt.md
     intelligence/                   # COO reasoning — strong LLM
       intelligence.ts
       role/
         intelligence-role.md
         intelligence-role-contract.json
+      rulebook.json
+      review-prompt.json
       prompt.md
     context-engineer/               # context assembly — no LLM
       context-engineer.ts
@@ -268,6 +275,8 @@ This is the evidence-based validation that the tools work:
 | `shared/llm-invoker/types.ts` | create — Zod schemas for invocation params |
 | `shared/telemetry/collector.ts` | create — async fire-and-forget metric emission via MCP |
 | `shared/telemetry/types.ts` | create — Zod schemas for metric events (includes Provenance) |
+| `shared/learning-engine/engine.ts` | create — generic rule extraction from review feedback |
+| `shared/learning-engine/types.ts` | create — Zod schemas for learning input/output |
 | `components/memory-engine/src/db/migrations/006_telemetry.sql` | create — telemetry table with provenance columns |
 | `components/memory-engine/src/db/migrations/007_provenance.sql` | create — add provenance to memory_items, backfill sentinel |
 | `components/memory-engine/src/tools/telemetry-tools.ts` | create — emit_metric, query_metrics, get_cost_summary |
@@ -279,9 +288,13 @@ This is the evidence-based validation that the tools work:
 | `COO/controller/thread.ts` | move from src/, add provenance field to ThreadEvent |
 | `COO/classifier/classifier.ts` | move from src/, update imports |
 | `COO/classifier/role/` | create via role-builder |
+| `COO/classifier/rulebook.json` | create — initial rulebook for classifier |
+| `COO/classifier/review-prompt.json` | create — classifier review domain prompt |
 | `COO/classifier/prompt.md` | create |
 | `COO/intelligence/intelligence.ts` | create — COO reasoning handler |
 | `COO/intelligence/role/` | create via role-builder |
+| `COO/intelligence/rulebook.json` | create — initial rulebook for intelligence |
+| `COO/intelligence/review-prompt.json` | create — intelligence review domain prompt |
 | `COO/intelligence/prompt.md` | move from prompts/coo-system.md |
 | `COO/context-engineer/context-engineer.ts` | move from src/, update imports |
 | `COO/shared/tools.ts` | move from src/, update imports |

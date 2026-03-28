@@ -165,6 +165,37 @@ Bootstrap order:
 3. llm-tool-builder(update) attaches the role from step 1 to agent-role-builder
 4. Verify: both tools produced valid governed artifacts — evidence exists
 
+### Review Process Rule
+
+**Every component that goes through governed review must have:**
+- A `rulebook.json` in its directory — accumulated high-level rules from past failures
+- A `review-prompt.json` in its directory — defines domain-specific review focus
+- If the component has multiple LLM agents, each gets its own subfolder with its own rulebook and review prompt
+
+**Review rounds follow a structured protocol:**
+- Implementer produces delta compliance map (full sweep on first and last round only)
+- Implementer produces fix items map with accept/reject freedom (rounds 2+)
+- Reviewer produces structured verdict (approved/conditional/reject) with conceptual groups, severity, redesign guidance
+- Reviewer responds to implementer rejections (accept_fix/reject_fix/accept_rejection/reject_rejection)
+- Learning engine extracts rules between review and fix — updates the component's rulebook.json
+
+**Arbitration is minor-only.** No arbitration on blocking/major items. Result is `frozen_with_conditions`, invoker decides acceptance.
+
+**Budget exhaustion:** each reviewer picks 1 most important fix, implementer fixes those only, run exits as `resume_required`. No silent swallowing.
+
+See [review-process-architecture.md](review-process-architecture.md) for full specification.
+
+### Learning Engine Rule
+
+**The learning engine (`shared/learning-engine/`) runs between every review and fix cycle.** It extracts generalizable rules from review feedback and updates the specific component's `rulebook.json`. Same generic engine, different domain prompt per component (loaded from `review-prompt.json`).
+
+### Three-Tier Post-Mortem Rule
+
+Every governed component has three levels of post-mortem:
+- **Run post-mortem** (after every round): KPI snapshot + rulebook update. No self-healing.
+- **Cycle post-mortem** (on terminal verdict): job summary + deeper learning + self-healing. Lightweight if frozen in budget.
+- **Jobs post-mortem** (every N cycles, background): component-wide KPIs + systemic improvement. Deletes raw data, keeps commit IDs for audit.
+
 ### Telemetry Rule
 
 **Every operation that consumes resources must emit telemetry.** This includes:

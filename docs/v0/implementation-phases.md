@@ -19,13 +19,19 @@ These must exist before anything else works.
 
 ---
 
-## Phase 2: Intelligence (Classifier + COO + Tool Registry)
+## Phase 2: Intelligence (Classifier + COO + Tools + Governance Infrastructure)
 
-5. **Intent classifier** — small bounded LLM call per turn. Zod-validated structured output. Decides: direct COO response, tool path, specialist path, clarification, pushback.
+5. **Shared infrastructure** — provenance (traceability on every operation), LLM invoker (CLI-based, Codex primary / Claude fallback), telemetry (async metrics to PostgreSQL), learning engine (rule extraction from review feedback).
 
-6. **COO agent** — the user-facing reasoning worker. Called as a function per turn with assembled context. Emits structured outputs. Does not maintain internal state.
+6. **COO layer restructure** — controller/, classifier/, intelligence/, context-engineer/, shared/. Each LLM-powered layer gets its own role, rulebook, and review prompt.
 
-7. **Tool schema registry** — tools defined as Zod types. Discovery via registry, not hardcoded lists. Each tool has a contract: input schema, output schema, side effects, approval requirements.
+7. **agent-role-builder** — TS port with live multi-LLM review board. Creates governed role packages. Structured reviewer feedback (conceptual groups with severity), split-verdict strategy, budget exhaustion protocol.
+
+8. **llm-tool-builder** — TS port. Always calls agent-role-builder. Contract-based governance.
+
+9. **Learning engine** — shared generic service. Extracts rules from review feedback, updates component rulebooks. Runs between every review and fix.
+
+10. **COO roles** — classifier role + intelligence role created through agent-role-builder with full governance.
 
 ---
 

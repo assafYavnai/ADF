@@ -35,6 +35,7 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 
 - Every LLM-powered layer has a **role** (`role/` subdirectory) with a role definition markdown and role contract JSON
 - Every role is created through the **Role Builder** tool — no exceptions, even for cheap models
+- Every LLM-powered layer has its own **rulebook** (`rulebook.json`) and **review prompt** (`review-prompt.json`) in its directory
 - Every layer has its own **prompt** file if LLM-powered
 - Non-LLM layers are pure TypeScript — no role needed
 - Layers do not call each other directly — the Controller orchestrates all interaction
@@ -45,6 +46,8 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 |---|---|---|
 | **LLM Invoker** | `shared/llm-invoker/` | Generic CLI-based LLM caller. Takes invocation params (cli, model, reasoning, timeout, etc.) → spawns process → captures output → handles fallback. No hardcoded profiles — each caller passes its own params. Callable by any component or external user. |
 | **Telemetry** | `shared/telemetry/` | Project-wide metrics collection. Async fire-and-forget via MCP. Writes to PostgreSQL `telemetry` table. Every resource-consuming operation must emit telemetry. Queryable by COO for cost/performance governance. |
+| **Learning Engine** | `shared/learning-engine/` | Generic service that extracts generalizable rules from review feedback. Same engine, different domain prompt per component (loaded from component's `review-prompt.json`). Updates the specific component's `rulebook.json`. Runs between every review and fix cycle. |
+| **Provenance** | `shared/provenance/` | Operation identity and traceability. Every DB write, MCP call, thread event, telemetry emit, and tool artifact carries provenance (invocation UUID, provider, model, reasoning, source_path). |
 
 ### Telemetry Flow
 

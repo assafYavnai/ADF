@@ -1,7 +1,7 @@
 # ADF Folder Structure
 
 Status: approved direction
-Last updated: 2026-03-27
+Last updated: 2026-03-28
 
 ---
 
@@ -10,50 +10,88 @@ Last updated: 2026-03-27
 ```
 ADF/
   COO/                              # COO: controller + reasoning layer
-    src/
-      loop.ts                       # main control loop (stateless reducer)
-      context-engineer.ts           # thread_to_prompt() - per-turn context assembly
-      classifier.ts                 # intent classification (bounded LLM call)
-      thread.ts                     # Thread + Event types (Zod schemas)
-      tools.ts                      # tool registry + dispatch
+    controller/                     # deterministic loop — no LLM
+      loop.ts
+      thread.ts
+      cli.ts
+      memory-engine-client.ts
+    classifier/                     # intent classification — fast LLM
+      classifier.ts
+      role/                         # governed role (created by agent-role-builder)
+      rulebook.json                 # accumulated rules from review failures
+      review-prompt.json            # domain-specific review focus
+      prompt.md
+    intelligence/                   # COO reasoning — strong LLM
+      role/                         # governed role (created by agent-role-builder)
+      rulebook.json
+      review-prompt.json
+      prompt.md
+    context-engineer/               # context assembly — no LLM
+      context-engineer.ts
+    shared/                         # COO-internal utilities
+      tools.ts
     package.json
     tsconfig.json
+
+  shared/                           # project-wide utilities
+    provenance/                     # operation identity and traceability
+      types.ts
+    llm-invoker/                    # generic LLM CLI invoker
+      invoker.ts
+      types.ts
+    telemetry/                      # project-wide metrics
+      collector.ts
+      types.ts
+    learning-engine/                # generic rule extraction from review feedback
+      engine.ts
+      types.ts
+
+  tools/
+    agent-role-builder/             # governed role creation tool
+      src/
+      role/                         # its own governed role (dog food)
+      rulebook.json
+      review-prompt.json
+      runs/                         # permanent audit trail
+    llm-tool-builder/               # governed tool creation tool
+      src/
+      role/                         # governed role
+      rulebook.json
+      review-prompt.json
+      runs/
 
   components/
     memory-engine/                  # all memory infrastructure (Tier 3)
       src/
         server.ts                   # Brain MCP server (TS)
         db/
-          connection.ts             # PostgreSQL pool
-          migrations/               # DB schema migrations
-          queries/                  # query modules
+          connection.ts
+          migrations/
         services/
-          capture.ts                # memory capture + deduplication
-          search.ts                 # hybrid semantic + keyword search
-          context.ts                # context summary assembly
-          scope.ts                  # scope hierarchy resolution
-        schemas/                    # Zod schemas for memory types
-        tools/                      # MCP tool definitions
+        schemas/
+        tools/
       package.json
       tsconfig.json
 
   threads/                          # Tier 1: persisted thread state (JSON)
   memory/                           # Tier 2: daily residue
-  prompts/                          # owned prompt templates (versioned)
   decisions/                        # imported decision board from handoff
 
   docs/
     VISION.md                       # long-range strategic vision
     PHASE1_VISION.md                # current phase investor-facing vision
-    PHASE1_MASTER_PLAN.md           # current phase operating plan and alignment contract
+    PHASE1_MASTER_PLAN.md           # current phase operating plan
     bootstrap/
-      cli-agent.md                  # bootstrap doc for CLI agents
-      vscode-agent.md               # bootstrap doc for VS Code agents
+      cli-agent.md
+      vscode-agent.md
     v0/                             # current version docs
       architecture.md
       folder-structure.md           # this file
+      components-and-layers.md
+      review-process-architecture.md
       implementation-phases.md
       memory_stack_strategy.md
+      context/                      # implementation context trail
 
   adf_coo_handoff_pack/             # reference: original handoff pack
 
@@ -64,14 +102,13 @@ ADF/
 
 ## Key Conventions
 
-- **COO/** - the core deterministic orchestrator and reasoning layer. All TypeScript. Named COO because this is the COO's brain: controller, classifier, context engineer, tool dispatch.
-- **components/memory-engine/** - all memory infrastructure under one roof. Brain MCP server (ported to TS), PostgreSQL queries, semantic search, memory capture, MCP tool definitions.
-- **threads/** - Tier 1 (hot). Serialized thread state per session (JSON). Enables pause, resume, and replay.
-- **memory/** - Tier 2 (warm). Daily residue files named by date (`YYYY-MM-DD.md`). Short-horizon context.
-- **prompts/** - versioned prompt templates. Prompts are code, not incidental strings.
-- **decisions/** - locked decisions carried forward from the handoff pack.
-- **VISION.md** - long-range strategic vision for ADF as a virtual company.
-- **PHASE1_VISION.md** - current phase mission and short-term goals.
-- **PHASE1_MASTER_PLAN.md** - current phase alignment contract for agents, departments, and components.
-- **AGENTS.md** - thin router only. Detects runtime (CLI vs VS Code) and points to the right bootstrap doc. Rules live in the memory engine, not here.
-- **CLAUDE.md / GEMINI.md** - minimal pointer files: "read AGENTS.md and follow links."
+- **COO/** — the core deterministic orchestrator and reasoning layer. Organized by layers: controller/, classifier/, intelligence/, context-engineer/, shared/.
+- **Each LLM-powered layer** has its own `role/`, `rulebook.json`, `review-prompt.json`, and `prompt.md` in its directory (boxed hierarchy).
+- **shared/** (root) — project-wide utilities callable by any component: provenance, llm-invoker, telemetry, learning-engine.
+- **tools/** — governance tools (agent-role-builder, llm-tool-builder). Each has its own `role/`, `rulebook.json`, `review-prompt.json`, and `runs/` for permanent audit trails.
+- **components/memory-engine/** — all memory infrastructure. Brain MCP server (TS), PostgreSQL, semantic search, MCP tool definitions.
+- **threads/** — Tier 1 (hot). Serialized thread state per session (JSON).
+- **memory/** — Tier 2 (warm). Daily residue files named by date (`YYYY-MM-DD.md`).
+- **decisions/** — locked decisions carried forward from the handoff pack.
+- **AGENTS.md** — thin router only. Detects runtime (CLI vs VS Code) and points to the right bootstrap doc.
+- **CLAUDE.md / GEMINI.md** — minimal pointer files: "read AGENTS.md and follow links."
