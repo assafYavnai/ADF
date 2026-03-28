@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0",
+  "review_type": "error-escalation-pattern",
+  "review_round": 2,
+  "component": "tools/agent-role-builder/src/services/board.ts",
+  "reviewer": "claude-opus-4.6",
+  "timestamp": "2026-03-28T00:00:00.000Z",
+  "prior_review": "docs/v0/reviews/step2f-error-escalation-review.json",
+
+  "scope": [
+    "Full sweep of board.ts (756 lines)",
+    "Verification of all 7 fix items from Round 1",
+    "Evaluation of 2 rejections (Minor 5, Minor 7)",
+    "New issue sweep"
+  ],
+
+  "fix_verifications": [
+    {
+      "finding_id": "group-1",
+      "round1_severity": "major",
+      "round1_summary": "cleanJsonResponse not used consistently — 4 inline parse sites",
+      "implementer_action": "ACCEPTED",
+      "verification": "PASS",
+      "evidence": [
+        "Line 67: attemptAutoFix now uses cleanJsonResponse(result.response)",
+        "Line 299: learning engine now uses JSON.parse(cleanJsonResponse(learningResult.response))",
+        "Line 378: generateComplianceMap now uses JSON.parse(cleanJsonResponse(result.response))",
+        "Line 423: generateFixItemsMap now uses JSON.parse(cleanJsonResponse(result.response))"
+      ],
+      "residual_note": "The three auxiliary sites (learning, compliance, fix-items) use cleanJsonResponse but do not have the full bug-report + auto-fix escalation that the primary parse functions have. This is acceptable: these are diagnostic outputs where empty defaults are graceful degradation. The cleanJsonResponse upgrade addresses the root extraction weakness. Full escalation for auxiliary outputs would add LLM cost for low-impact failures."
+    },
+    {
+      "finding_id": "group-2",
+      "round1_severity": "major",
+      "round1_summary": "writeBugReport overwrites on multiple failures",
+      "implementer_action": "ACCEPTED",
+      "verification": "PASS",
+      "evidence": [
+        "Line 23: module-level bugReportCounter = 0",
+        "Line 27-28: bugReportCounter++ then bug-report-${bugReportCounter}.json",
+        "Each bug report gets a unique filename: bug-report-1.json, bug-report-2.json, etc.",
+        "Counter is module-level so uniqueness holds across all rounds within a single executeBoard call"
+      ]
+    },
+    {
+      "finding_id": "group-3",
+      "round1_severity": "major",
+      "round1_summary": "cleanJsonResponse fails on array-typed JSON responses",
+      "implementer_action": "ACCEPTED",
+      "verification": "PASS",
+      "evidence": [
+        "Lines 614-619: detects first '{' vs first '[', uses whichever appears first",
+        "Line 617: isArray = arrStart >= 0 && (objStart < 0 || arrStart < objStart)",
+        "Lines 618-619: openChar/closeChar set to [] or {} based on detection",
+        "Lines 621-624: extraction uses the chosen pair",
+        "Edge cases verified: empty string returns empty (JSON.parse throws, escalation handles it), neither bracket found returns stripped input (same result), bracket at position 0 correctly skips the start-slice"
+      ]
+    },
+    {
+      "finding_id": "group-4",
+      "round1_severity": "minor",
+      "round1_summary": "BugReport.provenance always empty object",
+      "implementer_action": "ACCEPTED",
+      "verification": "PASS",
+      "evidence": [
+        "Line 19: BugReport interface includes participant_id in provenance",
+        "Line 628: parseReviewerResponse signature accepts participantId parameter",
+        "Line 649: bug report provenance set to { participant_id: participantId }",
+        "Line 676: parseLeaderResponse signature accepts participantId parameter",
+        "Line 697: bug report provenance set to { participant_id: participantId }",
+        "Line 450: executeRound passes record.participant_id to parseReviewerResponse",
+        "Line 458: executeRound passes leaderRecord.participant_id to parseLeaderResponse"
+      ]
+    },
+    {
+      "finding_id": "group-5",
+      "round1_severity": "minor",
+      "round1_summary": "attemptAutoFix hardcodes leader provider/model",
+      "implementer_action": "REJECTED",
+      "implementer_reason": "Same leader model is best available for extraction. Different model adds complexity without evidence.",
+      "rejection_evaluation": "ACCEPT_REJECTION",
+      "rejection_rationale": "The auto-fix task (JSON extraction) is fundamentally different from the original task (generating a review verdict). The leader model being the strongest available is a valid heuristic. Cross-provider rotation would add configuration complexity with speculative benefit. The TODO at line 40 (wire llm-tool-builder) already signals this area will evolve. No action required."
+    },
+    {
+      "finding_id": "group-6",
+      "round1_severity": "minor",
+      "round1_summary": "No input length guard on raw LLM response passed to auto-fix",
+      "implementer_action": "ACCEPTED",
+      "verification": "PASS",
+      "evidence": [
+        "Lines 41-44: if (!rawInput || rawInput.trim().length === 0) with console.error and return null",
+        "Guard fires before any LLM invocation, saving cost and latency on empty/whitespace input"
+      ]
+    },
+    {
+      "finding_id": "group-7",
+      "round1_severity": "minor",
+      "round1_summary": "Documentation specifies governance layer intermediation but implementation has parse functions owning escalation directly",
+      "implementer_action": "REJECTED",
+      "implementer_reason": "Parse functions own escalation because they have the context. Separate layer adds indirection for no change.",
+      "rejection_evaluation": "ACCEPT_REJECTION",
+      "rejection_rationale": "The Round 1 finding itself acknowledged this is acceptable for the current single-component case. The parse functions have the error context, expected format, and raw input immediately available. Extracting escalation into a separate governance layer would add a function boundary with no behavioral change. When a second component adopts error escalation, the pattern can be generalized at that point. Premature abstraction rejected."
+    }
+  ],
+
+  "new_findings": [],
+
+  "full_sweep_notes": [
+    "All JSON.parse sites in board.ts reviewed: 9 total. Line 170 (rulebook load from local file) correctly does not need cleanJsonResponse — it reads a known-good local file, not LLM output. The remaining 8 sites all either use cleanJsonResponse or are parsing already-cleaned output (lines 657, 705 in auto-fix validation).",
+    "cleanJsonResponse edge cases verified: empty input, no brackets found, bracket at position 0, mixed array-in-object text. All produce correct behavior or fail safely to JSON.parse which triggers escalation in the primary parse functions.",
+    "bugReportCounter is module-level. In theory, a second executeBoard call in the same process would continue counting from where the first left off. Since each run uses a different runDir, this causes no collision — just a cosmetic gap in numbering. Not a defect.",
+    "The BugReport.provenance now includes participant_id but not provider/model/invocation_id. The participant_id encodes the role and provider (e.g., 'reviewer-codex-r0') which provides sufficient traceability for debugging. Full provenance fields could be added if needed but participant_id is adequate."
+  ],
+
+  "summary": {
+    "round1_findings": 8,
+    "fixes_verified_pass": 5,
+    "fixes_not_applicable": 0,
+    "rejections_accepted": 2,
+    "rejections_overturned": 0,
+    "new_findings": 0,
+    "residual_observations": 1,
+    "residual_description": "Auxiliary parse sites (learning, compliance, fix-items) use cleanJsonResponse but lack full bug-report + auto-fix escalation. Accepted as intentional: these are diagnostic outputs where empty defaults are graceful degradation."
+  },
+
+  "verdict": "approved",
+  "verdict_rationale": "All 3 major findings from Round 1 are verified fixed: (1) all 4 inline parse sites now use cleanJsonResponse, (2) bug reports use counter-based unique filenames, (3) cleanJsonResponse handles both JSON objects and arrays. Both minor accepted fixes (provenance, empty input guard) are verified. Both rejections (hardcoded provider, governance intermediation) are reasonable and accepted. Full sweep of board.ts reveals no new issues. The error escalation pattern is correctly implemented with appropriate graduated response: full escalation (bug report + auto-fix + fallback) for critical parse paths (reviewer/leader verdicts), lightweight escalation (cleanJsonResponse + console.error + empty default) for auxiliary paths (learning, compliance, fix-items)."
+}
