@@ -19,6 +19,71 @@ Required protocol:
 
 Do not ask the CEO a broad design question if the answer is already present in these sources.
 
+This pack should also be used for **context recovery** when a fresh agent needs to rebuild the current Phase 1 picture quickly.
+
+---
+
+## Brain Context Recovery Protocol
+
+When rebuilding Phase 1 context, do not rely on repo docs alone. Pull the current operating picture from the Brain memory engine as well.
+
+### MCP access shape
+
+The memory engine is an MCP server over stdio JSON-RPC. The direct call shape is:
+
+1. `initialize`
+2. `notifications/initialized`
+3. `tools/list`
+4. `tools/call`
+
+Use the MCP tool surface before inventing one-off wrappers.
+
+### What to pull from the Brain for context
+
+Start with these brain pulls:
+
+1. `get_context_summary`
+   - pull broad p0/p1 context for the current scope when you need the current executive picture fast
+2. `list_recent`
+   - pull recent changes to see what moved lately
+3. `search_memory`
+   - use for topic-targeted recall such as requirements, decisions, lessons, conventions, context, and prior discussions
+4. `open_loops_manage`
+   - list or search active open items that still matter
+5. `rules_manage`
+   - list or search active governance rules relevant to the current question
+6. `requirements_manage`
+   - list or search stored requirement artifacts when trying to recover current feature truth
+7. `settings_manage`
+   - list or search operating preferences, thresholds, and current company settings
+8. `findings_manage`
+   - search recurring issues or pushed-back findings when they matter to the current lane
+
+### Important note about decisions
+
+There is no separate decision-list MCP surface today.
+
+To recover decisions, use:
+
+- `search_memory` with `content_type: "decision"` when searching by topic
+- `get_context_summary` and `list_recent` when you need the latest decision-shaped memory in scope
+
+`log_decision` is for writing new decisions, not for broad context retrieval.
+
+### Default context-recovery order
+
+When a fresh agent needs to catch up fast:
+
+1. read this source pack
+2. read the current synthesis draft
+3. pull `get_context_summary`
+4. pull `open_loops_manage`
+5. pull `rules_manage`
+6. pull `list_recent`
+7. use `search_memory` for the exact topic being discussed
+
+This should be the default before asking the CEO to restate old context.
+
 ---
 
 ## Source Priority
@@ -28,6 +93,20 @@ Use the sources in this order:
 1. Canonical workflow and requirement artifacts
 2. Seed-case requirement artifacts that preserved prior intent
 3. Discussion threads that contain approved or near-approved intent not yet promoted into governed artifacts
+4. Current Brain state for recent operating truth
+
+---
+
+## ProjectBrain Reference Roots
+
+These paths are valid reference roots when you need historical design intent, legacy workflow behavior, or older company-shape material:
+
+- `C:\ProjectBrain\ADF\WAT\Workflows`
+- `C:\ProjectBrain\ADF\WAT\MD-examples\memory-stack`
+- `C:\ProjectBrain\prompts\coo_redesign_pack`
+- `C:\ProjectBrain\ADF`
+
+Use them as reference evidence, not as automatic authority over current ADF governed artifacts.
 
 ---
 

@@ -12,7 +12,7 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 - Read [docs/VISION.md](../VISION.md) for the long-range company vision
 - Read [docs/PHASE1_VISION.md](../PHASE1_VISION.md) for the current phase mission
 - Read [docs/PHASE1_MASTER_PLAN.md](../PHASE1_MASTER_PLAN.md) for Phase 1 operating alignment
-- For Phase 1 design, workflow, and requirements-definition questions, read [docs/v0/context/phase1-definition-source-pack.md](../v0/context/phase1-definition-source-pack.md) before asking the CEO new questions
+- Auto-load [docs/v0/context/phase1-definition-source-pack.md](../v0/context/phase1-definition-source-pack.md) for Phase 1 design, workflow, context-recovery, and requirements-definition work
 - Read [docs/v0/architecture.md](../v0/architecture.md) for technical architecture
 
 ## Key directories

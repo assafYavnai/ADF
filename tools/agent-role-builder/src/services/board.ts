@@ -158,7 +158,7 @@ export async function executeBoard(
   let currentMarkdown = draftMarkdown;
   let currentSelfCheckIssues = selfCheckIssues;
 
-  const reviewerStatus = new Map<string, "approved" | "conditional" | "reject" | "pending">();
+  const reviewerStatus = new Map<string, "approved" | "conditional" | "reject" | "error" | "pending">();
   for (const r of request.board_roster.reviewers) {
     reviewerStatus.set(`reviewer-${r.provider}`, "pending");
   }
@@ -209,10 +209,25 @@ export async function executeBoard(
     const isSanityCheck = reviewersToRun.length === 0;
     const activeReviewers = isSanityCheck ? request.board_roster.reviewers : reviewersToRun;
 
-    const roundResult = await executeRound(
-      request, currentMarkdown, draftContract, currentSelfCheckIssues,
-      round, rounds, activeReviewers, isSanityCheck, complianceMap, fixItemsMap
-    );
+    let roundResult: BoardRoundResult;
+    try {
+      roundResult = await executeRound(
+        request, currentMarkdown, draftContract, currentSelfCheckIssues,
+        round, rounds, activeReviewers, isSanityCheck, complianceMap, fixItemsMap
+      );
+    } catch (err) {
+      // Bug 1 fix: BoardBlockedError means an unrecoverable parse failure — stop immediately
+      if (err instanceof BoardBlockedError) {
+        console.error(`[board] Board blocked: ${err.message}`);
+        return {
+          status: "blocked", rounds, allParticipants,
+          statusReason: `Unrecoverable parse failure in round ${round}. ${err.message}`,
+          finalMarkdown: currentMarkdown,
+          finalSelfCheckIssues: currentSelfCheckIssues,
+        };
+      }
+      throw err; // Re-throw unexpected errors
+    }
     roundResult.complianceMap = complianceMap;
     roundResult.fixItemsMap = fixItemsMap;
     rounds.push(roundResult);
@@ -234,12 +249,19 @@ export async function executeBoard(
       }, null, 2), "utf-8");
     }
 
-    // Update per-reviewer status
+    // Update per-reviewer status (Bug 2 fix: parse-error verdicts are marked "error", not "reject")
     for (const [pid, verdict] of roundResult.reviewerVerdicts) {
       const key = pid.replace(/-r\d+$/, "");
-      if (verdict.verdict === "approved") reviewerStatus.set(key, "approved");
-      else if (verdict.verdict === "conditional") reviewerStatus.set(key, "conditional");
-      else reviewerStatus.set(key, "reject");
+      const isParseError = verdict.conceptual_groups.some((g) => g.id === "parse-error");
+      if (isParseError) {
+        reviewerStatus.set(key, "error");
+      } else if (verdict.verdict === "approved") {
+        reviewerStatus.set(key, "approved");
+      } else if (verdict.verdict === "conditional") {
+        reviewerStatus.set(key, "conditional");
+      } else {
+        reviewerStatus.set(key, "reject");
+      }
     }
 
     if (roundResult.leaderVerdict === "frozen") {
@@ -253,9 +275,10 @@ export async function executeBoard(
         finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
     }
 
-    // Arbitration check
-    const hasReject = [...reviewerStatus.values()].some((s) => s === "reject");
-    const hasApprove = [...reviewerStatus.values()].some((s) => s === "approved" || s === "conditional");
+    // Arbitration check (Bug 2 fix: only count real verdicts, not "error" or "pending")
+    const realVerdicts = [...reviewerStatus.values()].filter((s) => s !== "error" && s !== "pending");
+    const hasReject = realVerdicts.some((s) => s === "reject");
+    const hasApprove = realVerdicts.some((s) => s === "approved" || s === "conditional");
     if (hasReject && hasApprove) consecutiveDisputeRounds++;
     else consecutiveDisputeRounds = 0;
 
@@ -606,6 +629,33 @@ JSON response:`;
 
 // --- Response parsing with error escalation ---
 
+/** Thrown when a parse failure is unrecoverable and the board must stop immediately. */
+class BoardBlockedError extends Error {
+  bugReportPath: string | null;
+  constructor(message: string, bugReportPath: string | null) {
+    super(message);
+    this.name = "BoardBlockedError";
+    this.bugReportPath = bugReportPath;
+  }
+}
+
+/**
+ * Pre-validate raw LLM response before attempting JSON parse.
+ * Returns a failure reason string, or null if validation passes.
+ */
+function preValidateResponse(raw: string): string | null {
+  if (!raw || raw.trim().length === 0) {
+    return "Response is empty or whitespace-only";
+  }
+  if (raw.trimStart().startsWith("ERROR:")) {
+    return `CLI failure detected: ${raw.slice(0, 200)}`;
+  }
+  if (!raw.includes("{") && !raw.includes("[")) {
+    return `No JSON content found in response (no '{' or '[' characters): ${raw.slice(0, 200)}`;
+  }
+  return null;
+}
+
 function cleanJsonResponse(raw: string): string {
   let cleaned = raw.trim();
   // Strip markdown code fences
@@ -626,6 +676,29 @@ function cleanJsonResponse(raw: string): string {
 }
 
 async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string): Promise<ReviewerVerdict> {
+  // Bug 3 fix: pre-validate before any JSON parsing
+  const preValidationFailure = preValidateResponse(raw);
+  if (preValidationFailure) {
+    const bugReport: BugReport = {
+      what_failed: "Reviewer response pre-validation",
+      error_message: preValidationFailure,
+      where: `Round ${round}, reviewer response pre-validation`,
+      context: { round, raw_length: raw?.length ?? 0 },
+      input_that_caused_failure: raw?.slice(0, 3000) ?? "(null/undefined)",
+      expected_format: '{"verdict":"approved|conditional|reject","conceptual_groups":[...],"residual_risks":[...],"strengths":[...]}',
+      component: "tools/agent-role-builder/board/parseReviewerResponse",
+      provenance: { participant_id: participantId },
+      timestamp: new Date().toISOString(),
+    };
+    const reportPath = await writeBugReport(bugReport);
+    // Pre-validation failures are not auto-fixable — return parse-error verdict
+    // (the board loop will detect parse-error and mark reviewer as "error")
+    console.error(`[board] Reviewer response pre-validation failed: ${preValidationFailure}`);
+    return { verdict: "reject",
+      conceptual_groups: [{ id: "parse-error", summary: `Pre-validation failed: ${preValidationFailure.slice(0, 100)}`, severity: "blocking", findings: [], redesign_guidance: `Response failed pre-validation. Bug report: ${reportPath ?? "unknown"}` }],
+      residual_risks: [], strengths: [] };
+  }
+
   const cleaned = cleanJsonResponse(raw);
   try {
     const parsed = JSON.parse(cleaned);
@@ -649,7 +722,7 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
       provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
-    await writeBugReport(bugReport);
+    const reportPath = await writeBugReport(bugReport);
 
     const fixed = await attemptAutoFix(bugReport, request, raw);
     if (fixed) {
@@ -663,17 +736,44 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
           residual_risks: Array.isArray(parsed.residual_risks) ? parsed.residual_risks : [],
           strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
         };
-      } catch { /* auto-fix produced invalid JSON too */ }
+      } catch (autoFixError) {
+        console.error("[board] Auto-fix produced invalid JSON:", autoFixError instanceof Error ? autoFixError.message : autoFixError);
+      }
     }
 
-    console.error("[board] Reviewer parse failed and auto-fix failed. Returning reject with parse-error.");
-    return { verdict: "reject",
-      conceptual_groups: [{ id: "parse-error", summary: `Parse failed: ${(firstError instanceof Error ? firstError.message : String(firstError)).slice(0, 100)}`, severity: "blocking", findings: [], redesign_guidance: "LLM response was not valid JSON. Bug report written." }],
-      residual_risks: [], strengths: [] };
+    // Bug 1 fix: auto-fix failed — throw BoardBlockedError instead of returning degraded fallback
+    console.error("[board] Reviewer parse failed and auto-fix failed. Blocking board.");
+    throw new BoardBlockedError(
+      `Reviewer ${participantId ?? "unknown"} response parse failed after auto-fix attempt. Bug report: ${reportPath ?? "unknown"}`,
+      reportPath
+    );
   }
 }
 
 async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string): Promise<LeaderVerdict> {
+  // Bug 3 fix: pre-validate before any JSON parsing
+  const preValidationFailure = preValidateResponse(raw);
+  if (preValidationFailure) {
+    const bugReport: BugReport = {
+      what_failed: "Leader response pre-validation",
+      error_message: preValidationFailure,
+      where: `Round ${round}, leader response pre-validation`,
+      context: { round, raw_length: raw?.length ?? 0 },
+      input_that_caused_failure: raw?.slice(0, 3000) ?? "(null/undefined)",
+      expected_format: '{"status":"frozen|pushback|blocked","rationale":"...","unresolved":[...],"improvements_applied":[...],"arbitration_used":false,"arbitration_rationale":null}',
+      component: "tools/agent-role-builder/board/parseLeaderResponse",
+      provenance: { participant_id: participantId },
+      timestamp: new Date().toISOString(),
+    };
+    const reportPath = await writeBugReport(bugReport);
+    // Pre-validation failures on leader are unrecoverable — block immediately
+    console.error(`[board] Leader response pre-validation failed: ${preValidationFailure}`);
+    throw new BoardBlockedError(
+      `Leader ${participantId ?? "unknown"} response pre-validation failed: ${preValidationFailure}. Bug report: ${reportPath ?? "unknown"}`,
+      reportPath
+    );
+  }
+
   const cleaned = cleanJsonResponse(raw);
   try {
     const parsed = JSON.parse(cleaned);
@@ -697,7 +797,7 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
       provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
-    await writeBugReport(bugReport);
+    const reportPath = await writeBugReport(bugReport);
 
     const fixed = await attemptAutoFix(bugReport, request, raw);
     if (fixed) {
@@ -711,13 +811,17 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
           arbitration_used: parsed.arbitration_used ?? false,
           arbitration_rationale: parsed.arbitration_rationale ?? null,
         };
-      } catch { /* auto-fix produced invalid JSON too */ }
+      } catch (autoFixError) {
+        console.error("[board] Auto-fix produced invalid JSON:", autoFixError instanceof Error ? autoFixError.message : autoFixError);
+      }
     }
 
-    console.error("[board] Leader parse failed and auto-fix failed. Full stop.");
-    return { status: "pushback", rationale: `Parse failed after auto-fix attempt: ${raw.slice(0, 200)}`,
-      unresolved: ["Leader response parse failed — bug report written"], improvements_applied: [],
-      arbitration_used: false, arbitration_rationale: null };
+    // Bug 1 fix: auto-fix failed — throw BoardBlockedError instead of returning degraded fallback
+    console.error("[board] Leader parse failed and auto-fix failed. Blocking board.");
+    throw new BoardBlockedError(
+      `Leader ${participantId ?? "unknown"} response parse failed after auto-fix attempt. Bug report: ${reportPath ?? "unknown"}`,
+      reportPath
+    );
   }
 }
 

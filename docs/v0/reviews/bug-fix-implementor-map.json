@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "round": 1,
+  "items": [
+    {
+      "finding_id": "bug-1",
+      "action": "accepted",
+      "summary": "When auto-fix fails in parseReviewerResponse() and parseLeaderResponse(), throw BoardBlockedError instead of returning degraded fallback. executeBoard() catches BoardBlockedError and exits with status 'blocked' including the bug report path in statusReason.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:744-749 (reviewer throw), :819-824 (leader throw), :218-230 (board catch)",
+      "files_modified": [
+        "tools/agent-role-builder/src/services/board.ts"
+      ]
+    },
+    {
+      "finding_id": "bug-2",
+      "action": "accepted",
+      "summary": "Reviewer status update now checks for parse-error conceptual_groups. If any group has id='parse-error', the reviewer is marked as 'error' instead of 'reject'. Arbitration now filters out 'error' and 'pending' statuses before counting rejects and approvals, so broken reviewers don't trigger false disagreements.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:252-265 (status update), :278-283 (arbitration filter), :161 (type expanded to include 'error')",
+      "files_modified": [
+        "tools/agent-role-builder/src/services/board.ts"
+      ]
+    },
+    {
+      "finding_id": "bug-3",
+      "action": "accepted",
+      "summary": "Added preValidateResponse() function that checks: (1) empty/whitespace responses, (2) responses starting with 'ERROR:' (CLI failures like 'ERROR: codex failed: spawn codex ENOENT'), (3) responses with no JSON content (no '{' or '['). Both parseReviewerResponse() and parseLeaderResponse() call preValidateResponse() before any cleanJsonResponse/JSON.parse. Reviewer pre-validation failures return parse-error verdict (handled by Bug 2 fix). Leader pre-validation failures throw BoardBlockedError (handled by Bug 1 fix).",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:646-657 (preValidateResponse), :679-699 (reviewer pre-validation), :754-774 (leader pre-validation)",
+      "files_modified": [
+        "tools/agent-role-builder/src/services/board.ts"
+      ]
+    }
+  ],
+  "compliance_map": [
+    {
+      "rule_id": "IMP-002",
+      "status": "compliant",
+      "evidence_location": "docs/v0/reviews/bug-fix-implementor-map.json",
+      "evidence_summary": "This compliance map IS the self-check evidence. Every rule IMP-002 through IMP-009 was checked mechanically before submission."
+    },
+    {
+      "rule_id": "IMP-003",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:218-230, :252-265, :278-283",
+      "evidence_summary": "All conditional guards tested against terminal states: (1) BoardBlockedError catch returns 'blocked' status with all accumulated rounds/participants. (2) reviewerStatus 'error' is excluded from arbitration — only 'approved', 'conditional', 'reject' count. (3) Pre-validation handles empty, CLI error, and no-JSON states separately."
+    },
+    {
+      "rule_id": "IMP-004",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:679 (reviewer), :754 (leader)",
+      "evidence_summary": "Pre-validation applied to BOTH parseReviewerResponse and parseLeaderResponse. BoardBlockedError thrown from BOTH functions on unrecoverable failure. Auto-fix catch blocks updated in BOTH functions. No other copies of these functions exist in the codebase."
+    },
+    {
+      "rule_id": "IMP-005",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:632-640, :646-657",
+      "evidence_summary": "BoardBlockedError class is used by parseReviewerResponse (line 746), parseLeaderResponse (lines 771, 821), and caught by executeBoard (line 220). preValidateResponse is called by parseReviewerResponse (line 680) and parseLeaderResponse (line 755). No orphan schemas."
+    },
+    {
+      "rule_id": "IMP-006",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts",
+      "evidence_summary": "No dead code introduced. The old fallback return statements in catch blocks (lines 670-672 original reviewer, lines 718-720 original leader) were replaced with throw statements. No dead imports, unused parameters, or unreachable code. TypeScript compilation passes with --noEmit."
+    },
+    {
+      "rule_id": "IMP-007",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:696, :740, :770, :815, :820, :221, :745",
+      "evidence_summary": "Every catch block logs to stderr with context prefix. The two previously empty catch blocks (line 666 original reviewer auto-fix, line 714 original leader auto-fix) now log the auto-fix error with message. Pre-validation failures log before returning/throwing. No silent error swallowing."
+    },
+    {
+      "rule_id": "IMP-008",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:746-749, :821-824",
+      "evidence_summary": "When auto-fix fails, the function throws BoardBlockedError (an Error subclass) instead of returning a success-like degraded fallback. The caller distinguishes this from success via the thrown error. No stubs return success."
+    },
+    {
+      "rule_id": "IMP-009",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts:57-65 (attemptAutoFix invoke call)",
+      "evidence_summary": "No new CLI invocations were added. The existing invoke() calls use the shared-imports invoke function which pipes via stdin. No shell:true usage. The preValidateResponse function is pure string validation, no shell calls."
+    }
+  ],
+  "generated_at": "2026-03-28T12:00:00.000Z"
+}
