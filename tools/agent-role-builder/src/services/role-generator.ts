@@ -96,64 +96,78 @@ ${renderList(req.completion)}
 `;
 }
 
+export interface RevisionFeedback {
+  round: number;
+  leaderRationale: string;
+  unresolved: string[];
+  fixChecklist: Array<{
+    groupId: string;
+    severity: string;
+    summary: string;
+    redesignGuidance: string;
+    findingCount: number;
+  }>;
+  priorRoundIssueCount: number[];
+}
+
 export async function reviseRoleMarkdown(
   request: RoleBuilderRequest,
   currentMarkdown: string,
   currentContract: Record<string, unknown>,
-  latestRound: {
-    round: number;
-    leaderRationale: string;
-    unresolved: string[];
-    participants: Array<{ participant_id: string; verdict?: string }>;
-  },
+  feedback: RevisionFeedback,
   priorRounds: Array<{ round: number; leaderRationale: string; unresolved: string[] }>
 ): Promise<string> {
   const { invoke } = await import("../shared-imports.js");
+
+  // Build actionable fix checklist from parsed reviewer feedback
+  const fixItems = feedback.fixChecklist
+    .filter((g) => g.severity === "blocking" || g.severity === "major")
+    .map((g, i) => `${i + 1}. [${g.groupId}] (${g.severity}) ${g.summary}\n   FIX: ${g.redesignGuidance}`)
+    .join("\n\n");
+
+  const minorItems = feedback.fixChecklist
+    .filter((g) => g.severity === "minor" || g.severity === "suggestion")
+    .map((g) => `- [${g.groupId}] ${g.summary}: ${g.redesignGuidance}`)
+    .join("\n");
+
+  const convergenceNote = feedback.priorRoundIssueCount.length > 0
+    ? `Convergence trend: ${feedback.priorRoundIssueCount.join(" -> ")} -> ${feedback.fixChecklist.length} issues. ${
+        feedback.priorRoundIssueCount[feedback.priorRoundIssueCount.length - 1] <= feedback.fixChecklist.length
+          ? "NOT CONVERGING — apply all fixes precisely this round."
+          : "Converging — keep fixing."
+      }`
+    : "";
 
   const revisionPrompt = [
     `You are revising a role markdown draft for ${request.role_name}.`,
     `Return ONLY the full updated markdown document. Do not wrap it in code fences.`,
     ``,
-    `Non-negotiable constraints:`,
-    `- Keep the required XML tags exactly once each: ${REQUIRED_XML_TAGS.map((tag) => `<${tag}>`).join(", ")}`,
-    `- Do not invent new authority, scope, runtime modes, or artifacts that are not supported by the request or current implementation`,
-    `- Remove duplicate or contradictory scope boundaries`,
-    `- Keep live Codex+Claude reviewer-pair governance mandatory for every run`,
-    `- Clarify non-freeze artifact behavior as evidence-only, not canonical`,
-    `- Clarify that write authority is limited to role-package artifacts only`,
+    `CRITICAL: You MUST fix every blocking/major item below. Each has specific guidance.`,
+    `If you do not fix an item, the next review round will reject again for the same reason.`,
     ``,
-    `Role request summary:`,
-    `- Intent: ${request.intent}`,
-    `- Primary objective: ${request.primary_objective}`,
-    `- Out of scope: ${request.out_of_scope.join("; ")}`,
-    `- Governance mode: ${request.governance.mode}`,
-    `- Max review rounds: ${request.governance.max_review_rounds}`,
+    convergenceNote,
     ``,
-    `Current contract summary:`,
-    JSON.stringify({
-      board_roster: request.board_roster,
-      governance: request.governance,
-      runtime: request.runtime,
-      required_outputs: request.required_outputs,
-      package_files: currentContract["package_files"],
-    }, null, 2),
+    `=== BLOCKING/MAJOR FIXES REQUIRED ===`,
+    fixItems || "(none — only minor issues remain)",
     ``,
-    `Latest round (${latestRound.round}) leader rationale:`,
-    latestRound.leaderRationale,
+    minorItems ? `=== MINOR FIXES (address if possible) ===\n${minorItems}` : "",
     ``,
-    `Latest unresolved issues:`,
-    ...latestRound.unresolved.map((issue) => `- ${issue}`),
+    `=== LEADER RATIONALE ===`,
+    feedback.leaderRationale,
     ``,
-    `Reviewer feedback this round:`,
-    ...latestRound.participants.map((p) => `- ${p.participant_id}: ${(p.verdict ?? "(no verdict)").trim()}`),
+    `=== UNRESOLVED FROM LEADER ===`,
+    ...feedback.unresolved.map((u) => `- ${u}`),
     ``,
-    priorRounds.length > 0
-      ? `Prior round context:\n${priorRounds.map((round) => `- Round ${round.round}: ${round.unresolved.join("; ") || round.leaderRationale}`).join("\n")}\n`
-      : "",
-    `Current markdown:`,
+    `=== CONSTRAINTS ===`,
+    `- Keep required XML tags exactly once each: ${REQUIRED_XML_TAGS.map((t) => `<${t}>`).join(", ")}`,
+    `- Do not invent new authority, scope, runtime modes, or artifacts not in the request`,
+    `- Write authority limited to role-package artifacts only`,
+    `- Governance: ${request.governance.mode}, max ${request.governance.max_review_rounds} rounds`,
+    ``,
+    `=== CURRENT MARKDOWN ===`,
     currentMarkdown,
     ``,
-    `Updated markdown:`,
+    `=== UPDATED MARKDOWN (apply all fixes above) ===`,
   ].filter(Boolean).join("\n");
 
   const result = await invoke({

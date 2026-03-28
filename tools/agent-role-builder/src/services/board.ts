@@ -145,16 +145,32 @@ export async function executeBoard(
     // Revise draft for next round if there are unresolved issues
     if (round < maxRounds - 1 && roundResult.unresolved.length > 0) {
       try {
+        // Build actionable fix checklist from parsed reviewer feedback
+        const fixChecklist: Array<{
+          groupId: string; severity: string; summary: string;
+          redesignGuidance: string; findingCount: number;
+        }> = [];
+
+        for (const [, rv] of roundResult.reviewerVerdicts) {
+          for (const group of rv.conceptual_groups) {
+            fixChecklist.push({
+              groupId: group.id,
+              severity: group.severity,
+              summary: group.summary,
+              redesignGuidance: group.redesign_guidance,
+              findingCount: group.findings.length,
+            });
+          }
+        }
+
         currentMarkdown = await reviseRoleMarkdown(
           request, roundResult.markdown, draftContract,
           {
             round: roundResult.round,
             leaderRationale: roundResult.leaderRationale,
             unresolved: roundResult.unresolved,
-            participants: roundResult.participants.map((p) => ({
-              participant_id: p.participant_id,
-              verdict: p.verdict,
-            })),
+            fixChecklist,
+            priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
           },
           rounds.map((pr) => ({
             round: pr.round,
