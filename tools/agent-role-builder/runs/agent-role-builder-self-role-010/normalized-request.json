@@ -1,9 +1,10 @@
 {
   "schema_version": "1.0",
-  "request_job_id": "agent-role-builder-self-role-010",
+  "request_type": "role_definition",
+  "operation": "update",
+  "job_id": "agent-role-builder-self-role-010",
   "role_slug": "agent-role-builder",
   "role_name": "Agent Role Builder",
-  "operation": "update",
   "intent": "Resume and finalize the agent-role-builder self-role using improved review process (structured feedback, split-verdict, arbitration).",
   "business_context": "Prior runs (001-004) produced a high-quality 178-line role definition through 14 review rounds. The review process has been upgraded with structured feedback contracts, split-verdict strategy, and arbitration mechanics. This run resumes from the improved draft to verify convergence.",
   "primary_objective": "Create agent role packages through governed multi-LLM review with Codex+Claude pairs, producing frozen role packages only when no material pushback remains.",
@@ -259,13 +260,9 @@
     "enabled": true,
     "include_evidence_refs": true
   },
-  "package_files": {
-    "role_markdown_path": "agent-role-builder-role.md",
-    "role_contract_path": "agent-role-builder-role-contract.json",
-    "decision_log_path": "agent-role-builder-decision-log.md",
-    "board_summary_path": "agent-role-builder-board-summary.md"
-  },
-  "package_generated_at_utc": "2026-03-28T23:26:27.014Z",
-  "final_status": "frozen",
-  "final_markdown_path": "agent-role-builder-role.md"
+  "baseline": {
+    "role_package_path": "tools/agent-role-builder/role",
+    "allow_role_name_change": false,
+    "allow_restructure": true
+  }
 }

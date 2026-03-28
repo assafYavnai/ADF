@@ -1,0 +1,16 @@
+{
+  "what_failed": "Leader response JSON parse",
+  "error_message": "Unexpected token 'E', \"ERROR: cod\"... is not valid JSON",
+  "where": "Round 1, leader response parsing",
+  "context": {
+    "round": 1,
+    "raw_length": 39
+  },
+  "input_that_caused_failure": "ERROR: codex failed: spawn codex ENOENT",
+  "expected_format": "{\"status\":\"frozen|pushback|blocked\",\"rationale\":\"...\",\"unresolved\":[...],\"improvements_applied\":[...],\"arbitration_used\":false,\"arbitration_rationale\":null}",
+  "component": "tools/agent-role-builder/board/parseLeaderResponse",
+  "provenance": {
+    "participant_id": "leader-codex-r1"
+  },
+  "timestamp": "2026-03-28T23:26:27.008Z"
+}

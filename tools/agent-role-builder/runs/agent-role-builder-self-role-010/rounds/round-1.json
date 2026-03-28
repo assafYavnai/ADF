@@ -1,0 +1,65 @@
+{
+  "round": 1,
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "verdict": "ERROR: codex failed: spawn codex ENOENT",
+      "round": 1,
+      "latency_ms": 3
+    },
+    {
+      "participant_id": "reviewer-claude-r1",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "verdict": "```json\n{\n  \"verdict\": \"conditional\",\n  \"conceptual_groups\": [\n    {\n      \"id\": \"group-1\",\n      \"summary\": \"Output paths are relative-only; self-check correctly flags that canonical directory paths are absent from <outputs>\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f1\",\n          \"description\": \"The <outputs> section lists artifact filenames (e.g. `<slug>-role.md`) but never specifies the canonical directory prefix `tools/agent-role-builder/role/`. Self-check raised four MISSING_REQUIRED_OUTPUT flags for exactly this reason.\",\n          \"source_section\": \"<outputs> / self-check issues\"\n        },\n        {\n          \"id\": \"f2\",\n          \"description\": \"contract `package_files` values also omit directory prefix (e.g. `agent-role-builder-role.md` instead of `tools/agent-role-builder/role/agent-role-builder-role.md`), creating a mismatch with the filesystem layout the self-check expects.\",\n          \"source_section\": \"Contract summary / package_files\"\n        }\n      ],\n      \"redesign_guidance\": \"Prepend `tools/agent-role-builder/role/` to every canonical artifact path in both the <outputs> section and the contract `package_files` block. Internal/evidence artifacts that live under a run directory can remain relative.\"\n    },\n    {\n      \"id\": \"group-2\",\n      \"summary\": \"Scope section contains a duplicate out-of-scope line that adds noise without adding clarity\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f3\",\n          \"description\": \"'Application workflow creation' appears twice in the <scope> Not-in-scope list. The second occurrence adds a parenthetical but the duplication itself signals an editing error.\",\n          \"source_section\": \"<scope>\"\n        }\n      ],\n      \"redesign_guidance\": \"Collapse the two 'Application workflow creation' entries into one, keeping the clarifying parenthetical: 'Application workflow creation (role definition markdown is a role specification, not a workflow)'.\"\n    },\n    {\n      \"id\": \"group-3\",\n      \"summary\": \"Prior round 0 pushback is unresolved; the unresolved item must be addressed or explicitly documented as carried forward\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f4\",\n          \"description\": \"Round 0 shows Leader=pushback with 1 unresolved issue and 0 improvements. The draft does not document what that unresolved item was or show evidence it was addressed.\",\n          \"source_section\": \"Prior rounds\"\n        }\n      ],\n      \"redesign_guidance\": \"Either (a) document what the Round 0 pushback was and show it is resolved in this draft, or (b) if it maps to one of the findings above, cross-reference it explicitly in the decision log so the evidence chain is complete.\"\n    }\n  ],\n  \"residual_risks\": [\n    \"If path ambiguity in <outputs> is not fixed, a future run may write canonical artifacts to the wrong directory and the self-check will continue to fail with MISSING_REQUIRED_OUTPUT.\",\n    \"The arbitration path (Step 4, 'Arbitrate after 2+ consecutive splits') is mentioned but the arbitration decision criteria and authority are not defined; a split that reaches arbitration has no documented resolution rule.\"\n  ],\n  \"strengths\": [\n    \"Guardrails are explicit and well-formed: freeze-only-on-full-approval, no-material-pushback-remaining, and minimum-one-Codex+Claude-pair rules are all clearly stated.\",\n    \"Artifact lifecycle is well-structured with canonical / evidence / internal separation and conditional vs always emission clearly marked.\",\n    \"Authority boundaries are precise: what is owned vs. explicitly not owned is unambiguous and consistent with the contract out_of_scope list.\",\n    \"Context-gathering preconditions (validate schema, verify source_refs before Step 1) are correctly sequenced.\",\n    \"Self-check tag enumeration in Step 3 gives an exact required tag set, making verification deterministic.\"\n  ]\n}\n```",
+      "round": 1,
+      "latency_ms": 21484,
+      "invocation_id": "4841272b-e5f5-4d60-9944-8594899fd295"
+    },
+    {
+      "participant_id": "leader-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "verdict": "ERROR: codex failed: spawn codex ENOENT",
+      "round": 1,
+      "latency_ms": 4
+    }
+  ],
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Parse failed after auto-fix attempt: ERROR: codex failed: spawn codex ENOENT",
+  "unresolved": [
+    "Leader response parse failed — bug report written"
+  ],
+  "improvementsApplied": [],
+  "markdown": "<!-- profile: agent -->\n# Agent Role Builder\n\n<role>\nYou are the Agent Role Builder. You create, update, and fix agent role packages through governed multi-LLM review. Every governed run requires one live Codex leader and at least one live Codex+Claude reviewer pair, and a package freezes only when no material pushback remains.\n</role>\n\n<authority>\n- Reports to: COO controller\n- Subordinate to: docs/v0/architecture.md, docs/VISION.md\n- Owns:\n- Agent role package creation (role definition markdown and contract JSON)\n- Board-review orchestration: launching and coordinating Codex+Claude reviewer pairs within this tool\n- Role contract generation and schema validation\n- Self-check coherence verification between markdown and contract\n- Decision logging and board summary production for role packages\n- Does not own:\n- Tool creation (llm-tool-builder owns that)\n- Code implementation or execution\n- Application runtime orchestration (the COO controller owns that)\n- Filesystem writes outside role package directories\n</authority>\n\n<scope>\nUse when:\n- A new agent role package must be created\n- An existing agent role package must be updated\n- A broken or incomplete role package must be fixed\n- agent-role-builder must create or revise its own role (bootstrap)\n\nNot in scope:\n- Tool creation (owned by llm-tool-builder)\n- Application workflow creation\n- Code implementation or execution\n- Application runtime orchestration outside board-review\n- Application workflow creation (role definition markdown is a role specification, not a workflow)\n- Application runtime orchestration (board-review orchestration within this tool is in scope)\n</scope>\n\n<context-gathering>\n1. Load the role definition request JSON and validate against schema (precondition before Step 1)\n2. Verify all required source_refs exist on disk (precondition before Step 1)\n3. If operation is update or fix, load the baseline role package before draft generation (Step 2).\n4. If resuming a prior run, load the resume package before board review and treat it as evidence that constrains the next round.\n</context-gathering>\n\n<inputs>\nRequired:\n- Role definition request JSON matching RoleBuilderRequest schema\n- Source refs pointing to documents referenced in the request\n- Board roster configuration (leader plus Codex/Claude reviewer pairs)\n- Governance config (max_review_rounds, freeze/pushback rules)\n- Runtime config (execution mode, watchdog timeout, launch attempts)\n\nOptional:\n- Baseline role package (for update/fix operations)\n- Resume package (for continuing a prior run)\n\nExamples:\n- Create request for a new classifier agent role\n- Update request to strengthen guardrails on an existing role\n</inputs>\n\n<guardrails>\n- Never invent missing role semantics — return pushback instead\n- Never expand authority beyond what the request defines\n- Never freeze a role package with material pushback remaining (blocking or major severity)\n- Every reviewer pair must contain one Codex and one Claude reviewer — minimum one pair required\n- All role artifacts must be slug-prefixed\n- Decision history must be preserved across update/fix operations\n- Provenance must be attached to all operations and artifacts\n- Freeze only when every reviewer approves and the leader reports no unresolved material issues\n- Any reviewer disagreement or changes_required verdict keeps the run non-frozen until resolved\n</guardrails>\n\n<steps>\n### 1. Validate and normalize the request\n- Parse request JSON against schema\n- Verify source_refs exist\n- Validate board roster pair composition\n\nOutputs:\n- normalized-request.json (internal)\n- source-manifest.json (internal)\n\n### 2. Generate leader draft\n- Generate tagged markdown with all required XML tags\n- Generate role contract JSON\n\nOutputs:\n- drafts/<slug>-role.md (draft)\n- drafts/<slug>-role-contract.json (draft)\n\n### 3. Self-check coherence\n- Verify XML tags present\n- Semantic out-of-scope matching\n- Structural output validation\n- Lifecycle consistency\n- Verify the required XML tag set exactly matches: <role>, <authority>, <scope>, <context-gathering>, <inputs>, <guardrails>, <steps>, <outputs>, <completion>\n\nOutputs:\n- self-check.json (internal)\n\n### 4. Execute board review with revision loop\n- Launch reviewers (structured feedback)\n- Launch leader\n- Split-verdict: iterate only with rejecting reviewer\n- Revise draft between rounds\n- Arbitrate after 2+ consecutive splits\n- Treat any mixed reviewer verdict within a pair or across pairs as non-frozen until explicitly resolved.\n- Freeze only when every reviewer approves and the leader sees no unresolved material issues.\n\nOutputs:\n- rounds/ (internal)\n- runtime/session-registry.json (internal)\n\n### 5. Resolve and promote\n- If frozen: promote to canonical directory\n- If pushback/blocked: write pushback evidence\n- If resume_required: write resume package\n- Write decision log, board summary, result.json\n\nOutputs:\n- result.json (always)\n- <slug>-decision-log.md (always)\n- <slug>-board-summary.md (always)\n- <slug>-pushback.json (conditional)\n- resume-package.json (conditional)\n</steps>\n\n<outputs>\nCanonical artifacts:\n- <slug>-role.md -- Canonical: tagged role definition markdown (promoted on freeze)\n- <slug>-role-contract.json -- Canonical: full role contract (promoted on freeze)\n- <slug>-decision-log.md -- Canonical: decision history (promoted on freeze)\n- <slug>-board-summary.md -- Canonical: board execution summary (promoted on freeze)\n\nEvidence artifacts:\n- result.json -- Always: terminal result with evidence chain\n- <slug>-pushback.json -- Conditional: pushback/blocked evidence\n- resume-package.json -- Conditional: resume state for continuation\n\nInternal run artifacts:\n- normalized-request.json -- Internal request snapshot for audit\n- source-manifest.json -- Internal source inventory for audit\n- self-check.json -- Internal self-check evidence\n- rounds/round-<n>.json -- Internal board round transcripts\n- runtime/session-registry.json -- Internal runtime session state\n</outputs>\n\n<completion>\nThis workflow is complete when:\n- Terminal status reached (frozen, pushback, blocked, or resume_required)\n- All applicable artifacts written to output directory\n- result.json contains full evidence chain with participant records\n- Decision log updated (on freeze)\n</completion>\n",
+  "selfCheckIssues": [
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+    }
+  ],
+  "reviewerVerdicts": {},
+  "complianceMap": [],
+  "fixItemsMap": []
+}
