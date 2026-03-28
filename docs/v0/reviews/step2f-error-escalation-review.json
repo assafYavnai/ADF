@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0",
+  "review_type": "error-escalation-pattern",
+  "component": "tools/agent-role-builder/src/services/board.ts",
+  "reviewer": "claude-opus-4.6",
+  "timestamp": "2026-03-28T00:00:00.000Z",
+  "scope": [
+    "BugReport interface",
+    "writeBugReport()",
+    "attemptAutoFix()",
+    "cleanJsonResponse()",
+    "parseReviewerResponse()",
+    "parseLeaderResponse()",
+    "docs/v0/review-process-architecture.md — Error Escalation Pattern",
+    "docs/v0/architecture.md — Error Escalation Rule"
+  ],
+
+  "fix_decisions": [
+    {
+      "finding": "Leader parse failure (run 009)",
+      "implementer_action": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "cleanJsonResponse + async parse functions with error escalation are implemented correctly. The try-parse -> bug-report -> auto-fix -> verify -> fallback flow matches the documented pattern."
+    },
+    {
+      "finding": "No structured bug report on error",
+      "implementer_action": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "BugReport interface has all required fields: what_failed, error_message, where, context, input_that_caused_failure, expected_format, component, provenance, timestamp. writeBugReport writes to run-dir/bug-report.json."
+    },
+    {
+      "finding": "No auto-fix attempt",
+      "implementer_action": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "attemptAutoFix calls invoke() with a specific extraction prompt, validates the result with JSON.parse before returning. TODO comment for llm-tool-builder wiring is appropriate."
+    },
+    {
+      "finding": "Error escalation not documented",
+      "implementer_action": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "review-process-architecture.md has a complete 6-step Error Escalation Pattern section. architecture.md has a concise Error Escalation Rule that references the full spec. Documentation matches implementation."
+    }
+  ],
+
+  "findings": [
+    {
+      "id": "group-1",
+      "summary": "cleanJsonResponse not used consistently — 4 parse sites use inline fence-stripping without cleanJsonResponse or error escalation",
+      "severity": "major",
+      "source": "board.ts lines 59, 291, 370, 415",
+      "root_cause": "cleanJsonResponse was added for parseLeaderResponse/parseReviewerResponse but 4 other LLM response parse sites were not updated",
+      "findings": [
+        {
+          "id": "f1-a",
+          "description": "attemptAutoFix (line 59): uses inline .replace() for fence stripping. If the auto-fix LLM itself returns text-before-JSON, the extraction fails. This is ironic — the fix-for-parse-failure can itself fail due to the same parse weakness.",
+          "source_section": "attemptAutoFix()"
+        },
+        {
+          "id": "f1-b",
+          "description": "Learning engine (line 291): inline fence-strip + JSON.parse with no error escalation. A malformed learning response silently falls back to empty output. No bug report, no auto-fix attempt.",
+          "source_section": "executeBoard() learning engine block"
+        },
+        {
+          "id": "f1-c",
+          "description": "generateComplianceMap (line 370): inline fence-strip + JSON.parse. Malformed compliance response silently returns []. No bug report.",
+          "source_section": "generateComplianceMap()"
+        },
+        {
+          "id": "f1-d",
+          "description": "generateFixItemsMap (line 415): inline fence-strip + JSON.parse. Malformed fix-items response silently returns []. No bug report.",
+          "source_section": "generateFixItemsMap()"
+        }
+      ],
+      "redesign_guidance": "Replace all 4 inline fence-strip + JSON.parse sites with cleanJsonResponse(). For lines 291, 370, 415: add error escalation (bug report + auto-fix attempt) consistent with parseLeaderResponse/parseReviewerResponse. For line 59 (inside attemptAutoFix itself): use cleanJsonResponse but do NOT recurse into auto-fix — just use the improved extraction."
+    },
+    {
+      "id": "group-2",
+      "summary": "writeBugReport overwrites on multiple failures — single fixed filename loses earlier bug reports",
+      "severity": "major",
+      "source": "board.ts line 25",
+      "root_cause": "Bug report path is always join(runDir, 'bug-report.json') with no disambiguation. If both parseReviewerResponse and parseLeaderResponse fail in the same round, the second bug report overwrites the first.",
+      "findings": [
+        {
+          "id": "f2-a",
+          "description": "writeBugReport always writes to bug-report.json. In a round where both a reviewer parse and leader parse fail, only the leader bug report survives. The reviewer bug report is silently overwritten.",
+          "source_section": "writeBugReport()"
+        }
+      ],
+      "redesign_guidance": "Use a unique filename per bug report: bug-report-<component-slug>-<timestamp-or-counter>.json. Alternatively, write to an array file (bug-reports.json) that appends rather than overwrites."
+    },
+    {
+      "id": "group-3",
+      "summary": "cleanJsonResponse fails on array-typed JSON responses",
+      "severity": "major",
+      "source": "board.ts lines 601-612",
+      "root_cause": "cleanJsonResponse looks for first '{' and last '}' to extract JSON objects, but compliance map and fix items map responses are JSON arrays starting with '['. If these functions ever use cleanJsonResponse, array responses would be broken.",
+      "findings": [
+        {
+          "id": "f3-a",
+          "description": "cleanJsonResponse only handles object-typed JSON (searches for { and }). The compliance map prompt asks for a JSON array, the fix items map prompt asks for a JSON array, and the learning engine output is a JSON object. If group-1 fix applies cleanJsonResponse to those call sites, the array responses will be silently truncated or mangled.",
+          "source_section": "cleanJsonResponse()"
+        }
+      ],
+      "redesign_guidance": "cleanJsonResponse should detect whether the response contains a JSON array or object: find the first occurrence of either '{' or '[', and find the matching last '}' or ']'. Choose the pair that starts first. This handles both object and array responses."
+    },
+    {
+      "id": "group-4",
+      "summary": "BugReport.provenance always empty object in both parse functions",
+      "severity": "minor",
+      "source": "board.ts lines 635, 683",
+      "root_cause": "Both parseReviewerResponse and parseLeaderResponse set provenance to {} even though the caller (executeRound) has the participant record which contains invocation_id, provider, and model.",
+      "findings": [
+        {
+          "id": "f4-a",
+          "description": "BugReport interface declares provenance with invocation_id, provider, model — all optional. But both parse functions pass provenance: {} with no fields populated. The bug report loses traceability to which LLM call produced the bad output.",
+          "source_section": "parseReviewerResponse(), parseLeaderResponse()"
+        }
+      ],
+      "redesign_guidance": "Pass the ParticipantRecord (or at least provider/model/invocation_id) into the parse functions so the bug report provenance is populated. The executeRound function already has this data."
+    },
+    {
+      "id": "group-5",
+      "summary": "attemptAutoFix hardcodes leader provider/model for all fix attempts including reviewer parse failures",
+      "severity": "minor",
+      "source": "board.ts line 50",
+      "root_cause": "attemptAutoFix always uses request.board_roster.leader.provider and leader.model. When fixing a reviewer parse failure, it should ideally use a different model than the one that produced the bad output (or at minimum, this is a design choice that should be documented).",
+      "findings": [
+        {
+          "id": "f5-a",
+          "description": "If reviewer-codex produces unparseable JSON, attemptAutoFix sends the raw output to the leader (also potentially codex). Using the same provider family to fix its own parse failure may repeat the same error pattern. Cross-provider fix attempts would be more robust.",
+          "source_section": "attemptAutoFix()"
+        }
+      ],
+      "redesign_guidance": "Consider using a different provider for auto-fix than the one that produced the error. At minimum, document that this is a known limitation. If the request has multiple providers available (leader vs reviewers), pick one that differs from the failing provider."
+    },
+    {
+      "id": "group-6",
+      "summary": "No input length guard on raw LLM response passed to auto-fix prompt",
+      "severity": "minor",
+      "source": "board.ts lines 43-44, 632, 680",
+      "root_cause": "The auto-fix prompt includes rawInput.slice(0, 2000), but the bug report's input_that_caused_failure includes raw.slice(0, 3000). Neither has a guard against zero-length or purely whitespace input that would waste an LLM call.",
+      "findings": [
+        {
+          "id": "f6-a",
+          "description": "If the raw response is empty or whitespace-only, attemptAutoFix still makes an LLM call that cannot possibly succeed. A quick guard (if rawInput.trim().length === 0 return null) would save an unnecessary LLM invocation and its associated cost/latency.",
+          "source_section": "attemptAutoFix()"
+        }
+      ],
+      "redesign_guidance": "Add early return in attemptAutoFix if rawInput is empty or whitespace-only. Also consider checking if rawInput already looks like valid JSON before invoking the auto-fix LLM."
+    },
+    {
+      "id": "group-7",
+      "summary": "Documentation specifies Step 3 (governance layer receives bug report) but implementation skips this — parse functions handle escalation directly",
+      "severity": "minor",
+      "source": "review-process-architecture.md Step 3 vs board.ts parseLeaderResponse/parseReviewerResponse",
+      "root_cause": "The documented Error Escalation Pattern has 6 steps where Step 3 is 'Governance Script Receives Bug Report' and decides next action. In the implementation, the parse functions directly call writeBugReport then attemptAutoFix with no governance-layer decision point in between.",
+      "findings": [
+        {
+          "id": "f7-a",
+          "description": "The doc says the governance layer receives the bug report and decides the next action (Step 3). The implementation has the parse function itself deciding to auto-fix. This is acceptable for the current single-component case but diverges from the documented pattern where a governance layer intermediates.",
+          "source_section": "review-process-architecture.md Error Escalation Pattern Step 3"
+        }
+      ],
+      "redesign_guidance": "Either update the documentation to reflect that the parse function owns the full escalation flow (acceptable for now), or extract the escalation logic into a separate function that acts as the governance decision point. The latter is better for reuse when other components adopt the pattern."
+    },
+    {
+      "id": "group-8",
+      "summary": "No security concern with passing raw LLM response to another LLM for auto-fix",
+      "severity": "suggestion",
+      "source": "board.ts attemptAutoFix",
+      "root_cause": "Reviewed for prompt injection risk. The raw LLM response is passed to another LLM for JSON extraction. Since both LLMs are in the same trust boundary (both are ADF-governed agents operating on ADF-internal data) and the auto-fix output is validated with JSON.parse before use, there is no meaningful injection vector.",
+      "findings": [
+        {
+          "id": "f8-a",
+          "description": "The auto-fix prompt includes up to 2000 chars of raw LLM output. A malicious or confused LLM response could contain prompt injection text. However: (1) the output is JSON.parse validated — it cannot execute arbitrary actions, (2) both LLMs are in the same trust boundary, (3) the auto-fix LLM has no tool access or side effects beyond returning text. Risk is negligible.",
+          "source_section": "attemptAutoFix()"
+        }
+      ],
+      "redesign_guidance": "No action needed. Current approach is acceptable. If ADF ever processes untrusted external input through this path, revisit."
+    }
+  ],
+
+  "summary": {
+    "total_findings": 8,
+    "blocking": 0,
+    "major": 3,
+    "minor": 4,
+    "suggestion": 1,
+    "fix_decisions_all_accepted": true,
+    "key_issue": "The error escalation pattern (cleanJsonResponse + bug report + auto-fix) is correctly implemented for parseLeaderResponse and parseReviewerResponse, but 4 other LLM response parse sites in the same file still use the old inline approach with no error escalation. This is the same class of bug as the SYS-001 finding from the step2f infrastructure review: a fix applied to one location but not to all locations where the same pattern exists."
+  },
+
+  "verdict": "conditional",
+  "verdict_rationale": "The error escalation pattern is well-designed and correctly implemented for the two primary parse functions. Documentation matches implementation with one minor divergence (governance intermediary step). However, 3 major findings prevent a clean approval: (1) cleanJsonResponse not used at 4 other parse sites — same-class-of-bug as SYS-001, (2) bug report file overwrite on multiple failures per round, (3) cleanJsonResponse cannot handle JSON arrays which are used by compliance-map and fix-items-map responses. All 3 are straightforward fixes. The 4 minor findings and 1 suggestion are non-blocking."
+}

@@ -16,13 +16,17 @@ interface BugReport {
   input_that_caused_failure: string;
   expected_format: string;
   component: string;
-  provenance: { invocation_id?: string; provider?: string; model?: string };
+  provenance: { invocation_id?: string; provider?: string; model?: string; participant_id?: string };
   timestamp: string;
 }
 
+let bugReportCounter = 0;
+
 async function writeBugReport(report: BugReport): Promise<string | null> {
   if (!runDir) return null;
-  const path = join(runDir, "bug-report.json");
+  bugReportCounter++;
+  const filename = `bug-report-${bugReportCounter}.json`;
+  const path = join(runDir, filename);
   await writeFile(path, JSON.stringify(report, null, 2), "utf-8");
   console.error(`[board] Bug report written to ${path}`);
   return path;
@@ -34,6 +38,10 @@ async function attemptAutoFix(
   rawInput: string
 ): Promise<string | null> {
   // TODO: Wire llm-tool-builder when complete. For now, use Codex agent.
+  if (!rawInput || rawInput.trim().length === 0) {
+    console.error("[board] Auto-fix skipped: empty input");
+    return null;
+  }
   try {
     const fixPrompt = `You are fixing a parse error in the agent-role-builder board.
 The leader LLM returned a response that could not be parsed as JSON.
@@ -56,7 +64,7 @@ Return ONLY the valid JSON object matching the expected format. Nothing else.`;
       source_path: "tools/agent-role-builder/auto-fix/parse-error",
     });
 
-    const cleaned = result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
+    const cleaned = cleanJsonResponse(result.response);
     JSON.parse(cleaned); // validate it's actual JSON
     return cleaned;
   } catch (e) {
@@ -288,7 +296,7 @@ export async function executeBoard(
             prompt: buildLearningPrompt(request, fixChecklist, currentRulebook, roundResult.unresolved, round),
             source_path: "tools/agent-role-builder/learning-engine",
           });
-          learningOutput = JSON.parse(learningResult.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
+          learningOutput = JSON.parse(cleanJsonResponse(learningResult.response));
         } catch (e) { console.error("[board] Learning engine failed:", e instanceof Error ? e.message : e); }
 
         if (roundDir) {
@@ -367,7 +375,7 @@ JSON array:`,
       source_path: "tools/agent-role-builder/compliance-map",
     });
 
-    const parsed = JSON.parse(result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
+    const parsed = JSON.parse(cleanJsonResponse(result.response));
     return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     console.error("[board] Compliance map generation failed:", e instanceof Error ? e.message : e);
@@ -412,7 +420,7 @@ JSON array:`,
       source_path: "tools/agent-role-builder/fix-items-map",
     });
 
-    const parsed = JSON.parse(result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
+    const parsed = JSON.parse(cleanJsonResponse(result.response));
     return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     console.error("[board] Fix items map generation failed:", e instanceof Error ? e.message : e);
@@ -439,7 +447,7 @@ async function executeRound(
       roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap
     );
     participants.push(record);
-    reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex));
+    reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id));
   }
 
   const leaderRecord = await executeParticipant(
@@ -447,7 +455,7 @@ async function executeRound(
     roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap
   );
   participants.push(leaderRecord);
-  const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex);
+  const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex, leaderRecord.participant_id);
 
   return {
     round: roundIndex, participants, leaderVerdict: leaderResponse.status,
@@ -602,16 +610,22 @@ function cleanJsonResponse(raw: string): string {
   let cleaned = raw.trim();
   // Strip markdown code fences
   cleaned = cleaned.replace(/```json?\n?/g, "").replace(/\n?```/g, "").trim();
-  // If response starts with text before JSON, try to extract the JSON object
-  const jsonStart = cleaned.indexOf("{");
-  if (jsonStart > 0) cleaned = cleaned.slice(jsonStart);
-  // Find the last closing brace
-  const jsonEnd = cleaned.lastIndexOf("}");
-  if (jsonEnd > 0) cleaned = cleaned.slice(0, jsonEnd + 1);
+  // Detect whether the response is an object or array
+  const objStart = cleaned.indexOf("{");
+  const arrStart = cleaned.indexOf("[");
+  // Use whichever appears first (or the one that exists)
+  const isArray = arrStart >= 0 && (objStart < 0 || arrStart < objStart);
+  const openChar = isArray ? "[" : "{";
+  const closeChar = isArray ? "]" : "}";
+  // Extract from first open to last close
+  const start = cleaned.indexOf(openChar);
+  if (start > 0) cleaned = cleaned.slice(start);
+  const end = cleaned.lastIndexOf(closeChar);
+  if (end > 0) cleaned = cleaned.slice(0, end + 1);
   return cleaned;
 }
 
-async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, round: number): Promise<ReviewerVerdict> {
+async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string): Promise<ReviewerVerdict> {
   const cleaned = cleanJsonResponse(raw);
   try {
     const parsed = JSON.parse(cleaned);
@@ -632,7 +646,7 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
       input_that_caused_failure: raw.slice(0, 3000),
       expected_format: '{"verdict":"approved|conditional|reject","conceptual_groups":[...],"residual_risks":[...],"strengths":[...]}',
       component: "tools/agent-role-builder/board/parseReviewerResponse",
-      provenance: {},
+      provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
     await writeBugReport(bugReport);
@@ -659,7 +673,7 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
   }
 }
 
-async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, round: number): Promise<LeaderVerdict> {
+async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string): Promise<LeaderVerdict> {
   const cleaned = cleanJsonResponse(raw);
   try {
     const parsed = JSON.parse(cleaned);
@@ -680,7 +694,7 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
       input_that_caused_failure: raw.slice(0, 3000),
       expected_format: '{"status":"frozen|pushback|blocked","rationale":"...","unresolved":[...],"improvements_applied":[...],"arbitration_used":false,"arbitration_rationale":null}',
       component: "tools/agent-role-builder/board/parseLeaderResponse",
-      provenance: {},
+      provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
     await writeBugReport(bugReport);
