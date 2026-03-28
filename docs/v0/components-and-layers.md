@@ -1,7 +1,7 @@
 # ADF Components and Layers
 
 Status: active
-Last updated: 2026-03-27
+Last updated: 2026-03-29
 
 ---
 
@@ -31,6 +31,12 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 | **Context Engineer** | `COO/context-engineer/` | No | Assembles per-turn LLM context from all 3 tiers (thread + files + Brain MCP). Deterministic pre-fetch. |
 | **Shared** | `COO/shared/` | — | COO-internal utilities: tool registry, common types. |
 
+### Emerging COO Layers
+
+| Layer | Directory | LLM? | Purpose |
+|---|---|---|---|
+| **Requirements Gathering** | `COO/requirements-gathering/` | Yes (planned) | CEO-facing feature shaping lane. Peels scope from the outer shell inward, freezes the approved human-facing onion, then hands the feature to the technical requirement package and CTO flow. Governance artifacts land before full runtime implementation. |
+
 ### Layer Rules
 
 - Every LLM-powered layer has a **role** (`role/` subdirectory) with a role definition markdown and role contract JSON
@@ -39,6 +45,8 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 - Every layer has its own **prompt** file if LLM-powered
 - Non-LLM layers are pure TypeScript — no role needed
 - Layers do not call each other directly — the Controller orchestrates all interaction
+
+- Emerging LLM layers may begin with seed governance artifacts before their full runtime role/prompt/code surfaces land
 
 ## Shared Infrastructure
 

@@ -85,7 +85,10 @@
     "role_summary": "You are the Agent Role Builder. You create, update, and fix agent role packages through governed multi-LLM review. Every governed run requires one live Codex leader and at least one live Codex+Claude reviewer pair, and a package freezes only when no material pushback remains.",
     "authority": {
       "reports_to": "COO controller",
-      "subordinate_to": ["docs/v0/architecture.md", "docs/VISION.md"],
+      "subordinate_to": [
+        "docs/v0/architecture.md",
+        "docs/VISION.md"
+      ],
       "owns": [
         "Agent role package creation (role definition markdown and contract JSON)",
         "Board-review orchestration: launching and coordinating Codex+Claude reviewer pairs within this tool",
@@ -146,39 +149,100 @@
     "steps": [
       {
         "title": "Validate and normalize the request",
-        "actions": ["Parse request JSON against schema", "Verify source_refs exist", "Validate board roster pair composition"],
-        "outputs": ["normalized-request.json (internal)", "source-manifest.json (internal)"]
+        "actions": [
+          "Parse request JSON against schema",
+          "Verify source_refs exist",
+          "Validate board roster pair composition"
+        ],
+        "outputs": [
+          "normalized-request.json (internal)",
+          "source-manifest.json (internal)"
+        ]
       },
       {
         "title": "Generate leader draft",
-        "actions": ["Generate tagged markdown with all required XML tags", "Generate role contract JSON"],
-        "outputs": ["drafts/<slug>-role.md (draft)", "drafts/<slug>-role-contract.json (draft)"]
+        "actions": [
+          "Generate tagged markdown with all required XML tags",
+          "Generate role contract JSON"
+        ],
+        "outputs": [
+          "drafts/<slug>-role.md (draft)",
+          "drafts/<slug>-role-contract.json (draft)"
+        ]
       },
       {
         "title": "Self-check coherence",
-        "actions": ["Verify XML tags present", "Semantic out-of-scope matching", "Structural output validation", "Lifecycle consistency"],
-        "outputs": ["self-check.json (internal)"]
+        "actions": [
+          "Verify XML tags present",
+          "Semantic out-of-scope matching",
+          "Structural output validation",
+          "Lifecycle consistency"
+        ],
+        "outputs": [
+          "self-check.json (internal)"
+        ]
       },
       {
         "title": "Execute board review with revision loop",
-        "actions": ["Launch reviewers (structured feedback)", "Launch leader", "Split-verdict: iterate only with rejecting reviewer", "Revise draft between rounds", "Arbitrate after 2+ consecutive splits"],
-        "outputs": ["rounds/ (internal)", "runtime/session-registry.json (internal)"]
+        "actions": [
+          "Launch reviewers (structured feedback)",
+          "Launch leader",
+          "Split-verdict: iterate only with rejecting reviewer",
+          "Revise draft between rounds",
+          "Arbitrate after 2+ consecutive splits"
+        ],
+        "outputs": [
+          "rounds/ (internal)",
+          "runtime/session-registry.json (internal)"
+        ]
       },
       {
         "title": "Resolve and promote",
-        "actions": ["If frozen: promote to canonical directory", "If pushback/blocked: write pushback evidence", "If resume_required: write resume package", "Write decision log, board summary, result.json"],
-        "outputs": ["result.json (always)", "<slug>-decision-log.md (always)", "<slug>-board-summary.md (always)", "<slug>-pushback.json (conditional)", "resume-package.json (conditional)"]
+        "actions": [
+          "If frozen: promote to canonical directory",
+          "If pushback/blocked: write pushback evidence",
+          "If resume_required: write resume package",
+          "Write decision log, board summary, result.json"
+        ],
+        "outputs": [
+          "result.json (always)",
+          "<slug>-decision-log.md (always)",
+          "<slug>-board-summary.md (always)",
+          "<slug>-pushback.json (conditional)",
+          "resume-package.json (conditional)"
+        ]
       }
     ],
     "outputs": {
       "artifacts": [
-        { "path": "<slug>-role.md", "description": "Canonical: tagged role definition markdown (promoted on freeze)" },
-        { "path": "<slug>-role-contract.json", "description": "Canonical: full role contract (promoted on freeze)" },
-        { "path": "<slug>-decision-log.md", "description": "Canonical: decision history (promoted on freeze)" },
-        { "path": "<slug>-board-summary.md", "description": "Canonical: board execution summary (promoted on freeze)" },
-        { "path": "result.json", "description": "Always: terminal result with evidence chain" },
-        { "path": "<slug>-pushback.json", "description": "Conditional: pushback/blocked evidence" },
-        { "path": "resume-package.json", "description": "Conditional: resume state for continuation" }
+        {
+          "path": "<slug>-role.md",
+          "description": "Canonical: tagged role definition markdown (promoted on freeze)"
+        },
+        {
+          "path": "<slug>-role-contract.json",
+          "description": "Canonical: full role contract (promoted on freeze)"
+        },
+        {
+          "path": "<slug>-decision-log.md",
+          "description": "Canonical: decision history (promoted on freeze)"
+        },
+        {
+          "path": "<slug>-board-summary.md",
+          "description": "Canonical: board execution summary (promoted on freeze)"
+        },
+        {
+          "path": "result.json",
+          "description": "Always: terminal result with evidence chain"
+        },
+        {
+          "path": "<slug>-pushback.json",
+          "description": "Conditional: pushback/blocked evidence"
+        },
+        {
+          "path": "resume-package.json",
+          "description": "Conditional: resume state for continuation"
+        }
       ],
       "state_changes": [
         "Canonical role package promoted (if frozen)",
@@ -192,13 +256,13 @@
       "Decision log updated (on freeze)"
     ]
   },
+  "pushback_policy": {
+    "enabled": true,
+    "include_evidence_refs": true
+  },
   "baseline": {
     "role_package_path": "tools/agent-role-builder/role",
     "allow_role_name_change": false,
     "allow_restructure": true
-  },
-  "pushback_policy": {
-    "enabled": true,
-    "include_evidence_refs": true
   }
 }

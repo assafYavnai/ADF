@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0",
+  "tool_name": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-009",
+  "role_slug": "agent-role-builder",
+  "operation": "update",
+  "status": "resume_required",
+  "execution_mode": "live-roster-v1",
+  "summary": "Agent Role Builder role resume_required: Budget exhausted after 3 rounds. 1 unresolved.",
+  "status_reason": "Budget exhausted after 3 rounds. 1 unresolved.",
+  "output_dir": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-009",
+  "canonical_role_directory": null,
+  "canonical_role_markdown_path": null,
+  "canonical_role_contract_path": null,
+  "canonical_decision_log_path": null,
+  "canonical_board_summary_path": null,
+  "pushback_path": null,
+  "resume_package_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-009\\resume-package.json",
+  "board": {
+    "profile": "medium",
+    "leader_count": 1,
+    "reviewer_count": 2,
+    "rounds_executed": 3,
+    "arbitration_used": false,
+    "participant_records": [
+      {
+        "participant_id": "reviewer-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "reviewer",
+        "verdict": "ERROR: codex failed: spawn codex ENOENT",
+        "round": 0,
+        "latency_ms": 3
+      },
+      {
+        "participant_id": "reviewer-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "role": "reviewer",
+        "verdict": "```json\n{\n  \"verdict\": \"reject\",\n  \"conceptual_groups\": [\n    {\n      \"id\": \"group-1\",\n      \"summary\": \"Canonical artifact paths omit directory prefix — self-check MISSING_REQUIRED_OUTPUT findings unresolved\",\n      \"severity\": \"major\",\n      \"findings\": [\n        {\n          \"id\": \"f1\",\n          \"description\": \"<outputs> section lists canonical artifacts as '<slug>-role.md', '<slug>-role-contract.json', etc. using only bare slug-prefixed filenames. The canonical directory 'tools/agent-role-builder/role/' is never stated. Self-check correctly flags MISSING_REQUIRED_OUTPUT for all four canonical artifacts (role.md, role-contract.json, decision-log.md, board-summary.md). An agent following this role cannot determine where to promote frozen artifacts.\",\n          \"source_section\": \"<outputs> / self-check issues\"\n        }\n      ],\n      \"redesign_guidance\": \"Prefix every canonical artifact entry in <outputs> with its full directory path, e.g. 'tools/agent-role-builder/role/<slug>-role.md'. The run-output directory (e.g. tools/agent-role-builder/runs/<run-id>/) should be distinguished from the canonical promotion target. This resolves all four self-check MISSING_REQUIRED_OUTPUT findings.\"\n    },\n    {\n      \"id\": \"group-2\",\n      \"summary\": \"Contract 'intent' field describes a one-time resumption run, not the tool's standing purpose\",\n      \"severity\": \"major\",\n      \"findings\": [\n        {\n          \"id\": \"f2\",\n          \"description\": \"contract.intent reads: 'Resume and finalize the agent-role-builder self-role using improved review process (structured feedback, split-verdict, arbitration).' This is an ephemeral operational note from a prior run, not a declaration of the tool's standing purpose. It will mislead any consumer (orchestrator, onboarding reviewer) that loads this contract to understand what the tool does.\",\n          \"source_section\": \"Contract summary / intent\"\n        }\n      ],\n      \"redesign_guidance\": \"Rewrite intent to express the standing purpose, e.g.: 'Create, update, and fix agent role packages through governed multi-LLM board review, producing frozen packages only when no material pushback remains.' Ephemeral run context belongs in the resume package or decision log, not the contract intent.\"\n    },\n    {\n      \"id\": \"group-3\",\n      \"summary\": \"Duplicate 'Application workflow creation' entry in <scope> Not in scope list\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f3\",\n          \"description\": \"'Application workflow creation' appears twice under Not in scope. The second occurrence adds parenthetical clarification that is useful ('role definition markdown is a role specification, not a workflow') but the duplicate entry is noise and could cause parsing ambiguity.\",\n          \"source_section\": \"<scope>\"\n        }\n      ],\n      \"redesign_guidance\": \"Merge into a single entry: 'Application workflow creation (role definition markdown is a role specification, not a workflow).' Remove the bare first occurrence.\"\n    }\n  ],\n  \"residual_risks\": [\n    \"Even after adding canonical directory paths to <outputs>, implementors may derive paths from convention rather than explicit config — consider surfacing the canonical base directory as a named constant in the contract or in a dedicated <paths> block.\",\n    \"The self-check step (Step 3) verifies tag presence but the self-check tool itself did not catch the contract intent mismatch — the self-check scope may need to include contract-to-role semantic consistency, not only structural tag checks.\"\n  ],\n  \"strengths\": [\n    \"All 9 required XML tags present and correctly ordered.\",\n    \"Authority hierarchy is clean: owns/does-not-own distinction is precise and non-overlapping with llm-tool-builder.\",\n    \"Guardrails are specific and enforceable: freeze condition, reviewer pair composition, provenance requirements all stated.\",\n    \"Step outputs enumerated per step with artifact type labels — no ambiguity about what each step produces.\",\n    \"Completion criteria are terminal-state-complete: all four terminal states (frozen, pushback, blocked, resume_required) covered.\"\n  ]\n}\n```",
+        "round": 0,
+        "latency_ms": 49874,
+        "invocation_id": "e948f77d-be98-447f-8614-444ed12cdc16"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "leader",
+        "verdict": "ERROR: codex failed: spawn codex ENOENT",
+        "round": 0,
+        "latency_ms": 4
+      },
+      {
+        "participant_id": "reviewer-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "reviewer",
+        "verdict": "ERROR: codex failed: spawn codex ENOENT",
+        "round": 1,
+        "latency_ms": 4
+      },
+      {
+        "participant_id": "reviewer-claude-r1",
+        "provider": "claude",
+        "model": "sonnet",
+        "role": "reviewer",
+        "verdict": "```json\n{\n  \"verdict\": \"conditional\",\n  \"conceptual_groups\": [\n    {\n      \"id\": \"group-1\",\n      \"summary\": \"Output paths are relative/filename-only; canonical directory is never specified in the role definition\",\n      \"severity\": \"major\",\n      \"findings\": [\n        {\n          \"id\": \"f1\",\n          \"description\": \"The <outputs> section lists artifact filenames (e.g., '<slug>-role.md') but never specifies the canonical directory they are promoted to. The self-check correctly flags that 'tools/agent-role-builder/role/' paths are not referenced anywhere in the role markdown.\",\n          \"source_section\": \"<outputs>\"\n        },\n        {\n          \"id\": \"f2\",\n          \"description\": \"Step 5 says 'promote to canonical directory' but the canonical directory is undefined in the role. Any agent executing this role cannot determine where to write promoted artifacts without external knowledge.\",\n          \"source_section\": \"<steps> Step 5\"\n        },\n        {\n          \"id\": \"f3\",\n          \"description\": \"Contract package_files paths are filename-only ('agent-role-builder-role.md') with no directory prefix, which is inconsistent with the self-check expectation of full paths under tools/agent-role-builder/role/.\",\n          \"source_section\": \"Contract: package_files\"\n        }\n      ],\n      \"redesign_guidance\": \"Add a canonical output directory declaration to the <outputs> section (e.g., 'Canonical artifacts are promoted to tools/agent-role-builder/role/') and update contract package_files paths to include the full relative path from repo root.\"\n    },\n    {\n      \"id\": \"group-2\",\n      \"summary\": \"Duplicate 'Application workflow creation' entry in <scope> Not-in-scope list\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f4\",\n          \"description\": \"'Application workflow creation' appears twice in the Not-in-scope list, the second instance adding a parenthetical. This creates ambiguity about whether the parenthetical is authoritative or redundant.\",\n          \"source_section\": \"<scope>\"\n        }\n      ],\n      \"redesign_guidance\": \"Deduplicate: keep the single entry with the clarifying parenthetical '(role definition markdown is a role specification, not a workflow)' and remove the bare duplicate.\"\n    },\n    {\n      \"id\": \"group-3\",\n      \"summary\": \"Step 3 self-check tag list is exhaustive but has no tolerance policy for future tag additions\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f5\",\n          \"description\": \"Step 3 hardcodes the exact required XML tag set. If any tag is added to the standard in the future, the self-check will incorrectly reject otherwise valid role packages. There is no stated policy for how schema evolution is handled.\",\n          \"source_section\": \"<steps> Step 3\"\n        }\n      ],\n      \"redesign_guidance\": \"Add a note that the tag set is governed by the schema version in docs/v0/architecture.md and that discrepancies trigger a pushback (not a silent pass). This aligns authority over the tag list to the architecture doc rather than hardcoding it.\"\n    },\n    {\n      \"id\": \"group-4\",\n      \"summary\": \"Round 0 unresolved pushback is not addressed in this draft\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f6\",\n          \"description\": \"Prior round history shows Round 0 leader=pushback with 1 unresolved issue and 0 improvements. The draft does not document what that unresolved issue was or how (if at all) it was addressed.\",\n          \"source_section\": \"Prior rounds\"\n        }\n      ],\n      \"redesign_guidance\": \"The decision log should carry the Round 0 pushback item and explicitly resolve or defer it with rationale before this round proceeds. If it is resolved in this draft, note which change addresses it.\"\n    }\n  ],\n  \"residual_risks\": [\n    \"Without a declared canonical directory in the role markdown, a new agent instance could write promoted artifacts to an incorrect location and the self-check would not catch it.\",\n    \"The arbitration trigger ('after 2+ consecutive splits') is stated in Step 4 but the arbitration procedure itself is not described — an implementor must infer it from external documents.\",\n    \"max_review_rounds=3 is in the contract but not in the role markdown; a reviewer reading only the markdown has no freeze-round ceiling.\"\n  ],\n  \"strengths\": [\n    \"Freeze predicate is precise and consistently stated in both <guardrails> and Step 4.\",\n    \"Conditional vs. always artifact distinction in <outputs> is clean and actionable.\",\n    \"Authority boundaries (what this tool does NOT own) are explicit and cross-reference peer tools by name.\",\n    \"Resume/continuation path is first-class: resume-package.json is a defined artifact with a corresponding context-gathering step.\",\n    \"Split-verdict and arbitration logic in Step 4 prevents silent majority-overrides of dissenting reviewers.\"\n  ]\n}\n```",
+        "round": 1,
+        "latency_ms": 27269,
+        "invocation_id": "d97a10f9-4cc6-4d4b-9db9-2f54f8c48485"
+      },
+      {
+        "participant_id": "leader-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "leader",
+        "verdict": "ERROR: codex failed: spawn codex ENOENT",
+        "round": 1,
+        "latency_ms": 3
+      },
+      {
+        "participant_id": "reviewer-codex-r2",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "reviewer",
+        "verdict": "ERROR: codex failed: spawn codex ENOENT",
+        "round": 2,
+        "latency_ms": 3
+      },
+      {
+        "participant_id": "reviewer-claude-r2",
+        "provider": "claude",
+        "model": "sonnet",
+        "role": "reviewer",
+        "verdict": "```json\n{\n  \"verdict\": \"reject\",\n  \"conceptual_groups\": [\n    {\n      \"id\": \"group-1\",\n      \"summary\": \"Canonical output paths are unresolved across two consecutive rounds — <outputs> section omits the required directory prefix for promoted artifacts\",\n      \"severity\": \"blocking\",\n      \"findings\": [\n        {\n          \"id\": \"f1\",\n          \"description\": \"All four canonical artifact entries in <outputs> use bare slug-relative names (e.g. '<slug>-role.md') without the canonical directory prefix 'tools/agent-role-builder/role/'. The self-check raised MISSING_REQUIRED_OUTPUT for all four paths in round 0 and again in round 1 with zero improvements. The freeze condition cannot be verified without knowing where on-disk promoted artifacts land.\",\n          \"source_section\": \"<outputs> / self-check issues (all four MISSING_REQUIRED_OUTPUT entries)\"\n        },\n        {\n          \"id\": \"f2\",\n          \"description\": \"Step 2 draft outputs use 'drafts/<slug>-role.md' path prefix, but <outputs> lists the canonical entries without any path prefix at all. The promotion path from drafts/ to canonical is therefore implicit and unverifiable from the role definition alone.\",\n          \"source_section\": \"<steps> Step 2 outputs / <outputs> Canonical artifacts\"\n        }\n      ],\n      \"redesign_guidance\": \"In the <outputs> section, qualify every canonical artifact path with its target directory (e.g. 'tools/agent-role-builder/role/<slug>-role.md'). Add a one-line 'promoted to:' annotation under each canonical entry so the self-check and any downstream validator can resolve the path without inference.\"\n    },\n    {\n      \"id\": \"group-2\",\n      \"summary\": \"Revision loop stalled — two consecutive rounds of leader pushback with zero improvements and no arbitration triggered\",\n      \"severity\": \"major\",\n      \"findings\": [\n        {\n          \"id\": \"f3\",\n          \"description\": \"Step 4 specifies 'Arbitrate after 2+ consecutive splits', but two full rounds have completed with 0 improvements and the arbitration path was never entered. The role's own governance rule was not enforced, creating a contradictory execution trace.\",\n          \"source_section\": \"<steps> Step 4 / prior rounds summary\"\n        },\n        {\n          \"id\": \"f4\",\n          \"description\": \"The role does not define what distinguishes a 'split' from consecutive leader-only pushback, so the arbitration trigger is ambiguous when the reviewer pair and leader disagree on separate axes rather than on the same finding.\",\n          \"source_section\": \"<steps> Step 4 — 'Arbitrate after 2+ consecutive splits'\"\n        }\n      ],\n      \"redesign_guidance\": \"Tighten the arbitration trigger: define 'consecutive splits' to include rounds where the leader reports unresolved material issues AND no net improvement in the finding count. Add a hard rule: if round N and round N+1 both close with unresolved_count > 0 and improvement_count == 0, arbitration is mandatory before round N+2 may begin.\"\n    },\n    {\n      \"id\": \"group-3\",\n      \"summary\": \"Duplicate 'Application workflow creation' entry in <scope> not-in-scope list\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f5\",\n          \"description\": \"'Application workflow creation' appears twice in the not-in-scope list — once bare and once with a parenthetical clarification. The duplication introduces noise and could cause a self-check to flag inconsistency.\",\n          \"source_section\": \"<scope> Not in scope\"\n        }\n      ],\n      \"redesign_guidance\": \"Merge the two entries into the single annotated form: 'Application workflow creation (role definition markdown is a role specification, not a workflow)'.\"\n    }\n  ],\n  \"residual_risks\": [\n    \"Even after paths are corrected, the self-check validator must be re-run to confirm all four MISSING_REQUIRED_OUTPUT findings clear — approving on a manual assertion alone would leave unverified evidence.\",\n    \"The arbitration rule gap (f4) means that if a future run hits consecutive pushback without a paired-reviewer split, the trigger condition may again be missed.\",\n    \"The contract's 'max_review_rounds: 3' is not surfaced in the role's <guardrails> or <steps>, so the ceiling is invisible to reviewers reading only the markdown.\"\n  ],\n  \"strengths\": [\n    \"All nine required XML tags are present and correctly ordered.\",\n    \"Authority owns/does-not-own boundaries are clearly delineated with no overlap against llm-tool-builder or COO controller.\",\n    \"Freeze condition in <guardrails> is unambiguous: every reviewer must approve and the leader must report no unresolved material issues.\",\n    \"Evidence artifact taxonomy (canonical vs evidence vs internal) is well-structured and maps cleanly to Step 5 promotion logic.\",\n    \"Provenance and decision-history preservation requirements are explicit in <guardrails>.\"\n  ]\n}\n```",
+        "round": 2,
+        "latency_ms": 44264,
+        "invocation_id": "8fe64afd-fb07-45bc-9f95-1bf3e5e4faee"
+      },
+      {
+        "participant_id": "leader-codex-r2",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "role": "leader",
+        "verdict": "ERROR: codex failed: spawn codex ENOENT",
+        "round": 2,
+        "latency_ms": 3
+      }
+    ]
+  },
+  "evidence": {
+    "source_count": 4,
+    "missing_required_source_count": 0,
+    "validation_issue_count": 4,
+    "self_check_issue_count": 4
+  },
+  "validation_issues": [
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+    }
+  ],
+  "open_questions": [
+    "Parse failed"
+  ],
+  "red_flags": [
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section",
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section",
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section",
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+  ]
+}

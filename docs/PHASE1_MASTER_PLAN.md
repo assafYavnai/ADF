@@ -1,7 +1,7 @@
 # ADF Phase 1 Master Plan
 
 Status: active operating plan
-Last updated: 2026-03-27
+Last updated: 2026-03-29
 Owner: CEO and COO
 
 ## Purpose
@@ -30,7 +30,7 @@ Phase 1 is working when:
 | Department / Function | Phase 1 responsibility | Current ADF surfaces | Status |
 |---|---|---|---|
 | **CEO** | Sets direction, priorities, tradeoffs, and final approvals | User | active |
-| **COO Office** | Holds operational state, shapes intake, routes work, keeps the live table, reports upward | `COO/controller/`, `COO/classifier/`, `COO/intelligence/`, `COO/context-engineer/` | active / in progress |
+| **COO Office** | Holds operational state, shapes intake, peels feature scope from the outside in, routes work, keeps the live table, reports upward | `COO/controller/`, `COO/requirements-gathering/`, `COO/classifier/`, `COO/intelligence/`, `COO/context-engineer/` | active / in progress |
 | **CTO Office** | Technical preflight, delivery admission, dependency/conflict analysis, design/planning/setup-analysis ownership | emerging role; informed by legacy ProjectBrain workflows | emerging |
 | **Implementation Department** | Executes approved bounded work without redefining authority | current implementation flow plus future bounded specialists/workers | partial |
 | **Board** | Review, audit, pushback, freeze, and drift detection | governed review patterns, `tools/agent-role-builder/` board model | active / in progress |
@@ -41,7 +41,7 @@ Phase 1 is working when:
 
 | Component | Company role in Phase 1 |
 |---|---|
-| `COO/` | Executive operating core: controller, routing, intelligence, context assembly |
+| `COO/` | Executive operating core: intake shaping, controller, routing, intelligence, context assembly |
 | `components/memory-engine/` | Company memory and operations backbone |
 | `shared/` | Common infrastructure, especially LLM invocation and telemetry |
 | `tools/agent-role-builder/` | Role-governance factory for bounded agent roles |
@@ -83,7 +83,7 @@ If the answer points to "later," record it and keep Phase 1 clean.
 
 ## Role Alignment Rules
 
-- **COO** must protect the table, shape CEO requests into development-ready briefs, push back on out-of-phase work, and log future-company ideas instead of letting them distort the current mission.
+- **COO** must protect the table, shape CEO requests from the outer shell inward until the scope is clear, turn approved scope into development-ready briefs, push back on out-of-phase work, and log future-company ideas instead of letting them distort the current mission.
 - **CTO** must not admit work into development without dependency, conflict, sequencing, and capacity analysis. Sequential first is acceptable; blind admission is not.
 - **Designer** must design for the approved brief and current phase, not invent a generic platform or broad design language just because it could be useful later.
 - **Planner** must produce execution-ready authority that makes implementation easier, not another layer of ambiguity.

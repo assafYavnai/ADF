@@ -343,7 +343,6 @@ At minimum, that approval view should include:
 - expected result
 - success view
 - major feature parts
-- expected results
 - approved UI direction when UI is part of the feature
 - important boundaries, constraints, or open decisions if they still matter to the freeze decision
 
@@ -391,7 +390,7 @@ Codex thread evidence (`019cdbb4-e909-7491-b583-efaa955ea5c1`) as preserved in l
 
 ### Detailed requirement artifact
 
-After high-level acceptance, ADF creates a more detailed requirements artifact that includes:
+After high-level acceptance, the COO creates a more detailed requirements artifact that includes:
 
 - high-level requirements
 - low-level requirements compatible with ADF contracts and later phases

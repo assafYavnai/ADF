@@ -1,7 +1,7 @@
 # ADF Folder Structure
 
 Status: approved direction
-Last updated: 2026-03-28
+Last updated: 2026-03-29
 
 ---
 
@@ -10,23 +10,26 @@ Last updated: 2026-03-28
 ```
 ADF/
   COO/                              # COO: controller + reasoning layer
-    controller/                     # deterministic loop — no LLM
+    controller/                     # deterministic loop - no LLM
       loop.ts
       thread.ts
       cli.ts
       memory-engine-client.ts
-    classifier/                     # intent classification — fast LLM
+    requirements-gathering/         # CEO-facing feature shaping (emerging governance-first lane)
+      rulebook.json                 # seed rules for onion-based intake and freeze
+      review-prompt.json            # review focus for scope-freeze quality
+    classifier/                     # intent classification - fast LLM
       classifier.ts
       role/                         # governed role (created by agent-role-builder)
       rulebook.json                 # accumulated rules from review failures
       review-prompt.json            # domain-specific review focus
       prompt.md
-    intelligence/                   # COO reasoning — strong LLM
+    intelligence/                   # COO reasoning - strong LLM
       role/                         # governed role (created by agent-role-builder)
       rulebook.json
       review-prompt.json
       prompt.md
-    context-engineer/               # context assembly — no LLM
+    context-engineer/               # context assembly - no LLM
       context-engineer.ts
     shared/                         # COO-internal utilities
       tools.ts
@@ -102,13 +105,14 @@ ADF/
 
 ## Key Conventions
 
-- **COO/** — the core deterministic orchestrator and reasoning layer. Organized by layers: controller/, classifier/, intelligence/, context-engineer/, shared/.
+- **COO/** - the core deterministic orchestrator and reasoning layer. Organized by layers such as controller/, requirements-gathering/, classifier/, intelligence/, context-engineer/, shared/.
+- **Emerging COO lanes** may start governance-first. A lane can first appear as boxed review artifacts (`rulebook.json`, `review-prompt.json`) before its runtime role/prompt/code is fully implemented.
 - **Each LLM-powered layer** has its own `role/`, `rulebook.json`, `review-prompt.json`, and `prompt.md` in its directory (boxed hierarchy).
-- **shared/** (root) — project-wide utilities callable by any component: provenance, llm-invoker, telemetry, learning-engine.
-- **tools/** — governance tools (agent-role-builder, llm-tool-builder). Each has its own `role/`, `rulebook.json`, `review-prompt.json`, and `runs/` for permanent audit trails.
-- **components/memory-engine/** — all memory infrastructure. Brain MCP server (TS), PostgreSQL, semantic search, MCP tool definitions.
-- **threads/** — Tier 1 (hot). Serialized thread state per session (JSON).
-- **memory/** — Tier 2 (warm). Daily residue files named by date (`YYYY-MM-DD.md`).
-- **decisions/** — locked decisions carried forward from the handoff pack.
-- **AGENTS.md** — thin router only. Detects runtime (CLI vs VS Code) and points to the right bootstrap doc.
-- **CLAUDE.md / GEMINI.md** — minimal pointer files: "read AGENTS.md and follow links."
+- **shared/** (root) - project-wide utilities callable by any component: provenance, llm-invoker, telemetry, learning-engine.
+- **tools/** - governance tools (agent-role-builder, llm-tool-builder). Each has its own `role/`, `rulebook.json`, `review-prompt.json`, and `runs/` for permanent audit trails.
+- **components/memory-engine/** - all memory infrastructure. Brain MCP server (TS), PostgreSQL, semantic search, MCP tool definitions.
+- **threads/** - Tier 1 (hot). Serialized thread state per session (JSON).
+- **memory/** - Tier 2 (warm). Daily residue files named by date (`YYYY-MM-DD.md`).
+- **decisions/** - locked decisions carried forward from the handoff pack.
+- **AGENTS.md** - thin router only. Detects runtime (CLI vs VS Code) and points to the right bootstrap doc.
+- **CLAUDE.md / GEMINI.md** - minimal pointer files: "read AGENTS.md and follow links."
