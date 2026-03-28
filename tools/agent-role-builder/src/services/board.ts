@@ -37,7 +37,7 @@ interface LeaderVerdict {
 
 interface ComplianceEntry {
   rule_id: string;
-  status: "compliant" | "not_applicable";
+  status: "compliant" | "non_compliant" | "not_applicable";
   evidence_location: string;
   evidence_summary: string;
 }
@@ -102,7 +102,7 @@ export async function executeBoard(
   try {
     const rulebookRaw = JSON.parse(await readFile(join("tools/agent-role-builder", "rulebook.json"), "utf-8"));
     currentRulebook = rulebookRaw.rules ?? [];
-  } catch { /* no rulebook yet */ }
+  } catch (e) { console.error("[board] Failed to load rulebook:", e instanceof Error ? e.message : e); }
 
   for (let round = 0; round < maxRounds; round++) {
     const roundDir = runDir ? join(runDir, "rounds", `round-${round}`) : null;
@@ -200,9 +200,10 @@ export async function executeBoard(
         finalMarkdown: lastRound.markdown, finalSelfCheckIssues: lastRound.selfCheckIssues };
     }
 
-    // --- Step 4: Learning engine + revision ---
-    if (round < maxRounds - 1 && roundResult.unresolved.length > 0) {
+    // --- Step 4: Learning engine (always) + revision (if not final and unresolved) ---
+    {
       try {
+        const canRevise = round < maxRounds - 1 && roundResult.unresolved.length > 0;
         const fixChecklist: Array<{
           groupId: string; severity: string; summary: string;
           redesignGuidance: string; findingCount: number;
@@ -229,30 +230,36 @@ export async function executeBoard(
             source_path: "tools/agent-role-builder/learning-engine",
           });
           learningOutput = JSON.parse(learningResult.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
-        } catch { /* non-blocking */ }
+        } catch (e) { console.error("[board] Learning engine failed:", e instanceof Error ? e.message : e); }
 
         if (roundDir) {
           await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
         }
 
-        // Revision
-        currentMarkdown = await reviseRoleMarkdown(
-          request, roundResult.markdown, draftContract,
-          { round: roundResult.round, leaderRationale: roundResult.leaderRationale,
-            unresolved: roundResult.unresolved, fixChecklist,
-            priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
-            rulebook: currentRulebook },
-          rounds.map((pr) => ({ round: pr.round, leaderRationale: pr.leaderRationale, unresolved: pr.unresolved }))
-        );
-        currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({ code: i.code, message: i.message }));
+        // Revision (only if not final round and unresolved exist)
+        if (canRevise) {
+          currentMarkdown = await reviseRoleMarkdown(
+            request, roundResult.markdown, draftContract,
+            { round: roundResult.round, leaderRationale: roundResult.leaderRationale,
+              unresolved: roundResult.unresolved, fixChecklist,
+              priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
+              rulebook: currentRulebook },
+            rounds.map((pr) => ({ round: pr.round, leaderRationale: pr.leaderRationale, unresolved: pr.unresolved }))
+          );
+          currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({ code: i.code, message: i.message }));
+        }
 
+        // Diff summary always written (shows whether revision happened)
         if (roundDir) {
           await writeFile(join(roundDir, "diff-summary.json"), JSON.stringify({
             prior_length: roundResult.markdown.length, new_length: currentMarkdown.length,
             changed: roundResult.markdown !== currentMarkdown,
+            revision_skipped: !canRevise,
+            reason: !canRevise ? (round >= maxRounds - 1 ? "final round" : "no unresolved issues") : undefined,
           }, null, 2), "utf-8");
         }
-      } catch {
+      } catch (e) {
+        console.error("[board] Revision failed:", e instanceof Error ? e.message : e);
         currentMarkdown = roundResult.markdown;
         currentSelfCheckIssues = roundResult.selfCheckIssues;
       }
@@ -271,7 +278,7 @@ export async function executeBoard(
 async function generateComplianceMap(
   request: RoleBuilderRequest,
   markdown: string,
-  rulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string }>,
+  rulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }>,
   round: number,
   fullSweep: boolean
 ): Promise<ComplianceEntry[]> {
@@ -289,7 +296,7 @@ async function generateComplianceMap(
       prompt: `You are checking a role definition markdown against a rulebook. For each rule, determine if the markdown is compliant.
 
 RESPOND WITH JSON ONLY — an array of objects:
-[{ "rule_id": "ARB-001", "status": "compliant" | "not_applicable", "evidence_location": "<section> or line", "evidence_summary": "how it satisfies the rule" }]
+[{ "rule_id": "ARB-001", "status": "compliant" | "non_compliant" | "not_applicable", "evidence_location": "<section> or line", "evidence_summary": "how it satisfies (or violates) the rule" }]
 
 RULES TO CHECK (${fullSweep ? "FULL SWEEP" : "DELTA — focus on changed sections"}):
 ${rulesText}
@@ -303,7 +310,8 @@ JSON array:`,
 
     const parsed = JSON.parse(result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (e) {
+    console.error("[board] Compliance map generation failed:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -347,7 +355,8 @@ JSON array:`,
 
     const parsed = JSON.parse(result.response.replace(/```json?\n?/g, "").replace(/```/g, "").trim());
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (e) {
+    console.error("[board] Fix items map generation failed:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -541,7 +550,8 @@ function parseReviewerResponse(raw: string): ReviewerVerdict {
       residual_risks: Array.isArray(parsed.residual_risks) ? parsed.residual_risks : [],
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
     };
-  } catch {
+  } catch (e) {
+    console.error("[board] Reviewer response parse failed:", e instanceof Error ? e.message : e);
     return { verdict: "reject",
       conceptual_groups: [{ id: "parse-error", summary: "Failed to parse", severity: "blocking", findings: [], redesign_guidance: "Fix output format" }],
       residual_risks: [], strengths: [] };
@@ -559,7 +569,8 @@ function parseLeaderResponse(raw: string): LeaderVerdict {
       arbitration_used: parsed.arbitration_used ?? false,
       arbitration_rationale: parsed.arbitration_rationale ?? null,
     };
-  } catch {
+  } catch (e) {
+    console.error("[board] Leader response parse failed:", e instanceof Error ? e.message : e);
     return { status: "pushback", rationale: `Parse failed: ${raw.slice(0, 200)}`,
       unresolved: ["Parse failed"], improvements_applied: [],
       arbitration_used: false, arbitration_rationale: null };

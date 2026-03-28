@@ -1,0 +1,160 @@
+{
+  "round": 1,
+  "reviewer": "Claude Opus 4.6 (independent review)",
+  "reviewed_at": "2026-03-28",
+  "scope": "Complete rewrite of tools/agent-role-builder/src/services/board.ts — integrating compliance map, fix items map, round subdirectories, and structured reviewer/leader prompts",
+
+  "fix_decisions": [
+    {
+      "finding_id": "compliance-map-not-wired",
+      "decision": "accept_fix",
+      "reason": "generateComplianceMap() is implemented at lines 271-309. It calls the LLM with the full rulebook and markdown, requesting a JSON array of {rule_id, status, evidence_location, evidence_summary}. It is invoked at line 113 for every round. Full sweep on round 0 (isFullSweep=true), delta on subsequent rounds. The result is written to rounds/round-N/compliance-map.json at lines 116-122 with schema_version, component, scope, round, entries, and generated_at. On empty rulebook, returns [] gracefully. On LLM failure, returns [] with a catch block. Implementation is correct and complete."
+    },
+    {
+      "finding_id": "fix-items-map-not-wired",
+      "decision": "accept_fix",
+      "reason": "generateFixItemsMap() is implemented at lines 313-353. It is invoked at lines 125-135 only when round > 0 AND there are prior rounds (correct guard). It filters prior round findings to blocking/major severity only, sends them to the LLM with the current markdown, and requests a JSON array of {finding_group_id, action, summary, evidence_location, rejection_reason}. The result is written to rounds/round-N/fix-items-map.json at lines 129-134. On no findings or LLM failure, returns []. Implementation is correct and complete."
+    },
+    {
+      "finding_id": "fix-decision-map-not-in-reviewer-prompt",
+      "decision": "accept_fix",
+      "reason": "The reviewer prompt at lines 472-507 includes fixItemsContext (line 504) which renders the fix items map. Additionally, a fix_decisions instruction block is conditionally injected at lines 473-476 when fixItemsMap has entries, explicitly instructing the reviewer to produce a fix_decisions array with decision types: accept_fix, reject_fix, accept_rejection, reject_rejection. The JSON schema in the prompt (line 486) conditionally includes the fix_decisions field. parseReviewerResponse() at line 540 extracts fix_decisions from the parsed response. Implementation is correct and complete."
+    },
+    {
+      "finding_id": "round-artifacts-as-subdirectories",
+      "decision": "accept_fix",
+      "reason": "roundDir is constructed as join(runDir, 'rounds', `round-${round}`) at line 108, and the directory is created with mkdir({recursive:true}) at line 109. Per-round artifacts written: compliance-map.json (line 117), fix-items-map.json (line 130), review.json (line 156), learning.json (line 235), diff-summary.json (line 250). All five file types are written into the subdirectory. Implementation is correct and complete."
+    },
+    {
+      "finding_id": "reviewer-doesnt-see-compliance-map",
+      "decision": "accept_fix",
+      "reason": "buildBrief() at lines 438-529 constructs complianceContext (lines 456-459) and fixItemsContext (lines 461-464) from the passed complianceMap and fixItemsMap parameters. Both contexts are appended to BOTH the reviewer prompt (line 504) and the leader prompt (line 526). executeRound() passes complianceMap and fixItemsMap through to executeParticipant() for both reviewers (line 371) and the leader (line 379), which passes them to buildBrief() (line 406). Implementation is correct and complete."
+    },
+    {
+      "finding_id": "learning-output-not-persisted",
+      "decision": "accept_fix",
+      "reason": "Learning engine output is written to rounds/round-N/learning.json at lines 234-236. The learning engine call is wrapped in its own try/catch (lines 223-232) so it is non-blocking — failure defaults to {new_rules:[], existing_rules_covering:[], no_rule_needed:[]}. The output is always written whether the LLM succeeds or falls back to the default empty structure. Implementation is correct and complete."
+    }
+  ],
+
+  "cross_cutting_verification": {
+    "every_round_produces_required_artifacts": {
+      "status": "PASS",
+      "detail": "Round 0: compliance-map.json (line 117), review.json (line 156), learning.json (line 235), diff-summary.json (line 250). fix-items-map.json is correctly skipped for round 0 (line 126 guard: round > 0). Round 1+: all five artifacts produced including fix-items-map.json (line 130). Note: learning.json and diff-summary.json are only written when unresolved.length > 0 and round < maxRounds - 1 (line 204 guard). On the final round or a frozen/blocked round, learning and diff-summary are NOT written. See finding NF-1."
+    },
+    "reviewer_prompt_includes_compliance_and_fix_items": {
+      "status": "PASS",
+      "detail": "Reviewer prompt (lines 478-506) includes complianceContext (line 504) and fixItemsContext (line 504). Both are string-interpolated from the map data with human-readable formatting."
+    },
+    "leader_prompt_includes_compliance_and_fix_items": {
+      "status": "PASS",
+      "detail": "Leader prompt (lines 513-528) includes complianceContext (line 526) and fixItemsContext (line 526). Both use the same string context built in buildBrief()."
+    },
+    "fix_decisions_parsed_from_reviewer_response": {
+      "status": "PASS",
+      "detail": "parseReviewerResponse() at line 540 extracts fix_decisions: 'Array.isArray(parsed.fix_decisions) ? parsed.fix_decisions : undefined'. The ReviewerVerdict interface (line 20-24) declares fix_decisions as optional. The data flows into reviewerVerdicts Map on each BoardRoundResult."
+    },
+    "round_results_are_structured": {
+      "status": "PASS",
+      "detail": "review.json (lines 156-168) writes structured JSON with round, leaderVerdict, leaderRationale, unresolved, improvementsApplied, reviewerVerdicts (serialized from Map to Object), and participant metadata. Not a raw verdict dump."
+    }
+  },
+
+  "new_findings": [
+    {
+      "id": "NF-1",
+      "severity": "major",
+      "summary": "learning.json and diff-summary.json are not written on the final round or when no unresolved items exist",
+      "source": "tools/agent-role-builder/src/services/board.ts:204",
+      "reason": "The learning engine + revision block (lines 204-259) is guarded by `if (round < maxRounds - 1 && roundResult.unresolved.length > 0)`. This means: (1) On the final round (round === maxRounds - 1), learning.json and diff-summary.json are never written, even though the compliance-map.json and review.json are written. The round subdirectory will be missing 2 of the 5 expected artifacts. (2) If a round has 0 unresolved items but the leader still says 'pushback' (e.g., due to parse failure defaulting to pushback), neither artifact is written. The fix items map requirement states all per-round artifacts should be written to the subdirectory. A round without a learning.json creates an inconsistency — downstream consumers cannot distinguish 'learning engine was not run' from 'learning engine produced empty results'.",
+      "redesign_guidance": "Always run the learning engine and write learning.json and diff-summary.json for every round, regardless of whether revision will follow. On the final round, still capture learning output for the record even if no revision occurs. If the learning engine is intentionally skipped, write a sentinel: {skipped: true, reason: 'final_round'} or {skipped: true, reason: 'no_unresolved_items'}."
+    },
+    {
+      "id": "NF-2",
+      "severity": "major",
+      "summary": "Compliance map uses wrong type signature — function parameter omits 'source' and 'version' fields present in loaded rulebook",
+      "source": "tools/agent-role-builder/src/services/board.ts:274",
+      "reason": "The rulebook is loaded at line 101 with type `Array<{id, rule, applies_to, do, dont, source, version}>` (6 fields). But generateComplianceMap() at line 274 declares its rulebook parameter as `Array<{id, rule, applies_to, do, dont}>` (only 5 fields — missing `source` and `version`). TypeScript structural typing means the call at line 114 will compile because the 6-field object is assignable to the 5-field parameter. But this is a design smell: the function signature does not accurately represent the data it receives. More importantly, the function's prompt (line 281) truncates `do` and `dont` to 150 chars but never passes `source` or `version` to the LLM. If the compliance map ever needs to report which rulebook version a rule came from, the data is silently dropped.",
+      "redesign_guidance": "Align the generateComplianceMap parameter type with the actual rulebook type. Either use the same full type or extract a shared RulebookRule interface used by both the loader and the function parameter."
+    },
+    {
+      "id": "NF-3",
+      "severity": "minor",
+      "summary": "Compliance map 'delta' mode has no actual delta logic — LLM receives same full markdown regardless",
+      "source": "tools/agent-role-builder/src/services/board.ts:112,294",
+      "reason": "Line 112 sets `isFullSweep = round === 0`. On round 1+, `isFullSweep` is false and the prompt says 'DELTA — focus on changed sections' (line 294). However, the function still sends the entire markdown document (line 298: `${markdown}`) and all rules (line 295: `${rulesText}`). The 'delta' instruction is purely advisory text to the LLM with no actual diff or change tracking. The LLM has no way to know which sections changed because no diff is provided. This makes the delta/full distinction cosmetic rather than functional.",
+      "redesign_guidance": "Either: (a) compute an actual diff between the prior round's markdown and the current markdown, and include only the changed sections in the delta prompt, or (b) remove the delta/full distinction and always do a full sweep (simpler and honest), or (c) pass the prior round's compliance map so the LLM can focus on re-checking only rules that were previously non-compliant or affected by changed sections."
+    },
+    {
+      "id": "NF-4",
+      "severity": "minor",
+      "summary": "fix_decisions from reviewer response are stored but never consumed by any downstream logic",
+      "source": "tools/agent-role-builder/src/services/board.ts:540,171-176",
+      "reason": "parseReviewerResponse() correctly extracts fix_decisions (line 540) and stores them in the ReviewerVerdict. The reviewerVerdicts are stored on BoardRoundResult (line 62) and serialized to review.json (line 161). However, no code in the board loop reads fix_decisions to influence behavior. The leader prompt does not explicitly reference fix_decisions from reviewers. The revision logic (lines 206-218) builds fixChecklist from conceptual_groups, not from fix_decisions. The fix_decisions data is captured for the record but has no functional impact on the review loop's convergence behavior. If a reviewer rejects a fix (reject_fix), the board loop does not treat this differently from a new finding.",
+      "redesign_guidance": "Either: (a) Feed reviewer fix_decisions into the leader prompt explicitly so the leader can weigh accept/reject patterns, or (b) Use fix_decisions in the revision loop to prioritize rejected fixes for re-work, or (c) Document that fix_decisions are currently advisory/audit-only and plan to wire functional consumption in a future iteration."
+    },
+    {
+      "id": "NF-5",
+      "severity": "minor",
+      "summary": "Module-level mutable state (runDir) creates implicit coupling and is not reset between runs",
+      "source": "tools/agent-role-builder/src/services/board.ts:67-71",
+      "reason": "The module-level `let runDir: string | null = null` (line 67) with setter `setRunDir()` (line 69) creates hidden mutable state. If the module is imported once and executeBoard() is called multiple times (e.g., in tests or a long-running process), the runDir from a prior call persists. There is no resetRunDir() function and executeBoard() does not accept runDir as a parameter. This makes the function non-reentrant and harder to test. The prior code likely had the same pattern, but a rewrite is the right time to fix it.",
+      "redesign_guidance": "Pass runDir as a parameter to executeBoard() instead of using module-level mutable state. This makes the function pure with respect to its output directory and eliminates the hidden coupling."
+    },
+    {
+      "id": "NF-6",
+      "severity": "minor",
+      "summary": "Reviewer participant ID key extraction uses fragile regex that may not match future ID formats",
+      "source": "tools/agent-role-builder/src/services/board.ts:172",
+      "reason": "Line 172 strips the round suffix from participant IDs: `const key = pid.replace(/-r\\d+$/, '')`. The participant ID is constructed at line 401 as `${role}-${provider}-r${round}` (e.g., 'reviewer-claude-r0'). The regex correctly strips '-r0' to get 'reviewer-claude'. However, if a provider name ever contains '-r' followed by digits (unlikely but possible), the regex would incorrectly strip part of the provider name. More concerning: the regex is implicitly coupled to the ID format on line 401. If one changes, the other silently breaks. No shared constant or formatter links them.",
+      "redesign_guidance": "Extract the participant ID format into a shared function: buildParticipantId(role, provider, round) and parseParticipantBaseKey(pid). This makes the coupling explicit and testable."
+    },
+    {
+      "id": "NF-7",
+      "severity": "minor",
+      "summary": "Empty catch blocks silently swallow errors in compliance map and fix items map generation",
+      "source": "tools/agent-role-builder/src/services/board.ts:306,351",
+      "reason": "Both generateComplianceMap() (line 306) and generateFixItemsMap() (line 351) have `catch { return []; }` with no logging or telemetry. If the LLM invocation fails (timeout, parse error, network issue), the board proceeds with an empty compliance or fix items map. This is correct for resilience (the review should not fail because of a compliance map failure), but the silent swallowing means: (1) There is no way to know post-run whether the compliance map was genuinely empty or failed to generate. (2) No telemetry event is emitted for the failure, unlike executeParticipant() which emits a failure telemetry event (line 427). The learning engine catch at line 232 has the same pattern.",
+      "redesign_guidance": "Emit a telemetry event or write a sentinel to the round directory when these operations fail. Example: write compliance-map.json with {error: true, reason: 'LLM invocation failed'} instead of silently returning []."
+    },
+    {
+      "id": "NF-8",
+      "severity": "suggestion",
+      "summary": "ComplianceEntry status enum only has 'compliant' and 'not_applicable' — missing 'non_compliant'",
+      "source": "tools/agent-role-builder/src/services/board.ts:42",
+      "reason": "The ComplianceEntry interface (line 42) defines status as `'compliant' | 'not_applicable'`. The LLM prompt (line 292) instructs the same two values. However, the entire purpose of a compliance map is to identify non-compliance. If a rule IS applicable but the markdown does NOT satisfy it, the LLM has no way to express this — it must choose between 'compliant' (incorrect) or 'not_applicable' (also incorrect). The reviewer and leader see a compliance map that can only report positive results, which defeats the purpose of the check.",
+      "redesign_guidance": "Add 'non_compliant' to the status enum: `status: 'compliant' | 'non_compliant' | 'not_applicable'`. Update the prompt to include this option. Non-compliant entries should include what specifically is missing or violated."
+    }
+  ],
+
+  "root_cause_groups": [
+    {
+      "id": "RCG-1",
+      "summary": "Artifact completeness gap: some per-round artifacts are conditionally written based on control flow, creating inconsistent round directories",
+      "finding_ids": ["NF-1"]
+    },
+    {
+      "id": "RCG-2",
+      "summary": "Type misalignment and incomplete schema modeling: function parameter types diverge from loaded data types, and domain-critical enum values are missing",
+      "finding_ids": ["NF-2", "NF-8"]
+    },
+    {
+      "id": "RCG-3",
+      "summary": "Data captured but not consumed: structured data is parsed and stored but has no functional impact on the review loop",
+      "finding_ids": ["NF-3", "NF-4"]
+    },
+    {
+      "id": "RCG-4",
+      "summary": "Silent failure patterns: errors are swallowed without telemetry or sentinel artifacts, making post-run diagnosis impossible",
+      "finding_ids": ["NF-7"]
+    },
+    {
+      "id": "RCG-5",
+      "summary": "Implicit coupling through module-level state and string-format conventions without shared constants",
+      "finding_ids": ["NF-5", "NF-6"]
+    }
+  ],
+
+  "verdict": "conditional",
+  "verdict_reason": "All 6 fix items from the prior review cycle are correctly and completely implemented. The compliance map, fix items map, round subdirectories, reviewer/leader prompt integration, fix decision parsing, and learning output persistence are all wired end-to-end. Cross-cutting concerns all pass: every round produces the expected artifact set, both prompts include compliance and fix items context, fix decisions are parsed from reviewer responses, and round results are structured JSON. However, 2 major findings prevent unconditional approval: (1) NF-1: learning.json and diff-summary.json are not written on the final round or when unresolved=0, creating incomplete round directories that violate the stated contract of 5 artifacts per round. (2) NF-2: the generateComplianceMap type signature silently drops source/version fields from the rulebook, which is a type-level design defect. The 6 minor/suggestion findings (NF-3 through NF-8) are non-blocking but should be addressed. Condition for approval: fix NF-1 (always write learning.json and diff-summary.json, even as sentinels) and NF-2 (align parameter type with actual rulebook type)."
+}
