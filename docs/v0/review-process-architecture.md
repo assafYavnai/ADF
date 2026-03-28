@@ -294,3 +294,38 @@ Everything described above applies to every governed component in ADF, not just 
 - Arbitration only on minor items, result reflects partial acceptance
 
 The shared infrastructure (`shared/learning-engine/`, `shared/llm-invoker/`, `shared/telemetry/`) serves all components equally. The per-component artifacts (rulebook, review prompt, runs) live in each component's directory.
+
+---
+
+## Empirical Evidence: First Review Cycle (Step 2f, 2026-03-28)
+
+The first application of this review process was a 3-round code review of the ADF shared infrastructure (34 files). Results:
+
+### Timing Baseline
+
+| Round | Duration | Tool Calls | Tokens | Scope |
+|---|---|---|---|---|
+| 1 (cold start) | ~3.5 min | 52 | 95K | Full review of 34 files |
+| 2 (verify fixes) | ~3.5 min | 33 | 50K | Changed files + fix items map |
+| 3 (final sweep) | ~2.5 min | 25 | 64K | Full sweep on clean state |
+| **Total** | **~9.5 min** | **110** | **~210K** | 3 blocking + 5 major resolved |
+
+### Key Finding: Compliance Map Prevents Missed Fixes
+
+Round 2 found a major security issue (R2-1): the Gemini shell injection fix was applied to the canonical invoker but NOT to the copy in shared-imports.ts. A compliance map that listed all locations where each fix applies would have caught this before the reviewer did. This is now system rule SYS-001 in the rule-book-guide.
+
+### Convergence Pattern
+
+- Round 1: 3 blocking, 5 major, 7 minor, 5 suggestions (cold start)
+- Round 2: 9 fixes accepted, 1 rejection accepted, 1 new major (missed copy)
+- Round 3: all fixes verified, 3 rejections accepted, 0 violations on full sweep — **APPROVED**
+
+### Cost Observation
+
+Round 1 (cold start) is the most expensive — reviewer reads everything. Rounds 2-3 are cheaper because the fix items map tells the reviewer exactly what changed. The delta compliance approach is validated: incremental rounds cost ~50-65% of the initial round.
+
+### Evidence
+
+- Round 1: `docs/v0/reviews/step2f-implementation-review.md`
+- Round 2: `docs/v0/reviews/step2f-round2-review.json`
+- Round 3: `docs/v0/reviews/step2f-round3-review.json`

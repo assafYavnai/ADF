@@ -87,6 +87,14 @@
       "Is the rule specific enough that compliance can be mechanically verified?",
       "Does the source field prove this rule emerged from a real failure?"
     ],
+    "system_rules": [
+      {
+        "id": "SYS-001",
+        "rule": "When a fix is applied to a module that has copies or re-exports, the compliance map must list ALL locations where the fix applies, not just the canonical source.",
+        "source": "Step 2f review cycle: security fix (B-1 Gemini injection, m-3 shell:true) applied to shared/llm-invoker/invoker.ts but missed in tools/agent-role-builder/src/shared-imports.ts. Caught by reviewer in Round 2 (R2-1). A compliance map checking all locations would have prevented this.",
+        "version": 1
+      }
+    ],
     "lifecycle": [
       "Rules are created by the learning engine from review feedback",
       "Rules are never silently deleted — history preserved in git",
