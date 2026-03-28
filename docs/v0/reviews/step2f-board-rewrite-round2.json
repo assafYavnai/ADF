@@ -1,0 +1,203 @@
+{
+  "round": 2,
+  "reviewer": "Claude Opus 4.6 (independent review)",
+  "reviewed_at": "2026-03-28",
+  "scope": "Round 2 final review of tools/agent-role-builder/src/services/board.ts — verifying accepted fixes, adjudicating rejections, full sweep",
+
+  "fix_decisions": [
+    {
+      "finding_id": "NF-1",
+      "action_claimed": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "Verified. Lines 203-266: the learning engine block is no longer gated by the old `if (round < maxRounds - 1 && roundResult.unresolved.length > 0)` guard. The block now always executes (line 204 is an unconditional block scope `{`). The `canRevise` flag (line 206) still gates revision only, not learning. The learning engine runs at line 225 for every round. learning.json is written at line 235-237 unconditionally within the block. diff-summary.json is written at lines 253-260 unconditionally and includes `revision_skipped` (boolean) and `reason` (string: 'final round' or 'no unresolved issues') when canRevise is false. This matches the fix claim exactly. Both artifacts are now always written to the round subdirectory."
+    },
+    {
+      "finding_id": "NF-2",
+      "action_claimed": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "Verified. Line 281: generateComplianceMap parameter type is now `Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }>` — includes both `source` and `version` fields. This matches the rulebook type at line 101 exactly. The type signature is aligned."
+    },
+    {
+      "finding_id": "NF-7",
+      "action_claimed": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "Verified. All 7 catch blocks now log to stderr via console.error with context: (1) line 105 — rulebook load failure, (2) line 233 — learning engine failure, (3) line 262 — revision failure, (4) line 314 — compliance map generation failure, (5) line 359 — fix items map generation failure, (6) line 554 — reviewer response parse failure, (7) line 573 — leader response parse failure. Each includes a `[board]` prefix and the specific operation name. All use the `e instanceof Error ? e.message : e` pattern for safe error extraction."
+    },
+    {
+      "finding_id": "NF-8",
+      "action_claimed": "ACCEPTED",
+      "decision": "accept_fix",
+      "reason": "Verified. Line 40: ComplianceEntry.status is now `'compliant' | 'non_compliant' | 'not_applicable'` — includes the missing 'non_compliant' value. The LLM prompt at line 299 also includes 'non_compliant' in the status enum: `\"status\": \"compliant\" | \"non_compliant\" | \"not_applicable\"`. Both the type and the prompt are aligned."
+    }
+  ],
+
+  "rejection_decisions": [
+    {
+      "finding_id": "NF-3",
+      "implementer_action": "REJECTED",
+      "implementer_reason": "Delta mode is a signal to LLM; structural diff is in diff-summary.json.",
+      "decision": "accept_rejection",
+      "reason": "The rejection is reasonable. The delta instruction at line 301 is an advisory hint to the LLM ('DELTA - focus on changed sections'). While it would be more rigorous to pass an actual diff, the current approach is pragmatically sufficient: (1) the LLM receives the full markdown on every round and can compare against its prior output context, (2) diff-summary.json now tracks whether changes occurred and the length delta, (3) implementing true section-level diffing would add significant complexity for marginal gain in an LLM-based compliance check. This is a reasonable design trade-off, not a defect."
+    },
+    {
+      "finding_id": "NF-4",
+      "implementer_action": "REJECTED",
+      "implementer_reason": "Stored in reviewerVerdicts and review.json. Downstream consumption is post-mortem tier.",
+      "decision": "accept_rejection",
+      "reason": "The rejection is reasonable. fix_decisions are correctly parsed (line 549), stored in ReviewerVerdict, and serialized to review.json (line 161). The data is available for post-run analysis. Wiring fix_decisions into the leader prompt or revision logic would add complexity to an already working convergence loop. The current design captures the data for audit purposes without introducing new control flow paths that could affect stability. This can be wired into functional consumption in a future iteration without any data loss."
+    },
+    {
+      "finding_id": "NF-5",
+      "implementer_action": "REJECTED",
+      "implementer_reason": "Minimal impact; threading through 6 signatures for no behavioral change.",
+      "decision": "accept_rejection",
+      "reason": "The rejection is reasonable. The module-level `runDir` pattern (lines 67-71) is a known trade-off. Converting it to a parameter would require threading it through executeBoard, executeRound, executeParticipant, buildBrief, and possibly into the compliance/fix-items generators — touching 6+ function signatures. The current codebase has a single call site pattern (setRunDir then executeBoard) and no concurrent usage. Re-entrancy is not a real risk in the current architecture. The refactoring cost outweighs the benefit."
+    },
+    {
+      "finding_id": "NF-6",
+      "implementer_action": "REJECTED",
+      "implementer_reason": "Used once, format defined in one place.",
+      "decision": "accept_rejection",
+      "reason": "The rejection is reasonable. The regex at line 172 (`/-r\\d+$/`) strips the round suffix from participant IDs constructed at line 410 (`${role}-${participant.provider}-r${round}`). Both are in the same file, 238 lines apart. The ID format is internal to board.ts and not exposed to other modules. Extracting shared builder/parser functions for a single-use internal pattern would be over-engineering. The coupling is contained and easily auditable."
+    }
+  ],
+
+  "new_findings": [
+    {
+      "id": "NF-R2-1",
+      "severity": "minor",
+      "summary": "Early returns for frozen/blocked/arbitration skip learning.json and diff-summary.json for the terminal round",
+      "source": "tools/agent-role-builder/src/services/board.ts:178-201",
+      "reason": "When the leader returns 'frozen' (line 178) or 'blocked' (line 183), the function returns immediately before reaching the learning engine block at line 203. Similarly, the arbitration early return at line 196 skips learning. This means the terminal round's subdirectory will have compliance-map.json and review.json but NOT learning.json or diff-summary.json. The NF-1 fix ensured learning runs on every round within the loop body, but these early exits bypass the loop body's post-review section entirely. For frozen rounds this is defensible (no further revision needed), but the round directory is still incomplete. This is minor because: (1) frozen/blocked are terminal states where no further rounds occur, (2) the learning output has no downstream consumer after termination, and (3) the audit trail already has review.json capturing the terminal verdict.",
+      "redesign_guidance": "If complete round directories are desired for all terminal rounds, move the learning engine call before the frozen/blocked early returns. Alternatively, document that terminal rounds intentionally omit learning.json and diff-summary.json as a known contract."
+    },
+    {
+      "id": "NF-R2-2",
+      "severity": "suggestion",
+      "summary": "isSanityCheck parameter accepted by executeRound but never used",
+      "source": "tools/agent-role-builder/src/services/board.ts:371",
+      "reason": "The `isSanityCheck` boolean is passed to executeRound (line 147) and declared in the parameter list (line 371) but is never referenced in the function body (lines 373-399). The sanity check logic at lines 142-143 determines which reviewers to run, and that decision is fully resolved before calling executeRound — the selected reviewers are passed via `activeReviewers`. The parameter is dead code that adds noise to the already long signature.",
+      "redesign_guidance": "Remove isSanityCheck from executeRound's parameter list. If it is needed for future use (e.g., tagging the round result), add it when that feature is implemented."
+    }
+  ],
+
+  "full_sweep_result": {
+    "checks_performed": 22,
+    "violations": 0,
+    "details": [
+      {
+        "check": "Interface completeness — ReviewerVerdict",
+        "status": "PASS",
+        "detail": "Lines 11-27: verdict, conceptual_groups (with id, summary, severity, findings, redesign_guidance), fix_decisions (optional), residual_risks, strengths. All fields populated by parseReviewerResponse (lines 542-558)."
+      },
+      {
+        "check": "Interface completeness — LeaderVerdict",
+        "status": "PASS",
+        "detail": "Lines 29-36: status, rationale, unresolved, improvements_applied, arbitration_used, arbitration_rationale. All fields populated by parseLeaderResponse (lines 561-577)."
+      },
+      {
+        "check": "Interface completeness — ComplianceEntry",
+        "status": "PASS",
+        "detail": "Lines 38-43: rule_id, status (compliant|non_compliant|not_applicable), evidence_location, evidence_summary. Status enum is complete."
+      },
+      {
+        "check": "Interface completeness — FixItem",
+        "status": "PASS",
+        "detail": "Lines 45-51: finding_group_id, action, summary, evidence_location (optional), rejection_reason (optional). Matches the LLM prompt schema at line 344."
+      },
+      {
+        "check": "Interface completeness — BoardRoundResult",
+        "status": "PASS",
+        "detail": "Lines 53-65: round, participants, leaderVerdict, leaderRationale, unresolved, improvementsApplied, markdown, selfCheckIssues, reviewerVerdicts, complianceMap (optional), fixItemsMap (optional). All populated in executeRound return (lines 393-398) and post-return assignments (lines 149-150)."
+      },
+      {
+        "check": "Rulebook loading — type alignment",
+        "status": "PASS",
+        "detail": "Line 101 type matches line 281 generateComplianceMap parameter type exactly: {id, rule, applies_to, do, dont, source, version}."
+      },
+      {
+        "check": "Compliance map — generation and persistence",
+        "status": "PASS",
+        "detail": "generateComplianceMap (lines 278-317) invoked every round (line 113). Written to rounds/round-N/compliance-map.json (lines 117-122) with schema_version, component, scope, round, entries, generated_at."
+      },
+      {
+        "check": "Compliance map — prompt includes non_compliant",
+        "status": "PASS",
+        "detail": "Line 299: prompt instructs LLM with status enum 'compliant | non_compliant | not_applicable'. Matches ComplianceEntry type."
+      },
+      {
+        "check": "Fix items map — generation guard and persistence",
+        "status": "PASS",
+        "detail": "generateFixItemsMap (lines 321-362) invoked only when round > 0 AND rounds.length > 0 (line 126). Written to rounds/round-N/fix-items-map.json (lines 130-134). Correctly skipped on round 0."
+      },
+      {
+        "check": "Fix items map — severity filter",
+        "status": "PASS",
+        "detail": "Line 329: only blocking and major findings are extracted from prior round. Minor/suggestion correctly excluded."
+      },
+      {
+        "check": "Round subdirectory creation",
+        "status": "PASS",
+        "detail": "Line 108-109: roundDir = join(runDir, 'rounds', `round-${round}`), mkdir with recursive:true. All artifacts written to roundDir."
+      },
+      {
+        "check": "Reviewer prompt includes compliance and fix items context",
+        "status": "PASS",
+        "detail": "buildBrief (lines 447-538): complianceContext (lines 465-468) and fixItemsContext (lines 470-473) are constructed and appended to reviewer prompt at line 513."
+      },
+      {
+        "check": "Leader prompt includes compliance and fix items context",
+        "status": "PASS",
+        "detail": "buildBrief: complianceContext and fixItemsContext appended to leader prompt at line 535."
+      },
+      {
+        "check": "fix_decisions parsed from reviewer response",
+        "status": "PASS",
+        "detail": "Line 549: parseReviewerResponse extracts fix_decisions with Array.isArray guard. Stored in ReviewerVerdict, serialized to review.json via Object.fromEntries at line 161."
+      },
+      {
+        "check": "fix_decisions instruction in reviewer prompt",
+        "status": "PASS",
+        "detail": "Lines 482-485: fixDecisionInstruction conditionally injected when fixItemsMap has entries. Lines 495: fix_decisions field conditionally included in JSON schema example."
+      },
+      {
+        "check": "Learning engine — runs every round (NF-1 fix)",
+        "status": "PASS",
+        "detail": "Lines 204-266: unconditional block scope. Learning engine invoked at line 225 regardless of canRevise. learning.json written at line 235-237. canRevise only gates revision (lines 240-250)."
+      },
+      {
+        "check": "diff-summary.json — always written with revision_skipped field (NF-1 fix)",
+        "status": "PASS",
+        "detail": "Lines 253-260: written unconditionally within the block. Includes revision_skipped (boolean) and reason (string) when canRevise is false."
+      },
+      {
+        "check": "Error handling — all catch blocks log to stderr (NF-7 fix)",
+        "status": "PASS",
+        "detail": "7 catch blocks verified at lines 105, 233, 262, 314, 359, 554, 573. All use console.error with [board] prefix and context-specific messages."
+      },
+      {
+        "check": "Reviewer status tracking — per-provider dedup",
+        "status": "PASS",
+        "detail": "Lines 94-97: initial status map keyed by 'reviewer-{provider}'. Lines 171-176: round suffix stripped via regex, status updated per verdict."
+      },
+      {
+        "check": "Arbitration logic — consecutive dispute counting",
+        "status": "PASS",
+        "detail": "Lines 189-201: hasReject/hasApprove computed from reviewerStatus. Counter incremented on splits, reset otherwise. Arbitration triggers at 2+ consecutive disputes with governance flag."
+      },
+      {
+        "check": "Parse failure resilience — reviewer and leader",
+        "status": "PASS",
+        "detail": "parseReviewerResponse (line 554-558): defaults to reject with parse-error group. parseLeaderResponse (line 573-577): defaults to pushback with truncated raw string. Both are safe fallbacks."
+      },
+      {
+        "check": "Telemetry — success and failure paths in executeParticipant",
+        "status": "PASS",
+        "detail": "Lines 427-429: success emit with provenance, latency, rounds. Lines 436-438: failure emit with error metadata. Both paths covered."
+      }
+    ]
+  },
+
+  "verdict": "approved",
+  "verdict_reason": "All 4 accepted fixes (NF-1, NF-2, NF-7, NF-8) are correctly and completely implemented. NF-1: learning engine now runs unconditionally on every round; revision is gated separately by canRevise; diff-summary includes revision_skipped and reason. NF-2: generateComplianceMap parameter type now includes source and version, matching the rulebook loader. NF-7: all 7 catch blocks now log to stderr with contextual messages. NF-8: ComplianceEntry.status and the LLM prompt both include 'non_compliant'. All 4 rejections (NF-3, NF-4, NF-5, NF-6) are accepted — each is a reasonable design trade-off with sound justification. The full sweep (22 checks) found 0 violations. Two new findings are non-blocking: NF-R2-1 (minor — terminal early returns skip learning/diff on the final round) is defensible because frozen/blocked rounds have no downstream consumers; NF-R2-2 (suggestion — unused isSanityCheck parameter) is dead code noise but does not affect behavior. The board.ts rewrite is approved for merge."
+}
