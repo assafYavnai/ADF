@@ -75,31 +75,48 @@ export async function flush(): Promise<void> {
  */
 export function createPgSink(pool: { query: (text: string, params: unknown[]) => Promise<unknown> }): MetricSink {
   return async (events: MetricEvent[]) => {
+    if (events.length === 0) return;
+
+    // Batch insert: build multi-row VALUES clause (M-5 fix)
+    const values: unknown[] = [];
+    const placeholders: string[] = [];
+    let idx = 1;
+
     for (const event of events) {
-      await pool.query(
-        `INSERT INTO telemetry
-          (id, invocation_id, provider, model, reasoning, was_fallback,
-           source_path, category, operation, latency_ms, success,
-           tokens_in, tokens_out, estimated_cost_usd, metadata, created_at)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                 $11, $12, $13, $14, NOW())`,
-        [
-          event.provenance.invocation_id,
-          event.provenance.provider,
-          event.provenance.model,
-          event.provenance.reasoning,
-          event.provenance.was_fallback,
-          event.provenance.source_path,
-          event.category,
-          event.operation,
-          event.latency_ms,
-          event.success,
-          "tokens_in" in event ? event.tokens_in ?? null : null,
-          "tokens_out" in event ? event.tokens_out ?? null : null,
-          "estimated_cost_usd" in event ? event.estimated_cost_usd ?? null : null,
-          JSON.stringify(event.metadata ?? {}),
-        ]
+      const tokensIn = "tokens_in" in event ? event.tokens_in ?? null : null;
+      const tokensOut = "tokens_out" in event ? event.tokens_out ?? null : null;
+      const costUsd = "estimated_cost_usd" in event ? event.estimated_cost_usd ?? null : null;
+
+      placeholders.push(
+        `(gen_random_uuid(), $${idx}, $${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}, $${idx + 5}, $${idx + 6}, $${idx + 7}, $${idx + 8}, $${idx + 9}, $${idx + 10}, $${idx + 11}, $${idx + 12}, $${idx + 13}, $${idx + 14})`
       );
+      values.push(
+        event.provenance.invocation_id,
+        event.provenance.provider,
+        event.provenance.model,
+        event.provenance.reasoning,
+        event.provenance.was_fallback,
+        event.provenance.source_path,
+        event.category,
+        event.operation,
+        event.latency_ms,
+        event.success,
+        tokensIn,
+        tokensOut,
+        costUsd,
+        JSON.stringify(event.metadata ?? {}),
+        event.provenance.timestamp,
+      );
+      idx += 15;
     }
+
+    await pool.query(
+      `INSERT INTO telemetry
+        (id, invocation_id, provider, model, reasoning, was_fallback,
+         source_path, category, operation, latency_ms, success,
+         tokens_in, tokens_out, estimated_cost_usd, metadata, created_at)
+       VALUES ${placeholders.join(", ")}`,
+      values
+    );
   };
 }

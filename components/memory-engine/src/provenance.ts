@@ -30,3 +30,36 @@ export const LEGACY_PROVENANCE: Provenance = {
   source_path: "system/pre-provenance",
   timestamp: "2026-03-27T00:00:00.000Z",
 };
+
+import { randomUUID } from "node:crypto";
+
+export function createSystemProvenance(sourcePath: string): Provenance {
+  return {
+    invocation_id: randomUUID(),
+    provider: "system",
+    model: "none",
+    reasoning: "none",
+    was_fallback: false,
+    source_path: sourcePath,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export function createLLMProvenance(
+  invocationId: string,
+  provider: string,
+  model: string,
+  reasoning: string,
+  wasFallback: boolean,
+  sourcePath: string
+): Provenance {
+  return {
+    invocation_id: invocationId,
+    provider: Provider.parse(provider),
+    model,
+    reasoning,
+    was_fallback: wasFallback,
+    source_path: sourcePath,
+    timestamp: new Date().toISOString(),
+  };
+}

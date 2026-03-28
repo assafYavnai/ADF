@@ -82,10 +82,17 @@ server.setRequestHandler(
           const wasFb = (p?.was_fallback as boolean) ?? false;
           switch (input.action) {
             case "delete":
+              // Emit telemetry with provenance before deleting (M-4 fix: audit trail for deletions)
+              await db.query(
+                `INSERT INTO telemetry (invocation_id, provider, model, reasoning, was_fallback, source_path,
+                   category, operation, latency_ms, success, metadata)
+                 VALUES ($1, $2, $3, $4, $5, $6, 'system', 'memory_delete', 0, true, $7)`,
+                [invId, prvdr, mdl, rsn, wasFb, srcPath, JSON.stringify({ deleted_memory_id: input.memory_id, reason: input.reason ?? "no reason provided" })]
+              );
               await db.query("DELETE FROM memory_embeddings WHERE memory_item_id = $1", [input.memory_id]);
               await db.query("DELETE FROM decisions WHERE memory_item_id = $1", [input.memory_id]);
               await db.query("DELETE FROM memory_items WHERE id = $1", [input.memory_id]);
-              return { content: [{ type: "text", text: `Deleted ${input.memory_id}` }] };
+              return { content: [{ type: "text", text: `Deleted ${input.memory_id} (audit logged)` }] };
             case "archive":
               await db.query(
                 `UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW(),

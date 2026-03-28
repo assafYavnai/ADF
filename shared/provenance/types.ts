@@ -56,7 +56,7 @@ export function createSystemProvenance(sourcePath: string): Provenance {
  */
 export function createLLMProvenance(
   invocationId: string,
-  provider: Provider,
+  provider: string,
   model: string,
   reasoning: string,
   wasFallback: boolean,
@@ -64,7 +64,7 @@ export function createLLMProvenance(
 ): Provenance {
   return {
     invocation_id: invocationId,
-    provider,
+    provider: Provider.parse(provider),
     model,
     reasoning,
     was_fallback: wasFallback,

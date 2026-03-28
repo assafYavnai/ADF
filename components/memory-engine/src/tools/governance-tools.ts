@@ -43,9 +43,7 @@ export async function handleGovernance(
     case "search":
       return searchGovernance(input);
     default:
-      return {
-        content: [{ type: "text", text: `Action "${input.action}" not yet implemented for governance.` }],
-      };
+      throw new Error(`Action "${input.action}" not yet implemented for governance.`);
   }
 }
 

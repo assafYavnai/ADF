@@ -28,7 +28,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
     return {
       provenance: createLLMProvenance(
         invocationId,
-        params.cli as Provider,
+        params.cli,
         params.model,
         params.reasoning ?? params.effort ?? "default",
         false,
@@ -61,7 +61,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
       return {
         provenance: createLLMProvenance(
           fallbackId,
-          params.fallback.cli as Provider,
+          params.fallback.cli,
           params.fallback.model,
           params.fallback.reasoning ?? params.fallback.effort ?? "default",
           true,
@@ -119,7 +119,6 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
     await new Promise<void>((resolve, reject) => {
       const proc = spawn("codex", args, {
         timeout: params.timeout_ms ?? 120_000,
-        shell: true,
         env: { ...process.env },
       });
 
@@ -156,11 +155,10 @@ async function callClaude(params: InvocationParams): Promise<string> {
   args.push("--no-session-persistence");
 
   // Pipe prompt via stdin to avoid shell argument length limits
+  const { spawn } = await import("node:child_process");
   return new Promise((resolve, reject) => {
-    const { spawn } = require("node:child_process") as typeof import("node:child_process");
     const proc = spawn("claude", args, {
       timeout: params.timeout_ms ?? 120_000,
-      shell: true,
       env: { ...process.env },
     });
 
@@ -193,10 +191,28 @@ async function callGemini(params: InvocationParams): Promise<string> {
     args.push("--approval-mode", "yolo");
   }
 
-  args.push(params.prompt);
+  // Pipe prompt via stdin to avoid shell injection (B-1 fix)
+  const { spawn } = await import("node:child_process");
+  return new Promise((resolve, reject) => {
+    const proc = spawn("gemini", args, {
+      timeout: params.timeout_ms ?? 120_000,
+      env: { ...process.env },
+    });
 
-  const result = await execPromise("gemini", args, params.timeout_ms ?? 120_000);
-  return result.trim();
+    let stdout = "";
+    let stderr = "";
+    proc.stdout?.on("data", (data: Buffer) => { stdout += data.toString(); });
+    proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
+
+    proc.on("close", (code: number | null) => {
+      if (code !== 0) reject(new Error(`gemini failed (exit ${code}): ${stderr}`));
+      else resolve(stdout.trim());
+    });
+    proc.on("error", (err: Error) => reject(new Error(`gemini failed: ${err.message}`)));
+
+    proc.stdin?.write(params.prompt);
+    proc.stdin?.end();
+  });
 }
 
 // --- Shared exec helper ---
@@ -209,7 +225,6 @@ function execPromise(command: string, args: string[], timeoutMs: number): Promis
       {
         timeout: timeoutMs,
         maxBuffer: 10 * 1024 * 1024,
-        shell: true,
         env: { ...process.env },
       },
       (err, stdout, stderr) => {

@@ -12,6 +12,7 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 - Read [docs/VISION.md](../VISION.md) for the long-range company vision
 - Read [docs/PHASE1_VISION.md](../PHASE1_VISION.md) for the current phase mission
 - Read [docs/PHASE1_MASTER_PLAN.md](../PHASE1_MASTER_PLAN.md) for Phase 1 operating alignment
+- For Phase 1 design, workflow, and requirements-definition questions, read [docs/v0/context/phase1-definition-source-pack.md](../v0/context/phase1-definition-source-pack.md) before asking the CEO new questions
 - Read [docs/v0/architecture.md](../v0/architecture.md) for technical architecture
 
 ## Key directories
@@ -30,5 +31,6 @@ Do not store rules in AGENTS.md or any markdown file.
 ## When in doubt
 - Read `docs/PHASE1_MASTER_PLAN.md` to check current mission alignment
 - Read `docs/v0/context/` for the latest implementation state
+- For Phase 1 design questions, consult `docs/v0/context/phase1-definition-source-pack.md` first and summarize findings before asking the CEO an unresolved question
 - Read `docs/v0/architecture.md` for architectural decisions
 - Ask the CEO (user) for direction

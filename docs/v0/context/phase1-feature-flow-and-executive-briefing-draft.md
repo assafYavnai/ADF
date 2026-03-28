@@ -1,7 +1,7 @@
 # Phase 1 Feature Flow and Executive Briefing Draft
 
 Status: draft discussion record
-Last updated: 2026-03-28
+Last updated: 2026-03-29
 Purpose: capture the current high-level Phase 1 decisions discussed with the user so a contextless agent can resume without reconstructing the conversation.
 
 ---
@@ -132,7 +132,7 @@ The user starts high level by default.
 
 The CEO is not expected to provide technical details unless they want to.
 
-ADF should guide the CEO through questions, reflection, and clarification to understand what the CEO actually wants.
+The COO should guide the CEO through questions, reflection, and clarification to understand what the CEO actually wants.
 
 ### ADF must extract at least 3 things
 
@@ -162,7 +162,7 @@ Example:
 
 ### UI handling rule
 
-If the feature involves UI, whether new UI or changes to existing UI, ADF should create a mockup.
+If the feature involves UI, whether new UI or changes to existing UI, the COO should create a mockup.
 
 That mockup may be:
 
@@ -171,12 +171,50 @@ That mockup may be:
 
 The choice depends on the feature.
 
-ADF should provide something the CEO can run or review locally and then iterate with the CEO until ADF and the CEO are clearly aligned.
+The COO should provide something the CEO can run or review locally and then iterate with the CEO until the COO and the CEO are clearly aligned.
 
 The intent is:
 
 - use the mockup to reduce ambiguity early
 - freeze UI understanding before later stages harden
+
+---
+
+## Combined Requirements-Gathering Flow
+
+This is the current best combined flow when the ProjectBrain workflow, the seed requirement artifact, the referenced Claude/Codex discussions, and the current ADF discussion are read together.
+
+### High-level flow
+
+1. The CEO starts with a vague or high-level feature request.
+2. The COO stays operator-facing and asks one question at a time.
+3. The COO saves a live working requirements artifact early so the truth is not trapped in chat.
+4. The COO determines whether UI is part of the request.
+5. If UI is involved, the COO creates or reuses a mockup or preview path and loops until UI understanding is frozen enough for requirement shaping.
+6. The COO sharpens:
+   - feature goal
+   - high-level requirements
+   - expected result
+   - scope boundary
+   - important non-goals or constraints
+7. The COO separates real user-facing open questions from internal derivation work.
+8. The COO reflects the current high-level understanding back to the CEO in human language.
+9. If the CEO pushes back, clarification continues.
+10. When the open user-facing gaps appear closed, the COO asks the explicit close-or-continue question instead of silently freezing.
+11. Requirements freeze happens only after the CEO has had the chance to add more and gives approval or an equivalent continue signal.
+12. After freeze, the COO writes the detailed contract-compatible requirement artifact while preserving the approved high-level meaning.
+13. The COO runs a self-check pass.
+14. The detailed requirement artifact passes through governed readiness review before downstream handoff.
+15. Lessons from failures and review cycles are promoted into future guidance.
+
+### Critical combined rules
+
+- requirements freeze is explicit, not silent
+- the user must be shown the current high-level understanding before freeze
+- if UI is relevant, UI alignment belongs inside requirements shaping
+- the detailed requirement artifact must preserve approved meaning, not reinterpret it silently
+- the next lane should not have to guess core intent
+- review and learning are part of the requirements lane, not only later phases
 
 ---
 
@@ -194,6 +232,46 @@ At minimum, that summary should include:
 - approved UI direction when UI is part of the feature
 
 If the CEO pushes back, the requirement-gathering process repeats until acceptance is reached.
+
+### Freeze approval model
+
+The strongest current answer from the legacy sources is:
+
+- requirements freeze should not be silent
+- the COO should explicitly show the current high-level requirements view
+- the COO should explicitly check whether the CEO has more to add
+- the COO should get approval to freeze, or an equivalent continue signal, before freezing
+- the COO should verify it has enough information to pass the artifact to review; if not, it should keep clarifying
+
+So the current draft recommendation is:
+
+- the COO should not auto-freeze requirements just because the conversation feels complete
+- the COO should explicitly close the clarification round and get a freeze signal
+- once that signal exists, the COO can proceed autonomously without further approval-to-proceed behavior for ordinary downstream work
+
+### Source basis for this recommendation
+
+ProjectBrain requirement workflow evidence:
+
+- the workflow requires an explicit closing question before freeze
+- the Requirement Freeze Gate requires that the user agreed the Requirement List is ready to freeze or gave an equivalent continue signal
+- the workflow then separately requires a readiness review before the artifact can govern the next stage
+
+Claude thread evidence (`fe414e1e-ec03-430b-ad0c-05662a3f4fda`):
+
+- "the requirements are open" meant:
+  - check whether the user has more to add
+  - get user approval to freeze the requirements
+  - verify enough information exists to pass to review
+  - otherwise ask clarification questions
+
+Codex thread evidence (`019cdbb4-e909-7491-b583-efaa955ea5c1`) as preserved in later requirement artifacts:
+
+- the intended feature-mode flow is:
+  - user starts high-level
+  - the COO guides clarification
+  - the COO reflects the high-level summary for approval
+  - only then does the COO derive the detailed low-level contract-compatible requirement list
 
 ### Detailed requirement artifact
 
@@ -220,7 +298,7 @@ The current agreed direction is:
 
 - both requirement gathering and review should identify root causes of failure
 - phases should ask why a review failed or why an artifact was not good enough
-- ADF should improve future behavior from those lessons
+- the COO and the company should improve future behavior from those lessons
 
 The intent is:
 
@@ -568,7 +646,7 @@ If a contextless agent needs the current practical understanding in one block, u
 - Phase 1 is an implementation-focused startup.
 - Features are the first supported work type.
 - The feature path is governed phase-by-phase, with review between meaningful stages.
-- ADF starts from vague user intent and must extract goal, high-level requirements, expected results, and UI direction when relevant.
+- The COO starts from vague user intent and must extract goal, high-level requirements, expected results, and UI direction when relevant.
 - If UI is involved, mockups are part of alignment before later phases harden.
 - Requirements acceptance is a real company handoff point.
 - After requirements freeze, the feature is off the CEO's head and owned by the company.
@@ -599,3 +677,11 @@ It should be treated as:
 - detailed enough for context recovery
 - not yet a final governed authority document
 - expected to be revised when the actual implementation contracts are designed
+
+---
+
+## Research Source Pack
+
+For the current saved Phase 1 source set and the future question-asking protocol, see:
+
+- [phase1-definition-source-pack.md](C:/ADF/docs/v0/context/phase1-definition-source-pack.md)

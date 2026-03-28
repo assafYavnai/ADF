@@ -126,6 +126,14 @@ export async function handleTurn(
         );
         break;
 
+      case "tool_path":
+        response = "Tool path workflow not yet implemented. Classified as tool invocation but no tool dispatcher exists yet.";
+        break;
+
+      case "specialist_path":
+        response = "Specialist path workflow not yet implemented. Classified as specialist delegation but no specialist dispatcher exists yet.";
+        break;
+
       case "direct_coo_response":
       case "pushback":
       default: {
