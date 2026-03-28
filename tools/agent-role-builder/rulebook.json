@@ -5,86 +5,128 @@
   "rules": [
     {
       "id": "ARB-001",
-      "rule": "Define authority as a strict precedence chain, not a flat list of superiors. Operative authority (COO controller, runtime contract) constrains the run. Static documents (VISION.md, architecture.md) are reference evidence, not competing runtime authority.",
-      "source": "Runs 003-006: authority modeling flagged in every run. Reviewers consistently rejected flat 'subordinate_to' lists that conflated governance docs with reporting structure.",
+      "rule": "Define authority as a strict precedence chain with explicit layers, not a flat list of superiors.",
+      "applies_to": ["<authority> section"],
+      "do": "List operative authority (COO controller, runtime contract) as the binding constraint. List static documents under a separate 'Reference evidence' heading. Example: 'Reports to: COO controller for the current turn. Reference evidence: docs/VISION.md, docs/v0/architecture.md (not competing runtime authority).'",
+      "dont": "Put governance documents in 'subordinate_to' as if they were a reporting chain. Example of violation: 'Subordinate to: docs/VISION.md, docs/architecture.md' — this conflates reference material with operative authority.",
+      "source": "Runs 003-006: flagged in every run. Reviewers consistently rejected flat subordinate_to lists.",
       "version": 1
     },
     {
       "id": "ARB-002",
-      "rule": "Use one canonical definition for every threshold or semantic concept, then reference it consistently. Never express the same concept with different phrasings across sections without a single normative anchor.",
-      "source": "Runs 003-006: 'material pushback', 'no material pushback remains', 'no unresolved blocking or major issue' used interchangeably. Reviewers flagged inconsistency every run.",
+      "rule": "Use one canonical definition for every threshold or semantic concept. Define it once, reference it everywhere.",
+      "applies_to": ["<role>", "<guardrails>", "<completion>", "<steps>"],
+      "do": "Define 'material pushback' once in <guardrails>: 'Material pushback means any unresolved finding with blocking or major severity.' Then reference that definition: 'Freeze only when no material pushback remains (see guardrail definition).'",
+      "dont": "Use different phrasings for the same concept across sections. Example of violation: <role> says 'freezes only when no material pushback remains', <guardrails> says 'no unresolved blocking or major issue remains', <completion> says 'all material issues resolved' — three phrasings, never reconciled.",
+      "source": "Runs 003-006: inconsistent freeze threshold wording flagged in every run.",
       "version": 1
     },
     {
       "id": "ARB-003",
-      "rule": "Separate canonical artifacts (promoted on freeze) from run-scoped evidence artifacts (always written). Use explicit path conventions and lifecycle rules for each. Never share filenames between canonical and evidence contexts without disambiguation.",
-      "source": "Runs 003-006: artifact lifecycle confusion flagged in every run. Reviewers could not determine which files are promoted vs retained.",
+      "rule": "Separate canonical artifacts (promoted on freeze) from run-scoped evidence artifacts (always written). Use explicit labels and path conventions for each.",
+      "applies_to": ["<outputs> section", "<completion> section", "Step 5"],
+      "do": "In <outputs>, group artifacts under 'Canonical artifacts (promoted on freeze):' and 'Run-scoped evidence (always written):' with full tool-relative paths. Example: 'Canonical: tools/agent-role-builder/role/agent-role-builder-role.md (promoted on freeze)'. 'Evidence: runs/<job-id>/rounds/round-<n>.json (always written).'",
+      "dont": "Mix canonical and evidence artifacts in a single list with ambiguous paths. Example of violation: listing 'agent-role-builder-role.md' without specifying whether it means the canonical promoted copy or the run-scoped draft.",
+      "source": "Runs 003-006: artifact lifecycle confusion flagged in every run.",
       "version": 1
     },
     {
       "id": "ARB-004",
-      "rule": "Define mutually exclusive triggers for every terminal state. Each terminal state (frozen, pushback, blocked, resume_required) must have a single normative predicate that is testable against the run evidence.",
-      "source": "Runs 004-006: terminal state triggers were ambiguous. Reviewers asked 'what exactly causes resume_required vs pushback?' in multiple rounds.",
+      "rule": "Define mutually exclusive triggers for every terminal state. Each trigger must be a testable predicate against run evidence.",
+      "applies_to": ["<completion> section", "Step 5", "<steps> Step 4"],
+      "do": "Define each state explicitly: 'frozen: all reviewers approved or conditional AND leader confirms no material pushback. pushback: any reviewer rejected with blocking/major findings AND review budget remains. blocked: non-recoverable validation or structural error. resume_required: review budget exhausted with unresolved blocking/major findings.'",
+      "dont": "List terminal states without defining what triggers each one. Example of violation: <completion> says 'Terminal status reached (frozen, pushback, blocked, or resume_required)' without specifying when each applies.",
+      "source": "Runs 004-006: 'what exactly causes resume_required vs pushback?' asked in multiple rounds.",
       "version": 1
     },
     {
       "id": "ARB-005",
-      "rule": "The self-check must validate what it claims to validate. If it reports 'passed', every check it claims to perform must actually run. Semantic matching (keyword-based) for out-of-scope coverage, not literal string matching.",
-      "source": "Runs 003-006: self-check reported 'passed' but reviewers found issues it missed. MISSING_OUT_OF_SCOPE false positives from literal matching flagged repeatedly.",
+      "rule": "The self-check must validate what it claims to validate. If it reports 'passed', every claimed check must actually execute. Use semantic matching for concept coverage, not literal string matching.",
+      "applies_to": ["Step 3 (self-check)", "validator.ts"],
+      "do": "Check out-of-scope coverage by extracting keywords from each out_of_scope item and verifying the <scope> section contains those concepts. Report which keywords were checked and which matched. Example: 'Out-of-scope: Tool creation — checked keywords: tool, creation — found in <scope>: yes.'",
+      "dont": "Use markdown.includes(item) for out-of-scope verification. Example of violation: contract says 'Tool creation (owned by llm-tool-builder)', markdown says 'Tool creation. That belongs to llm-tool-builder.' — literal match fails, but the concept is covered.",
+      "source": "Runs 003-006: self-check reported 'passed' but reviewers found issues it missed. MISSING_OUT_OF_SCOPE false positives flagged repeatedly.",
       "version": 1
     },
     {
       "id": "ARB-006",
-      "rule": "Deduplicate scope exclusions before generating. Never list the same exclusion twice with different wording. Contract out_of_scope strings and markdown <scope> not-in-scope items must align exactly.",
-      "source": "Runs 003-006: duplicate and contradictory scope entries flagged in every run. Generator produced overlapping exclusions from request + role_requirements.",
+      "rule": "Deduplicate scope exclusions before generating the markdown. Contract out_of_scope strings and markdown <scope> not-in-scope items must align exactly.",
+      "applies_to": ["<scope> section", "role-generator.ts"],
+      "do": "Merge request.out_of_scope and role_requirements.scope.not_in_scope into one deduplicated list before generating. Normalize casing and punctuation. The <scope> section should have exactly the same exclusions as the contract, no more, no fewer.",
+      "dont": "Append both lists without deduplication. Example of violation: not-in-scope lists 'Tool creation (owned by llm-tool-builder)' from the request AND 'Tool creation' from role_requirements — same concept, two entries with different wording.",
+      "source": "Runs 003-006: duplicate and contradictory scope entries flagged in every run.",
       "version": 1
     },
     {
       "id": "ARB-007",
-      "rule": "Arbitration must have a mechanical definition: trigger condition, who arbitrates, what evidence is produced, and how it affects freeze/non-freeze outcomes. No leader-interpreted thresholds.",
+      "rule": "Arbitration must have a mechanical definition: trigger condition, who arbitrates, what evidence is produced, and how it affects terminal outcomes.",
+      "applies_to": ["<steps> Step 4", "<guardrails>"],
+      "do": "Define: 'Arbitration triggers when split verdicts persist for 2+ consecutive rounds after revision. The leader arbitrates. Evidence: arbitration_used=true, arbitration_rationale in result.json. Arbitration can only resolve minor/conditional disagreements, never blocking/major items.'",
+      "dont": "Leave arbitration as a vague concept. Example of violation: 'If split verdicts persist and arbitration is still available, use at most one arbitration round' — no defined trigger threshold, no actor, no evidence format.",
       "source": "Runs 003-006: arbitration semantics flagged in every run. 'What counts as materially mixed?' had no answer.",
       "version": 1
     },
     {
       "id": "ARB-008",
-      "rule": "Every required output declared in the contract must appear with its full canonical path in the <outputs> section. Basename-only references create ambiguity between run-scoped and canonical locations.",
-      "source": "Runs 004-006: package_files used basenames, <outputs> used slugs, canonical paths were different. Reviewers could not resolve which path is authoritative.",
+      "rule": "Every required output declared in the contract must appear with its full tool-relative canonical path in the <outputs> section. No basename-only references.",
+      "applies_to": ["<outputs> section", "contract package_files"],
+      "do": "Use full paths: 'tools/agent-role-builder/role/agent-role-builder-role.md'. Match exactly between contract package_files and <outputs> canonical list.",
+      "dont": "Use basenames or slug templates. Example of violation: <outputs> says '<slug>-role.md', contract says 'agent-role-builder-role.md', promotion logic uses 'tools/agent-role-builder/role/agent-role-builder-role.md' — three different representations of the same file.",
+      "source": "Runs 004-006: package_files path ambiguity flagged repeatedly.",
       "version": 1
     },
     {
       "id": "ARB-009",
-      "rule": "Completion criteria must be testable against every terminal state, not just the happy path (frozen). Define what 'complete' means for pushback, blocked, and resume_required separately.",
-      "source": "Runs 003-006: completion section only described frozen. Reviewers asked 'is a pushback run complete?' and got no answer from the draft.",
+      "rule": "Completion criteria must be testable against every terminal state, not just frozen. Define what 'complete' means for each state separately.",
+      "applies_to": ["<completion> section"],
+      "do": "List completion per state: 'Frozen: all canonical artifacts promoted + result.json + decision log updated. Pushback: result.json + pushback.json + decision log + board summary written to run dir. Blocked: result.json with blocking reason. Resume_required: result.json + resume-package.json with deferred items.'",
+      "dont": "Write completion criteria that only describe the frozen path. Example of violation: 'This workflow is complete when terminal status reached and all applicable artifacts written' — does not specify which artifacts are applicable for pushback vs blocked.",
+      "source": "Runs 003-006: completion section only described frozen. Reviewers asked 'is a pushback run complete?' in multiple rounds.",
       "version": 1
     },
     {
       "id": "ARB-010",
-      "rule": "Context-gathering is a precondition phase, not part of the numbered execution steps. State this explicitly to prevent execution-order ambiguity.",
-      "source": "Run 003: reviewer asked whether context-gathering is step 0 or part of step 1. Ambiguity persisted until explicitly resolved in run 005.",
+      "rule": "Context-gathering is a precondition phase executed before Step 1. It is not part of the numbered execution steps.",
+      "applies_to": ["<context-gathering> section", "<steps> section"],
+      "do": "Label context-gathering as 'Preconditions (before Step 1):' and number steps starting from 1 for the first execution action. Example: '<context-gathering> 1. Load request JSON (precondition). 2. Verify source_refs (precondition).' Then '<steps> Step 1: Validate and normalize.'",
+      "dont": "Mix context-gathering items into the numbered step flow. Example of violation: context-gathering lists 6 items, Step 1 starts at '1. Validate' — is validation step 1 or step 7? Ambiguous.",
+      "source": "Run 003: reviewer asked whether context-gathering is step 0 or part of step 1.",
       "version": 1
     },
     {
       "id": "ARB-011",
-      "rule": "When a reviewer verdict is carried forward unresolved across rounds, the next round must explicitly address it. Silent carry-forward without acknowledgment is a convergence blocker.",
-      "source": "Runs 004-006: mixed reviewer verdicts from prior rounds were not tracked as specific items to resolve. Leader reported 'unresolved' but revision didn't target the specific disagreement.",
+      "rule": "When a reviewer finding is carried forward unresolved across rounds, the next round must explicitly address it by ID. Silent carry-forward blocks convergence.",
+      "applies_to": ["board.ts revision loop", "fix items map"],
+      "do": "Track each finding by its conceptual_group ID across rounds. When revising, reference the specific group: 'Addressing group-3 from round 1: added explicit lifecycle per terminal state.' In the fix items map, list every carried-forward finding as either accepted (with fix summary) or rejected (with reason).",
+      "dont": "Let unresolved findings accumulate without tracking. Example of violation: round 0 flags 'mixed verdict not resolved', round 1 flags 'mixed verdict not resolved' with different wording, round 2 flags it again — same issue, three descriptions, no explicit closure chain.",
+      "source": "Runs 004-006: mixed reviewer verdicts from prior rounds were not tracked as specific items to resolve.",
       "version": 1
     },
     {
       "id": "ARB-012",
-      "rule": "Board roster validation must require at least one complete Codex+Claude reviewer pair at request validation time. This is a hard gate, not an inference from the roster array.",
-      "source": "Run 004: reviewer flagged that pair requirement was implied but not enforced. Added to request schema validation.",
+      "rule": "Board roster validation must require at least one complete Codex+Claude reviewer pair at request validation time. This is a hard gate, not an inference.",
+      "applies_to": ["request validation (validator.ts)", "<inputs> section"],
+      "do": "In validator.ts: check reviewer_count >= 2, check reviewers array length matches reviewer_count, check every pair contains one codex + one claude provider. Fail validation if any check fails. In <inputs>: state 'At request validation time, reviewer_count must be 2, 4, or 6, and the roster must contain at least one complete live Codex+Claude reviewer pair.'",
+      "dont": "Rely on the roster schema alone without explicit pair validation. Example of violation: reviewer_count=2 with two Codex reviewers — schema allows it but governance requires cross-provider pairs.",
+      "source": "Run 004: reviewer flagged that pair requirement was implied but not enforced in validation.",
       "version": 1
     },
     {
       "id": "ARB-013",
-      "rule": "Decision history (decision log and board summary) must be preserved across update and fix operations. Define the exact preservation mechanism: append, version, or archive-and-replace.",
-      "source": "Runs 003-004: 'how is prior frozen decision history preserved on update?' had no answer in the draft.",
+      "rule": "Decision history must be preserved across update and fix operations. Define the exact mechanism: append to existing log, version with timestamp, or archive-and-replace.",
+      "applies_to": ["Step 5 (promote)", "<guardrails>"],
+      "do": "State explicitly: 'On update/fix operations, the existing decision-log.md is appended with a new dated section. Prior entries are never deleted. The board-summary.md is replaced with the current run summary but the prior version is retained in the run directory.'",
+      "dont": "Leave preservation mechanism undefined. Example of violation: guardrail says 'Decision history must be preserved across update/fix operations' but Step 5 says 'Write decision log' — does 'write' mean overwrite or append?",
+      "source": "Runs 003-004: 'how is prior frozen decision history preserved on update?' had no answer.",
       "version": 1
     },
     {
       "id": "ARB-014",
-      "rule": "The role definition must state whether it describes current implementation truth or target-state behavior. If target-state, steps that reference implementation details (self-check behavior, promotion logic) must be marked as aspirational.",
-      "source": "Run 003: reviewer asked 'does Step 3 describe what the self-check actually does or what it should do?' No clear answer.",
+      "rule": "The role definition must explicitly state whether each step describes current implementation behavior or target-state behavior. Mixed modes without labels create false expectations.",
+      "applies_to": ["<steps> section", "all sections that reference implementation"],
+      "do": "If a step describes implemented behavior: 'Step 3: Self-check (current implementation). The self-check currently validates XML tag presence and semantic out-of-scope keyword matching.' If target-state: 'Step 3: Self-check (target). The self-check will validate structural coherence and lifecycle consistency (not yet implemented).'",
+      "dont": "Describe target-state behavior as if it's implemented. Example of violation: Step 3 says 'self-check validates structural coherence and lifecycle consistency' but the actual validator.ts only checks tag presence — the reviewer tests the claim and finds it false.",
+      "source": "Run 003: reviewer asked 'does Step 3 describe what the self-check actually does or what it should do?' Answer was ambiguous.",
       "version": 1
     }
   ]
