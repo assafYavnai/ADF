@@ -4,7 +4,6 @@
  */
 
 import { z } from "zod";
-import { execFile } from "node:child_process";
 import { readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 const TEMP_DIR = process.env.USERPROFILE
@@ -41,11 +40,11 @@ export function createSystemProvenance(sourcePath: string): Provenance {
 }
 
 export function createLLMProvenance(
-  invocationId: string, provider: Provider, model: string,
+  invocationId: string, provider: string, model: string,
   reasoning: string, wasFallback: boolean, sourcePath: string
 ): Provenance {
   return {
-    invocation_id: invocationId, provider, model, reasoning,
+    invocation_id: invocationId, provider: Provider.parse(provider), model, reasoning,
     was_fallback: wasFallback, source_path: sourcePath,
     timestamp: new Date().toISOString(),
   };
@@ -86,7 +85,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
   try {
     const response = await callCLI(params, invocationId);
     return {
-      provenance: createLLMProvenance(invocationId, params.cli as Provider, params.model,
+      provenance: createLLMProvenance(invocationId, params.cli , params.model,
         params.reasoning ?? params.effort ?? "default", false, params.source_path),
       response,
       latency_ms: Date.now() - start,
@@ -104,7 +103,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
       };
       const response = await callCLI(fbParams, fallbackId);
       return {
-        provenance: createLLMProvenance(fallbackId, params.fallback.cli as Provider,
+        provenance: createLLMProvenance(fallbackId, params.fallback.cli,
           params.fallback.model, params.fallback.reasoning ?? params.fallback.effort ?? "default",
           true, params.source_path),
         response,
@@ -138,7 +137,7 @@ async function callCodex(params: InvocationParams, id: string): Promise<string> 
     await new Promise<void>((resolve, reject) => {
       const proc = spawn("codex", args, {
         timeout: params.timeout_ms ?? 120_000,
-        shell: true, env: { ...process.env },
+        env: { ...process.env },
       });
       let stderr = "";
       proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
@@ -182,19 +181,23 @@ async function callClaude(params: InvocationParams): Promise<string> {
 async function callGemini(params: InvocationParams): Promise<string> {
   const args = ["--model", params.model, "--output-format", "json"];
   if (params.bypass) args.push("--approval-mode", "yolo");
-  args.push(params.prompt);
-  return (await execPromise("gemini", args, params.timeout_ms ?? 120_000)).trim();
-}
 
-function execPromise(command: string, args: string[], timeoutMs: number): Promise<string> {
+  const { spawn } = await import("node:child_process");
   return new Promise((resolve, reject) => {
-    execFile(command, args, {
-      timeout: timeoutMs, maxBuffer: 10 * 1024 * 1024,
-      shell: true, env: { ...process.env },
-    }, (err, stdout, stderr) => {
-      if (err) { reject(new Error(`${command} failed: ${err.message}${stderr ? `\n${stderr}` : ""}`)); return; }
-      resolve(stdout);
+    const proc = spawn("gemini", args, {
+      timeout: params.timeout_ms ?? 120_000,
+      env: { ...process.env },
     });
+    let stdout = "", stderr = "";
+    proc.stdout?.on("data", (d: Buffer) => { stdout += d.toString(); });
+    proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
+    proc.on("close", (code: number | null) => {
+      if (code !== 0) reject(new Error(`gemini failed (exit ${code}): ${stderr}`));
+      else resolve(stdout.trim());
+    });
+    proc.on("error", (err: Error) => reject(new Error(`gemini failed: ${err.message}`)));
+    proc.stdin?.write(params.prompt);
+    proc.stdin?.end();
   });
 }
 

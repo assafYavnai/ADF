@@ -134,6 +134,10 @@ export async function handleTurn(
         response = "Specialist path workflow not yet implemented. Classified as specialist delegation but no specialist dispatcher exists yet.";
         break;
 
+      case "clarification":
+        response = await handleClarification(classification, thread, controllerProv);
+        break;
+
       case "direct_coo_response":
       case "pushback":
       default: {
@@ -143,10 +147,6 @@ export async function handleTurn(
         intelligenceMs = cooResult.latency_ms;
         break;
       }
-
-      case "clarification":
-        response = await handleClarification(classification, thread, controllerProv);
-        break;
     }
 
     // Step 3: Append response and commit

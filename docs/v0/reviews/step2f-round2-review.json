@@ -1,0 +1,138 @@
+{
+  "round": 2,
+  "fix_decisions": [
+    {
+      "finding_id": "B-1",
+      "decision": "accept_fix",
+      "reason": "callGemini in shared/llm-invoker/invoker.ts now pipes prompt via stdin using spawn (line 194-214), identical to callCodex and callClaude. No shell:true anywhere in the canonical invoker. The positional argument injection vector is closed. The prompt never touches the argument vector."
+    },
+    {
+      "finding_id": "B-2",
+      "decision": "accept_rejection",
+      "reason": "The rejection is valid. Fixing shared-imports.ts requires npm workspace references or build tooling changes that are out of scope for this step. However, the divergence has worsened: the canonical invoker received B-1 (stdin piping for Gemini), m-2 (await import), m-3 (shell:true removal), and M-1 (Provider.parse) fixes, but shared-imports.ts still has ALL the original vulnerabilities (shell:true on every spawn, Gemini prompt as positional arg, as Provider casts, require vs import). This drift is tracked in new finding R2-1."
+    },
+    {
+      "finding_id": "B-3",
+      "decision": "accept_fix",
+      "reason": "governance-tools.ts default case now throws Error (line 46) instead of returning a success-shaped response. The server.ts catch handler (line 151-157) catches this and returns isError:true. Callers can now distinguish stub from success. The GovernanceManageInput schema and tool definitions still advertise 'update' and 'transition' in the enum, which is acceptable since the error message is clear ('Action X not yet implemented for governance')."
+    },
+    {
+      "finding_id": "M-1",
+      "decision": "accept_fix",
+      "reason": "createLLMProvenance in shared/provenance/types.ts now accepts provider as string (line 59) and uses Provider.parse(provider) at line 67 for runtime validation. The canonical invoker no longer has any 'as Provider' casts. The memory-engine's local provenance.ts copy also uses Provider.parse (line 58). Note: shared-imports.ts still has 'as Provider' casts (lines 89, 107) but that is covered by B-2 rejection acceptance."
+    },
+    {
+      "finding_id": "M-2",
+      "decision": "accept_fix",
+      "reason": "components/memory-engine/src/provenance.ts now exports createSystemProvenance (line 36) and createLLMProvenance (line 48). Both factory functions are present with correct signatures matching the canonical shared module. The implementations are local copies (consistent with the B-2 pattern) rather than re-exports, but they use Provider.parse for runtime safety."
+    },
+    {
+      "finding_id": "M-3",
+      "decision": "accept_fix",
+      "reason": "COO/controller/loop.ts now has explicit case handlers for tool_path (line 129-131) and specialist_path (line 133-135) with clear 'not yet implemented' messages. They no longer silently fall through to the COO response handler. The messages are descriptive, explaining what was classified and what is missing."
+    },
+    {
+      "finding_id": "M-4",
+      "decision": "accept_fix",
+      "reason": "The delete action in server.ts (line 84-95) now inserts a telemetry record with provenance columns and metadata containing deleted_memory_id and reason BEFORE performing the three DELETE queries. The audit trail is preserved even if the process crashes mid-deletion. The INSERT targets the telemetry table with correct columns matching migration 006."
+    },
+    {
+      "finding_id": "M-5",
+      "decision": "accept_fix",
+      "reason": "createPgSink in collector.ts (lines 76-121) now builds a single multi-row VALUES clause with parameterized placeholders. All events in a batch are inserted with one query instead of N sequential INSERTs. The parameter indexing uses a running counter (idx += 15) which correctly maps 15 values per row to 16 columns (id uses gen_random_uuid() in the VALUES)."
+    },
+    {
+      "finding_id": "m-1",
+      "decision": "accept_fix",
+      "reason": "The PG sink now uses event.provenance.timestamp as the created_at value (line 108 pushes it as the 15th parameter, mapped to the created_at column at line 117). This preserves the original event generation time rather than the DB insertion time."
+    },
+    {
+      "finding_id": "m-2",
+      "decision": "accept_fix",
+      "reason": "callClaude in the canonical invoker now uses 'const { spawn } = await import(\"node:child_process\")' (line 158), consistent with callCodex and callGemini. No require() calls remain in invoker.ts."
+    },
+    {
+      "finding_id": "m-3",
+      "decision": "accept_fix",
+      "reason": "No shell:true in any spawn or execFile call in the canonical shared/llm-invoker/invoker.ts. All three CLI functions use spawn without shell option. The dead execPromise function also does not have shell:true. Fix is complete for the canonical module. (shared-imports.ts still has shell:true but that is covered by B-2 acceptance.)"
+    }
+  ],
+  "new_findings": [
+    {
+      "id": "R2-1",
+      "severity": "major",
+      "summary": "shared-imports.ts drift has worsened: retains all Round 1 vulnerabilities",
+      "source": "tools/agent-role-builder/src/shared-imports.ts:141,167,185,193",
+      "reason": "The B-2 rejection was accepted, but the canonical invoker received 5 security and correctness fixes (B-1, M-1, m-2, m-3 stdin piping + shell removal) that shared-imports.ts did NOT receive. shared-imports.ts still has: (1) shell:true on all 3 spawn calls and execFile (lines 141, 167, 193), (2) Gemini prompt passed as positional arg (line 185), (3) 'as Provider' type casts (lines 89, 107), (4) callGemini uses execFile+shell:true instead of spawn+stdin. The agent-role-builder is now LESS secure than the canonical path. The Gemini shell injection (B-1) remains exploitable in agent-role-builder standalone runs.",
+      "redesign_guidance": "Until monorepo workspace references are set up, apply the same minimal security fixes to shared-imports.ts: pipe Gemini via stdin, remove shell:true from all spawns. The type-safety fixes (Provider.parse) are lower priority but should also be applied for consistency."
+    },
+    {
+      "id": "R2-2",
+      "severity": "minor",
+      "summary": "Dead code: execPromise function and unused imports in canonical invoker",
+      "source": "shared/llm-invoker/invoker.ts:1-2,220-241",
+      "reason": "After the B-1/m-2/m-3 fixes converted all three CLI functions to use spawn with stdin piping, the execPromise helper (lines 220-241) is no longer called by any code path. The top-level imports of execFile (line 1) and writeFile (line 2) are also unused. This dead code adds confusion about which execution path is actually used.",
+      "redesign_guidance": "Remove execPromise function and the unused execFile and writeFile imports. Keep only readFile and unlink which are used by callCodex."
+    },
+    {
+      "id": "R2-3",
+      "severity": "minor",
+      "summary": "Switch default before clarification case creates confusing control flow",
+      "source": "COO/controller/loop.ts:137-150",
+      "reason": "The switch statement places the default case (lines 139-145) before the 'clarification' case (lines 147-149). In JavaScript, default is matched only when no explicit case matches, so clarification IS reachable — this is not a bug. However, the ordering is misleading: a reader scanning top-to-bottom would assume default catches everything. Convention is to place default last.",
+      "redesign_guidance": "Move the 'case \"clarification\"' block above the 'case \"direct_coo_response\" / case \"pushback\" / default' block."
+    },
+    {
+      "id": "R2-4",
+      "severity": "minor",
+      "summary": "Delete operation uses 4 separate queries without transaction",
+      "source": "components/memory-engine/src/server.ts:86-94",
+      "reason": "The delete action performs 1 INSERT (audit) + 3 DELETEs as separate queries. If the process crashes after deleting embeddings but before deleting memory_items, the data is in an inconsistent state: audit record says deleted, but the memory_item row still exists. This was a pre-existing concern (the 3 DELETEs were already separate) but the addition of the audit INSERT makes it more visible — the audit record could claim a deletion that didn't complete.",
+      "redesign_guidance": "Wrap the INSERT + 3 DELETEs in a BEGIN/COMMIT transaction block to ensure atomicity."
+    },
+    {
+      "id": "R2-5",
+      "severity": "suggestion",
+      "summary": "Classifier prompt omits specialist_path workflow from instructions",
+      "source": "COO/classifier/classifier.ts:41",
+      "reason": "The ClassifierOutput Zod schema (line 12) includes 'specialist_path' as a valid workflow, and the controller loop has an explicit handler for it. But the classifier prompt (line 41) only lists 5 workflows ('direct_coo_response | tool_path | memory_operation | clarification | pushback'), omitting specialist_path. The LLM will never output specialist_path unless it hallucinates a value not in the prompt, and Zod would accept it. The workflow handler in loop.ts for specialist_path (line 133) is therefore unreachable in practice.",
+      "redesign_guidance": "Either add specialist_path to the classifier prompt with classification rules, or remove it from the Zod schema and the loop.ts handler until it is actually needed."
+    },
+    {
+      "id": "R2-6",
+      "severity": "minor",
+      "summary": "Memory-engine provenance.ts is a full copy, not a re-export — drift risk persists",
+      "source": "components/memory-engine/src/provenance.ts:1-65",
+      "reason": "The M-2 fix added createSystemProvenance and createLLMProvenance to provenance.ts. However, these are full reimplementations (65 lines) rather than re-exports from the canonical shared/provenance/types.ts. The file is now a complete duplicate of shared/provenance/types.ts. Any future changes to ProvenanceSchema fields, Provider enum values, or factory function logic must be made in both files. This is the same structural issue as B-2 but in the memory-engine component rather than agent-role-builder.",
+      "redesign_guidance": "This is a known limitation of the current non-workspace TypeScript setup (same root cause as B-2). Document in the provenance.ts header comment that this must stay in sync with shared/provenance/types.ts, and include a sync-check in CI when workspace references are established."
+    }
+  ],
+  "root_cause_groups": [
+    {
+      "id": "group-1",
+      "summary": "Cross-package code duplication without build-time synchronization",
+      "finding_ids": ["R2-1", "R2-6"],
+      "detail": "Both shared-imports.ts and memory-engine/provenance.ts are manual copies of shared/ modules. Without npm workspace references or a build-time copy step, fixes applied to the canonical modules do not propagate. R2-1 is particularly concerning because the canonical invoker received security fixes that shared-imports.ts still lacks."
+    },
+    {
+      "id": "group-2",
+      "summary": "Refactoring residue from B-1 stdin migration",
+      "finding_ids": ["R2-2"],
+      "detail": "The migration from execFile to spawn+stdin left the execPromise helper and its imports as dead code in the canonical invoker."
+    },
+    {
+      "id": "group-3",
+      "summary": "Switch statement ordering and missing transaction boundaries",
+      "finding_ids": ["R2-3", "R2-4"],
+      "detail": "Minor structural issues in server.ts and loop.ts control flow. The delete operation lacks transaction safety, and the switch default placement is unconventional."
+    },
+    {
+      "id": "group-4",
+      "summary": "Schema-prompt mismatch in classifier",
+      "finding_ids": ["R2-5"],
+      "detail": "The classifier Zod schema advertises a workflow value that the LLM prompt never instructs the model to use, making the corresponding handler unreachable."
+    }
+  ],
+  "verdict": "conditional",
+  "verdict_reason": "All 11 fix items are verified: 9 accepted fixes resolve their findings correctly, and the B-2 rejection is valid. However, R2-1 (major) reveals that the shared-imports.ts copy in agent-role-builder now has WORSE security posture than before Round 1 — it retains the Gemini shell injection (B-1) and shell:true (m-3) that were fixed in the canonical invoker. Condition for approval: apply the minimal security fixes (stdin piping for Gemini, remove shell:true) to shared-imports.ts. The 4 minor findings and 1 suggestion are non-blocking and can be addressed in a follow-up."
+}
