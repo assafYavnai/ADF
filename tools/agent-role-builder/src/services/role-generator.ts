@@ -151,7 +151,8 @@ export async function reviseRoleMarkdown(
   const rulebookSection = feedback.rulebook && feedback.rulebook.length > 0
     ? `=== RULEBOOK (check EVERY rule before submitting) ===\n${feedback.rulebook.map((r) => {
         const prefix = newRuleSet.has(r.id) ? `[NEW — added this round] ` : "";
-        return `${prefix}${r.id}: ${r.rule}\n  DO: ${r.do.slice(0, 200)}\n  DONT: ${r.dont.slice(0, 200)}\n  Applies to: ${r.applies_to.join(", ")}`;
+        const appliesTo = Array.isArray(r.applies_to) ? r.applies_to.join(", ") : String(r.applies_to);
+        return `${prefix}${r.id}: ${r.rule}\n  DO: ${r.do.slice(0, 200)}\n  DONT: ${r.dont.slice(0, 200)}\n  Applies to: ${appliesTo}`;
       }).join("\n\n")}`
     : "";
 

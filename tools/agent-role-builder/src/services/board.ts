@@ -172,8 +172,9 @@ export async function executeBoard(
   } catch (e) { console.error("[board] Failed to load rulebook:", e instanceof Error ? e.message : e); }
 
   // Bug 7 fix: compliance map and fix items map are now produced as part of the revision call.
-  // For round 0 (no prior revision), they start empty. For round 1+, they come from the prior revision.
-  let pendingComplianceMap: ComplianceEntry[] = [];
+  // For round 1+, they come from the prior revision.
+  // Bug 5 fix: For round 0, generate an initial compliance map by checking each rulebook rule against the draft.
+  let pendingComplianceMap: ComplianceEntry[] = generateInitialComplianceMap(currentRulebook, currentMarkdown);
   let pendingFixItemsMap: FixItem[] | undefined;
 
   for (let round = 0; round < maxRounds; round++) {
@@ -201,7 +202,7 @@ export async function executeBoard(
     // --- Step 3: Review ---
     const reviewersToRun = request.board_roster.reviewers.filter((r) => {
       const key = `reviewer-${r.provider}`;
-      return reviewerStatus.get(key) !== "approved";
+      return reviewerStatus.get(key) !== "approved" && reviewerStatus.get(key) !== "conditional";
     });
     const isSanityCheck = reviewersToRun.length === 0;
     const activeReviewers = isSanityCheck ? request.board_roster.reviewers : reviewersToRun;
@@ -334,6 +335,10 @@ export async function executeBoard(
               .filter((nr) => nr.id && !existingIds.has(nr.id));
 
             if (genuinelyNew.length > 0) {
+              // IMP-017: Normalize applies_to to array before writing to rulebook
+              for (const nr of genuinelyNew) {
+                nr.applies_to = Array.isArray(nr.applies_to) ? nr.applies_to : [String(nr.applies_to)];
+              }
               newRuleIds = genuinelyNew.map((r) => r.id);
               currentRulebook.push(...genuinelyNew);
               const rulebookOnDisk = JSON.parse(await readFile(rulebookPath, "utf-8"));
@@ -374,9 +379,28 @@ export async function executeBoard(
           }, null, 2), "utf-8");
         }
       } catch (e) {
-        console.error("[board] Revision failed:", e instanceof Error ? e.message : e);
-        currentMarkdown = roundResult.markdown;
-        currentSelfCheckIssues = roundResult.selfCheckIssues;
+        // IMP-016: Revision is critical — never silently swallow. Write bug report, escalate.
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        console.error("[board] Revision/learning failed (critical):", errorMsg);
+
+        const bugReport: BugReport = {
+          what_failed: "Revision or learning engine during board loop",
+          error_message: errorMsg,
+          where: `Round ${round}, revision/learning block`,
+          context: { round, maxRounds, markdown_length: currentMarkdown.length, unresolved_count: roundResult.unresolved.length },
+          input_that_caused_failure: `(revision round ${round}, unresolved: ${roundResult.unresolved.join("; ").slice(0, 1000)})`,
+          expected_format: "Successful revision producing updated markdown, compliance map, fix items map",
+          component: "tools/agent-role-builder/board/revision-block",
+          provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
+          timestamp: new Date().toISOString(),
+        };
+        await writeBugReport(bugReport);
+
+        // Throw BoardBlockedError — the board cannot converge if revision crashes every round
+        throw new BoardBlockedError(
+          `Revision crashed in round ${round}: ${errorMsg}. Bug report written. Board cannot converge without working revision.`,
+          null
+        );
       }
     }
   }
@@ -766,6 +790,39 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
   }
 }
 
+// --- Initial compliance map (Bug 5 fix) ---
+
+/**
+ * Generate an initial compliance map by checking each rulebook rule against the draft markdown.
+ * Uses keyword matching from applies_to and rule text to determine if the markdown
+ * addresses each rule's concern area. This is a heuristic — the LLM-generated compliance
+ * map from revision rounds will be more accurate.
+ */
+function generateInitialComplianceMap(
+  rulebook: Array<{ id: string; rule: string; applies_to: string[] | string }>,
+  markdown: string
+): ComplianceEntry[] {
+  const mdLower = markdown.toLowerCase();
+  return rulebook.map((r) => {
+    const appliesTo = Array.isArray(r.applies_to) ? r.applies_to : [String(r.applies_to)];
+    // Extract keywords from applies_to and first 100 chars of rule
+    const keywords = appliesTo
+      .flatMap((a) => a.toLowerCase().split(/[\s,<>()]+/).filter((w) => w.length > 3))
+      .concat(r.rule.toLowerCase().split(/\s+/).slice(0, 8).filter((w) => w.length > 3));
+
+    const matchCount = keywords.filter((kw) => mdLower.includes(kw)).length;
+    const coverage = keywords.length > 0 ? matchCount / keywords.length : 0;
+
+    if (coverage >= 0.5) {
+      return { rule_id: r.id, status: "compliant" as const, evidence_location: "initial draft", evidence_summary: `Keyword coverage ${Math.round(coverage * 100)}% — initial heuristic check` };
+    } else if (coverage >= 0.2) {
+      return { rule_id: r.id, status: "non_compliant" as const, evidence_location: "initial draft", evidence_summary: `Low keyword coverage ${Math.round(coverage * 100)}% — needs LLM review` };
+    } else {
+      return { rule_id: r.id, status: "not_applicable" as const, evidence_location: "initial draft", evidence_summary: `Rule topic not found in draft — may not apply to this section` };
+    }
+  });
+}
+
 // --- Learning prompt ---
 
 function buildLearningPrompt(
@@ -792,9 +849,11 @@ ${unresolved.map((u, i) => `${i + 1}. ${u}`).join("\n") || "(none)"}
 For each finding: NEW rule, ALREADY COVERED, or TOO SPECIFIC.
 
 RESPOND JSON:
-{ "new_rules": [{"id","rule","applies_to","do","dont","source","version":1}],
-  "existing_rules_covering": [{"finding_group_id","covered_by_rule_id","explanation"}],
-  "no_rule_needed": [{"finding_group_id","reason"}] }
+{ "new_rules": [{"id": "ARB-NNN", "rule": "...", "applies_to": ["array", "of", "section names"], "do": "...", "dont": "...", "source": "...", "version": 1}],
+  "existing_rules_covering": [{"finding_group_id": "...", "covered_by_rule_id": "...", "explanation": "..."}],
+  "no_rule_needed": [{"finding_group_id": "...", "reason": "..."}] }
+
+IMPORTANT: "applies_to" MUST be a JSON array of strings, never a plain string. Example: ["design (role definition)"] not "design (role definition)".
 
 JSON:`;
 }
