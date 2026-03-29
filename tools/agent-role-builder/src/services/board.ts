@@ -2,7 +2,7 @@ import { invoke, createSystemProvenance, emit } from "../shared-imports.js";
 import type { RoleBuilderRequest, BoardParticipant } from "../schemas/request.js";
 import type { ParticipantRecord, RoleBuilderStatus } from "../schemas/result.js";
 import { selfCheck } from "./validator.js";
-import { reviseRoleMarkdown } from "./role-generator.js";
+import { performInitialRuleSweep, reviseRoleMarkdown } from "./role-generator.js";
 import {
   buildReviewerSummaryText,
   formatFocusAreas,
@@ -183,11 +183,41 @@ export async function executeBoard(
     currentRulebook = rulebookRaw.rules ?? [];
   } catch (e) { console.error("[board] Failed to load rulebook:", e instanceof Error ? e.message : e); }
 
-  // Bug 7 fix: compliance map and fix items map are now produced as part of the revision call.
-  // For round 1+, they come from the prior revision.
-  // Bug 5 fix: For round 0, generate an initial compliance map by checking each rulebook rule against the draft.
-  let pendingComplianceMap: ComplianceEntry[] = generateInitialComplianceMap(currentRulebook, currentMarkdown);
+  let pendingComplianceMap: ComplianceEntry[] = [];
   let pendingFixItemsMap: FixItem[] | undefined;
+  try {
+    const initialSweep = await performInitialRuleSweep(
+      request,
+      currentMarkdown,
+      currentRulebook,
+      currentSelfCheckIssues,
+      ctx.runDir ? join(ctx.runDir, "runtime", "component-repair-engine", "initial-rule-sweep") : undefined
+    );
+    currentMarkdown = initialSweep.markdown;
+    pendingComplianceMap = initialSweep.complianceMap as ComplianceEntry[];
+    currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((issue) => ({ code: issue.code, message: issue.message }));
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    await writeBugReport({
+      what_failed: "Initial rulebook sweep before first review",
+      error_message: errorMsg,
+      where: "Pre-round-0 component-repair-engine pass",
+      context: { markdown_length: currentMarkdown.length, rule_count: currentRulebook.length },
+      input_that_caused_failure: currentMarkdown.slice(0, 3000),
+      expected_format: "Updated markdown plus compliance_map from the component-repair-engine",
+      component: "tools/agent-role-builder/board/initial-rule-sweep",
+      provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
+      timestamp: new Date().toISOString(),
+    }, ctx);
+    return {
+      status: "blocked",
+      rounds,
+      allParticipants,
+      statusReason: `Initial rulebook sweep failed: ${errorMsg}`,
+      finalMarkdown: currentMarkdown,
+      finalSelfCheckIssues: currentSelfCheckIssues,
+    };
+  }
 
   for (let round = 0; round < maxRounds; round++) {
     const roundDir = ctx.runDir ? join(ctx.runDir, "rounds", `round-${round}`) : null;
@@ -200,7 +230,14 @@ export async function executeBoard(
     if (roundDir) {
       await writeFile(join(roundDir, "compliance-map.json"), JSON.stringify({
         schema_version: "1.0", component: "agent-role-builder",
-        scope: round === 0 ? "full" : "delta", round, entries: complianceMap,
+        scope: round === 0 ? "full" : "delta",
+        artifact_path: (ctx.runDir
+          ? join(ctx.runDir, `${request.role_slug}-role.md`)
+          : `tools/agent-role-builder/runs/${request.job_id}/${request.role_slug}-role.md`).replace(/\\/g, "/"),
+        git_commit: undefined,
+        round,
+        entries: complianceMap,
+        unchecked_rules: [],
         generated_at: new Date().toISOString(),
       }, null, 2), "utf-8");
       if (fixItemsMap && fixItemsMap.length > 0) {
@@ -277,90 +314,38 @@ export async function executeBoard(
       }
     }
 
-    if (roundResult.leaderVerdict === "frozen") {
-      await writeRunPostmortem(request, rounds, ctx, "frozen");
-      return { status: "frozen", rounds, allParticipants,
-        statusReason: "All reviewers approved/conditional, leader confirmed freeze.",
-        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
-    }
-    if (roundResult.leaderVerdict === "blocked") {
-      await writeRunPostmortem(request, rounds, ctx, "blocked");
-      return { status: "blocked", rounds, allParticipants,
-        statusReason: roundResult.leaderRationale,
-        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
-    }
-
-    // Arbitration check (Bug 2 fix: only count real verdicts, not "error" or "pending")
-    const realVerdicts = [...reviewerStatus.values()].filter((s) => s !== "error" && s !== "pending");
-    const hasReject = realVerdicts.some((s) => s === "reject");
-    const hasApprove = realVerdicts.some((s) => s === "approved" || s === "conditional");
+    const realVerdicts = [...reviewerStatus.values()].filter((status) => status !== "error" && status !== "pending");
+    const hasReject = realVerdicts.some((status) => status === "reject");
+    const hasApprove = realVerdicts.some((status) => status === "approved" || status === "conditional");
     if (hasReject && hasApprove) consecutiveDisputeRounds++;
     else consecutiveDisputeRounds = 0;
 
-    if (consecutiveDisputeRounds >= 2 && request.governance.allow_single_arbitration_round) {
-      const lastRound = rounds[rounds.length - 1];
-      await writeRunPostmortem(request, rounds, ctx, lastRound.unresolved.length <= 2 ? "frozen" : "resume_required");
-      return { status: lastRound.unresolved.length <= 2 ? "frozen" : "resume_required",
-        rounds, allParticipants,
-        statusReason: `Arbitration after ${consecutiveDisputeRounds} consecutive splits: ${lastRound.leaderRationale}`,
-        finalMarkdown: lastRound.markdown, finalSelfCheckIssues: lastRound.selfCheckIssues };
-    }
+    const reviewChecklist = collectReviewChecklist(roundResult.reviewerVerdicts, fixItemsMap);
+    const repairChecklist = extendRepairChecklist(reviewChecklist, complianceMap, currentSelfCheckIssues);
+    const hasRepairWork = repairChecklist.length > 0 || roundResult.leaderVerdict === "pushback";
+    const canRevise = round < maxRounds - 1 && roundResult.leaderVerdict !== "blocked" && hasRepairWork;
 
     // --- Step 4: Learning engine (always) + revision (if not final and unresolved) ---
     {
       try {
-        const canRevise = round < maxRounds - 1 && roundResult.unresolved.length > 0;
-        const fixChecklist: Array<{
-          groupId: string; severity: string; summary: string;
-          redesignGuidance: string; findingCount: number;
-        }> = [];
-        const seenChecklistIds = new Set<string>();
 
-        for (const [, rv] of roundResult.reviewerVerdicts) {
-          for (const group of rv.conceptual_groups) {
-            seenChecklistIds.add(group.id);
-            fixChecklist.push({
-              groupId: group.id, severity: group.severity,
-              summary: group.summary, redesignGuidance: group.redesign_guidance,
-              findingCount: Array.isArray(group.findings) ? group.findings.length : 0,
+        let learningOutput = { new_rules: [] as unknown[], existing_rules_covering: [] as unknown[], no_rule_needed: [] as unknown[] };
+        if (reviewChecklist.length > 0) {
+          try {
+            const learningResult = await invoke({
+              cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+              model: request.board_roster.leader.model,
+              reasoning: "high",
+              bypass: false,
+              timeout_ms: 120_000,
+              prompt: buildLearningPrompt(request, reviewChecklist, currentRulebook, roundResult.unresolved, round, ctx.reviewConfig!),
+              source_path: "tools/agent-role-builder/learning-engine",
             });
-          }
-
-          for (const decision of rv.fix_decisions ?? []) {
-            if (decision.decision !== "reject_fix" && decision.decision !== "reject_rejection") {
-              continue;
-            }
-            const checklistId = decision.finding_id ?? decision.finding_group_id ?? "unknown-fix-decision";
-            if (seenChecklistIds.has(checklistId)) continue;
-            seenChecklistIds.add(checklistId);
-
-            const linkedFixItem = fixItemsMap?.find((item) =>
-              (decision.finding_id && item.finding_id === decision.finding_id)
-              || (decision.finding_group_id && item.finding_group_id === decision.finding_group_id)
-            );
-
-            fixChecklist.push({
-              groupId: checklistId,
-              severity: "major",
-              summary: linkedFixItem?.summary ?? `Fix decision ${decision.decision} requires more work`,
-              redesignGuidance: decision.reason,
-              findingCount: 1,
-            });
+            learningOutput = JSON.parse(cleanJsonResponse(learningResult.response));
+          } catch (error) {
+            console.error(`[board] Learning engine failed (round ${round}, findings: ${reviewChecklist.length}):`, error instanceof Error ? error.message : error);
           }
         }
-
-        // Learning engine call
-        let learningOutput = { new_rules: [] as unknown[], existing_rules_covering: [] as unknown[], no_rule_needed: [] as unknown[] };
-        try {
-          const learningResult = await invoke({
-            cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
-            model: request.board_roster.leader.model, reasoning: "high",
-            bypass: false, timeout_ms: 120_000,
-            prompt: buildLearningPrompt(request, fixChecklist, currentRulebook, roundResult.unresolved, round, ctx.reviewConfig!),
-            source_path: "tools/agent-role-builder/learning-engine",
-          });
-          learningOutput = JSON.parse(cleanJsonResponse(learningResult.response));
-        } catch (e) { console.error(`[board] Learning engine failed (round ${round}, findings: ${fixChecklist.length}):`, e instanceof Error ? e.message : e); }
 
         if (roundDir) {
           await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
@@ -394,30 +379,55 @@ export async function executeBoard(
           }
         }
 
-        // Revision (only if not final round and unresolved exist)
-        // Bug 7: revision now returns compliance map and fix items map for the NEXT round
+        let diffSummary = {
+          prior_length: roundResult.markdown.length,
+          new_length: currentMarkdown.length,
+          changed: false,
+          revision_skipped: !canRevise,
+          reason: !canRevise
+            ? (roundResult.leaderVerdict === "blocked"
+                ? "leader blocked"
+                : round >= maxRounds - 1
+                  ? "final round"
+                  : "no repair work")
+            : undefined,
+          summary: !canRevise
+            ? "No repair pass was executed after this round."
+            : "Repair pass executed.",
+        };
+
         if (canRevise) {
           const revisionResult = await reviseRoleMarkdown(
-            request, roundResult.markdown,
-            { round: roundResult.round, leaderRationale: roundResult.leaderRationale,
-              unresolved: roundResult.unresolved, fixChecklist,
-              priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
-              rulebook: currentRulebook, newRuleIds }
+            request,
+            roundResult.markdown,
+            {
+              round: roundResult.round,
+              leaderRationale: roundResult.leaderRationale,
+              unresolved: roundResult.unresolved,
+              fixChecklist: repairChecklist,
+              priorRoundIssueCount: rounds.map((priorRound) => priorRound.unresolved.length),
+              rulebook: currentRulebook,
+              newRuleIds,
+              selfCheckIssues: currentSelfCheckIssues,
+              bundleRoot: ctx.runDir ? join(ctx.runDir, "runtime", "component-repair-engine", `revision-r${round}`) : undefined,
+            }
           );
           currentMarkdown = revisionResult.markdown;
           pendingComplianceMap = revisionResult.complianceMap as ComplianceEntry[];
           pendingFixItemsMap = revisionResult.fixItemsMap as FixItem[];
-          currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({ code: i.code, message: i.message }));
+          currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((issue) => ({ code: issue.code, message: issue.message }));
+          diffSummary = {
+            prior_length: revisionResult.diffSummary.prior_length,
+            new_length: revisionResult.diffSummary.new_length,
+            changed: revisionResult.diffSummary.changed,
+            revision_skipped: false,
+            reason: undefined,
+            summary: revisionResult.diffSummary.summary,
+          };
         }
 
-        // Diff summary always written (shows whether revision happened)
         if (roundDir) {
-          await writeFile(join(roundDir, "diff-summary.json"), JSON.stringify({
-            prior_length: roundResult.markdown.length, new_length: currentMarkdown.length,
-            changed: roundResult.markdown !== currentMarkdown,
-            revision_skipped: !canRevise,
-            reason: !canRevise ? (round >= maxRounds - 1 ? "final round" : "no unresolved issues") : undefined,
-          }, null, 2), "utf-8");
+          await writeFile(join(roundDir, "diff-summary.json"), JSON.stringify(diffSummary, null, 2), "utf-8");
         }
       } catch (e) {
         // IMP-016: Revision is critical — never silently swallow. Write bug report, escalate.
@@ -428,7 +438,7 @@ export async function executeBoard(
           what_failed: "Revision or learning engine during board loop",
           error_message: errorMsg,
           where: `Round ${round}, revision/learning block`,
-          context: { round, maxRounds, markdown_length: currentMarkdown.length, unresolved_count: roundResult.unresolved.length },
+          context: { round, maxRounds, markdown_length: currentMarkdown.length, repair_item_count: repairChecklist.length },
           input_that_caused_failure: `(revision round ${round}, unresolved: ${roundResult.unresolved.join("; ").slice(0, 1000)})`,
           expected_format: "Successful revision producing updated markdown, compliance map, fix items map",
           component: "tools/agent-role-builder/board/revision-block",
@@ -443,6 +453,20 @@ export async function executeBoard(
           null
         );
       }
+    }
+
+    if (roundResult.leaderVerdict === "blocked") {
+      await writeRunPostmortem(request, rounds, ctx, "blocked");
+      return { status: "blocked", rounds, allParticipants,
+        statusReason: roundResult.leaderRationale,
+        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
+    }
+
+    if (!hasRepairWork && roundResult.leaderVerdict === "frozen") {
+      await writeRunPostmortem(request, rounds, ctx, "frozen");
+      return { status: "frozen", rounds, allParticipants,
+        statusReason: "All reviewers approved and no remaining repair work was found after learning and rule checks.",
+        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
     }
 
     await writeRunPostmortem(request, rounds, ctx);
@@ -985,37 +1009,88 @@ function countRoundSeverities(reviewerVerdicts: Map<string, ReviewerVerdict>) {
   return counts;
 }
 
-// --- Initial compliance map (Bug 5 fix) ---
+function collectReviewChecklist(
+  reviewerVerdicts: Map<string, ReviewerVerdict>,
+  fixItemsMap?: FixItem[]
+): Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string; findingCount: number }> {
+  const checklist: Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string; findingCount: number }> = [];
+  const seenChecklistIds = new Set<string>();
 
-/**
- * Generate an initial compliance map by checking each rulebook rule against the draft markdown.
- * Uses keyword matching from applies_to and rule text to determine if the markdown
- * addresses each rule's concern area. This is a heuristic — the LLM-generated compliance
- * map from revision rounds will be more accurate.
- */
-function generateInitialComplianceMap(
-  rulebook: Array<{ id: string; rule: string; applies_to: string[] | string }>,
-  markdown: string
-): ComplianceEntry[] {
-  const mdLower = markdown.toLowerCase();
-  return rulebook.map((r) => {
-    const appliesTo = Array.isArray(r.applies_to) ? r.applies_to : [String(r.applies_to)];
-    // Extract keywords from applies_to and first 100 chars of rule
-    const keywords = appliesTo
-      .flatMap((a) => a.toLowerCase().split(/[\s,<>()]+/).filter((w) => w.length > 3))
-      .concat(r.rule.toLowerCase().split(/\s+/).slice(0, 8).filter((w) => w.length > 3));
-
-    const matchCount = keywords.filter((kw) => mdLower.includes(kw)).length;
-    const coverage = keywords.length > 0 ? matchCount / keywords.length : 0;
-
-    if (coverage >= 0.5) {
-      return { rule_id: r.id, status: "compliant" as const, evidence_location: "initial draft", evidence_summary: `Keyword coverage ${Math.round(coverage * 100)}% — initial heuristic check` };
-    } else if (coverage >= 0.2) {
-      return { rule_id: r.id, status: "non_compliant" as const, evidence_location: "initial draft", evidence_summary: `Low keyword coverage ${Math.round(coverage * 100)}% — needs LLM review` };
-    } else {
-      return { rule_id: r.id, status: "not_applicable" as const, evidence_location: "initial draft", evidence_summary: `Rule topic not found in draft — may not apply to this section` };
+  for (const [, verdict] of reviewerVerdicts) {
+    for (const group of verdict.conceptual_groups) {
+      if (seenChecklistIds.has(group.id)) continue;
+      seenChecklistIds.add(group.id);
+      checklist.push({
+        groupId: group.id,
+        severity: group.severity,
+        summary: group.summary,
+        redesignGuidance: group.redesign_guidance,
+        findingCount: Array.isArray(group.findings) ? group.findings.length : 0,
+      });
     }
-  });
+
+    for (const decision of verdict.fix_decisions ?? []) {
+      if (decision.decision !== "reject_fix" && decision.decision !== "reject_rejection") {
+        continue;
+      }
+      const checklistId = decision.finding_id ?? decision.finding_group_id ?? "unknown-fix-decision";
+      if (seenChecklistIds.has(checklistId)) continue;
+      seenChecklistIds.add(checklistId);
+
+      const linkedFixItem = fixItemsMap?.find((item) =>
+        (decision.finding_id && item.finding_id === decision.finding_id)
+        || (decision.finding_group_id && item.finding_group_id === decision.finding_group_id)
+      );
+
+      checklist.push({
+        groupId: checklistId,
+        severity: "major",
+        summary: linkedFixItem?.summary ?? `Fix decision ${decision.decision} requires more work`,
+        redesignGuidance: decision.reason,
+        findingCount: 1,
+      });
+    }
+  }
+
+  return checklist;
+}
+
+function extendRepairChecklist(
+  reviewChecklist: Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string; findingCount: number }>,
+  complianceMap: ComplianceEntry[],
+  selfCheckIssues: Array<{ code: string; message: string }>
+): Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string; findingCount: number }> {
+  const checklist = [...reviewChecklist];
+  const seenChecklistIds = new Set(reviewChecklist.map((item) => item.groupId));
+
+  for (const entry of complianceMap) {
+    if (entry.status !== "non_compliant") continue;
+    const checklistId = `rule-${entry.rule_id}`;
+    if (seenChecklistIds.has(checklistId)) continue;
+    seenChecklistIds.add(checklistId);
+    checklist.push({
+      groupId: checklistId,
+      severity: "major",
+      summary: `Rule ${entry.rule_id} is currently non-compliant`,
+      redesignGuidance: `${entry.evidence_summary}. Update the artifact so this rule is demonstrably compliant.`,
+      findingCount: 1,
+    });
+  }
+
+  for (const issue of selfCheckIssues) {
+    const checklistId = `self-check-${issue.code}`;
+    if (seenChecklistIds.has(checklistId)) continue;
+    seenChecklistIds.add(checklistId);
+    checklist.push({
+      groupId: checklistId,
+      severity: "major",
+      summary: issue.message,
+      redesignGuidance: `Resolve self-check issue ${issue.code} before the artifact can freeze.`,
+      findingCount: 1,
+    });
+  }
+
+  return checklist;
 }
 
 // --- Learning prompt ---

@@ -128,7 +128,7 @@ export function selfCheck(
       if (!outputsSection.includes(filename) && !outputsSection.includes(slug)) {
         issues.push({
           code: "MISSING_REQUIRED_OUTPUT",
-          severity: "warning",
+          severity: "error",
           message: `Required output "${reqOutput}" not referenced in <outputs> section`,
         });
       }
@@ -140,7 +140,7 @@ export function selfCheck(
   if (completionSection && !completionSection.toLowerCase().includes("result.json") && !completionSection.toLowerCase().includes("result")) {
     issues.push({
       code: "COMPLETION_MISSING_RESULT",
-      severity: "warning",
+      severity: "error",
       message: "Completion criteria should reference terminal result artifact",
     });
   }

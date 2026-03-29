@@ -15,8 +15,9 @@ This log covers the current repair lane for:
 - review/runtime audit improvements
 - agent-role-builder integration of the shared review contract direction
 - naming and extraction direction for the shared reviewer and repair services
+- enforcement of the standard review -> learning -> rule check -> fix -> re-review sequence
 
-It does not claim the whole review/fix architecture is complete. In particular, the generic shared reviewer and shared repair runtime extraction is still not fully implemented.
+The current round closes the main runtime gaps that were still open after the earlier contract/KPI integration checkpoint.
 
 ---
 
@@ -267,9 +268,43 @@ Updated:
 
 Main changes:
 
-- revision fix-item instructions now allow `finding_id`
-- reviser is pointed at the component-local review prompt and review contract
-- prompt text makes the boxed boundary more explicit
+- revision was replaced with a boxed component-repair-engine style flow
+- the repair path now writes a run-scoped bundle with manifest, copied component config, copied authority docs, findings, and self-check evidence
+- revision no longer depends on broad bypass access for repo roaming
+- Codex remains primary and Claude is selected as the repair fallback when the leader provider is Codex
+
+### H. Shared runtime extraction
+
+Added:
+
+- `shared/review-engine/`
+- `shared/component-repair-engine/`
+
+Main changes:
+
+- shared review runtime config/types now exist under `shared/review-engine/`
+- shared component-repair runtime/types now exist under `shared/component-repair-engine/`
+- these shared modules define the generic protocol shape future governed components can use
+
+### I. Standard sequence enforcement in the live board
+
+Updated:
+
+- `tools/agent-role-builder/src/services/board.ts`
+- `tools/agent-role-builder/src/services/validator.ts`
+
+Main changes:
+
+- round 0 now starts with an initial rulebook sweep instead of heuristic compliance guessing
+- the board now runs learning before terminal freeze decisions
+- freeze is blocked when repair work still exists from:
+  - reviewer findings
+  - rejected fix decisions
+  - non-compliant rule entries
+  - self-check failures
+- conditional/minor follow-up now forces a repair pass and a re-review path instead of freezing early
+- stale heuristic initial compliance generation was removed
+- required output / completion self-check gaps are now execution-gating errors, not warnings
 
 ---
 
@@ -277,6 +312,11 @@ Main changes:
 
 Modified:
 
+- `shared/review-engine/config.ts`
+- `shared/review-engine/engine.ts`
+- `shared/review-engine/types.ts`
+- `shared/component-repair-engine/engine.ts`
+- `shared/component-repair-engine/types.ts`
 - `shared/learning-engine/compliance-map.ts`
 - `shared/learning-engine/engine.ts`
 - `shared/learning-engine/fix-items-map.ts`
@@ -293,6 +333,11 @@ Added:
 
 - `shared/learning-engine/code-review-contract.json`
 - `shared/learning-engine/review-contract.json`
+- `shared/review-engine/config.ts`
+- `shared/review-engine/engine.ts`
+- `shared/review-engine/types.ts`
+- `shared/component-repair-engine/engine.ts`
+- `shared/component-repair-engine/types.ts`
 - `tools/agent-role-builder/review-contract.json`
 - `tools/agent-role-builder/src/services/review-runtime.ts`
 
@@ -303,11 +348,22 @@ Added:
 Completed:
 
 - TypeScript validation for `agent-role-builder`
+- TypeScript validation for `shared`
 
 Command:
 
 ```powershell
 & 'C:\ADF\tools\agent-role-builder\node_modules\.bin\tsc.cmd' --noEmit -p 'C:\ADF\tools\agent-role-builder\tsconfig.json'
+```
+
+Result:
+
+- passed with 0 TypeScript errors
+
+Command:
+
+```powershell
+& 'C:\ADF\shared\node_modules\.bin\tsc.cmd' --noEmit -p 'C:\ADF\shared\tsconfig.json'
 ```
 
 Result:
@@ -320,8 +376,12 @@ Not completed in this round:
 
 Reason:
 
-- this round focused on implementing the contract/KPI/runtime changes and verifying they compile cleanly
-- live CLI execution still needs a real run to confirm artifact output under actual reviewer/leader invocation
+- the new flow was exercised in a real self-role run (`agent-role-builder-self-role-017-test`) far enough to confirm:
+  - initial component-repair-engine sweep executed and wrote boxed audit artifacts
+  - round 0 review executed
+  - round 0 learning executed and added a new rule
+  - revision-r0 bundle was created with boxed repair inputs
+- that run then timed out before terminal completion during the first revision pass, so terminal-state verification is still pending
 
 ---
 
@@ -329,23 +389,14 @@ Reason:
 
 These items remain open:
 
-1. `shared/review-engine/` is still not extracted as its own standalone runtime.
-2. `shared/component-repair-engine/` is still not extracted as its own standalone runtime.
-3. `agent-role-builder` still owns too much of the live review/revision loop and is not fully aligned yet with the standard sequence for all review cycles:
-   - review
-   - learning
-   - rulebook update/confirmation
-   - rule compliance check
-   - fix
-   - re-review
-4. The revision path still depends on a privileged LLM execution path and needs a real run to prove the new boxed contract flow under live conditions.
-5. At the point this log was last updated, the code changes were still not committed.
+1. A real live governed run is still needed to validate the new boxed repair path under actual Codex/Claude execution.
+2. At the point this log was last updated, the code changes were still not committed.
 
 ---
 
 ## Components Still Requiring Work
 
-The remaining implementation scope is now clearly split across these components:
+The implementation footprint for this closure round spans these components:
 
 - `tools/agent-role-builder/`
 - `shared/review-engine/`
