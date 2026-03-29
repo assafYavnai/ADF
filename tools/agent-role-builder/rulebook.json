@@ -189,7 +189,13 @@
     {
       "id": "ARB-016",
       "rule": "Define one authoritative artifact matrix for the role package. Every required artifact must be declared once with its artifact class, full canonical tool-relative path or root, and exact write lifecycle per operation and terminal state.",
-      "applies_to": ["Role-definition contracts", "<outputs>", "execution steps", "self-checks", "terminal-state semantics for governed role packages"],
+      "applies_to": [
+        "Role-definition contracts",
+        "<outputs>",
+        "execution steps",
+        "self-checks",
+        "terminal-state semantics for governed role packages"
+      ],
       "do": "Declare each artifact once as canonical or run-scoped evidence, give its full canonical path or canonical root, and specify preserve/append/replace/create behavior for create, update, fix, and each terminal state.",
       "dont": "Split path authority across multiple sections, use basename-only references, or leave artifact lifecycle behavior implicit for any terminal state.",
       "source": "group-1-blocking",
@@ -198,7 +204,13 @@
     {
       "id": "ARB-017",
       "rule": "When a role inherits platform governance, define authority order and review semantics from the approved higher-order architecture, then reference that model consistently without local reinvention.",
-      "applies_to": ["Authority", "governance", "freeze", "approval", "arbitration sections in role definitions"],
+      "applies_to": [
+        "Authority",
+        "governance",
+        "freeze",
+        "approval",
+        "arbitration sections in role definitions"
+      ],
       "do": "State the precedence chain explicitly with live governance first, request or contract next, and static docs as reference evidence only; reuse the approved freeze outcomes and arbitration limits exactly.",
       "dont": "Let local docs outrank live governance, require stricter or different approval semantics than the approved review process, or invent new arbitration triggers or powers.",
       "source": "group-2-major",
@@ -207,7 +219,12 @@
     {
       "id": "ARB-018",
       "rule": "Canonical identity fields must describe the enduring mission of the role package, not the current run state or recovery action.",
-      "applies_to": ["Contract intent", "mission", "purpose", "summary fields in role packages"],
+      "applies_to": [
+        "Contract intent",
+        "mission",
+        "purpose",
+        "summary fields in role packages"
+      ],
       "do": "Write intent as a timeless standing purpose and move resume, bootstrap, or round-specific context into a separate run_context, notes, or execution-state field.",
       "dont": "Use the canonical intent field to describe the current invocation, resume status, or other transient run conditions.",
       "source": "group-3-minor-intent",
@@ -216,7 +233,9 @@
     {
       "id": "ARB-019",
       "rule": "Define the write boundary as an explicit governed surface rooted in the active runtime contract. The role definition must name every writable area precisely: canonical package targets, the current run directory, and any explicitly governed support artifacts; static documents may justify those paths as reference evidence but do not themselves grant operative write authority.",
-      "applies_to": ["role definitions that declare authority sources or writable artifact scope"],
+      "applies_to": [
+        "role definitions that declare authority sources or writable artifact scope"
+      ],
       "do": "Anchor writable scope to the COO/runtime contract and list exact tool-relative roots or paths for every allowed write area.",
       "dont": "Treat static docs as operative authority for writes or leave the writable surface implicit, abstract, or partially specified.",
       "source": "group-1-major-authority-write-boundary",
@@ -225,7 +244,9 @@
     {
       "id": "ARB-020",
       "rule": "Define the authority chain using operative sources only. Durable authority layers may include only binding governance sources; reference documents, examples, bootstrap context, and request-scoped runtime settings must be classified separately unless an approved higher-order source explicitly promotes them into authority.",
-      "applies_to": ["design (role definition)"],
+      "applies_to": [
+        "design (role definition)"
+      ],
       "do": "State what wins across controller governance, runtime contract, request/config, and reference evidence; keep request-time knobs in runtime config unless a governing source requires them in the durable role.",
       "dont": "Do not list static references as superiors, and do not embed run-specific settings or bootstrap context inside the durable authority model.",
       "source": "group-2-major-authority-chain; unresolved-2",
@@ -234,7 +255,9 @@
     {
       "id": "ARB-021",
       "rule": "Include only source-backed governance mechanics in the durable role package. Any leadership rule, arbitration model, threshold, or terminal-policy behavior must trace to an approved governing source; otherwise it belongs in run evidence, request/config, or an explicit open decision.",
-      "applies_to": ["design (role definition)"],
+      "applies_to": [
+        "design (role definition)"
+      ],
       "do": "Trace each governance behavior to an approved architecture or governing contract, and externalize provisional runtime policies into evidence or config.",
       "dont": "Do not invent unsupported board, leader, arbitration, or policy semantics in the canonical role definition.",
       "source": "group-3-major-unsourced-governance; unresolved-3",
@@ -243,10 +266,49 @@
     {
       "id": "ARB-022",
       "rule": "Keep scope declarations polarity-pure. Inclusion statements belong only in in-scope sections such as Use when or Owns, and out-of-scope sections must contain exclusions only.",
-      "applies_to": ["design (role definition)"],
+      "applies_to": [
+        "design (role definition)"
+      ],
       "do": "Move positive clarifications to inclusion or authority sections and keep one exclusion statement per concept.",
       "dont": "Do not embed in-scope clarifications inside out-of-scope bullets or mix inclusion and exclusion semantics in the same list item.",
       "source": "group-2-minor-scope-structure",
+      "version": 1
+    },
+    {
+      "id": "ARB-023",
+      "rule": "When a role definition inherits a governed multi-round review process, define the round as an ordered sub-sequence and bind each sub-step to its required per-round artifacts.",
+      "applies_to": [
+        "<steps>",
+        "<outputs>",
+        "<completion>"
+      ],
+      "do": "Enumerate the review-round flow in order, including compliance mapping, learning-engine execution before fixes, fix-items mapping when applicable, reviewer verdict production, and any per-round post-round artifact writes; name the artifact written at each sub-step.",
+      "dont": "Collapse governed review into a single generic 'review' step or omit mandatory intra-round artifacts and their write points.",
+      "source": "Round 0 finding group-2 (missing governed intra-round steps); docs/v0/review-process-architecture.md",
+      "version": 1
+    },
+    {
+      "id": "ARB-024",
+      "rule": "A governed LLM role must explicitly declare its component-local governance artifacts and inherited runtime governance obligations.",
+      "applies_to": [
+        "<authority>",
+        "<guardrails>",
+        "<context-gathering>"
+      ],
+      "do": "State which governance artifacts the role owns, maintains, or must load from its component boundary, and name mandatory runtime obligations such as telemetry emission for governed LLM invocations where the architecture requires them.",
+      "dont": "Assume rulebook, review-prompt, or telemetry obligations are implicit just because they exist in higher-order architecture.",
+      "source": "Round 0 finding group-4 (telemetry and governance artifacts omitted); docs/v0/review-process-architecture.md; docs/v0/architecture.md",
+      "version": 1
+    },
+    {
+      "id": "ARB-025",
+      "rule": "Required inputs must enumerate every external prerequisite that the role needs to validate authority, execute the workflow, or reach a terminal decision.",
+      "applies_to": [
+        "<required-inputs>"
+      ],
+      "do": "List all runtime-supplied prerequisites that gate execution or review semantics, including board composition, governance configuration, and runtime configuration when the role depends on them.",
+      "dont": "Omit required inputs because they are expected to be supplied by the framework or implied by surrounding process docs.",
+      "source": "Round 0 finding group-5 (incomplete required inputs); docs/v0/review-process-architecture.md; docs/v0/architecture.md",
       "version": 1
     }
   ]

@@ -1,0 +1,254 @@
+{
+  "round": 0,
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Both reviewers returned `reject`, and the governing docs confirm the draft still has blocking/major divergences from the canonical review architecture. The package cannot freeze because the review loop invents non-canonical verdict/arbitration semantics, `<outputs>` still omits the required canonical `tools/agent-role-builder/role/...` paths, and the governed artifact and authority contract is incomplete. These are recoverable design issues rather than an unrecoverable execution failure, so the correct terminal status is `pushback` rather than `blocked`.",
+  "unresolved": [
+    "Normalize board-review semantics to the canonical `approved|conditional|reject` model: remove invented `changes_required`, remove generic `Arbitrate after 2+ consecutive splits`, restrict arbitration to `minor`/`suggestion` items only, and restore the conditional / `frozen_with_conditions` path required by `docs/v0/review-process-architecture.md`.",
+    "Make package outputs path-stable and canonical: reference `tools/agent-role-builder/role/agent-role-builder-role.md`, `tools/agent-role-builder/role/agent-role-builder-role-contract.json`, `tools/agent-role-builder/role/agent-role-builder-decision-log.md`, and `tools/agent-role-builder/role/agent-role-builder-board-summary.md` explicitly in `<outputs>` and Step 5, and align decision-log / board-summary / result behavior across `<steps>`, `<outputs>`, and `<completion>` for every terminal state.",
+    "Complete the governed run artifact matrix required by the review architecture: per-round `review.json`, `learning.json`, `compliance-map.json`, `fix-items-map.json`, and `diff-summary.json`, plus terminal `run-postmortem.json`, `cycle-postmortem.json`, and conditional `bug-report.json` / error-escalation outputs.",
+    "Codify authority precedence and governed-component obligations: COO/controller first, then `docs/v0/review-process-architecture.md` and `docs/v0/architecture.md`, then request/governance/runtime config and source refs; do not use `docs/VISION.md` as an operational superior; declare rulebook/review-prompt usage and telemetry obligations explicitly."
+  ],
+  "improvementsApplied": [
+    "The markdown draft already includes board roster, governance config, and runtime config in `<inputs>`; that reviewer concern remains a markdown/contract coherence issue rather than a total omission in the draft.",
+    "The draft already separates canonical, evidence, and internal run artifacts in `<outputs>`, which is a useful structure to keep while replacing slug-only names with canonical tool-relative paths and adding the missing governed artifacts.",
+    "Split-verdict handling and the `no material pushback` freeze rule are already present and should be retained while being normalized to the canonical review-process lifecycle."
+  ],
+  "reviewerVerdicts": {
+    "reviewer-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "The review-loop semantics diverge from the canonical governance model and introduce non-canonical behavior.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The draft invents an arbitration trigger, \"Arbitrate after 2+ consecutive splits,\" but the canonical review architecture allows arbitration only for minor/suggestion disagreements and never as a generic split-resolution mechanism.",
+              "source_section": "<steps> / 4. Execute board review with revision loop"
+            },
+            {
+              "id": "f2",
+              "description": "The guardrails reference a `changes_required` verdict even though the canonical verdict set is `approved`, `conditional`, or `reject` only. That creates invented review semantics.",
+              "source_section": "<guardrails>"
+            },
+            {
+              "id": "f3",
+              "description": "The freeze rule requires every reviewer to `approve`, which drops the canonical `conditional` pass path and also omits the architecture's `frozen_with_conditions` outcome where the invoker decides whether to accept deferred minor items.",
+              "source_section": "<guardrails>; <steps> / 4. Execute board review with revision loop; <completion>"
+            }
+          ],
+          "redesign_guidance": "Rebuild the review-loop section directly from `docs/v0/review-process-architecture.md`: verdicts must be `approved|conditional|reject`; split verdicts re-run only the rejecting reviewer plus final sanity check; arbitration must be explicitly minor/suggestion-only; and the lifecycle must represent both clean freeze and `frozen_with_conditions` with invoker authority."
+        },
+        {
+          "id": "group-2",
+          "summary": "The artifact contract is incomplete and the lifecycle is not testable against the required package and audit outputs.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "The `<outputs>` section does not reference the required canonical package files from the contract summary. It uses generic `<slug>-...` names instead of the required paths for `tools/agent-role-builder/role/agent-role-builder-role.md`, `agent-role-builder-role-contract.json`, `agent-role-builder-decision-log.md`, and `agent-role-builder-board-summary.md`.",
+              "source_section": "<outputs>"
+            },
+            {
+              "id": "f5",
+              "description": "Lifecycle evidence is underspecified relative to the canonical review architecture: the draft does not surface the mandated per-round artifacts (`review.json`, `learning.json`, `compliance-map.json`, `fix-items-map.json`, `diff-summary.json`) or terminal audit artifacts such as `run-postmortem.json`, `cycle-postmortem.json`, and `bug-report.json`.",
+              "source_section": "<steps>; <outputs>"
+            },
+            {
+              "id": "f6",
+              "description": "The write/promote lifecycle is internally inconsistent: Step 5 says decision log and board summary are written always, `<outputs>` describes them as canonical artifacts promoted on freeze, and `<completion>` only requires the decision log on freeze. That makes freeze, pushback, and resume states ambiguous.",
+              "source_section": "<steps> / 5. Resolve and promote; <outputs>; <completion>"
+            }
+          ],
+          "redesign_guidance": "Make the package outputs explicit and path-stable. Name the four canonical package files exactly as required by the contract summary, then enumerate the governed run artifacts and terminal artifacts required by the review architecture. Align Step 5, `<outputs>`, and `<completion>` so each terminal state has a single testable artifact set."
+        },
+        {
+          "id": "group-3",
+          "summary": "Authority precedence is not clear enough for a governed component.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f7",
+              "description": "The authority section omits `docs/v0/review-process-architecture.md` even though it is the canonical governance source for this tool's board process, and it does not define precedence between COO controller instructions, architecture, review-process governance, request JSON, governance/runtime config, and source refs.",
+              "source_section": "<authority>; <inputs>"
+            },
+            {
+              "id": "f8",
+              "description": "Using `docs/VISION.md` as a named subordinate authority is too high-level for operational conflict resolution and risks letting aspirational intent outrank the concrete governed review rules.",
+              "source_section": "<authority>"
+            }
+          ],
+          "redesign_guidance": "Rewrite `<authority>` as an explicit precedence chain. The role should report to the COO controller, obey the review-process and architecture governance docs for review mechanics, then apply request/governance/runtime config within those bounds. Separate strategic context sources from operational authority sources."
+        }
+      ],
+      "residual_risks": [
+        "If implemented as written, the tool can deadlock or mis-freeze runs because conditional and arbitration paths are not aligned to canonical governance.",
+        "Automation for promotion, resume, and audit verification will remain brittle until canonical output paths and run artifacts are explicit.",
+        "Authority conflicts between controller policy and per-run config will keep resurfacing in later rounds unless precedence is codified."
+      ],
+      "strengths": [
+        "The draft clearly centers the role on governed multi-LLM review and on freezing only when material pushback is gone.",
+        "The scope boundaries against tool creation, code implementation, and external runtime orchestration are directionally aligned with the contract summary.",
+        "The tag set is present and the request/baseline/resume inputs are mostly well-framed for create, update, and fix flows."
+      ]
+    },
+    "reviewer-claude-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Canonical promotion path absent — outputs section specifies slug-relative names only, with no destination directory",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1-a",
+              "description": "The <outputs> section lists artifacts as '<slug>-role.md', '<slug>-role-contract.json', etc. without specifying the canonical destination directory 'tools/agent-role-builder/role/'. An agent following this role has no authoritative path for promotion. The contract's required_outputs array provides the full paths but the role itself — the authoritative behavioral specification — does not. Self-check confirms 4 MISSING_REQUIRED_OUTPUT warnings.",
+              "source_section": "<outputs> canonical artifacts block; role-contract.json required_outputs array"
+            },
+            {
+              "id": "f1-b",
+              "description": "Step 5 says 'If frozen: promote to canonical directory' but never defines what that directory is. An agent reading only the role markdown cannot determine the destination without reading the contract, which violates the principle that the role is self-contained.",
+              "source_section": "<steps> Step 5 Resolve and promote"
+            }
+          ],
+          "redesign_guidance": "Add a 'Canonical directory: tools/agent-role-builder/role/' declaration to the <outputs> section, either as a preamble line or as an explicit path qualifier on each canonical artifact entry. The <steps> Step 5 promote action should reference this canonical directory by name. The role must be sufficient as a standalone behavioral specification — the agent cannot be required to read the contract to know where its own outputs go."
+        },
+        {
+          "id": "group-2",
+          "summary": "Governed review loop is missing its three required intra-round steps: learning engine, compliance map, and fix items map",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f2-a",
+              "description": "Step 4 omits the learning engine call. Per review-process-architecture.md: 'After each review round and before any fix attempt, the learning engine receives the reviewer feedback and... updates the specific component's rulebook.json.' This is a mandatory step in the canonical review loop — omitting it from the role means an agent will skip it.",
+              "source_section": "<steps> Step 4; review-process-architecture.md Step 5 On review failure"
+            },
+            {
+              "id": "f2-b",
+              "description": "Step 4 omits implementer delta compliance map production. Per review-process-architecture.md Step 2: 'The implementer checks its work against the rulebook and produces a JSON compliance map.' Full sweep on first and last rounds; delta on middle rounds. Neither the step description nor outputs mention compliance-map.json.",
+              "source_section": "<steps> Step 4; review-process-architecture.md Step 2"
+            },
+            {
+              "id": "f2-c",
+              "description": "Step 4 omits fix items map production (rounds 2+). Per review-process-architecture.md Step 3: 'the implementer produces a fix items map showing for each reviewer finding: accepted or rejected.' This is required for the negotiation protocol. Neither step actions nor round outputs mention fix-items-map.json.",
+              "source_section": "<steps> Step 4; review-process-architecture.md Step 3"
+            }
+          ],
+          "redesign_guidance": "Step 4 must be expanded to explicitly enumerate the per-round sub-sequence: (1) implementer produces compliance map (full on round 0 and final, delta otherwise), (2) learning engine runs on rejection before fix, updating rulebook.json, (3) implementer produces fix items map on rounds 2+, (4) reviewers produce structured verdict with fix decision map. The rounds/ output in Step 4 should list the per-round artifacts: round-N/compliance-map.json, round-N/fix-items-map.json, round-N/learning.json, round-N/review.json."
+        },
+        {
+          "id": "group-3",
+          "summary": "Post-mortem and error-escalation artifacts required by system-wide architecture rules are absent from outputs",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f3-a",
+              "description": "run-postmortem.json is not listed in outputs. Architecture.md Three-Tier Post-Mortem Rule: 'Run post-mortem (after every round): KPI snapshot + rulebook update.' This applies to every governed component — agent-role-builder is a governed component.",
+              "source_section": "<outputs>; architecture.md Three-Tier Post-Mortem Rule; review-process-architecture.md Tier 1"
+            },
+            {
+              "id": "f3-b",
+              "description": "cycle-postmortem.json is not listed in outputs. Architecture.md: 'Cycle post-mortem (on terminal verdict): job summary + deeper learning + self-healing.' Missing from both <outputs> and Step 5 Resolve and promote.",
+              "source_section": "<outputs>; <steps> Step 5; architecture.md Tier 2"
+            },
+            {
+              "id": "f3-c",
+              "description": "bug-report.json is not listed as a conditional output. Architecture.md Error Escalation Rule: 'When any governed component hits an unrecoverable error, it must stop immediately and produce a structured bug report.' This is a required artifact type for every governed component.",
+              "source_section": "<outputs>; architecture.md Error Escalation Rule; review-process-architecture.md Error Escalation Pattern"
+            }
+          ],
+          "redesign_guidance": "Add to <outputs>: 'run-postmortem.json -- Always: per-round KPI snapshot (written after each round)', 'cycle-postmortem.json -- Always: job-level learning and self-healing summary (written on terminal verdict)', 'bug-report.json -- Conditional: structured error report on unrecoverable failure'. Add a Step 4 sub-action for run post-mortem after each round, and a Step 5 action for cycle post-mortem before the terminal state is written."
+        },
+        {
+          "id": "group-4",
+          "summary": "Telemetry obligations and per-component governance artifacts (rulebook, review-prompt) are not referenced in the role",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f4-a",
+              "description": "Telemetry is entirely absent from the role. Architecture.md Telemetry Rule: 'Every operation that consumes resources must emit telemetry.' Board-review rounds invoke multiple LLM calls — each must emit telemetry (tokens in/out, cost estimate, latency, model). No mention in <guardrails>, <steps>, or <outputs>.",
+              "source_section": "<guardrails>; <steps>; architecture.md Telemetry Rule"
+            },
+            {
+              "id": "f4-b",
+              "description": "The role never references rulebook.json or review-prompt.json that the agent-role-builder itself must maintain as a governed component. Architecture.md Review Process Rule: 'Every component that goes through governed review must have a rulebook.json in its directory and a review-prompt.json.' The self-role must declare ownership of these artifacts.",
+              "source_section": "<authority> Owns; <context-gathering>; architecture.md Review Process Rule"
+            }
+          ],
+          "redesign_guidance": "Add to <guardrails>: 'Every LLM invocation within a board-review round must emit telemetry (tokens, cost, latency, model).' Add to <authority> Owns: 'tools/agent-role-builder/rulebook.json maintenance' and 'tools/agent-role-builder/review-prompt.json maintenance'. Add to <context-gathering> step 1: 'Load rulebook.json before generating or revising any draft — implementer must walk all rules against the artifact.'"
+        },
+        {
+          "id": "group-5",
+          "summary": "Minor structural issues: missing terminal state, duplicate scope entry, and incomplete required inputs",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f5-a",
+              "description": "'frozen_with_conditions' is missing from the <completion> terminal state list. review-process-architecture.md Arbitration section: 'The result must reflect it as partial acceptance — frozen_with_conditions (distinct from clean frozen).' The completion criteria must be testable against every terminal state.",
+              "source_section": "<completion>; review-process-architecture.md Arbitration Result"
+            },
+            {
+              "id": "f5-b",
+              "description": "'Application workflow creation' appears twice in <scope> Not in scope list (lines 33 and 36). The second entry is a clarification ('role definition markdown is a role specification, not a workflow') but reads as a duplicate.",
+              "source_section": "<scope> Not in scope"
+            },
+            {
+              "id": "f5-c",
+              "description": "The <inputs> Required list omits 'Board roster configuration (leader plus Codex/Claude reviewer pairs)' and 'Governance config (max_review_rounds, freeze/pushback rules)' and 'Runtime config (execution_mode, watchdog timeout, launch attempts)'. The contract summary lists these as required inputs. The role <inputs> section must be authoritative and complete.",
+              "source_section": "<inputs> Required; contract_summary.runtime; contract_summary.governance"
+            }
+          ],
+          "redesign_guidance": "Add 'frozen_with_conditions' to completion terminal states with the note that it requires invoker acceptance. Collapse the duplicate scope entry into one line with the clarification inline. Add board roster, governance config, and runtime config to the Required inputs list."
+        }
+      ],
+      "residual_risks": [
+        "The self-check treats the 4 MISSING_REQUIRED_OUTPUT issues as 'warning' severity but they are operationally blocking — an agent cannot promote artifacts without knowing the destination directory. The self-check severity calibration may need adjustment.",
+        "ARB-006, ARB-007, ARB-018, ARB-021, ARB-022 are flagged as non-compliant with low keyword coverage. These likely map to the learning engine (ARB-006/007), post-mortem (ARB-018), and error escalation (ARB-021/022) gaps identified here — fixing the role should resolve the keyword coverage issues, but the compliance map should be re-run to confirm.",
+        "The inputs section omits board roster, governance, and runtime configs as required inputs. If an agent validates required inputs before proceeding, it would not catch a missing board roster. This is a latent validation gap.",
+        "The role says the agent is 'Subordinate to: docs/v0/architecture.md, docs/VISION.md' but architecture.md states these docs are scaffolding that becomes memory engine records. Once imported, the memory engine is truth and docs are read-only. The subordination declaration may become stale without a versioned reference.",
+        "Step 3 self-check verifies the required XML tag set but the tag set is only verified structurally — no semantic validation that <guardrails> actually covers all system-wide obligations (telemetry, error escalation). The self-check step could be extended."
+      ],
+      "strengths": [
+        "All 9 required XML tags are present and populated with substantive content.",
+        "Authority hierarchy is clearly stated (COO controller > architecture.md > VISION.md) with explicit owns/does-not-own boundaries.",
+        "Scope boundaries are well-drawn, particularly the distinction between application runtime orchestration (not owned) and board-review orchestration (in scope).",
+        "Guardrails correctly implement the freeze protocol: no freeze with material pushback remaining, every pair must contain one Codex and one Claude, provenance on all artifacts.",
+        "Split-verdict handling is correctly specified in Step 4: iterate only with the rejecting reviewer.",
+        "Arbitration is correctly restricted to minor items only — the role does not grant the leader authority to override blocking or major findings.",
+        "Pushback protocol is correctly specified: return pushback instead of inventing missing role semantics.",
+        "Context-gathering preconditions are well-ordered (validate schema → verify refs → load baseline → load resume) and correctly placed before relevant steps.",
+        "The distinction between frozen (canonical promotion) and pushback/blocked/resume_required (evidence-only) paths in Step 5 is correctly implemented."
+      ]
+    }
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 132112,
+      "invocation_id": "50f949a5-971a-4e3b-95ba-84b6ddb7702b"
+    },
+    {
+      "participant_id": "reviewer-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 138354,
+      "invocation_id": "59d0f6c1-7a6f-4e23-afd3-3d4f6fe2040e"
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 137403,
+      "invocation_id": "a5219b96-d6e9-40f7-bb35-41fcb11c1b99"
+    }
+  ]
+}

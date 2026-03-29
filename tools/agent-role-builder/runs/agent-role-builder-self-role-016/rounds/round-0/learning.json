@@ -1,0 +1,79 @@
+{
+  "new_rules": [
+    {
+      "id": "ARB-023",
+      "rule": "When a role definition inherits a governed multi-round review process, define the round as an ordered sub-sequence and bind each sub-step to its required per-round artifacts.",
+      "applies_to": [
+        "<steps>",
+        "<outputs>",
+        "<completion>"
+      ],
+      "do": "Enumerate the review-round flow in order, including compliance mapping, learning-engine execution before fixes, fix-items mapping when applicable, reviewer verdict production, and any per-round post-round artifact writes; name the artifact written at each sub-step.",
+      "dont": "Collapse governed review into a single generic 'review' step or omit mandatory intra-round artifacts and their write points.",
+      "source": "Round 0 finding group-2 (missing governed intra-round steps); docs/v0/review-process-architecture.md",
+      "version": 1
+    },
+    {
+      "id": "ARB-024",
+      "rule": "A governed LLM role must explicitly declare its component-local governance artifacts and inherited runtime governance obligations.",
+      "applies_to": [
+        "<authority>",
+        "<guardrails>",
+        "<context-gathering>"
+      ],
+      "do": "State which governance artifacts the role owns, maintains, or must load from its component boundary, and name mandatory runtime obligations such as telemetry emission for governed LLM invocations where the architecture requires them.",
+      "dont": "Assume rulebook, review-prompt, or telemetry obligations are implicit just because they exist in higher-order architecture.",
+      "source": "Round 0 finding group-4 (telemetry and governance artifacts omitted); docs/v0/review-process-architecture.md; docs/v0/architecture.md",
+      "version": 1
+    },
+    {
+      "id": "ARB-025",
+      "rule": "Required inputs must enumerate every external prerequisite that the role needs to validate authority, execute the workflow, or reach a terminal decision.",
+      "applies_to": [
+        "<required-inputs>"
+      ],
+      "do": "List all runtime-supplied prerequisites that gate execution or review semantics, including board composition, governance configuration, and runtime configuration when the role depends on them.",
+      "dont": "Omit required inputs because they are expected to be supplied by the framework or implied by surrounding process docs.",
+      "source": "Round 0 finding group-5 (incomplete required inputs); docs/v0/review-process-architecture.md; docs/v0/architecture.md",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1.review-loop-semantics",
+      "covered_by_rule_id": "ARB-017",
+      "explanation": "The finding is a direct failure to inherit canonical review semantics from approved higher-order governance. Verdict set, split-review behavior, arbitration scope, and conditional freeze handling should already be taken from the platform review architecture rather than reinvented locally."
+    },
+    {
+      "finding_group_id": "group-2.artifact-contract-lifecycle",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "This is the artifact-matrix rule in action: every required artifact must be declared once with class, canonical path or root, and exact lifecycle by operation and terminal state."
+    },
+    {
+      "finding_group_id": "group-3.authority-precedence",
+      "covered_by_rule_id": "ARB-001",
+      "explanation": "The issue is the absence of a strict precedence chain with explicit layers. The role should not present authority as an ambiguous list."
+    },
+    {
+      "finding_group_id": "group-1.canonical-promotion-path",
+      "covered_by_rule_id": "ARB-008",
+      "explanation": "The outputs section already must include full tool-relative canonical paths, not basename-only or slug-relative references."
+    },
+    {
+      "finding_group_id": "group-3.postmortem-and-error-artifacts",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "If post-mortem and error-escalation artifacts are required by governing architecture, they belong in the single authoritative artifact matrix with explicit lifecycle and terminal-state behavior."
+    },
+    {
+      "finding_group_id": "group-5.missing-terminal-state",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "Terminal states must be defined as a complete mutually exclusive set with explicit triggers. Omitting `frozen_with_conditions` violates that rule."
+    },
+    {
+      "finding_group_id": "group-5.duplicate-scope-entry",
+      "covered_by_rule_id": "ARB-022",
+      "explanation": "This is a scope-polarity and scope-hygiene problem. Scope sections should be clean, non-duplicative, and contain only statements appropriate to that section."
+    }
+  ],
+  "no_rule_needed": []
+}
