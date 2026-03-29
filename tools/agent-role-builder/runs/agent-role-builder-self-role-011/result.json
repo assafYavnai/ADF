@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "tool_name": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-011",
+  "role_slug": "agent-role-builder",
+  "operation": "update",
+  "status": "blocked",
+  "execution_mode": "live-roster-v1",
+  "summary": "Agent Role Builder role blocked: Unrecoverable parse failure in round 0. Leader leader-codex-r0 response pre-validation failed: CLI failure detected: ERROR: codex failed: spawn codex ENOENT. Bug report: tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011\\bug-report-2.json",
+  "status_reason": "Unrecoverable parse failure in round 0. Leader leader-codex-r0 response pre-validation failed: CLI failure detected: ERROR: codex failed: spawn codex ENOENT. Bug report: tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011\\bug-report-2.json",
+  "output_dir": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011",
+  "canonical_role_directory": null,
+  "canonical_role_markdown_path": null,
+  "canonical_role_contract_path": null,
+  "canonical_decision_log_path": null,
+  "canonical_board_summary_path": null,
+  "pushback_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011\\agent-role-builder-pushback.json",
+  "resume_package_path": null,
+  "board": {
+    "profile": "medium",
+    "leader_count": 1,
+    "reviewer_count": 2,
+    "rounds_executed": 0,
+    "arbitration_used": false,
+    "participant_records": []
+  },
+  "evidence": {
+    "source_count": 4,
+    "missing_required_source_count": 0,
+    "validation_issue_count": 4,
+    "self_check_issue_count": 4
+  },
+  "validation_issues": [
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "error",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+    }
+  ],
+  "open_questions": [],
+  "red_flags": [
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section",
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section",
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section",
+    "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+  ]
+}

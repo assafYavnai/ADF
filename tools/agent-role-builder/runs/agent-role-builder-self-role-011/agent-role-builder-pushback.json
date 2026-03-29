@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "status": "blocked",
+  "role_slug": "agent-role-builder",
+  "issue": "The requested role package is not safe to freeze as submitted.",
+  "why_it_blocks": "Unrecoverable parse failure in round 0. Leader leader-codex-r0 response pre-validation failed: CLI failure detected: ERROR: codex failed: spawn codex ENOENT. Bug report: tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011\\bug-report-2.json",
+  "evidence": {
+    "validation_issues": [],
+    "self_check_issues": [
+      {
+        "code": "MISSING_REQUIRED_OUTPUT",
+        "severity": "warning",
+        "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section"
+      },
+      {
+        "code": "MISSING_REQUIRED_OUTPUT",
+        "severity": "warning",
+        "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section"
+      },
+      {
+        "code": "MISSING_REQUIRED_OUTPUT",
+        "severity": "warning",
+        "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section"
+      },
+      {
+        "code": "MISSING_REQUIRED_OUTPUT",
+        "severity": "warning",
+        "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+      }
+    ],
+    "board_rounds": 0,
+    "decision_log_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011\\agent-role-builder-decision-log.md",
+    "board_summary_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-011\\agent-role-builder-board-summary.md"
+  }
+}
