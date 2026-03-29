@@ -1,0 +1,205 @@
+{
+  "round": 0,
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "verdict": "{\"verdict\":\"reject\",\"conceptual_groups\":[{\"id\":\"group-1\",\"summary\":\"Board-governance semantics are invented or overconstrained relative to the request schema and runtime behavior.\",\"severity\":\"major\",\"findings\":[{\"id\":\"f1\",\"description\":\"The role summary says every governed run requires one live Codex leader, but the request schema allows the leader provider to be `codex`, `claude`, or `gemini`; only reviewer pairing is constrained to Codex+Claude.\",\"source_section\":\"<role>\"},{\"id\":\"f2\",\"description\":\"The draft says freeze requires every reviewer to approve and that any disagreement keeps the run non-frozen, but the board contract/runtime freezes on no blocking or major issues and treats `conditional` as non-blocking. This changes the actual freeze rule.\",\"source_section\":\"<guardrails> / <steps>\"},{\"id\":\"f3\",\"description\":\"`changes_required` is referenced as a governing verdict even though the reviewer contract only defines `approved`, `conditional`, and `reject`. That adds semantics not present in the review protocol.\",\"source_section\":\"<guardrails>\"}],\"redesign_guidance\":\"Align all board rules to the actual contract: require Codex+Claude reviewer pairs, do not hardcode a Codex-only leader unless the schema does, and express freeze criteria in materiality terms (`approved` or `conditional` allowed, no blocking/major unresolved items). Remove verdict names that do not exist in the protocol.\"},{\"id\":\"group-2\",\"summary\":\"Authority and filesystem boundary are not stated in an enforceable way.\",\"severity\":\"major\",\"findings\":[{\"id\":\"f4\",\"description\":\"The authority chain presents static docs as operative subordination, but the bootstrap and architecture say the COO controller governs turns and runtime rules come from the memory engine. As written, authority is unclear about what is live governance versus reference evidence.\",\"source_section\":\"<authority>\"},{\"id\":\"f5\",\"description\":\"`Filesystem writes outside role package directories` is too vague for this workflow. The tool writes both canonical role artifacts and run-scoped artifacts (`drafts/`, `rounds/`, `runtime/`, `result.json`), so the allowed write surface is not actually defined.\",\"source_section\":\"<authority>\"}],\"redesign_guidance\":\"State runtime authority in the same order the project does: COO-governed execution first, memory-engine rules as live governance when applicable, and docs as reference authority. Then define the write boundary precisely: canonical role package directory plus the current governed run directory and its known artifact subpaths.\"},{\"id\":\"group-3\",\"summary\":\"Artifact lifecycle is incomplete and pathing is inconsistent with the required outputs.\",\"severity\":\"major\",\"findings\":[{\"id\":\"f6\",\"description\":\"Canonical artifacts in `<outputs>` are listed as bare filenames, but the required outputs are canonical paths under `tools/agent-role-builder/role/`. The self-check failures correctly show that the authoritative canonical paths are missing from the package definition.\",\"source_section\":\"<outputs> / Self-check issues\"},{\"id\":\"f7\",\"description\":\"The draft mixes canonical promotion and run-directory emission without clearly separating them by terminal state. Step 5 says decision log and board summary are written always, `<outputs>` says they are canonical on freeze, and `<completion>` refers generically to an `output directory`, leaving lifecycle and location ambiguous.\",\"source_section\":\"<steps> / <outputs> / <completion>\"}],\"redesign_guidance\":\"Use exact canonical paths for frozen artifacts and explicitly distinguish them from run-directory artifacts. Define, by terminal state, which artifacts are always written in the run directory, which are conditional (`pushback`, `resume_required`), and which are promoted to `tools/agent-role-builder/role/` only on freeze.\"},{\"id\":\"group-4\",\"summary\":\"Scope text has redundant exclusions that weaken boundary clarity.\",\"severity\":\"minor\",\"findings\":[{\"id\":\"f8\",\"description\":\"`Application workflow creation` appears twice in the not-in-scope list, once bare and once with clarification. The duplication looks accidental and makes the exclusion less crisp.\",\"source_section\":\"<scope>\"},{\"id\":\"f9\",\"description\":\"`Application runtime orchestration` is excluded twice with slightly different phrasing, which adds noise rather than a sharper boundary.\",\"source_section\":\"<scope>\"}],\"redesign_guidance\":\"Collapse duplicated exclusions into single lines with the clarifying parenthetical kept once.\"}],\"residual_risks\":[\"The arbitration path is still underdefined at the role level; if kept, it should be tied to the governing review rules instead of free text in Step 4.\",\"Hardcoding the exact tag set in Step 3 may become brittle if the governed tag schema evolves and the role does not name the authority for that schema.\",\"If canonical versus run-artifact locations remain ambiguous, future self-checks and promotions will continue to disagree even when the prose looks complete.\"],\"strengths\":[\"The core mission is clear: create, update, and fix agent role packages through governed multi-LLM review.\",\"The draft correctly treats invented semantics as pushback-worthy and keeps authority expansion out of scope.\",\"The lifecycle shape is close to usable because it already distinguishes canonical, evidence, and internal artifacts at a high level.\"]}",
+      "round": 0,
+      "latency_ms": 98088,
+      "invocation_id": "f6bb0f1e-c576-4bd8-ad85-2a52b6b92b4e"
+    },
+    {
+      "participant_id": "reviewer-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "verdict": "```json\n{\n  \"verdict\": \"conditional\",\n  \"conceptual_groups\": [\n    {\n      \"id\": \"group-1\",\n      \"summary\": \"Output paths are symbolic placeholders, not absolute canonical paths\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f1\",\n          \"description\": \"The <outputs> section lists artifact names like '<slug>-role.md' but does not specify the canonical directory path (e.g., tools/agent-role-builder/role/). The self-check flags four MISSING_REQUIRED_OUTPUT issues because the outputs section uses relative slug-prefixed names without directory anchoring.\",\n          \"source_section\": \"<outputs>\"\n        },\n        {\n          \"id\": \"f2\",\n          \"description\": \"contract package_files paths use bare filenames (e.g., 'agent-role-builder-role.md') without directory prefix, creating ambiguity about promotion target. This is inconsistent with self-check expected paths like 'tools/agent-role-builder/role/agent-role-builder-role.md'.\",\n          \"source_section\": \"contract.package_files\"\n        }\n      ],\n      \"redesign_guidance\": \"In <outputs>, add the canonical directory prefix to all promoted artifacts, e.g., 'tools/agent-role-builder/role/<slug>-role.md'. Update contract package_files to match. This resolves all four self-check MISSING_REQUIRED_OUTPUT flags without any semantic change.\"\n    },\n    {\n      \"id\": \"group-2\",\n      \"summary\": \"Duplicate and redundant scope entries weaken authority clarity\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f3\",\n          \"description\": \"'Application workflow creation' appears twice in the <scope> Not-in-scope list.\",\n          \"source_section\": \"<scope>\"\n        },\n        {\n          \"id\": \"f4\",\n          \"description\": \"'Application runtime orchestration' appears twice in the <scope> Not-in-scope list with slightly different parenthetical qualifications, creating potential confusion about whether board-review orchestration is in or out of scope.\",\n          \"source_section\": \"<scope>\"\n        }\n      ],\n      \"redesign_guidance\": \"Deduplicate both entries. Merge the two 'Application runtime orchestration' lines into one clear statement: 'Application runtime orchestration outside this tool (board-review orchestration within this tool is in scope).' This matches the contract out_of_scope wording.\"\n    },\n    {\n      \"id\": \"group-3\",\n      \"summary\": \"ARB rule non-compliance flags (ARB-006, 007, 018, 021, 022) unresolved — LLM review deferred\",\n      \"severity\": \"minor\",\n      \"findings\": [\n        {\n          \"id\": \"f5\",\n          \"description\": \"Five rules (ARB-006, ARB-007, ARB-018, ARB-021, ARB-022) have keyword coverage below 45% and are marked 'needs LLM review'. Their content is not visible in the provided compliance map, so it is unknown whether the role is materially non-compliant or merely missing keywords.\",\n          \"source_section\": \"compliance_map\"\n        }\n      ],\n      \"redesign_guidance\": \"Expose the rule text for ARB-006/007/018/021/022 in the next revision submission so the reviewer can assess whether the role body satisfies them semantically. If the rules concern escalation paths, failure modes, or provenance (common low-coverage categories), add brief explicit language in <guardrails> or <steps> to cover them.\"\n    },\n    {\n      \"id\": \"group-4\",\n      \"summary\": \"context-gathering step 3 condition is ambiguous for the 'create' operation\",\n      \"severity\": \"suggestion\",\n      \"findings\": [\n        {\n          \"id\": \"f6\",\n          \"description\": \"Step 3 says 'If operation is update or fix, load the baseline role package before draft generation.' It is silent on what happens when operation is 'create' and a file with the same slug already exists on disk. No guard prevents silent overwrite.\",\n          \"source_section\": \"<context-gathering>\"\n        }\n      ],\n      \"redesign_guidance\": \"Add a line: 'If operation is create and a canonical artifact already exists at the target path, treat as a conflict and return pushback rather than silently overwriting.' This closes a potential data-loss edge case with no authority change.\"\n    }\n  ],\n  \"residual_risks\": [\n    \"ARB-006/007/018/021/022 remain unverified — if any concern escalation or data-integrity requirements, the role may be silently non-compliant after approval.\",\n    \"No explicit mention of what happens if the board roster contains only one pair and that pair splits — arbitration trigger is defined but quorum for a single-pair board is not specified.\",\n    \"Contract intent field references 'Resume and finalize' suggesting this is a continuation run, but the role itself does not distinguish bootstrap/self-role semantics from normal operation — a future reader may be confused by the intent mismatch.\"\n  ],\n  \"strengths\": [\n    \"Freeze conditions are precise and conservative: requires unanimous approval and no unresolved material issues — no ambiguity about when a run is done.\",\n    \"Artifact lifecycle is well-structured: internal, evidence, and canonical artifacts are clearly separated with promotion gating on freeze.\",\n    \"Split-verdict and arbitration logic is explicit in <steps> Step 4, covering the common failure mode of reviewer disagreement.\",\n    \"Self-check coherence verification step (Step 3) including required XML tag enumeration is a strong quality gate that most role drafts omit.\",\n    \"Authority boundaries are clearly stated with explicit 'does not own' list, reducing scope creep risk.\"\n  ]\n}\n```",
+      "round": 0,
+      "latency_ms": 28922,
+      "invocation_id": "7f24d5db-ebce-40b3-822f-cadfe3eaf851"
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "verdict": "{\"status\":\"pushback\",\"rationale\":\"Status is pushback because `reviewer-codex-r0` returned `reject` with three material major conceptual groups, and those issues remain unresolved. `reviewer-claude-r0` was only `conditional` with minor/suggestion feedback, which does not block by itself but also does not override a material reject. The defects are revisable role-definition and governance inconsistencies, not a non-recoverable execution failure, so `blocked` is not warranted.\",\"unresolved\":[\"Board-governance semantics are not source-aligned: the draft hardcodes a Codex-only leader, requires unanimous approval to freeze, and references an unsupported `changes_required` verdict instead of the approved materiality-based freeze model where `approved` or `conditional` can freeze if no blocking/major issues remain.\",\"Authority and write-boundary semantics are not enforceable: operative authority order is unclear, static docs are treated like live superiors, and the writable surface is not precisely defined for both canonical role artifacts and run-scoped artifacts.\",\"Artifact path and lifecycle semantics are inconsistent: `<outputs>` does not declare the required canonical `tools/agent-role-builder/role/...` paths, the self-check already flags those outputs as missing, and Step 5 / `<completion>` do not define one authoritative lifecycle across frozen and non-frozen outcomes.\"],\"improvements_applied\":[\"Step 3 explicitly enumerates the required XML tag set, which tightens the self-check target.\",\"The draft separates outputs into canonical artifacts, evidence artifacts, and internal run artifacts instead of one undifferentiated list.\",\"The workflow already distinguishes leader drafting, self-check, board review, and terminal resolution, with reviewer-pair and provenance guardrails present.\"],\"arbitration_used\":false,\"arbitration_rationale\":null}",
+      "round": 0,
+      "latency_ms": 82376,
+      "invocation_id": "66668b80-7819-42d2-abb4-eefc9aaa6eea"
+    }
+  ],
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Status is pushback because `reviewer-codex-r0` returned `reject` with three material major conceptual groups, and those issues remain unresolved. `reviewer-claude-r0` was only `conditional` with minor/suggestion feedback, which does not block by itself but also does not override a material reject. The defects are revisable role-definition and governance inconsistencies, not a non-recoverable execution failure, so `blocked` is not warranted.",
+  "unresolved": [
+    "Board-governance semantics are not source-aligned: the draft hardcodes a Codex-only leader, requires unanimous approval to freeze, and references an unsupported `changes_required` verdict instead of the approved materiality-based freeze model where `approved` or `conditional` can freeze if no blocking/major issues remain.",
+    "Authority and write-boundary semantics are not enforceable: operative authority order is unclear, static docs are treated like live superiors, and the writable surface is not precisely defined for both canonical role artifacts and run-scoped artifacts.",
+    "Artifact path and lifecycle semantics are inconsistent: `<outputs>` does not declare the required canonical `tools/agent-role-builder/role/...` paths, the self-check already flags those outputs as missing, and Step 5 / `<completion>` do not define one authoritative lifecycle across frozen and non-frozen outcomes."
+  ],
+  "improvementsApplied": [
+    "Step 3 explicitly enumerates the required XML tag set, which tightens the self-check target.",
+    "The draft separates outputs into canonical artifacts, evidence artifacts, and internal run artifacts instead of one undifferentiated list.",
+    "The workflow already distinguishes leader drafting, self-check, board review, and terminal resolution, with reviewer-pair and provenance guardrails present."
+  ],
+  "markdown": "<!-- profile: agent -->\n# Agent Role Builder\n\n<role>\nYou are the Agent Role Builder. You create, update, and fix agent role packages through governed multi-LLM review. Every governed run requires one live Codex leader and at least one live Codex+Claude reviewer pair, and a package freezes only when no material pushback remains.\n</role>\n\n<authority>\n- Reports to: COO controller\n- Subordinate to: docs/v0/architecture.md, docs/VISION.md\n- Owns:\n- Agent role package creation (role definition markdown and contract JSON)\n- Board-review orchestration: launching and coordinating Codex+Claude reviewer pairs within this tool\n- Role contract generation and schema validation\n- Self-check coherence verification between markdown and contract\n- Decision logging and board summary production for role packages\n- Does not own:\n- Tool creation (llm-tool-builder owns that)\n- Code implementation or execution\n- Application runtime orchestration (the COO controller owns that)\n- Filesystem writes outside role package directories\n</authority>\n\n<scope>\nUse when:\n- A new agent role package must be created\n- An existing agent role package must be updated\n- A broken or incomplete role package must be fixed\n- agent-role-builder must create or revise its own role (bootstrap)\n\nNot in scope:\n- Tool creation (owned by llm-tool-builder)\n- Application workflow creation\n- Code implementation or execution\n- Application runtime orchestration outside board-review\n- Application workflow creation (role definition markdown is a role specification, not a workflow)\n- Application runtime orchestration (board-review orchestration within this tool is in scope)\n</scope>\n\n<context-gathering>\n1. Load the role definition request JSON and validate against schema (precondition before Step 1)\n2. Verify all required source_refs exist on disk (precondition before Step 1)\n3. If operation is update or fix, load the baseline role package before draft generation (Step 2).\n4. If resuming a prior run, load the resume package before board review and treat it as evidence that constrains the next round.\n</context-gathering>\n\n<inputs>\nRequired:\n- Role definition request JSON matching RoleBuilderRequest schema\n- Source refs pointing to documents referenced in the request\n- Board roster configuration (leader plus Codex/Claude reviewer pairs)\n- Governance config (max_review_rounds, freeze/pushback rules)\n- Runtime config (execution mode, watchdog timeout, launch attempts)\n\nOptional:\n- Baseline role package (for update/fix operations)\n- Resume package (for continuing a prior run)\n\nExamples:\n- Create request for a new classifier agent role\n- Update request to strengthen guardrails on an existing role\n</inputs>\n\n<guardrails>\n- Never invent missing role semantics — return pushback instead\n- Never expand authority beyond what the request defines\n- Never freeze a role package with material pushback remaining (blocking or major severity)\n- Every reviewer pair must contain one Codex and one Claude reviewer — minimum one pair required\n- All role artifacts must be slug-prefixed\n- Decision history must be preserved across update/fix operations\n- Provenance must be attached to all operations and artifacts\n- Freeze only when every reviewer approves and the leader reports no unresolved material issues\n- Any reviewer disagreement or changes_required verdict keeps the run non-frozen until resolved\n</guardrails>\n\n<steps>\n### 1. Validate and normalize the request\n- Parse request JSON against schema\n- Verify source_refs exist\n- Validate board roster pair composition\n\nOutputs:\n- normalized-request.json (internal)\n- source-manifest.json (internal)\n\n### 2. Generate leader draft\n- Generate tagged markdown with all required XML tags\n- Generate role contract JSON\n\nOutputs:\n- drafts/<slug>-role.md (draft)\n- drafts/<slug>-role-contract.json (draft)\n\n### 3. Self-check coherence\n- Verify XML tags present\n- Semantic out-of-scope matching\n- Structural output validation\n- Lifecycle consistency\n- Verify the required XML tag set exactly matches: <role>, <authority>, <scope>, <context-gathering>, <inputs>, <guardrails>, <steps>, <outputs>, <completion>\n\nOutputs:\n- self-check.json (internal)\n\n### 4. Execute board review with revision loop\n- Launch reviewers (structured feedback)\n- Launch leader\n- Split-verdict: iterate only with rejecting reviewer\n- Revise draft between rounds\n- Arbitrate after 2+ consecutive splits\n- Treat any mixed reviewer verdict within a pair or across pairs as non-frozen until explicitly resolved.\n- Freeze only when every reviewer approves and the leader sees no unresolved material issues.\n\nOutputs:\n- rounds/ (internal)\n- runtime/session-registry.json (internal)\n\n### 5. Resolve and promote\n- If frozen: promote to canonical directory\n- If pushback/blocked: write pushback evidence\n- If resume_required: write resume package\n- Write decision log, board summary, result.json\n\nOutputs:\n- result.json (always)\n- <slug>-decision-log.md (always)\n- <slug>-board-summary.md (always)\n- <slug>-pushback.json (conditional)\n- resume-package.json (conditional)\n</steps>\n\n<outputs>\nCanonical artifacts:\n- <slug>-role.md -- Canonical: tagged role definition markdown (promoted on freeze)\n- <slug>-role-contract.json -- Canonical: full role contract (promoted on freeze)\n- <slug>-decision-log.md -- Canonical: decision history (promoted on freeze)\n- <slug>-board-summary.md -- Canonical: board execution summary (promoted on freeze)\n\nEvidence artifacts:\n- result.json -- Always: terminal result with evidence chain\n- <slug>-pushback.json -- Conditional: pushback/blocked evidence\n- resume-package.json -- Conditional: resume state for continuation\n\nInternal run artifacts:\n- normalized-request.json -- Internal request snapshot for audit\n- source-manifest.json -- Internal source inventory for audit\n- self-check.json -- Internal self-check evidence\n- rounds/round-<n>.json -- Internal board round transcripts\n- runtime/session-registry.json -- Internal runtime session state\n</outputs>\n\n<completion>\nThis workflow is complete when:\n- Terminal status reached (frozen, pushback, blocked, or resume_required)\n- All applicable artifacts written to output directory\n- result.json contains full evidence chain with participant records\n- Decision log updated (on freeze)\n</completion>\n",
+  "selfCheckIssues": [
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-role-contract.json\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-decision-log.md\" not referenced in <outputs> section"
+    },
+    {
+      "code": "MISSING_REQUIRED_OUTPUT",
+      "severity": "warning",
+      "message": "Required output \"tools/agent-role-builder/role/agent-role-builder-board-summary.md\" not referenced in <outputs> section"
+    }
+  ],
+  "reviewerVerdicts": {},
+  "complianceMap": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 63% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 88% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 58% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 58% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 75% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "non_compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Low keyword coverage 40% — needs LLM review"
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "non_compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Low keyword coverage 40% — needs LLM review"
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 70% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 67% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 60% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 50% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-012",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 82% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 100% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 77% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 87% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 63% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 53% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "non_compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Low keyword coverage 40% — needs LLM review"
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 64% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Keyword coverage 50% — initial heuristic check"
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "non_compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Low keyword coverage 44% — needs LLM review"
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "non_compliant",
+      "evidence_location": "initial draft",
+      "evidence_summary": "Low keyword coverage 45% — needs LLM review"
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "round": 1,
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Pushback. `reviewer-codex-r1` returned `reject` with one blocking and two major conceptual groups, and those issues are recoverable specification/governance gaps rather than a non-recoverable validation or execution failure. The draft still departs from approved source authority on arbitration and update/fix lifecycle behavior, contradicts itself on canonical artifact identity, and does not yet define a complete governed artifact surface.",
+  "unresolved": [
+    "Align governance semantics to approved sources: arbitration is source-defined as minor-only `frozen_with_conditions` accepted by the invoker, and the draft's update/fix decision-log append / board-summary replace rules are not source-backed against the cited architecture or current implementation.",
+    "Make canonical artifact identity internally consistent across markdown, contract, and compliance evidence: Step 2 requires exact canonical promoted paths, but `package_files` still uses basename-only values and the ARB-008 compliance claim therefore overstates correctness.",
+    "Complete or narrow the artifact lifecycle surface: the contract currently omits required per-round audit artifacts, failure/bug-report artifacts, and component-governance artifacts such as `rulebook.json` and `review-prompt.json`, despite claiming authoritative governance over board-review execution and audit evidence."
+  ],
+  "improvementsApplied": [
+    "Removed the earlier invented board-contract pieces around Codex-only leadership and unsupported reviewer verdict names; reviewer-pair hard gates and the approved `approved`/`conditional`/`reject` verdict set are now explicit.",
+    "Made operative authority and governed write boundaries much clearer by separating reference evidence from live authority and naming the canonical role root plus governed run root/subpaths.",
+    "Expanded outputs and completion into a more structured canonical-vs-run-scoped lifecycle model with explicit promoted paths and conditional run artifacts."
+  ],
+  "reviewerVerdicts": {
+    "reviewer-codex-r1": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Core governance semantics are redefined without source authority, especially around arbitration and update/fix lifecycle behavior.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The draft says arbitration is minor-only but 'never changes the freeze rule' and does not introduce a distinct arbitration result, while the governing architecture defines arbitration output as `frozen_with_conditions` with acceptance delegated to the invoker. This changes freeze authority and outcome semantics.",
+              "source_section": "<guardrails>; <steps> Step 4"
+            },
+            {
+              "id": "f2",
+              "description": "The draft adds durable rules that update/fix runs append the canonical decision log and replace the canonical board summary, but those lifecycle semantics are not established in the cited authority sources and do not match the current implementation, which overwrites canonical files on freeze.",
+              "source_section": "<guardrails>; <steps> Step 5"
+            }
+          ],
+          "redesign_guidance": "Do not introduce governance behavior unless it is explicitly source-backed. Align arbitration semantics to the approved architecture, or mark unsupported behavior as unresolved pushback. Remove or re-source the decision-log/board-summary lifecycle rules before treating them as durable contract."
+        },
+        {
+          "id": "group-2",
+          "summary": "Canonical artifact identity is internally contradictory across the markdown, contract summary, and claimed compliance evidence.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "Step 2 declares a durable rule that `package_files` must use the same canonical promoted artifact paths declared in `<outputs>`, but the contract summary still provides basename-only values such as `agent-role-builder-role.md`.",
+              "source_section": "<steps> Step 2; Contract summary > package_files"
+            },
+            {
+              "id": "f4",
+              "description": "The compliance map claims ARB-008 is compliant because all four promoted artifacts are declared with full canonical paths and Step 2 requires package_files to match them, but the contract summary contradicts that claim.",
+              "source_section": "Compliance map ARB-008; Contract summary > package_files"
+            }
+          ],
+          "redesign_guidance": "Use one canonical artifact identity model everywhere. Either make `package_files` carry exact tool-relative canonical paths, or change the rule and self-check to explicitly allow basenames. The markdown, contract, and compliance map must agree."
+        },
+        {
+          "id": "group-3",
+          "summary": "The artifact lifecycle surface is not complete enough for a role that claims to govern board-review execution and audit evidence.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "The outputs matrix omits board-run artifacts that the approved review architecture treats as part of the permanent audit trail, including per-round `review.json`, `learning.json`, `compliance-map.json`, `fix-items-map.json`, and `diff-summary.json`.",
+              "source_section": "<outputs>"
+            },
+            {
+              "id": "f6",
+              "description": "Failure and recovery artifacts are not lifecycle-defined even though the architecture and current implementation include bug-report evidence on unrecoverable parse failures.",
+              "source_section": "<outputs>; <completion>"
+            },
+            {
+              "id": "f7",
+              "description": "The role package claims an authoritative governed surface for this tool, but it does not account for component governance artifacts such as `rulebook.json` and `review-prompt.json`, which the governing architecture says every reviewed component must have.",
+              "source_section": "<authority>; <outputs>"
+            }
+          ],
+          "redesign_guidance": "Either expand the lifecycle matrix to include all governed evidence and component-governance artifacts, or explicitly narrow the contract so it does not present itself as the full authoritative artifact surface. The artifact model must distinguish static component-governance files, per-round audit files, failure artifacts, terminal artifacts, and frozen canonical promotions."
+        }
+      ],
+      "residual_risks": [
+        "The included self-check/compliance assertions overstate correctness, which could let future rounds trust contradicted evidence and freeze too early.",
+        "Because canonical path semantics are split between full paths and basenames, downstream promotion or consumer logic can bind to the wrong artifact identity.",
+        "Missing lifecycle coverage for failure and post-review artifacts weakens audit completeness and resume/debug reliability."
+      ],
+      "strengths": [
+        "The top-level tag structure is complete and organized around a clear role-package schema.",
+        "Authority precedence is mostly clear and usefully separates operative authority from reference evidence.",
+        "Scope boundaries are generally explicit about staying inside role-package governance rather than drifting into tool building or external runtime orchestration."
+      ]
+    }
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 1,
+      "latency_ms": 152171,
+      "invocation_id": "843d0f53-b3d9-465c-ae6f-adff4b4e0ad8"
+    },
+    {
+      "participant_id": "leader-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 1,
+      "latency_ms": 148704,
+      "invocation_id": "14b4ba76-8d6c-43aa-bdd5-3645afd365d5"
+    }
+  ]
+}

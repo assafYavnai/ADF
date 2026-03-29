@@ -1,0 +1,217 @@
+{
+  "round": 0,
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Status is pushback because `reviewer-codex-r0` returned `reject` with three material major conceptual groups, and those issues remain unresolved. `reviewer-claude-r0` was only `conditional` with minor/suggestion feedback, which does not block by itself but also does not override a material reject. The defects are revisable role-definition and governance inconsistencies, not a non-recoverable execution failure, so `blocked` is not warranted.",
+  "unresolved": [
+    "Board-governance semantics are not source-aligned: the draft hardcodes a Codex-only leader, requires unanimous approval to freeze, and references an unsupported `changes_required` verdict instead of the approved materiality-based freeze model where `approved` or `conditional` can freeze if no blocking/major issues remain.",
+    "Authority and write-boundary semantics are not enforceable: operative authority order is unclear, static docs are treated like live superiors, and the writable surface is not precisely defined for both canonical role artifacts and run-scoped artifacts.",
+    "Artifact path and lifecycle semantics are inconsistent: `<outputs>` does not declare the required canonical `tools/agent-role-builder/role/...` paths, the self-check already flags those outputs as missing, and Step 5 / `<completion>` do not define one authoritative lifecycle across frozen and non-frozen outcomes."
+  ],
+  "improvementsApplied": [
+    "Step 3 explicitly enumerates the required XML tag set, which tightens the self-check target.",
+    "The draft separates outputs into canonical artifacts, evidence artifacts, and internal run artifacts instead of one undifferentiated list.",
+    "The workflow already distinguishes leader drafting, self-check, board review, and terminal resolution, with reviewer-pair and provenance guardrails present."
+  ],
+  "reviewerVerdicts": {
+    "reviewer-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Board-governance semantics are invented or overconstrained relative to the request schema and runtime behavior.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The role summary says every governed run requires one live Codex leader, but the request schema allows the leader provider to be `codex`, `claude`, or `gemini`; only reviewer pairing is constrained to Codex+Claude.",
+              "source_section": "<role>"
+            },
+            {
+              "id": "f2",
+              "description": "The draft says freeze requires every reviewer to approve and that any disagreement keeps the run non-frozen, but the board contract/runtime freezes on no blocking or major issues and treats `conditional` as non-blocking. This changes the actual freeze rule.",
+              "source_section": "<guardrails> / <steps>"
+            },
+            {
+              "id": "f3",
+              "description": "`changes_required` is referenced as a governing verdict even though the reviewer contract only defines `approved`, `conditional`, and `reject`. That adds semantics not present in the review protocol.",
+              "source_section": "<guardrails>"
+            }
+          ],
+          "redesign_guidance": "Align all board rules to the actual contract: require Codex+Claude reviewer pairs, do not hardcode a Codex-only leader unless the schema does, and express freeze criteria in materiality terms (`approved` or `conditional` allowed, no blocking/major unresolved items). Remove verdict names that do not exist in the protocol."
+        },
+        {
+          "id": "group-2",
+          "summary": "Authority and filesystem boundary are not stated in an enforceable way.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "The authority chain presents static docs as operative subordination, but the bootstrap and architecture say the COO controller governs turns and runtime rules come from the memory engine. As written, authority is unclear about what is live governance versus reference evidence.",
+              "source_section": "<authority>"
+            },
+            {
+              "id": "f5",
+              "description": "`Filesystem writes outside role package directories` is too vague for this workflow. The tool writes both canonical role artifacts and run-scoped artifacts (`drafts/`, `rounds/`, `runtime/`, `result.json`), so the allowed write surface is not actually defined.",
+              "source_section": "<authority>"
+            }
+          ],
+          "redesign_guidance": "State runtime authority in the same order the project does: COO-governed execution first, memory-engine rules as live governance when applicable, and docs as reference authority. Then define the write boundary precisely: canonical role package directory plus the current governed run directory and its known artifact subpaths."
+        },
+        {
+          "id": "group-3",
+          "summary": "Artifact lifecycle is incomplete and pathing is inconsistent with the required outputs.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f6",
+              "description": "Canonical artifacts in `<outputs>` are listed as bare filenames, but the required outputs are canonical paths under `tools/agent-role-builder/role/`. The self-check failures correctly show that the authoritative canonical paths are missing from the package definition.",
+              "source_section": "<outputs> / Self-check issues"
+            },
+            {
+              "id": "f7",
+              "description": "The draft mixes canonical promotion and run-directory emission without clearly separating them by terminal state. Step 5 says decision log and board summary are written always, `<outputs>` says they are canonical on freeze, and `<completion>` refers generically to an `output directory`, leaving lifecycle and location ambiguous.",
+              "source_section": "<steps> / <outputs> / <completion>"
+            }
+          ],
+          "redesign_guidance": "Use exact canonical paths for frozen artifacts and explicitly distinguish them from run-directory artifacts. Define, by terminal state, which artifacts are always written in the run directory, which are conditional (`pushback`, `resume_required`), and which are promoted to `tools/agent-role-builder/role/` only on freeze."
+        },
+        {
+          "id": "group-4",
+          "summary": "Scope text has redundant exclusions that weaken boundary clarity.",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f8",
+              "description": "`Application workflow creation` appears twice in the not-in-scope list, once bare and once with clarification. The duplication looks accidental and makes the exclusion less crisp.",
+              "source_section": "<scope>"
+            },
+            {
+              "id": "f9",
+              "description": "`Application runtime orchestration` is excluded twice with slightly different phrasing, which adds noise rather than a sharper boundary.",
+              "source_section": "<scope>"
+            }
+          ],
+          "redesign_guidance": "Collapse duplicated exclusions into single lines with the clarifying parenthetical kept once."
+        }
+      ],
+      "residual_risks": [
+        "The arbitration path is still underdefined at the role level; if kept, it should be tied to the governing review rules instead of free text in Step 4.",
+        "Hardcoding the exact tag set in Step 3 may become brittle if the governed tag schema evolves and the role does not name the authority for that schema.",
+        "If canonical versus run-artifact locations remain ambiguous, future self-checks and promotions will continue to disagree even when the prose looks complete."
+      ],
+      "strengths": [
+        "The core mission is clear: create, update, and fix agent role packages through governed multi-LLM review.",
+        "The draft correctly treats invented semantics as pushback-worthy and keeps authority expansion out of scope.",
+        "The lifecycle shape is close to usable because it already distinguishes canonical, evidence, and internal artifacts at a high level."
+      ]
+    },
+    "reviewer-claude-r0": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Output paths are symbolic placeholders, not absolute canonical paths",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The <outputs> section lists artifact names like '<slug>-role.md' but does not specify the canonical directory path (e.g., tools/agent-role-builder/role/). The self-check flags four MISSING_REQUIRED_OUTPUT issues because the outputs section uses relative slug-prefixed names without directory anchoring.",
+              "source_section": "<outputs>"
+            },
+            {
+              "id": "f2",
+              "description": "contract package_files paths use bare filenames (e.g., 'agent-role-builder-role.md') without directory prefix, creating ambiguity about promotion target. This is inconsistent with self-check expected paths like 'tools/agent-role-builder/role/agent-role-builder-role.md'.",
+              "source_section": "contract.package_files"
+            }
+          ],
+          "redesign_guidance": "In <outputs>, add the canonical directory prefix to all promoted artifacts, e.g., 'tools/agent-role-builder/role/<slug>-role.md'. Update contract package_files to match. This resolves all four self-check MISSING_REQUIRED_OUTPUT flags without any semantic change."
+        },
+        {
+          "id": "group-2",
+          "summary": "Duplicate and redundant scope entries weaken authority clarity",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "'Application workflow creation' appears twice in the <scope> Not-in-scope list.",
+              "source_section": "<scope>"
+            },
+            {
+              "id": "f4",
+              "description": "'Application runtime orchestration' appears twice in the <scope> Not-in-scope list with slightly different parenthetical qualifications, creating potential confusion about whether board-review orchestration is in or out of scope.",
+              "source_section": "<scope>"
+            }
+          ],
+          "redesign_guidance": "Deduplicate both entries. Merge the two 'Application runtime orchestration' lines into one clear statement: 'Application runtime orchestration outside this tool (board-review orchestration within this tool is in scope).' This matches the contract out_of_scope wording."
+        },
+        {
+          "id": "group-3",
+          "summary": "ARB rule non-compliance flags (ARB-006, 007, 018, 021, 022) unresolved — LLM review deferred",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "Five rules (ARB-006, ARB-007, ARB-018, ARB-021, ARB-022) have keyword coverage below 45% and are marked 'needs LLM review'. Their content is not visible in the provided compliance map, so it is unknown whether the role is materially non-compliant or merely missing keywords.",
+              "source_section": "compliance_map"
+            }
+          ],
+          "redesign_guidance": "Expose the rule text for ARB-006/007/018/021/022 in the next revision submission so the reviewer can assess whether the role body satisfies them semantically. If the rules concern escalation paths, failure modes, or provenance (common low-coverage categories), add brief explicit language in <guardrails> or <steps> to cover them."
+        },
+        {
+          "id": "group-4",
+          "summary": "context-gathering step 3 condition is ambiguous for the 'create' operation",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "f6",
+              "description": "Step 3 says 'If operation is update or fix, load the baseline role package before draft generation.' It is silent on what happens when operation is 'create' and a file with the same slug already exists on disk. No guard prevents silent overwrite.",
+              "source_section": "<context-gathering>"
+            }
+          ],
+          "redesign_guidance": "Add a line: 'If operation is create and a canonical artifact already exists at the target path, treat as a conflict and return pushback rather than silently overwriting.' This closes a potential data-loss edge case with no authority change."
+        }
+      ],
+      "residual_risks": [
+        "ARB-006/007/018/021/022 remain unverified — if any concern escalation or data-integrity requirements, the role may be silently non-compliant after approval.",
+        "No explicit mention of what happens if the board roster contains only one pair and that pair splits — arbitration trigger is defined but quorum for a single-pair board is not specified.",
+        "Contract intent field references 'Resume and finalize' suggesting this is a continuation run, but the role itself does not distinguish bootstrap/self-role semantics from normal operation — a future reader may be confused by the intent mismatch."
+      ],
+      "strengths": [
+        "Freeze conditions are precise and conservative: requires unanimous approval and no unresolved material issues — no ambiguity about when a run is done.",
+        "Artifact lifecycle is well-structured: internal, evidence, and canonical artifacts are clearly separated with promotion gating on freeze.",
+        "Split-verdict and arbitration logic is explicit in <steps> Step 4, covering the common failure mode of reviewer disagreement.",
+        "Self-check coherence verification step (Step 3) including required XML tag enumeration is a strong quality gate that most role drafts omit.",
+        "Authority boundaries are clearly stated with explicit 'does not own' list, reducing scope creep risk."
+      ]
+    }
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 98088,
+      "invocation_id": "f6bb0f1e-c576-4bd8-ad85-2a52b6b92b4e"
+    },
+    {
+      "participant_id": "reviewer-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 28922,
+      "invocation_id": "7f24d5db-ebce-40b3-822f-cadfe3eaf851"
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 82376,
+      "invocation_id": "66668b80-7819-42d2-abb4-eefc9aaa6eea"
+    }
+  ]
+}

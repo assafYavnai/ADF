@@ -1,0 +1,25 @@
+{
+  "request_path": "tools/agent-role-builder/examples/self-role-resume.json",
+  "source_refs": [
+    {
+      "path": "docs/v0/architecture.md",
+      "purpose": "ADF architecture decisions including agent role governance rule",
+      "required": true
+    },
+    {
+      "path": "tools/agent-role-builder/src/index.ts",
+      "purpose": "Current implementation of the tool",
+      "required": true
+    },
+    {
+      "path": "tools/agent-role-builder/src/services/board.ts",
+      "purpose": "Board execution logic with structured feedback and split-verdict",
+      "required": true
+    },
+    {
+      "path": "tools/agent-role-builder/role/agent-role-builder-role.md",
+      "purpose": "Current promoted role draft (from run 004, 9 rounds of review)",
+      "required": true
+    }
+  ]
+}

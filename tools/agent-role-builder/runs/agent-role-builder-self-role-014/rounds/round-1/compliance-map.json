@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "delta",
+  "round": 1,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority is expressed as a strict operative precedence chain, with static docs separated under Reference evidence only."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <role>, <steps>, <completion>",
+      "evidence_summary": "Material pushback is defined once in <guardrails> and referenced consistently in freeze, terminal-state, and completion language."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <steps> Step 5, <completion>",
+      "evidence_summary": "Canonical promoted artifacts are separated from run-scoped evidence with explicit roots and lifecycle rules."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <completion>",
+      "evidence_summary": "Frozen, pushback, blocked, and resume_required each have distinct, testable trigger predicates and artifact expectations."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "Step 3 is limited to the self-check behavior that actually exists today and explicitly requires semantic keyword matching for out-of-scope coverage."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "The not-in-scope list is deduplicated to one exclusion per concept and preserves the merged contract meaning without repeated entries."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4",
+      "evidence_summary": "Arbitration has a trigger condition, actor, evidence requirement, and bounded effect: minor-only disagreements, leader rationale, and no override of reject or material pushback."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <steps> Step 2",
+      "evidence_summary": "All four required promoted artifacts are declared with full canonical tool-relative paths, and Step 2 requires contract package_files to match them."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion is defined separately for frozen, pushback, blocked, and resume_required, with explicit artifact predicates for each state."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Context gathering is explicitly labeled as preconditions before Step 1, and numbered execution steps begin in <steps>."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4",
+      "evidence_summary": "The draft explicitly requires carried-forward reviewer findings to be tracked by conceptual_group ID in the next fix items map."
+    },
+    {
+      "rule_id": "ARB-012",
+      "status": "compliant",
+      "evidence_location": "<inputs>, <steps> Step 1",
+      "evidence_summary": "Inputs and validation steps state the hard gate for reviewer_count, reviewer array length, and Codex+Claude reviewer-pair composition."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <outputs>, <steps> Step 5",
+      "evidence_summary": "Decision-history preservation is mechanical: canonical decision log appends on frozen update/fix, canonical board summary replaces on freeze, and prior run summaries remain in run evidence."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Each section distinguishes current implementation from durable contract or target behavior, avoiding false claims about already-implemented features."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4, <outputs>",
+      "evidence_summary": "Round evidence is defined as per-round output, not revision-only output, and the artifact matrix distinguishes always-written evidence from conditional artifacts."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "The outputs section acts as one authoritative artifact matrix, declaring class, full path or root, and exact lifecycle by operation and terminal state."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, <steps> Step 4",
+      "evidence_summary": "The draft inherits governance from the approved architecture: live governance first, docs as reference only, freeze on approved or conditional with no material pushback, and minor-only arbitration."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "The role mission is enduring and role-level; it does not describe a specific resume, bootstrap, or round-specific invocation state."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>, <outputs>",
+      "evidence_summary": "The writable surface is explicitly bounded to the canonical role root, the current run root, and named governed subpaths and run-root artifacts."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Only operative governance sources appear in the authority chain; static docs are classified separately as reference evidence."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4",
+      "evidence_summary": "Board mechanics are source-backed: no Codex-only leader rule, no unsupported verdict names, and no invented arbitration power beyond minor-only disagreement handling."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Use-when bullets contain inclusions, and Not in scope contains exclusions only, with positive board-review ownership moved to <authority>."
+    }
+  ],
+  "generated_at": "2026-03-29T08:08:39.910Z"
+}

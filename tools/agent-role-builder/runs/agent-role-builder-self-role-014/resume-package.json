@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "role_slug": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-014",
+  "next_step": "resume_board_review",
+  "unresolved": [
+    "Align governance semantics to approved sources: arbitration is source-defined as minor-only `frozen_with_conditions` accepted by the invoker, and the draft's update/fix decision-log append / board-summary replace rules are not source-backed against the cited architecture or current implementation.",
+    "Make canonical artifact identity internally consistent across markdown, contract, and compliance evidence: Step 2 requires exact canonical promoted paths, but `package_files` still uses basename-only values and the ARB-008 compliance claim therefore overstates correctness.",
+    "Complete or narrow the artifact lifecycle surface: the contract currently omits required per-round audit artifacts, failure/bug-report artifacts, and component-governance artifacts such as `rulebook.json` and `review-prompt.json`, despite claiming authoritative governance over board-review execution and audit evidence."
+  ],
+  "latest_markdown_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-014\\agent-role-builder-role.md",
+  "latest_contract_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-014\\agent-role-builder-role-contract.json",
+  "latest_board_summary_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-014\\agent-role-builder-board-summary.md",
+  "latest_decision_log_path": "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-014\\agent-role-builder-decision-log.md",
+  "round_files": [
+    "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-014\\rounds\\round-0.json",
+    "tools\\agent-role-builder\\runs\\agent-role-builder-self-role-014\\rounds\\round-1.json"
+  ]
+}

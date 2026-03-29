@@ -1,0 +1,175 @@
+{
+  "round": 1,
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "verdict": "{\n  \"verdict\": \"reject\",\n  \"conceptual_groups\": [\n    {\n      \"id\": \"group-1\",\n      \"summary\": \"Core governance semantics are redefined without source authority, especially around arbitration and update/fix lifecycle behavior.\",\n      \"severity\": \"blocking\",\n      \"findings\": [\n        {\n          \"id\": \"f1\",\n          \"description\": \"The draft says arbitration is minor-only but 'never changes the freeze rule' and does not introduce a distinct arbitration result, while the governing architecture defines arbitration output as `frozen_with_conditions` with acceptance delegated to the invoker. This changes freeze authority and outcome semantics.\",\n          \"source_section\": \"<guardrails>; <steps> Step 4\"\n        },\n        {\n          \"id\": \"f2\",\n          \"description\": \"The draft adds durable rules that update/fix runs append the canonical decision log and replace the canonical board summary, but those lifecycle semantics are not established in the cited authority sources and do not match the current implementation, which overwrites canonical files on freeze.\",\n          \"source_section\": \"<guardrails>; <steps> Step 5\"\n        }\n      ],\n      \"redesign_guidance\": \"Do not introduce governance behavior unless it is explicitly source-backed. Align arbitration semantics to the approved architecture, or mark unsupported behavior as unresolved pushback. Remove or re-source the decision-log/board-summary lifecycle rules before treating them as durable contract.\"\n    },\n    {\n      \"id\": \"group-2\",\n      \"summary\": \"Canonical artifact identity is internally contradictory across the markdown, contract summary, and claimed compliance evidence.\",\n      \"severity\": \"major\",\n      \"findings\": [\n        {\n          \"id\": \"f3\",\n          \"description\": \"Step 2 declares a durable rule that `package_files` must use the same canonical promoted artifact paths declared in `<outputs>`, but the contract summary still provides basename-only values such as `agent-role-builder-role.md`.\",\n          \"source_section\": \"<steps> Step 2; Contract summary > package_files\"\n        },\n        {\n          \"id\": \"f4\",\n          \"description\": \"The compliance map claims ARB-008 is compliant because all four promoted artifacts are declared with full canonical paths and Step 2 requires package_files to match them, but the contract summary contradicts that claim.\",\n          \"source_section\": \"Compliance map ARB-008; Contract summary > package_files\"\n        }\n      ],\n      \"redesign_guidance\": \"Use one canonical artifact identity model everywhere. Either make `package_files` carry exact tool-relative canonical paths, or change the rule and self-check to explicitly allow basenames. The markdown, contract, and compliance map must agree.\"\n    },\n    {\n      \"id\": \"group-3\",\n      \"summary\": \"The artifact lifecycle surface is not complete enough for a role that claims to govern board-review execution and audit evidence.\",\n      \"severity\": \"major\",\n      \"findings\": [\n        {\n          \"id\": \"f5\",\n          \"description\": \"The outputs matrix omits board-run artifacts that the approved review architecture treats as part of the permanent audit trail, including per-round `review.json`, `learning.json`, `compliance-map.json`, `fix-items-map.json`, and `diff-summary.json`.\",\n          \"source_section\": \"<outputs>\"\n        },\n        {\n          \"id\": \"f6\",\n          \"description\": \"Failure and recovery artifacts are not lifecycle-defined even though the architecture and current implementation include bug-report evidence on unrecoverable parse failures.\",\n          \"source_section\": \"<outputs>; <completion>\"\n        },\n        {\n          \"id\": \"f7\",\n          \"description\": \"The role package claims an authoritative governed surface for this tool, but it does not account for component governance artifacts such as `rulebook.json` and `review-prompt.json`, which the governing architecture says every reviewed component must have.\",\n          \"source_section\": \"<authority>; <outputs>\"\n        }\n      ],\n      \"redesign_guidance\": \"Either expand the lifecycle matrix to include all governed evidence and component-governance artifacts, or explicitly narrow the contract so it does not present itself as the full authoritative artifact surface. The artifact model must distinguish static component-governance files, per-round audit files, failure artifacts, terminal artifacts, and frozen canonical promotions.\"\n    }\n  ],\n  \"residual_risks\": [\n    \"The included self-check/compliance assertions overstate correctness, which could let future rounds trust contradicted evidence and freeze too early.\",\n    \"Because canonical path semantics are split between full paths and basenames, downstream promotion or consumer logic can bind to the wrong artifact identity.\",\n    \"Missing lifecycle coverage for failure and post-review artifacts weakens audit completeness and resume/debug reliability.\"\n  ],\n  \"strengths\": [\n    \"The top-level tag structure is complete and organized around a clear role-package schema.\",\n    \"Authority precedence is mostly clear and usefully separates operative authority from reference evidence.\",\n    \"Scope boundaries are generally explicit about staying inside role-package governance rather than drifting into tool building or external runtime orchestration.\"\n  ]\n}",
+      "round": 1,
+      "latency_ms": 152171,
+      "invocation_id": "843d0f53-b3d9-465c-ae6f-adff4b4e0ad8"
+    },
+    {
+      "participant_id": "leader-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "verdict": "{\"status\":\"pushback\",\"rationale\":\"Pushback. `reviewer-codex-r1` returned `reject` with one blocking and two major conceptual groups, and those issues are recoverable specification/governance gaps rather than a non-recoverable validation or execution failure. The draft still departs from approved source authority on arbitration and update/fix lifecycle behavior, contradicts itself on canonical artifact identity, and does not yet define a complete governed artifact surface.\",\"unresolved\":[\"Align governance semantics to approved sources: arbitration is source-defined as minor-only `frozen_with_conditions` accepted by the invoker, and the draft's update/fix decision-log append / board-summary replace rules are not source-backed against the cited architecture or current implementation.\",\"Make canonical artifact identity internally consistent across markdown, contract, and compliance evidence: Step 2 requires exact canonical promoted paths, but `package_files` still uses basename-only values and the ARB-008 compliance claim therefore overstates correctness.\",\"Complete or narrow the artifact lifecycle surface: the contract currently omits required per-round audit artifacts, failure/bug-report artifacts, and component-governance artifacts such as `rulebook.json` and `review-prompt.json`, despite claiming authoritative governance over board-review execution and audit evidence.\"],\"improvements_applied\":[\"Removed the earlier invented board-contract pieces around Codex-only leadership and unsupported reviewer verdict names; reviewer-pair hard gates and the approved `approved`/`conditional`/`reject` verdict set are now explicit.\",\"Made operative authority and governed write boundaries much clearer by separating reference evidence from live authority and naming the canonical role root plus governed run root/subpaths.\",\"Expanded outputs and completion into a more structured canonical-vs-run-scoped lifecycle model with explicit promoted paths and conditional run artifacts.\"],\"arbitration_used\":false,\"arbitration_rationale\":null}",
+      "round": 1,
+      "latency_ms": 148704,
+      "invocation_id": "14b4ba76-8d6c-43aa-bdd5-3645afd365d5"
+    }
+  ],
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Pushback. `reviewer-codex-r1` returned `reject` with one blocking and two major conceptual groups, and those issues are recoverable specification/governance gaps rather than a non-recoverable validation or execution failure. The draft still departs from approved source authority on arbitration and update/fix lifecycle behavior, contradicts itself on canonical artifact identity, and does not yet define a complete governed artifact surface.",
+  "unresolved": [
+    "Align governance semantics to approved sources: arbitration is source-defined as minor-only `frozen_with_conditions` accepted by the invoker, and the draft's update/fix decision-log append / board-summary replace rules are not source-backed against the cited architecture or current implementation.",
+    "Make canonical artifact identity internally consistent across markdown, contract, and compliance evidence: Step 2 requires exact canonical promoted paths, but `package_files` still uses basename-only values and the ARB-008 compliance claim therefore overstates correctness.",
+    "Complete or narrow the artifact lifecycle surface: the contract currently omits required per-round audit artifacts, failure/bug-report artifacts, and component-governance artifacts such as `rulebook.json` and `review-prompt.json`, despite claiming authoritative governance over board-review execution and audit evidence."
+  ],
+  "improvementsApplied": [
+    "Removed the earlier invented board-contract pieces around Codex-only leadership and unsupported reviewer verdict names; reviewer-pair hard gates and the approved `approved`/`conditional`/`reject` verdict set are now explicit.",
+    "Made operative authority and governed write boundaries much clearer by separating reference evidence from live authority and naming the canonical role root plus governed run root/subpaths.",
+    "Expanded outputs and completion into a more structured canonical-vs-run-scoped lifecycle model with explicit promoted paths and conditional run artifacts."
+  ],
+  "markdown": "<!-- profile: agent -->\n# Agent Role Builder\n\n<role>\nYou are the Agent Role Builder. You create, update, and fix governed agent role packages through multi-LLM board review. Use the authority chain in <authority>, stop instead of inventing missing role semantics, and freeze only when no material pushback remains as defined in <guardrails>.\n</role>\n\n<authority>\nOperative authority precedence (highest to lowest):\n1. COO controller for the current governed turn.\n2. Live governance rules loaded from the memory engine for the run, when available.\n3. The validated runtime contract for the current run: the active RoleBuilderRequest, its governance and runtime settings, required_outputs, and any baseline or resume inputs that passed validation.\n\nReference evidence only:\n- docs/v0/review-process-architecture.md\n- docs/v0/architecture.md\n- docs/VISION.md\n- docs/PHASE1_VISION.md\n- docs/PHASE1_MASTER_PLAN.md\n- tools/agent-role-builder/src/index.ts\n- tools/agent-role-builder/src/schemas/request.ts\n- tools/agent-role-builder/src/services/board.ts\n\nOwns:\n- Agent role package creation, update, and repair\n- Board-review orchestration inside this tool\n- Role contract generation for the governed role package\n- Request validation and self-check coordination\n- Decision-log and board-summary production for governed role packages\n\nGoverned write boundary:\n- Canonical promotion target root: tools/agent-role-builder/role/\n- Current governed run root: tools/agent-role-builder/runs/<job_id>/\n- Known governed run subpaths: drafts/, rounds/, runtime/, plus the run-root artifacts declared in <outputs>\n\nDoes not own:\n- Tool creation\n- Code implementation or execution\n- Application workflow creation\n- Application runtime orchestration outside this tool\n- Writes outside the governed role-package surface above\n</authority>\n\n<scope>\nUse when:\n- A new agent role package must be created\n- An existing agent role package must be updated\n- A broken or incomplete agent role package must be fixed\n- agent-role-builder must create or revise its own governed role package\n\nNot in scope:\n- Tool creation (owned by llm-tool-builder)\n- Application workflow creation (role definition markdown is a role specification document, not an application workflow)\n- Code implementation or execution\n- Application runtime orchestration outside this tool\n- Authority expansion beyond role definition\n</scope>\n\n<context-gathering>\nPreconditions (before Step 1):\n1. Current implementation: load the role definition request JSON and validate it against the RoleBuilderRequest schema.\n2. Current implementation: verify that every required source_ref exists on disk.\n3. Target governed safeguard: if operation is create and a canonical artifact already exists at a target path under tools/agent-role-builder/role/, treat it as a conflict and return pushback rather than silently overwriting.\n4. Requested workflow behavior, not fully implemented yet: if operation is update or fix, load the baseline role package before Step 2.\n5. Requested workflow behavior, not fully implemented yet: if resuming a prior run, load the resume package and prior run evidence before Step 4.\n</context-gathering>\n\n<inputs>\nRequired:\n- Role definition request JSON matching RoleBuilderRequest schema\n- Source refs for the governing evidence and implementation sources referenced by the request\n- Board roster configuration with one leader and at least one complete Codex+Claude reviewer pair\n- Governance config for governed mode, max_review_rounds, arbitration allowance, and freeze or pushback behavior\n- Runtime config for live-roster-v1 execution, watchdog timeout, launch attempts, and provider-fallback policy\n\nRequest-validation hard gates:\n- reviewer_count must be 2, 4, or 6\n- reviewers array length must match reviewer_count\n- every reviewer pair must contain one Codex reviewer and one Claude reviewer\n- update and fix operations must supply a baseline package\n\nOptional:\n- Baseline role package for update or fix operations\n- Resume package for continuing a prior governed run\n\nExamples:\n- Create a new classifier role package\n- Update guardrails or lifecycle rules for an existing role package\n- Fix a broken or incomplete role package without expanding scope\n</inputs>\n\n<guardrails>\n- Material pushback means any unresolved finding with blocking or major severity.\n- Never invent missing role semantics; return a non-frozen outcome instead.\n- Never expand authority beyond the active request and runtime contract.\n- Freeze only when every reviewer is approved or conditional and no material pushback remains.\n- Arbitration may address only minor or suggestion disagreements; it never overrides a reject verdict and never forces freeze while material pushback remains.\n- Provenance must be attached to every operation and artifact the tool writes.\n- On update and fix operations, decision history is preserved by appending a new dated section to the canonical decision log on freeze; prior canonical entries are never deleted.\n- On update and fix operations, the canonical board summary is replaced with the latest frozen run summary, while prior run summaries remain preserved in tools/agent-role-builder/runs/<job_id>/.\n- The run may write only inside the governed write boundary declared in <authority>.\n- Current implementation must treat learning and round evidence as per-round artifacts, not revision-only artifacts.\n</guardrails>\n\n<steps>\n### 1. Validate and normalize the request (current implementation)\n- Parse the request JSON against RoleBuilderRequest.\n- Verify required source_refs exist.\n- Enforce the board-roster hard gate: reviewer_count 2, 4, or 6, reviewers array length matches, and each reviewer pair is one Codex plus one Claude.\n- Enforce baseline presence for update and fix operations.\n- Normalize the request into a governed run snapshot.\n\nOutputs:\n- tools/agent-role-builder/runs/<job_id>/normalized-request.json\n- tools/agent-role-builder/runs/<job_id>/source-manifest.json\n- tools/agent-role-builder/runs/<job_id>/runtime/session-registry.json\n\n### 2. Generate the role package draft (current implementation; canonical path rule is durable contract)\n- Generate tagged markdown with exactly one instance of each required XML section.\n- Generate the role contract JSON from the validated request.\n- Durable contract rule: package_files must use the same canonical promoted artifact paths declared in <outputs>; basename-only package_files are not acceptable.\n- Write draft copies into the current run directory before board review.\n\nOutputs:\n- tools/agent-role-builder/runs/<job_id>/drafts/agent-role-builder-role.md\n- tools/agent-role-builder/runs/<job_id>/drafts/agent-role-builder-role-contract.json\n\n### 3. Self-check the draft (current implementation)\n- Current implementation checks that each required XML section tag is present; the governed draft itself must keep exactly one instance of each required section.\n- Verify the role name appears in the markdown.\n- Verify out-of-scope coverage by semantic keyword matching against <scope>, not by literal-string matching only.\n- Verify the required canonical outputs are referenced in <outputs>.\n- Verify <completion> references result.json.\n- Do not claim lifecycle or structural checks that the current validator does not actually execute.\n\nOutputs:\n- tools/agent-role-builder/runs/<job_id>/self-check.json\n\n### 4. Execute governed board review (current implementation plus durable freeze and arbitration rules)\n- Launch the live reviewer roster defined by the request and collect structured reviewer verdicts using only approved, conditional, or reject.\n- Launch the leader to synthesize reviewer findings into frozen, pushback, or blocked round status using the material-pushback definition from <guardrails>.\n- When one reviewer approves or goes conditional and another rejects, revise only the rejecting findings first, then run a final sanity check with the previously approving reviewer before freeze.\n- When a reviewer finding survives into another round, carry it forward by conceptual_group ID in the next fix items map; silent carry-forward is not allowed.\n- Current implementation preserves round evidence under tools/agent-role-builder/runs/<job_id>/rounds/ for every executed round, and fix-items evidence when revising a prior rejection.\n- Durable governance rule: minor-only arbitration may be used only if the governance config allows it, the disagreement is limited to minor or suggestion items, and the leader records a rationale in run evidence.\n- Arbitration never resolves blocking or major findings, never overrides a reject verdict, and never changes the freeze rule.\n- Terminal state rule for frozen: every reviewer is approved or conditional, and no material pushback remains.\n- Terminal state rule for pushback: revisable material pushback causes the run to stop without freeze.\n- Terminal state rule for blocked: a non-recoverable validation or structural failure stops the run.\n- Terminal state rule for resume_required: review budget is exhausted while material pushback remains.\n\nOutputs:\n- tools/agent-role-builder/runs/<job_id>/rounds/\n- tools/agent-role-builder/runs/<job_id>/rounds/round-<n>.json\n- tools/agent-role-builder/runs/<job_id>/rounds/round-<n>/\n- tools/agent-role-builder/runs/<job_id>/runtime/session-registry.json\n\n### 5. Resolve the terminal state and write artifacts (current implementation plus durable lifecycle rules)\n- Always write result.json for every terminal state, including validation-time blocked.\n- After board execution reaches a terminal state, write the run-directory final markdown, contract, self-check, decision log, and board summary before any canonical promotion.\n- If frozen, promote the four canonical artifacts listed in <outputs> to tools/agent-role-builder/role/.\n- If pushback or post-board blocked, write agent-role-builder-pushback.json in the run directory and do not promote canonical artifacts.\n- If resume_required, write resume-package.json in the run directory and do not promote canonical artifacts.\n- Durable lifecycle rule: on frozen update or fix runs, append the canonical decision log and replace the canonical board summary as defined in <guardrails>.\n- If blocking validation stops the run before draft generation, result.json is still required and no canonical promotion occurs.\n\nOutputs:\n- tools/agent-role-builder/runs/<job_id>/result.json\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-role.md\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-role-contract.json\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-decision-log.md\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-board-summary.md\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-pushback.json (conditional)\n- tools/agent-role-builder/runs/<job_id>/resume-package.json (conditional)\n</steps>\n\n<outputs>\nCanonical artifacts (promoted on freeze only):\n- tools/agent-role-builder/role/agent-role-builder-role.md -- Canonical role definition markdown. Create, update, and fix all promote only on frozen.\n- tools/agent-role-builder/role/agent-role-builder-role-contract.json -- Canonical role contract. Create, update, and fix all promote only on frozen.\n- tools/agent-role-builder/role/agent-role-builder-decision-log.md -- Canonical decision history. Create writes on first frozen promotion. Update and fix append a new dated section on frozen promotion; prior canonical entries are never deleted.\n- tools/agent-role-builder/role/agent-role-builder-board-summary.md -- Canonical latest board summary. Write or replace only on frozen promotion; prior run summaries remain preserved in the run directory.\n\nRun-scoped evidence root (always governed): tools/agent-role-builder/runs/<job_id>/\n\nAlways written once the run directory is initialized:\n- tools/agent-role-builder/runs/<job_id>/normalized-request.json -- Request snapshot for audit.\n- tools/agent-role-builder/runs/<job_id>/source-manifest.json -- Source inventory for audit.\n- tools/agent-role-builder/runs/<job_id>/runtime/session-registry.json -- Runtime session state.\n\nAlways written once draft generation occurs:\n- tools/agent-role-builder/runs/<job_id>/drafts/agent-role-builder-role.md -- Draft markdown before board review.\n- tools/agent-role-builder/runs/<job_id>/drafts/agent-role-builder-role-contract.json -- Draft contract before board review.\n- tools/agent-role-builder/runs/<job_id>/self-check.json -- Current self-check evidence.\n\nAlways written after board execution reaches a terminal state:\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-role.md -- Final run-directory markdown for this run.\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-role-contract.json -- Final run-directory contract for this run.\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-decision-log.md -- Run-directory decision log for this run.\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-board-summary.md -- Run-directory board summary for this run.\n- tools/agent-role-builder/runs/<job_id>/rounds/ -- Per-round audit root, retained with round files and round subdirectories.\n- tools/agent-role-builder/runs/<job_id>/result.json -- Terminal result payload and evidence chain.\n\nConditional run-scoped evidence:\n- tools/agent-role-builder/runs/<job_id>/agent-role-builder-pushback.json -- Written on pushback and post-board blocked outcomes.\n- tools/agent-role-builder/runs/<job_id>/resume-package.json -- Written on resume_required.\n</outputs>\n\n<completion>\nThis workflow is complete only when one testable terminal state has been reached and its required artifacts exist.\n\nFrozen:\n- Every reviewer is approved or conditional.\n- No material pushback remains.\n- The run-directory final markdown, contract, decision log, board summary, self-check, and result.json exist.\n- All four canonical artifacts in tools/agent-role-builder/role/ have been promoted.\n\nPushback:\n- The run stops on revisable material pushback without freeze.\n- result.json exists.\n- If the run reached board execution, the run-directory final markdown, contract, decision log, board summary, self-check, and agent-role-builder-pushback.json exist.\n- No canonical artifact is promoted.\n\nBlocked:\n- A non-recoverable validation or structural failure stops the run.\n- result.json exists.\n- If the failure occurred after board execution started, the current run-directory evidence and agent-role-builder-pushback.json are also written.\n- No canonical artifact is promoted.\n\nResume_required:\n- Review budget is exhausted while material pushback remains.\n- The run-directory final markdown, contract, decision log, board summary, self-check, result.json, and resume-package.json exist.\n- No canonical artifact is promoted.\n</completion>",
+  "selfCheckIssues": [],
+  "reviewerVerdicts": {},
+  "complianceMap": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority is expressed as a strict operative precedence chain, with static docs separated under Reference evidence only."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <role>, <steps>, <completion>",
+      "evidence_summary": "Material pushback is defined once in <guardrails> and referenced consistently in freeze, terminal-state, and completion language."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <steps> Step 5, <completion>",
+      "evidence_summary": "Canonical promoted artifacts are separated from run-scoped evidence with explicit roots and lifecycle rules."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <completion>",
+      "evidence_summary": "Frozen, pushback, blocked, and resume_required each have distinct, testable trigger predicates and artifact expectations."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "Step 3 is limited to the self-check behavior that actually exists today and explicitly requires semantic keyword matching for out-of-scope coverage."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "The not-in-scope list is deduplicated to one exclusion per concept and preserves the merged contract meaning without repeated entries."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4",
+      "evidence_summary": "Arbitration has a trigger condition, actor, evidence requirement, and bounded effect: minor-only disagreements, leader rationale, and no override of reject or material pushback."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <steps> Step 2",
+      "evidence_summary": "All four required promoted artifacts are declared with full canonical tool-relative paths, and Step 2 requires contract package_files to match them."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion is defined separately for frozen, pushback, blocked, and resume_required, with explicit artifact predicates for each state."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Context gathering is explicitly labeled as preconditions before Step 1, and numbered execution steps begin in <steps>."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4",
+      "evidence_summary": "The draft explicitly requires carried-forward reviewer findings to be tracked by conceptual_group ID in the next fix items map."
+    },
+    {
+      "rule_id": "ARB-012",
+      "status": "compliant",
+      "evidence_location": "<inputs>, <steps> Step 1",
+      "evidence_summary": "Inputs and validation steps state the hard gate for reviewer_count, reviewer array length, and Codex+Claude reviewer-pair composition."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <outputs>, <steps> Step 5",
+      "evidence_summary": "Decision-history preservation is mechanical: canonical decision log appends on frozen update/fix, canonical board summary replaces on freeze, and prior run summaries remain in run evidence."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Each section distinguishes current implementation from durable contract or target behavior, avoiding false claims about already-implemented features."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4, <outputs>",
+      "evidence_summary": "Round evidence is defined as per-round output, not revision-only output, and the artifact matrix distinguishes always-written evidence from conditional artifacts."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "The outputs section acts as one authoritative artifact matrix, declaring class, full path or root, and exact lifecycle by operation and terminal state."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, <steps> Step 4",
+      "evidence_summary": "The draft inherits governance from the approved architecture: live governance first, docs as reference only, freeze on approved or conditional with no material pushback, and minor-only arbitration."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "The role mission is enduring and role-level; it does not describe a specific resume, bootstrap, or round-specific invocation state."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>, <outputs>",
+      "evidence_summary": "The writable surface is explicitly bounded to the canonical role root, the current run root, and named governed subpaths and run-root artifacts."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Only operative governance sources appear in the authority chain; static docs are classified separately as reference evidence."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4",
+      "evidence_summary": "Board mechanics are source-backed: no Codex-only leader rule, no unsupported verdict names, and no invented arbitration power beyond minor-only disagreement handling."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Use-when bullets contain inclusions, and Not in scope contains exclusions only, with positive board-review ownership moved to <authority>."
+    }
+  ],
+  "fixItemsMap": []
+}
