@@ -20,13 +20,16 @@ interface BugReport {
   timestamp: string;
 }
 
-let bugReportCounter = 0;
+interface BoardContext {
+  runDir: string | null;
+  bugReportCounter: number;
+}
 
-async function writeBugReport(report: BugReport): Promise<string | null> {
-  if (!runDir) return null;
-  bugReportCounter++;
-  const filename = `bug-report-${bugReportCounter}.json`;
-  const path = join(runDir, filename);
+async function writeBugReport(report: BugReport, ctx: BoardContext): Promise<string | null> {
+  if (!ctx.runDir) return null;
+  ctx.bugReportCounter++;
+  const filename = `bug-report-${ctx.bugReportCounter}.json`;
+  const path = join(ctx.runDir, filename);
   await writeFile(path, JSON.stringify(report, null, 2), "utf-8");
   console.error(`[board] Bug report written to ${path}`);
   return path;
@@ -131,19 +134,14 @@ export interface BoardRoundResult {
   fixItemsMap?: FixItem[];
 }
 
-let runDir: string | null = null;
-
-export function setRunDir(dir: string): void {
-  runDir = dir;
-}
-
 // --- Main board execution ---
 
 export async function executeBoard(
   request: RoleBuilderRequest,
   draftMarkdown: string,
   draftContract: Record<string, unknown>,
-  selfCheckIssues: Array<{ code: string; message: string }>
+  selfCheckIssues: Array<{ code: string; message: string }>,
+  runDir: string | null = null
 ): Promise<{
   status: RoleBuilderStatus;
   rounds: BoardRoundResult[];
@@ -152,6 +150,7 @@ export async function executeBoard(
   finalMarkdown: string;
   finalSelfCheckIssues: Array<{ code: string; message: string }>;
 }> {
+  const ctx: BoardContext = { runDir, bugReportCounter: 0 };
   const maxRounds = request.governance.max_review_rounds;
   const rounds: BoardRoundResult[] = [];
   const allParticipants: ParticipantRecord[] = [];
@@ -178,7 +177,7 @@ export async function executeBoard(
   let pendingFixItemsMap: FixItem[] | undefined;
 
   for (let round = 0; round < maxRounds; round++) {
-    const roundDir = runDir ? join(runDir, "rounds", `round-${round}`) : null;
+    const roundDir = ctx.runDir ? join(ctx.runDir, "rounds", `round-${round}`) : null;
     if (roundDir) await mkdir(roundDir, { recursive: true });
 
     // Bug 7: Use compliance map and fix items map produced by the prior round's revision
@@ -211,7 +210,7 @@ export async function executeBoard(
     try {
       roundResult = await executeRound(
         request, currentMarkdown, draftContract, currentSelfCheckIssues,
-        round, rounds, activeReviewers, isSanityCheck, complianceMap, fixItemsMap
+        round, rounds, activeReviewers, complianceMap, fixItemsMap, ctx
       );
     } catch (err) {
       // Bug 1 fix: BoardBlockedError means an unrecoverable parse failure — stop immediately
@@ -302,7 +301,7 @@ export async function executeBoard(
             fixChecklist.push({
               groupId: group.id, severity: group.severity,
               summary: group.summary, redesignGuidance: group.redesign_guidance,
-              findingCount: group.findings.length,
+              findingCount: Array.isArray(group.findings) ? group.findings.length : 0,
             });
           }
         }
@@ -318,7 +317,7 @@ export async function executeBoard(
             source_path: "tools/agent-role-builder/learning-engine",
           });
           learningOutput = JSON.parse(cleanJsonResponse(learningResult.response));
-        } catch (e) { console.error("[board] Learning engine failed:", e instanceof Error ? e.message : e); }
+        } catch (e) { console.error(`[board] Learning engine failed (round ${round}, findings: ${fixChecklist.length}):`, e instanceof Error ? e.message : e); }
 
         if (roundDir) {
           await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
@@ -356,12 +355,11 @@ export async function executeBoard(
         // Bug 7: revision now returns compliance map and fix items map for the NEXT round
         if (canRevise) {
           const revisionResult = await reviseRoleMarkdown(
-            request, roundResult.markdown, draftContract,
+            request, roundResult.markdown,
             { round: roundResult.round, leaderRationale: roundResult.leaderRationale,
               unresolved: roundResult.unresolved, fixChecklist,
               priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
-              rulebook: currentRulebook, newRuleIds },
-            rounds.map((pr) => ({ round: pr.round, leaderRationale: pr.leaderRationale, unresolved: pr.unresolved }))
+              rulebook: currentRulebook, newRuleIds }
           );
           currentMarkdown = revisionResult.markdown;
           pendingComplianceMap = revisionResult.complianceMap as ComplianceEntry[];
@@ -394,7 +392,7 @@ export async function executeBoard(
           provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
           timestamp: new Date().toISOString(),
         };
-        await writeBugReport(bugReport);
+        await writeBugReport(bugReport, ctx);
 
         // Throw BoardBlockedError — the board cannot converge if revision crashes every round
         throw new BoardBlockedError(
@@ -423,8 +421,9 @@ async function executeRound(
   contract: Record<string, unknown>,
   selfCheckIssues: Array<{ code: string; message: string }>,
   roundIndex: number, priorRounds: BoardRoundResult[],
-  activeReviewers: BoardParticipant[], isSanityCheck: boolean,
-  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[]
+  activeReviewers: BoardParticipant[],
+  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[],
+  ctx?: BoardContext
 ): Promise<BoardRoundResult> {
   const participants: ParticipantRecord[] = [];
   const reviewerVerdicts = new Map<string, ReviewerVerdict>();
@@ -435,7 +434,7 @@ async function executeRound(
       roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap
     );
     participants.push(record);
-    reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id));
+    reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id, ctx));
   }
 
   const leaderRecord = await executeParticipant(
@@ -443,7 +442,7 @@ async function executeRound(
     roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap
   );
   participants.push(leaderRecord);
-  const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex, leaderRecord.participant_id);
+  const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex, leaderRecord.participant_id, ctx);
 
   return {
     round: roundIndex, participants, leaderVerdict: leaderResponse.status,
@@ -640,7 +639,8 @@ function cleanJsonResponse(raw: string): string {
   return cleaned;
 }
 
-async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string): Promise<ReviewerVerdict> {
+async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string, ctx?: BoardContext): Promise<ReviewerVerdict> {
+  const defaultCtx: BoardContext = ctx ?? { runDir: null, bugReportCounter: 0 };
   // Bug 3 fix: pre-validate before any JSON parsing
   const preValidationFailure = preValidateResponse(raw);
   if (preValidationFailure) {
@@ -655,7 +655,7 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
       provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
-    const reportPath = await writeBugReport(bugReport);
+    const reportPath = await writeBugReport(bugReport, defaultCtx);
     // Pre-validation failures are not auto-fixable — return parse-error verdict
     // (the board loop will detect parse-error and mark reviewer as "error")
     console.error(`[board] Reviewer response pre-validation failed: ${preValidationFailure}`);
@@ -687,7 +687,7 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
       provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
-    const reportPath = await writeBugReport(bugReport);
+    const reportPath = await writeBugReport(bugReport, defaultCtx);
 
     const fixed = await attemptAutoFix(bugReport, request, raw);
     if (fixed) {
@@ -715,7 +715,8 @@ async function parseReviewerResponse(raw: string, request: RoleBuilderRequest, r
   }
 }
 
-async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string): Promise<LeaderVerdict> {
+async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, round: number, participantId?: string, ctx?: BoardContext): Promise<LeaderVerdict> {
+  const defaultCtx: BoardContext = ctx ?? { runDir: null, bugReportCounter: 0 };
   // Bug 3 fix: pre-validate before any JSON parsing
   const preValidationFailure = preValidateResponse(raw);
   if (preValidationFailure) {
@@ -730,7 +731,7 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
       provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
-    const reportPath = await writeBugReport(bugReport);
+    const reportPath = await writeBugReport(bugReport, defaultCtx);
     // Pre-validation failures on leader are unrecoverable — block immediately
     console.error(`[board] Leader response pre-validation failed: ${preValidationFailure}`);
     throw new BoardBlockedError(
@@ -762,7 +763,7 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
       provenance: { participant_id: participantId },
       timestamp: new Date().toISOString(),
     };
-    const reportPath = await writeBugReport(bugReport);
+    const reportPath = await writeBugReport(bugReport, defaultCtx);
 
     const fixed = await attemptAutoFix(bugReport, request, raw);
     if (fixed) {

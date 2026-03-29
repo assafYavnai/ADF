@@ -66,7 +66,8 @@
       "file": "tools/agent-role-builder/src/services/board.ts",
       "line": 426,
       "description": "isSanityCheck parameter is passed to executeRound() but never used inside it. Dead parameter (IMP-006).",
-      "fix_applied": "Identified only — no fix applied. Removing requires updating all call sites and the function signature. Flagged for next cleanup pass."
+      "fix_applied": "FIXED: Removed isSanityCheck from executeRound() signature and the call site in executeBoard(). The local variable isSanityCheck still exists in executeBoard for the activeReviewers ternary but is no longer threaded as a parameter. tsc --noEmit passes clean.",
+      "status": "fixed"
     },
     {
       "id": "NEW-2",
@@ -74,7 +75,8 @@
       "file": "tools/agent-role-builder/src/services/role-generator.ts",
       "line": 124,
       "description": "currentContract parameter in reviseRoleMarkdown() is declared but never referenced in the function body. Dead parameter (IMP-006).",
-      "fix_applied": "Identified only — no fix applied. Removing requires updating the call site in board.ts. Flagged for next cleanup pass."
+      "fix_applied": "FIXED: Removed currentContract from reviseRoleMarkdown() signature (role-generator.ts) and the call site in board.ts. tsc --noEmit passes clean.",
+      "status": "fixed"
     },
     {
       "id": "NEW-3",
@@ -82,7 +84,8 @@
       "file": "tools/agent-role-builder/src/services/role-generator.ts",
       "line": 126,
       "description": "priorRounds parameter in reviseRoleMarkdown() is declared but never referenced in the function body. Dead parameter (IMP-006).",
-      "fix_applied": "Identified only — no fix applied. Same cleanup batch as NEW-2."
+      "fix_applied": "FIXED: Removed priorRounds from reviseRoleMarkdown() signature (role-generator.ts) and the call site in board.ts (the rounds.map(...) argument). tsc --noEmit passes clean.",
+      "status": "fixed"
     },
     {
       "id": "NEW-4",
@@ -90,7 +93,8 @@
       "file": "tools/agent-role-builder/src/services/board.ts",
       "line": "134, 23",
       "description": "Module-level mutable state: runDir (line 134) and bugReportCounter (line 23) are shared across all calls. If executeBoard were ever called concurrently, these would conflict. Not immediately blocking since the tool runs single-threaded, but violates IMP-011 principle.",
-      "fix_applied": "Identified only — encapsulating in a class or passing via parameter would be the fix. Low priority since tool is single-threaded."
+      "fix_applied": "FIXED: (1) Removed module-level 'let runDir' and 'let bugReportCounter'. (2) Created BoardContext interface { runDir, bugReportCounter } — instantiated fresh per executeBoard() call. (3) runDir is now a parameter of executeBoard(). (4) Removed setRunDir() export. (5) Updated index.ts: removed setRunDir import, passes runDir directly to executeBoard(). (6) writeBugReport, parseReviewerResponse, parseLeaderResponse all accept BoardContext. tsc --noEmit passes clean.",
+      "status": "fixed"
     },
     {
       "id": "NEW-5",
@@ -98,7 +102,8 @@
       "file": "tools/agent-role-builder/src/services/board.ts",
       "line": 305,
       "description": "group.findings.length used on LLM-returned conceptual_groups inner elements without type check. If LLM returns findings as a string, .length would return character count (wrong semantics) instead of finding count. Not blocking since only used for findingCount in fixChecklist display.",
-      "fix_applied": "Identified only — would need: findingCount: Array.isArray(group.findings) ? group.findings.length : 0. Minor risk since inner elements are rarely malformed when outer array is well-typed."
+      "fix_applied": "FIXED: Changed to 'findingCount: Array.isArray(group.findings) ? group.findings.length : 0'. IMP-017 compliant. tsc --noEmit passes clean.",
+      "status": "fixed"
     },
     {
       "id": "NEW-6",
@@ -106,7 +111,8 @@
       "file": "tools/agent-role-builder/src/services/board.ts",
       "line": "311-321",
       "description": "Learning engine parse failure catch block (line 321) only logs error but doesn't escalate. The learning engine is less critical than revision (non-critical per IMP-016), so logging is acceptable, but the log doesn't include round number or context for post-mortem.",
-      "fix_applied": "Identified only — the log should include round number and finding count: console.error(`[board] Learning engine failed (round ${round}, ${fixChecklist.length} findings):`, ...). Acceptable as non-critical operation."
+      "fix_applied": "FIXED: Changed to 'console.error(`[board] Learning engine failed (round ${round}, findings: ${fixChecklist.length}):`, ...)'. Now includes round number and finding count for post-mortem analysis. tsc --noEmit passes clean.",
+      "status": "fixed"
     }
   ],
   "compliance_map": [
@@ -114,12 +120,12 @@
     { "rule_id": "IMP-003", "status": "compliant", "evidence": "Bug 4 fix: conditional guard now covers all valid reviewer states (approved, conditional, reject, error, pending). Bug 5 fix: compliance map now covers round 0." },
     { "rule_id": "IMP-004", "status": "compliant", "evidence": "Bug 1 fix in role-generator.ts and Bug 3 fix in board.ts (two locations) cover all places where applies_to is consumed. Grep confirmed no other .join() on applies_to exists." },
     { "rule_id": "IMP-005", "status": "compliant", "evidence": "No new schemas created. generateInitialComplianceMap returns ComplianceEntry[] which is already defined and used." },
-    { "rule_id": "IMP-006", "status": "partial", "evidence": "NEW-1, NEW-2, NEW-3 identify dead parameters (isSanityCheck, currentContract, priorRounds). These are flagged but not fixed to avoid scope creep. No dead imports found." },
+    { "rule_id": "IMP-006", "status": "compliant", "evidence": "NEW-1 (isSanityCheck), NEW-2 (currentContract), NEW-3 (priorRounds) dead parameters all removed from signatures and call sites. tsc --noEmit passes clean." },
     { "rule_id": "IMP-007", "status": "compliant", "evidence": "Bug 2 fix: revision catch block now writes bug report and throws BoardBlockedError instead of silently swallowing. All other catch blocks either log with context or throw." },
     { "rule_id": "IMP-008", "status": "not_applicable", "evidence": "No stubs created in this change." },
     { "rule_id": "IMP-009", "status": "not_applicable", "evidence": "No CLI invocations modified." },
     { "rule_id": "IMP-010", "status": "compliant", "evidence": "This fix map is the closeout evidence. TypeScript compiles clean." },
-    { "rule_id": "IMP-011", "status": "partial", "evidence": "NEW-4 identifies module-level mutable state. Not blocking for single-threaded tool." },
+    { "rule_id": "IMP-011", "status": "compliant", "evidence": "NEW-4 fixed: runDir and bugReportCounter moved from module-level into BoardContext, scoped per executeBoard() call. No shared mutable state remains." },
     { "rule_id": "IMP-012", "status": "not_applicable", "evidence": "No git operations in this change." },
     { "rule_id": "IMP-013", "status": "not_applicable", "evidence": "Postmortem deferred to completion of full implementation cycle." },
     { "rule_id": "IMP-016", "status": "compliant", "evidence": "Bug 2 fix: revision catch block now writes bug report with full context and throws BoardBlockedError. Critical operations (revision, parse) all escalate. Non-critical operations (learning engine) log with context." },

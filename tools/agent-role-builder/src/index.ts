@@ -6,7 +6,7 @@ import { RoleBuilderRequest } from "./schemas/request.js";
 import { type RoleBuilderResult, type RoleBuilderStatus, type ValidationIssue, type ParticipantRecord } from "./schemas/result.js";
 import { validateRequest, selfCheck } from "./services/validator.js";
 import { generateRoleMarkdown, generateRoleContract } from "./services/role-generator.js";
-import { executeBoard, setRunDir } from "./services/board.js";
+import { executeBoard } from "./services/board.js";
 import { createSystemProvenance, emit } from "./shared-imports.js";
 
 interface CanonicalRolePaths {
@@ -126,8 +126,7 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   const initialSelfCheckIssues = selfCheck(draftMarkdown, request);
   await writeFile(join(runDir, "self-check.json"), JSON.stringify(initialSelfCheckIssues, null, 2), "utf-8");
 
-  setRunDir(runDir);
-  const boardResult = await executeBoard(request, draftMarkdown, draftContract, initialSelfCheckIssues);
+  const boardResult = await executeBoard(request, draftMarkdown, draftContract, initialSelfCheckIssues, runDir);
 
   for (const round of boardResult.rounds) {
     await writeFile(

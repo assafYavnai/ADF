@@ -121,9 +121,7 @@ export interface RevisionResult {
 export async function reviseRoleMarkdown(
   request: RoleBuilderRequest,
   currentMarkdown: string,
-  currentContract: Record<string, unknown>,
-  feedback: RevisionFeedback,
-  priorRounds: Array<{ round: number; leaderRationale: string; unresolved: string[] }>
+  feedback: RevisionFeedback
 ): Promise<RevisionResult> {
   const { invoke } = await import("../shared-imports.js");
 
