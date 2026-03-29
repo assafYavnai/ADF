@@ -9,6 +9,13 @@
     "reviewer_must_not_roam_outside_component_bundle": true,
     "audit_required": true
   },
+  "roster_requirements": {
+    "minimum_reviewer_count": 2,
+    "reviewer_count_must_be_even": true,
+    "required_pair_shape": "Each active review pair must contain exactly one Codex reviewer and one Claude reviewer.",
+    "validation_phase": "request_validation",
+    "fail_closed": true
+  },
   "review_modes": {
     "full": "Review the whole artifact and perform a full rulebook sweep.",
     "delta": "Review only changed sections plus any directly affected cross-cutting areas.",
@@ -88,6 +95,7 @@
   "leader_output": {
     "allowed_statuses": [
       "frozen",
+      "frozen_with_conditions",
       "pushback",
       "blocked",
       "resume_required"
@@ -100,7 +108,15 @@
       "arbitration_used",
       "arbitration_rationale"
     ],
-    "arbitration_rule": "Arbitration is minor-only. Blocking or major disagreements never qualify for freeze by arbitration."
+    "arbitration_rule": "Arbitration is minor-only. Blocking or major disagreements never qualify for freeze by arbitration.",
+    "status_invariants": {
+      "frozen": "Allowed only when no unresolved findings remain and no repair pass is still required.",
+      "frozen_with_conditions": "Allowed only when unresolved items, if any, are minor or suggestion only and any arbitration used was minor-only.",
+      "pushback": "Required when blocking or major findings remain and review budget still permits another repair and re-review round.",
+      "resume_required": "Required when blocking or major findings remain and the review budget is exhausted.",
+      "blocked": "Required for unrecoverable validation, structural, or execution errors."
+    },
+    "invalid_status_handling": "If the selected status conflicts with the unresolved set or the arbitration rule, fail closed, record the override, and return a safe effective status."
   },
   "audit_requirements": {
     "required_fields": [
@@ -114,6 +130,7 @@
       "fallback_used",
       "artifact_refs"
     ],
+    "field_ownership": "Audit field vocabulary is contract-owned. Runtime code and rulebooks may reference it but must not redefine or silently remap it.",
     "required_outputs": [
       "review.json",
       "run-postmortem.json",

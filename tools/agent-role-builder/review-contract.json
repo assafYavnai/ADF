@@ -10,6 +10,15 @@
     "review_contract": "tools/agent-role-builder/review-contract.json",
     "rulebook": "tools/agent-role-builder/rulebook.json"
   },
+  "required_runtime_inputs": [
+    "Active reviewer roster that satisfies the shared review contract roster requirements",
+    "Component-owned governance files listed in component_owned_files",
+    "Runtime review mode selection for the current round"
+  ],
+  "validation_requirements": {
+    "enforce_shared_roster_requirements": true,
+    "fail_closed_on_missing_component_governance_files": true
+  },
   "review_modes": {
     "first_round": "full",
     "middle_rounds": "delta",

@@ -1,8 +1,7 @@
 {
   "schema_version": "1.0",
   "purpose": "System-level guide that defines what a good rulebook looks like. All component rulebooks must conform to this guide. The guide itself improves over time through jobs post-mortem (system-level changes).",
-  "last_updated": "2026-03-28",
-
+  "last_updated": "2026-03-29",
   "rule_schema": {
     "required_fields": {
       "id": {
@@ -17,7 +16,11 @@
       },
       "applies_to": {
         "description": "Array of specific sections, files, or areas of the artifact where this rule is relevant. Helps the implementer know WHERE to check.",
-        "example": ["<authority> section", "<guardrails>", "validator.ts"]
+        "example": [
+          "<authority> section",
+          "<guardrails>",
+          "validator.ts"
+        ]
       },
       "do": {
         "description": "Concrete instruction of what compliant behavior looks like. Include a specific example of correct implementation. The implementer should be able to copy/adapt this.",
@@ -36,7 +39,7 @@
         ]
       },
       "source": {
-        "description": "Which review cycle(s) produced this rule. References specific runs and what was observed. Provides credibility — this rule exists because a real failure happened.",
+        "description": "Which review cycle(s) produced this rule. References specific runs and what was observed. Provides credibility - this rule exists because a real failure happened.",
         "example": "Runs 003-006: authority modeling flagged in every run. Reviewers consistently rejected flat subordinate_to lists."
       },
       "version": {
@@ -51,12 +54,15 @@
       },
       "severity": {
         "description": "How critical this rule is. Helps prioritize during compliance checking.",
-        "values": ["critical", "important", "advisory"],
+        "values": [
+          "critical",
+          "important",
+          "advisory"
+        ],
         "default": "important"
       }
     }
   },
-
   "rulebook_structure": {
     "required_fields": {
       "schema_version": "Must be '1.0' (or current version)",
@@ -65,13 +71,12 @@
       "rules": "Array of rule objects conforming to rule_schema"
     }
   },
-
   "principles": {
     "what_rules_are": [
       "High-level generalized core essence directives",
-      "Distilled from real review failures — not invented speculatively",
+      "Distilled from real review failures - not invented speculatively",
       "Actionable by a first-time implementer with no prior context",
-      "Stable across runs — a rule that only applies to one specific artifact version is not a rule"
+      "Stable across runs - a rule that only applies to one specific artifact version is not a rule"
     ],
     "what_rules_are_not": [
       "Not copies of reviewer feedback ('round 2 said X')",
@@ -87,19 +92,41 @@
       "Is the rule specific enough that compliance can be mechanically verified?",
       "Does the source field prove this rule emerged from a real failure?"
     ],
+    "routing_policy": {
+      "purpose": "Route each learned finding to the narrowest authority surface that can actually enforce it.",
+      "destinations": {
+        "component_rulebook": "Recurring component-local directive that an implementer can mechanically self-check during authoring or repair.",
+        "component_contract": "Machine-enforced invariant, required input, output, or terminal-state rule specific to one component bundle.",
+        "shared_contract": "Machine-enforced invariant or vocabulary shared across multiple components or review domains.",
+        "doc_only": "Human-facing rationale, lifecycle explanation, or design authority note that is not itself a machine check."
+      },
+      "routing_questions": [
+        "Can the runtime, schema, or validator enforce this directly? If yes, it belongs in a contract, not a rulebook.",
+        "Is this mainly rationale, sequencing explanation, or authority narrative for humans? If yes, it belongs in docs, not a rulebook.",
+        "Is this a recurring component-local directive that an implementer can mechanically walk during self-check? If yes, it belongs in the component rulebook.",
+        "Does an existing rule or contract already cover the failure? If yes, rewrite, merge, or supersede instead of appending a near-duplicate rule."
+      ]
+    },
     "system_rules": [
       {
         "id": "SYS-001",
-        "rule": "When a fix is applied to a module that has copies or re-exports, the compliance map must list ALL locations where the fix applies, not just the canonical source.",
-        "source": "Step 2f review cycle: security fix (B-1 Gemini injection, m-3 shell:true) applied to shared/llm-invoker/invoker.ts but missed in tools/agent-role-builder/src/shared-imports.ts. Caught by reviewer in Round 2 (R2-1). A compliance map checking all locations would have prevented this.",
+        "rule": "Every learned finding must be routed to the narrowest authority surface that can mechanically enforce it: component rulebook, component contract, shared contract, or doc-only guidance.",
+        "source": "2026-03-29 governance split review: overlap came from contract/process policy living inside rulebooks.",
+        "version": 1
+      },
+      {
+        "id": "SYS-002",
+        "rule": "Before adding a new active rule, check whether an existing rule can be rewritten, merged, or superseded so the rulebook does not accumulate overlapping guidance.",
+        "source": "2026-03-29 governance split review: overlapping authority, artifact, and error-handling rules reduced maintainability.",
         "version": 1
       }
     ],
     "lifecycle": [
       "Rules are created by the learning engine from review feedback",
-      "Rules are never silently deleted — history preserved in git",
+      "Rules are never silently deleted - history preserved in git",
       "Rules can be superseded by a new version with 'supersedes' field",
       "The rulebook is updated at the end of every review round (run post-mortem)",
+      "When a learned finding is really a contract or documentation gap, update that authority surface instead of appending a rulebook entry",
       "The rule book guide itself is updated during jobs post-mortem (system-level improvement)"
     ]
   }

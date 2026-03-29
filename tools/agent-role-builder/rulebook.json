@@ -10,7 +10,7 @@
         "<authority> section"
       ],
       "do": "List operative authority (COO controller, runtime contract) as the binding constraint. List static documents under a separate 'Reference evidence' heading. Example: 'Reports to: COO controller for the current turn. Reference evidence: docs/VISION.md, docs/v0/architecture.md (not competing runtime authority).'",
-      "dont": "Put governance documents in 'subordinate_to' as if they were a reporting chain. Example of violation: 'Subordinate to: docs/VISION.md, docs/architecture.md' ג€” this conflates reference material with operative authority.",
+      "dont": "Put governance documents in 'subordinate_to' as if they were a reporting chain. Example of violation: 'Subordinate to: docs/VISION.md, docs/architecture.md' — this conflates reference material with operative authority.",
       "source": "Runs 003-006: flagged in every run. Reviewers consistently rejected flat subordinate_to lists.",
       "version": 1
     },
@@ -24,7 +24,7 @@
         "<steps>"
       ],
       "do": "Define 'material pushback' once in <guardrails>: 'Material pushback means any unresolved finding with blocking or major severity.' Then reference that definition: 'Freeze only when no material pushback remains (see guardrail definition).'",
-      "dont": "Use different phrasings for the same concept across sections. Example of violation: <role> says 'freezes only when no material pushback remains', <guardrails> says 'no unresolved blocking or major issue remains', <completion> says 'all material issues resolved' ג€” three phrasings, never reconciled.",
+      "dont": "Use different phrasings for the same concept across sections. Example of violation: <role> says 'freezes only when no material pushback remains', <guardrails> says 'no unresolved blocking or major issue remains', <completion> says 'all material issues resolved' — three phrasings, never reconciled.",
       "source": "Runs 003-006: inconsistent freeze threshold wording flagged in every run.",
       "version": 1
     },
@@ -61,8 +61,8 @@
         "Step 3 (self-check)",
         "validator.ts"
       ],
-      "do": "Check out-of-scope coverage by extracting keywords from each out_of_scope item and verifying the <scope> section contains those concepts. Report which keywords were checked and which matched. Example: 'Out-of-scope: Tool creation ג€” checked keywords: tool, creation ג€” found in <scope>: yes.'",
-      "dont": "Use markdown.includes(item) for out-of-scope verification. Example of violation: contract says 'Tool creation (owned by llm-tool-builder)', markdown says 'Tool creation. That belongs to llm-tool-builder.' ג€” literal match fails, but the concept is covered.",
+      "do": "Check out-of-scope coverage by extracting keywords from each out_of_scope item and verifying the <scope> section contains those concepts. Report which keywords were checked and which matched. Example: 'Out-of-scope: Tool creation — checked keywords: tool, creation — found in <scope>: yes.'",
+      "dont": "Use markdown.includes(item) for out-of-scope verification. Example of violation: contract says 'Tool creation (owned by llm-tool-builder)', markdown says 'Tool creation. That belongs to llm-tool-builder.' — literal match fails, but the concept is covered.",
       "source": "Runs 003-006: self-check reported 'passed' but reviewers found issues it missed. MISSING_OUT_OF_SCOPE false positives flagged repeatedly.",
       "version": 1
     },
@@ -74,7 +74,7 @@
         "role-generator.ts"
       ],
       "do": "Merge request.out_of_scope and role_requirements.scope.not_in_scope into one deduplicated list before generating. Normalize casing and punctuation. The <scope> section should have exactly the same exclusions as the contract, no more, no fewer.",
-      "dont": "Append both lists without deduplication. Example of violation: not-in-scope lists 'Tool creation (owned by llm-tool-builder)' from the request AND 'Tool creation' from role_requirements ג€” same concept, two entries with different wording.",
+      "dont": "Append both lists without deduplication. Example of violation: not-in-scope lists 'Tool creation (owned by llm-tool-builder)' from the request AND 'Tool creation' from role_requirements — same concept, two entries with different wording.",
       "source": "Runs 003-006: duplicate and contradictory scope entries flagged in every run.",
       "version": 1
     },
@@ -86,7 +86,7 @@
         "<guardrails>"
       ],
       "do": "Define: 'Arbitration triggers when split verdicts persist for 2+ consecutive rounds after revision. The leader arbitrates. Evidence: arbitration_used=true, arbitration_rationale in result.json. Arbitration can only resolve minor/conditional disagreements, never blocking/major items.'",
-      "dont": "Leave arbitration as a vague concept. Example of violation: 'If split verdicts persist and arbitration is still available, use at most one arbitration round' ג€” no defined trigger threshold, no actor, no evidence format.",
+      "dont": "Leave arbitration as a vague concept. Example of violation: 'If split verdicts persist and arbitration is still available, use at most one arbitration round' — no defined trigger threshold, no actor, no evidence format.",
       "source": "Runs 003-006: arbitration semantics flagged in every run. 'What counts as materially mixed?' had no answer.",
       "version": 1
     },
@@ -98,7 +98,7 @@
         "contract package_files"
       ],
       "do": "Use full paths: 'tools/agent-role-builder/role/agent-role-builder-role.md'. Match exactly between contract package_files and <outputs> canonical list.",
-      "dont": "Use basenames or slug templates. Example of violation: <outputs> says '<slug>-role.md', contract says 'agent-role-builder-role.md', promotion logic uses 'tools/agent-role-builder/role/agent-role-builder-role.md' ג€” three different representations of the same file.",
+      "dont": "Use basenames or slug templates. Example of violation: <outputs> says '<slug>-role.md', contract says 'agent-role-builder-role.md', promotion logic uses 'tools/agent-role-builder/role/agent-role-builder-role.md' — three different representations of the same file.",
       "source": "Runs 004-006: package_files path ambiguity flagged repeatedly.",
       "version": 1
     },
@@ -109,7 +109,7 @@
         "<completion> section"
       ],
       "do": "List completion per state: 'Frozen: all canonical artifacts promoted + result.json + decision log updated. Pushback: result.json + pushback.json + decision log + board summary written to run dir. Blocked: result.json with blocking reason. Resume_required: result.json + resume-package.json with deferred items.'",
-      "dont": "Write completion criteria that only describe the frozen path. Example of violation: 'This workflow is complete when terminal status reached and all applicable artifacts written' ג€” does not specify which artifacts are applicable for pushback vs blocked.",
+      "dont": "Write completion criteria that only describe the frozen path. Example of violation: 'This workflow is complete when terminal status reached and all applicable artifacts written' — does not specify which artifacts are applicable for pushback vs blocked.",
       "source": "Runs 003-006: completion section only described frozen. Reviewers asked 'is a pushback run complete?' in multiple rounds.",
       "version": 1
     },
@@ -121,7 +121,7 @@
         "<steps> section"
       ],
       "do": "Label context-gathering as 'Preconditions (before Step 1):' and number steps starting from 1 for the first execution action. Example: '<context-gathering> 1. Load request JSON (precondition). 2. Verify source_refs (precondition).' Then '<steps> Step 1: Validate and normalize.'",
-      "dont": "Mix context-gathering items into the numbered step flow. Example of violation: context-gathering lists 6 items, Step 1 starts at '1. Validate' ג€” is validation step 1 or step 7? Ambiguous.",
+      "dont": "Mix context-gathering items into the numbered step flow. Example of violation: context-gathering lists 6 items, Step 1 starts at '1. Validate' — is validation step 1 or step 7? Ambiguous.",
       "source": "Run 003: reviewer asked whether context-gathering is step 0 or part of step 1.",
       "version": 1
     },
@@ -133,20 +133,8 @@
         "fix items map"
       ],
       "do": "Track each finding by its conceptual_group ID across rounds. When revising, reference the specific group: 'Addressing group-3 from round 1: added explicit lifecycle per terminal state.' In the fix items map, list every carried-forward finding as either accepted (with fix summary) or rejected (with reason).",
-      "dont": "Let unresolved findings accumulate without tracking. Example of violation: round 0 flags 'mixed verdict not resolved', round 1 flags 'mixed verdict not resolved' with different wording, round 2 flags it again ג€” same issue, three descriptions, no explicit closure chain.",
+      "dont": "Let unresolved findings accumulate without tracking. Example of violation: round 0 flags 'mixed verdict not resolved', round 1 flags 'mixed verdict not resolved' with different wording, round 2 flags it again — same issue, three descriptions, no explicit closure chain.",
       "source": "Runs 004-006: mixed reviewer verdicts from prior rounds were not tracked as specific items to resolve.",
-      "version": 1
-    },
-    {
-      "id": "ARB-012",
-      "rule": "Board roster validation must require at least one complete Codex+Claude reviewer pair at request validation time. This is a hard gate, not an inference.",
-      "applies_to": [
-        "request validation (validator.ts)",
-        "<inputs> section"
-      ],
-      "do": "In validator.ts: check reviewer_count >= 2, check reviewers array length matches reviewer_count, check every pair contains one codex + one claude provider. Fail validation if any check fails. In <inputs>: state 'At request validation time, reviewer_count must be 2, 4, or 6, and the roster must contain at least one complete live Codex+Claude reviewer pair.'",
-      "dont": "Rely on the roster schema alone without explicit pair validation. Example of violation: reviewer_count=2 with two Codex reviewers ג€” schema allows it but governance requires cross-provider pairs.",
-      "source": "Run 004: reviewer flagged that pair requirement was implied but not enforced in validation.",
       "version": 1
     },
     {
@@ -157,7 +145,7 @@
         "<guardrails>"
       ],
       "do": "State explicitly: 'On update/fix operations, the existing decision-log.md is appended with a new dated section. Prior entries are never deleted. The board-summary.md is replaced with the current run summary but the prior version is retained in the run directory.'",
-      "dont": "Leave preservation mechanism undefined. Example of violation: guardrail says 'Decision history must be preserved across update/fix operations' but Step 5 says 'Write decision log' ג€” does 'write' mean overwrite or append?",
+      "dont": "Leave preservation mechanism undefined. Example of violation: guardrail says 'Decision history must be preserved across update/fix operations' but Step 5 says 'Write decision log' — does 'write' mean overwrite or append?",
       "source": "Runs 003-004: 'how is prior frozen decision history preserved on update?' had no answer.",
       "version": 1
     },
@@ -169,7 +157,7 @@
         "all sections that reference implementation"
       ],
       "do": "If a step describes implemented behavior: 'Step 3: Self-check (current implementation). The self-check currently validates XML tag presence and semantic out-of-scope keyword matching.' If target-state: 'Step 3: Self-check (target). The self-check will validate structural coherence and lifecycle consistency (not yet implemented).'",
-      "dont": "Describe target-state behavior as if it's implemented. Example of violation: Step 3 says 'self-check validates structural coherence and lifecycle consistency' but the actual validator.ts only checks tag presence ג€” the reviewer tests the claim and finds it false.",
+      "dont": "Describe target-state behavior as if it's implemented. Example of violation: Step 3 says 'self-check validates structural coherence and lifecycle consistency' but the actual validator.ts only checks tag presence — the reviewer tests the claim and finds it false.",
       "source": "Run 003: reviewer asked 'does Step 3 describe what the self-check actually does or what it should do?' Answer was ambiguous.",
       "version": 1
     },
@@ -203,7 +191,7 @@
     },
     {
       "id": "ARB-017",
-      "rule": "When a role inherits platform governance, define authority order and review semantics from the approved higher-order architecture, then reference that model consistently without local reinvention.",
+      "rule": "When a role inherits platform governance, derive its local authority order and review semantics from the declared governing sources, and reference shared policy instead of reinventing it locally.",
       "applies_to": [
         "Authority",
         "governance",
@@ -211,10 +199,10 @@
         "approval",
         "arbitration sections in role definitions"
       ],
-      "do": "State the precedence chain explicitly with live governance first, request or contract next, and static docs as reference evidence only; reuse the approved freeze outcomes and arbitration limits exactly.",
-      "dont": "Let local docs outrank live governance, require stricter or different approval semantics than the approved review process, or invent new arbitration triggers or powers.",
-      "source": "group-2-major",
-      "version": 1
+      "do": "Name the exact shared sources that govern authority and review behavior, place them in precedence order, and define only the component-local consequences inside the role package.",
+      "dont": "Restate shared freeze, arbitration, or approval policy as local invented semantics, or let reference docs outrank the live governing contract.",
+      "source": "group-2-major + 2026-03-29 governance split cleanup",
+      "version": 2
     },
     {
       "id": "ARB-018",
@@ -254,14 +242,14 @@
     },
     {
       "id": "ARB-021",
-      "rule": "Include only source-backed governance mechanics in the durable role package. Any leadership rule, arbitration model, threshold, or terminal-policy behavior must trace to an approved governing source; otherwise it belongs in run evidence, request/config, or an explicit open decision.",
+      "rule": "Include only governance mechanics that are explicitly declared in the role package authority set or inherited contracts. Provisional runtime policy belongs in config, run evidence, or an open decision.",
       "applies_to": [
         "design (role definition)"
       ],
-      "do": "Trace each governance behavior to an approved architecture or governing contract, and externalize provisional runtime policies into evidence or config.",
-      "dont": "Do not invent unsupported board, leader, arbitration, or policy semantics in the canonical role definition.",
-      "source": "group-3-major-unsourced-governance; unresolved-3",
-      "version": 1
+      "do": "For each governance behavior included in the role package, cite the governing source from the declared authority list or inherited contract, and externalize provisional runtime policy outside the durable role.",
+      "dont": "Invent local board, leader, arbitration, or terminal-policy mechanics that are not declared in the role authority set or inherited contracts.",
+      "source": "group-3-major-unsourced-governance; unresolved-3; 2026-03-29 governance split cleanup",
+      "version": 2
     },
     {
       "id": "ARB-022",
@@ -289,16 +277,16 @@
     },
     {
       "id": "ARB-024",
-      "rule": "A governed LLM role must explicitly declare its component-local governance artifacts and inherited runtime governance obligations.",
+      "rule": "A governed LLM role must declare the component-local governance files it depends on and the runtime obligations it inherits by reference from governing contracts.",
       "applies_to": [
         "<authority>",
         "<guardrails>",
         "<context-gathering>"
       ],
-      "do": "State which governance artifacts the role owns, maintains, or must load from its component boundary, and name mandatory runtime obligations such as telemetry emission for governed LLM invocations where the architecture requires them.",
-      "dont": "Assume rulebook, review-prompt, or telemetry obligations are implicit just because they exist in higher-order architecture.",
-      "source": "Round 0 finding group-4 (telemetry and governance artifacts omitted); docs/v0/review-process-architecture.md; docs/v0/architecture.md",
-      "version": 1
+      "do": "List the local governance files the role must load or maintain, and state which runtime obligations are inherited from the shared or component review contracts rather than restated in full.",
+      "dont": "Assume local governance files or inherited contract obligations are implicit, or restate shared policy in full inside the role package.",
+      "source": "Round 0 finding group-4 + 2026-03-29 governance split cleanup",
+      "version": 2
     },
     {
       "id": "ARB-025",

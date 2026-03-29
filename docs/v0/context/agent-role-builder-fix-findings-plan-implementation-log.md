@@ -4,6 +4,8 @@ Status: active working log
 Last updated: 2026-03-29
 Purpose: capture the current `agent-role-builder` fix context in one place so future agents do not need to reconstruct the problem from scattered runs, reviews, and code diffs.
 
+Design note (2026-03-29): the governance/meta-policy split in this step is an authority cleanup only. It re-homes policy between guides, contracts, and rulebooks; it is not by itself a runtime-system fix.
+
 ---
 
 ## Scope

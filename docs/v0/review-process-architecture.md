@@ -64,6 +64,24 @@ The learning engine (described below) extracts rules from review feedback. The i
 
 ---
 
+## Governance Layer Split
+
+Governance guidance in ADF is intentionally split across three authority layers:
+
+- **Rulebook** — learned, component-local directives that an implementer can mechanically self-check during authoring or repair
+- **Contract** — machine-enforced inputs, outputs, vocabularies, audit fields, roster rules, and terminal-state invariants
+- **Architecture / docs** — human-facing rationale, sequencing explanation, and authority narrative
+
+When a review finding reveals a gap, the learning flow must route it to the narrowest layer that can actually enforce it. Do not store contract-owned invariants or process narration in a component rulebook just because a review surfaced the problem.
+
+Examples:
+
+- reviewer roster shape, leader-status legality, and required audit fields belong in contracts
+- closeout sequencing and post-mortem rationale belong in architecture/process docs
+- "test every terminal-state guard" belongs in a rulebook because the implementer must mechanically walk it
+
+---
+
 ## The Learning Engine
 
 A shared generic service that lives in `shared/learning-engine/`. Its job is to analyze review feedback and extract generalizable rules that prevent the same failures from recurring.
