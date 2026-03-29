@@ -1,0 +1,54 @@
+{
+  "new_rules": [
+    {
+      "id": "ARB-020",
+      "rule": "Define the authority chain using operative sources only. Durable authority layers may include only binding governance sources; reference documents, examples, bootstrap context, and request-scoped runtime settings must be classified separately unless an approved higher-order source explicitly promotes them into authority.",
+      "applies_to": "design (role definition)",
+      "do": "State what wins across controller governance, runtime contract, request/config, and reference evidence; keep request-time knobs in runtime config unless a governing source requires them in the durable role.",
+      "dont": "Do not list static references as superiors, and do not embed run-specific settings or bootstrap context inside the durable authority model.",
+      "source": "group-2-major-authority-chain; unresolved-2",
+      "version": 1
+    },
+    {
+      "id": "ARB-021",
+      "rule": "Include only source-backed governance mechanics in the durable role package. Any leadership rule, arbitration model, threshold, or terminal-policy behavior must trace to an approved governing source; otherwise it belongs in run evidence, request/config, or an explicit open decision.",
+      "applies_to": "design (role definition)",
+      "do": "Trace each governance behavior to an approved architecture or governing contract, and externalize provisional runtime policies into evidence or config.",
+      "dont": "Do not invent unsupported board, leader, arbitration, or policy semantics in the canonical role definition.",
+      "source": "group-3-major-unsourced-governance; unresolved-3",
+      "version": 1
+    },
+    {
+      "id": "ARB-022",
+      "rule": "Keep scope declarations polarity-pure. Inclusion statements belong only in in-scope sections such as Use when or Owns, and out-of-scope sections must contain exclusions only.",
+      "applies_to": "design (role definition)",
+      "do": "Move positive clarifications to inclusion or authority sections and keep one exclusion statement per concept.",
+      "dont": "Do not embed in-scope clarifications inside out-of-scope bullets or mix inclusion and exclusion semantics in the same list item.",
+      "source": "group-2-minor-scope-structure",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1-blocking-artifact-lifecycle",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "The existing rulebook already requires one authoritative artifact matrix with artifact class, full canonical path or root, and exact write lifecycle by operation and terminal state. ARB-003, ARB-008, and ARB-009 already cover separation of canonical vs run-scoped artifacts, full tool-relative paths, and per-terminal-state completion."
+    },
+    {
+      "finding_group_id": "group-4-minor-scope-dedup",
+      "covered_by_rule_id": "ARB-006",
+      "explanation": "This is the exact failure mode ARB-006 addresses: deduplicate scope exclusions and keep the contract and markdown exclusion language aligned exactly."
+    },
+    {
+      "finding_group_id": "group-1-major-canonical-directory",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "A missing canonical promotion directory is a failure to apply the existing artifact-matrix rule, not a new principle. ARB-016 already requires declaring the authoritative canonical root/path, and ARB-008 already requires full canonical paths in outputs."
+    },
+    {
+      "finding_group_id": "group-3-minor-arbitration-round-coherence",
+      "covered_by_rule_id": "ARB-002",
+      "explanation": "The contract field and markdown statement describe the same arbitration-limit concept and therefore must have one canonical definition referenced consistently. ARB-007 also already requires arbitration mechanics to be defined mechanically across the role."
+    }
+  ],
+  "no_rule_needed": []
+}

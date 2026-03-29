@@ -1,0 +1,49 @@
+{
+  "new_rules": [
+    {
+      "id": "ARB-016",
+      "rule": "Define one authoritative artifact matrix for the role package. Every required artifact must be declared once with its artifact class, full canonical tool-relative path or root, and exact write lifecycle per operation and terminal state.",
+      "applies_to": "Role-definition contracts, <outputs>, execution steps, self-checks, and terminal-state semantics for governed role packages.",
+      "do": "Declare each artifact once as canonical or run-scoped evidence, give its full canonical path or canonical root, and specify preserve/append/replace/create behavior for create, update, fix, and each terminal state.",
+      "dont": "Split path authority across multiple sections, use basename-only references, or leave artifact lifecycle behavior implicit for any terminal state.",
+      "source": "group-1-blocking",
+      "version": 1
+    },
+    {
+      "id": "ARB-017",
+      "rule": "When a role inherits platform governance, define authority order and review semantics from the approved higher-order architecture, then reference that model consistently without local reinvention.",
+      "applies_to": "Authority, governance, freeze, approval, and arbitration sections in role definitions.",
+      "do": "State the precedence chain explicitly with live governance first, request or contract next, and static docs as reference evidence only; reuse the approved freeze outcomes and arbitration limits exactly.",
+      "dont": "Let local docs outrank live governance, require stricter or different approval semantics than the approved review process, or invent new arbitration triggers or powers.",
+      "source": "group-2-major",
+      "version": 1
+    },
+    {
+      "id": "ARB-018",
+      "rule": "Canonical identity fields must describe the enduring mission of the role package, not the current run state or recovery action.",
+      "applies_to": "Contract intent, mission, purpose, and summary fields in role packages.",
+      "do": "Write intent as a timeless standing purpose and move resume, bootstrap, or round-specific context into a separate run_context, notes, or execution-state field.",
+      "dont": "Use the canonical intent field to describe the current invocation, resume status, or other transient run conditions.",
+      "source": "group-3-minor-intent",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-3-minor-scope-boundaries",
+      "covered_by_rule_id": "ARB-006",
+      "explanation": "This is already covered: scope exclusions must be deduplicated and the contract and markdown scope boundaries must align exactly for machine checking."
+    },
+    {
+      "finding_group_id": "group-1-minor-output-paths",
+      "covered_by_rule_id": "ARB-008",
+      "explanation": "This is already covered: every required output in <outputs> must use its full tool-relative canonical path, not a slug-only or basename-only form."
+    },
+    {
+      "finding_group_id": "group-2-minor-duplicate-scope-entry",
+      "covered_by_rule_id": "ARB-006",
+      "explanation": "This is a direct duplicate-scope-exclusion issue, which ARB-006 already prohibits."
+    }
+  ],
+  "no_rule_needed": []
+}

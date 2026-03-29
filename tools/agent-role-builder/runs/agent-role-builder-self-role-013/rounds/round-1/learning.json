@@ -1,0 +1,51 @@
+{
+  "new_rules": [
+    {
+      "id": "ARB-019",
+      "rule": "Define the write boundary as an explicit governed surface rooted in the active runtime contract. The role definition must name every writable area precisely: canonical package targets, the current run directory, and any explicitly governed support artifacts; static documents may justify those paths as reference evidence but do not themselves grant operative write authority.",
+      "applies_to": "role definitions that declare authority sources or writable artifact scope",
+      "do": "Anchor writable scope to the COO/runtime contract and list exact tool-relative roots or paths for every allowed write area.",
+      "dont": "Treat static docs as operative authority for writes or leave the writable surface implicit, abstract, or partially specified.",
+      "source": "group-1-major-authority-write-boundary",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-2-major-board-governance-overconstraint",
+      "covered_by_rule_id": "ARB-017",
+      "explanation": "ARB-017 already requires inherited governance and review semantics to come from the approved higher-order architecture without local reinvention, which covers invented board rules, stricter local approval semantics, and mismatched freeze terminology."
+    },
+    {
+      "finding_group_id": "group-3-major-artifact-lifecycle-inconsistency",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "ARB-016 already requires one authoritative artifact matrix with artifact class, canonical path or root, and exact write lifecycle by operation and terminal state, which is the stated fix for the lifecycle inconsistency."
+    },
+    {
+      "finding_group_id": "group-1-blocking-output-paths-not-rooted",
+      "covered_by_rule_id": "ARB-008",
+      "explanation": "ARB-008 already requires every declared output to appear in outputs with its full tool-relative canonical path rather than an abstract or basename-only reference."
+    },
+    {
+      "finding_group_id": "group-2-major-scope-duplicates-contradictions",
+      "covered_by_rule_id": "ARB-006",
+      "explanation": "ARB-006 already requires scope exclusions to be deduplicated and aligned exactly between contract and markdown, which covers duplicate or contradictory scope bullets."
+    },
+    {
+      "finding_group_id": "group-3-major-freeze-condition-duplicated",
+      "covered_by_rule_id": "ARB-002",
+      "explanation": "ARB-002 already says each semantic concept or threshold must have one canonical definition defined once and referenced everywhere, which covers freeze criteria being stated twice with different wording."
+    },
+    {
+      "finding_group_id": "group-4-minor-context-gathering-numbering-misaligned",
+      "covered_by_rule_id": "ARB-010",
+      "explanation": "ARB-010 already defines context-gathering as a precondition before Step 1 rather than part of the numbered execution flow, which addresses the numbering mismatch."
+    },
+    {
+      "finding_group_id": "group-5-blocking-prior-round-unresolved-not-addressed",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "ARB-011 already requires unresolved reviewer findings carried across rounds to be explicitly addressed by ID in the next round, which covers the missing carry-forward evidence and changelog mapping."
+    }
+  ],
+  "no_rule_needed": []
+}
