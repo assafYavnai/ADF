@@ -1,4 +1,6 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+// Run from project root: ./tools/agent-role-builder/node_modules/.bin/tsx tools/agent-role-builder/src/index.ts <request.json>
+// Do NOT use: npx tsx tools/agent-role-builder/src/index.ts (npx resolves from package dir, doubling the path)
+import { readFile, writeFile, mkdir, stat } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { RoleBuilderRequest } from "./schemas/request.js";
 import { type RoleBuilderResult, type RoleBuilderStatus, type ValidationIssue, type ParticipantRecord } from "./schemas/result.js";
@@ -32,6 +34,27 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   const rawRequest = JSON.parse(await readFile(requestPath, "utf-8"));
   const request = RoleBuilderRequest.parse(rawRequest);
   const runDir = outputDir ?? join("tools/agent-role-builder/runs", request.job_id);
+
+  // Bug 4 fix: Guard against duplicate runs on the same job ID
+  const existingResult = join(runDir, "result.json");
+  try {
+    await stat(existingResult);
+    // If stat succeeds, the file exists — block the run
+    throw new Error(
+      `Run directory already has a result (${existingResult}). Use a different job_id or delete the existing run.`
+    );
+  } catch (e) {
+    // ENOENT means file doesn't exist — that's the expected case, continue
+    if (e instanceof Error && "code" in e && (e as NodeJS.ErrnoException).code === "ENOENT") {
+      // OK — no prior result, proceed
+    } else if (e instanceof Error && e.message.includes("Run directory already has a result")) {
+      throw e; // Re-throw our own guard error
+    } else {
+      console.error("[build] Could not check for prior result.json:", e instanceof Error ? e.message : e);
+      // Non-fatal: proceed with the run
+    }
+  }
+
   const canonical = resolveCanonicalPaths(request);
   const runArtifacts = createRunArtifactPaths(request, runDir);
 

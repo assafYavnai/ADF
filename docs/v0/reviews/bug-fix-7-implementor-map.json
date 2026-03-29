@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "component": "bug-fix-7-implementor",
+  "generated_at": "2026-03-28T00:00:00Z",
+  "scope": "7-bug implementation batch",
+  "compliance_map": [
+    {
+      "rule_id": "IMP-002",
+      "status": "compliant",
+      "evidence_location": "docs/v0/reviews/bug-fix-7-implementor-map.json",
+      "evidence_summary": "This file IS the self-check. Every rule in the implementor rulebook was walked mechanically and checked against the implementation."
+    },
+    {
+      "rule_id": "IMP-003",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/index.ts lines 37-53",
+      "evidence_summary": "Bug 4 guard uses stat() + ENOENT check. All states tested: file exists (throw), file not found (proceed), stat error (log + proceed). No terminal state is silently swallowed."
+    },
+    {
+      "rule_id": "IMP-004",
+      "status": "compliant",
+      "evidence_location": "shared/llm-invoker/invoker.ts callCodex() AND tools/agent-role-builder/src/shared-imports.ts callCodex()",
+      "evidence_summary": "Bug 1 fix (Codex stdin -> temp file) applied to BOTH the canonical shared invoker AND the local re-export copy. IMP-004 requires fixing all copies — both are fixed."
+    },
+    {
+      "rule_id": "IMP-005",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/role-generator.ts RevisionResult interface, board.ts revision call site",
+      "evidence_summary": "RevisionResult interface (new) is immediately used by reviseRoleMarkdown() return type and consumed by board.ts. RevisionFeedback.newRuleIds (new field) is passed from board.ts line 357. No orphan schemas."
+    },
+    {
+      "rule_id": "IMP-006",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts",
+      "evidence_summary": "After removing generateComplianceMap() and generateFixItemsMap(), grepped for all references. Only a comment reference remains (line 391). No dead imports, no dead parameters. The invoke import is still used by learning engine and executeParticipant."
+    },
+    {
+      "rule_id": "IMP-007",
+      "status": "compliant",
+      "evidence_location": "board.ts Bug 2 fix catch block (line 345-347), role-generator.ts parse catch blocks",
+      "evidence_summary": "All new catch blocks log to stderr with component prefix and error message. Bug 2 rulebook update catch: console.error('[board] Failed to update rulebook...'). Revision parse catches: console.error('[role-generator] Failed to parse...'). No empty catches."
+    },
+    {
+      "rule_id": "IMP-008",
+      "status": "not_applicable",
+      "evidence_location": "N/A",
+      "evidence_summary": "No new stubs or placeholder code introduced. All new code paths are fully implemented."
+    },
+    {
+      "rule_id": "IMP-009",
+      "status": "compliant",
+      "evidence_location": "shared/llm-invoker/invoker.ts callCodex(), shared-imports.ts callCodex()",
+      "evidence_summary": "Bug 1+6 fix writes prompt to temp file and loads via shell variable ($PROMPT). The prompt content never appears as a direct shell argument string. Claude and Gemini continue to use stdin piping (unchanged, working). Codex uses bash -c with a file-read pattern, not direct argument passing."
+    }
+  ],
+  "fix_items_map": [
+    {
+      "bug_id": "Bug-1+6",
+      "title": "Codex stdin unreliable for large prompts",
+      "action": "accepted",
+      "summary": "Both callCodex() implementations (shared/llm-invoker/invoker.ts and shared-imports.ts) rewritten to write prompt to temp file, load via shell variable, pass as CLI argument. Claude and Gemini stdin piping unchanged.",
+      "files_changed": [
+        "shared/llm-invoker/invoker.ts",
+        "tools/agent-role-builder/src/shared-imports.ts"
+      ]
+    },
+    {
+      "bug_id": "Bug-2",
+      "title": "Rulebook never updated by learning engine",
+      "action": "accepted",
+      "summary": "After learning engine returns new_rules, board.ts now reads current rulebook.json, deduplicates by ID, writes updated rulebook back to disk, and updates the in-memory currentRulebook array.",
+      "files_changed": [
+        "tools/agent-role-builder/src/services/board.ts"
+      ]
+    },
+    {
+      "bug_id": "Bug-3",
+      "title": "New rules not flagged in revision prompt",
+      "action": "accepted",
+      "summary": "Added newRuleIds field to RevisionFeedback interface. Board.ts tracks genuinely new rule IDs and passes them to reviseRoleMarkdown(). The revision prompt marks new rules with '[NEW — added this round]' prefix.",
+      "files_changed": [
+        "tools/agent-role-builder/src/services/role-generator.ts",
+        "tools/agent-role-builder/src/services/board.ts"
+      ]
+    },
+    {
+      "bug_id": "Bug-4",
+      "title": "Duplicate runs on same job ID",
+      "action": "accepted",
+      "summary": "Added stat() check at the start of buildRole() for existing result.json. If it exists, throws descriptive error. ENOENT (no file) proceeds normally. Other stat errors are logged as non-fatal.",
+      "files_changed": [
+        "tools/agent-role-builder/src/index.ts"
+      ]
+    },
+    {
+      "bug_id": "Bug-5",
+      "title": "npx tsx path doubling",
+      "action": "accepted",
+      "summary": "Added documentation comment at the top of index.ts explaining the correct invocation pattern and warning against npx tsx.",
+      "files_changed": [
+        "tools/agent-role-builder/src/index.ts"
+      ]
+    },
+    {
+      "bug_id": "Bug-7",
+      "title": "7 LLM calls per round (efficiency)",
+      "action": "accepted",
+      "summary": "Merged compliance map + fix items map + revision into 1 LLM call. Removed standalone generateComplianceMap() and generateFixItemsMap(). reviseRoleMarkdown() now returns RevisionResult with markdown, complianceMap, and fixItemsMap. Response parsed via XML-tagged sections with graceful degradation (empty array on parse failure).",
+      "files_changed": [
+        "tools/agent-role-builder/src/services/board.ts",
+        "tools/agent-role-builder/src/services/role-generator.ts"
+      ]
+    }
+  ]
+}

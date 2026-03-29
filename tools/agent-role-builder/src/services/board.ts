@@ -171,29 +171,26 @@ export async function executeBoard(
     currentRulebook = rulebookRaw.rules ?? [];
   } catch (e) { console.error("[board] Failed to load rulebook:", e instanceof Error ? e.message : e); }
 
+  // Bug 7 fix: compliance map and fix items map are now produced as part of the revision call.
+  // For round 0 (no prior revision), they start empty. For round 1+, they come from the prior revision.
+  let pendingComplianceMap: ComplianceEntry[] = [];
+  let pendingFixItemsMap: FixItem[] | undefined;
+
   for (let round = 0; round < maxRounds; round++) {
     const roundDir = runDir ? join(runDir, "rounds", `round-${round}`) : null;
     if (roundDir) await mkdir(roundDir, { recursive: true });
 
-    // --- Step 1: Implementer produces compliance map ---
-    const isFullSweep = round === 0; // full on first round, delta on middle, full on last if no pushbacks
-    const complianceMap = await generateComplianceMap(
-      request, currentMarkdown, currentRulebook, round, isFullSweep
-    );
+    // Bug 7: Use compliance map and fix items map produced by the prior round's revision
+    const complianceMap = pendingComplianceMap;
+    const fixItemsMap = pendingFixItemsMap;
+
     if (roundDir) {
       await writeFile(join(roundDir, "compliance-map.json"), JSON.stringify({
         schema_version: "1.0", component: "agent-role-builder",
-        scope: isFullSweep ? "full" : "delta", round, entries: complianceMap,
+        scope: round === 0 ? "full" : "delta", round, entries: complianceMap,
         generated_at: new Date().toISOString(),
       }, null, 2), "utf-8");
-    }
-
-    // --- Step 2: Implementer produces fix items map (round 1+) ---
-    let fixItemsMap: FixItem[] | undefined;
-    if (round > 0 && rounds.length > 0) {
-      const priorRound = rounds[rounds.length - 1];
-      fixItemsMap = await generateFixItemsMap(request, currentMarkdown, priorRound);
-      if (roundDir) {
+      if (fixItemsMap && fixItemsMap.length > 0) {
         await writeFile(join(roundDir, "fix-items-map.json"), JSON.stringify({
           schema_version: "1.0", component: "agent-role-builder",
           round, items: fixItemsMap, generated_at: new Date().toISOString(),
@@ -326,16 +323,44 @@ export async function executeBoard(
           await writeFile(join(roundDir, "learning.json"), JSON.stringify(learningOutput, null, 2), "utf-8");
         }
 
+        // Bug 2 fix: Write new rules from learning engine to rulebook.json and update in-memory copy
+        // Bug 3 fix: Track new rule IDs so the revision prompt can flag them
+        let newRuleIds: string[] = [];
+        if (Array.isArray(learningOutput.new_rules) && learningOutput.new_rules.length > 0) {
+          try {
+            const rulebookPath = join("tools/agent-role-builder", "rulebook.json");
+            const existingIds = new Set(currentRulebook.map((r) => r.id));
+            const genuinelyNew = (learningOutput.new_rules as Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }>)
+              .filter((nr) => nr.id && !existingIds.has(nr.id));
+
+            if (genuinelyNew.length > 0) {
+              newRuleIds = genuinelyNew.map((r) => r.id);
+              currentRulebook.push(...genuinelyNew);
+              const rulebookOnDisk = JSON.parse(await readFile(rulebookPath, "utf-8"));
+              rulebookOnDisk.rules = currentRulebook;
+              rulebookOnDisk.last_updated = new Date().toISOString().slice(0, 10);
+              await writeFile(rulebookPath, JSON.stringify(rulebookOnDisk, null, 2), "utf-8");
+              console.error(`[board] Learning engine: added ${genuinelyNew.length} new rules to rulebook.json`);
+            }
+          } catch (e) {
+            console.error("[board] Failed to update rulebook with new rules:", e instanceof Error ? e.message : e);
+          }
+        }
+
         // Revision (only if not final round and unresolved exist)
+        // Bug 7: revision now returns compliance map and fix items map for the NEXT round
         if (canRevise) {
-          currentMarkdown = await reviseRoleMarkdown(
+          const revisionResult = await reviseRoleMarkdown(
             request, roundResult.markdown, draftContract,
             { round: roundResult.round, leaderRationale: roundResult.leaderRationale,
               unresolved: roundResult.unresolved, fixChecklist,
               priorRoundIssueCount: rounds.map((pr) => pr.unresolved.length),
-              rulebook: currentRulebook },
+              rulebook: currentRulebook, newRuleIds },
             rounds.map((pr) => ({ round: pr.round, leaderRationale: pr.leaderRationale, unresolved: pr.unresolved }))
           );
+          currentMarkdown = revisionResult.markdown;
+          pendingComplianceMap = revisionResult.complianceMap as ComplianceEntry[];
+          pendingFixItemsMap = revisionResult.fixItemsMap as FixItem[];
           currentSelfCheckIssues = selfCheck(currentMarkdown, request).map((i) => ({ code: i.code, message: i.message }));
         }
 
@@ -363,93 +388,9 @@ export async function executeBoard(
     finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues };
 }
 
-// --- Compliance map generation ---
-
-async function generateComplianceMap(
-  request: RoleBuilderRequest,
-  markdown: string,
-  rulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }>,
-  round: number,
-  fullSweep: boolean
-): Promise<ComplianceEntry[]> {
-  if (rulebook.length === 0) return [];
-
-  const rulesText = rulebook.map((r) =>
-    `${r.id}: ${r.rule}\n  Applies to: ${r.applies_to.join(", ")}\n  DO: ${r.do.slice(0, 150)}\n  DONT: ${r.dont.slice(0, 150)}`
-  ).join("\n\n");
-
-  try {
-    const result = await invoke({
-      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
-      model: request.board_roster.leader.model, reasoning: "high",
-      bypass: false, timeout_ms: 120_000,
-      prompt: `You are checking a role definition markdown against a rulebook. For each rule, determine if the markdown is compliant.
-
-RESPOND WITH JSON ONLY — an array of objects:
-[{ "rule_id": "ARB-001", "status": "compliant" | "non_compliant" | "not_applicable", "evidence_location": "<section> or line", "evidence_summary": "how it satisfies (or violates) the rule" }]
-
-RULES TO CHECK (${fullSweep ? "FULL SWEEP" : "DELTA — focus on changed sections"}):
-${rulesText}
-
-MARKDOWN:
-${markdown}
-
-JSON array:`,
-      source_path: "tools/agent-role-builder/compliance-map",
-    });
-
-    const parsed = JSON.parse(cleanJsonResponse(result.response));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    console.error("[board] Compliance map generation failed:", e instanceof Error ? e.message : e);
-    return [];
-  }
-}
-
-// --- Fix items map generation ---
-
-async function generateFixItemsMap(
-  request: RoleBuilderRequest,
-  currentMarkdown: string,
-  priorRound: BoardRoundResult
-): Promise<FixItem[]> {
-  const findings: string[] = [];
-  for (const [pid, rv] of priorRound.reviewerVerdicts) {
-    for (const group of rv.conceptual_groups) {
-      if (group.severity === "blocking" || group.severity === "major") {
-        findings.push(`[${group.id}] (${group.severity}) from ${pid}: ${group.summary}\n  Guidance: ${group.redesign_guidance}`);
-      }
-    }
-  }
-  if (findings.length === 0) return [];
-
-  try {
-    const result = await invoke({
-      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
-      model: request.board_roster.leader.model, reasoning: "high",
-      bypass: false, timeout_ms: 120_000,
-      prompt: `You are the implementer. The prior review round had these findings. For each, determine if the current markdown fixes it or if you reject the finding.
-
-RESPOND WITH JSON ONLY — an array:
-[{ "finding_group_id": "group-1", "action": "accepted" | "rejected", "summary": "what was changed or why rejected", "evidence_location": "<section>", "rejection_reason": "only if rejected" }]
-
-PRIOR FINDINGS:
-${findings.join("\n\n")}
-
-CURRENT MARKDOWN (after revision):
-${currentMarkdown}
-
-JSON array:`,
-      source_path: "tools/agent-role-builder/fix-items-map",
-    });
-
-    const parsed = JSON.parse(cleanJsonResponse(result.response));
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    console.error("[board] Fix items map generation failed:", e instanceof Error ? e.message : e);
-    return [];
-  }
-}
+// Bug 7: generateComplianceMap() and generateFixItemsMap() removed.
+// Compliance map and fix items map are now produced as part of the merged revision call
+// in reviseRoleMarkdown() — see role-generator.ts.
 
 // --- Round execution ---
 

@@ -109,6 +109,13 @@ export interface RevisionFeedback {
   }>;
   priorRoundIssueCount: number[];
   rulebook?: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string }>;
+  newRuleIds?: string[];
+}
+
+export interface RevisionResult {
+  markdown: string;
+  complianceMap: Array<{ rule_id: string; status: string; evidence_location: string; evidence_summary: string }>;
+  fixItemsMap: Array<{ finding_group_id: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
 }
 
 export async function reviseRoleMarkdown(
@@ -117,7 +124,7 @@ export async function reviseRoleMarkdown(
   currentContract: Record<string, unknown>,
   feedback: RevisionFeedback,
   priorRounds: Array<{ round: number; leaderRationale: string; unresolved: string[] }>
-): Promise<string> {
+): Promise<RevisionResult> {
   const { invoke } = await import("../shared-imports.js");
 
   // Build actionable fix checklist from parsed reviewer feedback
@@ -139,16 +146,45 @@ export async function reviseRoleMarkdown(
       }`
     : "";
 
-  // Build rulebook compliance checklist if available
+  // Build rulebook compliance checklist if available, marking new rules added this round
+  const newRuleSet = new Set(feedback.newRuleIds ?? []);
   const rulebookSection = feedback.rulebook && feedback.rulebook.length > 0
-    ? `=== RULEBOOK (check EVERY rule before submitting) ===\n${feedback.rulebook.map((r) =>
-        `${r.id}: ${r.rule}\n  DO: ${r.do.slice(0, 200)}\n  DONT: ${r.dont.slice(0, 200)}\n  Applies to: ${r.applies_to.join(", ")}`
-      ).join("\n\n")}`
+    ? `=== RULEBOOK (check EVERY rule before submitting) ===\n${feedback.rulebook.map((r) => {
+        const prefix = newRuleSet.has(r.id) ? `[NEW — added this round] ` : "";
+        return `${prefix}${r.id}: ${r.rule}\n  DO: ${r.do.slice(0, 200)}\n  DONT: ${r.dont.slice(0, 200)}\n  Applies to: ${r.applies_to.join(", ")}`;
+      }).join("\n\n")}`
     : "";
 
+  // Build prior findings section for fix items map (round 1+ only)
+  const priorFindings = feedback.fixChecklist
+    .filter((g) => g.severity === "blocking" || g.severity === "major")
+    .map((g) => `[${g.groupId}] (${g.severity}) ${g.summary}\n  Guidance: ${g.redesignGuidance}`)
+    .join("\n\n");
+
+  const fixItemsInstruction = feedback.round > 0 && priorFindings
+    ? `\nAfter <draft>, also produce a <fix_items_map> section:
+<fix_items_map>
+[{ "finding_group_id": "group-1", "action": "accepted" | "rejected", "summary": "what was changed or why rejected", "evidence_location": "<section>", "rejection_reason": "only if rejected" }]
+</fix_items_map>
+
+PRIOR FINDINGS TO ADDRESS:
+${priorFindings}`
+    : "";
+
+  // Bug 7 fix: Merge revision + compliance map + fix items map into 1 LLM call
   const revisionPrompt = [
     `You are revising a role markdown draft for ${request.role_name}.`,
-    `Return ONLY the full updated markdown document. Do not wrap it in code fences.`,
+    ``,
+    `RESPOND IN THIS EXACT FORMAT (three XML-tagged sections):`,
+    ``,
+    `<draft>`,
+    `...full updated markdown (no code fences)...`,
+    `</draft>`,
+    ``,
+    `<compliance_map>`,
+    `[{ "rule_id": "ARB-001", "status": "compliant" | "non_compliant" | "not_applicable", "evidence_location": "<section>", "evidence_summary": "..." }]`,
+    `</compliance_map>`,
+    fixItemsInstruction,
     ``,
     `CRITICAL: You MUST fix every blocking/major item below. Each has specific guidance.`,
     `CRITICAL: You MUST check every rule in the RULEBOOK below. Violations will be caught by the reviewer.`,
@@ -177,7 +213,7 @@ export async function reviseRoleMarkdown(
     `=== CURRENT MARKDOWN ===`,
     currentMarkdown,
     ``,
-    `=== UPDATED MARKDOWN (apply all fixes above) ===`,
+    `=== PRODUCE YOUR RESPONSE (draft + compliance_map${feedback.round > 0 ? " + fix_items_map" : ""}) ===`,
   ].filter(Boolean).join("\n");
 
   const result = await invoke({
@@ -190,8 +226,32 @@ export async function reviseRoleMarkdown(
     source_path: "tools/agent-role-builder/revise-draft",
   });
 
-  const revised = stripCodeFences(result.response).trim();
-  return revised || currentMarkdown;
+  // Parse the combined response by extracting XML-tagged sections
+  const draftMatch = result.response.match(/<draft>([\s\S]*?)<\/draft>/);
+  const complianceMatch = result.response.match(/<compliance_map>([\s\S]*?)<\/compliance_map>/);
+  const fixItemsMatch = result.response.match(/<fix_items_map>([\s\S]*?)<\/fix_items_map>/);
+
+  const revised = draftMatch ? stripCodeFences(draftMatch[1]).trim() : stripCodeFences(result.response).trim();
+
+  let complianceMap: RevisionResult["complianceMap"] = [];
+  if (complianceMatch) {
+    try { complianceMap = JSON.parse(complianceMatch[1].trim()); } catch (e) {
+      console.error("[role-generator] Failed to parse compliance_map from revision response:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  let fixItemsMap: RevisionResult["fixItemsMap"] = [];
+  if (fixItemsMatch) {
+    try { fixItemsMap = JSON.parse(fixItemsMatch[1].trim()); } catch (e) {
+      console.error("[role-generator] Failed to parse fix_items_map from revision response:", e instanceof Error ? e.message : e);
+    }
+  }
+
+  return {
+    markdown: revised || currentMarkdown,
+    complianceMap: Array.isArray(complianceMap) ? complianceMap : [],
+    fixItemsMap: Array.isArray(fixItemsMap) ? fixItemsMap : [],
+  };
 }
 
 /**

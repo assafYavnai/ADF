@@ -1,4 +1,4 @@
-import { readFile, unlink } from "node:fs/promises";
+import { readFile, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 // Use Windows user temp, not MSYS2 /tmp which may not be accessible to child processes
 const TEMP_DIR = process.env.USERPROFILE
@@ -97,8 +97,13 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
 
 async function callCodex(params: InvocationParams, invocationId: string): Promise<string> {
   const tmpFile = join(TEMP_DIR, `adf-codex-${invocationId}.txt`);
+  // Bug 1 fix: Codex stdin does NOT reliably deliver full prompts on Windows.
+  // Write the prompt to a temp file and pass it as a CLI argument via shell variable.
+  const promptFile = join(TEMP_DIR, `adf-codex-prompt-${invocationId}.txt`);
 
   try {
+    await writeFile(promptFile, params.prompt, "utf-8");
+
     const args = ["exec", "-m", params.model];
 
     if (params.reasoning) {
@@ -113,11 +118,15 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
 
     args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check");
 
-    // Pipe prompt via stdin to avoid shell argument length limits
+    // Pass prompt via temp file loaded into shell variable (Codex stdin is unreliable on Windows)
     const { spawn } = await import("node:child_process");
+    const escapedPromptPath = promptFile.replace(/\\/g, "/");
+    // Build the full shell command: read prompt from file, pass as last positional arg
+    const codexArgs = args.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(" ");
+    const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
+
     await new Promise<void>((resolve, reject) => {
-      const proc = spawn("codex", args, {
-        shell: true,   // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
+      const proc = spawn("bash", ["-c", shellCmd], {
         timeout: params.timeout_ms ?? 120_000,
         env: { ...process.env },
       });
@@ -130,15 +139,13 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
         else resolve();
       });
       proc.on("error", (err: Error) => reject(new Error(`codex failed: ${err.message}`)));
-
-      proc.stdin?.write(params.prompt);
-      proc.stdin?.end();
     });
 
     const result = await readFile(tmpFile, "utf-8");
     return result.trim();
   } finally {
     await unlink(tmpFile).catch(() => {});
+    await unlink(promptFile).catch(() => {});
   }
 }
 
