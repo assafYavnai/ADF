@@ -115,7 +115,7 @@ export interface RevisionFeedback {
 export interface RevisionResult {
   markdown: string;
   complianceMap: Array<{ rule_id: string; status: string; evidence_location: string; evidence_summary: string }>;
-  fixItemsMap: Array<{ finding_group_id: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
+  fixItemsMap: Array<{ finding_id?: string; finding_group_id: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
 }
 
 export async function reviseRoleMarkdown(
@@ -163,7 +163,7 @@ export async function reviseRoleMarkdown(
   const fixItemsInstruction = feedback.round > 0 && priorFindings
     ? `\nAfter <draft>, also produce a <fix_items_map> section:
 <fix_items_map>
-[{ "finding_group_id": "group-1", "action": "accepted" | "rejected", "summary": "what was changed or why rejected", "evidence_location": "<section>", "rejection_reason": "only if rejected" }]
+[{ "finding_id": "preferred-if-known", "finding_group_id": "group-1", "action": "accepted" | "rejected", "summary": "what was changed or why rejected", "evidence_location": "<section>", "rejection_reason": "only if rejected" }]
 </fix_items_map>
 
 PRIOR FINDINGS TO ADDRESS:
@@ -210,11 +210,14 @@ READ THESE FILES FROM DISK:
 1. Current markdown: ${markdownFile.replace(/\\/g, "/")}
 2. Rulebook: ${rulebookFile.replace(/\\/g, "/")}
 3. Findings to fix: ${findingsFile.replace(/\\/g, "/")}
+4. Component review prompt: tools/agent-role-builder/review-prompt.json
+5. Component review contract: tools/agent-role-builder/review-contract.json
 
 SOURCE AUTHORITY (read these files for canonical governance definitions):
 - docs/v0/review-process-architecture.md — arbitration (minor-only), error escalation, review process
 - docs/v0/architecture.md — agent role governance rule, terminal states
 - DO NOT invent governance semantics not found in these files.
+- Stay boxed to the files above plus the declared source authority files. Do not roam the repo.
 
 Canonical artifact paths: tools/agent-role-builder/role/agent-role-builder-role.md, -role-contract.json, -decision-log.md, -board-summary.md
 Terminal states: frozen (all approved, no blocking), pushback (reject with blocking/major), blocked (unrecoverable), resume_required (budget exhausted).
@@ -230,7 +233,7 @@ RESPOND IN THIS EXACT FORMAT:
 </compliance_map>
 ${feedback.round > 0 ? `
 <fix_items_map>
-[{"finding_group_id":"group-1","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>"}]
+[{"finding_id":"preferred-if-known","finding_group_id":"group-1","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>"}]
 </fix_items_map>` : ""}
 
 ${convergenceNote}

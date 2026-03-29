@@ -7,7 +7,7 @@ import { type RoleBuilderResult, type RoleBuilderStatus, type ValidationIssue, t
 import { validateRequest, selfCheck } from "./services/validator.js";
 import { generateRoleMarkdown, generateRoleContract } from "./services/role-generator.js";
 import { executeBoard } from "./services/board.js";
-import { createSystemProvenance, emit } from "./shared-imports.js";
+import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
 
 interface CanonicalRolePaths {
   directory: string;
@@ -30,6 +30,7 @@ interface CanonicalRolePaths {
 export async function buildRole(requestPath: string, outputDir?: string): Promise<RoleBuilderResult> {
   const start = Date.now();
   const prov = createSystemProvenance("tools/agent-role-builder/build");
+  clearTelemetryBuffer();
 
   const rawRequest = JSON.parse(await readFile(requestPath, "utf-8"));
   const request = RoleBuilderRequest.parse(rawRequest);
@@ -108,6 +109,16 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
       roundsExecuted: 0,
     });
     await writeFile(join(runDir, "result.json"), JSON.stringify(result, null, 2), "utf-8");
+    await writeCyclePostmortem({
+      request,
+      runDir,
+      status: result.status,
+      statusReason: result.status_reason,
+      roundsExecuted: 0,
+      participants: [],
+      validationIssues,
+      startedAtMs: start,
+    });
     return result;
   }
 
@@ -215,6 +226,17 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   });
 
   await writeFile(join(runDir, "result.json"), JSON.stringify(result, null, 2), "utf-8");
+  await writeCyclePostmortem({
+    request,
+    runDir,
+    status: result.status,
+    statusReason: result.status_reason,
+    roundsExecuted: boardResult.rounds.length,
+    participants: boardResult.allParticipants,
+    validationIssues: [...validationIssues, ...boardResult.finalSelfCheckIssues.map(toValidationIssue)],
+    startedAtMs: start,
+    unresolvedTrend: boardResult.rounds.map((round) => round.unresolved.length),
+  });
 
   emit({
     provenance: prov,
@@ -227,6 +249,82 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   });
 
   return result;
+}
+
+async function writeCyclePostmortem(params: {
+  request: RoleBuilderRequest;
+  runDir: string;
+  status: RoleBuilderStatus;
+  statusReason: string;
+  roundsExecuted: number;
+  participants: ParticipantRecord[];
+  validationIssues: ValidationIssue[];
+  startedAtMs: number;
+  unresolvedTrend?: number[];
+}): Promise<void> {
+  const telemetry = getTelemetryBuffer();
+  const llmEvents = telemetry.filter((event) => event.category === "llm");
+  const toolEvents = telemetry.filter((event) => event.category === "tool");
+  const reviewerParticipants = params.participants.filter((participant) => participant.role === "reviewer");
+  const fallbackCount = params.participants.filter((participant) => participant.was_fallback).length;
+  const reviewerInvocations = reviewerParticipants.length;
+  const reviewerSlotsTotal = params.request.board_roster.reviewers.length * Math.max(params.roundsExecuted, 1);
+  const skippedReviewerInvocations = Math.max(0, reviewerSlotsTotal - reviewerInvocations);
+
+  const postmortem = {
+    schema_version: "1.0",
+    component: "agent-role-builder",
+    request_job_id: params.request.job_id,
+    role_slug: params.request.role_slug,
+    final_status: params.status,
+    final_status_reason: params.statusReason,
+    generated_at: new Date().toISOString(),
+    questions_ref: "shared/learning-engine/postmortem-questions.json",
+    kpi_summary: {
+      total_duration_ms: Date.now() - params.startedAtMs,
+      rounds_executed: params.roundsExecuted,
+      participant_invocations: params.participants.length,
+      reviewer_invocations: reviewerInvocations,
+      skipped_reviewer_invocations: skippedReviewerInvocations,
+      fallback_count: fallbackCount,
+      llm_call_count: llmEvents.length,
+      llm_failures: llmEvents.filter((event) => !event.success).length,
+      tool_events: toolEvents.length,
+      total_llm_latency_ms: llmEvents.reduce((sum, event) => sum + event.latency_ms, 0),
+      total_tokens_in: sumOptionalNumber(llmEvents.map((event) => event.tokens_in)),
+      total_tokens_out: sumOptionalNumber(llmEvents.map((event) => event.tokens_out)),
+      total_estimated_cost_usd: sumOptionalNumber(llmEvents.map((event) => event.estimated_cost_usd)),
+      unresolved_trend: params.unresolvedTrend ?? [],
+    },
+    artifacts: {
+      result_json: true,
+      run_postmortem: true,
+      cycle_postmortem: true,
+      normalized_request: true,
+      session_registry: true,
+    },
+    question_outputs: {
+      "PM-002": {
+        rounds: params.roundsExecuted,
+        duration_ms: Date.now() - params.startedAtMs,
+        llm_call_count: llmEvents.length,
+        fallback_count: fallbackCount,
+        reviewer_reuse_savings: skippedReviewerInvocations,
+      },
+      "PM-003": {
+        telemetry_events_captured: telemetry.length,
+        validation_issue_count: params.validationIssues.length,
+      },
+      "PM-007": {
+        unresolved_trend: params.unresolvedTrend ?? [],
+        converged: (params.unresolvedTrend?.length ?? 0) <= 1
+          ? true
+          : (params.unresolvedTrend?.[params.unresolvedTrend.length - 1] ?? 0) <= (params.unresolvedTrend?.[0] ?? 0),
+      },
+    },
+  };
+
+  await writeFile(join(params.runDir, "cycle-postmortem.json"), JSON.stringify(postmortem, null, 2), "utf-8");
 }
 
 function buildResult(params: {
@@ -390,6 +488,12 @@ function uniqueStrings(values: string[]): string[] {
   }
 
   return result;
+}
+
+function sumOptionalNumber(values: Array<number | undefined>): number | null {
+  const present = values.filter((value): value is number => typeof value === "number");
+  if (present.length === 0) return null;
+  return present.reduce((sum, value) => sum + value, 0);
 }
 
 function basename(path: string): string {

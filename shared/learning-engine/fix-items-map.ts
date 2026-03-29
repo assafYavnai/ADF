@@ -8,11 +8,20 @@ import { z } from "zod";
  */
 
 export const FixItem = z.object({
-  finding_group_id: z.string(),
+  finding_id: z.string().optional(),
+  finding_group_id: z.string().optional(),
   action: z.enum(["accepted", "rejected"]),
   summary: z.string().describe("What was changed (if accepted) or why it was rejected"),
   evidence_location: z.string().optional().describe("Where in the artifact the fix was applied"),
   rejection_reason: z.string().optional().describe("Why the finding was rejected (only if action=rejected)"),
+}).superRefine((value, ctx) => {
+  if (!value.finding_id && !value.finding_group_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Fix item must include finding_id or finding_group_id",
+      path: ["finding_id"],
+    });
+  }
 });
 export type FixItem = z.infer<typeof FixItem>;
 
@@ -31,9 +40,18 @@ export type FixItemsMap = z.infer<typeof FixItemsMap>;
  */
 
 export const FixDecision = z.object({
-  finding_group_id: z.string(),
+  finding_id: z.string().optional(),
+  finding_group_id: z.string().optional(),
   decision: z.enum(["accept_fix", "reject_fix", "accept_rejection", "reject_rejection"]),
   reason: z.string().describe("Why this decision was made"),
+}).superRefine((value, ctx) => {
+  if (!value.finding_id && !value.finding_group_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Fix decision must include finding_id or finding_group_id",
+      path: ["finding_id"],
+    });
+  }
 });
 export type FixDecision = z.infer<typeof FixDecision>;
 

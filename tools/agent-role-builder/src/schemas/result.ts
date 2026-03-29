@@ -20,6 +20,7 @@ export const ParticipantRecord = z.object({
   round: z.number(),
   latency_ms: z.number().optional(),
   invocation_id: z.string().uuid().optional(),
+  was_fallback: z.boolean().optional(),
 });
 export type ParticipantRecord = z.infer<typeof ParticipantRecord>;
 

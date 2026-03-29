@@ -80,6 +80,21 @@ Each component holds a `review-prompt.json` in its own directory. This prompt te
 **Why it runs between review and fix:**
 If the implementer fixes issues without first extracting the rule, the same class of issue will appear in future runs. The learning step ensures the rulebook grows before the fix is attempted. The implementer then reads the updated rulebook before fixing, which means the fix addresses the root pattern, not just the specific symptom.
 
+**Standard sequence for all review cycles:**
+This is the required generic sequence for every review domain in ADF ג€” code review, design review, prompt review, architecture review, and any future governed review type.
+
+1. Run review on the current artifact
+2. Run the learning engine on the review findings
+3. Update or confirm the applicable rulebook
+4. Re-check the artifact against the full applicable rule set, including any new rules learned from this round
+5. Fix both:
+   - the direct review findings
+   - any rule-compliance gaps revealed by the updated rulebook check
+6. Produce updated compliance/fix evidence
+7. Re-run review
+
+The fix step is not allowed to address only the reviewer comments while ignoring rule compliance. The learning output and rulebook check are part of the authority chain for the next fix attempt.
+
 ---
 
 ## The Review Process (Per Round)
@@ -132,9 +147,12 @@ This creates a proper negotiation protocol between implementer and reviewer, not
 When a reviewer rejects:
 1. Learning engine digests the feedback and updates the component's `rulebook.json`
 2. A fresh implementer receives: current artifact + updated rulebook + actionable fix checklist + prior compliance map
-3. The implementer first mechanically walks every rule in the rulebook against the artifact, then addresses the specific feedback items
-4. The implementer produces both a new compliance map (delta) and a fix items map
-5. The round proceeds to the next review cycle
+3. The implementer first mechanically walks every rule in the rulebook against the artifact, including any newly learned rules from this round
+4. The implementer fixes both:
+   - the reviewer findings
+   - any rule-compliance gaps revealed by that rule walk
+5. The implementer produces both a new compliance map (delta) and a fix items map
+6. The round proceeds to the next review cycle
 
 ### Step 6: On review pass (approved/conditional)
 When all reviewers approve or go conditional:
@@ -322,6 +340,7 @@ Everything described above applies to every governed component in ADF, not just 
 - A rulebook in its directory (per LLM agent if multiple agents)
 - A review prompt in its directory (per LLM agent)
 - The learning engine between review and fix
+- The standard sequence: review ג†’ learning ג†’ rulebook check ג†’ fix findings + rule compliance ג†’ evidence ג†’ re-review
 - Delta compliance maps from the implementer
 - Fix items maps with implementer accept/reject freedom
 - Structured reviewer feedback with fix decision maps

@@ -30,6 +30,8 @@ export const LearningInput = z.object({
   review_findings: z.array(ReviewFinding),
   current_rulebook: z.array(ExistingRule),
   review_prompt_domain: z.string().describe("Domain from review-prompt.json: design, code, prompt, architecture"),
+  review_prompt_path: z.string().optional().describe("Component-local review-prompt.json path"),
+  review_contract_path: z.string().optional().describe("Component-local review-contract.json path"),
   unresolved_from_leader: z.array(z.string()),
 });
 export type LearningInput = z.infer<typeof LearningInput>;

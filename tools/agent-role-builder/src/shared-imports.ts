@@ -81,19 +81,58 @@ export interface InvocationResult {
 export async function invoke(params: InvocationParams): Promise<InvocationResult> {
   const invocationId = randomUUID();
   const start = Date.now();
+  const primaryProvenance = createLLMProvenance(
+    invocationId,
+    params.cli,
+    params.model,
+    params.reasoning ?? params.effort ?? "default",
+    false,
+    params.source_path
+  );
 
   try {
     const response = await callCLI(params, invocationId);
+    const latency_ms = Date.now() - start;
+    emit({
+      provenance: primaryProvenance,
+      category: "llm",
+      operation: `invoke-${params.cli}`,
+      latency_ms,
+      success: true,
+      metadata: {
+        source_path: params.source_path,
+        fallback_triggered: false,
+      },
+    });
     return {
-      provenance: createLLMProvenance(invocationId, params.cli , params.model,
-        params.reasoning ?? params.effort ?? "default", false, params.source_path),
+      provenance: primaryProvenance,
       response,
-      latency_ms: Date.now() - start,
+      latency_ms,
     };
   } catch (primaryErr) {
+    emit({
+      provenance: primaryProvenance,
+      category: "llm",
+      operation: `invoke-${params.cli}`,
+      latency_ms: Date.now() - start,
+      success: false,
+      metadata: {
+        source_path: params.source_path,
+        fallback_triggered: Boolean(params.fallback),
+        error: primaryErr instanceof Error ? primaryErr.message : String(primaryErr),
+      },
+    });
     if (!params.fallback) throw primaryErr;
     const fallbackId = randomUUID();
     const fbStart = Date.now();
+    const fallbackProvenance = createLLMProvenance(
+      fallbackId,
+      params.fallback.cli,
+      params.fallback.model,
+      params.fallback.reasoning ?? params.fallback.effort ?? "default",
+      true,
+      params.source_path
+    );
     try {
       const fbParams: InvocationParams = {
         cli: params.fallback.cli, model: params.fallback.model,
@@ -102,14 +141,45 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
         prompt: params.prompt, source_path: params.source_path,
       };
       const response = await callCLI(fbParams, fallbackId);
+      const latency_ms = Date.now() - fbStart;
+      console.warn(
+        `[invoker] Fallback triggered: primary=${params.cli}/${params.model} fallback=${params.fallback.cli}/${params.fallback.model} source=${params.source_path}`
+      );
+      emit({
+        provenance: fallbackProvenance,
+        category: "llm",
+        operation: `invoke-${params.fallback.cli}`,
+        latency_ms,
+        success: true,
+        metadata: {
+          source_path: params.source_path,
+          fallback_triggered: true,
+          warning_level: "warning",
+          primary_provider: params.cli,
+          primary_model: params.model,
+          fallback_provider: params.fallback.cli,
+          fallback_model: params.fallback.model,
+        },
+      });
       return {
-        provenance: createLLMProvenance(fallbackId, params.fallback.cli,
-          params.fallback.model, params.fallback.reasoning ?? params.fallback.effort ?? "default",
-          true, params.source_path),
+        provenance: fallbackProvenance,
         response,
-        latency_ms: Date.now() - fbStart,
+        latency_ms,
       };
     } catch (fbErr) {
+      emit({
+        provenance: fallbackProvenance,
+        category: "llm",
+        operation: `invoke-${params.fallback.cli}`,
+        latency_ms: Date.now() - fbStart,
+        success: false,
+        metadata: {
+          source_path: params.source_path,
+          fallback_triggered: true,
+          warning_level: "warning",
+          error: fbErr instanceof Error ? fbErr.message : String(fbErr),
+        },
+      });
       throw new Error(`Both primary and fallback failed.`);
     }
   }
@@ -219,12 +289,15 @@ async function callGemini(params: InvocationParams): Promise<string> {
 const telemetryBuffer: TelemetryEvent[] = [];
 export interface TelemetryEvent {
   provenance: Provenance;
-  category: string;
+  category: "llm" | "memory" | "tool" | "turn" | "system";
   operation: string;
   latency_ms: number;
   success: boolean;
   board_rounds?: number;
   participants?: number;
+  tokens_in?: number;
+  tokens_out?: number;
+  estimated_cost_usd?: number;
   metadata?: Record<string, unknown>;
 }
 
@@ -236,4 +309,8 @@ export function emit(event: TelemetryEvent): void {
 
 export function getTelemetryBuffer(): TelemetryEvent[] {
   return [...telemetryBuffer];
+}
+
+export function clearTelemetryBuffer(): void {
+  telemetryBuffer.length = 0;
 }

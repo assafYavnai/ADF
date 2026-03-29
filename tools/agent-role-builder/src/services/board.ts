@@ -3,6 +3,17 @@ import type { RoleBuilderRequest, BoardParticipant } from "../schemas/request.js
 import type { ParticipantRecord, RoleBuilderStatus } from "../schemas/result.js";
 import { selfCheck } from "./validator.js";
 import { reviseRoleMarkdown } from "./role-generator.js";
+import {
+  buildReviewerSummaryText,
+  formatFocusAreas,
+  formatIgnoreAreas,
+  formatSourceAuthorities,
+  loadReviewRuntimeConfig,
+  resolveReviewMode,
+  type ReviewFixDecision,
+  type ReviewRuntimeConfig,
+  type ReviewVerdictShape,
+} from "./review-runtime.js";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -23,6 +34,7 @@ interface BugReport {
 interface BoardContext {
   runDir: string | null;
   bugReportCounter: number;
+  reviewConfig?: ReviewRuntimeConfig;
 }
 
 async function writeBugReport(report: BugReport, ctx: BoardContext): Promise<string | null> {
@@ -78,23 +90,7 @@ Return ONLY the valid JSON object matching the expected format. Nothing else.`;
 
 // --- Structured types ---
 
-interface ReviewerVerdict {
-  verdict: "approved" | "conditional" | "reject";
-  conceptual_groups: Array<{
-    id: string;
-    summary: string;
-    severity: "blocking" | "major" | "minor" | "suggestion";
-    findings: Array<{ id: string; description: string; source_section: string }>;
-    redesign_guidance: string;
-  }>;
-  fix_decisions?: Array<{
-    finding_group_id: string;
-    decision: "accept_fix" | "reject_fix" | "accept_rejection" | "reject_rejection";
-    reason: string;
-  }>;
-  residual_risks: string[];
-  strengths: string[];
-}
+type ReviewerVerdict = ReviewVerdictShape;
 
 interface LeaderVerdict {
   status: "frozen" | "pushback" | "blocked";
@@ -113,6 +109,7 @@ interface ComplianceEntry {
 }
 
 interface FixItem {
+  finding_id?: string;
   finding_group_id: string;
   action: "accepted" | "rejected";
   summary: string;
@@ -120,8 +117,15 @@ interface FixItem {
   rejection_reason?: string;
 }
 
+interface ReviewerSlot {
+  slotKey: string;
+  slotIndex: number;
+  participant: BoardParticipant;
+}
+
 export interface BoardRoundResult {
   round: number;
+  reviewMode: "full" | "delta" | "regression_sanity";
   participants: ParticipantRecord[];
   leaderVerdict: string;
   leaderRationale: string;
@@ -150,16 +154,25 @@ export async function executeBoard(
   finalMarkdown: string;
   finalSelfCheckIssues: Array<{ code: string; message: string }>;
 }> {
-  const ctx: BoardContext = { runDir, bugReportCounter: 0 };
+  const ctx: BoardContext = {
+    runDir,
+    bugReportCounter: 0,
+    reviewConfig: await loadReviewRuntimeConfig(),
+  };
   const maxRounds = request.governance.max_review_rounds;
   const rounds: BoardRoundResult[] = [];
   const allParticipants: ParticipantRecord[] = [];
   let currentMarkdown = draftMarkdown;
   let currentSelfCheckIssues = selfCheckIssues;
+  const reviewerSlots: ReviewerSlot[] = request.board_roster.reviewers.map((participant, slotIndex) => ({
+    slotKey: `reviewer-${slotIndex}-${participant.provider}`,
+    slotIndex,
+    participant,
+  }));
 
   const reviewerStatus = new Map<string, "approved" | "conditional" | "reject" | "error" | "pending">();
-  for (const r of request.board_roster.reviewers) {
-    reviewerStatus.set(`reviewer-${r.provider}`, "pending");
+  for (const reviewer of reviewerSlots) {
+    reviewerStatus.set(reviewer.slotKey, "pending");
   }
   let consecutiveDisputeRounds = 0;
 
@@ -199,18 +212,19 @@ export async function executeBoard(
     }
 
     // --- Step 3: Review ---
-    const reviewersToRun = request.board_roster.reviewers.filter((r) => {
-      const key = `reviewer-${r.provider}`;
-      return reviewerStatus.get(key) !== "approved" && reviewerStatus.get(key) !== "conditional";
+    const reviewersToRun = reviewerSlots.filter((reviewer) => {
+      return reviewerStatus.get(reviewer.slotKey) !== "approved"
+        && reviewerStatus.get(reviewer.slotKey) !== "conditional";
     });
     const isSanityCheck = reviewersToRun.length === 0;
-    const activeReviewers = isSanityCheck ? request.board_roster.reviewers : reviewersToRun;
+    const activeReviewers = isSanityCheck ? reviewerSlots : reviewersToRun;
 
     let roundResult: BoardRoundResult;
     try {
       roundResult = await executeRound(
         request, currentMarkdown, draftContract, currentSelfCheckIssues,
-        round, rounds, activeReviewers, complianceMap, fixItemsMap, ctx
+        round, rounds, activeReviewers, complianceMap, fixItemsMap, ctx,
+        resolveReviewMode(round, isSanityCheck, ctx.reviewConfig!)
       );
     } catch (err) {
       // Bug 1 fix: BoardBlockedError means an unrecoverable parse failure — stop immediately
@@ -233,7 +247,8 @@ export async function executeBoard(
     // Save round result
     if (roundDir) {
       await writeFile(join(roundDir, "review.json"), JSON.stringify({
-        round: roundResult.round, leaderVerdict: roundResult.leaderVerdict,
+        round: roundResult.round, reviewMode: roundResult.reviewMode,
+        leaderVerdict: roundResult.leaderVerdict,
         leaderRationale: roundResult.leaderRationale,
         unresolved: roundResult.unresolved,
         improvementsApplied: roundResult.improvementsApplied,
@@ -242,6 +257,7 @@ export async function executeBoard(
           participant_id: p.participant_id, provider: p.provider,
           model: p.model, role: p.role, round: p.round,
           latency_ms: p.latency_ms, invocation_id: p.invocation_id,
+          was_fallback: p.was_fallback ?? false,
         })),
       }, null, 2), "utf-8");
     }
@@ -262,11 +278,13 @@ export async function executeBoard(
     }
 
     if (roundResult.leaderVerdict === "frozen") {
+      await writeRunPostmortem(request, rounds, ctx, "frozen");
       return { status: "frozen", rounds, allParticipants,
         statusReason: "All reviewers approved/conditional, leader confirmed freeze.",
         finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
     }
     if (roundResult.leaderVerdict === "blocked") {
+      await writeRunPostmortem(request, rounds, ctx, "blocked");
       return { status: "blocked", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
         finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
@@ -281,6 +299,7 @@ export async function executeBoard(
 
     if (consecutiveDisputeRounds >= 2 && request.governance.allow_single_arbitration_round) {
       const lastRound = rounds[rounds.length - 1];
+      await writeRunPostmortem(request, rounds, ctx, lastRound.unresolved.length <= 2 ? "frozen" : "resume_required");
       return { status: lastRound.unresolved.length <= 2 ? "frozen" : "resume_required",
         rounds, allParticipants,
         statusReason: `Arbitration after ${consecutiveDisputeRounds} consecutive splits: ${lastRound.leaderRationale}`,
@@ -295,13 +314,37 @@ export async function executeBoard(
           groupId: string; severity: string; summary: string;
           redesignGuidance: string; findingCount: number;
         }> = [];
+        const seenChecklistIds = new Set<string>();
 
         for (const [, rv] of roundResult.reviewerVerdicts) {
           for (const group of rv.conceptual_groups) {
+            seenChecklistIds.add(group.id);
             fixChecklist.push({
               groupId: group.id, severity: group.severity,
               summary: group.summary, redesignGuidance: group.redesign_guidance,
               findingCount: Array.isArray(group.findings) ? group.findings.length : 0,
+            });
+          }
+
+          for (const decision of rv.fix_decisions ?? []) {
+            if (decision.decision !== "reject_fix" && decision.decision !== "reject_rejection") {
+              continue;
+            }
+            const checklistId = decision.finding_id ?? decision.finding_group_id ?? "unknown-fix-decision";
+            if (seenChecklistIds.has(checklistId)) continue;
+            seenChecklistIds.add(checklistId);
+
+            const linkedFixItem = fixItemsMap?.find((item) =>
+              (decision.finding_id && item.finding_id === decision.finding_id)
+              || (decision.finding_group_id && item.finding_group_id === decision.finding_group_id)
+            );
+
+            fixChecklist.push({
+              groupId: checklistId,
+              severity: "major",
+              summary: linkedFixItem?.summary ?? `Fix decision ${decision.decision} requires more work`,
+              redesignGuidance: decision.reason,
+              findingCount: 1,
             });
           }
         }
@@ -313,7 +356,7 @@ export async function executeBoard(
             cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
             model: request.board_roster.leader.model, reasoning: "high",
             bypass: false, timeout_ms: 120_000,
-            prompt: buildLearningPrompt(request, fixChecklist, currentRulebook, roundResult.unresolved, round),
+            prompt: buildLearningPrompt(request, fixChecklist, currentRulebook, roundResult.unresolved, round, ctx.reviewConfig!),
             source_path: "tools/agent-role-builder/learning-engine",
           });
           learningOutput = JSON.parse(cleanJsonResponse(learningResult.response));
@@ -401,13 +444,112 @@ export async function executeBoard(
         );
       }
     }
+
+    await writeRunPostmortem(request, rounds, ctx);
   }
 
   const lastRound = rounds[rounds.length - 1];
+  await writeRunPostmortem(request, rounds, ctx, "resume_required");
   return { status: "resume_required", rounds, allParticipants,
     statusReason: `Budget exhausted after ${rounds.length} rounds. ${lastRound?.unresolved.length ?? 0} unresolved.`,
     finalMarkdown: lastRound?.markdown ?? currentMarkdown,
     finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues };
+}
+
+async function writeRunPostmortem(
+  request: RoleBuilderRequest,
+  rounds: BoardRoundResult[],
+  ctx: BoardContext,
+  terminalStatus?: RoleBuilderStatus
+): Promise<void> {
+  if (!ctx.runDir) return;
+
+  const roundSnapshots = rounds.map((round) => {
+    const reviewerParticipants = round.participants.filter((participant) => participant.role === "reviewer");
+    const severityCounts = countRoundSeverities(round.reviewerVerdicts);
+    const verdictBreakdown = {
+      approved: 0,
+      conditional: 0,
+      reject: 0,
+      error: 0,
+    };
+
+    for (const verdict of round.reviewerVerdicts.values()) {
+      const hasParseError = verdict.conceptual_groups.some((group) => group.id === "parse-error");
+      if (hasParseError) {
+        verdictBreakdown.error++;
+      } else {
+        verdictBreakdown[verdict.verdict]++;
+      }
+    }
+
+    return {
+      round: round.round,
+      review_mode: round.reviewMode,
+      reviewer_invocations: reviewerParticipants.length,
+      reviewer_slots_total: request.board_roster.reviewers.length,
+      reviewer_slots_skipped: Math.max(0, request.board_roster.reviewers.length - reviewerParticipants.length),
+      participant_count: round.participants.length,
+      leader_verdict: round.leaderVerdict,
+      unresolved_count: round.unresolved.length,
+      unresolved_items: round.unresolved,
+      improvements_applied_count: round.improvementsApplied.length,
+      reviewer_verdict_breakdown: verdictBreakdown,
+      severity_counts: severityCounts,
+      fallback_count: round.participants.filter((participant) => participant.was_fallback).length,
+      latency_ms: {
+        total: round.participants.reduce((sum, participant) => sum + (participant.latency_ms ?? 0), 0),
+        max: Math.max(0, ...round.participants.map((participant) => participant.latency_ms ?? 0)),
+        by_participant: round.participants.map((participant) => ({
+          participant_id: participant.participant_id,
+          latency_ms: participant.latency_ms ?? null,
+          was_fallback: participant.was_fallback ?? false,
+        })),
+      },
+      artifacts: {
+        review_json: true,
+        compliance_map: Boolean(round.complianceMap),
+        fix_items_map: Boolean(round.fixItemsMap && round.fixItemsMap.length > 0),
+      },
+    };
+  });
+
+  const unresolvedTrend = roundSnapshots.map((snapshot) => snapshot.unresolved_count);
+  const totalFallbacks = roundSnapshots.reduce((sum, snapshot) => sum + snapshot.fallback_count, 0);
+  const postmortem = {
+    schema_version: "1.0",
+    component: "agent-role-builder",
+    request_job_id: request.job_id,
+    questions_ref: "shared/learning-engine/postmortem-questions.json",
+    updated_at: new Date().toISOString(),
+    terminal_status: terminalStatus ?? null,
+    rounds_completed: rounds.length,
+    round_snapshots: roundSnapshots,
+    kpi_summary: {
+      unresolved_trend: unresolvedTrend,
+      convergence_delta: unresolvedTrend.length >= 2 ? unresolvedTrend[0] - unresolvedTrend[unresolvedTrend.length - 1] : 0,
+      total_fallbacks: totalFallbacks,
+      total_participant_invocations: roundSnapshots.reduce((sum, snapshot) => sum + snapshot.participant_count, 0),
+      skipped_reviewer_invocations: roundSnapshots.reduce((sum, snapshot) => sum + snapshot.reviewer_slots_skipped, 0),
+    },
+    question_outputs: {
+      "PM-002": {
+        rounds: rounds.length,
+        participant_invocations: roundSnapshots.reduce((sum, snapshot) => sum + snapshot.participant_count, 0),
+        total_latency_ms: roundSnapshots.reduce((sum, snapshot) => sum + snapshot.latency_ms.total, 0),
+        reviewer_reuse_savings: roundSnapshots.reduce((sum, snapshot) => sum + snapshot.reviewer_slots_skipped, 0),
+      },
+      "PM-007": {
+        unresolved_trend: unresolvedTrend,
+        latest_unresolved_count: unresolvedTrend[unresolvedTrend.length - 1] ?? 0,
+        convergence_observed: unresolvedTrend.length > 1
+          ? unresolvedTrend[unresolvedTrend.length - 1] <= unresolvedTrend[0]
+          : true,
+      },
+    },
+  };
+
+  await writeFile(join(ctx.runDir, "run-postmortem.json"), JSON.stringify(postmortem, null, 2), "utf-8");
 }
 
 // Bug 7: generateComplianceMap() and generateFixItemsMap() removed.
@@ -421,17 +563,19 @@ async function executeRound(
   contract: Record<string, unknown>,
   selfCheckIssues: Array<{ code: string; message: string }>,
   roundIndex: number, priorRounds: BoardRoundResult[],
-  activeReviewers: BoardParticipant[],
+  activeReviewers: ReviewerSlot[],
   complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[],
-  ctx?: BoardContext
+  ctx?: BoardContext,
+  reviewMode: "full" | "delta" | "regression_sanity" = "full"
 ): Promise<BoardRoundResult> {
   const participants: ParticipantRecord[] = [];
   const reviewerVerdicts = new Map<string, ReviewerVerdict>();
 
   for (const reviewer of activeReviewers) {
     const record = await executeParticipant(
-      reviewer, request, markdown, contract, selfCheckIssues,
-      roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap, ctx
+      reviewer.participant, request, markdown, contract, selfCheckIssues,
+      roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap, ctx,
+      reviewer.slotKey, reviewMode
     );
     participants.push(record);
     reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id, ctx));
@@ -439,13 +583,14 @@ async function executeRound(
 
   const leaderRecord = await executeParticipant(
     request.board_roster.leader, request, markdown, contract, selfCheckIssues,
-    roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap, ctx
+    roundIndex, "leader", priorRounds, reviewerVerdicts, complianceMap, fixItemsMap, ctx,
+    undefined, reviewMode
   );
   participants.push(leaderRecord);
   const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex, leaderRecord.participant_id, ctx);
 
   return {
-    round: roundIndex, participants, leaderVerdict: leaderResponse.status,
+    round: roundIndex, reviewMode, participants, leaderVerdict: leaderResponse.status,
     leaderRationale: leaderResponse.rationale, unresolved: leaderResponse.unresolved,
     improvementsApplied: leaderResponse.improvements_applied,
     markdown, selfCheckIssues, reviewerVerdicts,
@@ -458,16 +603,18 @@ async function executeParticipant(
   selfCheckIssues: Array<{ code: string; message: string }>,
   round: number, role: "leader" | "reviewer",
   priorRounds: BoardRoundResult[],
-  currentRoundReviewers?: ParticipantRecord[],
+  currentRoundReviewers?: Map<string, ReviewerVerdict>,
   complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[],
-  ctx?: BoardContext
+  ctx?: BoardContext,
+  participantKey?: string,
+  reviewMode: "full" | "delta" | "regression_sanity" = "full"
 ): Promise<ParticipantRecord> {
-  const participantId = `${role}-${participant.provider}-r${round}`;
+  const participantId = `${participantKey ?? `${role}-${participant.provider}`}-r${round}`;
   const sourcePath = `tools/agent-role-builder/${role === "leader" ? "leader-synthesis" : "review"}`;
 
   const brief = await buildBrief(
     request, markdown, contract, selfCheckIssues,
-    round, role, priorRounds, currentRoundReviewers, complianceMap, fixItemsMap, ctx
+    round, role, priorRounds, currentRoundReviewers, complianceMap, fixItemsMap, ctx, reviewMode
   );
 
   const start = Date.now();
@@ -481,10 +628,12 @@ async function executeParticipant(
     const latency_ms = Date.now() - start;
     emit({ provenance: result.provenance, category: "tool",
       operation: `role-builder-${role}`, latency_ms, success: true,
-      board_rounds: round + 1, participants: 1 });
+      board_rounds: round + 1, participants: 1,
+      metadata: { review_mode: reviewMode, was_fallback: result.provenance.was_fallback } });
     return { participant_id: participantId, provider: participant.provider,
       model: participant.model, role, verdict: result.response,
-      round, latency_ms, invocation_id: result.provenance.invocation_id };
+      round, latency_ms, invocation_id: result.provenance.invocation_id,
+      was_fallback: result.provenance.was_fallback };
   } catch (err) {
     const latency_ms = Date.now() - start;
     const errorMsg = err instanceof Error ? err.message : String(err);
@@ -505,9 +654,10 @@ async function buildBrief(
   selfCheckIssues: Array<{ code: string; message: string }>,
   round: number, role: "leader" | "reviewer",
   priorRounds: BoardRoundResult[],
-  currentRoundReviewers?: ParticipantRecord[],
+  currentRoundReviewers?: Map<string, ReviewerVerdict>,
   complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[],
-  ctx?: BoardContext
+  ctx?: BoardContext,
+  reviewMode: "full" | "delta" | "regression_sanity" = "full"
 ): Promise<string> {
   // Write markdown to temp file — prompts must stay under 4KB
   const markdownFile = ctx?.runDir
@@ -516,9 +666,19 @@ async function buildBrief(
   const { writeFile: wf } = await import("node:fs/promises");
   await wf(markdownFile, markdown, "utf-8");
   const mdRef = markdownFile.replace(/\\/g, "/");
+  const reviewConfig = ctx?.reviewConfig;
+  const verdicts = reviewConfig?.sharedContract.reviewer_output?.verdicts ?? ["approved", "conditional", "reject"];
+  const severities = reviewConfig?.sharedContract.reviewer_output?.severity_levels ?? ["blocking", "major", "minor", "suggestion"];
+  const fixDecisionValues = reviewConfig?.sharedContract.reviewer_output?.fix_decisions?.allowed_decisions
+    ?? ["accept_fix", "reject_fix", "accept_rejection", "reject_rejection"];
+  const focusAreas = reviewConfig ? formatFocusAreas(reviewConfig) : "- authority model\n- scope boundaries\n- terminal states";
+  const sourceAuthorities = reviewConfig
+    ? formatSourceAuthorities(reviewConfig)
+    : "- docs/v0/review-process-architecture.md\n- docs/v0/architecture.md";
+  const ignoreAreas = reviewConfig ? formatIgnoreAreas(reviewConfig) : "";
   const priorContext = priorRounds.length > 0
     ? `\n\nPrior rounds:\n${priorRounds.map((r) =>
-        `Round ${r.round}: Leader=${r.leaderVerdict}. Unresolved: ${r.unresolved.length}. Improvements: ${r.improvementsApplied.length}.`
+        `Round ${r.round}: mode=${r.reviewMode}, Leader=${r.leaderVerdict}. Unresolved: ${r.unresolved.length}. Improvements: ${r.improvementsApplied.length}.`
       ).join("\n")}` : "";
 
   const selfCheckContext = selfCheckIssues.length > 0
@@ -532,7 +692,7 @@ async function buildBrief(
 
   const fixItemsContext = fixItemsMap && fixItemsMap.length > 0
     ? `\n\nFix items map from implementer:\n${fixItemsMap.map((f) =>
-        `- [${f.finding_group_id}] ${f.action}: ${f.summary}${f.rejection_reason ? ` (REJECTED: ${f.rejection_reason})` : ""}`
+        `- [${f.finding_id ?? f.finding_group_id}] ${f.action}: ${f.summary}${f.rejection_reason ? ` (REJECTED: ${f.rejection_reason})` : ""}`
       ).join("\n")}` : "";
 
   const contractSummary = JSON.stringify({
@@ -544,18 +704,20 @@ async function buildBrief(
   if (role === "reviewer") {
     const fixDecisionInstruction = fixItemsMap && fixItemsMap.length > 0
       ? `\n\nIMPORTANT: The implementer provided a fix items map. For each item, you MUST respond with a fix_decisions array:
-[{ "finding_group_id": "...", "decision": "accept_fix" | "reject_fix" | "accept_rejection" | "reject_rejection", "reason": "..." }]
+[{ "finding_id": "preferred-if-known", "finding_group_id": "group-fallback", "decision": ${fixDecisionValues.map((value) => `"${value}"`).join(" | ")}, "reason": "..." }]
 Include this in your JSON response as "fix_decisions".` : "";
 
     return `You are a REVIEWER for the agent-role-builder tool (round ${round}).
 Review the draft role package for ${request.role_name} (slug: ${request.role_slug}).
+Review mode: ${reviewMode}
+Domain: ${reviewConfig?.componentPrompt.domain ?? "design"} (${reviewConfig?.componentPrompt.artifact_kind ?? "role-definition"})
 
 RESPOND WITH JSON ONLY:
 {
-  "verdict": "approved" | "conditional" | "reject",
-  "conceptual_groups": [{ "id": "group-1", "summary": "...", "severity": "blocking"|"major"|"minor"|"suggestion",
+  "verdict": ${verdicts.map((value) => `"${value}"`).join(" | ")},
+  "conceptual_groups": [{ "id": "group-1", "summary": "...", "severity": ${severities.map((value) => `"${value}"`).join("|")},
     "findings": [{ "id": "f1", "description": "...", "source_section": "..." }], "redesign_guidance": "..." }],
-  ${fixItemsMap && fixItemsMap.length > 0 ? '"fix_decisions": [{ "finding_group_id": "...", "decision": "accept_fix"|"reject_fix"|"accept_rejection"|"reject_rejection", "reason": "..." }],' : ''}
+  ${fixItemsMap && fixItemsMap.length > 0 ? '"fix_decisions": [{ "finding_id": "preferred-if-known", "finding_group_id": "group-fallback", "decision": "accept_fix"|"reject_fix"|"accept_rejection"|"reject_rejection", "reason": "..." }],' : ''}
   "residual_risks": ["..."], "strengths": ["..."]
 }
 
@@ -566,8 +728,12 @@ VERDICT RULES:
 - Group findings by root cause with severity and source_section
 ${fixDecisionInstruction}
 
-REVIEW SCOPE: tag completeness, authority clarity, scope boundaries, artifact lifecycle, no invented semantics
-Source authority: read docs/v0/review-process-architecture.md and docs/v0/architecture.md for canonical governance.
+FOCUS AREAS:
+${focusAreas || "- none specified"}
+
+SOURCE AUTHORITY:
+${sourceAuthorities}
+${ignoreAreas ? `\nIGNORE AREAS:\n${ignoreAreas}` : ""}
 
 READ the draft role markdown from: ${mdRef}
 
@@ -578,20 +744,28 @@ ${selfCheckContext}${complianceContext}${fixItemsContext}${priorContext}
 JSON response:`;
   }
 
-  const reviewerContext = currentRoundReviewers
-    ? `\n\nReviewer verdicts:\n${currentRoundReviewers.map((r) =>
-        `${r.participant_id}:\n${r.verdict ?? "(no verdict)"}`).join("\n\n")}` : "";
+  const reviewerContext = currentRoundReviewers && currentRoundReviewers.size > 0
+    ? `\n\nReviewer verdict summary:\n${buildReviewerSummaryText(currentRoundReviewers)}`
+    : "";
 
   return `You are the LEADER for the agent-role-builder tool (round ${round}).
 Synthesize reviewer feedback and determine terminal status for ${request.role_name}.
+Review mode: ${reviewMode}
 
 RESPOND WITH JSON ONLY:
-{ "status": "frozen"|"pushback"|"blocked", "rationale": "...",
+{ "status": ${(reviewConfig?.sharedContract.leader_output?.allowed_statuses ?? ["frozen", "pushback", "blocked"]).map((value) => `"${value}"`).join("|")}, "rationale": "...",
   "unresolved": ["blocking/major only"], "improvements_applied": ["..."],
   "arbitration_used": false, "arbitration_rationale": null }
 
 RULES: frozen = all approved/conditional, no blocking. pushback = any reject with blocking/major.
 Count only blocking+major as material. Minor/suggestion don't block freeze.
+
+FOCUS AREAS:
+${focusAreas || "- none specified"}
+
+SOURCE AUTHORITY:
+${sourceAuthorities}
+${ignoreAreas ? `\nIGNORE AREAS:\n${ignoreAreas}` : ""}
 
 READ the draft from: ${mdRef}
 ${selfCheckContext}${complianceContext}${fixItemsContext}${reviewerContext}${priorContext}
@@ -799,6 +973,18 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
   }
 }
 
+function countRoundSeverities(reviewerVerdicts: Map<string, ReviewerVerdict>) {
+  const counts = { blocking: 0, major: 0, minor: 0, suggestion: 0 };
+
+  for (const verdict of reviewerVerdicts.values()) {
+    for (const group of verdict.conceptual_groups) {
+      counts[group.severity]++;
+    }
+  }
+
+  return counts;
+}
+
 // --- Initial compliance map (Bug 5 fix) ---
 
 /**
@@ -838,13 +1024,22 @@ function buildLearningPrompt(
   request: RoleBuilderRequest,
   findings: Array<{ groupId: string; severity: string; summary: string; redesignGuidance: string }>,
   rulebook: Array<{ id: string; rule: string }>,
-  unresolved: string[], round: number
+  unresolved: string[], round: number,
+  reviewConfig: ReviewRuntimeConfig
 ): string {
+  const focusAreas = formatFocusAreas(reviewConfig);
+  const sourceAuthorities = formatSourceAuthorities(reviewConfig);
   return `You are the ADF Learning Engine. Extract generalizable rules from review feedback.
 
-DOMAIN: design (role definition)
-COMPONENT: agent-role-builder
+DOMAIN: ${reviewConfig.componentPrompt.domain ?? "design"} (${reviewConfig.componentPrompt.artifact_kind ?? "role-definition"})
+COMPONENT: ${reviewConfig.componentContract.component ?? "agent-role-builder"}
 ROUND: ${round}
+
+FOCUS AREAS:
+${focusAreas || "- none specified"}
+
+SOURCE AUTHORITY:
+${sourceAuthorities}
 
 EXISTING RULEBOOK (${rulebook.length} rules):
 ${rulebook.map((r) => `${r.id}: ${r.rule}`).join("\n") || "(empty)"}

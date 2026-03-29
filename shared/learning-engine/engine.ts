@@ -14,6 +14,24 @@ export async function extractRules(
   input: LearningInput,
   invoker: (prompt: string, sourcePath: string) => Promise<string>,
 ): Promise<LearningOutput> {
+  let reviewPromptContext = "";
+  let reviewContractContext = "";
+
+  if (input.review_prompt_path) {
+    try {
+      reviewPromptContext = await readFile(input.review_prompt_path, "utf-8");
+    } catch {
+      reviewPromptContext = "";
+    }
+  }
+
+  if (input.review_contract_path) {
+    try {
+      reviewContractContext = await readFile(input.review_contract_path, "utf-8");
+    } catch {
+      reviewContractContext = "";
+    }
+  }
 
   const existingRulesSummary = input.current_rulebook
     .map((r) => `${r.id}: ${r.rule}`)
@@ -32,6 +50,12 @@ export async function extractRules(
 DOMAIN: ${input.review_prompt_domain}
 COMPONENT: ${input.component}
 ROUND: ${input.round}
+
+COMPONENT REVIEW PROMPT:
+${reviewPromptContext || "(not provided)"}
+
+COMPONENT REVIEW CONTRACT:
+${reviewContractContext || "(not provided)"}
 
 EXISTING RULEBOOK (${input.current_rulebook.length} rules):
 ${existingRulesSummary || "(empty)"}

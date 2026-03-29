@@ -10,7 +10,7 @@ import { z } from "zod";
 
 export const ComplianceEntry = z.object({
   rule_id: z.string(),
-  status: z.enum(["compliant", "not_applicable"]),
+  status: z.enum(["compliant", "non_compliant", "not_applicable"]),
   evidence_location: z.string().describe("Section, tag, or line where compliance is demonstrated"),
   evidence_summary: z.string().describe("Brief explanation of how the rule is satisfied"),
 });
