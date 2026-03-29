@@ -431,7 +431,7 @@ async function executeRound(
   for (const reviewer of activeReviewers) {
     const record = await executeParticipant(
       reviewer, request, markdown, contract, selfCheckIssues,
-      roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap
+      roundIndex, "reviewer", priorRounds, undefined, complianceMap, fixItemsMap, ctx
     );
     participants.push(record);
     reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id, ctx));
@@ -439,7 +439,7 @@ async function executeRound(
 
   const leaderRecord = await executeParticipant(
     request.board_roster.leader, request, markdown, contract, selfCheckIssues,
-    roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap
+    roundIndex, "leader", priorRounds, participants, complianceMap, fixItemsMap, ctx
   );
   participants.push(leaderRecord);
   const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex, leaderRecord.participant_id, ctx);
@@ -459,14 +459,15 @@ async function executeParticipant(
   round: number, role: "leader" | "reviewer",
   priorRounds: BoardRoundResult[],
   currentRoundReviewers?: ParticipantRecord[],
-  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[]
+  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[],
+  ctx?: BoardContext
 ): Promise<ParticipantRecord> {
   const participantId = `${role}-${participant.provider}-r${round}`;
   const sourcePath = `tools/agent-role-builder/${role === "leader" ? "leader-synthesis" : "review"}`;
 
-  const brief = buildBrief(
+  const brief = await buildBrief(
     request, markdown, contract, selfCheckIssues,
-    round, role, priorRounds, currentRoundReviewers, complianceMap, fixItemsMap
+    round, role, priorRounds, currentRoundReviewers, complianceMap, fixItemsMap, ctx
   );
 
   const start = Date.now();
@@ -498,15 +499,23 @@ async function executeParticipant(
 
 // --- Prompts ---
 
-function buildBrief(
+async function buildBrief(
   request: RoleBuilderRequest, markdown: string,
   contract: Record<string, unknown>,
   selfCheckIssues: Array<{ code: string; message: string }>,
   round: number, role: "leader" | "reviewer",
   priorRounds: BoardRoundResult[],
   currentRoundReviewers?: ParticipantRecord[],
-  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[]
-): string {
+  complianceMap?: ComplianceEntry[], fixItemsMap?: FixItem[],
+  ctx?: BoardContext
+): Promise<string> {
+  // Write markdown to temp file — prompts must stay under 4KB
+  const markdownFile = ctx?.runDir
+    ? join(ctx.runDir, `brief-markdown-r${round}-${role}.md`)
+    : join(process.env.USERPROFILE ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp` : ".", `adf-brief-${role}-${round}.md`);
+  const { writeFile: wf } = await import("node:fs/promises");
+  await wf(markdownFile, markdown, "utf-8");
+  const mdRef = markdownFile.replace(/\\/g, "/");
   const priorContext = priorRounds.length > 0
     ? `\n\nPrior rounds:\n${priorRounds.map((r) =>
         `Round ${r.round}: Leader=${r.leaderVerdict}. Unresolved: ${r.unresolved.length}. Improvements: ${r.improvementsApplied.length}.`
@@ -558,9 +567,9 @@ VERDICT RULES:
 ${fixDecisionInstruction}
 
 REVIEW SCOPE: tag completeness, authority clarity, scope boundaries, artifact lifecycle, no invented semantics
+Source authority: read docs/v0/review-process-architecture.md and docs/v0/architecture.md for canonical governance.
 
-Draft role markdown:
-${markdown}
+READ the draft role markdown from: ${mdRef}
 
 Contract summary:
 ${contractSummary}
@@ -584,8 +593,7 @@ RESPOND WITH JSON ONLY:
 RULES: frozen = all approved/conditional, no blocking. pushback = any reject with blocking/major.
 Count only blocking+major as material. Minor/suggestion don't block freeze.
 
-Draft:
-${markdown}
+READ the draft from: ${mdRef}
 ${selfCheckContext}${complianceContext}${fixItemsContext}${reviewerContext}${priorContext}
 
 JSON response:`;

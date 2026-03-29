@@ -170,69 +170,87 @@ PRIOR FINDINGS TO ADDRESS:
 ${priorFindings}`
     : "";
 
-  // Bug 7 fix: Merge revision + compliance map + fix items map into 1 LLM call
-  const revisionPrompt = [
-    `You are revising a role markdown draft for ${request.role_name}.`,
-    ``,
-    `RESPOND IN THIS EXACT FORMAT (three XML-tagged sections):`,
-    ``,
-    `<draft>`,
-    `...full updated markdown (no code fences)...`,
-    `</draft>`,
-    ``,
-    `<compliance_map>`,
-    `[{ "rule_id": "ARB-001", "status": "compliant" | "non_compliant" | "not_applicable", "evidence_location": "<section>", "evidence_summary": "..." }]`,
-    `</compliance_map>`,
-    fixItemsInstruction,
-    ``,
-    `CRITICAL: You MUST fix every blocking/major item below. Each has specific guidance.`,
-    `CRITICAL: You MUST check every rule in the RULEBOOK below. Violations will be caught by the reviewer.`,
-    `If you do not fix an item, the next review round will reject again for the same reason.`,
-    ``,
-    convergenceNote,
-    ``,
+  // Write context to temp files — Codex can't handle >4KB prompts via CLI arg.
+  // The agent reads files from disk instead.
+  const { writeFile: writeTmp } = await import("node:fs/promises");
+  const { join: joinPath } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const { randomUUID } = await import("node:crypto");
+
+  const tmpId = randomUUID().slice(0, 8);
+  const TEMP = process.env.USERPROFILE
+    ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp`
+    : process.env.TEMP ?? process.env.TMP ?? ".";
+
+  const markdownFile = joinPath(TEMP, `adf-revision-markdown-${tmpId}.md`);
+  const rulebookFile = joinPath(TEMP, `adf-revision-rulebook-${tmpId}.txt`);
+  const findingsFile = joinPath(TEMP, `adf-revision-findings-${tmpId}.txt`);
+
+  await writeTmp(markdownFile, currentMarkdown, "utf-8");
+
+  const rulebookContent = rulebookSection || "(no rulebook)";
+  await writeTmp(rulebookFile, rulebookContent, "utf-8");
+
+  const findingsContent = [
     `=== BLOCKING/MAJOR FIXES REQUIRED ===`,
-    fixItems || "(none — only minor issues remain)",
-    ``,
-    minorItems ? `=== MINOR FIXES (address if possible) ===\n${minorItems}` : "",
-    ``,
-    `=== LEADER RATIONALE ===`,
+    fixItems || "(none)",
+    minorItems ? `\n=== MINOR ===\n${minorItems}` : "",
+    `\n=== LEADER RATIONALE ===`,
     feedback.leaderRationale,
-    ``,
-    `=== UNRESOLVED FROM LEADER ===`,
+    `\n=== UNRESOLVED ===`,
     ...feedback.unresolved.map((u) => `- ${u}`),
-    ``,
-    rulebookSection ? `\n${rulebookSection}\n` : "",
-    `=== SOURCE AUTHORITY (use these as canonical truth — do NOT invent governance) ===`,
-    `- Arbitration model: defined in docs/v0/review-process-architecture.md "Arbitration (Minor Items Only)" section. Arbitration is minor-only, result is frozen_with_conditions, invoker decides acceptance.`,
-    `- Error escalation: defined in docs/v0/review-process-architecture.md "Error Escalation Pattern" section.`,
-    `- Agent role governance rule: defined in docs/v0/architecture.md "Agent Role Governance Rule" section.`,
-    `- Review process: defined in docs/v0/review-process-architecture.md "The Review Process (Per Round)" section.`,
-    `- Terminal states: frozen (all approved/conditional, no blocking), pushback (reject with blocking/major), blocked (unrecoverable), resume_required (budget exhausted).`,
-    `- Canonical artifact paths: tools/agent-role-builder/role/agent-role-builder-role.md, -role-contract.json, -decision-log.md, -board-summary.md`,
-    `- DO NOT invent governance semantics. If a behavior is not defined in the source documents above, do not include it in the role definition.`,
-    ``,
-    `=== CONSTRAINTS ===`,
-    `- Keep required XML tags exactly once each: ${REQUIRED_XML_TAGS.map((t) => `<${t}>`).join(", ")}`,
-    `- Do not invent new authority, scope, runtime modes, or artifacts not in the request`,
-    `- Write authority limited to role-package artifacts only`,
-    `- Governance: ${request.governance.mode}, max ${request.governance.max_review_rounds} rounds`,
-    ``,
-    `=== CURRENT MARKDOWN ===`,
-    currentMarkdown,
-    ``,
-    `=== PRODUCE YOUR RESPONSE (draft + compliance_map${feedback.round > 0 ? " + fix_items_map" : ""}) ===`,
+    fixItemsInstruction,
   ].filter(Boolean).join("\n");
+  await writeTmp(findingsFile, findingsContent, "utf-8");
+
+  // Keep prompt under 4KB — reference files on disk
+  const revisionPrompt = `You are revising a role markdown draft for ${request.role_name}.
+
+READ THESE FILES FROM DISK:
+1. Current markdown: ${markdownFile.replace(/\\/g, "/")}
+2. Rulebook: ${rulebookFile.replace(/\\/g, "/")}
+3. Findings to fix: ${findingsFile.replace(/\\/g, "/")}
+
+SOURCE AUTHORITY (read these files for canonical governance definitions):
+- docs/v0/review-process-architecture.md — arbitration (minor-only), error escalation, review process
+- docs/v0/architecture.md — agent role governance rule, terminal states
+- DO NOT invent governance semantics not found in these files.
+
+Canonical artifact paths: tools/agent-role-builder/role/agent-role-builder-role.md, -role-contract.json, -decision-log.md, -board-summary.md
+Terminal states: frozen (all approved, no blocking), pushback (reject with blocking/major), blocked (unrecoverable), resume_required (budget exhausted).
+
+RESPOND IN THIS EXACT FORMAT:
+
+<draft>
+...full updated markdown (all required XML tags: ${REQUIRED_XML_TAGS.map((t) => `<${t}>`).join(", ")})...
+</draft>
+
+<compliance_map>
+[{"rule_id":"ARB-001","status":"compliant"|"non_compliant"|"not_applicable","evidence_location":"<section>","evidence_summary":"..."}]
+</compliance_map>
+${feedback.round > 0 ? `
+<fix_items_map>
+[{"finding_group_id":"group-1","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>"}]
+</fix_items_map>` : ""}
+
+${convergenceNote}
+CRITICAL: Fix every blocking/major item. Check every rulebook rule. Do not invent governance.`;
 
   const result = await invoke({
     cli: request.board_roster.leader.provider,
     model: request.board_roster.leader.model,
     reasoning: request.board_roster.leader.throttle,
-    bypass: false,
+    bypass: true, // needs filesystem access to read the context files
     timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
     prompt: revisionPrompt,
     source_path: "tools/agent-role-builder/revise-draft",
   });
+
+  // Cleanup temp files
+  const { unlink } = await import("node:fs/promises");
+  await unlink(markdownFile).catch(() => {});
+  await unlink(rulebookFile).catch(() => {});
+  await unlink(findingsFile).catch(() => {});
 
   // Parse the combined response by extracting XML-tagged sections
   const draftMatch = result.response.match(/<draft>([\s\S]*?)<\/draft>/);
