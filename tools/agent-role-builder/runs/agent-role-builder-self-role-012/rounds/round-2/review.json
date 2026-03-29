@@ -1,0 +1,202 @@
+{
+  "round": 2,
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Material pushback remains. reviewer-codex-r2 returned one blocking group and two major groups, while reviewer-claude-r2 was only conditional with minor/suggestion items. The blocking/major issues are recoverable specification inconsistencies rather than a non-recoverable runtime failure, so the correct terminal state is pushback, not blocked.",
+  "unresolved": [
+    "Canonical path authority is still split: the draft says `required_outputs` full tool-relative paths are the single source of truth, but the package-level contract summary still presents basename-only `package_files`, leaving promotion and validation mechanically ambiguous.",
+    "Governance semantics remain unsynchronized at package level: the contract summary intent is still run-specific bootstrap text, and arbitration still collapses into ordinary `frozen` even though ADF review architecture requires minor-only arbitration to surface as `frozen_with_conditions`.",
+    "Update/fix completion is still unsatisfiable for non-frozen terminal states because canonical decision-log append is tied to promotion/freeze, while completion requires that canonical append for update/fix completion generally."
+  ],
+  "improvementsApplied": [
+    "Markdown-side canonical artifact handling was tightened: `required_outputs` is now treated as the canonical-path authority in Step 2, and `<outputs>` explicitly lists the four canonical role artifacts.",
+    "Authority precedence is now explicit and improved: COO/runtime rules are first, the validated request is second, and architecture/vision docs are demoted to reference evidence only.",
+    "Freeze/material-pushback semantics, roster validation, and terminal-state predicates are clearer and more testable across the markdown than in prior rounds."
+  ],
+  "reviewerVerdicts": {
+    "reviewer-codex-r2": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Canonical path authority is still split between the markdown and the embedded contract summary",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "Step 2 says the contract package-file fields must mirror the exact tool-relative paths from `required_outputs`, but the embedded contract summary still sets `package_files` to basename-only values like `agent-role-builder-role.md`. The package therefore presents two incompatible canonical-path models.",
+              "source_section": "<steps> Step 2 / Contract summary.package_files"
+            },
+            {
+              "id": "f2",
+              "description": "The compliance claim that `required_outputs` is now the single canonical-path authority is not true at package level while the contract summary continues to encode different path semantics. Promotion and validation remain mechanically ambiguous.",
+              "source_section": "Self-check / Compliance map / Contract summary.package_files"
+            }
+          ],
+          "redesign_guidance": "Choose one canonical-path model and use it everywhere. Given the draft's stated design, update the contract summary `package_files` entries to the same four full tool-relative paths named in `required_outputs` and `<outputs>`, then re-run self-check."
+        },
+        {
+          "id": "group-2",
+          "summary": "Governance semantics remain stale across the package",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The embedded contract summary `intent` still says `Resume and finalize the agent-role-builder self-role...`, which is run-specific bootstrap context, not the enduring purpose of the role package.",
+              "source_section": "Contract summary.intent"
+            },
+            {
+              "id": "f2",
+              "description": "The draft models arbitration evidence (`arbitration_used`, `arbitration_rationale`) but still collapses successful arbitration into the ordinary `frozen` path. ADF architecture requires arbitration to surface as partial acceptance via `frozen_with_conditions`, with acceptance authority left to the invoker.",
+              "source_section": "<guardrails> / <steps> Step 4 / <completion> / docs/v0/architecture.md / docs/v0/review-process-architecture.md"
+            }
+          ],
+          "redesign_guidance": "Regenerate the contract summary so it matches the durable role purpose, and either add explicit `frozen_with_conditions` lifecycle semantics or stop claiming architecture-consistent arbitration behavior until the contract and runtime support it."
+        },
+        {
+          "id": "group-3",
+          "summary": "Update/fix completion rules still make non-frozen terminal states impossible to satisfy",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "Step 5 says decision-history preservation in the canonical decision log happens at promotion time, but `<completion>` says update/fix completion is not satisfied unless that canonical log visibly shows an appended dated section. That makes `pushback`, `blocked`, or `resume_required` update/fix runs impossible to complete without a freeze-time promotion.",
+              "source_section": "<steps> Step 5 / <completion>"
+            }
+          ],
+          "redesign_guidance": "Scope canonical decision-log append requirements to the `frozen` promotion path only, or define a separate non-frozen evidence rule for update/fix runs so every terminal state stays satisfiable."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1",
+          "decision": "reject_fix",
+          "reason": "The markdown now points at `required_outputs`, but the package still contains a conflicting basename-only `package_files` model in the contract summary, so single-source canonical path authority is not actually achieved."
+        },
+        {
+          "finding_group_id": "group-2",
+          "decision": "reject_fix",
+          "reason": "The authority ordering in the markdown is improved, but the claimed freeze-rule normalization is still insufficient because arbitration semantics remain inconsistent with the approved ADF review architecture."
+        },
+        {
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "The markdown-side fixes are real: `<outputs>` now names explicit canonical role paths and Step 5 names the promotion directory, so that portion of the earlier path ambiguity is resolved."
+        },
+        {
+          "finding_group_id": "group-2",
+          "decision": "reject_fix",
+          "reason": "The `<role>` prose is now durable, but the package-level contract summary still carries the old run-specific intent, so the role package is not yet semantically synchronized."
+        }
+      ],
+      "residual_risks": [
+        "The self-check says `passed` even though the package-level markdown and contract summary still disagree, which weakens trust in the validation evidence.",
+        "If `frozen_with_conditions` is not reconciled between role package and runtime schema, future runs may either over-freeze or drift from the approved review-process architecture."
+      ],
+      "strengths": [
+        "All required tags are present and the markdown structure is much clearer than prior rounds.",
+        "The authority section now correctly separates operative runtime authority from static reference evidence.",
+        "Canonical, run-scoped, and internal artifacts are explicitly separated in the markdown, which improves overall lifecycle readability."
+      ]
+    },
+    "reviewer-claude-r2": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-A",
+          "summary": "Contract package_files fields show basenames rather than full tool-relative paths",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "fA1",
+              "description": "The contract summary's package_files values (e.g., 'agent-role-builder-role.md') are bare filenames, not the full tool-relative paths (e.g., 'tools/agent-role-builder/role/agent-role-builder-role.md'). Step 2 explicitly requires the contract package-file fields to mirror the required_outputs paths exactly. If the actual contract JSON uses basenames, this violates its own canonical-path authority rule and makes promotion non-deterministic.",
+              "source_section": "<steps> Step 2, Contract summary package_files"
+            }
+          ],
+          "redesign_guidance": "Verify and update the actual agent-role-builder-role-contract.json so that all package_files values are full tool-relative paths matching required_outputs exactly (e.g., 'tools/agent-role-builder/role/agent-role-builder-role.md'), not bare filenames. The 'Contract summary' label leaves ambiguity about whether this is a display artifact or the actual contract content."
+        },
+        {
+          "id": "group-B",
+          "summary": "pushback terminal-state trigger mechanism is unspecified",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "fB1",
+              "description": "pushback is defined as 'intentionally stopped before freeze' in both Step 4 and completion, but no mechanism specifies who or what issues the intentional stop — COO command, leader decision, or a governance signal. This leaves the trigger implicit and could lead to inconsistent use across runs.",
+              "source_section": "<steps> Step 4, <completion> pushback predicate"
+            }
+          ],
+          "redesign_guidance": "Add one sentence in Step 4 or guardrails specifying that pushback is triggered by an explicit COO termination directive before review-budget exhaustion, distinguishing it operationally from resume_required (exhaustion) and blocked (error)."
+        },
+        {
+          "id": "group-C",
+          "summary": "Regression sanity check round-counting against max_review_rounds is undefined",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "fC1",
+              "description": "Step 4 says 'run the previously satisfied reviewer again only for the final regression sanity check' in split-verdict scenarios, but does not state whether this re-run consumes a round toward max_review_rounds:3. An implementor could reach an ambiguous state where the regression check would be the third round and a split still persists.",
+              "source_section": "<steps> Step 4"
+            }
+          ],
+          "redesign_guidance": "Add a single clarifying sentence: the regression sanity check counts as a round toward max_review_rounds. This makes budget exhaustion deterministic in all split-verdict paths."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "required_outputs is now the single canonical-path authority in Step 2, the outputs section lists all four canonical artifacts with full tool-relative paths, Step 3 verifies every required_outputs path is named in outputs, and Step 5 names the canonical promotion directory explicitly. The fix is fully visible and consistent across sections."
+        },
+        {
+          "finding_group_id": "group-2",
+          "decision": "accept_fix",
+          "reason": "Authority chain is explicitly ordered highest-to-lowest with COO runtime rules first, validated request second, and governance docs demoted to reference-evidence-only. The freeze rule is normalized to 'no material pushback remains' and used consistently across guardrails, the board-review loop, the role statement, and all terminal-state completion predicates. The role statement is now role-authoritative rather than run-specific."
+        }
+      ],
+      "residual_risks": [
+        "Contract package_files basenames may not mirror required_outputs full paths in the actual contract JSON, silently breaking the canonical-path guarantee at promotion time.",
+        "Unspecified pushback trigger could lead to inconsistent terminal-state classification between runs where pushback vs. resume_required is ambiguous near budget exhaustion.",
+        "Regression sanity check round-count ambiguity could cause a run to exceed or hit max_review_rounds unexpectedly in split-verdict scenarios."
+      ],
+      "strengths": [
+        "All 9 required tagged sections present, well-structured, and each appearing exactly once.",
+        "Authority chain is clear with explicit highest-to-lowest ordering and reference-only governance docs — prior blocking issue fully resolved.",
+        "All five terminal states (frozen, pushback, blocked-before-draft, blocked-after-draft, resume_required) have independent, testable completion predicates — prior blocking issue fully resolved.",
+        "Canonical vs. run-scoped artifact separation is clean, path-qualified, and unambiguous.",
+        "Arbitration is mechanically complete: trigger condition (2 consecutive split-verdict rounds), arbitrator (leader), required evidence fields (arbitration_used, arbitration_rationale), and scope limit (minor/suggestion only).",
+        "Decision history preservation is both mechanically defined (append dated section, never delete prior entries) and made testable via the completion predicate for update and fix operations.",
+        "All 15 ARB compliance rules verified compliant in the compliance map.",
+        "No invented semantics: every governance concept (material pushback, freeze, arbitration, pushback) is defined once and reused consistently."
+      ]
+    }
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-codex-r2",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 2,
+      "latency_ms": 212427,
+      "invocation_id": "80e140b6-cb9c-4ce9-8410-e839cac3fec9"
+    },
+    {
+      "participant_id": "reviewer-claude-r2",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 2,
+      "latency_ms": 106684,
+      "invocation_id": "fa1078a5-4fe4-446c-b067-0b8c45a77417"
+    },
+    {
+      "participant_id": "leader-codex-r2",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 2,
+      "latency_ms": 73489,
+      "invocation_id": "8b71b173-a8ba-4d20-a38a-f84f919117c3"
+    }
+  ]
+}

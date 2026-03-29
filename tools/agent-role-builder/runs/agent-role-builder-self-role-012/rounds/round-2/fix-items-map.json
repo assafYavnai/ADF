@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 2,
+  "items": [
+    {
+      "finding_group_id": "group-1",
+      "action": "accepted",
+      "summary": "`required_outputs` is now the single canonical-path authority, those paths are reused as the promotion source of truth, `<outputs>` names the canonical artifacts explicitly, and `<completion>` separates terminal-state completion requirements from freeze-time promotion.",
+      "evidence_location": "<inputs>; <steps> Step 2 and Step 5; <outputs>; <completion>"
+    },
+    {
+      "finding_group_id": "group-2",
+      "action": "accepted",
+      "summary": "The authority chain is now explicit and ordered as COO runtime rules first, validated request second, static docs as reference evidence only. The freeze rule is normalized to 'freeze only when no material pushback remains' and reused consistently across guardrails, review flow, role intent, and completion.",
+      "evidence_location": "<role>; <authority>; <guardrails>; <steps> Step 4; <completion>"
+    },
+    {
+      "finding_group_id": "group-1",
+      "action": "accepted",
+      "summary": "`<outputs>` now contains explicit canonical artifact paths under `tools/agent-role-builder/role/`, Step 3 checks that every canonical path from `required_outputs` is named there, and Step 5 names the canonical promotion directory so promotion is deterministic.",
+      "evidence_location": "<steps> Step 3 and Step 5; <outputs>"
+    },
+    {
+      "finding_group_id": "group-2",
+      "action": "accepted",
+      "summary": "The contract intent in `<role>` is now role-authoritative rather than run-specific: it states the enduring responsibility of creating, updating, and fixing role packages through governed review, with frozen output only when no material pushback remains.",
+      "evidence_location": "<role>"
+    }
+  ],
+  "generated_at": "2026-03-29T00:43:13.735Z"
+}

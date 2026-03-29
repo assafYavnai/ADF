@@ -1,0 +1,45 @@
+{
+  "new_rules": [
+    {
+      "id": "ARB-016",
+      "rule": "When a package repeats canonical output metadata in summaries, manifests, or display sections, those repeated entries must be strict mirrors of the canonical output definitions. Secondary surfaces may summarize, but they must not introduce alternate path forms or source-of-truth ambiguity.",
+      "applies_to": "role-definition packages with both canonical output declarations and package-level summary/manifests",
+      "do": "Declare one canonical output-path source of truth and require every secondary surface to copy the same full tool-relative paths exactly.",
+      "dont": "Do not let contract summaries, package_files lists, or display artifacts use basenames or alternate references when the canonical contract uses full tool-relative paths.",
+      "source": "group-1",
+      "version": 1
+    },
+    {
+      "id": "ARB-017",
+      "rule": "Package-level purpose text, lifecycle labels, and terminal-state semantics must stay synchronized across the canonical contract, summary artifacts, and implemented runtime behavior. A package must not claim architecture behaviors that its contract or runtime does not yet support.",
+      "applies_to": "role-definition packages that describe purpose, arbitration, or terminal-state behavior across multiple artifacts",
+      "do": "Regenerate summary surfaces from the current durable contract and runtime semantics, and define each claimed lifecycle state end-to-end before advertising it.",
+      "dont": "Do not leave stale bootstrap/run-specific semantics in durable summaries or claim architecture-consistent states such as conditional freeze unless the contract and runtime both support them.",
+      "source": "group-2",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-009",
+      "explanation": "This is the exact failure ARB-009 guards against: completion criteria were written so only frozen-style promotion can satisfy them, leaving other terminal states impossible to complete."
+    },
+    {
+      "finding_group_id": "group-A",
+      "covered_by_rule_id": "ARB-008",
+      "explanation": "ARB-008 already requires full tool-relative canonical output paths rather than basename-only references. Updating package_files to match required_outputs exactly is a direct application of that rule."
+    },
+    {
+      "finding_group_id": "group-B",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "Pushback needs its own explicit, testable, mutually exclusive trigger so it cannot overlap with resume_required or blocked."
+    },
+    {
+      "finding_group_id": "group-C",
+      "covered_by_rule_id": "ARB-002",
+      "explanation": "How max_review_rounds is counted is threshold semantics. The round-counting rule must be defined once canonically and reused everywhere."
+    }
+  ],
+  "no_rule_needed": []
+}
