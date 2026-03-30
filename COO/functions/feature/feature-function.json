@@ -28,6 +28,11 @@
       "reason": "Registered source pack and synthesis rules."
     },
     {
+      "type": "adf_doc",
+      "path": "C:/ADF/docs/v0/dependency-map.md",
+      "reason": "ADF dependency-impact governance concept adopted from ProjectBrain."
+    },
+    {
       "type": "projectbrain_workflow",
       "path": "C:/ProjectBrain/ADF/WAT/Workflows/requirements-gathering.md",
       "reason": "Canonical requirements workflow reference."
@@ -242,6 +247,20 @@
       "merge_engine_status": "** TBD **",
       "branch_deleted_after_merge": true
     }
+  },
+  "dependency_impact_governance": {
+    "enabled": true,
+    "reference_doc": "C:/ADF/docs/v0/dependency-map.md",
+    "purpose": "Detect downstream consumers, blast radius, and chain-reaction risk when exposed surfaces change.",
+    "must_be_checked_in": [
+      "design",
+      "planning",
+      "review",
+      "implementation",
+      "finalization",
+      "merger"
+    ],
+    "implementation_status": "** TBD **"
   },
   "effort_settings": {
     "format": "JSON",

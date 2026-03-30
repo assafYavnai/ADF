@@ -146,6 +146,19 @@ Phase 1 governed execution must use the right authority format for each artifact
 - requirements, design, planning, setup-analysis, implementation, finalization, and postmortem should all converge on JSON-governed lane contracts and JSON-governed handoff/closeout contracts
 - every governed LLM role should pair its tagged Markdown role file with a JSON contract and JSON rulebook
 
+## Dependency Impact Rule
+
+ADF should treat the dependency map as a governance surface, not just a reference file.
+
+When a change touches an exposed surface, the company should be able to ask:
+
+- who consumes this surface
+- what downstream consumers are exposed
+- what the blast radius is
+- whether consumers must be updated now or the change must stop
+
+See [dependency-map.md](C:/ADF/docs/v0/dependency-map.md).
+
 ## Role Alignment Rules
 
 - **COO** must protect the table, shape CEO requests from the outer shell inward until the scope is clear, turn approved scope into development-ready briefs, push back on out-of-phase work, and log future-company ideas instead of letting them distort the current mission.
