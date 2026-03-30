@@ -13,6 +13,7 @@ import {
   formatIgnoreAreas,
   formatSourceAuthorities,
 } from "./config.js";
+import { stripUtf8Bom } from "../json-ingress.js";
 import type { ReviewRuntimeConfig, ReviewVerdictShape, LeaderVerdictShape, ReviewRoundSummary } from "./types.js";
 
 type GovernedReviewerContract = {
@@ -93,7 +94,7 @@ export function preValidateResponse(raw: string): string | null {
 }
 
 export function cleanJsonResponse(raw: string): string {
-  let cleaned = raw.trim();
+  let cleaned = stripUtf8Bom(raw).trim();
   cleaned = cleaned.replace(/```json?\n?/g, "").replace(/\n?```/g, "").trim();
   const objStart = cleaned.indexOf("{");
   const arrStart = cleaned.indexOf("[");
@@ -279,7 +280,8 @@ function parseJsonPayload(raw: string): Record<string, any> {
 }
 
 function extractFencedJson(raw: string): string {
-  const match = raw.match(/```json\s*([\s\S]*?)```/i) ?? raw.match(/```\s*([\s\S]*?)```/i);
+  const normalized = stripUtf8Bom(raw);
+  const match = normalized.match(/```json\s*([\s\S]*?)```/i) ?? normalized.match(/```\s*([\s\S]*?)```/i);
   return match?.[1]?.trim() ?? "";
 }
 

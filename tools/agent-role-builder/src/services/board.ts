@@ -2,6 +2,7 @@ import { invoke, createSystemProvenance, emit } from "../shared-imports.js";
 import type { RoleBuilderRequest, BoardParticipant } from "../schemas/request.js";
 import type { ParticipantRecord, RoleBuilderStatus, ValidationIssue } from "../schemas/result.js";
 import { selfCheck } from "./validator.js";
+import { stripUtf8Bom } from "./json-ingress.js";
 import { performInitialRuleSweep, reviseRoleMarkdown } from "./role-generator.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseSensitive } from "./audit-utils.js";
 import { mkdir, open, readFile, stat, unlink, writeFile } from "node:fs/promises";
@@ -87,7 +88,7 @@ Return ONLY the valid JSON object matching the expected format. Nothing else.`;
     });
 
     const cleaned = reviewEngine.cleanJsonResponse(result.response);
-    JSON.parse(cleaned); // validate it's actual JSON
+    JSON.parse(stripUtf8Bom(cleaned)); // validate it's actual JSON
     return cleaned;
   } catch (e) {
     console.error("[board] Auto-fix attempt failed:", e instanceof Error ? e.message : e);
@@ -206,7 +207,7 @@ export async function executeBoard(
   // Load rulebook once
   let currentRulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }> = [];
   try {
-    const rulebookRaw = JSON.parse(await readFile(governanceContext.component_rulebook_path, "utf-8"));
+    const rulebookRaw = JSON.parse(stripUtf8Bom(await readFile(governanceContext.component_rulebook_path, "utf-8")));
     currentRulebook = rulebookRaw.rules ?? [];
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);

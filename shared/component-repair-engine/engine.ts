@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { stripUtf8Bom } from "../json-ingress.js";
 import { ComplianceEntry } from "../learning-engine/compliance-map.js";
 import { FixItem } from "../learning-engine/fix-items-map.js";
 import type { RepairInvokeResult, RepairRequest, RepairResult } from "./types.js";
@@ -68,8 +69,8 @@ export async function runComponentRepair(
   }
 
   const artifact = stripCodeFences(artifactMatch[1]).trim();
-  const complianceMap = ComplianceEntry.array().parse(JSON.parse(complianceMatch[1].trim()));
-  const fixItemsMap = fixItemsMatch ? FixItem.array().parse(JSON.parse(fixItemsMatch[1].trim())) : [];
+  const complianceMap = ComplianceEntry.array().parse(JSON.parse(stripUtf8Bom(complianceMatch[1].trim())));
+  const fixItemsMap = fixItemsMatch ? FixItem.array().parse(JSON.parse(stripUtf8Bom(fixItemsMatch[1].trim()))) : [];
   if (request.mode === "revision" && fixItemsMap.length === 0) {
     throw new Error(`Repair engine response returned an empty fix_items_map in revision mode (${rawResponsePath})`);
   }

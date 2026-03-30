@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { parseJsonTextWithBomSupport } from "../json-ingress.js";
 import type {
   ComponentReviewContract,
   ReviewRuntimeConfig,
@@ -89,10 +90,10 @@ export function formatIgnoreAreas(config: ReviewRuntimeConfig): string {
 async function loadJsonRequired<T>(path: string): Promise<T> {
   const raw = await readFile(path, "utf-8");
   try {
-    return JSON.parse(raw) as T;
+    return parseJsonTextWithBomSupport<T>(raw, `required governance file ${path}`).value;
   } catch (error) {
     throw new Error(
-      `[shared-review-engine] Failed to parse required governance file ${path}: ${error instanceof Error ? error.message : String(error)}`
+      `[shared-review-engine] ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }

@@ -15,7 +15,7 @@ interface AttachedRoleInfo {
  * skip_build_agent_role=true explicitly.
  */
 export async function buildTool(requestPath: string, outputDir?: string): Promise<ToolBuilderResult> {
-  const rawRequest = JSON.parse(await readFile(requestPath, "utf-8"));
+  const rawRequest = JSON.parse(stripUtf8Bom(await readFile(requestPath, "utf-8")));
   const request = ToolBuilderRequest.parse(rawRequest);
 
   const runDir = outputDir ?? join("tools/llm-tool-builder/runs", request.job_id);
@@ -25,7 +25,7 @@ export async function buildTool(requestPath: string, outputDir?: string): Promis
   const toolRoot = request.tool_root;
   const toolContractPath = join(toolRoot, "tool-contract.json");
   const baselineContract = request.baseline_contract_path
-    ? JSON.parse(await readFile(request.baseline_contract_path, "utf-8"))
+    ? JSON.parse(stripUtf8Bom(await readFile(request.baseline_contract_path, "utf-8")))
     : null;
 
   let roleInfo: AttachedRoleInfo = {
@@ -133,6 +133,10 @@ async function writeResult(runDir: string, result: ToolBuilderResult): Promise<T
 
 function resolveAgentRoleBuilderModule(): string {
   return new URL("../../agent-role-builder/src/index.js", import.meta.url).href;
+}
+
+function stripUtf8Bom(raw: string): string {
+  return raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw;
 }
 
 if (process.argv[1]?.endsWith("index.ts") || process.argv[1]?.endsWith("index.js")) {

@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { parseJsonTextWithBomSupport, stripUtf8Bom } from "../json-ingress.js";
 import { LearningInput as LearningInputSchema, LearningOutput as LearningOutputSchema } from "./types.js";
 import type { LearningInput, LearningOutput, ProposedRule } from "./types.js";
 
@@ -94,7 +95,7 @@ JSON response:`;
   const cleaned = rawResponse.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
   let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(cleaned) as Record<string, unknown>;
+    parsed = parseJsonTextWithBomSupport<Record<string, unknown>>(cleaned, "learning engine response").value;
   } catch (error) {
     throw new Error(
       `Failed to parse learning engine response: ${error instanceof Error ? error.message : String(error)}`
@@ -126,13 +127,13 @@ export function applyProposedRules(
 async function readJsonContextFile(path: string, label: string): Promise<string> {
   const raw = await readFile(path, "utf-8");
   try {
-    JSON.parse(raw);
+    parseJsonTextWithBomSupport<unknown>(raw, `${label} at ${path}`);
   } catch (error) {
     throw new Error(
       `Failed to parse ${label} at ${path}: ${error instanceof Error ? error.message : String(error)}`
     );
   }
-  return raw;
+  return stripUtf8Bom(raw);
 }
 
 function normalizeLearningOutput(parsed: Record<string, unknown>): Record<string, unknown> {
@@ -167,7 +168,7 @@ function tryParseAppliesToArray(value: string): string[] | null {
   }
 
   try {
-    const parsed = JSON.parse(value) as unknown;
+    const parsed = parseJsonTextWithBomSupport<unknown>(value, "learning rule applies_to").value;
     if (Array.isArray(parsed) && parsed.every((entry) => typeof entry === "string")) {
       return parsed;
     }

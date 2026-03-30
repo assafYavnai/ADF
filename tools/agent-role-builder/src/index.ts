@@ -8,6 +8,7 @@ import { validateRequestSanity, selfCheck } from "./services/validator.js";
 import { generateRoleMarkdown, generateRoleContract } from "./services/role-generator.js";
 import { executeBoard } from "./services/board.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./services/audit-utils.js";
+import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident } from "./services/json-ingress.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
 
@@ -45,7 +46,21 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   clearTelemetryBuffer();
   const governanceRuntime = await loadSharedGovernanceRuntimeModule();
 
-  const rawRequest = JSON.parse(await readFile(requestPath, "utf-8"));
+  const rawRequestText = await readFile(requestPath, "utf-8");
+  const requestIngress = normalizeJsonText(rawRequestText);
+  let rawRequest: unknown;
+  try {
+    rawRequest = JSON.parse(requestIngress.text);
+  } catch (error) {
+    const incidentPath = await writeBootstrapIngressIncident({
+      toolRunRoot: join("tools", "agent-role-builder", "runs"),
+      requestPath,
+      stage: "request_json_parse",
+      meta: requestIngress.meta,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(`Failed to parse role-builder request JSON. Bootstrap incident: ${incidentPath}`);
+  }
   const request = RoleBuilderRequest.parse(rawRequest);
   const runDir = outputDir ?? join("tools/agent-role-builder/runs", request.job_id);
 
@@ -76,6 +91,17 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   await mkdir(join(runDir, "drafts"), { recursive: true });
   await mkdir(join(runDir, "rounds"), { recursive: true });
   await mkdir(join(runDir, "runtime"), { recursive: true });
+  if (requestIngress.meta.had_utf8_bom) {
+    await appendIngressAuditEvent(join(runDir, "runtime", "ingress-normalization.jsonl"), {
+      stage: "request_json_parse",
+      source_path: requestPath.replace(/\\/g, "/"),
+      transform: "strip_utf8_bom",
+      raw_sha256: requestIngress.meta.raw_sha256,
+      normalized_sha256: requestIngress.meta.normalized_sha256,
+      outcome: "continued",
+      recorded_at: new Date().toISOString(),
+    });
+  }
 
   await writeFile(join(runDir, "normalized-request.json"), JSON.stringify(request, null, 2), "utf-8");
   await writeFile(

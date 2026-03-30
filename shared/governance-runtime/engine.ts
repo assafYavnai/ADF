@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { parseJsonTextWithBomSupport } from "../json-ingress.js";
 import { loadReviewRuntimeConfigFromPaths } from "../review-engine/config.js";
 import type {
   GovernanceBinding,
@@ -241,7 +242,9 @@ async function copyRequiredFile(
 ) {
   await mkdir(dirname(snapshotPath), { recursive: true });
   const raw = await readFile(repoPath, "utf-8");
-  const content = rewriteMap ? JSON.stringify(rewriteKnownAuthorityPaths(JSON.parse(raw) as unknown, rewriteMap), null, 2) : raw;
+  const content = rewriteMap
+    ? JSON.stringify(rewriteKnownAuthorityPaths(parseJsonTextWithBomSupport<unknown>(raw, `${kind} snapshot source`).value, rewriteMap), null, 2)
+    : raw;
   await writeFile(snapshotPath, content, "utf-8");
 
   return {
@@ -314,9 +317,9 @@ async function readJsonRequired<T>(path: string, label: string): Promise<T> {
   }
 
   try {
-    return JSON.parse(raw) as T;
+    return parseJsonTextWithBomSupport<T>(raw, `${label} at ${path}`).value;
   } catch (error) {
-    throw new Error(`[governance-runtime] Failed to parse required ${label} at ${path}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`[governance-runtime] ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

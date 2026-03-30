@@ -1,13 +1,15 @@
 # BOM Question Follow-Up
 
 Date: 2026-03-30
-Status: recorded and reverted
+Status: implemented later by explicit follow-up after the runtime bug-fix split
 
 ## Context
 
 The user asked whether the active governed tooling could be made BOM-resistant.
 The implementation path was taken without an explicit instruction to make the change.
 Per later user direction, the code changes were documented and then reverted.
+
+Later in the same day, the work was explicitly approved as a separate second phase after the live runtime bug fixes were landed first.
 
 ## Findings
 
@@ -64,9 +66,14 @@ and applied it immediately before `JSON.parse(...)` or before JSON cleanup in th
 
 That earlier list was directionally correct, but it was not a complete patch inventory. The additional parse points above need to be treated as part of the real BOM surface if support is implemented later.
 
-## Diff Summary
+## Implemented Patch Surface
 
-The unrequested BOM-resistance patch changed these files:
+The explicit BOM-support pass changed these files:
+
+- `shared/json-ingress.ts`
+  - added shared BOM-tolerant JSON normalization/parsing helpers for shared runtime modules
+- `tools/agent-role-builder/src/services/json-ingress.ts`
+  - added tool-local request-ingress normalization helpers plus bootstrap/runtime audit writers
 
 - `shared/governance-runtime/engine.ts`
   - stripped BOM before JSON parse in `copyRequiredFile(...)`
@@ -80,11 +87,14 @@ The unrequested BOM-resistance patch changed these files:
   - stripped BOM before learning response parse
   - stripped BOM before review prompt / contract context parse
 - `shared/component-repair-engine/engine.ts`
-  - would also need BOM stripping if tagged JSON sections are expected to be BOM-tolerant in practice
+  - strips BOM before parsing tagged `compliance_map` and `fix_items_map` JSON
 - `tools/agent-role-builder/src/index.ts`
-  - stripped BOM before request parse
+  - strips BOM before request parse
+  - writes a bootstrap incident artifact when request JSON still fails before a run can start
+  - writes `runtime/ingress-normalization.jsonl` when request parsing continued after BOM stripping
 - `tools/agent-role-builder/src/services/board.ts`
-  - would also need BOM stripping before validating auto-fix JSON and before parsing the snapshot rulebook
+  - strips BOM before validating auto-fix JSON
+  - strips BOM before parsing the snapshot rulebook
 - `tools/llm-tool-builder/src/index.ts`
   - stripped BOM before request parse
   - stripped BOM before baseline contract parse
@@ -107,22 +117,32 @@ If BOM resistance is implemented later by explicit request, the minimum test set
 10. BOM-prefixed snapshot rulebook parses through `tools/agent-role-builder/src/services/board.ts`.
 11. BOM-prefixed tagged repair-engine JSON sections parse through `shared/component-repair-engine/engine.ts`.
 
-## Validation Performed Before Revert
+## Audit Behavior
 
-These checks were run on the temporary patch before revert:
+The most important change was auditability for pre-run request ingress.
+
+Current implemented behavior:
+
+- if `agent-role-builder` strips a UTF-8 BOM from the request and parsing succeeds, it records a normalization event in `runtime/ingress-normalization.jsonl`
+- if request parsing still fails before the governed run context exists, it writes a bootstrap incident artifact under `tools/agent-role-builder/runs/_bootstrap/`
+
+This closes the specific audit gap that caused the original BOM failure to appear only as a CLI fatal error.
+
+## Validation Before Full Runtime Test Pass
+
+These checks were run immediately after implementation:
 
 - `tsc -p shared/tsconfig.json --noEmit`
 - `tsc -p tools/agent-role-builder/tsconfig.json --noEmit`
-- BOM-prefixed invalid-roster request run for `agent-role-builder`
-- BOM-prefixed temporary governance snapshot creation through `shared/governance-runtime/engine.ts`
-- BOM-prefixed reviewer/leader JSON parsing through `shared/review-engine/engine.ts`
+- `tsc -p tools/llm-tool-builder/tsconfig.json --noEmit`
+
+The broader runtime tests remain a separate final step after both the runtime bug-fix commit and the BOM-support commit are in place.
 
 ## Outcome
 
-The BOM-resistance patch was viable, but it was not explicitly requested.
-The code changes were reverted after this note was recorded.
+The BOM-resistance change is now explicitly implemented as a separate phase after the runtime bug fixes.
 
 Additional audit conclusion:
 
 - the BOM failure on request-file parsing was not captured by the governed audit path because it occurred before a run-scoped governance context existed
-- if BOM support is implemented later, it should be paired with a bootstrap audit/healing record so deterministic ingress normalization is visible rather than silent
+- the implemented fix now pairs BOM tolerance with a bootstrap audit/healing record so deterministic ingress normalization is visible rather than silent
