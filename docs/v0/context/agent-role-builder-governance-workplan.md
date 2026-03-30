@@ -151,6 +151,10 @@ Remaining risk deferred beyond `V2A`:
 
 ### V2B Bounded ARB Validation
 
+Status:
+
+- implementation-ready
+
 Purpose:
 
 - run `agent-role-builder` only when the runtime is bounded and auditable enough that the result is useful
@@ -184,6 +188,19 @@ Sub-steps:
 Acceptance target:
 
 - one truthful bounded validation run with a useful postmortem, regardless of whether the run fully converges
+
+Execution note:
+
+- `V2B` does not require new CEO input
+- the bounded validation run must avoid uncontrolled canonical writes while still exercising the real `agent-role-builder` path
+- the validation shape is frozen to:
+  1. use a copied request file derived from the self-role request
+  2. redirect `required_outputs` to a bounded temporary canonical-output tree
+  3. cap review rounds to the minimum useful value for this pass
+  4. run one cycle only
+  5. set a hard wall-clock timeout
+  6. do not auto-chain into resume
+  7. inspect the postmortem and artifact truth before deciding whether `V2C` or `V2D` comes next
 
 ### V2C Minimal Telemetry Baseline
 
