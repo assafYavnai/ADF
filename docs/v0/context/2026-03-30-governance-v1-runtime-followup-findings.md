@@ -259,3 +259,33 @@ Focused validation:
    - [agent-role-builder-v2c-telemetry-smoke-001](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001)
    - [run-telemetry.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001/runtime/run-telemetry.json)
    - [cycle-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001/cycle-postmortem.json)
+
+## V2D Resume Carry-Forward
+
+Status: implemented with the narrowed scope frozen in the workplan
+
+What changed:
+
+1. the active run now loads `resume-package.json` when `request.resume` is present
+2. resumed runs seed their initial markdown from `latest_markdown_path`
+3. resumed runs seed reviewer slot state from `reviewer_status` instead of resetting every reviewer to `pending`
+4. the next `resume-package.json` now carries forward:
+   - merged `round_files`
+   - accumulated `rounds_completed`
+   - current-run final reviewer status
+5. invalid or mismatched resume packages now block cleanly before board execution
+
+What remained out of scope:
+
+1. broader fixer-platform expansion
+2. shared-engine API redesign
+3. live resume-cycle validation beyond unit/package validation
+
+Focused validation:
+
+1. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) covers:
+   - loading existing markdown
+   - defaulting missing `reviewer_status`
+   - carrying forward reviewer status, round files, and rounds completed
+2. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) still passes after the resume wiring
+3. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)

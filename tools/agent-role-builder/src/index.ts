@@ -9,6 +9,7 @@ import { generateRoleMarkdown, generateRoleContract } from "./services/role-gene
 import { executeBoard } from "./services/board.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./services/audit-utils.js";
 import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./services/json-ingress.js";
+import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState } from "./services/resume-state.js";
 import { writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
@@ -560,7 +561,79 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     return result;
   }
 
-  const draftMarkdown = generateRoleMarkdown(request);
+  let loadedResumeState: Awaited<ReturnType<typeof loadResumeState>> | null = null;
+  if (request.resume) {
+    try {
+      loadedResumeState = await loadResumeState(request.resume.resume_package_path);
+      assertResumePackageMatchesRole(loadedResumeState.resumePackage, request.role_slug);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const resumeValidationIssue: ValidationIssue = {
+        code: "INVALID_RESUME_PACKAGE",
+        severity: "error",
+        message: `Failed to load resume package: ${message}`,
+        evidence: request.resume.resume_package_path,
+      };
+      validationIssues.push(resumeValidationIssue);
+      const pushbackPath = join(runDir, `${request.role_slug}-pushback.json`);
+      await writeFile(join(runDir, "self-check.json"), JSON.stringify([], null, 2), "utf-8");
+      await writePushbackArtifact({
+        request,
+        runDir,
+        status: "blocked",
+        statusReason: resumeValidationIssue.message,
+        validationIssues,
+        selfCheckIssues: [],
+        boardRounds: 0,
+      });
+      const result = buildResult({
+        request,
+        status: "blocked",
+        runDir,
+        canonical,
+        issues: validationIssues,
+        validationIssues,
+        selfCheckIssues: [],
+        participants: [],
+        governanceBinding,
+        pushbackPath,
+        learningArtifact: null,
+        openQuestions: [],
+        statusReason: resumeValidationIssue.message,
+        roundsExecuted: 0,
+        arbitrationUsed: false,
+      });
+      await writeFile(join(runDir, "result.json"), JSON.stringify(result, null, 2), "utf-8");
+      await writeZeroRoundRunPostmortem({
+        request,
+        runDir,
+        status: result.status,
+        statusReason: result.status_reason,
+        validationIssues,
+        selfCheckIssues: [],
+        governanceBinding,
+        pushbackPath,
+        bindGovernance: governanceRuntime.bindGovernance,
+      });
+      await writeCyclePostmortem({
+        request,
+        runDir,
+        status: result.status,
+        statusReason: result.status_reason,
+        roundsExecuted: 0,
+        participants: [],
+        validationIssues,
+        selfCheckIssues: [],
+        reviewIssueCount: 0,
+        governanceBinding,
+        bindGovernance: governanceRuntime.bindGovernance,
+        startedAtMs: start,
+      });
+      return result;
+    }
+  }
+
+  const draftMarkdown = loadedResumeState?.markdown ?? generateRoleMarkdown(request);
   const draftContract = generateRoleContract(
     request,
     basename(canonical.markdown),
@@ -586,7 +659,8 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     {
       startedAtMs: start,
       startedAtIso: startIso,
-    }
+    },
+    loadedResumeState?.resumePackage.reviewer_status ?? {}
   );
 
   for (const round of boardResult.rounds) {
@@ -635,24 +709,22 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   }
 
   if (boardResult.status === "resume_required") {
+    const nextResumePackage = buildNextResumePackage({
+      roleSlug: request.role_slug,
+      requestJobId: request.job_id,
+      unresolved: boardResult.rounds[boardResult.rounds.length - 1]?.unresolved ?? [],
+      latestMarkdownPath: runArtifacts.markdown,
+      latestContractPath: runArtifacts.contract,
+      latestBoardSummaryPath: runArtifacts.boardSummary,
+      latestDecisionLogPath: runArtifacts.decisionLog,
+      roundFiles: boardResult.rounds.map((round) => join(runDir, "rounds", `round-${round.round}.json`)),
+      reviewerStatus: boardResult.finalReviewerStatus,
+      roundsCompletedThisRun: boardResult.rounds.length,
+      priorResumePackage: loadedResumeState?.resumePackage ?? null,
+    });
     await writeFile(
       join(runDir, "resume-package.json"),
-      JSON.stringify(
-        {
-          schema_version: "1.0",
-          role_slug: request.role_slug,
-          request_job_id: request.job_id,
-          next_step: "resume_board_review",
-          unresolved: boardResult.rounds[boardResult.rounds.length - 1]?.unresolved ?? [],
-          latest_markdown_path: runArtifacts.markdown,
-          latest_contract_path: runArtifacts.contract,
-          latest_board_summary_path: runArtifacts.boardSummary,
-          latest_decision_log_path: runArtifacts.decisionLog,
-          round_files: boardResult.rounds.map((round) => join(runDir, "rounds", `round-${round.round}.json`)),
-        },
-        null,
-        2
-      ),
+      JSON.stringify(nextResumePackage, null, 2),
       "utf-8"
     );
   }

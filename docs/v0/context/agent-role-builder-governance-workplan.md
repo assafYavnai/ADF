@@ -317,7 +317,7 @@ Outcome:
 
 Status:
 
-- implementation-ready with narrowed scope
+- implemented with narrowed scope
 
 Purpose:
 
@@ -361,6 +361,22 @@ Execution note:
   2. load resume-package state when `request.resume` is present
   3. initialize resumed runs from the latest markdown and reviewer-status state
   4. keep broader fixer-platform expansion out of scope
+
+Implementation note:
+
+1. resumed runs now load `latest_markdown_path` and `reviewer_status` from `resume-package.json`
+2. the board now seeds reviewer slots from loaded resume state instead of resetting every slot to `pending`
+3. the next `resume-package.json` carries forward:
+   - merged `round_files`
+   - accumulated `rounds_completed`
+   - final reviewer status from the current run
+4. invalid or mismatched resume packages now block cleanly before board execution instead of failing later in the run
+
+Validation:
+
+1. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) passes
+2. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) still passes
+3. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder) passes
 
 ### V3A Runtime Boundary Cleanup
 

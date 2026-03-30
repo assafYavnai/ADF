@@ -37,6 +37,45 @@ export async function loadResumeState(resumePackagePath: string): Promise<{
   };
 }
 
+export function buildNextResumePackage(params: {
+  roleSlug: string;
+  requestJobId: string;
+  unresolved: string[];
+  latestMarkdownPath: string;
+  latestContractPath: string;
+  latestBoardSummaryPath: string;
+  latestDecisionLogPath: string;
+  roundFiles: string[];
+  reviewerStatus: Record<string, ResumeReviewerStatus>;
+  roundsCompletedThisRun: number;
+  priorResumePackage?: ResumePackage | null;
+}): ResumePackage {
+  const priorRoundFiles = params.priorResumePackage?.round_files ?? [];
+  const mergedRoundFiles = [...new Set([...priorRoundFiles, ...params.roundFiles])];
+  return {
+    schema_version: "1.0",
+    role_slug: params.roleSlug,
+    request_job_id: params.requestJobId,
+    next_step: "resume_board_review",
+    unresolved: params.unresolved,
+    latest_markdown_path: params.latestMarkdownPath,
+    latest_contract_path: params.latestContractPath,
+    latest_board_summary_path: params.latestBoardSummaryPath,
+    latest_decision_log_path: params.latestDecisionLogPath,
+    round_files: mergedRoundFiles,
+    reviewer_status: params.reviewerStatus,
+    rounds_completed: (params.priorResumePackage?.rounds_completed ?? 0) + params.roundsCompletedThisRun,
+  };
+}
+
+export function assertResumePackageMatchesRole(resumePackage: ResumePackage, roleSlug: string): void {
+  if (resumePackage.role_slug !== roleSlug) {
+    throw new Error(
+      `Resume package role_slug mismatch: expected "${roleSlug}", got "${resumePackage.role_slug}"`
+    );
+  }
+}
+
 function resolveFromRepoRoot(path: string): string {
   return isAbsolute(path) ? path : resolve(process.cwd(), path);
 }
