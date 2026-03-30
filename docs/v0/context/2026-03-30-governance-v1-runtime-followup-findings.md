@@ -357,3 +357,38 @@ Focused validation:
 3. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) now also covers fallback resolution of older resume packages without `latest_learning_path`
 4. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
 5. shared package build passes in [shared](C:/ADF/shared)
+
+## V3C Append-Only Run-History Ledger
+
+Status: implemented for the first narrow observability slice
+
+What changed:
+
+1. the live lane now writes one append-only history ledger at:
+   - `runtime/run-history.jsonl`
+2. each ledger entry is derived directly from the same snapshot object written to:
+   - `runtime/run-telemetry.json`
+3. `run-telemetry.json` remains the authoritative mutable current-state artifact
+4. the ledger adds immutable history without introducing a new KPI model or cross-tool reporting layer
+
+What this fixes:
+
+1. repeated bounded runs can now leave a durable sequence of telemetry checkpoints instead of only the latest state
+2. operational memory is less dependent on manual shell inspection of overwritten telemetry files
+3. the first observability slice lands without widening into dashboards or runtime-semantics changes
+
+What remained out of scope for this slice:
+
+1. dashboard views
+2. multi-component reporting
+3. KPI redesign
+4. broader logging-framework changes
+
+Focused validation:
+
+1. [run-telemetry.test.ts](C:/ADF/tools/agent-role-builder/src/services/run-telemetry.test.ts) now covers:
+   - immutable ledger entry wrapping
+   - append-only ledger growth across multiple telemetry writes
+   - latest-state preservation in `run-telemetry.json`
+2. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+3. shared package build passes in [shared](C:/ADF/shared)

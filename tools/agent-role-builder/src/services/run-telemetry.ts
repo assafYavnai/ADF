@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
@@ -36,6 +36,13 @@ export interface RunTelemetrySnapshot {
   run_postmortem_path: string | null;
   cycle_postmortem_path: string | null;
   result_path: string | null;
+}
+
+export interface RunHistoryLedgerEntry {
+  schema_version: "1.0";
+  component: "agent-role-builder";
+  recorded_at: string;
+  snapshot: RunTelemetrySnapshot;
 }
 
 export function buildRunTelemetrySnapshot(params: {
@@ -95,6 +102,15 @@ export function buildRunTelemetrySnapshot(params: {
   };
 }
 
+export function buildRunHistoryLedgerEntry(snapshot: RunTelemetrySnapshot): RunHistoryLedgerEntry {
+  return {
+    schema_version: "1.0",
+    component: "agent-role-builder",
+    recorded_at: snapshot.last_updated_at,
+    snapshot,
+  };
+}
+
 export async function writeRunTelemetry(params: {
   request: RoleBuilderRequest;
   runDir: string;
@@ -130,7 +146,11 @@ export async function writeRunTelemetry(params: {
     stopReason: params.stopReason ?? null,
   });
   snapshot.commit_sha = await resolveCurrentCommitSha();
-  await writeFile(join(params.runDir, "runtime", "run-telemetry.json"), JSON.stringify(snapshot, null, 2), "utf-8");
+  const runtimeDir = join(params.runDir, "runtime");
+  await mkdir(runtimeDir, { recursive: true });
+  await writeFile(join(runtimeDir, "run-telemetry.json"), JSON.stringify(snapshot, null, 2), "utf-8");
+  const ledgerEntry = buildRunHistoryLedgerEntry(snapshot);
+  await appendFile(join(runtimeDir, "run-history.jsonl"), `${JSON.stringify(ledgerEntry)}\n`, "utf-8");
 }
 
 function summarizeProviderFailures(events: TelemetryEvent[]): Array<{ provider: string; count: number }> {

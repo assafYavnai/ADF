@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtemp, readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import type { RoleBuilderRequest } from "../schemas/request.js";
 import type { ParticipantRecord } from "../schemas/result.js";
-import { buildRunTelemetrySnapshot } from "./run-telemetry.js";
+import { buildRunHistoryLedgerEntry, buildRunTelemetrySnapshot, writeRunTelemetry } from "./run-telemetry.js";
 
 function createRequest(): RoleBuilderRequest {
   return {
@@ -99,4 +102,98 @@ test("buildRunTelemetrySnapshot summarizes reviewer outcomes and provider failur
     { provider: "claude", count: 1 },
     { provider: "codex", count: 1 },
   ]);
+});
+
+test("buildRunHistoryLedgerEntry wraps a telemetry snapshot without changing it", () => {
+  const snapshot = buildRunTelemetrySnapshot({
+    request: createRequest(),
+    startedAtMs: Date.now() - 500,
+    startedAtIso: "2026-03-30T16:00:00.000Z",
+    currentPhase: "startup",
+    roundsAttempted: 0,
+    roundsCompleted: 0,
+    participants: [],
+    telemetryEvents: [],
+    governanceBinding: null,
+    latestLearningPath: null,
+    runPostmortemPath: null,
+    cyclePostmortemPath: null,
+    resultPath: null,
+    terminalStatus: null,
+    stopReason: null,
+  });
+
+  const entry = buildRunHistoryLedgerEntry(snapshot);
+
+  assert.equal(entry.schema_version, "1.0");
+  assert.equal(entry.component, "agent-role-builder");
+  assert.equal(entry.recorded_at, snapshot.last_updated_at);
+  assert.deepEqual(entry.snapshot, snapshot);
+});
+
+test("writeRunTelemetry appends immutable run-history entries while updating the current snapshot", async () => {
+  const runDir = await mkdtemp(join(tmpdir(), "arb-run-telemetry-"));
+  const request = createRequest();
+
+  await writeRunTelemetry({
+    request,
+    runDir,
+    startedAtMs: Date.now() - 1000,
+    startedAtIso: "2026-03-30T16:00:00.000Z",
+    currentPhase: "startup",
+    roundsAttempted: 0,
+    roundsCompleted: 0,
+    participants: [],
+    governanceBinding: null,
+    latestLearningPath: null,
+    runPostmortemPath: null,
+    cyclePostmortemPath: null,
+    resultPath: null,
+    terminalStatus: null,
+    stopReason: null,
+  });
+
+  await writeRunTelemetry({
+    request,
+    runDir,
+    startedAtMs: Date.now() - 500,
+    startedAtIso: "2026-03-30T16:00:00.000Z",
+    currentPhase: "terminal",
+    roundsAttempted: 1,
+    roundsCompleted: 1,
+    participants: [],
+    governanceBinding: null,
+    latestLearningPath: null,
+    runPostmortemPath: "tools/agent-role-builder/runs/test/run-postmortem.json",
+    cyclePostmortemPath: "tools/agent-role-builder/runs/test/cycle-postmortem.json",
+    resultPath: "tools/agent-role-builder/runs/test/result.json",
+    terminalStatus: "blocked",
+    stopReason: "test-stop",
+  });
+
+  const telemetrySnapshot = JSON.parse(await readFile(join(runDir, "runtime", "run-telemetry.json"), "utf-8")) as {
+    current_phase: string;
+    terminal_status: string | null;
+    stop_reason: string | null;
+  };
+  const historyLines = (await readFile(join(runDir, "runtime", "run-history.jsonl"), "utf-8"))
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as {
+      snapshot: {
+        current_phase: string;
+        terminal_status: string | null;
+        stop_reason: string | null;
+      };
+    });
+
+  assert.equal(telemetrySnapshot.current_phase, "terminal");
+  assert.equal(telemetrySnapshot.terminal_status, "blocked");
+  assert.equal(telemetrySnapshot.stop_reason, "test-stop");
+  assert.equal(historyLines.length, 2);
+  assert.equal(historyLines[0]?.snapshot.current_phase, "startup");
+  assert.equal(historyLines[0]?.snapshot.terminal_status, null);
+  assert.equal(historyLines[1]?.snapshot.current_phase, "terminal");
+  assert.equal(historyLines[1]?.snapshot.terminal_status, "blocked");
+  assert.equal(historyLines[1]?.snapshot.stop_reason, "test-stop");
 });

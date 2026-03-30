@@ -529,7 +529,7 @@ Validation:
 
 Status:
 
-- frozen for first narrow slice
+- first narrow slice implemented
 
 Purpose:
 
@@ -569,6 +569,27 @@ Execution note:
   2. multi-component reporting
   3. new runtime semantics
   4. broad logging framework changes
+
+Implementation note:
+
+1. `agent-role-builder` now writes an append-only run-history ledger at:
+   - `runtime/run-history.jsonl`
+2. each ledger entry is derived directly from the current `runtime/run-telemetry.json` snapshot write
+3. the authoritative mutable state remains:
+   - `runtime/run-telemetry.json`
+4. the new ledger adds immutable history without widening into:
+   - dashboards
+   - KPI redesign
+   - cross-tool reporting
+
+Validation:
+
+1. [run-telemetry.test.ts](C:/ADF/tools/agent-role-builder/src/services/run-telemetry.test.ts) now verifies:
+   - immutable ledger entry wrapping
+   - append-only ledger growth across multiple telemetry writes
+   - final `run-telemetry.json` still reflects the latest state
+2. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder) passes
+3. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared) passes
 
 ## Immediate Recommended Order
 
