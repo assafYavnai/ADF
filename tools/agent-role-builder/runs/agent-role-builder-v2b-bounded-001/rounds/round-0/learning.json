@@ -1,0 +1,26 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-017",
+      "explanation": "This finding is an application of inherited governance semantics, not a new principle. ARB-017 already requires the role to derive local freeze, approval, and arbitration behavior from the governing review architecture instead of inventing local semantics. If the source authority says conditional results cannot override reject and require invoker acceptance before canonical promotion, the role must inherit that exactly."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-003",
+      "explanation": "This is the canonical-versus-run-scoped separation problem ARB-003 already covers. The finding's guidance to keep the durable role generic, use stable component paths or runtime placeholders, and treat validation-run targets as invocation-bound outputs is the same lifecycle boundary ARB-003 requires."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "ARB-011 already establishes that unresolved findings carried across rounds must be tracked explicitly by ID rather than silently regrouped. This finding does not introduce a new rule; it shows ARB-011 should be applied more strictly so stable finding IDs are the primary cross-round key and conceptual groups remain secondary metadata."
+    },
+    {
+      "finding_group_id": "group-4",
+      "covered_by_rule_id": "ARB-005",
+      "explanation": "ARB-005 already states that the self-check must validate what it claims to validate and that semantic coverage cannot be reduced to literal string matching. This finding is a direct instance of that rule being violated by calling keyword matching 'semantic' validation."
+    }
+  ],
+  "no_rule_needed": []
+}

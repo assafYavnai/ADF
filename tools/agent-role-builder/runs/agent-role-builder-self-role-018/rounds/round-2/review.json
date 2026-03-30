@@ -1,0 +1,133 @@
+{
+  "round": 2,
+  "reviewMode": "delta",
+  "leaderVerdict": "frozen_with_conditions",
+  "leaderRationale": "Frozen. The remaining material issues from the prior round are resolved: the authority chain no longer duplicates the runtime review contract, `frozen` and `frozen_with_conditions` are now mutually exclusive, and the required run/cycle postmortem artifacts are integrated into steps, outputs, and completion. The reviewer returned only a minor residual risk about future self-check coverage, with no blocking or major unresolved findings.\nGovernance override: Leader returned frozen while non-material repair work remained. Clean freeze is only legal when no repair work remains.",
+  "unresolved": [
+    "group-1: One unsupported local guardrail remains in the draft."
+  ],
+  "deferredItems": [
+    "group-1: One unsupported local guardrail remains in the draft."
+  ],
+  "improvementsApplied": [
+    "Collapsed operative authority to a clean two-layer binding chain: COO controller, then the active runtime review contract.",
+    "Moved `rulebook.json` and `review-prompt.json` out of the authority precedence chain into a separate governance-file load list under the runtime contract.",
+    "Made `frozen` explicitly the no-arbitration path and `frozen_with_conditions` explicitly the arbitration-used path, then mirrored that split across guardrails, Step 5, and completion.",
+    "Added `tools/agent-role-builder/runs/<job-id>/run-postmortem.json` and `tools/agent-role-builder/runs/<job-id>/cycle-postmortem.json` with explicit write timing, artifact-matrix entries, and closeout behavior."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r2": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "One unsupported local guardrail remains in the draft.",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "`All role artifacts must be slug-prefixed` is asserted as an execution guardrail, but that requirement is not present in the cited source authority files or the request contract summary. Because the draft otherwise says local governance mechanics should be inherited rather than invented, this line reintroduces an unsourced rule.",
+              "source_section": "<guardrails> Execution guardrails"
+            }
+          ],
+          "redesign_guidance": "Remove the slug-prefix rule from the markdown role, or explicitly root it in the active runtime review contract if that contract is the real authority for it. Do not keep it as a free-standing local governance rule."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "The duplicate lower-precedence review-contract layer is gone. The authority chain now names the runtime review contract once and moves rulebook and review-prompt into a separate load list."
+        },
+        {
+          "finding_group_id": "group-2",
+          "decision": "accept_fix",
+          "reason": "`frozen` and `frozen_with_conditions` are now defined as mutually exclusive closeout paths, and that distinction is mirrored in guardrails, Step 5, and completion."
+        },
+        {
+          "finding_group_id": "group-1-summary",
+          "decision": "accept_fix",
+          "reason": "The prior authority-chain and overlapping-closeout defects are resolved in the current draft."
+        },
+        {
+          "finding_group_id": "rulewalk-ARB-016-023-postmortems",
+          "decision": "accept_fix",
+          "reason": "`run-postmortem.json` and `cycle-postmortem.json` are now integrated with explicit write points, artifact-matrix entries, and state-specific completion behavior that matches the cited authority."
+        }
+      ],
+      "residual_risks": [
+        "The current self-check still does not validate whether each local guardrail is actually sourced from the operative authority set, so unsupported rules can slip through even when structural checks pass."
+      ],
+      "strengths": [
+        "The authority model is now clean: operative authority is a strict two-layer chain, and inherited runtime obligations are separated from loaded governance files.",
+        "The terminal-state model is materially stronger: `frozen` and `frozen_with_conditions` are now explicitly disjoint, and pre-review pushback remains outside the governed review closeout path.",
+        "Cross-round finding tracking, history preservation, and postmortem artifact handling are now mechanically specified with stable IDs and full tool-relative paths."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-018",
+    "round": 2,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 97550,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-2/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r2",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 54700,
+        "fallback_used": false,
+        "invocation_id": "acde1d2c-5a39-4814-b3f0-f6a507fedc44"
+      },
+      {
+        "participant_id": "leader-codex-r2",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 42850,
+        "fallback_used": false,
+        "invocation_id": "5b6ac68f-0e2a-46ce-9a12-d44e8d687fa2"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r2",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 2,
+      "latency_ms": 54700,
+      "invocation_id": "acde1d2c-5a39-4814-b3f0-f6a507fedc44",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r2",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 2,
+      "latency_ms": 42850,
+      "invocation_id": "5b6ac68f-0e2a-46ce-9a12-d44e8d687fa2",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "2c41bfa2-db9f-4c9d-b79f-3f62a9fa82e9",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/governance-snapshot.json"
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "delta",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/agent-role-builder-role.md",
+  "round": 1,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority is a strict precedence chain and separates operative authority from invocation inputs and reference evidence."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>; <role>; Step 4; Step 5; <completion>",
+      "evidence_summary": "Material pushback is defined once in <guardrails> and referenced consistently in role mission, freeze logic, and completion."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>; Step 5; <completion>",
+      "evidence_summary": "Canonical promoted artifacts are separated from run-scoped evidence artifacts with explicit lifecycle notes."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "Step 5; <completion>",
+      "evidence_summary": "Review terminal states have mutually exclusive, testable triggers; pre-review pushback is separated from terminal review closeout."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "Step 3",
+      "evidence_summary": "Self-check claims are limited to implemented checks, including semantic out-of-scope matching rather than literal string matching."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>; Step 3",
+      "evidence_summary": "Not-in-scope exclusions are deduplicated and polarity-pure, and Step 3 validates exclusion concepts semantically."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails> Arbitration; Step 4f",
+      "evidence_summary": "Arbitration defines trigger, actor, scope, evidence, and outcome without adding unsupported thresholds."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Every declared output uses a full tool-relative canonical path or path pattern; no basename-only references remain."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion criteria are specified separately for frozen, frozen_with_conditions, resume_required, blocked, and pre-review pushback closeout."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>; <steps>",
+      "evidence_summary": "Context-gathering is labeled as a precondition phase and the numbered execution flow begins at Step 1."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "Step 4b; Step 4c",
+      "evidence_summary": "Cross-round carry-forward is keyed by stable finding_id, with conceptual_group_id retained only for grouping and severity."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>; Step 5; <outputs>",
+      "evidence_summary": "Decision-log append behavior, decision-log snapshot path, and board-summary prior snapshot behavior are defined explicitly."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "Step 1; Step 2; Step 3; Step 4; Step 5",
+      "evidence_summary": "Execution steps distinguish current implementation behavior from target-state-only checks."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "Step 4e; <outputs>",
+      "evidence_summary": "learning.json and diff-summary.json are required every round, including non-reject and final rounds."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "A single artifact matrix declares artifact class, full path or pattern, and write lifecycle for canonical and run-scoped artifacts."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>; <guardrails>",
+      "evidence_summary": "Local authority order is derived from controller and runtime contract sources, and shared review policy is referenced rather than reinvented."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "Role identity states the enduring mission of the package and avoids transient run-state framing."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Writable scope is rooted in the operative authority and names the exact canonical and run-directory write surfaces."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Operative authority includes only binding governance sources; invocation inputs and static references are classified separately."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<guardrails>; Step 4; Step 5",
+      "evidence_summary": "Governance mechanics are limited to inherited runtime-contract semantics and source-backed review-process behavior."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "The Use when list contains only inclusion statements and the Not in scope list contains only exclusions."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "Step 4; <outputs>",
+      "evidence_summary": "The governed review round is expressed as an ordered sub-sequence with required artifacts attached to each sub-step."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>; <context-gathering>; <guardrails>",
+      "evidence_summary": "Component-local governance files are declared explicitly, and inherited runtime obligations are referenced rather than assumed."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>",
+      "evidence_summary": "Required inputs enumerate request, source refs, roster, governance config, runtime config, and component-local governance files."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-30T20:01:26.511Z"
+}

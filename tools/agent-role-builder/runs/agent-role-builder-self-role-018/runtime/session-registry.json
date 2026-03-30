@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "request_job_id": "agent-role-builder-self-role-018",
+  "role_slug": "agent-role-builder",
+  "execution_mode": "live-roster-v1",
+  "started_at_utc": "2026-03-30T19:25:31.881Z",
+  "updated_at_utc": "2026-03-30T20:16:03.085Z",
+  "slots": {
+    "leader-codex": {
+      "slot_key": "leader-codex",
+      "role": "leader",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "handle": {
+        "provider": "codex",
+        "session_id": "019d4049-8b70-7ef1-bd34-e1a6fd2fd639",
+        "source": "provider_returned"
+      },
+      "last_status": "resumed",
+      "updated_at": "2026-03-30T20:16:03.085Z",
+      "last_invocation_id": "5b6ac68f-0e2a-46ce-9a12-d44e8d687fa2",
+      "last_round": 2
+    },
+    "reviewer-0-codex": {
+      "slot_key": "reviewer-0-codex",
+      "role": "reviewer",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "handle": {
+        "provider": "codex",
+        "session_id": "019d4043-4604-7962-a44b-e12d69b29160",
+        "source": "provider_returned"
+      },
+      "last_status": "resumed",
+      "updated_at": "2026-03-30T20:15:20.235Z",
+      "last_invocation_id": "acde1d2c-5a39-4814-b3f0-f6a507fedc44",
+      "last_round": 2
+    },
+    "reviewer-1-claude": {
+      "slot_key": "reviewer-1-claude",
+      "role": "reviewer",
+      "provider": "claude",
+      "model": "sonnet",
+      "handle": {
+        "provider": "claude",
+        "session_id": "9ffec829-5ccd-4a9e-83d5-b3270458dc2d",
+        "source": "caller_assigned"
+      },
+      "last_status": "fresh",
+      "updated_at": "2026-03-30T19:47:34.521Z",
+      "last_invocation_id": "66ddc28e-f147-4f7d-b299-51a61b71918c",
+      "last_round": 0
+    }
+  }
+}

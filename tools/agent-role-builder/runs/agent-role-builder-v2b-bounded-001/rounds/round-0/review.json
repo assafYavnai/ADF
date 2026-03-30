@@ -1,0 +1,269 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Repair work is still required. The draft is materially stronger on authority ordering, preconditions, evidence layout, and decision-history preservation, but it still diverges from the source authority on conditional-freeze authority, budget-exhaustion handling, request-time reviewer-roster gating, per-finding carry-forward semantics, and self-check credibility. Those are material governance semantics, not minor polish.",
+  "unresolved": [
+    "group-1: Conditional freeze semantics conflict with the source authority's arbitration model and acceptance authority.",
+    "group-2: Canonical and run-scoped authority/lifecycle boundaries are not kept cleanly separate.",
+    "group-3: Cross-round finding tracking is anchored to conceptual groups instead of stable finding identifiers.",
+    "group-4: The self-check still equates semantic coverage with lexical keyword matching."
+  ],
+  "deferredItems": [
+    "group-3: Final clean sanity round trigger condition is undefined in Step 4.2",
+    "group-4: Frozen trigger predicate 'every active reviewer' is ambiguous in split-verdict scenarios"
+  ],
+  "improvementsApplied": [
+    "Authority is expressed as a strict operative precedence chain, with reference evidence separated from runtime authority.",
+    "Context gathering is correctly moved into preconditions instead of being embedded as a numbered execution step.",
+    "Update/fix behavior now preserves decision history through append-only decision-log handling and board-summary replacement with run evidence retained.",
+    "Terminal states and output artifacts are laid out explicitly, including the four canonical artifacts and the core run-scoped evidence set.",
+    "Arbitration is constrained to minor/suggestion disagreements and is explicitly barred from overriding material pushback."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Conditional freeze semantics conflict with the source authority's arbitration model and acceptance authority.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The `Frozen_with_conditions` trigger allows terminal success whenever only `minor` or `suggestion` disagreements remain and the leader uses arbitration, but it does not require all active reviewer verdicts to be non-`reject`. That lets arbitration effectively bypass a live reject, which conflicts with the source authority's rule that arbitration may never override a reject verdict.",
+              "source_section": "<completion> Frozen_with_conditions"
+            },
+            {
+              "id": "f2",
+              "description": "The draft auto-promotes canonical artifacts on `frozen_with_conditions`. The source authority says `frozen_with_conditions` is partial acceptance and the invoker decides whether to accept the conditional result or request more rounds. The current draft removes that acceptance gate and gives the tool the final word.",
+              "source_section": "<steps> Step 5; <completion> Frozen_with_conditions"
+            }
+          ],
+          "redesign_guidance": "Make `frozen_with_conditions` a review-result state that cannot bypass a `reject` verdict. Require explicit invoker acceptance before canonical promotion of any conditionally accepted package."
+        },
+        {
+          "id": "group-2",
+          "summary": "Canonical and run-scoped authority/lifecycle boundaries are not kept cleanly separate.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "The authority section hardcodes component-owned governance files under a specific run folder (`runs/agent-role-builder-v2b-bounded-001/...`) even though they are described as invocation-supplied inputs. If promoted, the canonical role package would depend on one historical run path instead of stable component governance locations or runtime-bound references.",
+              "source_section": "<authority>"
+            },
+            {
+              "id": "f4",
+              "description": "The outputs section says the durable canonical root is `tools/agent-role-builder/role/`, but the concrete promoted targets are under `C:/ADF/tools/agent-role-builder/tmp/v2b-bounded-validation-001/canonical/`. That creates an internal contradiction about what is durable canonical storage versus validation-run targeting.",
+              "source_section": "<outputs>"
+            }
+          ],
+          "redesign_guidance": "Keep the durable role definition generic and stable. Refer to governance inputs through stable component paths or runtime placeholders, and describe validation-run targets as invocation-bound outputs rather than as the durable canonical root."
+        },
+        {
+          "id": "group-3",
+          "summary": "Cross-round finding tracking is anchored to conceptual groups instead of stable finding identifiers.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "The draft requires carried-forward items to be addressed by conceptual-group ID in the fix-items map. That is weaker than carry-forward by finding ID and becomes ambiguous when groups split, merge, or are renamed between rounds.",
+              "source_section": "<guardrails>; <steps> 4.3"
+            }
+          ],
+          "redesign_guidance": "Carry unresolved findings forward by stable finding ID, with conceptual-group ID kept only as secondary grouping metadata. Resume packages, fix-items maps, and later-round review inputs should all reference the same unresolved finding IDs."
+        },
+        {
+          "id": "group-4",
+          "summary": "The self-check still equates semantic coverage with lexical keyword matching.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f6",
+              "description": "Step 3 defines semantic scope coverage as keyword matching and records matched keywords as evidence. That is a literal/lexical heuristic, not a semantic check, so the self-check can overclaim coverage while still missing paraphrased or conceptually equivalent scope statements.",
+              "source_section": "<guardrails>; <steps> Step 3"
+            }
+          ],
+          "redesign_guidance": "Do not label keyword matching as semantic validation. Either downgrade it to a lexical heuristic in the self-check contract or add a real semantic review step whose evidence standard matches the claim."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "Reviewer-roster legality is deferred to inherited contracts, so the final package still needs a last pass to confirm the runtime contract actually enforces the Codex+Claude pair gate and leader legality the architecture requires.",
+        "Because the draft currently mixes durable package semantics with invocation-specific paths, even repaired text should be rechecked for portability before freeze."
+      ],
+      "strengths": [
+        "The authority section has a real precedence chain and clearly separates operative authority from reference evidence.",
+        "Context gathering is correctly moved into preconditions rather than embedded as a numbered execution step.",
+        "Decision-log append behavior and board-summary replacement behavior are explicitly defined for `update` and `fix` operations.",
+        "The steps section clearly labels itself as target-state behavior, which improves implementation-truth discipline."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Resume_required path does not encode the ultimatum-picking sub-protocol mandated by the source authority",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1-a",
+              "description": "Step 4 contains no sub-step for the ultimatum-picking behavior described in review-process-architecture.md: when the review budget is about to run out with blocking/major items remaining, each reviewer must pick their single most important remaining fix before the run exits as resume_required. The step sequence moves directly from per-round execution (Steps 4.1–4.7) to terminal evaluation (Step 5) with no budget-exhaustion sub-protocol.",
+              "source_section": "<steps> Step 4 (entire sub-sequence) and source authority: review-process-architecture.md §Budget exhaustion protocol"
+            },
+            {
+              "id": "f1-b",
+              "description": "The resume_required completion predicate names 'the deferred reviewer ultimatums are written' as a required completion criterion, but no step in the execution flow produces them. An implementer following the steps cannot satisfy this criterion from the steps alone — the ultimatum artifact is asserted as required but its production mechanism is entirely unspecified.",
+              "source_section": "<completion> Resume_required"
+            }
+          ],
+          "redesign_guidance": "Insert a Step 4.8 (or a conditional branch within Step 5 triggered before terminal-state evaluation) that encodes the budget-exhaustion sub-protocol: (1) detect that the review budget is exhausted while material pushback remains, (2) request each active reviewer's single most important remaining fix, (3) apply only those fixes, (4) log the decisions with full rationale (what was fixed, what was deferred, why), (5) write the ultimatum artifact (e.g., rounds/round-{n}/ultimatum-set.json or inline in result.json), then proceed to resume_required closeout. The step must name the artifact so the completion predicate is satisfiable from the steps."
+        },
+        {
+          "id": "group-2",
+          "summary": "Reviewer-roster validation failure has no explicit terminal-state mapping and is not a hard gate at request time",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f2-a",
+              "description": "Step 1 validates the active reviewer roster but specifies no terminal state for validation failure. The pushback terminal state definition covers only 'request, authority evidence, or required source references being missing or contradictory in a way that would force the role to invent semantics' — roster invalidity (e.g., absent Codex+Claude pair) is neither about inventing semantics nor an unrecoverable execution error. An implementer encountering a roster failure has no governed exit path and must invent behavior.",
+              "source_section": "<steps> Step 1 and <completion> Pushback"
+            },
+            {
+              "id": "f2-b",
+              "description": "The hard-gate requirement for reviewer-pair validation (ARB-012) demands that an invalid roster fail at request time before artifact generation begins. Context-gathering precondition 3 says 'fail closed if any required file is missing' — this gates on file presence, not on roster structural validity (e.g., a present but single-reviewer roster). Validation of roster requirements happens in Step 1, which is post-load and is a numbered execution step, not a true request-time gate.",
+              "source_section": "<context-gathering> preconditions 2–3 and <steps> Step 1"
+            }
+          ],
+          "redesign_guidance": "Either (a) extend the pushback terminal state trigger to explicitly name roster validation failure as a triggering case alongside missing request inputs, and add a context-gathering precondition that validates roster structure (not just file presence) with fail-closed behavior; or (b) promote the roster validity check from Step 1 into a dedicated context-gathering precondition (e.g., precondition 2a) so it fires before any numbered step and maps to the pushback exit path unambiguously."
+        },
+        {
+          "id": "group-3",
+          "summary": "Final clean sanity round trigger condition is undefined in Step 4.2",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f3-a",
+              "description": "Step 4.2 states 'The final clean sanity round is a full sweep again' but does not define what makes a round the final clean sanity round. The source authority (review-process-architecture.md §Full sweep rule) specifies the trigger as 'when reviewer finds no pushbacks' — i.e., when all active reviewers have returned approved or conditional. Without this trigger condition in the role, an implementer cannot determine when to switch from delta to full-sweep compliance mapping.",
+              "source_section": "<steps> Step 4.2 and source authority: review-process-architecture.md §Full sweep rule"
+            }
+          ],
+          "redesign_guidance": "Add the trigger condition to Step 4.2: 'The final clean sanity round is triggered when all active reviewers have returned approved or conditional and the leader is preparing for terminal evaluation; that round's compliance map must be a full sweep.' This directly transcribes the source authority's full-sweep rule."
+        },
+        {
+          "id": "group-4",
+          "summary": "Frozen trigger predicate 'every active reviewer' is ambiguous in split-verdict scenarios",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f4-a",
+              "description": "The frozen terminal predicate requires 'every active reviewer returns approved or conditional.' In the split-verdict protocol described in Step 4.4, one reviewer is idle for one or more rounds while only the rejecting reviewer runs. The source authority requires a final sanity check with the previously-approving reviewer before freeze ('both must approve/conditional before the artifact can freeze'). Whether an idle reviewer counts as 'active' at freeze evaluation is undefined in the predicate, creating ambiguity about when the frozen gate is satisfied.",
+              "source_section": "<completion> Frozen and <steps> Step 4.4 and source authority: review-process-architecture.md §Split Verdict Handling"
+            }
+          ],
+          "redesign_guidance": "Clarify the frozen predicate to: 'every reviewer determined active by the split-verdict protocol in Step 4.4 has returned approved or conditional, with no reviewer holding an unresolved reject verdict.' Alternatively, replace 'every active reviewer' with the more precise 'all reviewers in the active roster, including any reviewer re-engaged for a final sanity round per Step 4.4.'"
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "The canonical target paths for this invocation (C:/ADF/tools/agent-role-builder/tmp/v2b-bounded-validation-001/canonical/) differ from the stated durable governed root (tools/agent-role-builder/role/). If a subsequent update or fix operation loads a prior decision log from this validation path rather than from the production canonical root, append semantics may fork the decision history.",
+        "Step 4.5 triggers the learning engine on any reviewer reject and the updated rulebook becomes binding for the next revision. In a split-verdict scenario where only the rejecting reviewer runs subsequent rounds, the previously-approving reviewer conducts the final sanity round without having reviewed against the updated rulebook. A rule-compliant fix may introduce a regression that only the sanity reviewer can catch, but that reviewer arrives without full rulebook context. The role does not specify whether the sanity reviewer receives the updated rulebook.",
+        "The arbitration actor is identified only as 'the leader' in the guardrails and completion sections. The role does not define leader identity or how leadership is established from the reviewer roster. If the shared review contract supplies this, the dependency is implicit; if a runtime roster omits explicit leader designation, the mechanical arbitration trigger is not executable."
+      ],
+      "strengths": [
+        "Authority model is well-formed: the operative precedence chain is numbered (COO controller → active runtime contract → component governance files), inherited shared governance is labeled explicitly as 'by reference,' and docs/v0 files are classified as reference evidence that does not grant write authority. No flat lists appear anywhere in the authority section.",
+        "Material pushback is defined exactly once in the guardrails and applied consistently across frozen/frozen_with_conditions trigger predicates and all guardrail constraints — no competing or drifting definitions were found.",
+        "All four required canonical artifacts are listed with explicit absolute runtime-contract paths, per-operation write-lifecycle rules (create/update/fix), and per-terminal-state write gating — the outputs matrix is complete and internally consistent.",
+        "Arbitration mechanics are fully specified: trigger (minor/suggestion items only, every blocking/major already resolved), actor (the leader), required result.json fields (arbitration_used, arbitration_rationale, deferred minor items), and constrained output effect (frozen_with_conditions only, never overrides material pushback).",
+        "Context-gathering is cleanly separated as pre-numbered preconditions with explicit fail-closed behavior for missing governance files — not mixed into the execution step sequence.",
+        "Cross-round finding tracking is governed at two levels: the guardrail prohibits silent carry-forward and requires conceptual-group ID addressing; Step 4.3 binds the fix-items map to that same requirement, giving implementers no path to carry findings forward without explicit acceptance or rejection.",
+        "Target-state labeling is applied consistently: the steps preamble declares all steps as target-state governed behavior and each numbered step repeats the label, closing the self-check credibility loophole.",
+        "Scope exclusions in the role are semantically aligned with the contract summary out-of-scope list, deduplicated within the markdown, and Step 1 normalizes/deduplicates them again before generation — no contradictions were found."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-v2b-bounded-001",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 643671,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/rounds/round-0/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/rounds/round-0/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 219757,
+        "fallback_used": false,
+        "invocation_id": "808dd8ed-070c-4791-b2f5-0c8e6ce8757a"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 265764,
+        "fallback_used": false,
+        "invocation_id": "1208b13d-41c6-4c74-b07e-feea9659e7e5"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 158150,
+        "fallback_used": false,
+        "invocation_id": "cf84cc51-09f3-418a-bc24-89f99e80b9d1"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 219757,
+      "invocation_id": "808dd8ed-070c-4791-b2f5-0c8e6ce8757a",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 265764,
+      "invocation_id": "1208b13d-41c6-4c74-b07e-feea9659e7e5",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 158150,
+      "invocation_id": "cf84cc51-09f3-418a-bc24-89f99e80b9d1",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "a3607e8b-a395-423d-b738-160ceecf4703",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/governance-snapshot.json"
+  }
+}

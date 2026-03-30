@@ -1,0 +1,19 @@
+{
+  "what_failed": "Leader emitted invalid frozen verdict",
+  "error_message": "Leader returned frozen while non-material repair work remained. Clean freeze is only legal when no repair work remains.",
+  "where": "Round 2, leader terminal-state validation",
+  "context": {
+    "round": 2,
+    "material_repair_items": [],
+    "unresolved": [],
+    "effective_leader_verdict": "frozen_with_conditions"
+  },
+  "input_that_caused_failure": "{\n  \"leader_verdict\": \"frozen\",\n  \"leader_rationale\": \"Frozen. The remaining material issues from the prior round are resolved: the authority chain no longer duplicates the runtime review contract, `frozen` and `frozen_with_conditions` are now mutually exclusive, and the required run/cycle postmortem artifacts are integrated into steps, outputs, and completion. The reviewer returned only a minor residual risk about future self-check coverage, with no blocking or major unresolved findings.\",\n  \"material_repair_items\": [],\n  \"any_repair_items\": [\n    \"group-1\"\n  ]\n}",
+  "expected_format": "A leader verdict that matches the live repair state after review, learning, and self-check evaluation.",
+  "component": "tools/agent-role-builder/board/leader-contract-validation",
+  "provenance": {
+    "provider": "codex",
+    "model": "gpt-5.4"
+  },
+  "timestamp": "2026-03-30T20:16:03.086Z"
+}

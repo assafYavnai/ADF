@@ -1,0 +1,268 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Pushback is still required. The artifact has real structural improvements, but it still diverges from the source authority on terminal-state closeout, arbitration mechanics, and per-finding carry-forward. Those are material governance gaps, so the self-check pass is not enough to freeze.",
+  "unresolved": [
+    "group-1: Terminal states are not source-faithful or mutually exclusive.",
+    "group-2: Arbitration mechanics add unsupported semantics and blur contract-owned details into the role text.",
+    "group-3: Cross-round finding tracking is keyed at the conceptual-group level, which is too coarse for mechanical carry-forward."
+  ],
+  "deferredItems": [
+    "group-3: Draft artifacts produced by Step 2 absent from artifact matrix",
+    "group-4: Decision-log snapshot listed in outputs with no corresponding producing step",
+    "group-5: Step 1 validation failure path not linked to blocked terminal state"
+  ],
+  "improvementsApplied": [
+    "Authority is now a strict operative precedence chain, with architecture/process docs clearly marked as reference evidence rather than binding authority.",
+    "Canonical artifacts and run-scoped evidence are separated cleanly, with full tool-relative canonical paths for the promoted package files.",
+    "Context gathering is correctly treated as a precondition block instead of a numbered execution step.",
+    "Decision-history preservation is explicit: decision-log append behavior and board-summary replacement behavior are both defined.",
+    "The self-check section now distinguishes current validator behavior from target-state checks instead of claiming unimplemented guarantees."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Terminal states are not source-faithful or mutually exclusive.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "`pushback` is defined as a terminal state when reviewers still reject and review budget remains, but the source review loop says a reject verdict triggers learning, fix, and re-review. That makes `pushback` overlap with the normal in-progress reject path instead of a disjoint terminal predicate.",
+              "source_section": "<steps> Step 4e and Step 5 (`pushback`); <completion> `pushback`"
+            },
+            {
+              "id": "f2",
+              "description": "`blocked` is triggered by a generic 'non-recoverable validation or structural error' without encoding the required error-escalation sequence from the authority docs: stop, write bug report, attempt auto-fix/relaunch, then only exit `blocked` if the fix fails or the error persists. The current predicate is not mechanically testable against that lifecycle.",
+              "source_section": "<steps> Step 5 (`blocked`); <completion> `blocked`"
+            }
+          ],
+          "redesign_guidance": "Keep review rejection inside the Step 4 revision loop. Reserve terminal states for outcomes that actually end the run. If `pushback` must exist, define it only for request/input ambiguity with a disjoint trigger and artifact set. Make `blocked` explicitly depend on failed error-escalation or auto-fix, not on the initial appearance of an error."
+        },
+        {
+          "id": "group-2",
+          "summary": "Arbitration mechanics add unsupported semantics and blur contract-owned details into the role text.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "The arbitration trigger 'split verdicts persist for 2 or more consecutive rounds after revision' is presented as derived from the review-process architecture, but that condition does not appear in the cited authority. The source only allows leader arbitration for reviewer disagreement on minor or suggestion items.",
+              "source_section": "<guardrails> Arbitration; <steps> Step 4f"
+            },
+            {
+              "id": "f4",
+              "description": "The role hardcodes `result.json` fields `arbitration_used=true` and `arbitration_rationale` as required evidence even though the source authority only requires rationale logging and a `frozen_with_conditions` result listing deferred minor items. Field-level audit schema belongs in contracts, so this is not source-grounded as written.",
+              "source_section": "<guardrails> Arbitration; <steps> Step 5 (`frozen_with_conditions`); <completion> `frozen_with_conditions`"
+            }
+          ],
+          "redesign_guidance": "Use only source-backed arbitration rules in the markdown role: minor or suggestion disagreement, leader decides, no override of blocking or major items or reject verdicts, outcome is `frozen_with_conditions`. If extra trigger thresholds or result fields are true contract requirements, cite the runtime review contract as the authority instead of claiming they come from the architecture docs."
+        },
+        {
+          "id": "group-3",
+          "summary": "Cross-round finding tracking is keyed at the conceptual-group level, which is too coarse for mechanical carry-forward.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "The fix items map is keyed by `conceptual_group` ID even though the review process requires handling each reviewer finding. A single conceptual group can contain multiple findings, so group-level IDs cannot preserve accept or reject status or carry-forward per finding.",
+              "source_section": "<steps> Step 4b"
+            },
+            {
+              "id": "f6",
+              "description": "The reviewer fix decision map repeats the same coarse keying by `conceptual_group` ID, which makes `accept_fix`, `reject_fix`, `accept_rejection`, and `reject_rejection` ambiguous whenever more than one finding exists in the group.",
+              "source_section": "<steps> Step 4c"
+            }
+          ],
+          "redesign_guidance": "Assign stable IDs to individual findings and carry them across rounds. Keep conceptual-group IDs for grouping and root-cause presentation only; use finding IDs for fix maps, reviewer decision maps, and explicit carried-forward unresolved items."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "The current self-check explicitly leaves lifecycle consistency and cross-section semantic coherence as target-state checks, so these governance errors would not be caught mechanically before review.",
+        "Some contract-owned runtime details are still duplicated in markdown instead of being sourced from the runtime review contract, which creates drift risk if the contract changes."
+      ],
+      "strengths": [
+        "The authority section cleanly separates operative precedence from reference evidence.",
+        "Canonical artifact promotion versus run-scoped evidence is clearly separated, and decision-log preservation is explicitly defined.",
+        "Context gathering is correctly treated as a precondition, and the self-check distinguishes current implementation checks from target-state checks."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Post-mortem artifacts absent from outputs matrix and steps",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "run-postmortem.json and cycle-postmortem.json are specified in review-process-architecture.md § Permanent Audit Trail and § Three-Tier Post-Mortem as required per-round and per-job artifacts. Both are absent from the <outputs> run-scoped evidence artifacts table and from every substep in Step 4. The architecture mandates 'Every governed component has three levels of post-mortem.' No step triggers post-mortem production after a round completes or on terminal verdict. The compliance map contains no ARB rule covering post-mortem artifacts, so the gap was never checked.",
+              "source_section": "<outputs> Run-scoped evidence artifacts table / <steps> Step 4 / review-process-architecture.md § Three-Tier Post-Mortem"
+            }
+          ],
+          "redesign_guidance": "Add run-postmortem.json (trigger: after every round) and cycle-postmortem.json (trigger: on terminal verdict) to the run-scoped evidence artifacts table in <outputs> with path patterns runs/<job-id>/run-postmortem.json and runs/<job-id>/cycle-postmortem.json. Add a substep (e.g. 4h) that triggers Tier 1 run post-mortem after each round completes, and a Step 5 action that triggers Tier 2 cycle post-mortem before final artifact promotion. Cite review-process-architecture.md § Three-Tier Post-Mortem for the scope, trigger, and output contract of each tier. Do not merge these into the learning-engine step — the source authority distinguishes them as separate concerns."
+        },
+        {
+          "id": "group-2",
+          "summary": "Arbitration trigger conflates top-level split verdict with finding-level disagreement; round-count precondition unsourced",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f2",
+              "description": "The <guardrails> arbitration trigger reads: 'split verdicts persist for 2 or more consecutive rounds after revision on minor or suggestion severity items only.' The source authority (review-process-architecture.md § Arbitration) defines the trigger as: 'minor and suggestion severity items where reviewers disagree on whether something needs fixing.' 'Split verdicts' is the term used in Step 4d for top-level verdict divergence (one rejects, one approves) — a distinct mechanic with its own handling sequence. An agent following the <guardrails> trigger may conflate the two: failing to arbitrate when both reviewers are conditional but disagree on a specific minor finding, or erroneously entering arbitration on a step-4d scenario where blocking/major items are in dispute.",
+              "source_section": "<guardrails> Arbitration / Step 4d / Step 4f"
+            },
+            {
+              "id": "f3",
+              "description": "The artifact adds '2 or more consecutive rounds after revision' as a round-count precondition for arbitration eligibility. This count does not appear in review-process-architecture.md § Arbitration. The source authority specifies only that disagreement exists on minor/suggestion items — no minimum round count is given. The local addition is neither sourced nor flagged as a local policy extension.",
+              "source_section": "<guardrails> Arbitration"
+            }
+          ],
+          "redesign_guidance": "Replace 'split verdicts persist for 2 or more consecutive rounds after revision on minor or suggestion severity items only' with trigger language derived directly from the source authority: 'reviewers disagree, after at least one revision attempt, on whether a minor or suggestion severity finding requires fixing.' Use a distinct term — not 'split verdicts' — for this trigger to avoid collision with the step-4d split-verdict mechanic. If the round-count precondition is intentionally added as local policy, mark it explicitly as 'local extension beyond review-process-architecture.md § Arbitration' rather than presenting it as a derived requirement."
+        },
+        {
+          "id": "group-3",
+          "summary": "Draft artifacts produced by Step 2 absent from artifact matrix",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "Step 2 produces two named output artifacts: tools/agent-role-builder/runs/<job-id>/drafts/agent-role-builder-role.md and tools/agent-role-builder/runs/<job-id>/drafts/agent-role-builder-role-contract.json. Neither appears in the <outputs> run-scoped evidence artifacts table. The compliance map claims ARB-016 compliant ('Single authoritative artifact matrix declared in <outputs>... No duplicate or basename-only references'), but the matrix omits two step-defined artifacts, making that claim inaccurate.",
+              "source_section": "<steps> Step 2 / <outputs> Run-scoped evidence artifacts table"
+            }
+          ],
+          "redesign_guidance": "Add both draft artifacts to the run-scoped evidence artifacts table in <outputs>: path patterns runs/<job-id>/drafts/agent-role-builder-role.md and runs/<job-id>/drafts/agent-role-builder-role-contract.json, written when 'Step 2 (leader draft)'. This closes the gap between step-defined outputs and the authoritative matrix, restoring ARB-016 compliance."
+        },
+        {
+          "id": "group-4",
+          "summary": "Decision-log snapshot listed in outputs with no corresponding producing step",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "The <outputs> table includes 'Decision log snapshot | runs/<job-id>/agent-role-builder-decision-log-snapshot.md | Conditional: update/fix operation before append.' No step in <steps> or instruction in Step 5 directs writing this snapshot. The <guardrails> Decision history preservation section also omits it. The artifact is declared as an output but has no producing step, making its creation undefined and unverifiable.",
+              "source_section": "<outputs> Run-scoped evidence artifacts table / <steps> Step 5 / <guardrails> Decision history preservation"
+            }
+          ],
+          "redesign_guidance": "Add an explicit instruction to Step 5 (immediately before the decision-log append action): 'If operation is update or fix: copy the existing tools/agent-role-builder/role/agent-role-builder-decision-log.md to runs/<job-id>/agent-role-builder-decision-log-snapshot.md before appending.' Alternatively, add it to <guardrails> Decision history preservation alongside the existing append rule. Either placement closes the producing-step gap."
+        },
+        {
+          "id": "group-5",
+          "summary": "Step 1 validation failure path not linked to blocked terminal state",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "f6",
+              "description": "Step 1 states 'Validate board roster satisfies runtime review contract roster requirements' but does not state that validation failure immediately exits as the blocked terminal state. The connection is implicit: Step 5 defines blocked as 'non-recoverable validation or structural error.' For mechanical testability per ARB-004, the failure path should be explicit within the step that produces it.",
+              "source_section": "<steps> Step 1 / <steps> Step 5 blocked terminal state"
+            }
+          ],
+          "redesign_guidance": "Append to Step 1: 'On any validation failure: exit immediately as blocked terminal state (Step 5). Do not proceed to Step 2.' This makes the failure path mechanical and testable without ambiguity, and aligns with the same pattern used elsewhere in the architecture for non-recoverable errors."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "The learning engine's contribution (new rulebook rules) is assumed present before the fix in Step 4e, but the artifact has no guard against a silent no-op from the learning engine — if the engine produces an empty learning.json, the implementer has no signal to distinguish 'no new rules' from 'engine did not run.'",
+        "Target-state self-checks (lifecycle consistency, cross-section semantic coherence) are explicitly marked not yet implemented in Step 3. A role package frozen under the current partial self-check may carry cross-section inconsistencies that the validator cannot detect until those checks are implemented.",
+        "Arbitration rationale is recorded only in result.json, which is written at terminal state. If the run crashes after the leader arbitrates but before reaching terminal state, the arbitration rationale is unrecoverable. No intermediate artifact preserves it mid-run."
+      ],
+      "strengths": [
+        "Authority model is correctly structured: operative precedence chain (COO controller → runtime review contract → request/runtime config) is explicit, reference evidence is clearly labeled as non-binding, and component-local governance files are enumerated with full tool-relative paths.",
+        "Material pushback is defined canonically once in <guardrails> and referenced by pointer everywhere else — no semantic drift across <role>, <steps>, or <completion>.",
+        "Artifact matrix uses two clean, well-labeled classes (canonical vs run-scoped) with full tool-relative paths, explicit promotion conditions, and write-behavior-per-operation columns — a substantial improvement over flat basename lists.",
+        "Terminal state triggers are mutually exclusive and testable for all five states, with applicable artifacts explicitly enumerated per state in both <steps> Step 5 and <completion>.",
+        "Self-check correctly and visibly separates current implementation capability from target-state capability with explicit 'not yet implemented' labeling — zero false capability claims.",
+        "Step 4b carry-forward tracking is fully explicit: conceptual_group ID keying, no silent carry-forward, and the reviewer fix-decision map in Step 4c inherits the same ID chain — a closed, traceable loop across rounds.",
+        "Arbitration scope restrictions match the source authority: minor/suggestion only, never blocking/major, never overrides a reject verdict, outcome explicitly frozen_with_conditions and not clean frozen.",
+        "Context-gathering is correctly positioned as preconditions (not numbered execution steps), all five items ordered before Step 1, satisfying ARB-010."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-018",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 571963,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 174719,
+        "fallback_used": false,
+        "invocation_id": "b101d864-5115-4777-a40b-9b37ce3f1ac7"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 236253,
+        "fallback_used": false,
+        "invocation_id": "66ddc28e-f147-4f7d-b299-51a61b71918c"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 160991,
+        "fallback_used": false,
+        "invocation_id": "133e2d08-56ab-494d-adc8-e2450e3d780e"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 174719,
+      "invocation_id": "b101d864-5115-4777-a40b-9b37ce3f1ac7",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 236253,
+      "invocation_id": "66ddc28e-f147-4f7d-b299-51a61b71918c",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 160991,
+      "invocation_id": "133e2d08-56ab-494d-adc8-e2450e3d780e",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "2c41bfa2-db9f-4c9d-b79f-3f62a9fa82e9",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/governance-snapshot.json"
+  }
+}

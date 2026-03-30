@@ -1,0 +1,39 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "blocking",
+      "summary": "Conditional freeze semantics conflict with the source authority's arbitration model and acceptance authority.",
+      "redesignGuidance": "Make `frozen_with_conditions` a review-result state that cannot bypass a `reject` verdict. Require explicit invoker acceptance before canonical promotion of any conditionally accepted package.",
+      "findingCount": 2
+    },
+    {
+      "groupId": "group-2",
+      "severity": "major",
+      "summary": "Canonical and run-scoped authority/lifecycle boundaries are not kept cleanly separate.",
+      "redesignGuidance": "Keep the durable role definition generic and stable. Refer to governance inputs through stable component paths or runtime placeholders, and describe validation-run targets as invocation-bound outputs rather than as the durable canonical root.",
+      "findingCount": 2
+    },
+    {
+      "groupId": "group-3",
+      "severity": "major",
+      "summary": "Cross-round finding tracking is anchored to conceptual groups instead of stable finding identifiers.",
+      "redesignGuidance": "Carry unresolved findings forward by stable finding ID, with conceptual-group ID kept only as secondary grouping metadata. Resume packages, fix-items maps, and later-round review inputs should all reference the same unresolved finding IDs.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-4",
+      "severity": "major",
+      "summary": "The self-check still equates semantic coverage with lexical keyword matching.",
+      "redesignGuidance": "Do not label keyword matching as semantic validation. Either downgrade it to a lexical heuristic in the self-check contract or add a real semantic review step whose evidence standard matches the claim.",
+      "findingCount": 1
+    }
+  ],
+  "unresolved": [
+    "group-1: Conditional freeze semantics conflict with the source authority's arbitration model and acceptance authority.",
+    "group-2: Canonical and run-scoped authority/lifecycle boundaries are not kept cleanly separate.",
+    "group-3: Cross-round finding tracking is anchored to conceptual groups instead of stable finding identifiers.",
+    "group-4: The self-check still equates semantic coverage with lexical keyword matching."
+  ],
+  "leader_rationale": "Repair work is still required. The draft is materially stronger on authority ordering, preconditions, evidence layout, and decision-history preservation, but it still diverges from the source authority on conditional-freeze authority, budget-exhaustion handling, request-time reviewer-roster gating, per-finding carry-forward semantics, and self-check credibility. Those are material governance semantics, not minor polish.\nConvergence trend: 4 -> 4 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

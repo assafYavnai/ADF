@@ -1,0 +1,45 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "blocking",
+      "summary": "Terminal states are not source-faithful or mutually exclusive.",
+      "redesignGuidance": "Keep review rejection inside the Step 4 revision loop. Reserve terminal states for outcomes that actually end the run. If `pushback` must exist, define it only for request/input ambiguity with a disjoint trigger and artifact set. Make `blocked` explicitly depend on failed error-escalation or auto-fix, not on the initial appearance of an error.",
+      "findingCount": 2
+    },
+    {
+      "groupId": "group-2",
+      "severity": "major",
+      "summary": "Arbitration mechanics add unsupported semantics and blur contract-owned details into the role text.",
+      "redesignGuidance": "Use only source-backed arbitration rules in the markdown role: minor or suggestion disagreement, leader decides, no override of blocking or major items or reject verdicts, outcome is `frozen_with_conditions`. If extra trigger thresholds or result fields are true contract requirements, cite the runtime review contract as the authority instead of claiming they come from the architecture docs.",
+      "findingCount": 2
+    },
+    {
+      "groupId": "group-3",
+      "severity": "major",
+      "summary": "Cross-round finding tracking is keyed at the conceptual-group level, which is too coarse for mechanical carry-forward.",
+      "redesignGuidance": "Assign stable IDs to individual findings and carry them across rounds. Keep conceptual-group IDs for grouping and root-cause presentation only; use finding IDs for fix maps, reviewer decision maps, and explicit carried-forward unresolved items.",
+      "findingCount": 2
+    },
+    {
+      "groupId": "group-4",
+      "severity": "minor",
+      "summary": "Decision-log snapshot listed in outputs with no corresponding producing step",
+      "redesignGuidance": "Add an explicit instruction to Step 5 (immediately before the decision-log append action): 'If operation is update or fix: copy the existing tools/agent-role-builder/role/agent-role-builder-decision-log.md to runs/<job-id>/agent-role-builder-decision-log-snapshot.md before appending.' Alternatively, add it to <guardrails> Decision history preservation alongside the existing append rule. Either placement closes the producing-step gap.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-5",
+      "severity": "suggestion",
+      "summary": "Step 1 validation failure path not linked to blocked terminal state",
+      "redesignGuidance": "Append to Step 1: 'On any validation failure: exit immediately as blocked terminal state (Step 5). Do not proceed to Step 2.' This makes the failure path mechanical and testable without ambiguity, and aligns with the same pattern used elsewhere in the architecture for non-recoverable errors.",
+      "findingCount": 1
+    }
+  ],
+  "unresolved": [
+    "group-1: Terminal states are not source-faithful or mutually exclusive.",
+    "group-2: Arbitration mechanics add unsupported semantics and blur contract-owned details into the role text.",
+    "group-3: Cross-round finding tracking is keyed at the conceptual-group level, which is too coarse for mechanical carry-forward."
+  ],
+  "leader_rationale": "Pushback is still required. The artifact has real structural improvements, but it still diverges from the source authority on terminal-state closeout, arbitration mechanics, and per-finding carry-forward. Those are material governance gaps, so the self-check pass is not enough to freeze.\nConvergence trend: 3 -> 5 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

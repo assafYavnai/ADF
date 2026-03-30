@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "full",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-0/agent-role-builder-role.md",
+  "round": 0,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority now structured as operative precedence chain (COO controller → runtime contract → request config). Static docs moved to 'Reference evidence' sub-section labeled as non-operative."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <role>, <completion>",
+      "evidence_summary": "'Material pushback' defined canonically once in <guardrails>: 'any unresolved finding with blocking or major severity.' <role> and <completion> reference the definition by pointer."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "<outputs> contains two explicit groups: 'Canonical artifacts (promoted to tools/agent-role-builder/role/ on freeze only)' and 'Run-scoped evidence artifacts'. Full canonical paths used throughout."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 5, <completion>",
+      "evidence_summary": "Each terminal state (frozen, frozen_with_conditions, pushback, resume_required, blocked) has an explicit trigger predicate and the artifacts applicable to it."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "Step 3 explicitly labels 'Current implementation checks' (tag presence, semantic keyword matching, structural output validation) separately from 'Target-state checks (not yet implemented)'. Semantic matching described by keyword extraction, not literal string match."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Duplicate 'Application workflow creation' removed. In-scope clarification about board-review orchestration moved to 'Use when' section. Not in scope contains four clean exclusions with no repeated concepts."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails> Arbitration, <steps> Step 4f",
+      "evidence_summary": "Arbitration: trigger (split verdicts 2+ consecutive rounds on minor/suggestion), actor (leader), scope (minor/suggestion only, never blocking/major, never to override reject), evidence (arbitration_used=true and arbitration_rationale in result.json), outcome (frozen_with_conditions). Both guardrails and Step 4f reference the same definition."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "All four canonical paths now fully qualified: tools/agent-role-builder/role/agent-role-builder-role.md, agent-role-builder-role-contract.json, agent-role-builder-decision-log.md, agent-role-builder-board-summary.md. Self-check MISSING_REQUIRED_OUTPUT errors resolved."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "<completion> defines applicable artifacts per terminal state: frozen (4 canonical promoted + result.json), frozen_with_conditions (same + arbitration record), pushback (result.json + pushback.json, no promotion), resume_required (result.json + resume-package.json, no promotion), blocked (result.json + bug-report.json, no promotion)."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>",
+      "evidence_summary": "<context-gathering> now headed 'Preconditions (must complete before Step 1)' with 5 numbered items. Step 1 is the first execution action."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4b, Step 4c",
+      "evidence_summary": "Step 4b (fix items map) now requires keying each entry by conceptual_group ID from prior round's review.json and explicit listing of carried-forward findings. Step 4c reviewer verdict fix items decision map inherits the same ID keying."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails> Decision history preservation",
+      "evidence_summary": "Explicit mechanism defined: decision-log.md is appended with a new dated section (prior entries never deleted); board-summary.md is replaced but prior version retained in run directory."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "Step 3 separates 'Current implementation checks' (what validator.ts actually does today) from 'Target-state checks (not yet implemented)'. No false capability claims."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4e",
+      "evidence_summary": "Step 4e explicitly states learning.json and diff-summary.json are 'written every round, including the final round'. Neither is gated by a revision-specific condition."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Single authoritative artifact matrix declared in <outputs> with full canonical paths, artifact class (canonical vs run-scoped), and write behavior per operation and terminal state. No duplicate or basename-only references."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <steps> Step 4",
+      "evidence_summary": "Authority section names exact governing sources in precedence order. Step 4 cites 'Inherited from review-process-architecture.md' for split-verdict, budget exhaustion, and arbitration mechanics rather than reinventing them locally."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "<role> describes timeless standing mission: create, update, and fix agent role packages through governed multi-LLM review. No run-specific, resume, or recovery context in the identity section."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority> Writable areas",
+      "evidence_summary": "Writable areas declared explicitly with tool-relative paths: tools/agent-role-builder/role/ (canonical, freeze only) and tools/agent-role-builder/runs/<job-id>/ (current run). Operative authority (COO controller / runtime contract) anchors these boundaries."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority chain uses operative sources only (COO controller, runtime contract, request config). docs/v0/architecture.md and docs/v0/review-process-architecture.md are classified as 'Reference evidence' with an explicit note that they do not outrank operative authority."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <guardrails>",
+      "evidence_summary": "Arbitration, split-verdict handling, and budget exhaustion all cite 'derived from review-process-architecture.md § <section>'. No local reinvention of shared governance mechanics. <guardrails> arbitration section notes 'scoped consequences derived from review-process-architecture.md § Arbitration'."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Not in scope contains four exclusion-only bullets. 'Board-review orchestration within this tool' moved to Use when (positive inclusion). 'Application workflow creation' deduplicated to one entry."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4",
+      "evidence_summary": "Step 4 is expanded into 7 ordered sub-steps (4a–4g), each naming its output artifact: compliance-map.json (4a), fix-items-map.json (4b), review.json (4c), split-verdict logic (4d), learning.json + diff-summary.json (4e), arbitration (4f), budget exhaustion (4g)."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>, <context-gathering>",
+      "evidence_summary": "<authority> lists three component-local governance files with full paths (rulebook.json, review-prompt.json, review-contract.json). <context-gathering> precondition 3 requires loading all three before Step 1. Inherited obligations noted as 'inherited from shared review contract'."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>",
+      "evidence_summary": "Required inputs now include: request JSON, source refs, board roster (with roster requirement reference), governance config, runtime config, and all three component-local governance files with full paths."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-30T19:40:43.547Z"
+}

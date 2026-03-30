@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 2,
+  "items": [
+    {
+      "finding_id": "group-1",
+      "finding_group_id": "group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Removed the duplicate lower-precedence review-contract authority layer. The authority chain now names the active runtime review contract once, while rulebook and review-prompt are separate required governance files loaded under that authority.",
+      "evidence_location": "<authority>; <context-gathering>; <inputs>"
+    },
+    {
+      "finding_id": "group-2",
+      "finding_group_id": "group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Made `frozen` and `frozen_with_conditions` mutually exclusive by defining `frozen` as the no-arbitration path and `frozen_with_conditions` as the arbitration-used path, then mirrored that distinction in guardrails, Step 5, and completion.",
+      "evidence_location": "<guardrails>; Step 5; <completion>"
+    },
+    {
+      "finding_id": "group-1-summary",
+      "finding_group_id": "group-1-summary",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Closed the remaining reject-fix gap by completing the authority repair and terminal-state repair together, so the draft no longer carries overlapping closeout predicates or duplicated contract authority.",
+      "evidence_location": "<authority>; <guardrails>; Step 5; <completion>"
+    },
+    {
+      "finding_id": "rulewalk-ARB-016-023-postmortems",
+      "finding_group_id": "rule-walk",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Added the source-authority-required `run-postmortem.json` and `cycle-postmortem.json` artifacts, including their Step 4 and Step 5 write points, artifact-matrix entries, and completion semantics.",
+      "evidence_location": "Step 4h; Step 5; <outputs>; <completion>"
+    }
+  ],
+  "generated_at": "2026-03-30T20:14:25.534Z"
+}

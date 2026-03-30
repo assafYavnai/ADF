@@ -1,0 +1,21 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-001",
+      "explanation": "ARB-001 already requires a strict precedence chain with explicit layers. A source cannot occupy two authority levels at once, because that destroys a single canonical ordering and turns dependency-loading information into fake precedence. The guidance to keep the runtime review contract in one slot only follows this rule directly."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "ARB-004 already requires mutually exclusive, testable triggers for every terminal state. If `frozen` and `frozen_with_conditions` can both match the same evidence, the terminal-state model is invalid under that rule. The requested fix is exactly to restore exclusivity."
+    }
+  ],
+  "no_rule_needed": [
+    {
+      "finding_group_id": "group-1-summary",
+      "reason": "This is not a distinct generalizable issue. It is a meta-summary saying the prior fix was insufficient because the terminal-state overlap still exists. The substantive rule question is already covered by `group-2` under ARB-004."
+    }
+  ]
+}

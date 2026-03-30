@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 1,
+  "items": [
+    {
+      "finding_id": "group-1",
+      "finding_group_id": "group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Reworked conditional freeze semantics so frozen_with_conditions requires no active reject verdict, records arbitration evidence plus invoker_acceptance_required, and blocks canonical promotion until explicit invoker acceptance.",
+      "evidence_location": "<guardrails>; <steps> Step 5; <outputs>; <completion> Frozen_with_conditions"
+    },
+    {
+      "finding_id": "group-2",
+      "finding_group_id": "group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Separated durable package identity from run-scoped and invocation-bound outputs by moving canonical artifacts to tools/agent-role-builder/role/, isolating runtime targets in their own subsection, and treating bundled governance and authority docs as runtime-resolved inputs rather than durable run-path identity.",
+      "evidence_location": "<authority>; <guardrails>; <outputs>"
+    },
+    {
+      "finding_id": "group-3",
+      "finding_group_id": "group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Changed cross-round carry-forward semantics from conceptual-group tracking to stable finding IDs across context gathering, fix-items handling, resume-package requirements, and closeout.",
+      "evidence_location": "<context-gathering>; <guardrails>; <steps> Step 4.1; <steps> Step 4.3; <steps> Step 5; <completion> Resume_required"
+    },
+    {
+      "finding_id": "group-4",
+      "finding_group_id": "group-4",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Downgraded the self-check from claimed semantic validation to explicit lexical heuristic coverage with recorded keywords and matching evidence, while reserving semantic adequacy for review.",
+      "evidence_location": "<guardrails>; <steps> Step 3"
+    }
+  ],
+  "generated_at": "2026-03-30T15:29:47.493Z"
+}

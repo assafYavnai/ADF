@@ -1,0 +1,153 @@
+{
+  "round": 1,
+  "reviewMode": "delta",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Pushback remains. This revision fixes the earlier arbitration and per-finding carry-forward issues, but there are still material source-authority gaps: the authority chain duplicates the runtime review contract across two precedence levels, the `frozen` and `frozen_with_conditions` predicates still overlap instead of being mutually exclusive, and the source-defined `run-postmortem.json` and `cycle-postmortem.json` artifacts are still missing from outputs and closeout.",
+  "unresolved": [
+    "group-1: The authority chain still duplicates the runtime review contract across two precedence levels.",
+    "group-2: `frozen` and `frozen_with_conditions` still overlap, so closeout predicates are not mutually exclusive.",
+    "group-1-summary: Fix decision reject_fix requires more work"
+  ],
+  "deferredItems": [],
+  "improvementsApplied": [
+    "Pre-review pushback is now separated from review terminal closeout, which removes the earlier pushback-as-terminal ambiguity.",
+    "Arbitration was rewritten to source-backed semantics only: minor or suggestion disagreements, leader-decided, no override of reject or blocking/major findings, and closeout only as `frozen_with_conditions`.",
+    "Cross-round tracking now uses stable `finding_id` handling, with `conceptual_group_id` retained only for grouping and severity context.",
+    "Decision-history preservation is stronger: the decision-log snapshot path and prior board-summary snapshot path are both explicit run-scoped artifacts.",
+    "Step 1 failure routing is now mechanical: structural validation failures go to `blocked`, while semantically insufficient inputs stop in pre-review pushback."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r1": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "The authority chain still duplicates the runtime review contract across two precedence levels.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "`tools/agent-role-builder/review-contract.json` is declared as the active runtime review contract in authority item 2, then repeated again inside authority item 3 as a lower-precedence component-local governance file. That breaks the canonical layer split and makes the same artifact both superior and subordinate authority.",
+              "source_section": "<authority>"
+            }
+          ],
+          "redesign_guidance": "Keep the runtime review contract in one canonical authority slot only. List rulebook and review-prompt as required loaded governance files separately, or keep a load list outside the precedence chain. Do not restate the same review-contract file as a lower-precedence authority after already elevating it as the contract layer."
+        },
+        {
+          "id": "group-2",
+          "summary": "`frozen` and `frozen_with_conditions` still overlap, so closeout predicates are not mutually exclusive.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f2",
+              "description": "The `frozen` trigger does not exclude arbitration, while `frozen_with_conditions` is defined as the `frozen` threshold plus arbitration. When arbitration is used, both predicates are true, which conflicts with the completion clause requiring exactly one terminal closeout path.",
+              "source_section": "<guardrails> Canonical definitions; <steps> Step 5 (`frozen`, `frozen_with_conditions`); <completion>"
+            }
+          ],
+          "redesign_guidance": "Define `frozen` as the clean freeze path with no arbitration used, and define `frozen_with_conditions` as the same threshold plus arbitration. Mirror that exclusion in guardrails, Step 5, and completion so only one branch can fire."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1-summary",
+          "decision": "reject_fix",
+          "reason": "The prior terminal-state fix resolved the old pushback/review-loop problem, but terminal closeout is still not fully correct because `frozen` and `frozen_with_conditions` remain overlapping predicates."
+        },
+        {
+          "finding_group_id": "group-2-summary",
+          "decision": "accept_fix",
+          "reason": "The unsupported multi-round arbitration threshold was removed, and arbitration evidence is now delegated to runtime-contract-governed run evidence instead of invented local fields."
+        },
+        {
+          "finding_group_id": "group-3-summary",
+          "decision": "accept_fix",
+          "reason": "Step 4b and Step 4c now track and review findings by stable `finding_id`, with `conceptual_group_id` retained only for grouping context."
+        },
+        {
+          "finding_group_id": "group-4-summary",
+          "decision": "accept_fix",
+          "reason": "Decision-log preservation and prior board-summary preservation now have explicit run-directory snapshot paths and write timing."
+        },
+        {
+          "finding_group_id": "group-5-summary",
+          "decision": "accept_fix",
+          "reason": "Step 1 now routes structural validation failures mechanically to `blocked` and semantically insufficient inputs to pre-review pushback before drafting."
+        }
+      ],
+      "residual_risks": [
+        "The self-check still treats lifecycle consistency and cross-section semantic coherence as target-state-only checks, so the remaining authority and closeout drift would not be caught mechanically before review.",
+        "`All role artifacts must be slug-prefixed` remains a local rule without support in the cited authority files; unless it is explicitly owned by the runtime review contract, it risks reintroducing unsupported governance semantics."
+      ],
+      "strengths": [
+        "Pre-review pushback is now separated from review terminal closeout, which fixes the earlier loop-versus-terminal confusion.",
+        "Cross-round carry-forward now uses stable finding IDs, which makes fix tracking and reviewer decisions mechanically auditable.",
+        "Decision-history preservation is materially stronger: both the decision-log snapshot and prior board-summary snapshot are now explicit run-scoped artifacts with concrete paths."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-018",
+    "round": 1,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 187382,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/rounds/round-1/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 122059,
+        "fallback_used": false,
+        "invocation_id": "1be248e0-380a-44a4-9abd-f7892046391c"
+      },
+      {
+        "participant_id": "leader-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 65323,
+        "fallback_used": false,
+        "invocation_id": "aa821635-c9cc-439a-9131-4034c98ed8e7"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 1,
+      "latency_ms": 122059,
+      "invocation_id": "1be248e0-380a-44a4-9abd-f7892046391c",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 1,
+      "latency_ms": 65323,
+      "invocation_id": "aa821635-c9cc-439a-9131-4034c98ed8e7",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "2c41bfa2-db9f-4c9d-b79f-3f62a9fa82e9",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-018/governance-snapshot.json"
+  }
+}

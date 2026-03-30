@@ -1,0 +1,31 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "major",
+      "summary": "The authority chain still duplicates the runtime review contract across two precedence levels.",
+      "redesignGuidance": "Keep the runtime review contract in one canonical authority slot only. List rulebook and review-prompt as required loaded governance files separately, or keep a load list outside the precedence chain. Do not restate the same review-contract file as a lower-precedence authority after already elevating it as the contract layer.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-2",
+      "severity": "major",
+      "summary": "`frozen` and `frozen_with_conditions` still overlap, so closeout predicates are not mutually exclusive.",
+      "redesignGuidance": "Define `frozen` as the clean freeze path with no arbitration used, and define `frozen_with_conditions` as the same threshold plus arbitration. Mirror that exclusion in guardrails, Step 5, and completion so only one branch can fire.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-1-summary",
+      "severity": "major",
+      "summary": "Fix decision reject_fix requires more work",
+      "redesignGuidance": "The prior terminal-state fix resolved the old pushback/review-loop problem, but terminal closeout is still not fully correct because `frozen` and `frozen_with_conditions` remain overlapping predicates.",
+      "findingCount": 1
+    }
+  ],
+  "unresolved": [
+    "group-1: The authority chain still duplicates the runtime review contract across two precedence levels.",
+    "group-2: `frozen` and `frozen_with_conditions` still overlap, so closeout predicates are not mutually exclusive.",
+    "group-1-summary: Fix decision reject_fix requires more work"
+  ],
+  "leader_rationale": "Pushback remains. This revision fixes the earlier arbitration and per-finding carry-forward issues, but there are still material source-authority gaps: the authority chain duplicates the runtime review contract across two precedence levels, the `frozen` and `frozen_with_conditions` predicates still overlap instead of being mutually exclusive, and the source-defined `run-postmortem.json` and `cycle-postmortem.json` artifacts are still missing from outputs and closeout.\nConvergence trend: 3 -> 3 -> 3 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

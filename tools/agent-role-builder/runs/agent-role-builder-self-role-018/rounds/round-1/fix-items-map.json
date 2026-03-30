@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 1,
+  "items": [
+    {
+      "finding_id": "group-1-summary",
+      "finding_group_id": "group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Removed reviewer rejection as a terminal outcome, limited review terminal states to frozen, frozen_with_conditions, resume_required, and blocked, and reclassified pushback as a pre-review ambiguity exit with a disjoint trigger and artifact path.",
+      "evidence_location": "<guardrails>; Step 1; Step 4e; Step 5; <completion>"
+    },
+    {
+      "finding_id": "group-2-summary",
+      "finding_group_id": "group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Rewrote arbitration to use only source-backed semantics: minor or suggestion disagreements only, leader decides, no override of reject or blocking/major issues, and closeout only as frozen_with_conditions with runtime-contract-governed evidence.",
+      "evidence_location": "<guardrails> Arbitration; Step 4f; Step 5; <completion>"
+    },
+    {
+      "finding_id": "group-3-summary",
+      "finding_group_id": "group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Changed cross-round tracking from conceptual-group-only handling to stable per-finding finding_id handling, while retaining conceptual_group_id strictly for grouping and severity.",
+      "evidence_location": "Step 4b; Step 4c"
+    },
+    {
+      "finding_id": "group-4-summary",
+      "finding_group_id": "group-4",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Added an explicit producing path for decision-log preservation before append and paired it with an explicit prior-board-summary snapshot path in the run directory.",
+      "evidence_location": "<guardrails> Decision history preservation; Step 5; <outputs>"
+    },
+    {
+      "finding_id": "group-5-summary",
+      "finding_group_id": "group-5",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Made Step 1 failure routing mechanical by sending schema, source-ref, roster, and governance-file validation failures directly to blocked, while routing structurally valid but semantically insufficient inputs to pre-review pushback.",
+      "evidence_location": "Step 1; Step 5"
+    }
+  ],
+  "generated_at": "2026-03-30T20:01:26.513Z"
+}

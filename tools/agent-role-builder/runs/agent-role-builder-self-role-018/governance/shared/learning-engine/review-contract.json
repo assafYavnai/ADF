@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0",
+  "contract_name": "adf-shared-review-contract",
+  "purpose": "Canonical machine contract for governed review cycles across ADF components.",
+  "component_boxing_rules": {
+    "component_owned_prompts": true,
+    "component_owned_contracts": true,
+    "host_must_bound_context": true,
+    "reviewer_must_not_roam_outside_component_bundle": true,
+    "audit_required": true
+  },
+  "roster_requirements": {
+    "minimum_reviewer_count": 2,
+    "reviewer_count_must_be_even": true,
+    "required_pair_shape": "Each active review pair must contain exactly one Codex reviewer and one Claude reviewer.",
+    "validation_phase": "request_validation",
+    "fail_closed": true
+  },
+  "review_modes": {
+    "full": "Review the whole artifact and perform a full rulebook sweep.",
+    "delta": "Review only changed sections plus any directly affected cross-cutting areas.",
+    "regression_sanity": "Check only the changed sections against prior approvals to catch regressions."
+  },
+  "implementer_outputs": {
+    "compliance_map": {
+      "required": true,
+      "schema_ref": "shared/learning-engine/compliance-map.ts#ComplianceMap",
+      "full_modes": [
+        "first_round",
+        "last_clean_round"
+      ],
+      "delta_modes": [
+        "middle_rounds"
+      ]
+    },
+    "fix_items_map": {
+      "required_from_round": 1,
+      "schema_ref": "shared/learning-engine/fix-items-map.ts#FixItemsMap",
+      "identity_preference": "finding_id",
+      "identity_fallback": "finding_group_id"
+    },
+    "diff_summary": {
+      "required": true,
+      "description": "Machine-facing summary of what changed between rounds."
+    }
+  },
+  "reviewer_output": {
+    "verdicts": [
+      "approved",
+      "conditional",
+      "reject"
+    ],
+    "severity_levels": [
+      "blocking",
+      "major",
+      "minor",
+      "suggestion"
+    ],
+    "required_sections": [
+      "verdict",
+      "conceptual_groups",
+      "residual_risks",
+      "strengths"
+    ],
+    "conceptual_groups": {
+      "group_by_root_cause": true,
+      "required_fields": [
+        "id",
+        "summary",
+        "severity",
+        "findings",
+        "redesign_guidance"
+      ],
+      "finding_required_fields": [
+        "id",
+        "description",
+        "source_section"
+      ]
+    },
+    "fix_decisions": {
+      "required_when_fix_items_map_present": true,
+      "schema_ref": "shared/learning-engine/fix-items-map.ts#FixDecisionMap",
+      "identity_fields": [
+        "finding_id",
+        "finding_group_id"
+      ],
+      "allowed_decisions": [
+        "accept_fix",
+        "reject_fix",
+        "accept_rejection",
+        "reject_rejection"
+      ]
+    }
+  },
+  "leader_output": {
+    "allowed_statuses": [
+      "frozen",
+      "frozen_with_conditions",
+      "pushback",
+      "blocked",
+      "resume_required"
+    ],
+    "required_fields": [
+      "status",
+      "rationale",
+      "unresolved",
+      "improvements_applied",
+      "arbitration_used",
+      "arbitration_rationale"
+    ],
+    "arbitration_rule": "Arbitration is minor-only. Blocking or major disagreements never qualify for freeze by arbitration.",
+    "status_invariants": {
+      "frozen": "Allowed only when no unresolved findings remain and no repair pass is still required.",
+      "frozen_with_conditions": "Allowed only when unresolved items, if any, are minor or suggestion only and any arbitration used was minor-only.",
+      "pushback": "Required when blocking or major findings remain and review budget still permits another repair and re-review round.",
+      "resume_required": "Required when blocking or major findings remain and the review budget is exhausted.",
+      "blocked": "Required for unrecoverable validation, structural, or execution errors."
+    },
+    "invalid_status_handling": "If the selected status conflicts with the unresolved set or the arbitration rule, fail closed, record the override, and return a safe effective status."
+  },
+  "audit_requirements": {
+    "required_fields": [
+      "component",
+      "job_id",
+      "round",
+      "review_mode",
+      "provider",
+      "model",
+      "latency_ms",
+      "fallback_used",
+      "artifact_refs"
+    ],
+    "field_ownership": "Audit field vocabulary is contract-owned. Runtime code and rulebooks may reference it but must not redefine or silently remap it.",
+    "required_outputs": [
+      "review.json",
+      "run-postmortem.json",
+      "cycle-postmortem.json"
+    ]
+  }
+}

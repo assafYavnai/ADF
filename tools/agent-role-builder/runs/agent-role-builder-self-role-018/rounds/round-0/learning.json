@@ -1,0 +1,31 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "ARB-004 already requires every terminal state to have a mutually exclusive, testable trigger against run evidence. A review rejection that belongs inside the repair loop, or overlapping `pushback`/`blocked` conditions, is exactly a violation of that rule's terminal-state discipline rather than a new principle."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-021",
+      "explanation": "ARB-021 already covers this: governance mechanics in the role text must be explicitly declared in the authority set or inherited contracts. Adding local arbitration thresholds, fields, or semantics not backed by the governing contract is a direct violation, so this does not require a new rule."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "ARB-011 already establishes the principle that unresolved review findings must be carried forward explicitly by ID across rounds. This finding shows the current rule likely needs tighter wording toward stable per-finding IDs rather than conceptual-group IDs, but that is a refinement of existing coverage, not a new rule."
+    },
+    {
+      "finding_group_id": "group-4",
+      "covered_by_rule_id": "ARB-013",
+      "explanation": "ARB-013 already requires decision-history preservation to use an exact mechanism. If a decision-log snapshot is declared as an output, the producing step must explicitly say when it is copied before append; otherwise the preservation mechanism is not mechanically defined."
+    },
+    {
+      "finding_group_id": "group-5",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "ARB-004 already requires blocked-state triggers to be explicit and testable. A Step 1 validation failure path that does not mechanically branch to `blocked` and stop execution is an instance of missing terminal-state trigger definition, not a new rule category."
+    }
+  ],
+  "no_rule_needed": []
+}
