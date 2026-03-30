@@ -224,56 +224,97 @@ Explicitly out of this V1 fix round:
 - resume-state carry-forward
 - broader workspace/module-boundary redesign
 
-## V2 Candidate Push
+## Post-V1 Versioning Correction
 
-These items are real, but they should be treated as V2 or later unless a new decision changes scope.
+The next work should not be labeled `V1.x`.
 
-### 1. Fixer/provider-fallback contract
+Corrected interpretation:
 
-Input source:
+- `V1` is implemented and hardened
+- `V1` live validation is deferred until the runtime is mature enough to run `agent-role-builder` in a bounded, useful way
+- the next implementation work starts at `V2`
 
-- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
+Why this correction matters:
 
-Candidate scope:
+- calling the next work `V1.x` implies the frozen V1 implementation is still unfinished
+- the real remaining issue is runtime maturity and bounded validation, not unfinished V1 design scope
 
-- define a concrete fixer contract
-- allow provider fallback when a provider-specific failure is recoverable
-- define fix verification before application
+## V2 And Later Candidate Push
 
-### 2. Resume-state carry-forward
+The next versions should be split narrowly to avoid the same scope creep that happened earlier in design review.
 
-Input source:
+### V2A Runtime Unblock
 
-- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
-
-Candidate scope:
-
-- resume package carries prior reviewer status
-- board initializes reviewer status from resume state rather than resetting all reviewers to pending
-
-### 3. Module-boundary / manual-copy elimination
-
-Input source:
+Source:
 
 - [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
 
 Candidate scope:
 
-- remove or generate manual shared-module copies like `shared-imports.ts`
-- prevent canonical/shared fixes from being lost in copied files
+- unblock the real `agent-role-builder` revision path
+- stop canonical invoker fixes from being lost in copied/shared boundaries
 
-### 4. KPI and broader logging expansion
+### V2B Bounded ARB Validation
+
+Source:
+
+- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
 
 Candidate scope:
 
-- richer operational KPIs
-- broader cross-tool normalization/healing logs
-- dashboards or aggregated reporting
+- run `agent-role-builder` for one bounded validation cycle
+- keep it auditable and capped:
+  - one cycle only
+  - explicit round cap
+  - hard timeout
+  - no auto-resume chaining
+  - no rule promotion
+
+### V2C Minimal Telemetry Baseline
+
+Candidate scope:
+
+- capture the minimum run telemetry needed so future work does not lose operational memory
+- defer full KPI or dashboard work
+
+Minimum direction:
+
+- run id
+- commit sha
+- mode/config
+- stop reason
+- rounds attempted/completed
+- reviewer success/error counts
+- provider failures
+- fallback used or not
+- learning artifact written or not
+- duration
+- terminal status
+- postmortem path
+
+### V2D Recovery And Resume Correctness
+
+Source:
+
+- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
+
+Candidate scope:
+
+- define the minimum fixer/provider-fallback contract for the revision lane
+- carry prior reviewer status into resumed runs
+
+### V3 Candidate Push
+
+Only after `V2` stabilization and bounded validation:
+
+1. module-boundary / manual-copy elimination beyond the immediate unblock path
+2. governance and learning expansion beyond the frozen pilot
+3. broader KPI, observability, and aggregated reporting
 
 Deferred rationale:
 
-- current need is fail-closed behavior and audit precision
-- observability breadth should not widen the V1 hardening pass
+- current need is runtime maturity and bounded validation
+- broad observability or governance expansion should not outrun the pilot runtime
 
 ## V1 Fix Round Implementation Note
 

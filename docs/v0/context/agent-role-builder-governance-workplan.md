@@ -44,6 +44,11 @@ That includes:
 
 That validation is intentionally deferred until the runtime is mature enough that the run is not expected to fail for known non-governance reasons.
 
+For planning purposes:
+
+- `V1` means implemented and hardened
+- live validation is a later bounded step, not part of the frozen V1 implementation scope
+
 ## Scope-Control Rules
 
 These rules exist because earlier design rounds widened scope repeatedly.
@@ -79,7 +84,7 @@ If a new finding appears:
 
 ## Version Map
 
-### V1.1 Revision Path Unblock
+### V2A Revision Path Unblock
 
 Purpose:
 
@@ -110,7 +115,82 @@ Acceptance target:
 
 - revision no longer fails because the copied invoker reverted to stdin or otherwise diverged from the canonical fixed path
 
-### V1.2 Revision Recovery And Resume Correctness
+### V2B Bounded ARB Validation
+
+Purpose:
+
+- run `agent-role-builder` only when the runtime is bounded and auditable enough that the result is useful
+
+Open items:
+
+1. execute a bounded real `agent-role-builder` run from the current baseline
+2. verify multi-round behavior rather than only startup and unit invariants
+3. verify learning lifecycle behavior from real artifacts
+4. keep the run bounded so it cannot drift into uncontrolled retry/resume behavior
+
+Primary source:
+
+- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
+- [2026-03-30-governance-v1-audit-findings.md](C:/ADF/docs/v0/context/2026-03-30-governance-v1-audit-findings.md)
+
+Sub-steps:
+
+1. run a clean bounded smoke on current `main`
+2. bound it explicitly:
+   - one cycle only
+   - explicit round cap
+   - hard wall-clock timeout
+   - no auto-resume chaining
+   - no rule promotion
+3. inspect revision, repair, learning, and closeout artifacts
+4. classify the result into:
+   - mature enough to continue
+   - blocked by remaining runtime stabilization work
+
+Acceptance target:
+
+- one truthful bounded validation run with a useful postmortem, regardless of whether the run fully converges
+
+### V2C Minimal Telemetry Baseline
+
+Purpose:
+
+- ensure we do not lose operational memory when focus later moves to another component
+
+Open items:
+
+1. define the minimum run telemetry contract
+2. capture the fields required for future audit and comparison
+3. keep this smaller than a KPI/dashboard system
+
+Primary sources:
+
+- [2026-03-30-governance-v1-audit-findings.md](C:/ADF/docs/v0/context/2026-03-30-governance-v1-audit-findings.md)
+- [2026-03-30-bom-question-followup.md](C:/ADF/docs/v0/context/2026-03-30-bom-question-followup.md)
+
+Sub-steps:
+
+1. freeze the minimum fields:
+   - run id
+   - commit sha
+   - config or mode
+   - stop reason
+   - rounds attempted and completed
+   - reviewer success and error counts
+   - provider failures
+   - fallback used or not
+   - learning artifact written or not
+   - duration
+   - terminal status
+   - postmortem path
+2. decide where these fields live so they remain easy to compare later
+3. add only what is required for audit continuity, not a broad KPI system
+
+Acceptance target:
+
+- future runs leave enough stable telemetry that the project does not lose operational memory when focus shifts
+
+### V2D Revision Recovery And Resume Correctness
 
 Purpose:
 
@@ -140,37 +220,7 @@ Acceptance target:
 - recoverable revision/provider failure does not immediately hard-stop the run
 - resumed runs preserve reviewer status correctly
 
-### V1.3 Live Validation And Learning Verification
-
-Purpose:
-
-- run the real `agent-role-builder` flow only after known runtime blockers are addressed
-
-Open items:
-
-1. execute a fresh live `agent-role-builder` run from the current baseline
-2. verify multi-round behavior rather than only startup and unit invariants
-3. verify learning lifecycle behavior from real artifacts
-
-Primary sources:
-
-- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
-- [2026-03-30-governance-v1-audit-findings.md](C:/ADF/docs/v0/context/2026-03-30-governance-v1-audit-findings.md)
-
-Sub-steps:
-
-1. run a clean end-to-end smoke on current `main`
-2. inspect revision, repair, learning, and closeout artifacts
-3. verify whether `learning.json` remains evidence-only or feeds the next-run candidate path exactly as intended
-4. write a validation note and classify any new failures into:
-   - remaining V1.x work
-   - V2 work
-
-Acceptance target:
-
-- one truthful end-to-end `agent-role-builder` validation run with postmortem and next actions recorded
-
-### V2A Runtime Boundary Cleanup
+### V3A Runtime Boundary Cleanup
 
 Purpose:
 
@@ -201,7 +251,7 @@ Acceptance target:
 
 - canonical shared fixes cannot silently disappear in copied tool-local modules
 
-### V2B Governance And Learning Expansion
+### V3B Governance And Learning Expansion
 
 Purpose:
 
@@ -230,7 +280,7 @@ Acceptance target:
 
 - governance expansion happens deliberately, not as bleed-over from pilot hardening
 
-### V2C Observability, KPI, And Broader Audit Expansion
+### V3C Observability, KPI, And Broader Audit Expansion
 
 Purpose:
 
@@ -262,12 +312,13 @@ Acceptance target:
 
 Do the next work in this order:
 
-1. `V1.1` Revision Path Unblock
-2. `V1.2` Revision Recovery And Resume Correctness
-3. `V1.3` Live Validation And Learning Verification
-4. `V2A` Runtime Boundary Cleanup
-5. `V2B` Governance And Learning Expansion
-6. `V2C` Observability, KPI, And Broader Audit Expansion
+1. `V2A` Revision Path Unblock
+2. `V2B` Bounded ARB Validation
+3. `V2C` Minimal Telemetry Baseline
+4. `V2D` Revision Recovery And Resume Correctness
+5. `V3A` Runtime Boundary Cleanup
+6. `V3B` Governance And Learning Expansion
+7. `V3C` Observability, KPI, And Broader Audit Expansion
 
 ## Explicit Non-Goals Right Now
 
@@ -284,6 +335,6 @@ Not part of the current next step:
 
 The current lane stops being "V1 follow-up" only when:
 
-1. the live `agent-role-builder` run is mature enough to complete a truthful end-to-end validation pass
-2. the result is recorded in context
+1. `V2A` through `V2C` are complete
+2. the live `agent-role-builder` run is mature enough to produce a bounded truthful validation result
 3. the remaining work is no longer about pilot stabilization, but about deliberate expansion
