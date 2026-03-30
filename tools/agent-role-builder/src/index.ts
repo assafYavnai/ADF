@@ -8,7 +8,7 @@ import { validateRequestSanity, selfCheck } from "./services/validator.js";
 import { generateRoleMarkdown, generateRoleContract } from "./services/role-generator.js";
 import { executeBoard } from "./services/board.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./services/audit-utils.js";
-import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident } from "./services/json-ingress.js";
+import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./services/json-ingress.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
 
@@ -44,16 +44,42 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   const start = Date.now();
   const prov = createSystemProvenance("tools/agent-role-builder/build");
   clearTelemetryBuffer();
-  const governanceRuntime = await loadSharedGovernanceRuntimeModule();
+  const toolRunRoot = join("tools", "agent-role-builder", "runs");
+  let governanceRuntime: Awaited<ReturnType<typeof loadSharedGovernanceRuntimeModule>>;
+  try {
+    governanceRuntime = await loadSharedGovernanceRuntimeModule();
+  } catch (error) {
+    const incidentPath = await writeBootstrapStartupIncident({
+      toolRunRoot,
+      requestPath,
+      stage: "shared_governance_runtime_load",
+      message: error instanceof Error ? error.message : String(error),
+      details: {
+        component: "shared/governance-runtime",
+      },
+    });
+    throw new Error(`Failed to load governance runtime. Bootstrap incident: ${incidentPath}`);
+  }
 
-  const rawRequestText = await readFile(requestPath, "utf-8");
+  let rawRequestText: string;
+  try {
+    rawRequestText = await readFile(requestPath, "utf-8");
+  } catch (error) {
+    const incidentPath = await writeBootstrapStartupIncident({
+      toolRunRoot,
+      requestPath,
+      stage: "request_file_read",
+      message: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(`Failed to read role-builder request file. Bootstrap incident: ${incidentPath}`);
+  }
   const requestIngress = normalizeJsonText(rawRequestText);
   let rawRequest: unknown;
   try {
     rawRequest = JSON.parse(requestIngress.text);
   } catch (error) {
     const incidentPath = await writeBootstrapIngressIncident({
-      toolRunRoot: join("tools", "agent-role-builder", "runs"),
+      toolRunRoot,
       requestPath,
       stage: "request_json_parse",
       meta: requestIngress.meta,
@@ -61,7 +87,22 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     });
     throw new Error(`Failed to parse role-builder request JSON. Bootstrap incident: ${incidentPath}`);
   }
-  const request = RoleBuilderRequest.parse(rawRequest);
+  let request: RoleBuilderRequest;
+  try {
+    request = RoleBuilderRequest.parse(rawRequest);
+  } catch (error) {
+    const incidentPath = await writeBootstrapStartupIncident({
+      toolRunRoot,
+      requestPath,
+      stage: "request_schema_validation",
+      message: error instanceof Error ? error.message : String(error),
+      meta: requestIngress.meta,
+      details: {
+        error_name: error instanceof Error ? error.name : typeof error,
+      },
+    });
+    throw new Error(`Failed to validate role-builder request schema. Bootstrap incident: ${incidentPath}`);
+  }
   const runDir = outputDir ?? join("tools/agent-role-builder/runs", request.job_id);
 
   // Bug 4 fix: Guard against duplicate runs on the same job ID

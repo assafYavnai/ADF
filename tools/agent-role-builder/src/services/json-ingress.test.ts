@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { normalizeJsonText, writeBootstrapIngressIncident } from "./json-ingress.js";
+import { normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./json-ingress.js";
 
 test("writeBootstrapIngressIncident writes a single .json suffix for .json requests", async () => {
   const root = await mkdtemp(join(tmpdir(), "adf-json-ingress-test-"));
@@ -52,6 +52,28 @@ test("writeBootstrapIngressIncident strips only the final extension from multi-d
     });
 
     assert.match(basename(path), /^.+-request\.payload\.json$/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("writeBootstrapStartupIncident supports non-normalization startup failures", async () => {
+  const root = await mkdtemp(join(tmpdir(), "adf-json-ingress-test-"));
+  try {
+    const path = await writeBootstrapStartupIncident({
+      toolRunRoot: root,
+      requestPath: "C:/ADF/tools/agent-role-builder/tmp/request.json",
+      stage: "shared_module_load",
+      message: "module load failed",
+      details: { component: "governance-runtime" },
+    });
+
+    const recorded = JSON.parse(await readFile(path, "utf-8")) as {
+      normalization: unknown;
+      details: { component?: string } | null;
+    };
+    assert.equal(recorded.normalization, null);
+    assert.equal(recorded.details?.component, "governance-runtime");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

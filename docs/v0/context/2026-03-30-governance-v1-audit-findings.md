@@ -1,7 +1,7 @@
 # Governance V1 Audit Findings
 
 Date: 2026-03-30
-Status: analysis frozen, implementation follow-up not started
+Status: V1 fix round implemented locally, tests passed
 
 Related docs:
 
@@ -274,3 +274,27 @@ Deferred rationale:
 
 - current need is fail-closed behavior and audit precision
 - observability breadth should not widen the V1 hardening pass
+
+## V1 Fix Round Implementation Note
+
+The frozen V1 fix round has now been implemented.
+
+Landed behavior:
+
+1. startup incidents now cover the missing pre-run blocked cases:
+   - unreadable request file
+   - request schema validation failure
+   - shared governance runtime bootstrap failure
+2. governed rulebook shape is now validated during governance snapshot creation instead of degrading later in the board
+3. run-postmortem round snapshots now use round-local `artifact_markdown` and `self_check` refs rather than mutable run-root files
+4. relative traversal-style authority paths such as `..` now fail closed during governance snapshot path normalization
+
+Validation completed:
+
+1. targeted startup-ingress tests passed
+2. targeted round artifact-ref tests passed
+3. targeted governance-runtime path and rulebook-validation tests passed
+4. `tsc --noEmit` passed for `tools/agent-role-builder`
+5. `tsc --noEmit` passed for `shared`
+
+This closes the frozen V1 fix round. Remaining items after this point should be treated as new follow-up work, not as unfinished scope from the frozen pass.

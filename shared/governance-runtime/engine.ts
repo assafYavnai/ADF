@@ -244,6 +244,12 @@ async function copyRequiredFile(
 ) {
   await mkdir(dirname(snapshotPath), { recursive: true });
   const raw = await readFile(sourcePath, "utf-8");
+  if (kind === "component_rulebook") {
+    assertGovernedRulebookShape(
+      parseJsonTextWithBomSupport<unknown>(raw, `${kind} snapshot source`).value,
+      repoPath
+    );
+  }
   const content = rewriteMap
     ? JSON.stringify(rewriteKnownAuthorityPaths(parseJsonTextWithBomSupport<unknown>(raw, `${kind} snapshot source`).value, rewriteMap), null, 2)
     : raw;
@@ -347,6 +353,7 @@ function normalizePath(path: string): string {
 function toRepoRelativePath(pathValue: string): string {
   const normalizedInput = normalizePath(pathValue);
   if (!isAbsolute(pathValue)) {
+    assertNoRelativeTraversal(normalizedInput);
     return normalizedInput;
   }
 
@@ -401,4 +408,44 @@ function asNumber(value: unknown, label: string): number {
     throw new Error(`[governance-runtime] ${label} must be a finite number.`);
   }
   return value;
+}
+
+function assertNoRelativeTraversal(pathValue: string): void {
+  const segments = normalizePath(pathValue)
+    .split("/")
+    .filter((segment) => segment.length > 0 && segment !== ".");
+  if (segments.some((segment) => segment === "..")) {
+    throw new Error(`[governance-runtime] Relative authority path cannot escape repo bounds in the frozen V1 pilot: ${pathValue}`);
+  }
+}
+
+function assertGovernedRulebookShape(value: unknown, repoPath: string): void {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`[governance-runtime] Governed rulebook at ${repoPath} must be a JSON object.`);
+  }
+
+  const record = value as Record<string, unknown>;
+  if (!Array.isArray(record.rules)) {
+    throw new Error(`[governance-runtime] Governed rulebook at ${repoPath} must contain a top-level rules array.`);
+  }
+
+  for (const [index, rule] of record.rules.entries()) {
+    if (!rule || typeof rule !== "object" || Array.isArray(rule)) {
+      throw new Error(`[governance-runtime] Rule ${index} in ${repoPath} must be an object.`);
+    }
+    const entry = rule as Record<string, unknown>;
+    asString(entry.id, `rulebook.rules[${index}].id`);
+    asString(entry.rule, `rulebook.rules[${index}].rule`);
+    asString(entry.do, `rulebook.rules[${index}].do`);
+    asString(entry.dont, `rulebook.rules[${index}].dont`);
+    asString(entry.source, `rulebook.rules[${index}].source`);
+    asNumber(entry.version, `rulebook.rules[${index}].version`);
+    if (!Array.isArray(entry.applies_to) || entry.applies_to.some((item) => typeof item !== "string")) {
+      throw new Error(`[governance-runtime] rulebook.rules[${index}].applies_to must be an array of strings.`);
+    }
+  }
+
+  if (record.new_rule_ids !== undefined && (!Array.isArray(record.new_rule_ids) || record.new_rule_ids.some((item) => typeof item !== "string"))) {
+    throw new Error(`[governance-runtime] Governed rulebook at ${repoPath} may include new_rule_ids only as an array of strings.`);
+  }
 }

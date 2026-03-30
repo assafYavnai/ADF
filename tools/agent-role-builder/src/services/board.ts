@@ -208,7 +208,10 @@ export async function executeBoard(
   let currentRulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }> = [];
   try {
     const rulebookRaw = JSON.parse(stripUtf8Bom(await readFile(governanceContext.component_rulebook_path, "utf-8")));
-    currentRulebook = rulebookRaw.rules ?? [];
+    if (!rulebookRaw || typeof rulebookRaw !== "object" || !Array.isArray((rulebookRaw as { rules?: unknown }).rules)) {
+      throw new Error("Governed rulebook must contain a top-level rules array.");
+    }
+    currentRulebook = (rulebookRaw as { rules: typeof currentRulebook }).rules;
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     await writeBugReport({
@@ -798,7 +801,7 @@ async function writeRunPostmortem(
   await writeFile(join(runDir, "run-postmortem.json"), JSON.stringify(postmortem, null, 2), "utf-8");
 }
 
-function buildRoundSnapshotPaths(roundDir: string, request: RoleBuilderRequest) {
+export function buildRoundSnapshotPaths(roundDir: string, request: RoleBuilderRequest) {
   return {
     artifactMarkdownPath: join(roundDir, `${request.role_slug}-role.md`),
     selfCheckPath: join(roundDir, "self-check.json"),
@@ -817,7 +820,7 @@ async function writeRoundInputSnapshots(
   return paths;
 }
 
-async function buildRoundArtifactRefs(
+export async function buildRoundArtifactRefs(
   roundDir: string,
   request: RoleBuilderRequest
 ) {
@@ -836,11 +839,12 @@ async function buildRoundArtifactRefs(
   };
 }
 
-async function buildRunArtifactRefs(
+export async function buildRunArtifactRefs(
   runDir: string,
   roundDir: string,
   request: RoleBuilderRequest
 ) {
+  const roundSnapshots = buildRoundSnapshotPaths(roundDir, request);
   const fixItemsMapPath = join(roundDir, "fix-items-map.json");
   const learningJsonPath = join(roundDir, "learning.json");
   const diffSummaryPath = join(roundDir, "diff-summary.json");
@@ -850,8 +854,8 @@ async function buildRunArtifactRefs(
     fix_items_map: await pathExists(fixItemsMapPath) ? fixItemsMapPath.replace(/\\/g, "/") : null,
     learning_json: await pathExists(learningJsonPath) ? learningJsonPath.replace(/\\/g, "/") : null,
     diff_summary: await pathExists(diffSummaryPath) ? diffSummaryPath.replace(/\\/g, "/") : null,
-    artifact_markdown: join(runDir, `${request.role_slug}-role.md`).replace(/\\/g, "/"),
-    self_check: join(runDir, "self-check.json").replace(/\\/g, "/"),
+    artifact_markdown: roundSnapshots.artifactMarkdownPath.replace(/\\/g, "/"),
+    self_check: roundSnapshots.selfCheckPath.replace(/\\/g, "/"),
   };
 }
 

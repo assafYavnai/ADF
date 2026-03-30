@@ -37,6 +37,23 @@ export async function writeBootstrapIngressIncident(params: {
   meta: JsonIngressMeta;
   message: string;
 }): Promise<string> {
+  return writeBootstrapStartupIncident({
+    toolRunRoot: params.toolRunRoot,
+    requestPath: params.requestPath,
+    stage: params.stage,
+    message: params.message,
+    meta: params.meta,
+  });
+}
+
+export async function writeBootstrapStartupIncident(params: {
+  toolRunRoot: string;
+  requestPath: string;
+  stage: string;
+  message: string;
+  meta?: JsonIngressMeta;
+  details?: Record<string, unknown>;
+}): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const fileName = `${timestamp}-${buildBootstrapIncidentStem(params.requestPath)}.json`;
   const incidentPath = join(params.toolRunRoot, "_bootstrap", fileName);
@@ -44,12 +61,15 @@ export async function writeBootstrapIngressIncident(params: {
   await writeFile(incidentPath, JSON.stringify({
     stage: params.stage,
     source_path: params.requestPath.replace(/\\/g, "/"),
-    normalization: {
-      transform: params.meta.had_utf8_bom ? "strip_utf8_bom" : "none",
-      ...params.meta,
-    },
+    normalization: params.meta
+      ? {
+          transform: params.meta.had_utf8_bom ? "strip_utf8_bom" : "none",
+          ...params.meta,
+        }
+      : null,
     outcome: "blocked",
     message: params.message,
+    details: params.details ?? null,
     recorded_at: new Date().toISOString(),
   }, null, 2), "utf-8");
   return incidentPath.replace(/\\/g, "/");
