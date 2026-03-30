@@ -67,8 +67,12 @@ Phase 1 company functions should be defined from a canonical top-down JSON artif
 Current intended model:
 
 - each company function should have a function-definition JSON
-- the function-definition JSON should describe the lifecycle, phases, steps, lanes, gates, and handoffs
-- the JSON should be detailed enough that builders can materialize the function without re-inventing its structure
+- the function-definition JSON should be composition-first, explicit, and easy to read
+- shared repeated behavior should live in shared objects, especially engines
+- engines should accept governed inputs such as `role`, `rules`, `contract`, and `settings` when applicable
+- engines should own the repeated outputs they always produce, including fixed KPI families, logs, and memory artifacts
+- layer-specific members should only capture local specifics such as skip/create-artifact, routes, pushback targets, and local overrides
+- the JSON should still describe the lifecycle, phases, steps, lanes, gates, and handoffs clearly enough that builders can materialize the function without re-inventing its structure
 
 Current intended build chain:
 
@@ -82,7 +86,22 @@ Builder orchestration direction:
 
 - lower-level builders should include at least phase-builder and step-builder
 - shared gate and handoff generation should be reusable instead of redefined per function
+- builders should materialize shared-object bindings plus layer members, not hand-write repeated behavior per phase
 - once the function JSON is frozen, independent phases and independent steps should be buildable in parallel
+
+Current generic phase form:
+
+1. compliance gate
+2. create artifact
+3. review cycle
+4. finalization
+5. postmortem
+6. handoff
+
+Important rule:
+
+- `create artifact` may be skipped when the phase receives its governing artifact from upstream
+- the review cycle includes learning, hardening, self-healing, and fixing
 
 ## What Success Looks Like
 

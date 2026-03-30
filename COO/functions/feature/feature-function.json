@@ -280,6 +280,7 @@
     "top_down_definition": true,
     "bottom_up_materialization": true,
     "function_builder_required": true,
+    "build_model": "compose_shared_objects_and_bind_layer_members",
     "subtools": [
       "phase-builder",
       "step-builder",
@@ -295,19 +296,217 @@
       "note": "Requires frozen shared schemas and reusable builder contracts first."
     }
   },
-  "shared_patterns": {
-    "shared_review_model": {
-      "enabled": true,
-      "engine": "shared_review_engine",
-      "core_cycle_same_across_major_lanes": true,
-      "lane_specific_role_and_contract": true
+  "shared_objects": {
+    "phase_engine": {
+      "object_type": "engine",
+      "purpose": "Run the generic governed phase form for company-function phases.",
+      "generic_form": [
+        "compliance_gate",
+        "create_artifact",
+        "review_cycle",
+        "finalization",
+        "postmortem",
+        "handoff"
+      ],
+      "stage_rules": [
+        "The create_artifact stage may be skipped when the phase receives the governing artifact from upstream.",
+        "The review_cycle stage includes learning, hardening, self-healing, fixing, and repeated review until resolved or pushed back.",
+        "The finalization stage is the safeguard that enforces clean closeout before the phase is treated as complete.",
+        "The postmortem stage records dry facts, KPI summary, and analysis after the phase outcome is known.",
+        "The handoff stage packages the next-step artifact, next-step settings, and routing."
+      ],
+      "generic_inputs": [
+        "contract",
+        "settings"
+      ],
+      "fixed_outputs": {
+        "artifacts": [
+          "phase status receipt",
+          "phase summary",
+          "phase audit bundle"
+        ],
+        "kpis": [
+          "phase duration",
+          "phase pushback count",
+          "phase reopen count"
+        ],
+        "logs": [
+          "phase transition log",
+          "phase compliance log"
+        ],
+        "memory_artifacts": [
+          "phase state update",
+          "phase closeout receipt"
+        ]
+      },
+      "status": "** TBD **"
     },
-    "shared_phase_closeout_model": {
-      "required": true,
-      "closeout_module_status": "** TBD **",
-      "must_enforce_clean_handoff": true
+    "review_cycle_engine": {
+      "object_type": "engine",
+      "purpose": "Resolve governed review through repeated rounds until approved, blocked, or pushed back.",
+      "generic_form": [
+        "review",
+        "learning",
+        "hardening",
+        "self_healing",
+        "fixing",
+        "continue_until_resolved_or_pushback"
+      ],
+      "generic_inputs": [
+        "role",
+        "rules",
+        "contract",
+        "settings"
+      ],
+      "settings_examples": [
+        "max_cycles",
+        "strict_mode",
+        "reviewer_budget",
+        "fallback_policy"
+      ],
+      "fixed_outputs": {
+        "artifacts": [
+          "review round folder",
+          "accept_reject map",
+          "round reflection",
+          "review verdict"
+        ],
+        "kpis": [
+          "review cycle count",
+          "review round count",
+          "time to approval",
+          "reviewer latency"
+        ],
+        "logs": [
+          "review session registry",
+          "review metrics log",
+          "review closeout summary"
+        ],
+        "memory_artifacts": [
+          "review evidence record",
+          "findings record",
+          "lesson proposal"
+        ]
+      },
+      "implementation_candidate": "shared/review-engine",
+      "status": "exists_partial_alignment"
     },
-    "requirements_onion": {
+    "finalization_engine": {
+      "object_type": "engine",
+      "purpose": "Enforce phase closeout, clean tree discipline, commit evidence, and durable output integrity.",
+      "generic_inputs": [
+        "role",
+        "rules",
+        "contract",
+        "settings"
+      ],
+      "settings_examples": [
+        "commit_required",
+        "cleanup_required",
+        "repair_rogue_component",
+        "brain_sync_required"
+      ],
+      "fixed_outputs": {
+        "artifacts": [
+          "finalization report",
+          "clean tree validation",
+          "commit evidence"
+        ],
+        "kpis": [
+          "uncommitted file count before finalization",
+          "cleanup action count",
+          "closeout duration"
+        ],
+        "logs": [
+          "cleanup log",
+          "closeout validation log",
+          "safeguard warning log"
+        ],
+        "memory_artifacts": [
+          "closeout evidence record",
+          "rogue component warning",
+          "repair result record"
+        ]
+      },
+      "status": "** TBD **"
+    },
+    "postmortem_engine": {
+      "object_type": "engine",
+      "purpose": "Create a first-principles closeout report with dry facts, KPI summary, analysis, and improvement signals.",
+      "generic_inputs": [
+        "role",
+        "rules",
+        "contract",
+        "settings"
+      ],
+      "settings_examples": [
+        "depth",
+        "include_cycle_health",
+        "include_cost_analysis",
+        "route_lessons"
+      ],
+      "fixed_outputs": {
+        "artifacts": [
+          "postmortem report",
+          "dry facts summary",
+          "analysis summary"
+        ],
+        "kpis": [
+          "total time",
+          "total token cost",
+          "blocker count",
+          "review round count"
+        ],
+        "logs": [
+          "postmortem trace",
+          "evidence index"
+        ],
+        "memory_artifacts": [
+          "lessons intake",
+          "cycle health record",
+          "closeout record"
+        ]
+      },
+      "status": "** TBD **"
+    },
+    "handoff_engine": {
+      "object_type": "engine",
+      "purpose": "Validate the handoff package, set next-step settings, and route the artifact to the correct next phase or external engine.",
+      "generic_inputs": [
+        "role",
+        "rules",
+        "contract",
+        "settings"
+      ],
+      "settings_examples": [
+        "default_route",
+        "allow_parallel_routes",
+        "next_step_settings",
+        "pushback_route"
+      ],
+      "fixed_outputs": {
+        "artifacts": [
+          "handoff bundle",
+          "routing decision",
+          "next-step settings package"
+        ],
+        "kpis": [
+          "handoff validation failure count",
+          "handoff duration"
+        ],
+        "logs": [
+          "handoff validation log",
+          "routing log"
+        ],
+        "memory_artifacts": [
+          "handoff receipt",
+          "routing decision record"
+        ]
+      },
+      "status": "** TBD **"
+    },
+    "requirements_onion_model": {
+      "object_type": "model",
       "enabled": true,
       "layers": [
         "topic",
@@ -338,7 +537,7 @@
       "note": "The feature function starts only after COO handoff. It does not start from vague CEO input. The first feature-function phase tries to turn the finalized requirement list into a frozen requirement list."
     },
     "default_phase_order": [
-      "requirement-list-review",
+      "requirement-list-approval",
       "design",
       "planning",
       "setup-analysis",
@@ -352,262 +551,562 @@
       "For the current scope, the CTO queue/admission layer is intentionally skipped and the feature function begins directly from a finalized requirement-list handoff.",
       "The first feature-function phase tries to reach a frozen requirement-list state or pushes back to the COO.",
       "Design is required only when the feature crosses the design complexity gate.",
-      "Simple features may route directly from requirement-list review to planning.",
+      "Simple features may route directly from requirement-list-approval to planning.",
       "Setup-analysis is required for substantial work or any work that benefits from explicit execution mapping.",
       "Implementation may start only after approved planning and setup-analysis, unless setup-analysis is explicitly waived.",
       "Postmortem completes the feature from the CEO point of view."
     ],
     "phases": [
       {
-        "phase_id": "requirement-list-review",
-        "owner": "Feature Function / Requirements Review",
+        "phase_id": "requirement-list-approval",
+        "owner": "Feature Function / Requirements Approval",
         "purpose": "Take the COO-finalized requirement list, try to reach a frozen requirement-list state, or push back to the COO if it is not freeze-ready.",
-        "state_transition": {
-          "entry_state": "finalized",
-          "success_state": "frozen",
-          "failure_state": "pushback_to_coo"
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "COO finalized requirement list handoff"
+          ],
+          "state_transition": {
+            "entry_state": "finalized",
+            "success_state": "frozen",
+            "failure_state": "pushback_to_coo"
+          },
+          "create_artifact": {
+            "enabled": false,
+            "reason": "The governing artifact is received from the COO handoff."
+          },
+          "phase_artifact": "frozen requirement list",
+          "phase_gates": [
+            "Finalized Requirement List Entry Gate",
+            "Frozen Requirement List Gate"
+          ],
+          "handoff_routes": [
+            "design",
+            "planning"
+          ],
+          "pushback_target": "COO",
+          "ceo_checkpoint": "pushback_returns_through_coo"
         },
-        "entry_from": [
-          "COO finalized requirement list handoff"
-        ],
-        "step_sequence": [
-          "validate-finalized-requirement-list",
-          "requirement-list-self-check",
-          "governed-requirement-list-review",
-          "freeze-requirement-list-or-pushback",
-          "route-frozen-requirement-list"
-        ],
-        "exception_paths": [
-          "pushback-to-coo"
-        ],
-        "gates": [
-          "Finalized Requirement List Entry Gate",
-          "Frozen Requirement List Gate"
-        ],
-        "review_required": true,
-        "outputs": [
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "requirement-list-approval-phase-contract",
+            "settings": {
+              "skip_create_artifact": true,
+              "clean_handoff_required": true
+            }
+          },
+          "review_cycle_engine": {
+            "role": "requirements-approval-review-board",
+            "rules": "requirements-rulebook",
+            "contract": "requirement-list-approval-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true,
+              "allow_local_fix_loop": true
+            }
+          },
+          "finalization_engine": {
+            "role": "requirements-finalizer",
+            "rules": "requirements-rulebook",
+            "contract": "requirement-list-approval-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "requirements-postmortem-analyst",
+            "rules": "requirements-rulebook",
+            "contract": "requirement-list-approval-postmortem-contract",
+            "settings": {
+              "depth": "phase",
+              "route_lessons": true
+            }
+          },
+          "handoff_engine": {
+            "role": "requirements-handoff-controller",
+            "rules": "requirements-rulebook",
+            "contract": "requirement-list-approval-handoff-contract",
+            "settings": {
+              "default_route": "complexity_gate",
+              "pushback_route": "COO"
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "frozen requirement list",
-          "requirement-list review evidence",
+          "requirements approval evidence",
           "pushback package to COO when freeze fails",
           "design-or-planning handoff bundle"
-        ],
-        "handoff_to": [
-          "design",
-          "planning"
-        ],
-        "ceo_checkpoint": "pushback_returns_through_coo"
+        ]
       },
       {
         "phase_id": "design",
         "owner": "CTO / Design Function",
         "purpose": "Turn a frozen requirement package into an approved design contract when complexity requires design-first routing.",
-        "entry_from": [
-          "requirement-list-review"
-        ],
-        "entry_condition": "design_complexity_gate_passed",
-        "step_sequence": [
-          "confirm-routed-entry",
-          "draft-or-revise-design-contract",
-          "design-self-check",
-          "governed-design-review",
-          "redesign-if-rejected",
-          "freeze-approved-design",
-          "write-controller-receipts"
-        ],
-        "gates": [
-          "Design Entry Gate",
-          "Design Contract Gate",
-          "Design Self-Check Gate",
-          "Design Approval Gate"
-        ],
-        "review_required": true,
-        "outputs": [
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "requirement-list-approval"
+          ],
+          "entry_condition": "design_complexity_gate_passed",
+          "create_artifact": {
+            "enabled": true,
+            "artifact": "design contract",
+            "artifact_owner": "designer"
+          },
+          "phase_artifact": "approved design contract",
+          "phase_gates": [
+            "Design Entry Gate",
+            "Design Approval Gate"
+          ],
+          "handoff_routes": [
+            "planning"
+          ],
+          "pushback_target": "upstream authority",
+          "ceo_checkpoint": "only_if_approved_intent_scope_or_behavior_changes"
+        },
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "design-phase-contract",
+            "settings": {
+              "skip_create_artifact": false,
+              "dependency_impact_check": true
+            }
+          },
+          "review_cycle_engine": {
+            "role": "design-review-board",
+            "rules": "design-rulebook",
+            "contract": "design-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true
+            }
+          },
+          "finalization_engine": {
+            "role": "design-finalizer",
+            "rules": "design-rulebook",
+            "contract": "design-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "design-postmortem-analyst",
+            "rules": "design-rulebook",
+            "contract": "design-postmortem-contract",
+            "settings": {
+              "depth": "phase"
+            }
+          },
+          "handoff_engine": {
+            "role": "design-handoff-controller",
+            "rules": "design-rulebook",
+            "contract": "design-handoff-contract",
+            "settings": {
+              "default_route": "planning"
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "approved design contract",
           "design review evidence",
           "design guide updates",
           "design handoff bundle"
-        ],
-        "handoff_to": [
-          "planning"
-        ],
-        "ceo_checkpoint": "only_if_approved_intent_scope_or_behavior_changes"
+        ]
       },
       {
         "phase_id": "planning",
         "owner": "CTO / Planning Function",
         "purpose": "Turn requirements or approved design into execution authority that implementers can follow without guessing.",
-        "entry_from": [
-          "requirement-list-review",
-          "design"
-        ],
-        "step_sequence": [
-          "classify-planning-source",
-          "planning-entry-gate",
-          "load-learning-and-context",
-          "discover-gaps",
-          "draft-or-revise-plan-spec",
-          "planning-self-check",
-          "no-guessing-readiness-check",
-          "governed-planning-review",
-          "redesign-if-rejected",
-          "freeze-approved-plan-spec"
-        ],
-        "gates": [
-          "Artifact Classification Gate",
-          "No-Guessing Gate",
-          "Planning Approval Gate"
-        ],
-        "review_required": true,
-        "outputs": [
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "requirement-list-approval",
+            "design"
+          ],
+          "create_artifact": {
+            "enabled": true,
+            "artifact": "plan/spec",
+            "artifact_owner": "planner"
+          },
+          "phase_artifact": "approved plan/spec",
+          "phase_gates": [
+            "Artifact Classification Gate",
+            "No-Guessing Gate",
+            "Planning Approval Gate"
+          ],
+          "handoff_routes": [
+            "setup-analysis"
+          ],
+          "pushback_target": "upstream authority",
+          "ceo_checkpoint": "only_if_business_decision_needed"
+        },
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "planning-phase-contract",
+            "settings": {
+              "skip_create_artifact": false,
+              "dependency_impact_check": true
+            }
+          },
+          "review_cycle_engine": {
+            "role": "planning-review-board",
+            "rules": "planning-rulebook",
+            "contract": "planning-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true
+            }
+          },
+          "finalization_engine": {
+            "role": "planning-finalizer",
+            "rules": "planning-rulebook",
+            "contract": "planning-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "planning-postmortem-analyst",
+            "rules": "planning-rulebook",
+            "contract": "planning-postmortem-contract",
+            "settings": {
+              "depth": "phase"
+            }
+          },
+          "handoff_engine": {
+            "role": "planning-handoff-controller",
+            "rules": "planning-rulebook",
+            "contract": "planning-handoff-contract",
+            "settings": {
+              "default_route": "setup-analysis"
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "approved plan/spec",
           "planning draft",
           "planning review evidence",
           "setup-analysis-ready handoff"
-        ],
-        "handoff_to": [
-          "setup-analysis"
-        ],
-        "ceo_checkpoint": "only_if_business_decision_needed"
+        ]
       },
       {
         "phase_id": "setup-analysis",
         "owner": "CTO / Execution Analysis Function",
         "purpose": "Turn approved planning authority into a concrete execution map, dependency set, and safe parallel branch plan.",
-        "entry_from": [
-          "planning"
-        ],
-        "step_sequence": [
-          "confirm-approved-planning-source",
-          "identify-execution-units-and-dependencies",
-          "mark-safe-parallel-branches",
-          "identify-aot-and-missing-capability",
-          "generate-execution-map",
-          "setup-analysis-self-check",
-          "governed-setup-analysis-review",
-          "refine-if-rejected",
-          "handoff-approved-execution-map"
-        ],
-        "gates": [
-          "Source Approval Gate",
-          "Execution Map Gate",
-          "Setup-Analysis Approval Gate"
-        ],
-        "review_required": true,
-        "outputs": [
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "planning"
+          ],
+          "create_artifact": {
+            "enabled": true,
+            "artifact": "execution map",
+            "artifact_owner": "setup analyst"
+          },
+          "phase_artifact": "approved execution map",
+          "phase_gates": [
+            "Source Approval Gate",
+            "Execution Map Gate",
+            "Setup-Analysis Approval Gate"
+          ],
+          "handoff_routes": [
+            "implementation"
+          ],
+          "pushback_target": "planning",
+          "ceo_checkpoint": "only_if_business_decision_needed"
+        },
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "setup-analysis-phase-contract",
+            "settings": {
+              "skip_create_artifact": false,
+              "dependency_impact_check": true
+            }
+          },
+          "review_cycle_engine": {
+            "role": "setup-analysis-review-board",
+            "rules": "setup-analysis-rulebook",
+            "contract": "setup-analysis-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true
+            }
+          },
+          "finalization_engine": {
+            "role": "setup-analysis-finalizer",
+            "rules": "setup-analysis-rulebook",
+            "contract": "setup-analysis-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "setup-analysis-postmortem-analyst",
+            "rules": "setup-analysis-rulebook",
+            "contract": "setup-analysis-postmortem-contract",
+            "settings": {
+              "depth": "phase"
+            }
+          },
+          "handoff_engine": {
+            "role": "setup-analysis-handoff-controller",
+            "rules": "setup-analysis-rulebook",
+            "contract": "setup-analysis-handoff-contract",
+            "settings": {
+              "default_route": "implementation",
+              "allow_parallel_routes": true
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "execution-map.json",
           "execution-map.md",
           "dependency gate list",
           "parallel branch plan",
           "implementation readiness bundle"
-        ],
-        "handoff_to": [
-          "implementation"
-        ],
-        "ceo_checkpoint": "only_if_business_decision_needed"
+        ]
       },
       {
         "phase_id": "implementation",
         "owner": "Implementation Department",
         "purpose": "Execute the approved plan/spec and execution map in bounded phases without redesigning upstream authority.",
-        "entry_from": [
-          "setup-analysis"
-        ],
-        "step_sequence": [
-          "confirm-implementation-authority",
-          "execute-governed-phase",
-          "phase-self-check-or-equivalent-closeout",
-          "advance-only-after-explicit-phase-closeout",
-          "governed-implementation-review",
-          "revise-if-rejected",
-          "close-approved-implementation-state",
-          "prepare-postmortem-inputs"
-        ],
-        "gates": [
-          "Implementation Entry Gate",
-          "Phase Closeout Gate",
-          "Implementation Approval Gate",
-          "Implementation Closeout Gate"
-        ],
-        "review_required": true,
-        "lane_policy": {
-          "default_lane_shape": "single_main_lane",
-          "parallel_lanes_allowed": true,
-          "parallel_lanes_condition": "Only when setup-analysis declares safe parallel branches and governing execution authority permits it.",
-          "parallel_branch_ownership_required": true,
-          "sub_lane_term": "** TBD **"
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "setup-analysis"
+          ],
+          "create_artifact": {
+            "enabled": true,
+            "artifact": "implemented changes",
+            "artifact_owner": "implementer"
+          },
+          "phase_artifact": "implemented change set",
+          "phase_gates": [
+            "Implementation Entry Gate",
+            "Implementation Approval Gate",
+            "Implementation Closeout Gate"
+          ],
+          "lane_policy": {
+            "default_lane_shape": "single_main_lane",
+            "parallel_lanes_allowed": true,
+            "parallel_lanes_condition": "Only when setup-analysis declares safe parallel branches and governing execution authority permits it.",
+            "parallel_branch_ownership_required": true,
+            "sub_lane_term": "** TBD **"
+          },
+          "handoff_routes": [
+            "finalization"
+          ],
+          "pushback_target": "setup-analysis",
+          "ceo_checkpoint": "only_if_business_decision_needed"
         },
-        "outputs": [
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "implementation-phase-contract",
+            "settings": {
+              "skip_create_artifact": false,
+              "dependency_impact_check": true,
+              "allow_parallel_lanes": true
+            }
+          },
+          "review_cycle_engine": {
+            "role": "implementation-review-board",
+            "rules": "implementation-rulebook",
+            "contract": "implementation-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true
+            }
+          },
+          "finalization_engine": {
+            "role": "implementation-finalizer",
+            "rules": "implementation-rulebook",
+            "contract": "implementation-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "implementation-postmortem-analyst",
+            "rules": "implementation-rulebook",
+            "contract": "implementation-postmortem-contract",
+            "settings": {
+              "depth": "phase"
+            }
+          },
+          "handoff_engine": {
+            "role": "implementation-handoff-controller",
+            "rules": "implementation-rulebook",
+            "contract": "implementation-handoff-contract",
+            "settings": {
+              "default_route": "finalization"
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "implemented changes",
           "phase closeout artifacts",
           "implementation review evidence",
           "implementation closeout evidence",
           "postmortem-ready bundle"
-        ],
-        "handoff_to": [
-          "finalization"
-        ],
-        "ceo_checkpoint": "only_if_business_decision_needed"
+        ]
       },
       {
         "phase_id": "finalization",
         "owner": "COO / Finalization Function",
         "purpose": "Act as safeguard closeout before final CEO-visible completion, enforce clean tree, validate durable evidence, and prepare the postmortem boundary.",
-        "entry_from": [
-          "implementation"
-        ],
-        "step_sequence": [
-          "load-finalization-state",
-          "refresh-learning",
-          "validate-closeout-artifacts",
-          "validate-merge-readiness-when-required",
-          "verify-brain-and-discussion-close-obligations",
-          "shut-down-owned-processes",
-          "refresh-dependency-map-when-available",
-          "clean-disposable-scratch-and-write-finalization-artifacts"
-        ],
-        "gates": [
-          "Brain Closeout Gate",
-          "Closeout Validation Gate",
-          "Cleanup Gate"
-        ],
-        "review_required": "** TBD **",
-        "outputs": [
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "implementation"
+          ],
+          "create_artifact": {
+            "enabled": true,
+            "artifact": "finalization report",
+            "artifact_owner": "finalization function"
+          },
+          "phase_artifact": "finalization report and validated closeout evidence",
+          "phase_gates": [
+            "Brain Closeout Gate",
+            "Closeout Validation Gate",
+            "Cleanup Gate"
+          ],
+          "handoff_routes": [
+            "postmortem"
+          ],
+          "pushback_target": "implementation review cycle",
+          "ceo_checkpoint": "no"
+        },
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "finalization-phase-contract",
+            "settings": {
+              "skip_create_artifact": false,
+              "dependency_impact_check": true
+            }
+          },
+          "review_cycle_engine": {
+            "role": "finalization-review-board",
+            "rules": "finalization-rulebook",
+            "contract": "finalization-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true
+            }
+          },
+          "finalization_engine": {
+            "role": "finalization-finalizer",
+            "rules": "finalization-rulebook",
+            "contract": "finalization-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true,
+              "repair_rogue_component": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "finalization-postmortem-analyst",
+            "rules": "finalization-rulebook",
+            "contract": "finalization-postmortem-contract",
+            "settings": {
+              "depth": "phase"
+            }
+          },
+          "handoff_engine": {
+            "role": "finalization-handoff-controller",
+            "rules": "finalization-rulebook",
+            "contract": "finalization-handoff-contract",
+            "settings": {
+              "default_route": "postmortem"
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "finalization status",
           "finalization report",
           "validated durable closeout evidence",
           "postmortem input bundle"
-        ],
-        "handoff_to": [
-          "postmortem"
-        ],
-        "ceo_checkpoint": "no"
+        ]
       },
       {
         "phase_id": "postmortem",
         "owner": "COO / Board Learning Function",
         "purpose": "Preserve what happened, measure outcome, classify findings and improvements, and produce the real CEO-visible closeout.",
-        "entry_from": [
-          "finalization"
-        ],
-        "step_sequence": [
-          "determine-postmortem-type-and-depth",
-          "preserve-raw-evidence",
-          "summarize-step-cycle-or-run",
-          "verify-closeout-and-lifecycle-fidelity",
-          "extract-findings-lessons-and-evidence",
-          "classify-findings",
-          "decide-next-action-and-route-or-apply",
-          "record-result-and-refresh-learning",
-          "close-postmortem-scope"
-        ],
-        "gates": [
-          "Postmortem Type Gate",
-          "Governance Fidelity Gate",
-          "Classification Gate",
-          "Closeout Gate"
-        ],
-        "review_required": "** TBD **",
-        "outputs": [
+        "phase_template_ref": "phase_engine",
+        "phase_members": {
+          "entry_from": [
+            "finalization"
+          ],
+          "create_artifact": {
+            "enabled": true,
+            "artifact": "CEO closeout package",
+            "artifact_owner": "postmortem analyst"
+          },
+          "phase_artifact": "postmortem report and CEO closeout package",
+          "phase_gates": [
+            "Postmortem Type Gate",
+            "Governance Fidelity Gate",
+            "Classification Gate",
+            "Closeout Gate"
+          ],
+          "handoff_routes": [
+            "merger-engine"
+          ],
+          "pushback_target": "upstream phase owner",
+          "ceo_checkpoint": "feature_done_after_this_phase"
+        },
+        "engine_bindings": {
+          "phase_engine": {
+            "contract": "postmortem-phase-contract",
+            "settings": {
+              "skip_create_artifact": false,
+              "dependency_impact_check": false
+            }
+          },
+          "review_cycle_engine": {
+            "role": "postmortem-review-board",
+            "rules": "postmortem-rulebook",
+            "contract": "postmortem-review-contract",
+            "settings": {
+              "max_cycles": "** TBD **",
+              "strict_mode": true
+            }
+          },
+          "finalization_engine": {
+            "role": "postmortem-finalizer",
+            "rules": "postmortem-rulebook",
+            "contract": "postmortem-finalization-contract",
+            "settings": {
+              "commit_required": true,
+              "cleanup_required": true
+            }
+          },
+          "postmortem_engine": {
+            "role": "run-postmortem-analyst",
+            "rules": "postmortem-rulebook",
+            "contract": "postmortem-report-contract",
+            "settings": {
+              "depth": "run",
+              "include_cycle_health": true,
+              "include_cost_analysis": true,
+              "route_lessons": true
+            }
+          },
+          "handoff_engine": {
+            "role": "postmortem-handoff-controller",
+            "rules": "postmortem-rulebook",
+            "contract": "postmortem-handoff-contract",
+            "settings": {
+              "default_route": "merger-engine"
+            }
+          }
+        },
+        "phase_specific_outputs": [
           "postmortem summary",
           "raw evidence",
           "lessons intake",
@@ -621,11 +1120,7 @@
           "result",
           "run summary",
           "improvements"
-        ],
-        "handoff_to": [
-          "merger-engine"
-        ],
-        "ceo_checkpoint": "feature_done_after_this_phase"
+        ]
       }
     ]
   },
@@ -644,6 +1139,10 @@
       "status": "emerging"
     },
     {
+      "role_id": "requirements-approval-review-board",
+      "status": "** TBD **"
+    },
+    {
       "role_id": "designer",
       "status": "** TBD **"
     },
@@ -653,6 +1152,10 @@
     },
     {
       "role_id": "implementer",
+      "status": "** TBD **"
+    },
+    {
+      "role_id": "finalizer",
       "status": "** TBD **"
     },
     {
@@ -677,14 +1180,29 @@
       "status": "exists"
     },
     {
+      "id": "phase-engine",
+      "type": "module_or_tool",
+      "status": "** TBD **"
+    },
+    {
+      "id": "finalization-engine",
+      "type": "module_or_tool",
+      "status": "** TBD **"
+    },
+    {
+      "id": "postmortem-engine",
+      "type": "module_or_tool",
+      "status": "** TBD **"
+    },
+    {
+      "id": "handoff-engine",
+      "type": "module_or_tool",
+      "status": "** TBD **"
+    },
+    {
       "id": "component-repair-engine",
       "type": "module",
       "status": "exists"
-    },
-    {
-      "id": "handover-closeout-module",
-      "type": "module",
-      "status": "** TBD **"
     },
     {
       "id": "function-builder",
@@ -709,12 +1227,12 @@
   ],
   "open_items": [
     "Exact JSON schema for company-function definitions is ** TBD **.",
-    "Exact per-phase contract shapes are ** TBD **.",
+    "Exact per-phase contract shapes and engine-binding schemas are ** TBD **.",
     "Exact builder input/output contracts for function-builder, phase-builder, and step-builder are ** TBD **.",
     "Exact gate-builder and handoff-builder split is ** TBD **.",
     "Exact sink contract for decisions, findings, fixes, and KPI records is ** TBD **.",
+    "Exact engine settings schemas, defaults, and budget policies are ** TBD **.",
     "Exact internal state-tree function branch shape for feature delivery is ** TBD **.",
-    "Exact review depth and board shape for finalization and postmortem are ** TBD **.",
     "Exact lane hierarchy term under implementation is ** TBD **.",
     "Exact role roster and ownership model for every phase is ** TBD **.",
     "Exact wire-up contract between this function and the COO controller is ** TBD **."
