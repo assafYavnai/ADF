@@ -248,7 +248,8 @@ async function copyRequiredFile(
     kind,
     repo_path: normalizePath(repoPath),
     snapshot_path: normalizePath(snapshotPath),
-    sha256: sha256(content),
+    source_sha256: sha256(raw),
+    snapshot_sha256: sha256(content),
   };
 }
 

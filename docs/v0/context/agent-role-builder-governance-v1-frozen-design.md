@@ -60,8 +60,14 @@ Rules:
 
 - `snapshot_id`
 - `component`
-- `governed_files[]`: `kind`, `repo_path`, `snapshot_path`, `sha256`
-- `authority_docs[]`: `repo_path`, `snapshot_path`, `sha256`
+- `governed_files[]`: `kind`, `repo_path`, `snapshot_path`, `source_sha256`, `snapshot_sha256`
+- `authority_docs[]`: `repo_path`, `snapshot_path`, `source_sha256`, `snapshot_sha256`
+
+Hash semantics:
+
+- `source_sha256` identifies the repo-root source file that snapshot creation read
+- `snapshot_sha256` identifies the rewritten snapshot copy that downstream V1 consumers actually use
+- prompt/contract snapshot copies are expected to differ from source bytes because embedded authority refs are rewritten to snapshot-local paths
 
 ### PilotGovernanceContext
 
@@ -291,6 +297,12 @@ The same verification also exposed three implementation issues that must be fixe
 - pre-snapshot roster-governance failures must write `governance-incident.json`, not fall through the generic validation-error path
 - `result.json.learning_artifact` must be emitted only when `rounds/round-N/learning.json` was actually written
 - the learning engine needs bounded cleanup for the observed malformed `new_rules[*].applies_to` string-to-array mismatch so the governed run does not fail on that known shape drift alone
+
+Follow-up implementation conclusion:
+
+- those three verification issues were fixed in the pilot implementation
+- the snapshot manifest now carries both source and snapshot hashes so provenance and effective-authority integrity are not conflated
+- out-of-scope ad-hoc/code-review-lane files were removed again to keep the committed V1 surface aligned with the frozen non-goals
 
 First-run note:
 

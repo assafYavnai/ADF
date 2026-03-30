@@ -9,7 +9,8 @@ export interface GovernanceFileSnapshot {
   kind: string;
   repo_path: string;
   snapshot_path: string;
-  sha256: string;
+  source_sha256: string;
+  snapshot_sha256: string;
 }
 
 export interface GovernanceSnapshot {

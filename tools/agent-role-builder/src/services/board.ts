@@ -400,7 +400,7 @@ export async function executeBoard(
     });
 
     if (roundDir) {
-      const artifactRefs = buildArtifactRefs(roundDir, request, roundResult);
+      const artifactRefs = await buildArtifactRefs(roundDir, request, roundResult);
       const audit = buildAuditEnvelope({
         requestJobId: request.job_id,
         round: roundResult.round,
@@ -734,7 +734,7 @@ async function writeRunPostmortem(
       }
     }
 
-    const artifactRefs = buildArtifactRefs(join(runDir, "rounds", `round-${round.round}`), request, round);
+    const artifactRefs = await buildArtifactRefs(join(runDir, "rounds", `round-${round.round}`), request, round);
     return {
       round: round.round,
       review_mode: round.reviewMode,
@@ -780,7 +780,7 @@ async function writeRunPostmortem(
   );
   const latestRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
   const latestArtifactRefs = latestRound
-    ? buildArtifactRefs(join(runDir, "rounds", `round-${latestRound.round}`), request, latestRound)
+    ? await buildArtifactRefs(join(runDir, "rounds", `round-${latestRound.round}`), request, latestRound)
     : null;
   const postmortem = attachGovernanceBinding({
     schema_version: "1.0",
@@ -833,19 +833,21 @@ async function writeRunPostmortem(
   await writeFile(join(runDir, "run-postmortem.json"), JSON.stringify(postmortem, null, 2), "utf-8");
 }
 
-function buildArtifactRefs(
+async function buildArtifactRefs(
   roundDir: string,
   request: RoleBuilderRequest,
   round: Pick<BoardRoundResult, "round" | "fixItemsMap">
 ) {
+  const learningJsonPath = join(roundDir, "learning.json");
+  const diffSummaryPath = join(roundDir, "diff-summary.json");
   return {
     review_json: join(roundDir, "review.json").replace(/\\/g, "/"),
     compliance_map: join(roundDir, "compliance-map.json").replace(/\\/g, "/"),
     fix_items_map: round.fixItemsMap && round.fixItemsMap.length > 0
       ? join(roundDir, "fix-items-map.json").replace(/\\/g, "/")
       : null,
-    learning_json: join(roundDir, "learning.json").replace(/\\/g, "/"),
-    diff_summary: join(roundDir, "diff-summary.json").replace(/\\/g, "/"),
+    learning_json: await pathExists(learningJsonPath) ? learningJsonPath.replace(/\\/g, "/") : null,
+    diff_summary: await pathExists(diffSummaryPath) ? diffSummaryPath.replace(/\\/g, "/") : null,
     artifact_markdown: join(ctxSafeBase(roundDir), `${request.role_slug}-role.md`).replace(/\\/g, "/"),
     self_check: join(ctxSafeBase(roundDir), "self-check.json").replace(/\\/g, "/"),
   };
