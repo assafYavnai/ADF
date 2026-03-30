@@ -1,0 +1,17 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "blocking",
+      "summary": "Terminal-state predicates are not mechanically exclusive, so the same evidence can route to both `blocked` and `pushback`.",
+      "redesignGuidance": "Make `blocked` an execution/system-failure terminal state only, after the inherited error-escalation path. Reserve `pushback` for missing, contradictory, or authority-unsupported role semantics. Express each predicate in terms of explicit observable conditions so exactly one state can be true.",
+      "findingCount": 2
+    }
+  ],
+  "unresolved": [
+    "group-1: Terminal-state predicates are not mechanically exclusive, so the same evidence can route to both `blocked` and `pushback`.",
+    "group-2: Cross-round tracking is defined at conceptual-group granularity in some places and finding granularity in others, which breaks canonical identity and reviewer negotiation.",
+    "group-3: The draft introduces unsourced review-mode vocabulary and duplicates the compliance-sweep rule in conflicting forms."
+  ],
+  "leader_rationale": "This run cannot freeze. `max_review_rounds` is 1 in the normalized request, and material issues remain after round 0, so the correct terminal outcome is `resume_required` rather than plain `pushback`. The remaining blockers are not minor-arbitration candidates: Step 5 still permits overlapping `blocked`/`pushback` truth conditions, cross-round carry-forward does not use one canonical identity model, and the freeze evidence is not credible because the compliance map omits ARB-012 while the self-check is still reported as passed despite emitted errors.\nFinal-round ultimatum applied to the single most important remaining material item from each reviewer plus system material gaps.\nConvergence trend: 3 -> 1 issues. Converging - keep fixing."
+}

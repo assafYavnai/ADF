@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "delta",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/agent-role-builder-governance-smoke-role.md",
+  "round": 0,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority uses a strict precedence chain with three operative layers and a separate 'Reference evidence' heading for static docs. No governance documents appear as reporting-chain superiors."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>",
+      "evidence_summary": "'Material pushback' is defined once in <guardrails> as 'any unresolved reviewer conceptual group with blocking or major severity.' All downstream references (Step 5, completion) use this definition without rephrasing."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "<outputs> uses two distinct labeled tables: 'Canonical artifacts promoted on frozen or frozen_with_conditions' and 'Run-scoped evidence rooted at runs/<job-id>/' with full tool-relative paths in every row."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 5",
+      "evidence_summary": "Step 5 now defines five mutually exclusive predicates evaluated in priority order with explicit observable conditions. 'blocked' is scoped to mechanical/structural failures only; 'pushback' requires structural validation to have succeeded first, eliminating overlap."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "Step 3 specifies semantic concept matching (not literal string equality) for out-of-scope verification, and requires the self-check to record evidence for each executed check."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "The Out of scope list contains six distinct, non-overlapping exclusions with no duplicate entries or contradictory phrasings."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>",
+      "evidence_summary": "Arbitration is defined with: trigger condition (after inherited split-verdict path exhausted), actor (the leader), evidence requirements (arbitration_used, arbitration_rationale, deferred item IDs in result.json), and limitation (minor/suggestion only; may never resolve blocking or major items)."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Every canonical artifact row uses a full tool-relative path (e.g., tools/agent-role-builder/role/agent-role-builder-governance-smoke-role.md). No basename-only references remain."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "<completion> defines testable completion criteria for all five terminal states (frozen, frozen_with_conditions, pushback, resume_required, blocked), each with the specific artifacts that must exist."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>",
+      "evidence_summary": "<context-gathering> is labeled 'Preconditions before Step 1' with its own numbered list. Step 1 begins the execution sequence separately, eliminating ambiguity about whether context-gathering is step 0 or step 1."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <guardrails>, <outputs>",
+      "evidence_summary": "All cross-round tracking now uses 'conceptual-group ID' as the canonical identity. Step 4 item 2 keys fix-items-map.json by reviewer conceptual-group ID. Step 4 item 6 carries unresolved conceptual groups forward by conceptual-group ID. Guardrails and outputs tables use the same terminology."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 5",
+      "evidence_summary": "<guardrails> explicitly states 'Preserve decision history across update and fix operations by appending a dated section to the canonical decision log. Prior decision-log entries are never deleted.' Step 5 promotion rules repeat 'append a dated section.'"
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<steps>",
+      "evidence_summary": "Every step header carries the label '(target-state required behavior)', clearly marking all steps as describing the intended target state rather than current implementation."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4",
+      "evidence_summary": "Step 4 item 5 explicitly states learning.json is written 'even on the terminal clean round.' Guardrails declares learning.json, compliance-map.json, and diff-summary.json as universal per-round artifacts with no revision-specific guard."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "<outputs> provides one authoritative artifact matrix with two tables. Every artifact has its artifact class, full canonical tool-relative path or root, and write lifecycle. No artifact is declared in multiple places with conflicting paths."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "<authority> names the exact governing sources in precedence order and uses 'Inherited runtime obligations from the active contract' to reference shared policy rather than restate it locally."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "<role> describes the standing mission ('create, update, and repair governed ADF agent role packages') without reference to current run state, resume conditions, or round-specific context."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Writable surface is anchored to the active runtime contract and lists exact tool-relative roots: tools/agent-role-builder/role/ and tools/agent-role-builder/runs/<job-id>/. Static documents are explicitly excluded from granting operative write authority."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Operative authority lists only binding governance sources (COO controller, runtime contract, component governance files). Reference documents are in a separate 'Reference evidence' section. No request-time settings appear in the durable authority model."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4",
+      "evidence_summary": "Review-mode vocabulary (full, delta, regression_sanity) is sourced from the active contract's review_modes field. Step 4 item 1 now uses 'regression_sanity sweep' for the final clean round, matching the contract vocabulary exactly. The duplicate 'full sweep again' phrasing has been removed."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "The Out of scope section contains only exclusion statements. No positive clarifications or inclusion semantics appear in the exclusions list."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4",
+      "evidence_summary": "Step 4 defines an ordered seven-item round sub-sequence: compliance mapping, fix-items mapping (when applicable), reviewer verdict production, split-verdict handling, learning engine, rulebook walk with diff, and post-round postmortem refresh. Each sub-step names the artifact it writes."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>, <context-gathering>",
+      "evidence_summary": "<authority> lists the three component-local governance files (rulebook.json, review-prompt.json, review-contract.json) and uses 'Inherited runtime obligations from the active contract' to avoid restating shared policy. <context-gathering> precondition 2 loads all three files at start."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>",
+      "evidence_summary": "<inputs> enumerates all seven required prerequisites: request JSON, source_refs, runtime review contract (including shared contract extension), component governance files, active reviewer roster, governance configuration (review budget, split-verdict, freeze rules, pushback), and runtime configuration (execution mode, watchdog timeout, launch attempts, job ID, active review mode)."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-30T08:34:43.098Z"
+}

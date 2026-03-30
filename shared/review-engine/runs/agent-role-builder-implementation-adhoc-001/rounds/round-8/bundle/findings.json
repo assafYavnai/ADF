@@ -1,0 +1,37 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Self-check severity is flattened away, so warning-level self-check findings are treated as material failures throughout the board and result pipeline.",
+    "severity": "major",
+    "redesign_guidance": "Carry ValidationIssue objects with their original severity end-to-end. Derive material repair work, unresolved items, and result red_flags from the preserved severity rather than coercing all self-check output to major/error.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "Run-postmortem closeout is still not canonical across exit paths.",
+    "severity": "major",
+    "redesign_guidance": "Use one canonical run-postmortem builder for zero-round, pre-round blocked, and normal round exits. Always emit the same question_outputs shape and derive PM-003 counts from explicit validation/self-check/review issue arrays on every terminal path.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-3",
+    "summary": "Shared learning and repair outputs still are not validated against their declared schemas before they update machine-facing governed artifacts.",
+    "severity": "major",
+    "redesign_guidance": "Validate learning-engine output against LearningOutput and repair-engine output against the shared compliance/fix-item schemas at the boundary, and fail closed before updating rulebook.json or emitting round evidence when any entry is malformed.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "toValidationIssue in index.ts hardcodes severity:'error' for all self-check issues returned from board.ts, silently promoting MISSING_ROLE_NAME and MISSING_OUT_OF_SCOPE warnings to errors. This contaminates result.red_flags and any downstream consumer that treats error-severity self-check items as blocking signals.",
+    "severity": "minor",
+    "redesign_guidance": "Either preserve severity through the board.ts pipeline (widen the internal type to include severity) or give toValidationIssue access to the original severity and pass it through. If the intent is truly to treat all board self-check failures as errors for result purposes, document that explicitly and guard red_flags against including severity-upcast warnings.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "Two minor dead-code items: (1) the cycle-postmortem self-reference update performs a redundant pathExists check on a file just written — the check will always be true; (2) mdLower is declared and assigned in validator.ts selfCheck but never consumed.",
+    "severity": "suggestion",
+    "redesign_guidance": "Remove the pathExists guard in writeCyclePostmortem — write the final artifact in a single pass with cycle_postmortem:true. Remove the unused mdLower variable from selfCheck.",
+    "finding_count": 2
+  }
+]

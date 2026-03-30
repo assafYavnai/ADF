@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "extends": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/shared/learning-engine/review-contract.json",
+  "component": "agent-role-builder",
+  "artifact_domain": "design",
+  "artifact_kind": "role-definition",
+  "component_root": "tools/agent-role-builder",
+  "component_owned_files": {
+    "review_prompt": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/tools/agent-role-builder/review-prompt.json",
+    "review_contract": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/tools/agent-role-builder/review-contract.json",
+    "rulebook": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/tools/agent-role-builder/rulebook.json"
+  },
+  "required_runtime_inputs": [
+    "Active reviewer roster that satisfies the shared review contract roster requirements",
+    "Component-owned governance files listed in component_owned_files",
+    "Runtime review mode selection for the current round"
+  ],
+  "validation_requirements": {
+    "enforce_shared_roster_requirements": true,
+    "fail_closed_on_missing_component_governance_files": true
+  },
+  "review_modes": {
+    "first_round": "full",
+    "middle_rounds": "delta",
+    "sanity_check": "regression_sanity"
+  },
+  "source_authority_paths": [
+    "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/docs/v0/review-process-architecture.md",
+    "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/docs/v0/architecture.md"
+  ],
+  "artifact_scope": [
+    "tools/agent-role-builder/role/",
+    "tools/agent-role-builder/runs/"
+  ],
+  "ignore_areas": [
+    "Do not redesign unrelated shared infrastructure.",
+    "Do not invent canonical output paths outside the declared package files.",
+    "Do not weaken terminal-state semantics to force convergence."
+  ],
+  "schema_refs": {
+    "shared_review_contract": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance/shared/learning-engine/review-contract.json",
+    "compliance_map": "shared/learning-engine/compliance-map.ts#ComplianceMap",
+    "fix_items_map": "shared/learning-engine/fix-items-map.ts#FixItemsMap"
+  },
+  "budget_hints": {
+    "prefer_changed_section_focus_after_round0": true,
+    "leader_input_mode": "normalized-review-summary",
+    "full_sweep_on_regression_sanity": true
+  }
+}

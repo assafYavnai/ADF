@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 8,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Board and zero-round closeout now emit the same canonical PM-003 field set, and cycle-postmortem PM-003 now includes review_issue_count in total_issue_count.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Revision-mode component repair now requires a non-empty fix_items_map section and blocks immediately when it is missing.",
+      "evidence_location": "shared/component-repair-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "run-postmortem PM-003 now exposes validation_issue_count, self_check_issue_count, review_issue_count, and total_issue_count on both board and zero-round paths.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "cycle-postmortem PM-003 now includes review_issue_count and a total_issue_count that includes review-phase findings.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T21:55:00.000Z"
+}

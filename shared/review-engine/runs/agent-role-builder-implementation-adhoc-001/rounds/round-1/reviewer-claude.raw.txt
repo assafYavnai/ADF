@@ -1,0 +1,157 @@
+```json
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "review-runtime.ts is still a live mirror of shared/review-engine/config.ts — COD-004 only partially fixed. board.ts imports loadReviewRuntimeConfig, resolveReviewMode, ReviewRuntimeConfig, and ReviewVerdictShape from the local copy, not through loadSharedReviewEngineModule. The local module retains full copies of all config helpers. buildReviewerSummaryText is exported but dead code. Type definitions are independently defined in both modules with no enforced shared source — structural compatibility is accidental.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1.1",
+          "description": "board.ts line 7-11 imports loadReviewRuntimeConfig and resolveReviewMode from ./review-runtime.js (local copy). board.ts line 160 calls loadReviewRuntimeConfig() with no args — the local hardcoded-path variant. The shared engine's version requires a componentRoot arg and would be called via loadSharedReviewEngineModule. The two code paths diverge in API surface and are not guaranteed to stay in sync.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:7-11, :160; tools/agent-role-builder/src/services/review-runtime.ts:134-149"
+        },
+        {
+          "id": "f1.2",
+          "description": "review-runtime.ts:165 exports buildReviewerSummaryText — a full copy of the shared engine's implementation. No file in the bundle imports this export. It is dead code that will silently diverge from the canonical copy in shared/review-engine/config.ts when either is updated.",
+          "source_section": "tools/agent-role-builder/src/services/review-runtime.ts:165-188"
+        },
+        {
+          "id": "f1.3",
+          "description": "ReviewRuntimeConfig, ReviewVerdictShape, ReviewConceptualGroup, ReviewFixDecision, ReviewPromptConfig, SharedReviewContract, ComponentReviewContract are independently defined in review-runtime.ts (lines 4-77) and again in shared/review-engine/types.ts. TypeScript structural typing masks this divergence. Any change to one set of interfaces will not propagate to the other, making future mismatches silent.",
+          "source_section": "tools/agent-role-builder/src/services/review-runtime.ts:4-77; shared/review-engine/types.ts:1-91"
+        }
+      ],
+      "redesign_guidance": "Delete loadReviewRuntimeConfig, resolveReviewMode, formatFocusAreas, formatSourceAuthorities, formatIgnoreAreas, buildReviewerSummaryText, countSeverities, normalizeMode, uniqueStrings, and loadJson from review-runtime.ts. Board.ts should call loadSharedReviewEngineModule() once at executeBoard startup and use the returned loadReviewRuntimeConfig (wrapping the componentRoot arg with the agent-role-builder path), resolveReviewMode, and all other config helpers from the single shared source. Import ReviewRuntimeConfig and ReviewVerdictShape from the shared types module (via the module loader or a direct path). review-runtime.ts should retain only the component-specific DEFAULT_COMPONENT_PROMPT and DEFAULT_COMPONENT_CONTRACT constants if they cannot be encoded in the JSON files."
+    },
+    {
+      "id": "group-2",
+      "summary": "run-postmortem.json audit block is missing four contract-required fields: provider, model, latency_ms, fallback_used. The shared review contract lists all nine fields as required for audit output. review.json correctly tracks these per-participant, but the run-postmortem audit block emits only component, job_id, round, review_mode, and artifact_refs. COD-003 was accepted but the run-postmortem gap was not closed.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f2.1",
+          "description": "writeRunPostmortem (board.ts:684-692) emits an audit object with five fields: component, job_id, round, review_mode, artifact_refs. The shared contract audit_requirements.required_fields also mandates provider, model, latency_ms, fallback_used. None of these four are present. The run-postmortem is a required contract output; its audit block must satisfy the same schema.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:684-692; shared/learning-engine/review-contract.json:106-123"
+        }
+      ],
+      "redesign_guidance": "Extend the run-postmortem audit block to include aggregate last-round provenance: provider and model from the leader participant, total latency_ms for the round (sum across participants), and fallback_used (true if any participant in the last round was a fallback). These values are available from rounds[rounds.length - 1].participants. The per-participant breakdown can remain in round_snapshots; the top-level audit block must satisfy the contract schema independently."
+    },
+    {
+      "id": "group-3",
+      "summary": "When a leader emits frozen_with_conditions while material repair work exists, canRevise is false (frozen_with_conditions is in the exclusion list) and no terminal-state branch fires until finalRound. The board silently iterates through all remaining rounds without revision, re-running reviewers on unrevised content and burning budget. The shared contract's arbitration rule explicitly forbids frozen_with_conditions for blocking or major issues; the board has no detection or escalation path for this leader contract violation.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f3.1",
+          "description": "board.ts:348-353: canRevise excludes frozen_with_conditions from revision eligibility. board.ts:558: the frozen_with_conditions terminal exit requires !hasMaterialRepairWork. When hasMaterialRepairWork is true AND leaderVerdict is frozen_with_conditions, neither canRevise nor any terminal branch fires on non-final rounds. The board loops with no revision and no logged escalation until finalRound triggers resume_required.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:344-353, :558-563, :572-577"
+        },
+        {
+          "id": "f3.2",
+          "description": "The shared contract's arbitration_rule field states: 'Arbitration is minor-only. Blocking or major disagreements never qualify for freeze by arbitration.' A leader emitting frozen_with_conditions with material issues violates this rule. The board must detect the violation — not silently absorb it — and either escalate to blocked or override the verdict to pushback to allow revision.",
+          "source_section": "shared/learning-engine/review-contract.json:104; tools/agent-role-builder/src/services/board.ts:344-353, :544-577"
+        }
+      ],
+      "redesign_guidance": "Add an explicit pre-exit contract-violation check: if (roundResult.leaderVerdict === 'frozen_with_conditions' && hasMaterialRepairWork) { log a governance violation; write a bug report; treat the effective verdict as 'pushback' and allow canRevise if rounds remain, or escalate to blocked if on the final round. } This check should run before the canRevise predicate and before the terminal-state branches so the override is visible in the audit trail. Update the diff-summary written in roundDir to record the override reason."
+    },
+    {
+      "id": "group-4",
+      "summary": "frozen_with_conditions does not promote artifacts to the canonical directory. The original reviewer-claude:group-1 redesign guidance explicitly required 'a frozen_with_conditions branch that promotes artifacts but writes deferred items to a conditions manifest.' The implementation writes conditions-manifest.json but performs no mkdir or file copy to canonical paths. buildResult hardcodes all canonical path fields to null for any status that is not 'frozen'.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f4.1",
+          "description": "index.ts:372 sets frozen = status === 'frozen'. All five canonical path fields (directory, markdown, contract, decision_log, board_summary) are null for frozen_with_conditions. index.ts:231-237 writes canonical files only when status === 'frozen'. The conditions-manifest.json is written (index.ts:209-228) but the artifacts it references remain in runDir and are never promoted. Consumers receiving a frozen_with_conditions result cannot locate the canonical artifacts by following result.json paths.",
+          "source_section": "tools/agent-role-builder/src/index.ts:209-237, :372-389"
+        }
+      ],
+      "redesign_guidance": "Extend the frozen check to include frozen_with_conditions for canonical promotion: const frozen = status === 'frozen' || status === 'frozen_with_conditions'. Promote markdown, contract, decision log, and board summary to the canonical directory in the frozen_with_conditions branch (mirroring the frozen block at index.ts:231-237). Update buildResult to return populated canonical paths for frozen_with_conditions. The conditions-manifest.json should be written in addition to the canonical files, not instead of them. Canonical paths serve consumers who need to read the output; the conditions manifest signals what still needs resolution."
+    },
+    {
+      "id": "group-5",
+      "summary": "cycle-postmortem.json artifacts.cycle_postmortem is hardcoded true. All other artifact presence flags in the same block use pathExists() for mechanical verification. The hardcoded value violates the evidence-integrity principle (IMP-002) and was a finding in reviewer-claude:group-6 that was marked accepted but not closed.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f5.1",
+          "description": "index.ts:332: cycle_postmortem: true is hardcoded inside writeCyclePostmortem itself. result_json (line 298), run_postmortem (line 299), normalized_request (line 300), and session_registry (line 301) all call pathExists(). A partial write failure in writeCyclePostmortem would still emit true for cycle_postmortem, producing a self-certifying artifact that claims existence it cannot prove.",
+          "source_section": "tools/agent-role-builder/src/index.ts:298-334"
+        }
+      ],
+      "redesign_guidance": "Move the cycle_postmortem presence check out of writeCyclePostmortem. After the function returns, call pathExists(join(params.runDir, 'cycle-postmortem.json')) and record the result in the postmortem or in a separate wrapper that collects all four artifact flags with the same pathExists pattern. Alternatively, write cycle_postmortem last after all other artifacts and check for its own existence using pathExists before including the flag — or simply remove the self-referential flag and rely on the other three independently verified flags."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "validator.ts correctly enforces even roster count, minimum pair requirement, and Codex+Claude pair composition. All three checks fail closed with structured error codes. COD-001 is satisfied."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "Terminal status handling now covers resume_required and frozen_with_conditions with explicit exit branches. frozen_with_conditions is in the shared contract allowed_statuses and in the board LeaderVerdict type union. Final-round ultimatum revision is implemented. COD-002 is substantially satisfied. The residual gap (group-3 above) is a new behavioral finding about leader contract violations, not the original terminal-status vocabulary gap."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "reject_fix",
+      "reason": "review.json correctly includes per-participant provider/model/latency_ms/fallback_used. However, run-postmortem.json audit block (board.ts:684-692) is missing these four fields, violating the shared contract's audit_requirements.required_fields. The fix was partial. COD-003 is not satisfied for run-postmortem."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "decision": "reject_fix",
+      "reason": "Prompt building is correctly routed through loadSharedReviewEngineModule. Role revision correctly uses shared/component-repair-engine. However, config loading (loadReviewRuntimeConfig) and mode resolution (resolveReviewMode) still use the local review-runtime.ts implementation, and all interface types are independently redefined locally. The live consumer is not fully routed through the shared engine. COD-004 is partially satisfied but the mirrored config path and type divergence remain."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "reject_fix",
+      "reason": "LeaderVerdict type includes frozen_with_conditions (board.ts:92). Exit branches for resume_required (line 551-556) and frozen_with_conditions (line 558-563) are present. However, frozen_with_conditions does not promote to the canonical directory — the original redesign guidance explicitly required artifact promotion for this status. index.ts only promotes for status === 'frozen'. The fix is incomplete."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "filterMaterialChecklist correctly separates blocking/major items. hasMaterialRepairWork uses the filtered list. hasAnyRepairWork uses the full list for revision quality. Freeze gate and frozen_with_conditions gate use hasMaterialRepairWork. The material/cosmetic distinction is correctly implemented per the redesign guidance."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "reject_fix",
+      "reason": "buildReviewerSummaryText and buildLeaderPrompt are now built in the shared engine and called through loadSharedReviewEngineModule in buildBrief. However, review-runtime.ts still exports a full copy of buildReviewerSummaryText (dead code) alongside live copies of loadReviewRuntimeConfig and resolveReviewMode that board.ts actively uses. The duplicate is not deleted; the fix is incomplete."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "decision": "accept_fix",
+      "reason": "role-generator.ts routes all repair passes through loadSharedComponentRepairEngineModule and runComponentRepair. The local repair orchestration has been replaced by a thin adapter. The shared engine produces the compliance map, fix items map, and diff summary. COD-004's repair-path aspect is satisfied."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "decision": "accept_fix",
+      "reason": "arbitration_used and arbitration_rationale are tracked in BoardRoundResult and propagated through buildResult and the cycle postmortem. loadSharedReviewEngineModule is used for prompt building. Silent config fallbacks log errors. The minor arbitration tracking gap is closed."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-6",
+      "decision": "reject_fix",
+      "reason": "index.ts:332 still hardcodes cycle_postmortem: true inside writeCyclePostmortem. The other four artifact flags use pathExists(). This is the same issue raised in round 0 and marked accepted — the evidence does not show it was fixed."
+    }
+  ],
+  "residual_risks": [
+    "loadSharedReviewEngineModule and loadSharedLearningEngineModule (shared-module-loader.ts) are not included in this review bundle. If they resolve to compiled JS rather than TypeScript source, a stale build could silently serve an older version of the shared engine. Build dependency and module-resolution strategy for shared/* within the tools/agent-role-builder package should be verified.",
+    "The withFileLock implementation (board.ts:719-743) retries up to 20 times with a linear backoff. On a loaded Windows filesystem, 20 * 50ms * 10 = ~10 seconds maximum wait. If two concurrent board runs target the same rulebook.json, the second will block for up to 10 seconds, then throw. This is safe but could surface as an opaque error with no retry guidance for the operator.",
+    "board.ts:857-862 writes the markdown brief to a temp file using USERPROFILE/AppData/Local/Temp. If USERPROFILE is unset (CI, container, or Linux), it falls back to process.env.TEMP ?? process.env.TMP ?? '.'. The '.' fallback writes to the working directory, which may cause collisions across concurrent runs sharing the same job_id prefix. This is a minor platform-portability risk.",
+    "The shared-module-loader pattern (dynamic require at runtime) means type safety across the shared/tool boundary relies on structural compatibility rather than import-time enforcement. If shared engine interfaces change (e.g., ReviewRuntimeConfig gains a required field), the board will pass an incomplete config object to the shared prompt builders with no compile-time error.",
+    "buildBrief (board.ts:888) calls loadSharedReviewEngineModule() on every participant invocation inside each round. If the shared engine module is loaded via dynamic import, this may cause repeated module resolution on every call. The result is not cached. Under high reviewer counts or many rounds, this is an unnecessary repeated cost."
+  ],
+  "strengths": [
+    "Terminal-status vocabulary is now consistent across the shared contract allowed_statuses, LeaderVerdictShape, LeaderVerdict local type, and all board exit branches — the cross-layer alignment problem from round 0 is closed for the vocabulary itself.",
+    "Fail-closed roster validation (validator.ts) is well-structured: checks roster size, parity, minimum pair count, and per-pair provider composition with distinct error codes for each invariant.",
+    "The shared component-repair-engine is now the single repair path: role-generator.ts routes both initial_rule_sweep and revision through runComponentRepair, producing a boxed bundle with manifest, artifact, rulebook, findings, self-check, and authority copies.",
+    "review.json audit block is complete: it includes the full participant array with provider, model, latency_ms, fallback_used, and invocation_id per participant, plus artifact_refs. This satisfies the contract's per-round audit evidence requirement.",
+    "File-lock semantics for rulebook.json writes (withFileLock using exclusive open flags) are correct and appropriate for a shared rulebook accessed across concurrent runs.",
+    "Error escalation from parse failures is correct: pre-validation → auto-fix attempt → BoardBlockedError, with bug reports written at each stage and no silent degraded fallbacks.",
+    "Material/cosmetic repair work separation (filterMaterialChecklist) correctly gates the freeze and frozen_with_conditions exits on blocking/major items only, preventing minor/suggestion findings from blocking termination.",
+    "The final-round ultimatum pattern is implemented correctly: when finalRound && hasMaterialRepairWork and the leader is not blocked, a narrowed ultimatum checklist is built and a repair pass is executed before the resume_required return, giving material items one last correction opportunity.",
+    "Duplicate-run guard in buildRole (index.ts:40-57) correctly fails closed on ENOENT-vs-other distinction and provides a clear operator message for repeated job_id reuse."
+  ]
+}
+```

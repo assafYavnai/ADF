@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 0,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Added fail-closed validator checks for reviewer roster size and parity so governed review cannot start with an invalid reviewer set.",
+      "evidence_location": "tools/agent-role-builder/src/services/validator.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Aligned terminal status handling across shared contracts, prompts, types, board runtime branches, and result synthesis; added explicit handling for resume_required and frozen_with_conditions plus final-round ultimatum behavior.",
+      "evidence_location": "shared/learning-engine/review-contract.json; shared/review-engine/config.ts; shared/review-engine/types.ts; shared/review-engine/engine.ts; tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/schemas/result.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Preserved canonical severities through fix-decision handling, added artifact_refs and fallback provenance to audit/KPI outputs, and protected shared rulebook writes with a file lock.",
+      "evidence_location": "shared/learning-engine/fix-items-map.ts; shared/component-repair-engine/types.ts; tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Repointed live consumers at the shared review, learning, and component-repair engines and added a shared-module loader so agent-role-builder no longer carries separate prompt/runtime copies for those concerns.",
+      "evidence_location": "shared/review-engine/engine.ts; shared/review-engine/config.ts; shared/component-repair-engine/engine.ts; tools/agent-role-builder/src/services/shared-module-loader.ts; tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/services/role-generator.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Added the missing leader status values to the contract/type/runtime set and implemented explicit board exits for leader-issued resume_required and frozen_with_conditions.",
+      "evidence_location": "shared/learning-engine/review-contract.json; shared/review-engine/types.ts; tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/schemas/result.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Separated material repair work from cosmetic deferred items so freeze is gated only by blocking and major issues.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Made the shared review engine the canonical source for reviewer and leader prompt construction instead of maintaining diverging local helper copies.",
+      "evidence_location": "shared/review-engine/config.ts; shared/review-engine/engine.ts; tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Adopted shared/component-repair-engine as the live repair path by replacing the local repair orchestration in role-generator with a thin adapter over the shared engine.",
+      "evidence_location": "shared/component-repair-engine/engine.ts; tools/agent-role-builder/src/services/role-generator.ts; tools/agent-role-builder/src/services/shared-module-loader.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Plumbed arbitration_used from board rounds into result synthesis and removed silent governance/config fallbacks by logging or failing closed for critical files.",
+      "evidence_location": "shared/review-engine/config.ts; tools/agent-role-builder/src/services/review-runtime.ts; tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/services/role-generator.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-6",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Cycle postmortem artifact presence is now derived from actual file existence checks instead of hardcoded true flags.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T11:10:00.000Z"
+}

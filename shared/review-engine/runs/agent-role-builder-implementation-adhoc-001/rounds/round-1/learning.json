@@ -1,0 +1,67 @@
+{
+  "new_rules": [
+    {
+      "id": "COD-005",
+      "rule": "Validate cross-field contract invariants on reviewer and leader outputs before they drive workflow state, and fail closed with an explicit override when the combination is illegal.",
+      "applies_to": [
+        "leader verdict parsing",
+        "board state-machine transitions",
+        "arbitration handling",
+        "terminal-state promotion logic",
+        "diff-summary and bug-report generation"
+      ],
+      "do": "Before computing `canRevise` or terminal exit, check that the chosen status is legal for the unresolved set. Example: if status is `frozen_with_conditions` but unresolved items include any `blocking` or `major`, write a bug report, record the override reason in the diff summary, and treat the effective status as `pushback` (or `blocked` on the final round).",
+      "dont": "Accept a leader status at face value just because it is syntactically valid. Example: let `frozen_with_conditions` disable revision while material repair work still exists, causing extra review rounds on unchanged artifacts.",
+      "source": "Round 1: reviewer-claude:group-3 showed the board accepting an invalid `frozen_with_conditions` verdict even when material repair work remained.",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-001",
+      "explanation": "This is a direct match: mandatory governed review artifacts are governance prerequisites, and the rule already requires startup validation and fail-closed behavior when required review files are missing or malformed."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-002",
+      "explanation": "The issue is incomplete implementation of a contract-defined status across promotion, result-building, and exit semantics. COD-002 already requires every workflow status to be exhaustively implemented across runtime branches."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "covered_by_rule_id": "IMP-016",
+      "explanation": "The learning step is a critical workflow operation. IMP-016 already says critical-operation failures must write a bug report and escalate instead of failing open and letting later stages continue."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "This finding is the contract-audit case COD-003 was written for: emit the canonical audit object with the required provenance fields across review and postmortem artifacts, and derive artifact references from real outputs."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-5",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "The finding is exactly mirrored shared-runtime drift. COD-004 already requires one canonical shared implementation with live consumers importing it instead of maintaining local copies."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "This is a more detailed instance of the same mirror problem: duplicated config helpers, duplicated types, and dead local exports all violate the requirement to converge live consumers on one canonical shared runtime."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "Missing `provider`, `model`, `latency_ms`, and `fallback_used` from `run-postmortem.json` is a direct contract-provenance omission, which COD-003 already covers."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "covered_by_rule_id": "COD-002",
+      "explanation": "This is another incomplete terminal-status implementation: `frozen_with_conditions` exists in the contract but not in canonical promotion and result-path handling. COD-002 already requires those status branches to be fully wired."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "covered_by_rule_id": "IMP-002",
+      "explanation": "Hardcoding artifact presence instead of checking the file system violates the rulebook's requirement for mechanical self-check evidence rather than assumed success."
+    }
+  ],
+  "no_rule_needed": []
+}

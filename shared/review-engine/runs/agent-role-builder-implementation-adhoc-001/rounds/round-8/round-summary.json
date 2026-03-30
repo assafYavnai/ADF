@@ -1,0 +1,65 @@
+{
+  "round": 8,
+  "review_mode": "delta",
+  "review_outcome": "pushback",
+  "unresolved_items": [
+    "reviewer-codex:group-1: Terminal-state evidence is still not canonical after the merged repair flow: final-round ultimatum edits and PM-003 counters diverge from the machine-facing artifacts that are supposed to describe them.",
+    "reviewer-codex:group-2: The merged revision flow does not fail closed when required fix-items evidence is missing, so round 1+ can silently drop the review negotiation contract.",
+    "reviewer-claude:group-1: run-postmortem.json PM-003 is still non-canonical across its two writers. writeRunPostmortem (board.ts) hardcodes validation_issue_count:0 and omits total_issue_count; writeZeroRoundRunPostmortem (index.ts) derives validation_issue_count correctly and includes total_issue_count but omits review_issue_count. The same governed artifact has two divergent PM-003 shapes depending on exit path. COD-009 compliance is only partial — the block was added but the canonical-shape requirement is unmet."
+  ],
+  "improvements_applied": [
+    "Self-check issues now preserve their original ValidationIssue severity through board execution and result synthesis instead of being flattened to major or error.",
+    "Board run-postmortem artifacts now include the PM-003 issue-count block, bringing zero-round and normal/blocked board closeout onto the same question_outputs shape.",
+    "Learning-engine output and component-repair-engine compliance/fix-item arrays are now schema-validated at the boundary before they can update governed artifacts.",
+    "Result synthesis no longer upgrades warning-level self-check issues into error severity, so red_flags reflect real error-severity findings only.",
+    "The redundant cycle-postmortem existence check and the unused validator mdLower variable were removed."
+  ],
+  "reviewers": [
+    {
+      "reviewer_id": "reviewer-codex",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "latency_ms": 264481,
+      "was_fallback": false,
+      "verdict": "reject",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 2,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/reviewer-codex.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/reviewer-codex.parsed.json"
+    },
+    {
+      "reviewer_id": "reviewer-claude",
+      "provider": "claude",
+      "model": "sonnet",
+      "latency_ms": 347121,
+      "was_fallback": false,
+      "verdict": "reject",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 1,
+        "minor": 1,
+        "suggestion": 0
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/reviewer-claude.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/reviewer-claude.parsed.json"
+    }
+  ],
+  "merged_findings_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/merged-findings.json",
+  "learning_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/learning.json",
+  "totals": {
+    "blocking": 0,
+    "major": 3,
+    "minor": 1,
+    "suggestion": 0
+  },
+  "learning": {
+    "new_rules": 0,
+    "existing_rules_covering": 4,
+    "no_rule_needed": 0,
+    "latency_ms": 71263
+  }
+}

@@ -1,0 +1,91 @@
+```json
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "extractReferencedPaths silently drops evidence paths that don't match the ^(shared|tools|docs)/ prefix filter, creating a conditional rather than unconditional fail-closed guarantee for COD-008. Any compliance, fix-items, or diff-summary evidence_location that uses an absolute path, Windows-style separator, or an unrecognized prefix is silently excluded from the bundle without error or warning.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "collectEvidenceSourcePaths (run-adhoc-code-review-round.ts line 523) filters extracted path parts with /^(shared|tools|docs)\\//.test(part). Parts that fail the filter are silently discarded. copyIntoBundle correctly throws for missing files, but only if the path was not already discarded. The fail-closed guarantee therefore holds only for evidence paths whose prefixes are on the allowlist, not for all referenced paths.",
+          "source_section": "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts, extractReferencedPaths function, line 523"
+        }
+      ],
+      "redesign_guidance": "Emit at minimum a console.warn when a path part is dropped due to unrecognized prefix, so bundle construction doesn't silently diverge from what the evidence map claims. Alternatively, validate that all extracted paths have a recognized prefix before discarding, and throw if any path is unboxable and the evidence document that cited it is from a required evidence file (compliance map, fix-items map)."
+    },
+    {
+      "id": "group-2",
+      "summary": "buildResult sets pushback_path to a non-existent file for validation-blocked exits that occur before board execution in index.ts. The pushback.json write is guarded by a post-board code path that is never reached in the early blocked exit, so result.json carries a dangling machine-facing reference.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "index.ts lines 100-127: when blockingIssues.length > 0 the run returns early after writing result.json and cycle-postmortem.json. buildResult at line 435 sets pushback_path: join(runDir, `${request.role_slug}-pushback.json`) for status==\"blocked\". The actual pushback.json write (lines 171-187) is inside the post-board block that is never executed in this path. A machine consumer reading pushback_path from a pre-board blocked result follows a dangling reference.",
+          "source_section": "tools/agent-role-builder/src/index.ts, buildResult function line 435; early validation-blocked exit lines 100-127"
+        }
+      ],
+      "redesign_guidance": "Either write a minimal pushback.json in the pre-board blocked exit path (containing at minimum the validation_issues that caused the block), or set pushback_path to null in buildResult when the caller signals a pre-board blocked status. The validation_issues array in result.json already carries the canonical signal; the dangling path reference is purely a machine-facing evidence integrity issue."
+    },
+    {
+      "id": "group-3",
+      "summary": "loadPriorRoundSummaries in run-adhoc-code-review-round.ts synthesizes leaderVerdict from blocking/major issue counts and always emits empty unresolved and improvementsApplied arrays. The prior rounds context embedded in the reviewer prompt is therefore approximate and may not match actual board outcomes for rounds that had real unresolved items.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f3",
+          "description": "run-adhoc-code-review-round.ts lines 350-357: leaderVerdict is synthesized as 'pushback' if totals.blocking > 0 || totals.major > 0, otherwise 'frozen'. The actual leader verdict is not persisted in round-summary.json. unresolved and improvementsApplied are always [] regardless of actual outcome. The prior rounds block in the reviewer prompt shows fabricated Leader= values and zero unresolved items even when prior rounds had actual unresolved issues that drove subsequent rounds.",
+          "source_section": "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts, loadPriorRoundSummaries function, lines 350-357"
+        }
+      ],
+      "redesign_guidance": "Persist the actual leader_verdict, unresolved items, and improvements_applied in round-summary.json at write time (the round-summary is already written at line 247), then read them back in loadPriorRoundSummaries instead of synthesizing from count heuristics. This gives reviewers accurate prior-round context rather than a count-derived approximation."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "collectEvidenceSourcePaths now extracts evidence-referenced paths from compliance, fix-items, and diff-summary scopes and adds them to the bundle via copyIntoBundle. copyIntoBundle throws on readFile failure, and component-repair-engine's copyRequiredFile throws for any unreadable authority file. The boxing guarantee is verified for all current evidence path formats."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "engine.ts parseReviewerOutput validates verdict with !allowedVerdicts.includes(String(verdict)) and throws an error for any off-contract token. The prior 'approve' -> 'approved' alias is gone and no normalization code remains. The shared contract vocabulary is the single enforcement point."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "accept_fix",
+      "reason": "writeRunPostmortem is called on all exit paths in executeBoard including the two pre-round blocked exits at lines 199 and 236 (rulebook load failure and initial sweep failure respectively). result evidence counters (validation_issue_count, self_check_issue_count) derive from separate validationIssues and selfCheckIssues arrays with semantically accurate field names rather than ad hoc filters."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "The parseReviewerResponse pre-validation comment now reads 'Pre-validation failures are unrecoverable and block the board immediately.' followed by a throw new BoardBlockedError. The stale 'return parse-error verdict' framing and the 'board loop will detect parse-error' clause are gone. The comment matches the actual throwing behavior."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "buildAuditEnvelope in audit-utils.ts emits review_mode: params.reviewMode ?? 'none', converting null to the 'none' sentinel. Both call sites (cycle-postmortem in index.ts line 344, run-postmortem in board.ts line 792) pass null when outside a review round and receive 'none' in the emitted audit field. audit-utils.ts is present in the bundle and the sentinel contract is verifiable."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "audit-utils.ts exports uniqueStringsCaseSensitive and uniqueStringsCaseInsensitive with documentation comments explaining the semantic difference at each definition. board.ts imports uniqueStringsCaseSensitive for reviewer group IDs (case-sensitive identity) and index.ts imports uniqueStringsCaseInsensitive for human-facing aggregates (case-insensitive deduplication). No private local copies remain."
+    }
+  ],
+  "residual_risks": [
+    "extractReferencedPaths silently excludes evidence paths with unrecognized prefixes; if a future compliance or fix-items map references an absolute path or a path under a non-standard segment, those paths are quietly excluded from the bundle without triggering the COD-008 fail-closed guarantee.",
+    "loadPriorRoundSummaries synthesizes prior round verdicts from blocking/major count heuristics; reviewers receive approximate prior-round context that may diverge from actual board outcomes in multi-round runs with partial resolution.",
+    "result.json carries a non-null pushback_path for validation-blocked exits even though pushback.json is never written in that code path; any machine consumer that follows the pushback_path reference from a pre-board blocked result will encounter a missing file."
+  ],
+  "strengths": [
+    "All six prior major, minor, and suggestion findings from rounds 4-5 are verifiably closed with direct evidence present in this bundle.",
+    "Verdict aliasing is fully removed from the shared review engine; the contract vocabulary is enforced as the single valid token set with a hard throw on any off-contract value.",
+    "writeRunPostmortem is called on every board exit path including the two pre-board zero-round blocked exits, closing the missing terminal artifact gap that was the highest-risk non-happy-path omission.",
+    "audit-utils.ts cleanly encapsulates both uniqueStrings semantics with documented behavioral contracts at each export, eliminating the prior silent divergence between callers.",
+    "buildAuditEnvelope's null-to-none sentinel is self-contained and requires no coordination across call sites; the guarantee is verifiable by inspecting a single function.",
+    "component-repair-engine copyRequiredFile throws immediately on any unreadable source, making authority-file boxing unconditionally fail-closed for explicitly requested authorities."
+  ]
+}
+```

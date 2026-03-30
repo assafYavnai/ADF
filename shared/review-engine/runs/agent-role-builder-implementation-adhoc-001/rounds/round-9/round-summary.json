@@ -1,0 +1,63 @@
+{
+  "round": 9,
+  "review_mode": "delta",
+  "review_outcome": "pushback",
+  "unresolved_items": [
+    "reviewer-codex:group-1: Terminal closeout is still not derived from one canonical post-repair evidence object, so the final-round ultimatum path can emit stale machine-facing artifacts and PM-003 is still not single-shaped across writers.",
+    "reviewer-claude:group-1: Ultimatum-branch evidence is still not fully canonical: (a) self_check_issue_count is read from different sources in run-postmortem vs cycle-postmortem when the ultimatum revision runs, and (b) the ultimatum revision's updated compliance map and fix-items map are never persisted to the canonical round-artifact locations before returning."
+  ],
+  "improvements_applied": [
+    "Board and zero-round closeout now emit the same canonical PM-003 field set, and cycle-postmortem PM-003 now includes review_issue_count in total_issue_count.",
+    "Revision-mode component repair now requires a non-empty fix_items_map section and blocks immediately when it is missing.",
+    "run-postmortem PM-003 now exposes validation_issue_count, self_check_issue_count, review_issue_count, and total_issue_count on both board and zero-round paths.",
+    "cycle-postmortem PM-003 now includes review_issue_count and a total_issue_count that includes review-phase findings."
+  ],
+  "reviewers": [
+    {
+      "reviewer_id": "reviewer-codex",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "latency_ms": 241692,
+      "was_fallback": false,
+      "verdict": "reject",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 1,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-9/reviewer-codex.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-9/reviewer-codex.parsed.json"
+    },
+    {
+      "reviewer_id": "reviewer-claude",
+      "provider": "claude",
+      "model": "sonnet",
+      "latency_ms": 300035,
+      "was_fallback": false,
+      "verdict": "conditional",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 1,
+        "minor": 0,
+        "suggestion": 1
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-9/reviewer-claude.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-9/reviewer-claude.parsed.json"
+    }
+  ],
+  "merged_findings_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-9/merged-findings.json",
+  "learning_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-9/learning.json",
+  "totals": {
+    "blocking": 0,
+    "major": 2,
+    "minor": 0,
+    "suggestion": 1
+  },
+  "learning": {
+    "new_rules": 0,
+    "existing_rules_covering": 3,
+    "no_rule_needed": 0,
+    "latency_ms": 50739
+  }
+}

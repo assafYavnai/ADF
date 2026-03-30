@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 4,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The shared review parser now requires the governed runtime config, validates required sections and allowed vocabularies directly from the loaded contract, and fails closed on illegal leader arbitration combinations.",
+      "evidence_location": "shared/review-engine/config.ts; shared/review-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The board now derives a canonical unresolved list from the effective verdict plus the actual repair and deferred-item checklists, so persisted machine evidence matches the runtime decision after overrides.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "BoardBlockedError now gets caught at the executeBoard boundary and converted into the typed blocked return shape instead of escaping to the CLI fatal-exit path.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "pathExists and buildAuditEnvelope were extracted to a shared audit-utils module and both board.ts and index.ts now import the same implementation.",
+      "evidence_location": "tools/agent-role-builder/src/services/audit-utils.ts; tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "attemptAutoFix now receives a context label so reviewer parse failures no longer claim the failing output came from the leader.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T20:20:00.000Z"
+}

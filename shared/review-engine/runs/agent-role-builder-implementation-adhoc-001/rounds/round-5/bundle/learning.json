@@ -1,0 +1,50 @@
+{
+  "new_rules": [
+    {
+      "id": "COD-006",
+      "rule": "All reviewer and leader outputs must pass one canonical contract-driven validator at the boundary before any workflow branch, state transition, or artifact write; malformed or incomplete payloads must fail closed.",
+      "applies_to": [
+        "shared review/leader response validators",
+        "board state-transition entrypoints",
+        "review artifact writers",
+        "resume/result builders"
+      ],
+      "do": "Parse the raw LLM JSON once, run it through a shared validator that checks required sections, allowed verdict/status vocabularies, field shapes, and leader arbitration invariants, then pass only the validated object into board logic.",
+      "dont": "Read `status` or `verdict` from raw parsed JSON and enter runtime branches while missing sections, wrong field types, or illegal arbitration combinations remain undetected.",
+      "source": "Round 4: partial runtime contract enforcement let malformed reviewer/leader payloads reach live workflow branches.",
+      "version": 1
+    },
+    {
+      "id": "COD-007",
+      "rule": "Top-level governed orchestrators must convert internal control exceptions into the declared typed terminal result and still emit required terminal artifacts; governed failure modes must not escape as uncaught exceptions.",
+      "applies_to": [
+        "top-level board/orchestrator functions",
+        "terminal-state return contracts",
+        "result and postmortem artifact generation",
+        "blocked/resume error handling"
+      ],
+      "do": "Catch `BoardBlockedError` at the `executeBoard` boundary, return the typed `{ status: 'blocked', ... }` result, and write `result.json` and `cycle-postmortem.json` from that terminal state.",
+      "dont": "Throw `BoardBlockedError` out of the round loop so the process exits before returning the declared result shape or writing terminal artifacts.",
+      "source": "Round 4: BoardBlockedError escaped `executeBoard`, breaking the typed return contract and skipping terminal artifacts.",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "COD-003 already requires canonical review data and audit evidence to be preserved end-to-end without lossy remapping. Reusing the pre-override leader `unresolved` array after the board computed a different effective verdict creates exactly that evidence drift; the reconciled post-override unresolved set must be the only persisted version everywhere."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "COD-004 already says shared governed workflow logic must have one canonical implementation and all live consumers must import it. Duplicating `pathExists` and `buildAuditEnvelope` in `board.ts` and `index.ts` is the mirror-module drift this rule was written to prevent."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "COD-003 covers preservation of canonical provenance through machine-facing handoffs. Hard-coding 'leader LLM' into every auto-fix prompt rewrites the true failing participant and degrades the provenance passed to the fixer, so the context label must preserve the actual source role."
+    }
+  ],
+  "no_rule_needed": []
+}

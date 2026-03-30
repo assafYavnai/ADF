@@ -1,0 +1,37 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Runtime contract enforcement is still partial, so malformed reviewer/leader payloads can reach live workflow branches instead of failing closed against the shared contract.",
+    "severity": "major",
+    "redesign_guidance": "Move reviewer/leader validation to one canonical contract-driven validator that enforces allowed vocabularies, required sections, field shapes, and leader cross-field invariants before any board state transition. `frozen_with_conditions` should be legal only when arbitration evidence is present and only deferred minor/suggestion items remain.",
+    "finding_count": 3
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "The round artifact timing improved, but the persisted unresolved state still comes from the pre-override leader payload, so machine-facing evidence can still contradict the board's effective terminal decision.",
+    "severity": "major",
+    "redesign_guidance": "After computing the effective leader verdict, derive a canonical final unresolved set from the actual repair/material checklist and persist that reconciled state everywhere (`review.json`, run postmortem, resume package, result-level evidence). Do not reuse the raw leader-provided unresolved array after an override.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "BoardBlockedError thrown by the revision catch block (board.ts:613) propagates uncaught out of executeBoard instead of being caught and converted to { status: 'blocked' }, so revision crashes escape the board's typed return contract, produce no result.json or cycle-postmortem.json, and terminate the process via exit(2).",
+    "severity": "major",
+    "redesign_guidance": "Add a catch for BoardBlockedError in the for-loop body around the revision/learning block, or wrap the entire for-loop in executeBoard with a top-level catch that converts any BoardBlockedError into the expected typed return shape: { status: 'blocked', rounds, allParticipants, statusReason: err.message, finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues }. The board contract requires executeBoard to always return its typed result shape for all governed failure modes — it must not propagate exceptions to the caller. The bug report is correctly written before the throw; only the catch-and-return wrapper is missing.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "pathExists and buildAuditEnvelope are duplicated between board.ts and index.ts with divergent type signatures on buildAuditEnvelope, creating an IMP-004 mirror-module drift risk.",
+    "severity": "minor",
+    "redesign_guidance": "Extract pathExists and buildAuditEnvelope into a shared utility module imported by both board.ts and index.ts. This directly resolves the IMP-004 violation and ensures both callers use a single implementation. Unify the buildAuditEnvelope type signature at the same time.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-3",
+    "summary": "attemptAutoFix prompt body hard-codes 'The leader LLM returned a response that could not be parsed as JSON' for all callers, including reviewer parse failures, creating a misleading auto-fix context when the failing slot is a reviewer.",
+    "severity": "minor",
+    "redesign_guidance": "Add a role or contextLabel parameter to attemptAutoFix so the prompt correctly identifies which participant's output failed. Replace the hard-coded 'leader LLM' string with the parameterized label. This keeps the EXPECTED FORMAT and the narrative context consistent and removes ambiguity for the auto-fixer.",
+    "finding_count": 1
+  }
+]

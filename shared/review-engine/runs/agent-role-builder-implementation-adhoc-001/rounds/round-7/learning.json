@@ -1,0 +1,40 @@
+{
+  "new_rules": [
+    {
+      "id": "COD-010",
+      "rule": "Any machine-generated governed artifact must be validated against its canonical schema at the boundary before it can drive workflow state or update shared machine-facing artifacts.",
+      "applies_to": [
+        "shared/learning-engine/",
+        "shared/component-repair-engine/",
+        "boundary validators for learning outputs, compliance maps, fix-items maps, and rulebook/evidence writers"
+      ],
+      "do": "Before writing `learning.json`, updating `rulebook.json`, or emitting repair evidence, run the raw payload through the declared schema such as `LearningOutput.safeParse(...)` or the shared compliance/fix-item schema; if validation fails, stop the update and return a closed validation error.",
+      "dont": "Parse model JSON and append `new_rules`, `compliance_map`, or `fix_items` directly into governed artifacts just because the fields look present, then discover later that malformed entries corrupted machine-facing state.",
+      "source": "Round 7: reviewer-codex:group-3 learning and repair outputs were allowed to update governed artifacts without boundary schema validation.",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "This is the same general failure pattern COD-003 already covers: severity metadata must be preserved end-to-end without lossy remapping. Flattening self-check warnings into material errors is a severity rewrite that contaminates downstream repair and result logic."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "COD-009 already requires one canonical result/evidence model for terminal artifacts, postmortems, and KPI summaries on every exit path. The missing canonical run-postmortem builder for zero-round, blocked, and normal exits is exactly that violation."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "This is the concrete manifestation of the same severity-preservation problem: `toValidationIssue` hardcodes `severity: 'error'`, which is a lossy remap of canonical self-check severity and therefore already falls under COD-003."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "IMP-006",
+      "explanation": "IMP-006 already covers dead code and stale leftovers after rewrites. A redundant `pathExists` check on a just-written file and an unused `mdLower` variable are straightforward dead-code/cleanup misses, not a new rule category."
+    }
+  ],
+  "no_rule_needed": []
+}

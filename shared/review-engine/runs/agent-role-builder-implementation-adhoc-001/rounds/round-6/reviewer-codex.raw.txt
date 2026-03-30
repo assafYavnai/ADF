@@ -1,0 +1,77 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Terminal evidence is still inconsistent on the zero-round blocked path, and one cycle KPI field still misstates what it counts.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The pre-board validation failure path returns after writing only result.json and cycle-postmortem.json. It never writes run-postmortem.json, and it also leaves result.json advertising a non-null pushback_path even though no pushback artifact is created on that path. Zero-round blocked exits therefore still do not emit a complete, self-consistent terminal artifact set.",
+          "source_section": "tools/agent-role-builder/src/index.ts:100-126; tools/agent-role-builder/src/index.ts:435-436"
+        },
+        {
+          "id": "f2",
+          "description": "cycle-postmortem.json still reports question_outputs.PM-003.validation_issue_count from a parameter that the normal terminal path populates with validation issues plus converted self-check issues. The field name says validation-only, but the runtime now feeds it an aggregate, so machine consumers still get a semantically incorrect KPI.",
+          "source_section": "tools/agent-role-builder/src/index.ts:258-267; tools/agent-role-builder/src/index.ts:364-365"
+        }
+      ],
+      "redesign_guidance": "Route every terminal exit, including pre-board validation blocks, through one canonical closeout path that writes the same blocked artifact set and derives both result fields and postmortem KPIs from explicitly named validation and self-check arrays. If blocked validation exits are not supposed to produce a pushback artifact, set pushback_path to null on that path instead of advertising a file that does not exist."
+    },
+    {
+      "id": "group-2",
+      "summary": "The shared repair bundle still is not fully fail-closed because authority boxing flattens paths and can silently overwrite distinct required authorities.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f3",
+          "description": "runComponentRepair() copies each requested authority into authority/<basename>. If two required authorities share a filename, the later copy overwrites the earlier one and both manifest entries point at the same boxed file. That means the shared repair bundle can still claim that all requested authorities were boxed while silently dropping one of them. The ad-hoc review bundler preserves full relative paths, so the repair path now diverges from the stricter boxing behavior it was meant to mirror.",
+          "source_section": "shared/component-repair-engine/engine.ts:26-45; tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts:110-123"
+        }
+      ],
+      "redesign_guidance": "Box repair authorities with their relative source paths, not bare basenames, or explicitly detect duplicate basename collisions and block before invoking repair. The manifest should prove one unique boxed file per requested authority path."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "reject_fix",
+      "reason": "The external ad-hoc review bundle now boxes referenced files correctly, but the shared component-repair engine still flattens requested authorities by basename and can silently overwrite one authority with another instead of failing closed."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "shared/review-engine/engine.ts now validates reviewer verdicts strictly against the governed contract vocabulary and rejects off-contract tokens instead of aliasing them."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "reject_fix",
+      "reason": "Board-level blocked exits now write run-postmortem.json, but the pre-board validation-block path in index.ts still skips that artifact and still leaves machine-facing evidence inconsistent; cycle-postmortem also still reports a validation_issue_count field that includes self-check issues on the normal terminal path."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "The stale parseReviewerResponse comment was removed; the remaining comments now match the current fail-closed BoardBlockedError behavior."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "audit-utils.ts is boxed in this review bundle, and buildAuditEnvelope now emits a non-null review_mode sentinel of \"none\" when no round-specific review mode exists."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "The board/index string-dedup helpers now come from audit-utils.ts with documented semantic differences instead of remaining as duplicated private implementations in those runtime paths."
+    }
+  ],
+  "residual_risks": [
+    "The bundle includes no regression evidence proving zero-round blocked exits write the full required artifact set.",
+    "The bundle includes no regression evidence covering duplicate-basename authority inputs for the shared component-repair engine."
+  ],
+  "strengths": [
+    "The shared reviewer parser now fails closed on invalid verdict vocabulary instead of normalizing off-contract tokens.",
+    "Run-level audit review_mode handling is now contract-aligned via the non-null \"none\" sentinel.",
+    "The ad-hoc review bundle builder now pulls in evidence-referenced files and validates implementer evidence artifacts before review."
+  ]
+}

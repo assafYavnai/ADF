@@ -1,0 +1,85 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Terminal-state validation is still asymmetric: `frozen` and `frozen_with_conditions` are checked against remaining material work, but `pushback` is itself treated as proof of materiality, so minor-only end states can be escalated into `resume_required`.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`hasMaterialRepairWork` is computed as `materialRepairChecklist.length > 0 || roundResult.leaderVerdict === \"pushback\"`, so a leader `pushback` with only minor/suggestion work is classified as material even when the checklist contains no blocking/major items.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:321-324; docs/v0/review-process-architecture.md -> Arbitration (Minor Items Only) / Budget exhaustion protocol"
+        },
+        {
+          "id": "f2",
+          "description": "Because the final-round branch exits `resume_required` whenever `finalRound && hasMaterialRepairWork`, an illegal minor-only `pushback` can force the job into the budget-exhaustion terminal path that the architecture reserves for unresolved blocking/major items.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:654-679; shared/learning-engine/implementor-rulebook.json -> COD-005"
+        }
+      ],
+      "redesign_guidance": "Derive materiality only from blocking/major checklist items, not from the raw leader status. Add the same legality check for `pushback` and `resume_required` that already exists for `frozen` variants, emit a bug report when the leader status contradicts the actual severity set, and route minor-only final states to the contract-safe conditional/arbitrated path instead of `resume_required`."
+    },
+    {
+      "id": "group-2",
+      "summary": "The mirrored Codex invoker still routes prompt text through `bash` command-line transport, which violates the shared implementor rulebook and makes live Windows execution depend on an unvalidated shell path.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`callCodex()` writes the full prompt to a temp file, reads it back through `bash -c`, and passes it as `\"$PROMPT\"` on the Codex command line instead of piping prompt text via stdin.",
+          "source_section": "tools/agent-role-builder/src/shared-imports.ts:197-215; shared/learning-engine/implementor-rulebook.json -> IMP-009"
+        },
+        {
+          "id": "f2",
+          "description": "This path also hard-depends on `bash` from a Windows PowerShell runtime without any prerequisite check or governed fallback, so Codex-backed review/learning/revision calls can fail for environment reasons before board logic even starts.",
+          "source_section": "tools/agent-role-builder/src/shared-imports.ts:197-216; shared/learning-engine/code-review-contract.json -> Security and sandbox safety / Error handling and observability"
+        }
+      ],
+      "redesign_guidance": "Remove shell-argument prompt transport from the Codex mirror. Use a non-shell child-process path that keeps prompt text off argv, or fail closed with an explicit environment prerequisite if the Codex CLI cannot consume stdin/file input safely on Windows."
+    },
+    {
+      "id": "group-3",
+      "summary": "The shared-module loader is not a true source/dist fallback, so live JS consumers can fail before reaching the intended canonical shared runtime.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`importSharedModule()` returns `import(candidate)` as soon as the first candidate merely exists. If `shared/.../*.ts` is present but the current runtime cannot import TypeScript source, the loader throws immediately and never attempts `shared/dist/.../*.js`.",
+          "source_section": "tools/agent-role-builder/src/services/shared-module-loader.ts:5-23"
+        },
+        {
+          "id": "f2",
+          "description": "That turns the supposed canonical shared review/learning/repair path into an environment-sensitive branch: TS-capable consumers work, while JS-built consumers can block even though a dist fallback path was declared in the same helper.",
+          "source_section": "tools/agent-role-builder/src/services/shared-module-loader.ts:30-48; shared/learning-engine/implementor-rulebook.json -> COD-004"
+        }
+      ],
+      "redesign_guidance": "Choose the source or dist candidate based on actual import capability, not existence alone. If the source `.ts` candidate is unsupported in the current runtime, continue to the dist candidate; only rethrow when the selected implementation itself loads and then fails."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "The ultimatum path now rewrites canonical round compliance/fix evidence and the postmortem counters are sourced from the repaired terminal evidence instead of stale pre-repair snapshots."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "The final-round branch now updates `roundResult.selfCheckIssues` and rewrites the canonical round compliance/fix artifacts before returning, so the prior ultimatum evidence drift is resolved."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "Run and cycle review-issue counting now use the same recognized-severity model, removing the previously noted latent PM-003 divergence."
+    }
+  ],
+  "residual_risks": [
+    "No executable replay or fixture evidence was bundled for the reviewed terminal paths, so this verdict is based on static inspection rather than machine-run transition tests.",
+    "The remaining CLI transport paths for external providers are still shell-sensitive runtime boundaries and would benefit from explicit environment verification coverage."
+  ],
+  "strengths": [
+    "The board now executes review -> learning -> rulebook update -> repair in one explicit loop instead of separate ad hoc helpers.",
+    "Final-round ultimatum handling now rewrites canonical round evidence before terminal closeout, which fixes the prior stale-artifact problem.",
+    "Reviewer and leader parsing is centralized through the shared review-engine validator surface instead of bespoke per-call parsing."
+  ]
+}

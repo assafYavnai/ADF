@@ -1,0 +1,16 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "major",
+      "summary": "The authority model is not expressed as one fully strict operative precedence chain.",
+      "redesignGuidance": "List each operative layer separately and in order. Keep controller/runtime authority first, then the component-local governance obligations it actually enforces, then component/shared review contracts in explicit precedence order, and keep reference docs outside that operative chain.",
+      "findingCount": 2
+    }
+  ],
+  "unresolved": [
+    "group-1: The authority model is not expressed as one fully strict operative precedence chain.",
+    "group-2: Carry-forward and arbitration mechanics are not mechanical enough to guarantee stable governed review behavior."
+  ],
+  "leader_rationale": "Material issues remain and the active review budget is exhausted (normalized-request.json sets max_review_rounds to 1). The draft cannot freeze because its audit evidence is internally contradictory, the authority model still does not fully express the governance-layer split from source authority, and the canonical decision-log lifecycle is still semantically inconsistent. The next run should carry these major items forward explicitly.\nFinal-round ultimatum applied to the single most important remaining material item from each reviewer plus system material gaps.\nConvergence trend: 2 -> 1 issues. Converging - keep fixing."
+}

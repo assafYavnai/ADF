@@ -1,0 +1,72 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Runtime contract enforcement is still partial, so malformed reviewer/leader payloads can reach live workflow branches instead of failing closed against the shared contract.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The shared parser still hardcodes reviewer verdicts, severities, fix-decision enums, and leader statuses in code instead of validating against the loaded shared contract values, so the claimed single-source runtime validation is not actually implemented.",
+          "source_section": "shared/review-engine/engine.ts:88-158"
+        },
+        {
+          "id": "f2",
+          "description": "Required reviewer and leader fields are still defaulted rather than enforced. Missing `conceptual_groups`, `residual_risks`, `strengths`, `rationale`, `unresolved`, or `improvements_applied` are accepted as empty/default values even though the shared contract marks them as required.",
+          "source_section": "shared/review-engine/engine.ts:94-158; authority/shared/learning-engine/review-contract.json reviewer_output.required_sections and leader_output.required_fields"
+        },
+        {
+          "id": "f3",
+          "description": "The board accepts `frozen_with_conditions` whenever no material repair work remains, but it never verifies the contract-level arbitration invariant (`arbitration_used`/`arbitration_rationale`). That allows an illegal terminal state to freeze without recorded arbitration.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:362-390,634-638; authority/docs/v0/review-process-architecture.md Arbitration and leader_output.arbitration_rule"
+        }
+      ],
+      "redesign_guidance": "Move reviewer/leader validation to one canonical contract-driven validator that enforces allowed vocabularies, required sections, field shapes, and leader cross-field invariants before any board state transition. `frozen_with_conditions` should be legal only when arbitration evidence is present and only deferred minor/suggestion items remain."
+    },
+    {
+      "id": "group-2",
+      "summary": "The round artifact timing improved, but the persisted unresolved state still comes from the pre-override leader payload, so machine-facing evidence can still contradict the board's effective terminal decision.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f4",
+          "description": "When the board overrides an invalid leader freeze to `pushback` or `blocked`, it updates only `leaderVerdict` and `leaderRationale`; `unresolved` is left unchanged. A round can therefore persist `review.json` with a pushback/block verdict and an empty unresolved list even though material repair items forced the override.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:332-436"
+        },
+        {
+          "id": "f5",
+          "description": "Downstream artifacts reuse that stale unresolved list. `run-postmortem.json` snapshots and `resume-package.json` both derive unresolved evidence from `round.unresolved`, so override-driven material issues can disappear from the persisted audit/resume trail.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:707-717; tools/agent-role-builder/src/index.ts:186-200"
+        }
+      ],
+      "redesign_guidance": "After computing the effective leader verdict, derive a canonical final unresolved set from the actual repair/material checklist and persist that reconciled state everywhere (`review.json`, run postmortem, resume package, result-level evidence). Do not reuse the raw leader-provided unresolved array after an override."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Reviewer and leader pre-validation failures now write bug reports and block the board immediately instead of being downgraded into ordinary review findings."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "reject_fix",
+      "reason": "The parser now checks some enum literals, but it still does not validate from the shared contract source and still accepts missing required reviewer/leader sections by defaulting them, so fail-closed contract enforcement is incomplete."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "reject_fix",
+      "reason": "`review.json` is now written after effective verdict selection, but the canonical round state is still incomplete because unresolved evidence remains the raw leader payload rather than the reconciled effective unresolved set used by the board."
+    }
+  ],
+  "residual_risks": [
+    "The bundle includes no verification artifact that exercises malformed reviewer/leader payloads or override paths, so the fail-closed and audit-integrity claims remain weakly evidenced.",
+    "Arbitration-related state still appears under-tested: dispute counting exists in the board loop, but there is no machine-facing proof in this bundle that arbitration gating and deferred-item semantics are enforced end to end."
+  ],
+  "strengths": [
+    "Pre-validation failures are now escalated through bug reports and `BoardBlockedError`, which aligns with the mandated error-escalation path.",
+    "Round review artifacts are written after effective verdict/deferred-item computation instead of before raw leader output is finalized.",
+    "Rulebook updates now use a file lock instead of an unguarded shared write."
+  ]
+}

@@ -1,0 +1,138 @@
+```json
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Leader terminal-state handling has three gaps: local LeaderVerdict type omits resume_required causing a type divergence with the shared contract; executeBoard() has no handler for leader-initiated resume_required so the board loops past it; frozen_with_conditions (required by review-process-architecture.md for arbitration outcomes) is absent from all contracts, types, and prompts.",
+      "severity": "blocking",
+      "findings": [
+        {
+          "id": "f1.1",
+          "description": "board.ts local LeaderVerdict interface (lines 95-102) declares status as 'frozen' | 'pushback' | 'blocked', omitting 'resume_required'. The shared LeaderVerdictShape in shared/review-engine/types.ts line 25 correctly includes 'resume_required'. review-contract.json allowed_statuses also includes it. This type divergence is a contract-alignment failure between the local board implementation and the shared governance types.",
+          "source_section": "board.ts:95-102, shared/review-engine/types.ts:24-31, shared/learning-engine/review-contract.json:leader_output.allowed_statuses"
+        },
+        {
+          "id": "f1.2",
+          "description": "executeBoard() checks roundResult.leaderVerdict === 'blocked' (line 458) and !hasRepairWork && roundResult.leaderVerdict === 'frozen' (line 465) as exit conditions, then falls through to the next round. If the leader returns 'resume_required' (which the prompt allows via reviewConfig?.sharedContract.leader_output?.allowed_statuses), the board treats it as a no-op and continues to the next round. The architecture's budget-exhaustion ultimatum protocol — where the leader deliberately declares resume_required after selecting the most critical remaining fix — can never be triggered by leader decision; the only exit to resume_required is mechanical round-count exhaustion.",
+          "source_section": "board.ts:458-473, review-process-architecture.md:Budget exhaustion protocol"
+        },
+        {
+          "id": "f1.3",
+          "description": "review-process-architecture.md states: 'When arbitration is used, the result must reflect it as partial acceptance — frozen_with_conditions (distinct from clean frozen). The result lists all deferred minor items.' frozen_with_conditions is absent from review-contract.json allowed_statuses, absent from LeaderVerdictShape in shared/review-engine/types.ts, absent from board.ts LeaderVerdict, and absent from all prompts. A run where the leader uses arbitration exits as plain 'frozen' with no structural distinction, making the arbitration outcome auditably invisible.",
+          "source_section": "review-process-architecture.md:Arbitration result, shared/learning-engine/review-contract.json:leader_output.allowed_statuses, shared/review-engine/types.ts:25"
+        }
+      ],
+      "redesign_guidance": "f1.1: Add 'resume_required' to board.ts LeaderVerdict.status union type. f1.2: Add an explicit handler in the executeBoard() round loop after the blocked check: if (roundResult.leaderVerdict === 'resume_required') { await writeRunPostmortem(..., 'resume_required'); return { status: 'resume_required', ... } }. f1.3 requires a contract change: add 'frozen_with_conditions' to review-contract.json allowed_statuses and shared/review-engine/types.ts LeaderVerdictShape, then add a frozen_with_conditions branch in executeBoard() that promotes artifacts but writes deferred items to a conditions manifest. The fix for f1.1 and f1.2 is mechanical; f1.3 is a multi-file contract change."
+    },
+    {
+      "id": "group-2",
+      "summary": "Freeze gate incorrectly blocks on non-material findings: hasRepairWork includes all severity levels (minor, suggestion), overriding a leader 'frozen' verdict and forcing unnecessary revision passes or resume_required in any real run with cosmetic findings.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f2.1",
+          "description": "hasRepairWork in board.ts line 325 is computed as 'repairChecklist.length > 0 || roundResult.leaderVerdict === pushback'. repairChecklist is built from collectReviewChecklist() which adds all conceptual groups regardless of severity (board.ts lines 1019-1030), then extended by extendRepairChecklist() which adds non-compliant rule entries and self-check issues (all at major). The leader prompt at board.ts line 784-785 explicitly says 'Count only blocking+major as material. Minor/suggestion don't block freeze.' — but hasRepairWork does not filter by severity.",
+          "source_section": "board.ts:323-325, board.ts:784-785, board.ts:1012-1056"
+        },
+        {
+          "id": "f2.2",
+          "description": "The freeze exit condition at board.ts line 465 is '!hasRepairWork && roundResult.leaderVerdict === frozen'. Because hasRepairWork is true whenever any finding of any severity exists, a leader 'frozen' verdict is overridden whenever minor or suggestion items remain in the checklist. In any real review with even cosmetic suggestions, the tool will loop through all available rounds and exit as resume_required instead of frozen, wasting LLM budget and misreporting the outcome.",
+          "source_section": "board.ts:465-470, board.ts:325, review-process-architecture.md:Step 6 On review pass"
+        }
+      ],
+      "redesign_guidance": "Introduce a materialRepairWork predicate that filters repairChecklist to blocking and major severity only. Use materialRepairWork for the freeze gate: if (!materialRepairWork && roundResult.leaderVerdict === 'frozen') { freeze }. canRevise can still use the full repairChecklist for revision quality (minor findings are worth fixing if there are rounds remaining), but must not gate the freeze decision. Example: const materialRepairWork = repairChecklist.filter(i => i.severity === 'blocking' || i.severity === 'major').length > 0 || roundResult.leaderVerdict === 'pushback'."
+    },
+    {
+      "id": "group-3",
+      "summary": "buildReviewerSummaryText() exists in three copies with functional divergence: shared/review-engine/engine.ts uses an abbreviated private form that omits severity_counts, strengths, residual_risks, and fix_decisions compared to the versions in config.ts and review-runtime.ts, producing an inferior leader prompt in the shared engine path.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f3.1",
+          "description": "shared/review-engine/engine.ts defines a private buildReviewerSummaryText() at lines 91-98 that produces per-reviewer lines: reviewer id, verdict, and unresolved_groups. shared/review-engine/config.ts exports a public buildReviewerSummaryText() at lines 84-107 that additionally includes severity_counts (blocking/major/minor/suggestion breakdown), strengths, residual_risks, and fix_decisions per reviewer. tools/agent-role-builder/src/services/review-runtime.ts exports a third copy at lines 165-188 identical to the config.ts version. Three implementations of the same function with three different outputs.",
+          "source_section": "shared/review-engine/engine.ts:91-98, shared/review-engine/config.ts:84-107, review-runtime.ts:165-188"
+        },
+        {
+          "id": "f3.2",
+          "description": "buildLeaderPrompt() in shared/review-engine/engine.ts (line 34) calls its own private abbreviated buildReviewerSummaryText(). Any consumer that migrates to the shared engine for leader prompts receives substantially less reviewer context than board.ts currently provides. This is an IMP-004 violation: the fix (full reviewer summary with counts and fix decisions) was applied to review-runtime.ts but not propagated back to shared/review-engine/engine.ts.",
+          "source_section": "shared/review-engine/engine.ts:33-38, shared/review-engine/config.ts:84-107"
+        }
+      ],
+      "redesign_guidance": "Delete the private buildReviewerSummaryText() from shared/review-engine/engine.ts and import the exported one from shared/review-engine/config.ts. Delete the duplicate from review-runtime.ts; import from the shared module instead. This brings the shared engine path to parity with the local board path. If review-runtime.ts must remain self-contained for cross-package reasons, document this explicitly and add a drift-check comment citing the canonical source."
+    },
+    {
+      "id": "group-4",
+      "summary": "shared/component-repair-engine/engine.ts is orphaned: no code in the bundle imports or calls it. role-generator.ts independently reimplements the same repair orchestration concern via runRepairPass(), creating dual authority with no consumer enforcing alignment on the shared engine.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f4.1",
+          "description": "shared/component-repair-engine/engine.ts exports runComponentRepair(request, invoker) — a generic bundling and repair orchestration function. board.ts imports performInitialRuleSweep() and reviseRoleMarkdown() from role-generator.ts (line 5), which contains its own runRepairPass() that reimplements the identical bundling pattern (artifact file, rulebook, findings, self-check, review-prompt, authority copies, manifest). The shared engine is not called anywhere in the bundle. Per IMP-005 applied to engines: no orphan implementations.",
+          "source_section": "shared/component-repair-engine/engine.ts:1-99, role-generator.ts:165-361, board.ts:5"
+        },
+        {
+          "id": "f4.2",
+          "description": "The two implementations have an API incompatibility that prevents drop-in replacement: shared/component-repair-engine/engine.ts uses a callback-based invoker parameter (line 7: '(prompt, sourcePath) => Promise<RepairInvokeResult>'), while role-generator.ts calls invoke() directly from shared-imports. Any future attempt to consolidate will require an adapter. The longer both coexist without a consumer enforcing alignment, the more they will drift.",
+          "source_section": "shared/component-repair-engine/engine.ts:5-7, role-generator.ts:290-299"
+        }
+      ],
+      "redesign_guidance": "Decision required: (a) Adopt the shared engine as canonical — adapt role-generator.ts to wrap invoke() in the callback signature expected by shared/component-repair-engine/engine.ts and delete runRepairPass() from role-generator.ts. OR (b) Declare role-generator.ts's runRepairPass() as the canonical path for agent-role-builder and delete shared/component-repair-engine/engine.ts as premature shared infrastructure. Either is acceptable; the current state of two parallel implementations with zero consumers for the shared one is not."
+    },
+    {
+      "id": "group-5",
+      "summary": "Three minor correctness and silent-failure gaps: arbitration_used hardcoded false in buildResult(); copyIfPresent() silently writes '{}' on failure corrupting the repair bundle; loadJson() silently falls back without logging, hiding misconfigured governance paths.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f5.1",
+          "description": "buildResult() in index.ts line 367 hardcodes arbitration_used: false in the result board summary. The arbitration_used field is populated in leader verdicts (parseLeaderResponse returns it from parsed.arbitration_used) and stored in round results (BoardRoundResult does not expose it, but the raw leaderResponse does). If the leader ever reports arbitration_used=true, it is silently discarded. result.json would falsely claim no arbitration was used.",
+          "source_section": "index.ts:367, board.ts:95-102, shared/review-engine/types.ts:29"
+        },
+        {
+          "id": "f5.2",
+          "description": "copyIfPresent() in role-generator.ts lines 500-507 catches all read errors and writes '{}' to the destination file. If review-prompt.json or review-contract.json is absent or unreadable, the repair bundle receives empty JSON governance context instead of a missing-file error. The repair LLM then operates without domain focus areas, severity definitions, or source authority paths, with no indication anything went wrong. IMP-007: every catch must log or propagate.",
+          "source_section": "role-generator.ts:500-507"
+        },
+        {
+          "id": "f5.3",
+          "description": "loadJson() in shared/review-engine/config.ts lines 128-135 and review-runtime.ts lines 224-231 catches all readFile/JSON.parse errors and returns the fallback silently. If the shared review-contract.json or component review-prompt.json cannot be loaded due to a path misconfiguration, the engine silently uses hardcoded defaults with no log entry. IMP-007.",
+          "source_section": "shared/review-engine/config.ts:128-135, review-runtime.ts:224-231"
+        }
+      ],
+      "redesign_guidance": "f5.1: Collect arbitration_used from all round's leaderResponse objects (store on BoardRoundResult or pass through LeaderVerdict); set result.board.arbitration_used = rounds.some(r => r.arbitration_used). f5.2: Change copyIfPresent to log a console.error warning and write '{}' only for non-critical files; for review-prompt.json and review-contract.json, consider throwing so the repair bundle fails explicitly rather than silently producing inferior output. f5.3: Add console.error('[config] Failed to load ${path}, using defaults: ${e instanceof Error ? e.message : e}') in the catch block."
+    },
+    {
+      "id": "group-6",
+      "summary": "Cycle-postmortem artifact presence declarations are statically hardcoded true in writeCyclePostmortem(), violating the self-check credibility rule that claims must match actual behavior.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f6.1",
+          "description": "writeCyclePostmortem() in index.ts lines 299-305 declares result_json, run_postmortem, cycle_postmortem, normalized_request, and session_registry all as 'true' unconditionally. On validation-blocked paths (where the run exits before writeFile is called for some artifacts), these fields will be false positives. Per ARB-005 and IMP-002, artifact declarations in postmortem output must reflect actual written state.",
+          "source_section": "index.ts:299-305"
+        }
+      ],
+      "redesign_guidance": "Track a written-artifacts set (e.g., a Set<string> populated as each writeFile succeeds) and report actual state in the artifacts block. Alternatively, use stat() checks immediately before writing the postmortem to confirm presence. This is low-priority but would prevent misleading audit trails on blocked runs."
+    }
+  ],
+  "fix_decisions": [],
+  "residual_risks": [
+    "group-2 freeze gate bug is likely to cause resume_required in most real production runs where any minor or suggestion findings exist, making the tool appear to never converge even when the leader and all reviewers approve — this is the highest-priority runtime risk.",
+    "leader-initiated resume_required (f1.2) is silently absorbed by the board loop; the budget exhaustion ultimatum protocol from review-process-architecture.md cannot execute as designed.",
+    "frozen_with_conditions (f1.3) is absent from all contracts — arbitration usage is structurally invisible in result.json and the shared contract, preventing governance audit of partial-acceptance outcomes.",
+    "shared/component-repair-engine/engine.ts will diverge from role-generator.ts repair logic over time since it has zero consumers and no cross-checks enforcing alignment.",
+    "shared/review-engine/engine.ts abbreviated buildReviewerSummaryText() is a silent quality regression waiting for any future migration to the shared engine path; the defect is invisible until migration."
+  ],
+  "strengths": [
+    "Error escalation pattern is fully implemented per review-process-architecture.md spec: pre-validation, structured bug report writing, auto-fix attempt via leader LLM, and BoardBlockedError escalation with no silent swallowing of parse failures.",
+    "IMP-016 compliance is thorough: critical revision failures write structured bug reports and throw BoardBlockedError preventing silent draft-freezing on crashed revision passes.",
+    "IMP-017 compliance is present at the learning engine boundary: applies_to normalization before rulebook write (board.ts line 367) prevents the applies_to.join() crash documented in the rule source.",
+    "Split-verdict handling is correctly implemented: reviewers skip rounds once approved/conditional, sanity-check re-runs previously-approved reviewers to catch regressions, and consecutiveDisputeRounds tracks arbitration eligibility.",
+    "Run-postmortem and cycle-postmortem both produce rich KPI data (unresolved trends, fallback counts, reviewer reuse savings, convergence delta, per-round severity breakdown) that substantially exceeds minimum contract requirements.",
+    "Codex invocation correctly uses temp-file prompt delivery via shell variable (IMP-009 compliance); Claude and Gemini pipe via stdin; no prompt text in shell arguments.",
+    "Duplicate-run guard on job_id (index.ts lines 40-57) prevents result.json overwrites on re-runs to the same directory, preserving audit trail integrity.",
+    "Review config, focus areas, and authority paths are loaded from disk at runtime rather than hardcoded, enabling per-component governance customization without code changes."
+  ]
+}
+```

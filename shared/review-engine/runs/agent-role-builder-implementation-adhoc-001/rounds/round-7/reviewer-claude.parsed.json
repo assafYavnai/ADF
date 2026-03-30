@@ -1,0 +1,76 @@
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "toValidationIssue in index.ts hardcodes severity:'error' for all self-check issues returned from board.ts, silently promoting MISSING_ROLE_NAME and MISSING_OUT_OF_SCOPE warnings to errors. This contaminates result.red_flags and any downstream consumer that treats error-severity self-check items as blocking signals.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "board.ts maps selfCheck() ValidationIssue[] to { code, message } at lines 222, 540, 575 — stripping severity. index.ts converts them back at line 658-664 via toValidationIssue, which hardcodes severity:'error'. selfCheck() in validator.ts produces genuine warnings (MISSING_ROLE_NAME, MISSING_OUT_OF_SCOPE), so these become errors in result.validation_issues and are included in result.red_flags (line 565), which filters by severity==='error'.",
+          "source_section": "tools/agent-role-builder/src/index.ts lines 658-664, src/services/board.ts lines 222/540/575, src/services/validator.ts selfCheck()"
+        }
+      ],
+      "redesign_guidance": "Either preserve severity through the board.ts pipeline (widen the internal type to include severity) or give toValidationIssue access to the original severity and pass it through. If the intent is truly to treat all board self-check failures as errors for result purposes, document that explicitly and guard red_flags against including severity-upcast warnings."
+    },
+    {
+      "id": "group-2",
+      "summary": "Two minor dead-code items: (1) the cycle-postmortem self-reference update performs a redundant pathExists check on a file just written — the check will always be true; (2) mdLower is declared and assigned in validator.ts selfCheck but never consumed.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "writeCyclePostmortem in index.ts writes the file at line 486, then calls pathExists on the same path (line 487). Since no concurrent delete is possible here, this is always true. The second write (lines 489-496) exists purely to flip cycle_postmortem from false to true, which could be inlined without the intermediate write.",
+          "source_section": "tools/agent-role-builder/src/index.ts writeCyclePostmortem lines 486-497"
+        },
+        {
+          "id": "f3",
+          "description": "validator.ts selfCheck() declares mdLower = markdown.toLowerCase() at line 153 but only scopeLower (derived from the scope section) is ever tested. mdLower is never referenced again.",
+          "source_section": "tools/agent-role-builder/src/services/validator.ts selfCheck() line 153"
+        }
+      ],
+      "redesign_guidance": "Remove the pathExists guard in writeCyclePostmortem — write the final artifact in a single pass with cycle_postmortem:true. Remove the unused mdLower variable from selfCheck."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Pre-board validation-blocked exits now call writePushbackArtifact before buildResult/result.json, then writeZeroRoundRunPostmortem and writeCyclePostmortem in sequence. PM-003 separates validation_issue_count and self_check_issue_count. Fix is complete and correct per index.ts lines 100-144."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "component-repair-engine/engine.ts boxes each authority under join(authorityDir, sourcePath), preserving the relative path structure so distinct source paths with identical basenames cannot collide. Fix verified at lines 26-32 and 93-101."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "normalizeReferencedPath now throws instead of returning null for unboxable paths. Filter in extractReferencedPaths uses the typed predicate but the throw in normalizeReferencedPath propagates upward through collectEvidenceSourcePaths. Fix verified at lines 550-564."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "writePushbackArtifact is called at index.ts line 101 before buildResult and result.json are written at lines 110/124, so pushback_path in result.json is no longer dangling. writePushbackArtifact also correctly sets decision_log_path/board_summary_path to null for boardRounds=0."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "run-adhoc-code-review-round.ts round-summary.json now persists review_outcome, unresolved_items, improvements_applied (lines 232-263). loadPriorRoundSummaries reads review_outcome first with a count-heuristic fallback only for legacy summaries lacking the field. The contract-defined fields are now the authoritative source."
+    }
+  ],
+  "residual_risks": [
+    "self-check warnings promoted to errors in result.red_flags may cause false blocking signals in machine consumers that treat red_flags as a hard gate",
+    "in-loop writeRunPostmortem calls with terminal_status:null overwrite each round — if the process crashes mid-loop the persisted postmortem will show null terminal_status with no indication it is incomplete",
+    "loadPriorRoundSummaries retains a count-heuristic fallback; if a round-summary.json written by an older version is present it silently produces approximate prior-round context rather than throwing"
+  ],
+  "strengths": [
+    "all five prior-round blocking and major findings are correctly and completely resolved — pre-board blocked path, repair authority boxing, evidence path throwing, pushback artifact ordering, and persisted round context",
+    "writePushbackArtifact correctly nulls decision_log_path and board_summary_path for boardRounds=0, fully closing the dangling-reference finding",
+    "normalizeReferencedPath throws on unboxable paths with a clear error message that includes the original value for diagnosis",
+    "round-summary.json now stores the three governed fields (review_outcome, unresolved_items, improvements_applied) as a first-class write, not a post-hoc annotation",
+    "board.ts terminal-state governance overrides are thorough — frozen and frozen_with_conditions with material repair work are overridden with bug reports and the effective verdict is correctly downgraded",
+    "withFileLock prevents concurrent rulebook.json writes when multiple board processes share the same repository"
+  ]
+}

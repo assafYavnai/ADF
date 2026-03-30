@@ -1,0 +1,87 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "The board validator does not enforce the minimum governed-review roster, so runs can proceed without the required Codex+Claude reviewer pair.",
+      "severity": "blocking",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "Request validation only checks complete 2-reviewer chunks that already exist; it never rejects `reviewer_count < 2` or any odd reviewer roster. A request with one reviewer passes validation even though the review architecture requires a Codex+Claude pair minimum.",
+          "source_section": "tools/agent-role-builder/src/services/validator.ts:24-42"
+        }
+      ],
+      "redesign_guidance": "Fail closed before board execution unless the roster contains at least one full reviewer pair and every pair is exactly one Codex plus one Claude. Treat odd reviewer counts as invalid input, not as a partially valid board."
+    },
+    {
+      "id": "group-2",
+      "summary": "Terminal-state handling diverges from the required review-cycle contract at budget exhaustion and for leader status values.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "The board disables repair on the final allowed round (`canRevise` becomes false), then exits `resume_required` immediately after the last review. The approved architecture requires a final budget-exhaustion protocol where reviewers nominate the single most important remaining fix and the implementer performs that targeted fix before the run exits `resume_required`.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:325-326,399-430,475-480"
+        },
+        {
+          "id": "f3",
+          "description": "The leader prompt and parser allow `resume_required`, but the round-state model only types leader verdicts as `frozen | pushback | blocked` and the board loop has no explicit branch for a leader-issued `resume_required`. That makes a contract-valid status behave like an undefined in-between state.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:95-102,775-785,949-958"
+        }
+      ],
+      "redesign_guidance": "Implement the architecture's final-round ultimatum flow explicitly, and make the leader output contract match the states the board can actually execute. If `resume_required` is meant to be board-only, remove it from leader prompts/parsing; if it is leader-emitted, add a first-class branch for it."
+    },
+    {
+      "id": "group-3",
+      "summary": "Severity propagation, shared-file safety, and audit evidence all drift from the shared review contract.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f4",
+          "description": "Any reviewer `reject_fix` or `reject_rejection` decision is force-upgraded to severity `major`, regardless of the original finding's severity. That can turn a minor-only disagreement into material repair work and defeats the architecture's minor-only arbitration boundary.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:1032-1050"
+        },
+        {
+          "id": "f5",
+          "description": "Learning writes directly back to `tools/agent-role-builder/rulebook.json` with no lock or atomic replace. Because that file is shared across runs, concurrent reviews can lose or overwrite learned rules, which violates the implementor rulebook's shared-write safety requirement.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:357-374"
+        },
+        {
+          "id": "f6",
+          "description": "The emitted `review.json` and `run-postmortem.json` artifacts are ad hoc snapshots, not the contract-shaped audit evidence required by `shared/learning-engine/review-contract.json`: they do not record `artifact_refs`, and the required audit fields are not emitted in a consistent machine-facing envelope.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:286-299,483-576"
+        }
+      ],
+      "redesign_guidance": "Carry original severities through fix-decision handling, update shared rulebooks with locking or atomic swap semantics, and emit a contract-defined audit block that includes artifact refs plus provider/model/latency/fallback provenance in a stable machine schema."
+    },
+    {
+      "id": "group-4",
+      "summary": "The bundle ships shared review/learning/repair engines, but the live consumer bypasses them with local copies and hand-rolled prompts, creating mirrored-runtime drift.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f7",
+          "description": "The board imports the local `review-runtime.ts`, builds reviewer/leader prompts inline, and hand-rolls the learning prompt instead of using the bundled shared review and learning engines. Shared contract changes can therefore stop affecting the live runtime even though the files exist in the bundle.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:1-16,675-797,1098-1138; tools/agent-role-builder/src/services/review-runtime.ts:1-229; shared/review-engine/engine.ts:1-89; shared/learning-engine/engine.ts:1-137"
+        },
+        {
+          "id": "f8",
+          "description": "Role revision reimplements component-repair-engine behavior locally instead of calling `shared/component-repair-engine/engine.ts`, and the local copy silently writes `{}` when the component review prompt or review contract is missing. That is a live/runtime divergence from the shared engine's fail-closed behavior.",
+          "source_section": "tools/agent-role-builder/src/services/role-generator.ts:171-241,493-499; shared/component-repair-engine/engine.ts:1-88"
+        }
+      ],
+      "redesign_guidance": "Make the agent-role-builder consume the shared review, learning, and repair engines directly. Keep tool-specific behavior in config and prompts, not in duplicated orchestration code, and fail closed when required component-owned governance files are absent."
+    }
+  ],
+  "fix_decisions": [],
+  "residual_risks": [
+    "The bundle includes no runtime tests proving split-verdict reviewer reuse, final-round `resume_required` behavior, or concurrent rulebook updates.",
+    "CLI-provider fallback behavior still depends on local wrapper code in `shared-imports.ts`, so provider drift remains a latent risk until the shared engines become the only runtime path."
+  ],
+  "strengths": [
+    "The board now runs an initial rule sweep before round 0, which aligns the first review with rulebook and self-check evidence instead of waiting for a rejection.",
+    "Parse failures are escalated with structured bug reports and hard stops rather than being silently downgraded into fake success states.",
+    "Per-round compliance, fix-items, learning, and diff artifacts are written on the main happy path, which is a meaningful improvement in evidence capture."
+  ]
+}

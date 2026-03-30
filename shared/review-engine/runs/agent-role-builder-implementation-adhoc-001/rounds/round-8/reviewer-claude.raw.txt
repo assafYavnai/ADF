@@ -1,0 +1,85 @@
+```json
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "run-postmortem.json PM-003 is still non-canonical across its two writers. writeRunPostmortem (board.ts) hardcodes validation_issue_count:0 and omits total_issue_count; writeZeroRoundRunPostmortem (index.ts) derives validation_issue_count correctly and includes total_issue_count but omits review_issue_count. The same governed artifact has two divergent PM-003 shapes depending on exit path. COD-009 compliance is only partial — the block was added but the canonical-shape requirement is unmet.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "board.ts writeRunPostmortem PM-003.validation_issue_count is hardcoded to 0. executeBoard does not receive the caller's validationIssues array, so when non-blocking validation warnings exist the board-path run-postmortem.json always misreports this field as 0. The governed KPI artifact for any run with validation warnings carries silently incorrect data.",
+          "source_section": "board.ts:writeRunPostmortem (~line 790, question_outputs[PM-003])"
+        },
+        {
+          "id": "f2",
+          "description": "board.ts writeRunPostmortem PM-003 is missing total_issue_count, a field present in writeZeroRoundRunPostmortem. The two writers of the same artifact file produce structurally different PM-003 objects. Any automated consumer that parses run-postmortem.json PM-003 across exit paths will encounter schema variance.",
+          "source_section": "board.ts:writeRunPostmortem vs index.ts:writeZeroRoundRunPostmortem — PM-003 shape comparison"
+        },
+        {
+          "id": "f3",
+          "description": "index.ts writeZeroRoundRunPostmortem PM-003 includes total_issue_count and a correctly derived validation_issue_count but omits review_issue_count entirely. The board-path writer has review_issue_count but not total_issue_count. Neither writer produces the full canonical set.",
+          "source_section": "index.ts:writeZeroRoundRunPostmortem (~line 362-374)"
+        }
+      ],
+      "redesign_guidance": "Define a single canonical PM-003 shape: { validation_issue_count, self_check_issue_count, review_issue_count, total_issue_count }. Pass the caller's validationIssues into executeBoard (or return them through BoardResult so the board can relay them) so writeRunPostmortem can populate validation_issue_count correctly. Both writeRunPostmortem and writeZeroRoundRunPostmortem must produce all four fields, deriving each from its explicit issue array. This is the residual work from the round-7 partial fix: PM-003 was added to board paths but the shape was not unified."
+    },
+    {
+      "id": "group-2",
+      "summary": "writeCyclePostmortem PM-003 (index.ts) is missing review_issue_count. The cycle-level governed artifact cannot report the total issue count across all phases, and its total_issue_count field silently excludes review-phase findings.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f4",
+          "description": "index.ts writeCyclePostmortem PM-003 includes telemetry_events_captured, validation_issue_count, self_check_issue_count, and total_issue_count, but total_issue_count is computed as only validation + self-check counts with review-phase findings omitted. boardResult.rounds contains per-round reviewer verdict severity counts that are never aggregated into PM-003 here.",
+          "source_section": "index.ts:writeCyclePostmortem (~line 472-478, question_outputs[PM-003])"
+        }
+      ],
+      "redesign_guidance": "Add review_issue_count to writeCyclePostmortem PM-003, derived by summing severity counts across boardResult.rounds (same logic as totalReviewIssueCount in writeRunPostmortem). Update total_issue_count to include it. This aligns the cycle-postmortem PM-003 with the canonical four-field shape."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Self-check severity is correctly preserved end-to-end. extendRepairChecklist maps error→major and warning→minor; filterMaterialChecklist excludes minor/suggestion from material work; buildResult.red_flags filters only issue.severity==='error'. Warning-level self-check findings no longer contaminate material repair checklists or red_flags."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "reject_fix",
+      "reason": "The fix added PM-003 to the board-path writeRunPostmortem, satisfying the presence requirement but not the canonical-shape requirement. validation_issue_count is hardcoded to 0 (wrong for runs with validation warnings), total_issue_count is absent from the board path, and the zero-round path omits review_issue_count. The two writers of run-postmortem.json still produce structurally divergent PM-003 blocks. COD-009 requires one canonical evidence model on every exit path; the shapes remain non-canonical."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "accept_fix",
+      "reason": "Learning-engine output is validated via LearningOutputSchema.safeParse() at the extractRules return boundary (engine.ts:104-108), failing closed before the caller can use the data. Repair-engine complianceMap and fixItemsMap are validated via Zod .parse() (engine.ts:62-63), throwing on malformed entries before they can update governed artifacts."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "toValidationIssue with hardcoded severity:'error' is no longer present. buildResult constructs red_flags via issues.filter(issue => issue.severity === 'error'), preserving actual severity rather than upgrading all self-check output. Warning-level self-check issues are correctly excluded from red_flags."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "writeCyclePostmortem now sets cycle_postmortem:true directly without a pathExists guard on the file being written. validator.ts selfCheck no longer contains the unused mdLower variable. Both dead-code items confirmed removed."
+    }
+  ],
+  "residual_risks": [
+    "Board-path run-postmortem.json will permanently report validation_issue_count:0 for any run that has non-blocking validation warnings, silently corrupting the governed KPI artifact for the most common non-perfect-request scenario.",
+    "The two writers of run-postmortem.json (writeRunPostmortem and writeZeroRoundRunPostmortem) produce structurally divergent PM-003 blocks; automated postmortem consumers face schema variance depending on which exit path produced the artifact.",
+    "cycle-postmortem.json total_issue_count excludes review-phase findings, making it unsuitable as a single-source issue summary across all phases.",
+    "withFileLock in board.ts mutates currentRulebook before lock acquisition; non-issue in the current sequential execution model but creates a latent hazard if board parallelism is introduced."
+  ],
+  "strengths": [
+    "Self-check severity preservation is cleanly implemented: extendRepairChecklist translates error/warning/info to the repair severity scale, filterMaterialChecklist correctly excludes minor/suggestion, and the result pipeline no longer upscales warnings.",
+    "Learning-engine boundary validation via LearningOutputSchema.safeParse() is correctly placed at the extractRules output before the caller can consume or write the data.",
+    "Repair-engine boundary validation via Zod .parse() for both complianceMap and fixItemsMap ensures the board never processes malformed compliance data from model responses.",
+    "normalizeLearningSeverity provides a safe, explicit fallback at the board/learning-engine boundary without silently expanding the valid severity set.",
+    "withFileLock is correct and durable: uses exclusive open (wx flag), handles ENOENT for non-contended paths, applies exponential backoff, and always cleans up on error.",
+    "BoardBlockedError escalation pattern correctly terminates the board loop on parse failures rather than degrading evidence quality through fallback fabrication.",
+    "preValidateResponse fast-fails on empty or CLI-error-prefixed responses before any JSON parse attempt, preventing misleading parse-error bug reports for structurally invalid responses."
+  ]
+}
+```

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "shared_review_contract_ref": "shared/learning-engine/review-contract.json",
+  "domain": "code",
+  "domain_description": "Generic boxed source-code review for governed ADF components and shared runtime modules.",
+  "artifact_kind": "implementation-bundle",
+  "focus_areas": [
+    "Behavioral correctness and terminal-state handling",
+    "Review-cycle contract alignment: review -> learning -> rule check -> fix -> re-review",
+    "Schema/runtime consistency across shared contracts and live consumers",
+    "Boxing, bounded file access, and audit/KPI completeness",
+    "Fallback behavior, provider drift, and duplicated runtime logic",
+    "Dead code, stale abstractions, and mirrored-module divergence",
+    "Verification quality, testability, and machine-facing evidence integrity"
+  ],
+  "review_modes": {
+    "first_round": "full",
+    "middle_rounds": "delta",
+    "sanity_check": "regression_sanity"
+  },
+  "severity_definitions": {
+    "blocking": "Unsafe, contract-breaking, or guaranteed execution failure. Must be fixed before approval.",
+    "major": "Likely functional regression, missing protocol step, or audit gap that should block approval.",
+    "minor": "Low-risk inconsistency or maintainability issue that does not currently break the flow.",
+    "suggestion": "Optional improvement with no immediate correctness impact."
+  },
+  "source_authority_paths": [
+    "docs/v0/review-process-architecture.md",
+    "shared/learning-engine/review-contract.json",
+    "shared/learning-engine/code-review-contract.json",
+    "shared/learning-engine/implementor-rulebook.json",
+    "docs/v0/context/step2g-efficiency-plan.md"
+  ],
+  "ignore_areas": [
+    "Do not redesign unrelated product scope or feature direction.",
+    "Do not propose repo-wide reorganization beyond the reviewed implementation bundle.",
+    "Do not rely on files outside the boxed review bundle except the declared authority references."
+  ],
+  "schema_refs": {
+    "review_contract": "shared/learning-engine/review-contract.json",
+    "code_review_contract": "shared/learning-engine/code-review-contract.json",
+    "compliance_map": "shared/learning-engine/compliance-map.ts#ComplianceMap",
+    "fix_items_map": "shared/learning-engine/fix-items-map.ts#FixItemsMap",
+    "rulebook": "shared/learning-engine/implementor-rulebook.json"
+  },
+  "budget_hints": {
+    "prefer_changed_section_focus_after_round0": true,
+    "leader_input_mode": "normalized-review-summary",
+    "artifact_read_mode": "boxed-bundle-manifest"
+  },
+  "compliance_map_required": true,
+  "fix_items_map_required_from_round": 1,
+  "learning_engine_between_rounds": true,
+  "full_sweep_rounds": "first and last (when no material pushback remains)"
+}

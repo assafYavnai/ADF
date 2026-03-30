@@ -1,0 +1,21 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "ARB-004 already requires terminal states to have mutually exclusive, testable predicates against run evidence. The shared review contract then supplies the concrete invariant split: `pushback` is for unresolved blocking/major review findings while budget remains, and `blocked` is for unrecoverable validation, structural, or execution errors. This finding is an application gap, not a new rule class."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "ARB-011 already owns the cross-round carry-forward principle: unresolved reviewer findings must be tracked explicitly by stable ID across rounds rather than being silently regrouped. This round clarifies that the canonical identity should be `finding_id`, consistent with the shared contract's `identity_preference`, while conceptual groups stay a presentation layer. The rule exists already, but its current wording/example should be tightened to remove the group-vs-finding ambiguity."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-017",
+      "explanation": "ARB-017 already requires inherited review semantics to be derived from declared governing sources and referenced from shared policy instead of being reinvented locally. The shared review contract already defines the review-mode vocabulary and compliance-sweep behavior, so introducing extra local mode terms or duplicating the sweep rule in conflicting forms is exactly the failure this rule is meant to prevent."
+    }
+  ],
+  "no_rule_needed": []
+}

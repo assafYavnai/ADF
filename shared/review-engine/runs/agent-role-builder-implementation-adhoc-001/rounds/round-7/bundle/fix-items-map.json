@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 6,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Validation-blocked exits now emit the blocked pushback artifact plus a zero-round run-postmortem, and cycle-postmortem PM-003 now counts validation and self-check issues separately.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The shared component-repair engine now boxes each authority under its relative source path so duplicate basenames cannot overwrite one another inside the repair bundle.",
+      "evidence_location": "shared/component-repair-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Referenced evidence paths are now normalized and must be boxable under shared/, tools/, or docs/; otherwise bundle construction throws instead of silently dropping the path.",
+      "evidence_location": "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "The pre-board validation-block path now writes the pushback artifact that result.json advertises, so pushback_path is no longer a dangling machine-facing reference.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Ad-hoc round summaries now persist review_outcome, unresolved_items, and improvements_applied, and prior-round prompt context loads those stored values instead of fabricating them from severity counts.",
+      "evidence_location": "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts; shared/review-engine/engine.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T21:05:00.000Z"
+}

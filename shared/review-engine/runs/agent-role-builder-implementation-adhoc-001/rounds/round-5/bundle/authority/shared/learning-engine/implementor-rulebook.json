@@ -1,0 +1,285 @@
+{
+  "schema_version": "1.0",
+  "component": "system-wide-implementor",
+  "purpose": "Generic rulebook for any LLM implementor in ADF. Component-specific rulebooks extend this with domain rules.",
+  "last_updated": "2026-03-29",
+  "rules": [
+    {
+      "id": "IMP-001",
+      "rule": "Preserve upstream authority. Execute approved specs, contracts, and plans \u2014 do not redesign them during implementation.",
+      "applies_to": [
+        "all implementation work"
+      ],
+      "do": "Read the approved contract/spec before starting. Implement exactly what it says. If something seems wrong, flag it as a finding \u2014 do not silently fix it.",
+      "dont": "Silently reinterpret or improve the spec during implementation. Example: contract says 'write to rounds/round-N/' but implementor writes to 'rounds/round-N.json' because it seems simpler.",
+      "source": "ProjectBrain implementation-guide: 'Execute approved authority, not redesign.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-002",
+      "rule": "Self-check before submitting for review. Walk every rule in the rulebook mechanically \u2014 do not rely on memory or confidence.",
+      "applies_to": [
+        "all implementation work",
+        "pre-review submission"
+      ],
+      "do": "Before submitting: load rulebook, check each rule against the artifact, produce compliance map. The compliance map IS the self-check evidence.",
+      "dont": "Submit without checking. Example: implementor is 'confident' the code is correct because it compiled \u2014 but missed that a guard skips artifact writing on the final round.",
+      "source": "ProjectBrain implementation-guide + review cycle evidence: self-check claims must match actual behavior (ARB-005).",
+      "version": 1
+    },
+    {
+      "id": "IMP-003",
+      "rule": "Every conditional guard must be tested against all terminal states, not just the happy path.",
+      "applies_to": [
+        "control flow",
+        "guard conditions",
+        "if/switch statements"
+      ],
+      "do": "For every `if` guard that controls artifact writing or behavior: list all possible states (frozen, pushback, blocked, resume_required, final round, empty unresolved). Verify the guard allows the artifact to be produced in each applicable state.",
+      "dont": "Gate code with `if (round < maxRounds - 1 && unresolved.length > 0)` when the artifact should be written on every round. Example: learning.json skipped on final round because the revision guard excluded it.",
+      "source": "Step 2f review cycle NF-1: learning engine skipped on final round due to overly restrictive guard.",
+      "version": 1
+    },
+    {
+      "id": "IMP-004",
+      "rule": "When a fix is applied to a module that has copies or re-exports, apply the fix to ALL locations.",
+      "applies_to": [
+        "all code with re-exports",
+        "shared-imports patterns"
+      ],
+      "do": "After fixing a bug, grep for all copies/re-exports of the affected code. Apply the fix to every location. List all locations in the fix items map.",
+      "dont": "Fix the canonical module and forget the copy. Example: Gemini shell injection fixed in shared/llm-invoker/invoker.ts but NOT in tools/agent-role-builder/src/shared-imports.ts \u2014 caught by reviewer in Round 2.",
+      "source": "Step 2f review cycle R2-1 + system rule SYS-001.",
+      "version": 1
+    },
+    {
+      "id": "IMP-005",
+      "rule": "Every schema that is created must be imported and used by code. No orphan schemas.",
+      "applies_to": [
+        "all schema definitions",
+        "all Zod types"
+      ],
+      "do": "After creating a schema file, immediately write the code that imports and uses it. Verify with grep that the schema is imported by at least one consumer.",
+      "dont": "Create a schema and defer wiring it. Example: compliance-map.ts and fix-items-map.ts existed for a full commit cycle without any code importing them.",
+      "source": "Step 2f board review: schemas defined but never wired. CEO directive: 'no shortcuts \u2014 follow through A to Z.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-006",
+      "rule": "After a rewrite, grep for unused parameters, dead imports, and dead functions before submitting.",
+      "applies_to": [
+        "all code rewrites",
+        "refactors"
+      ],
+      "do": "After rewriting a file: run type-check, then grep for the old function/import names to find dead references. Remove them. Check parameter lists against actual usage.",
+      "dont": "Leave dead code after a refactor. Example: execPromise function and execFile import left behind after migrating all CLI calls to spawn+stdin. isSanityCheck parameter passed through but never used.",
+      "source": "Step 2f review cycles R3-2 (dead execPromise) and NF-R2-2 (dead isSanityCheck parameter).",
+      "version": 1
+    },
+    {
+      "id": "IMP-007",
+      "rule": "Never swallow errors silently. Every catch block must log or propagate.",
+      "applies_to": [
+        "all error handling",
+        "try/catch blocks"
+      ],
+      "do": "Every catch block must either: (a) log to stderr with context prefix and error message, or (b) re-throw. Use `console.error('[component] context:', e instanceof Error ? e.message : e)`.",
+      "dont": "Write `catch { }` or `catch { /* ignore */ }`. Example: 7 empty catch blocks in board.ts swallowed compliance map failures, learning engine errors, and parse failures with no trace.",
+      "source": "Step 2f review NF-7: all 7 empty catches found and fixed. ProjectBrain track-4-error-rules: 'no silent failures.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-008",
+      "rule": "Stubs that are not yet implemented must return errors, not success. An unimplemented action must never look like a successful one.",
+      "applies_to": [
+        "all stub/placeholder code",
+        "switch defaults"
+      ],
+      "do": "Throw an Error with a clear message: `throw new Error('Action X not yet implemented for Y.')`. The caller's error handler will surface it.",
+      "dont": "Return a success response from a stub. Example: governance update/transition actions returned `{ content: [{ type: 'text', text: 'not yet implemented' }] }` without `isError: true` \u2014 caller could not distinguish success from stub.",
+      "source": "Step 2f review B-3: governance stubs returning success.",
+      "version": 1
+    },
+    {
+      "id": "IMP-009",
+      "rule": "Never pass user/LLM-provided strings as shell arguments. Pipe via stdin.",
+      "applies_to": [
+        "all CLI invocations",
+        "child_process calls"
+      ],
+      "do": "Use spawn() with arguments array (no shell:true). Pass the prompt via stdin: `proc.stdin.write(prompt); proc.stdin.end()`. This prevents shell injection.",
+      "dont": "Pass prompt as a positional CLI argument with shell:true. Example: `args.push(params.prompt)` with `execFile(cmd, args, {shell:true})` \u2014 backticks or $() in prompt execute arbitrary commands.",
+      "source": "Step 2f review B-1: Gemini shell injection. Codex and Claude correctly piped via stdin; Gemini did not.",
+      "version": 1
+    },
+    {
+      "id": "IMP-010",
+      "rule": "Implementation closeout must be explicit. Update status, record gate results, and write verification evidence.",
+      "applies_to": [
+        "all implementation steps",
+        "phase completion"
+      ],
+      "do": "When a step is done: update the context file status, write the result artifact, commit with descriptive message. The evidence must exist or the step is not done.",
+      "dont": "Declare a step complete without evidence. Example: 'compliance map integration done' when the schema exists but no code imports it.",
+      "source": "ProjectBrain implementation-guide: 'Implementation closeout must be explicit.' + CEO directive on no shortcuts.",
+      "version": 1
+    },
+    {
+      "id": "IMP-011",
+      "rule": "Use file locking for concurrent writes to shared files. Never assume single-writer access.",
+      "applies_to": [
+        "shared files",
+        "logs",
+        "state files"
+      ],
+      "do": "Use a locking mechanism (advisory lock, atomic rename, or database transaction) when multiple processes may write to the same file.",
+      "dont": "Write to shared files without locking. Example: two concurrent tool runs writing to the same action-log.jsonl \u2014 interleaved writes corrupt entries.",
+      "source": "ProjectBrain TBR-001: 'Always use file locking for concurrent file I/O.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-012",
+      "rule": "Git operations must not kill the tool on failure. Git commit failures are non-fatal.",
+      "applies_to": [
+        "all git operations within tools"
+      ],
+      "do": "Wrap git operations in try/catch. Log the failure. Continue execution. The tool's primary output is the artifact, not the commit.",
+      "dont": "Let a git commit failure crash the tool. Example: git hook rejects the commit \u2014 tool exits with error, losing all work.",
+      "source": "ProjectBrain TBR-002: 'Git operations must not kill tool on failure.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-013",
+      "rule": "Postmortem is part of implementation. Lessons must be extracted and routed to the appropriate rulebook.",
+      "applies_to": [
+        "all completed implementations",
+        "review cycles"
+      ],
+      "do": "After implementation is approved: run through postmortem questions (PM-001 through PM-007). Extract rule candidates. Update the component rulebook.",
+      "dont": "Skip the postmortem because the implementation is approved. Example: review cycle finds 3 blocking issues but no rules are extracted \u2014 the same issues recur in the next cycle.",
+      "source": "ProjectBrain implementation-guide: 'Postmortem is part of implementation.' + Three-tier post-mortem architecture.",
+      "version": 1
+    },
+    {
+      "id": "IMP-016",
+      "rule": "Never silently swallow errors in catch blocks for critical operations. If the operation is critical (revision, compliance generation, rule update), the catch must write a bug report and escalate. If the operation is non-critical (telemetry, logging), the catch must log with enough context for post-mortem analysis.",
+      "applies_to": [
+        "all try/catch blocks",
+        "error handling"
+      ],
+      "do": "For critical operations: write bug report, attempt auto-fix, throw BoardBlockedError if fix fails. For non-critical: console.error with [component] prefix, operation name, error message, and relevant context (round number, input size, etc).",
+      "dont": "Catch an error from a critical operation and silently restore the previous state. Example: revision crashes on r.applies_to.join() \u2014 catch restores old markdown, logs one line, continues. Result: draft never changes, 3 rounds of reviews wasted on identical input.",
+      "source": "Run 013: revision crashed every round on applies_to.join() but catch block silently restored old draft. 12.6 minutes and 9 LLM calls wasted reviewing the same unchanged document.",
+      "version": 1
+    },
+    {
+      "id": "IMP-017",
+      "rule": "When consuming LLM-generated JSON, normalize every field to its expected type before use. LLMs return strings where arrays are expected, numbers where strings are expected, etc. Always coerce at the boundary.",
+      "applies_to": [
+        "all JSON parsing from LLM responses",
+        "learning engine output",
+        "reviewer output"
+      ],
+      "do": "At the point where LLM output is consumed: if field should be array and is string, wrap in array. If field should be string and is number, convert. Example: applies_to = Array.isArray(r.applies_to) ? r.applies_to : [r.applies_to]",
+      "dont": "Call array methods (.join, .map, .filter) on LLM-returned fields without checking the type. Example: r.applies_to.join(\", \") crashes when applies_to is a string.",
+      "source": "Run 013: learning engine returned applies_to as string, revision prompt called .join() on it, crashed every round.",
+      "version": 1
+    },
+    {
+      "id": "COD-001",
+      "rule": "Validate all mandatory governance prerequisites before execution and fail closed when the review configuration is missing, malformed, or below the required roster.",
+      "applies_to": [
+        "board startup validation",
+        "review roster configuration",
+        "required governance file loading"
+      ],
+      "do": "Before starting a board run, verify the reviewer count is even, at least one full pair exists, each pair is exactly one Codex plus one Claude, and required governance files are present; if any check fails, return a validation error and stop the run.",
+      "dont": "Accept three reviewers, two Codex reviewers in one pair, or a missing component-owned review contract and continue into board execution as if the setup were partially valid.",
+      "source": "Ad-hoc code review round 0: reviewer-codex group 1.",
+      "version": 1
+    },
+    {
+      "id": "COD-002",
+      "rule": "Workflow status vocabularies must be single-sourced and exhaustively implemented across contracts, prompts, types, parsers, and runtime branches; any unhandled status must fail closed.",
+      "applies_to": [
+        "shared review contracts",
+        "leader/reviewer prompt schemas",
+        "TypeScript status unions",
+        "board state-machine handlers"
+      ],
+      "do": "When adding a status like `frozen_with_conditions`, update the shared contract, prompt instructions, parser validation, TypeScript union, and the board switch/if branches in the same change, then add an explicit handler for the terminal path.",
+      "dont": "Let the prompt emit `resume_required` or `frozen_with_conditions` while the runtime type union or round loop does not recognize it, causing the board to skip or mis-handle a real terminal state.",
+      "source": "Ad-hoc code review round 0: reviewer-codex group 2 and reviewer-claude group 1.",
+      "version": 1
+    },
+    {
+      "id": "COD-003",
+      "rule": "Preserve contract-defined review data end-to-end: carry canonical severities and required audit provenance without lossy remapping, and use safe writes for shared governed artifacts.",
+      "applies_to": [
+        "review-to-repair data transforms",
+        "audit artifact generation",
+        "shared rulebook and contract file writes"
+      ],
+      "do": "Keep reviewer severities as `blocking|major|minor|suggestion` through fix-decision handling, emit the contract audit block with `component`, `job_id`, `round`, `review_mode`, `provider`, `model`, `latency_ms`, `fallback_used`, and `artifact_refs`, and write shared rulebooks with a lock or atomic swap.",
+      "dont": "Downgrade or rewrite severities during repair processing, emit ad-hoc audit JSON that omits provider/model/latency/fallback provenance, or overwrite a shared rulebook directly with no locking or atomic write strategy.",
+      "source": "Ad-hoc code review round 0: reviewer-codex group 3.",
+      "version": 1
+    },
+    {
+      "id": "COD-004",
+      "rule": "Shared governed workflow logic must have one canonical implementation, and all live consumers must import that implementation instead of maintaining diverging local copies or orphaned mirrors.",
+      "applies_to": [
+        "shared/review-engine",
+        "shared/component-repair-engine",
+        "tool-specific runtime consumers"
+      ],
+      "do": "Export a single canonical implementation for shared workflow helpers and route live components through shared review, learning, and repair runtimes rather than keeping parallel local copies.",
+      "dont": "Keep separate local helper implementations or an unused shared engine beside the live path, so fixes land in one copy while production continues using another.",
+      "source": "Ad-hoc code review round 0: reviewer-codex group 4 and reviewer-claude groups 3-4.",
+      "version": 1
+    },
+    {
+      "id": "COD-005",
+      "rule": "Validate cross-field contract invariants on reviewer and leader outputs before they drive workflow state, and fail closed with an explicit override when the combination is illegal.",
+      "applies_to": [
+        "leader verdict parsing",
+        "board state-machine transitions",
+        "arbitration handling",
+        "terminal-state promotion logic",
+        "diff-summary and bug-report generation"
+      ],
+      "do": "Before computing revision eligibility or terminal exit, check that the selected terminal status is legal for the unresolved set. If it is illegal, write a bug report, record the override, and force a safe effective verdict.",
+      "dont": "Trust a syntactically valid leader status even when it contradicts the remaining material issues. Example: letting frozen_with_conditions suppress revision while blocking or major repair work still exists.",
+      "source": "Ad-hoc code review round 1: reviewer-claude group 3.",
+      "version": 1
+    },
+    {
+      "id": "COD-006",
+      "rule": "All reviewer and leader outputs must pass one canonical contract-driven validator at the boundary before any workflow branch, state transition, or artifact write; malformed or incomplete payloads must fail closed.",
+      "applies_to": [
+        "shared review/leader response validators",
+        "board state-transition entrypoints",
+        "review artifact writers",
+        "resume/result builders"
+      ],
+      "do": "Parse the raw LLM JSON once, run it through a shared validator that checks required sections, allowed verdict/status vocabularies, field shapes, and leader arbitration invariants, then pass only the validated object into board logic.",
+      "dont": "Read status or verdict from raw parsed JSON and enter runtime branches while missing sections, wrong field types, or illegal arbitration combinations remain undetected.",
+      "source": "Ad-hoc code review round 4: reviewer-codex group 1.",
+      "version": 1
+    },
+    {
+      "id": "COD-007",
+      "rule": "Top-level governed orchestrators must convert internal control exceptions into the declared typed terminal result and still emit required terminal artifacts; governed failure modes must not escape as uncaught exceptions.",
+      "applies_to": [
+        "top-level board/orchestrator functions",
+        "terminal-state return contracts",
+        "result and postmortem artifact generation",
+        "blocked/resume error handling"
+      ],
+      "do": "Catch BoardBlockedError at the executeBoard boundary, return the typed blocked result, and let the caller write result.json and cycle-postmortem.json from that terminal state.",
+      "dont": "Throw BoardBlockedError out of the round loop so the process exits before returning the declared result shape or writing terminal artifacts.",
+      "source": "Ad-hoc code review round 4: reviewer-claude group 1.",
+      "version": 1
+    }
+  ]
+}

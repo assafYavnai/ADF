@@ -1,0 +1,228 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "The draft is materially improved, but it is not freezable under the provided source authority. The remaining defects are governance-level, not cosmetic: the authority section still treats a document marked as non-operative reference evidence as a source of binding runtime obligations, the canonical role still hardcodes a run-specific governance snapshot path, the lifecycle model still collapses job-scoped and run-scoped closeout semantics around cycle-postmortem, and the arbitration trigger includes a locally invented `2 consecutive rounds` threshold that is not present in the supplied authority docs. Because those are blocking/major issues, the self-check pass is not credible enough to support freeze.",
+  "unresolved": [
+    "group-1: Authority layering is internally contradictory: a doc marked non-operative is also used as a source of binding runtime obligations.",
+    "group-2: Artifact lifecycle semantics collapse job-scoped and run-scoped evidence, especially for the cycle post-mortem.",
+    "group-3: Outcome mechanics are not fully mechanical: terminal-state selection and arbitration persistence are still partly ambiguous."
+  ],
+  "deferredItems": [
+    "group-2: ARB-012 (reviewer pair validation hard gate) silently omitted from compliance map with no explanatory note"
+  ],
+  "improvementsApplied": [
+    "Operative authority is now expressed as a strict numbered precedence chain with reference evidence separated from the operative list.",
+    "Canonical package artifacts and run evidence are enumerated with explicit tool-relative paths in a single artifact matrix.",
+    "Context gathering is framed as a precondition block before Step 1 instead of being embedded in the numbered execution flow.",
+    "Cross-round finding carry-forward is explicitly tied to conceptual-group IDs and the fix-items map.",
+    "Terminal states are evaluated in an explicit order with per-state closeout artifact expectations."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Authority layering is internally contradictory: a doc marked non-operative is also used as a source of binding runtime obligations.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The draft says review-round ordering, learning sequencing, split-verdict handling, budget exhaustion, and arbitration come from `review-process-architecture.md`, but the same file is also listed under 'Reference evidence (not operative authority)'. The source authority explicitly splits contracts from architecture/docs, with docs serving rationale and sequencing narrative rather than binding enforcement. That breaks the strict operative-vs-reference boundary.",
+              "source_section": "<authority> / Runtime obligations inherited by reference; Reference evidence (not operative authority)"
+            }
+          ],
+          "redesign_guidance": "Keep binding behavior sourced only from the operative chain. If contracts own sequencing and terminal mechanics, say that directly and leave the architecture docs as explanatory reference only."
+        },
+        {
+          "id": "group-2",
+          "summary": "Artifact lifecycle semantics collapse job-scoped and run-scoped evidence, especially for the cycle post-mortem.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f2",
+              "description": "The draft classifies `cycle-postmortem.json` as run-scoped terminal evidence and says it is written when the run reaches terminal closeout, but the source authority defines the cycle post-mortem as job-specific across all runs/attempts for one job and triggered when the job reaches a terminal verdict. That weakens the canonical-vs-run-scoped separation and introduces run/job semantic drift.",
+              "source_section": "<outputs> / Run-scoped terminal evidence; Step 5 outputs; <completion>"
+            }
+          ],
+          "redesign_guidance": "Keep one-attempt evidence separate from job-level closeout evidence. Make `cycle-postmortem.json` explicitly job-scoped and define its lifecycle in terms of job terminal closeout, including what happens on resume."
+        },
+        {
+          "id": "group-3",
+          "summary": "Outcome mechanics are not fully mechanical: terminal-state selection and arbitration persistence are still partly ambiguous.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "The guardrails allow insufficient authority, source evidence, or required inputs to return `pushback`, `blocked`, or `resume_required` evidence, but Step 5 defines those states with narrower predicates tied to post-review pushback, budget exhaustion, or unrecoverable execution failure. A pre-review insufficiency case therefore has no single testable state-selection rule.",
+              "source_section": "<guardrails>; Step 5. Resolve the terminal state and promote when allowed; <completion>"
+            },
+            {
+              "id": "f4",
+              "description": "The arbitration trigger says the same minor or suggestion issue must persist for 2 consecutive rounds, but the draft's cross-round tracking model uses carried-forward conceptual-group IDs. Without tying arbitration persistence to that ID, the trigger is not mechanically testable and depends on subjective issue matching.",
+              "source_section": "<guardrails>; Step 3; Step 4.6"
+            }
+          ],
+          "redesign_guidance": "Define a fail-closed mapping from each insufficiency class to one terminal state, and key arbitration persistence to the carried-forward conceptual-group ID already required elsewhere in the draft."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "The precedence chain must be mechanically unambiguous before the role can be treated as governed."
+        },
+        {
+          "finding_group_id": "group-2",
+          "decision": "accept_fix",
+          "reason": "The source architecture distinguishes run from job scope, and the artifact matrix should preserve that distinction."
+        },
+        {
+          "finding_group_id": "group-3",
+          "decision": "accept_fix",
+          "reason": "Terminal outcomes and arbitration triggers need deterministic predicates; the current wording leaves material branches open to interpretation."
+        }
+      ],
+      "residual_risks": [
+        "Reviewer-pair enforcement is inherited rather than restated locally; freeze is safe only if the active review contracts truly hard-fail any roster that is not a Codex+Claude pair minimum at Step 1.",
+        "The self-check reports full compliance, so if it remains unchanged it may continue to overstate readiness unless its checks are aligned to the same authority and lifecycle distinctions."
+      ],
+      "strengths": [
+        "The draft does use a numbered operative precedence chain and separates operative authority from a reference-evidence section instead of flattening them.",
+        "Context gathering is correctly framed as preconditions before Step 1 rather than embedded in the numbered execution flow.",
+        "Canonical package targets and run evidence are mostly enumerated with explicit tool-relative paths.",
+        "Cross-round repair handling already carries unresolved issues forward by conceptual-group ID and requires a fix-items map on later rounds."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Canonical role definition hardcodes a run-specific governance snapshot path inside <authority>, creating a stale and potentially dangling reference upon promotion",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The <authority> section embeds the concrete run ID 'agent-role-builder-self-role-017' in two distinct locations: (1) the operative 'Runtime obligations inherited by reference' clause (line 15) cites 'tools/agent-role-builder/runs/agent-role-builder-self-role-017/governance/docs/v0/review-process-architecture.md' as the source of runtime obligations, and (2) the 'Reference evidence (not operative authority)' subsection (lines 19–20) lists the same run-scoped path for both review-process-architecture.md and architecture.md. Every other parametric path in the artifact (context-gathering, outputs, guardrails, steps) correctly uses <job-id> as a template variable; only the authority section uses a concrete run ID. When this role is promoted to the canonical package at tools/agent-role-builder/role/agent-role-builder-role.md and subsequently used or updated under a different run, both authority references will resolve to the historical self-role-017 governance snapshot rather than any active source. Additionally, architecture.md specifies that Tier 3 post-mortem cleanup deletes raw run/round data; if that cleanup encompasses the governance snapshot directory, the hardcoded authority path becomes a dangling reference in the canonical artifact. The canonical location of these documents is docs/v0/ at the project level, not a run-scoped governance copy.",
+              "source_section": "<authority> lines 14–20 (Runtime obligations inherited by reference and Reference evidence subsections)"
+            }
+          ],
+          "redesign_guidance": "Replace the hardcoded run-scoped path 'tools/agent-role-builder/runs/agent-role-builder-self-role-017/governance/docs/v0/review-process-architecture.md' in the 'Runtime obligations inherited by reference' clause with the logical document name or its stable canonical project path (e.g., docs/v0/review-process-architecture.md). Apply the same correction in the 'Reference evidence' subsection for both docs. The operative clause should name the governing documents by logical or canonical identity — not by their location in a specific run's governance snapshot. A compliant pattern: 'Review-round ordering ... come from the active review contracts and review-process-architecture.md (canonical at docs/v0/review-process-architecture.md).' This preserves the intent of the inherited-by-reference pattern while keeping the canonical role definition free of run-specific state, consistent with ARB-018 timelessness and the <job-id> parametric pattern used throughout the rest of the artifact."
+        },
+        {
+          "id": "group-2",
+          "summary": "ARB-012 (reviewer pair validation hard gate) silently omitted from compliance map with no explanatory note",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f2",
+              "description": "The compliance map header states '24 rules checked' and lists rules ARB-001 through ARB-025, silently skipping ARB-012 (Reviewer pair validation: hard gate at request time). No note, rationale, or non-applicability statement is provided for the omission. The stated count (24) numerically acknowledges the skip, but the compliance map gives no explanation. The underlying artifact mechanics appear to address the concern — Step 1 includes 'Validate the reviewer roster, review mode, and runtime config against the active review contracts' and the Required inputs section specifies 'Active reviewer roster that satisfies the shared review contract roster requirements' — but without an explicit ARB-012 entry, the compliance map leaves this check unverified and the self-check's credibility on this rule is indeterminate. A reviewer who relies on the compliance map as a head start cannot confirm or refute ARB-012 compliance without re-deriving it from scratch.",
+              "source_section": "Compliance map header ('24 rules checked'), the list spanning ARB-001 to ARB-025 that omits ARB-012; <inputs> Required section; Step 1 roster validation bullet"
+            }
+          ],
+          "redesign_guidance": "Add an explicit ARB-012 entry to the compliance map. If compliant, cite the specific mechanism (e.g., 'Step 1 bullet 2 mandates roster validation against active review contracts before any round begins; this is a hard gate that blocks progression if the roster fails'). If not applicable to this artifact type, state the rationale explicitly. The compliance map's purpose is to give reviewers verifiable claims to check, not a count to verify; a silent omission defeats this purpose regardless of whether the underlying mechanics satisfy the rule."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "The arbitration trigger specifies '2 consecutive rounds' as the threshold before the leader may arbitrate. This specific threshold does not appear verbatim in either source authority file (review-process-architecture.md or architecture.md). If the active review contract also does not specify this threshold, the '2 consecutive rounds' condition is locally invented policy and may conflict with ARB-021. This is not raised as a finding because the active review contract is not visible in the source authority set provided; if the contract does contain this threshold, compliance is intact.",
+        "The self-check.json false positives on MISSING_REQUIRED_OUTPUT for canonical paths that are present in the outputs table (per the ARB-005 compliance claim) mean that ARB-003 and ARB-008 compliance for this run was resolved by human judgment rather than mechanical tool verification. The self-check tool's literal-matching bug is correctly identified, but the bug itself is unresolved and will affect future runs unless fixed.",
+        "The Tier 3 jobs post-mortem (cleanup of raw run/round data) is defined in both architecture.md and review-process-architecture.md but does not appear in the artifact's outputs, scope, or steps. If the canonical role is expected to orchestrate or produce Tier 3 post-mortem evidence, this is an undeclared responsibility. If Tier 3 is COO-owned, this should be explicitly noted in Not in scope to prevent ambiguity."
+      ],
+      "strengths": [
+        "Clean three-table <outputs> matrix with canonical vs evidence class labels, full tool-relative paths, and per-operation-type lifecycle columns — comprehensive, unambiguous, and directly auditable.",
+        "Terminal state predicates are mutually exclusive, testable, and evaluated in an explicit fixed order from most severe (blocked) to least restrictive (frozen) — preventing overlap and ensuring deterministic resolution regardless of which states co-apply.",
+        "Context-gathering is correctly structured as labeled preconditions entirely outside the numbered execution flow; no context-loading action leaks into the Steps sequence.",
+        "Carry-forward mechanism for findings is multi-anchored across three locations: guardrails (conceptual-group ID tracking mandate), Step 3 (fix-items-map must address every carried-forward ID), and Step 4 sub-step 4 (explicit carry-forward instruction) — no single-point-of-definition fragility.",
+        "Arbitration mechanics are complete on all four required dimensions: mechanical trigger (same minor/suggestion split persisting 2 consecutive rounds), actor (leader), evidence fields (arbitration_used + arbitration_rationale in result.json), and effect on terminal outcome (frozen_with_conditions predicate explicitly covers deferred arbitrated items).",
+        "Decision history preservation is multi-anchored across guardrails, Step 5 promotion rules, and the outputs lifecycle column — consistent across all three definition points with no contradictory language.",
+        "Split-verdict handling correctly restricts the subsequent round to only the rejecting reviewer, and adds an explicit final sanity review by the previously-approving reviewer before any promotion — consistent with the review-process-architecture.md source."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-017",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 625575,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 205261,
+        "fallback_used": false,
+        "invocation_id": "15972b89-daf1-45f1-82d5-315652a09025"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 258465,
+        "fallback_used": false,
+        "invocation_id": "f9f307ae-c625-423f-9905-b9658574f2d1"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 161849,
+        "fallback_used": false,
+        "invocation_id": "3f8119e9-f21a-48b8-b624-b92c90bfe7bc"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 205261,
+      "invocation_id": "15972b89-daf1-45f1-82d5-315652a09025",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 258465,
+      "invocation_id": "f9f307ae-c625-423f-9905-b9658574f2d1",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 161849,
+      "invocation_id": "3f8119e9-f21a-48b8-b624-b92c90bfe7bc",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "45e2d43f-919a-4ba2-b73e-8e4120799be7",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/governance-snapshot.json"
+  }
+}

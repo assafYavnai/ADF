@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "status": "blocked",
+  "role_slug": "agent-role-builder-governance-smoke",
+  "issue": "The requested role package is not safe to freeze as submitted.",
+  "why_it_blocks": "Revision crashed in round 0: Learning engine response failed schema validation: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"string\",\n    \"path\": [\n      \"new_rules\",\n      0,\n      \"applies_to\"\n    ],\n    \"message\": \"Expected array, received string\"\n  }\n]. Bug report written. Board cannot converge without working revision.",
+  "evidence": {
+    "validation_issues": [],
+    "self_check_issues": [],
+    "board_rounds": 1,
+    "decision_log_path": "tools\\agent-role-builder\\runs\\agent-role-builder-governance-smoke-001\\agent-role-builder-governance-smoke-decision-log.md",
+    "board_summary_path": "tools\\agent-role-builder\\runs\\agent-role-builder-governance-smoke-001\\agent-role-builder-governance-smoke-board-summary.md"
+  }
+}

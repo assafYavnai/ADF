@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 9,
+  "changed": true,
+  "summary": "Closed the remaining terminal closeout drift by making the ultimatum branch rewrite canonical round evidence and by constraining all PM-003 writers to the same four-counter schema.",
+  "implementation_scope": [
+    "tools/agent-role-builder/src/index.ts",
+    "tools/agent-role-builder/src/services/board.ts"
+  ],
+  "highlights": [
+    "Final-round ultimatum now updates roundResult markdown/self-check/compliance/fix state and rewrites canonical round evidence files.",
+    "Cycle PM-003 no longer carries non-canonical extra fields.",
+    "Cycle review_issue_count now uses the board-aligned recognized-severity filter."
+  ],
+  "generated_at": "2026-03-29T22:10:00.000Z"
+}

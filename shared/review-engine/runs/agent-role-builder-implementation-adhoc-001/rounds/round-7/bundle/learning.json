@@ -1,0 +1,31 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "This is a direct instance of terminal artifacts and KPI summaries not being derived from one canonical terminal result on every exit path. The zero-round blocked path, dangling pushback reference, and miscounted KPI field are exactly the kind of blocked/pre-round divergence COD-009 is meant to prevent."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-008",
+      "explanation": "COD-008 already requires review and repair bundles to fail closed unless every required authority file is present in the manifest. Flattening authority paths to basenames breaks that guarantee because two distinct requested authority paths can no longer be proven as uniquely boxed; preserving relative paths or blocking on basename collisions is a concrete implementation of COD-008, not a new rule."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "covered_by_rule_id": "COD-008",
+      "explanation": "Silently dropping extracted evidence paths weakens the fail-closed boxing guarantee for referenced evidence files. COD-008 already covers this: if a required evidence location is cited but cannot be boxed, bundle construction must surface it and block rather than discard it silently."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "A result object that advertises a non-existent pushback artifact on a pre-board blocked exit is a terminal-artifact integrity failure. COD-009 already requires terminal artifacts on every exit path to come from one canonical result/evidence model, which implies nulling absent artifact paths or writing the artifact consistently."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "This finding is about lossy remapping of canonical governed review data. Synthesizing leader verdicts and clearing unresolved/improvements instead of persisting and reusing the actual values breaks end-to-end preservation of contract-defined review outputs, which COD-003 already requires."
+    }
+  ],
+  "no_rule_needed": []
+}

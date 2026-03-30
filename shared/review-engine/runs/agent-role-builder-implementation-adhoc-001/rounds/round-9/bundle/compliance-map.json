@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "scope": "delta",
+  "artifact_path": "shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-8/bundle/source-manifest.json",
+  "round": 8,
+  "entries": [
+    {
+      "rule_id": "COD-009",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts",
+      "evidence_summary": "Run-postmortem and cycle-postmortem PM-003 now use the same four-field shape and derive their counts from explicit validation, self-check, and review issue arrays."
+    },
+    {
+      "rule_id": "COD-010",
+      "status": "compliant",
+      "evidence_location": "shared/component-repair-engine/engine.ts",
+      "evidence_summary": "Revision-mode repair responses now fail closed if fix_items_map is missing or empty, so the fix negotiation contract cannot silently disappear."
+    }
+  ],
+  "unchecked_rules": [
+    "IMP-001",
+    "IMP-002",
+    "IMP-003",
+    "IMP-004",
+    "IMP-005",
+    "IMP-006",
+    "IMP-007",
+    "IMP-008",
+    "IMP-009",
+    "IMP-010",
+    "IMP-011",
+    "IMP-012",
+    "IMP-013",
+    "IMP-016",
+    "IMP-017",
+    "COD-001",
+    "COD-002",
+    "COD-003",
+    "COD-004",
+    "COD-005",
+    "COD-006",
+    "COD-007",
+    "COD-008"
+  ],
+  "generated_at": "2026-03-29T21:55:00.000Z"
+}

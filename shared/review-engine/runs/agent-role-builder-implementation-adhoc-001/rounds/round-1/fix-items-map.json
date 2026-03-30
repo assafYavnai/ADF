@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 1,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Governance file existence and parseability are now validated before execution, and runtime config/rulebook loading fails closed instead of silently substituting defaults.",
+      "evidence_location": "tools/agent-role-builder/src/services/validator.ts; shared/review-engine/config.ts; tools/agent-role-builder/src/services/board.ts; shared/learning-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "frozen_with_conditions is now treated as a successful freeze outcome for canonical promotion, machine result paths, telemetry success, and CLI exit semantics.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The learning step now fails closed on missing/invalid boxed context or invalid model output, and board execution no longer swallows extractRules failures.",
+      "evidence_location": "shared/learning-engine/engine.ts; tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "review.json, run-postmortem.json, and cycle-postmortem.json now use a canonical audit envelope with provider/model/latency/fallback fields at the audit root, and postmortem artifact claims are mechanically checked.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-5",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The live board path now loads review runtime behavior from the shared review engine once at startup, and the local mirrored review-runtime module has been removed.",
+      "evidence_location": "shared/review-engine/engine.ts; tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/services/shared-module-loader.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The local review-runtime mirror has been removed from the live path and from the reviewed implementation bundle; the board now uses the shared review engine module directly.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "run-postmortem.json audit output now includes provider, model, latency_ms, fallback_used, and artifact_refs in the same machine envelope used by the other review artifacts.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The board now validates illegal leader verdict/material-work combinations, writes a bug report, records the override in rationale/diff summary, and forces a safe effective verdict.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; shared/learning-engine/implementor-rulebook.json"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Conditional freeze now promotes canonical artifacts and preserves machine-facing canonical paths in result.json while still writing a conditions manifest.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "cycle-postmortem.json no longer self-certifies its own existence without verification; it is written once, checked, then rewritten with the verified presence flag.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T17:20:00.000Z"
+}

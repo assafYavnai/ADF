@@ -1,0 +1,30 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "The live board still keeps a mirrored reviewer/leader parsing runtime in `board.ts`, so the shared review engine is not actually the single canonical implementation on the active path.",
+    "severity": "major",
+    "redesign_guidance": "Delete the board-local parsing/prevalidation helpers and make the board call the shared review-engine exports for response cleaning and parsing. If the board still needs bug-report and auto-fix escalation, keep that wrapper locally but hand repaired payloads back to the shared parser functions so parser behavior remains single-sourced.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "preValidateResponse and cleanJsonResponse are duplicated verbatim between shared/review-engine/engine.ts (exported) and board.ts (private local copies). The board uses its own copies, not the shared module versions. If the shared implementations diverge or are updated, board.ts will silently stay on the old path.",
+    "severity": "minor",
+    "redesign_guidance": "Delete the local preValidateResponse and cleanJsonResponse from board.ts. Call ctx.reviewEngine.preValidateResponse and ctx.reviewEngine.cleanJsonResponse (both are already exported by the shared engine). This closes the last residual duplication left after the review-runtime.ts deletion.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "pathExists in board.ts checks file existence by calling readFile with utf-8 encoding, reading the full file content. index.ts uses stat (metadata only). Reading file content to test existence is wasteful, introduces unnecessary memory pressure on large artifacts, and uses a different failure mode than stat.",
+    "severity": "minor",
+    "redesign_guidance": "Align board.ts pathExists to use stat (import { stat } from 'node:fs/promises'), matching index.ts. If the shared module has a canonical pathExists, use that instead of maintaining two local copies.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-3",
+    "summary": "shared-module-loader.ts catches all errors from both access() and import() in the same empty catch block. If import() throws a runtime error (e.g. syntax error in engine.ts, missing transitive dependency), the error is silently swallowed and the loader falls through to the next candidate or throws 'Shared module not found', obscuring the real failure.",
+    "severity": "suggestion",
+    "redesign_guidance": "Split the try/catch: catch only the ENOENT case from access() (check error.code === 'ENOENT') and let import() errors propagate without being swallowed. This makes broken shared modules immediately diagnosable.",
+    "finding_count": 1
+  }
+]

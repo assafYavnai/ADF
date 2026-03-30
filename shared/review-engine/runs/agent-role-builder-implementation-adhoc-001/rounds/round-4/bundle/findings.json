@@ -1,0 +1,23 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Reviewer pre-validation failures are treated as artifact findings instead of unrecoverable runtime failures, which breaks the mandated review -> learning -> rule check -> fix -> re-review contract.",
+    "severity": "major",
+    "redesign_guidance": "Handle reviewer pre-validation failures the same way unrecoverable parse failures are handled: write the bug report, attempt auto-fix only if supported, and otherwise throw a board-blocking error. Do not let runtime parse failures enter review findings, learning input, or repair checklists.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "The canonical shared parser still trusts contract fields at runtime, so invalid reviewer/leader statuses can reach live consumers without fail-closed validation.",
+    "severity": "major",
+    "redesign_guidance": "Validate reviewer verdicts, severities, fix-decision enums, and leader statuses against the shared contract inside the shared review-engine parser before returning typed objects. If any enum or cross-field invariant is invalid, throw and force the board into the explicit error-escalation path.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-3",
+    "summary": "Per-round audit artifacts are written before the board computes its final effective verdict and deferred-item set, so required machine-facing evidence can contradict the actual runtime decision.",
+    "severity": "major",
+    "redesign_guidance": "Compute the effective leader verdict, overridden rationale, and deferred items before writing `review.json`, and derive later postmortem/audit outputs from that finalized round state so every persisted artifact agrees on the round outcome.",
+    "finding_count": 2
+  }
+]

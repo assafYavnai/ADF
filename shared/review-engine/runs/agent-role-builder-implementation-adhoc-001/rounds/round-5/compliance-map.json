@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "scope": "delta",
+  "artifact_path": "shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-5/bundle/source-manifest.json",
+  "round": 5,
+  "entries": [
+    {
+      "rule_id": "IMP-002",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts",
+      "evidence_summary": "The ad-hoc runner now requires a prior compliance-map.json, validates implementer evidence artifacts, and includes referenced evidence files in the boxed source bundle before review begins."
+    },
+    {
+      "rule_id": "IMP-004",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/audit-utils.ts; tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts",
+      "evidence_summary": "Audit helpers and both uniqueStrings behaviors are now shared through audit-utils.ts instead of living as divergent local copies."
+    },
+    {
+      "rule_id": "COD-002",
+      "status": "compliant",
+      "evidence_location": "shared/review-engine/engine.ts",
+      "evidence_summary": "The shared reviewer parser now validates verdict tokens strictly against the governed contract vocabulary and no longer aliases off-contract approve to approved."
+    },
+    {
+      "rule_id": "COD-003",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/audit-utils.ts",
+      "evidence_summary": "Run-level audit envelopes now emit a non-null review_mode sentinel of none when no review round exists, preserving the required audit field on pre-round and cycle artifacts."
+    },
+    {
+      "rule_id": "COD-004",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/audit-utils.ts; tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts",
+      "evidence_summary": "Shared governed utility logic now comes from audit-utils.ts for audit envelopes and string-dedup helpers instead of duplicated private implementations."
+    },
+    {
+      "rule_id": "COD-008",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts; shared/component-repair-engine/engine.ts",
+      "evidence_summary": "Review bundles now include every file referenced by prior compliance, fix, and diff evidence, and the shared component-repair engine fails closed if any requested authority file cannot be boxed."
+    },
+    {
+      "rule_id": "COD-009",
+      "status": "compliant",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts",
+      "evidence_summary": "Blocked startup exits now write run-postmortem.json, and result evidence counts are derived from separate validation and self-check issue arrays instead of ad hoc code filters."
+    }
+  ],
+  "unchecked_rules": [
+    "IMP-001",
+    "IMP-003",
+    "IMP-005",
+    "IMP-006",
+    "IMP-007",
+    "IMP-008",
+    "IMP-009",
+    "IMP-010",
+    "IMP-011",
+    "IMP-012",
+    "IMP-013",
+    "IMP-016",
+    "IMP-017",
+    "COD-001",
+    "COD-005",
+    "COD-006",
+    "COD-007"
+  ],
+  "generated_at": "2026-03-29T20:45:00.000Z"
+}

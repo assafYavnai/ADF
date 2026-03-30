@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-governance-smoke-004",
+  "role_slug": "agent-role-builder-governance-smoke",
+  "final_status": "resume_required",
+  "final_status_reason": "This run cannot freeze. `max_review_rounds` is 1 in the normalized request, and material issues remain after round 0, so the correct terminal outcome is `resume_required` rather than plain `pushback`. The remaining blockers are not minor-arbitration candidates: Step 5 still permits overlapping `blocked`/`pushback` truth conditions, cross-round carry-forward does not use one canonical identity model, and the freeze evidence is not credible because the compliance map omits ARB-012 while the self-check is still reported as passed despite emitted errors.",
+  "generated_at": "2026-03-30T08:34:43.106Z",
+  "questions_ref": "shared/learning-engine/postmortem-questions.json",
+  "kpi_summary": {
+    "total_duration_ms": 3312916,
+    "rounds_executed": 1,
+    "participant_invocations": 3,
+    "reviewer_invocations": 2,
+    "skipped_reviewer_invocations": 0,
+    "fallback_count": 0,
+    "llm_call_count": 8,
+    "llm_failures": 2,
+    "tool_events": 3,
+    "total_llm_latency_ms": 3312804,
+    "total_tokens_in": null,
+    "total_tokens_out": null,
+    "total_estimated_cost_usd": null,
+    "unresolved_trend": [
+      3
+    ]
+  },
+  "artifacts": {
+    "result_json": true,
+    "run_postmortem": true,
+    "cycle_postmortem": true,
+    "normalized_request": true,
+    "session_registry": true
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-governance-smoke-004",
+    "round": 0,
+    "review_mode": "none",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 785660,
+    "fallback_used": false,
+    "artifact_refs": {
+      "result_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/result.json",
+      "run_postmortem": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/run-postmortem.json",
+      "cycle_postmortem": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/cycle-postmortem.json",
+      "normalized_request": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/normalized-request.json",
+      "session_registry": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/runtime/session-registry.json",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/self-check.json"
+    }
+  },
+  "question_outputs": {
+    "PM-002": {
+      "rounds": 1,
+      "duration_ms": 3312916,
+      "llm_call_count": 8,
+      "fallback_count": 0,
+      "reviewer_reuse_savings": 0
+    },
+    "PM-003": {
+      "validation_issue_count": 0,
+      "self_check_issue_count": 0,
+      "review_issue_count": 5,
+      "total_issue_count": 5
+    },
+    "PM-007": {
+      "unresolved_trend": [
+        3
+      ],
+      "converged": true
+    }
+  },
+  "governance_binding": {
+    "snapshot_id": "4fca44b9-ffd9-4af1-b490-7b614c14f03f",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-004/governance-snapshot.json"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-governance-smoke-001",
+  "questions_ref": "shared/learning-engine/postmortem-questions.json",
+  "updated_at": "2026-03-30T07:09:05.624Z",
+  "terminal_status": "resume_required",
+  "rounds_completed": 1,
+  "round_snapshots": [
+    {
+      "round": 0,
+      "review_mode": "full",
+      "reviewer_invocations": 2,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 0,
+      "participant_count": 3,
+      "leader_verdict": "resume_required",
+      "unresolved_count": 2,
+      "unresolved_items": [
+        "group-1: The authority model is not expressed as one fully strict operative precedence chain.",
+        "group-2: Carry-forward and arbitration mechanics are not mechanical enough to guarantee stable governed review behavior."
+      ],
+      "improvements_applied_count": 5,
+      "reviewer_verdict_breakdown": {
+        "approved": 0,
+        "conditional": 1,
+        "reject": 1,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 5,
+        "minor": 2,
+        "suggestion": 1
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 882542,
+        "max": 341373,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r0",
+            "latency_ms": 258871,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "reviewer-1-claude-r0",
+            "latency_ms": 341373,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r0",
+            "latency_ms": 282298,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": true
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/compliance-map.json",
+        "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/fix-items-map.json",
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/agent-role-builder-governance-smoke-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/self-check.json"
+      }
+    }
+  ],
+  "kpi_summary": {
+    "unresolved_trend": [
+      2
+    ],
+    "convergence_delta": 0,
+    "total_fallbacks": 0,
+    "total_participant_invocations": 3,
+    "skipped_reviewer_invocations": 0
+  },
+  "question_outputs": {
+    "PM-002": {
+      "rounds": 1,
+      "participant_invocations": 3,
+      "total_latency_ms": 882542,
+      "reviewer_reuse_savings": 0
+    },
+    "PM-003": {
+      "validation_issue_count": 0,
+      "self_check_issue_count": 0,
+      "review_issue_count": 8,
+      "total_issue_count": 8
+    },
+    "PM-007": {
+      "unresolved_trend": [
+        2
+      ],
+      "latest_unresolved_count": 2,
+      "convergence_observed": true
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-governance-smoke-001",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 882542,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/agent-role-builder-governance-smoke-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/self-check.json"
+    }
+  },
+  "governance_binding": {
+    "snapshot_id": "cb5a7fb8-a19a-4c71-ba62-d8cd85b3063d",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-003/governance-snapshot.json"
+  }
+}

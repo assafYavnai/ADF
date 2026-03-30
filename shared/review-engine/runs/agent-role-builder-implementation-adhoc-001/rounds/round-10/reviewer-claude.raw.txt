@@ -1,0 +1,75 @@
+```json
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Fix-items-map not cleared when ultimatum revision produces zero items: pre-ultimatum file persists on disk as stale canonical artifact.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "board.ts lines 609-617: the post-ultimatum fix-items-map.json rewrite is gated on `pendingFixItemsMap && pendingFixItemsMap.length > 0`. If the ultimatum revision resolves all fix items (empty array), the canonical round-level fix-items-map.json written in the pre-round pass (lines 272-277) is never overwritten. The artifact trail then references pre-ultimatum items that were resolved, creating a false positive in the round evidence and a mismatch against the post-ultimatum roundResult.fixItemsMap (set to empty at line 582).",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:609-617"
+        }
+      ],
+      "redesign_guidance": "After the ultimatum revision completes, unconditionally rewrite the canonical round fix-items-map.json with the post-ultimatum state (even if the items array is empty). An explicit empty-items stub ensures downstream readers can distinguish 'all items resolved' from 'file missing'. This is the same pattern already applied to compliance-map.json at line 596, which rewrites unconditionally."
+    },
+    {
+      "id": "group-2",
+      "summary": "Budget-exhaustion resume_required status reason reports pre-ultimatum material item count, overstating deferred work.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "board.ts line 678: the statusReason for the final-round budget-exhaustion exit embeds `materialRepairChecklist.length`, which was computed at line 321 before the ultimatum revision ran. If the ultimatum resolved any material items, the status reason overstates the number of deferred items. This propagates to result.json, run-postmortem.json, and cycle-postmortem.json statusReason fields, producing misleading human-facing and machine-auditable terminal evidence.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:675-679"
+        }
+      ],
+      "redesign_guidance": "After the ultimatum revision runs, re-derive the post-ultimatum material item count (e.g. from the updated roundResult.selfCheckIssues and pendingFixItemsMap) and use that count in the status reason. At minimum, label the number as a pre-ultimatum estimate so the terminal summary is not misleading."
+    },
+    {
+      "id": "group-3",
+      "summary": "Duplicate review_issue_count implementations remain despite logic alignment: COD-004 structural risk is not fully closed.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f3",
+          "description": "countBoardReviewIssues (index.ts:657-670) and countRoundSeverities (board.ts:1211-1236) both compute the same recognized-severity filter over conceptual groups. The behavioral divergence from reviewer-claude:group-2 has been eliminated (both now enumerate blocking/major/minor/suggestion), but the structural duplication flagged by COD-004 persists: a future change to the recognized severity vocabulary must be applied in two places. The run-postmortem and cycle-postmortem still each derive review_issue_count independently rather than from one canonical source.",
+          "source_section": "tools/agent-role-builder/src/index.ts:657-670; tools/agent-role-builder/src/services/board.ts:1211-1236"
+        }
+      ],
+      "redesign_guidance": "Export the board-computed review_issue_count (already available in writeRunPostmortem as totalReviewIssueCount) as a field on the BoardResult return value so index.ts can consume the pre-computed count directly. This eliminates countBoardReviewIssues and makes both postmortem documents read from the same single source, fully satisfying the COD-004 single-implementation requirement."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "The ultimatum branch now mutates roundResult.markdown (line 579), roundResult.selfCheckIssues (line 580), roundResult.complianceMap (line 581), and roundResult.fixItemsMap (line 582) in-place before any postmortem writer reads from them. The canonical round compliance-map.json is unconditionally rewritten post-ultimatum (lines 596-608). PM-003 is constrained to exactly the four-counter schema in all three writers: run-postmortem (board.ts:820-824), cycle-postmortem (index.ts:475-479), and zero-round postmortem (index.ts:370-375). The stale-snapshot mixing defect is resolved."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "Run-postmortem reads self_check_issue_count from latestRound.selfCheckIssues (board.ts:822), which was mutated at line 580 from currentSelfCheckIssues. Cycle-postmortem reads it from boardResult.finalSelfCheckIssues (index.ts:285), which is currentSelfCheckIssues from the return at line 678. Both trace to the same post-ultimatum selfCheck() call at line 578. Canonical round compliance-map.json is rewritten post-ultimatum (lines 596-608) and fix-items-map.json is rewritten when non-empty (lines 609-617). Both sub-findings are resolved."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "countBoardReviewIssues (index.ts:660-665) now applies the same recognized-severity predicate (blocking | major | minor | suggestion) as countRoundSeverities (board.ts:1216-1229, switch with default:break). The latent behavioral divergence that could produce cycle_postmortem.review_issue_count > run-postmortem.review_issue_count for the same run is eliminated. Structural COD-004 duplication persists as a suggestion-level residual; behavioral risk is resolved."
+    }
+  ],
+  "residual_risks": [
+    "Edge case: ultimatum resolves all fix items — pre-ultimatum fix-items-map.json persists as stale canonical round artifact (group-1).",
+    "Terminal status reason for budget-exhaustion resume_required embeds a pre-ultimatum material item count that may overstate deferred work (group-2).",
+    "Dual review_issue_count implementations in index.ts and board.ts must stay synchronized if recognized severity vocabulary changes (group-3)."
+  ],
+  "strengths": [
+    "All three prior-round major findings (canonical terminal evidence drift, ultimatum self-check source divergence, PM-003 schema non-uniformity) are fully resolved and verified in the reviewed code.",
+    "Ultimatum branch correctly mutates roundResult state in-place (lines 579-582) before writeRunPostmortem reads latestRound, ensuring the run-postmortem reflects post-ultimatum evidence.",
+    "Canonical round compliance-map.json is now unconditionally rewritten after the ultimatum (lines 596-608), eliminating the prior missing-persist defect identified in reviewer-claude:group-1.",
+    "PM-003 is uniformly shaped as exactly four counters across all postmortem writers, matching the canonical schema and eliminating the non-canonical extra-field drift.",
+    "countBoardReviewIssues (index.ts) and countRoundSeverities (board.ts) now apply identical recognized-severity filters, eliminating the latent cross-document count divergence."
+  ]
+}
+```

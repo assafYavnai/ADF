@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 3,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Reviewer pre-validation failures now block the board immediately instead of being downgraded into synthetic review findings that leak into learning and repair flows.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The shared review-engine parser now fail-closes on invalid reviewer verdicts, conceptual-group severities, fix-decision entries, and leader statuses instead of trusting raw contract fields at runtime.",
+      "evidence_location": "shared/review-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Per-round review artifacts are now written only after the board finalizes the effective leader verdict, rationale overrides, and deferred-item set, so persisted machine evidence matches the runtime decision.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T18:20:00.000Z"
+}

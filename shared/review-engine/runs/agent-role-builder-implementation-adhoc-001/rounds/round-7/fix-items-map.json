@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 7,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Self-check issues now preserve their original ValidationIssue severity through board execution and result synthesis instead of being flattened to major or error.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Board run-postmortem artifacts now include the PM-003 issue-count block, bringing zero-round and normal/blocked board closeout onto the same question_outputs shape.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Learning-engine output and component-repair-engine compliance/fix-item arrays are now schema-validated at the boundary before they can update governed artifacts.",
+      "evidence_location": "shared/learning-engine/engine.ts; shared/component-repair-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Result synthesis no longer upgrades warning-level self-check issues into error severity, so red_flags reflect real error-severity findings only.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "The redundant cycle-postmortem existence check and the unused validator mdLower variable were removed.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/validator.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T21:30:00.000Z"
+}

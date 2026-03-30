@@ -1,0 +1,44 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Boxing still fails open, so both the external review bundle and the internal repair bundle can omit required evidence without stopping the workflow.",
+    "severity": "major",
+    "redesign_guidance": "Make bundle construction fail closed when any file cited by the diff summary, compliance map, fix map, or requested authority list is missing from the box. The boxed manifest must be complete enough for a reviewer or repair pass to verify claims without leaving the declared bundle.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "Runtime contract enforcement is still not fully fail-closed because the shared reviewer parser accepts an off-contract verdict token instead of rejecting it.",
+    "severity": "major",
+    "redesign_guidance": "Remove verdict aliasing and validate reviewer outputs strictly against the shared contract vocabulary at the boundary. Any off-contract token should fail closed and trigger the existing error path instead of being normalized into a legal value.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-codex:group-3",
+    "summary": "Terminal and machine-facing evidence remains inconsistent on non-happy paths, so required artifacts and KPI counts can still disagree with the actual run state.",
+    "severity": "major",
+    "redesign_guidance": "Derive terminal artifacts and KPI fields from one canonical result/evidence model. Zero-round blocked exits should still emit an explicit run postmortem, and result counters should be computed directly from the full issue arrays with field names that match their semantics.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "Stale comment at parseReviewerResponse pre-validation contradicts actual throwing behavior, creating misleading inline documentation that signals a softer degraded path that no longer exists.",
+    "severity": "minor",
+    "redesign_guidance": "Remove or rewrite the stale comment to accurately describe the current fail-closed behavior: pre-validation failures are unrecoverable and immediately block the board via BoardBlockedError. Remove the (now incorrect) 'return parse-error verdict' framing and the '(the board loop will detect parse-error and mark reviewer as error)' clause entirely.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "reviewMode: null is passed to buildAuditEnvelope at two call sites (cycle-postmortem in index.ts and run-postmortem in board.ts), but the shared audit contract lists review_mode as a required audit field. Since audit-utils.ts is absent from this bundle, compliance cannot be confirmed.",
+    "severity": "minor",
+    "redesign_guidance": "Either (a) add audit-utils.ts to the bundle so reviewMode: null handling can be verified, or (b) ensure buildAuditEnvelope substitutes a sentinel value (e.g., 'none' or omits the field when null) that satisfies the contract's required_fields contract for run-level artifacts generated before or outside a review round. Document the null contract explicitly so future delta reviewers can verify it.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-3",
+    "summary": "uniqueStrings is implemented twice with divergent deduplication semantics: board.ts uses a simple trimmed-Set (case-sensitive), index.ts uses a case-insensitive lowercased key with original-case preservation. Both are private local copies.",
+    "severity": "suggestion",
+    "redesign_guidance": "If consistent deduplication semantics are required across callers, extract uniqueStrings into audit-utils.ts or a shared utility and import it from both. If the divergence is intentional (different use-cases), add a brief comment explaining the semantic difference at each definition.",
+    "finding_count": 1
+  }
+]

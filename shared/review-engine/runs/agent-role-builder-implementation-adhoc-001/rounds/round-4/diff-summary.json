@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 4,
+  "changed": true,
+  "summary": "Closed the remaining round-4 review-cycle issues by making shared contract validation fully fail-closed, reconciling canonical unresolved evidence after verdict overrides, converting BoardBlockedError into a typed blocked result inside executeBoard, and requiring compliance-map evidence in the ad-hoc runner.",
+  "implementation_scope": [
+    "shared/review-engine/config.ts",
+    "shared/review-engine/engine.ts",
+    "shared/learning-engine/implementor-rulebook.json",
+    "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts",
+    "tools/agent-role-builder/src/services/board.ts"
+  ],
+  "highlights": [
+    "Runtime review parsing now depends on the loaded governed contract instead of local defaults.",
+    "review.json, run-postmortem.json, and resume-package consumers now see canonical unresolved evidence after leader overrides.",
+    "The ad-hoc review loop now requires compliance-map evidence before follow-up rounds."
+  ],
+  "generated_at": "2026-03-29T20:20:00.000Z"
+}

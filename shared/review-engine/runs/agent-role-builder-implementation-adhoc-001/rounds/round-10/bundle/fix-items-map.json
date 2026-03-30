@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 9,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "The final-round ultimatum branch now updates the round snapshot and canonical round compliance/fix evidence before terminal closeout, and PM-003 is now restricted to the canonical four-count shape across run and cycle postmortems.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Run-postmortem and cycle-postmortem now read the same post-ultimatum self-check source because the ultimatum branch updates roundResult.selfCheckIssues before closeout.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; tools/agent-role-builder/src/index.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Cycle review_issue_count now uses the same recognized-severity filtering as the board-side postmortem writer, eliminating the latent counting divergence.",
+      "evidence_location": "tools/agent-role-builder/src/index.ts; tools/agent-role-builder/src/services/board.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T22:10:00.000Z"
+}

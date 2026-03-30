@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 3,
+  "changed": true,
+  "summary": "Applied the round-3 material fixes by hard-blocking reviewer pre-validation failures, enforcing runtime enum validation in the shared parser, and moving review artifact persistence after effective verdict finalization.",
+  "implementation_scope": [
+    "shared/review-engine/engine.ts",
+    "tools/agent-role-builder/src/services/board.ts"
+  ],
+  "highlights": [
+    "Reviewer pre-validation failures now escalate through BoardBlockedError.",
+    "Shared parser validates verdict, severity, fix-decision, and leader status enums at runtime.",
+    "review.json is now emitted after effective leader verdict and deferred-items are finalized."
+  ],
+  "generated_at": "2026-03-29T18:20:00.000Z"
+}

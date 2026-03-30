@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 2,
+  "changed": true,
+  "summary": "Applied the residual round-2 cleanup findings by removing the last board-local parser duplication, aligning existence checks to `stat`, and improving shared-module-loader error propagation.",
+  "implementation_scope": [
+    "tools/agent-role-builder/src/services/board.ts",
+    "tools/agent-role-builder/src/services/shared-module-loader.ts"
+  ],
+  "highlights": [
+    "Board parse wrappers now delegate to shared review-engine parsing helpers.",
+    "Board no longer carries local copies of preValidateResponse or cleanJsonResponse.",
+    "Board pathExists now uses stat instead of reading file contents.",
+    "shared-module-loader now surfaces import failures instead of masking them as missing modules."
+  ],
+  "generated_at": "2026-03-29T17:45:00.000Z"
+}

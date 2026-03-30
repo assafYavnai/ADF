@@ -1,0 +1,30 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Terminal-state evidence is still not canonical after the merged repair flow: final-round ultimatum edits and PM-003 counters diverge from the machine-facing artifacts that are supposed to describe them.",
+    "severity": "major",
+    "redesign_guidance": "Create one canonical terminal evidence object after any repair pass, including the final-round ultimatum branch, and persist the matching markdown, compliance map, fix-items map, unresolved items, and summary from that object before returning. Feed both run-postmortem and cycle-postmortem PM-003 from the same explicit validation/self-check/review arrays so every exit path emits the same fields and counts.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "The merged revision flow does not fail closed when required fix-items evidence is missing, so round 1+ can silently drop the review negotiation contract.",
+    "severity": "major",
+    "redesign_guidance": "For `revision` mode, make `<fix_items_map>` mandatory at the component-repair-engine boundary and fail closed if it is absent or empty when the round contract requires it. Keep that requirement single-sourced so the repair engine, board artifact writer, and reviewer parser all agree on when fix-items evidence must exist.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "run-postmortem.json PM-003 is still non-canonical across its two writers. writeRunPostmortem (board.ts) hardcodes validation_issue_count:0 and omits total_issue_count; writeZeroRoundRunPostmortem (index.ts) derives validation_issue_count correctly and includes total_issue_count but omits review_issue_count. The same governed artifact has two divergent PM-003 shapes depending on exit path. COD-009 compliance is only partial — the block was added but the canonical-shape requirement is unmet.",
+    "severity": "major",
+    "redesign_guidance": "Define a single canonical PM-003 shape: { validation_issue_count, self_check_issue_count, review_issue_count, total_issue_count }. Pass the caller's validationIssues into executeBoard (or return them through BoardResult so the board can relay them) so writeRunPostmortem can populate validation_issue_count correctly. Both writeRunPostmortem and writeZeroRoundRunPostmortem must produce all four fields, deriving each from its explicit issue array. This is the residual work from the round-7 partial fix: PM-003 was added to board paths but the shape was not unified.",
+    "finding_count": 3
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "writeCyclePostmortem PM-003 (index.ts) is missing review_issue_count. The cycle-level governed artifact cannot report the total issue count across all phases, and its total_issue_count field silently excludes review-phase findings.",
+    "severity": "minor",
+    "redesign_guidance": "Add review_issue_count to writeCyclePostmortem PM-003, derived by summing severity counts across boardResult.rounds (same logic as totalReviewIssueCount in writeRunPostmortem). Update total_issue_count to include it. This aligns the cycle-postmortem PM-003 with the canonical four-field shape.",
+    "finding_count": 1
+  }
+]

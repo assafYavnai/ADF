@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "full",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/agent-role-builder-governance-smoke-role.md",
+  "round": 0,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority is expressed as a highest-to-lowest operative chain, while static docs are separated under Reference evidence."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <completion>",
+      "evidence_summary": "Material pushback is defined once in guardrails and reused verbatim in freeze and terminal-state criteria."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Outputs are split into canonical artifacts under tools/agent-role-builder/role/ and run-scoped evidence under tools/agent-role-builder/runs/<job-id>/ with explicit lifecycle labels."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 5, <completion>",
+      "evidence_summary": "Each terminal state has an explicit trigger and write consequence, including frozen, frozen_with_conditions, pushback, blocked, and resume_required."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3, <guardrails>",
+      "evidence_summary": "The self-check is limited to executed checks and uses semantic scope matching rather than literal string matching."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "The not-in-scope list is deduplicated, normalized, and contains one exclusion per concept without contradictory variants."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4.9, <completion>",
+      "evidence_summary": "Arbitration has a trigger, actor, required evidence locations, and a single allowed outcome of frozen_with_conditions."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Every canonical required output appears with its full tool-relative path; basename-only references were removed."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion is defined separately for frozen, frozen_with_conditions, pushback, blocked, and resume_required with exact artifact expectations."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Context gathering is labeled as preconditions before Step 1 and not mixed into the numbered execution steps."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4.3",
+      "evidence_summary": "Carried-forward findings must be addressed by conceptual-group ID in the next fix-items map or explicitly rejected with reason."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <outputs>",
+      "evidence_summary": "Decision-log preservation is defined as append-only on update/fix, while the canonical board summary is replaced and the run snapshot is preserved."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<steps>",
+      "evidence_summary": "The steps section declares that the workflow is target-state governed behavior, avoiding mixed current-vs-target ambiguity."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4.10, <outputs>",
+      "evidence_summary": "Diff summaries and run post-mortems are declared as every-round artifacts, including no-delta final rounds."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "A single authoritative artifact matrix declares artifact class, full path, create lifecycle, update/fix lifecycle, and write rule for each artifact."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>",
+      "evidence_summary": "Local authority order and review semantics are derived from the COO/runtime contract, component review contract, and shared governance docs rather than reinvented locally."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "The role mission is framed as a standing purpose for the package and does not describe a transient run state or recovery action."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "The writable surface is explicitly bounded to four canonical files and the active run root, with no implied write authority elsewhere."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Only operative sources appear in the authority chain; request-time knobs are bounded below them and static docs are classified as reference evidence."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, <steps>",
+      "evidence_summary": "Governance mechanics are included only as inherited obligations or documented local consequences; no unsourced local board policy is introduced."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Scope polarity is cleanly separated: positive triggers appear under Use when, while exclusions appear only under Not in scope."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <outputs>",
+      "evidence_summary": "The governed round is defined as an ordered sub-sequence with compliance-map, fix-items-map, review, learning, diff-summary, and post-mortem artifacts bound to specific sub-steps."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>, <context-gathering>, <guardrails>",
+      "evidence_summary": "The role declares component-local governance files and states which review obligations are inherited by reference from governing contracts and docs."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>",
+      "evidence_summary": "Required inputs enumerate request data, source evidence, reviewer roster, governance files, review mode, governance config, and runtime config needed for terminal decisions."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-30T06:22:57.766Z"
+}

@@ -1,0 +1,38 @@
+{
+  "new_rules": [
+    {
+      "id": "AGE-026",
+      "rule": "Every evidence artifact must have exactly one lifecycle scope and explicit resume semantics; never use one artifact to represent both per-run evidence and cross-run or cross-attempt closeout.",
+      "applies_to": [
+        "<outputs> sections, artifact matrices, post-mortem definitions, and lifecycle/write-semantics sections in role-definition packages"
+      ],
+      "do": "Declare `runs/<run-id>/round-summary.json` as run-scoped evidence written for each run, and `cycle-postmortem.json` as job-scoped closeout written only when the job reaches a terminal state; state on resume whether the job-scoped artifact is appended, regenerated from accumulated evidence, or left unchanged.",
+      "dont": "Describe `cycle-postmortem.json` as both the current run's evidence and the overall job closeout, or rewrite it on each resumed run without saying whether it belongs to the run, the job, or both.",
+      "source": "Round 0: cycle post-mortem was treated as both run-scoped evidence and job-scoped closeout, leaving lifecycle and resume behavior unclear.",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-020",
+      "explanation": "This is a direct authority-chain violation. ARB-020 already requires operative authority layers to contain only binding sources and to classify non-operative architecture or reference documents separately unless a higher-order source explicitly promotes them."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-004",
+      "explanation": "Terminal-state selection ambiguity is already covered because ARB-004 requires mutually exclusive, testable predicates for every terminal state. A fail-closed insufficiency-class-to-terminal mapping is a concrete way to satisfy that rule."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-007",
+      "explanation": "Arbitration persistence and its effect on outcomes are already within scope of ARB-007, which requires a mechanical definition of arbitration including trigger, actor, evidence, and effect on terminal outcomes."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "The guidance to persist arbitration by carried-forward conceptual-group ID is already aligned with ARB-011, which requires unresolved findings to be carried forward explicitly by ID across rounds rather than silently."
+    }
+  ],
+  "no_rule_needed": []
+}

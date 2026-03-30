@@ -1,0 +1,95 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Self-check severity is flattened away, so warning-level self-check findings are treated as material failures throughout the board and result pipeline.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "validator.selfCheck returns mixed severities, including warnings, but executeBoard immediately strips each item to {code,message} and extendRepairChecklist reintroduces every self-check issue as severity \"major\". A warning-only self-check issue therefore becomes material repair work and can force pushback or resume_required on an otherwise non-material round.",
+          "source_section": "tools/agent-role-builder/src/services/validator.ts:118-189; tools/agent-role-builder/src/services/board.ts:210-223; tools/agent-role-builder/src/services/board.ts:1264-1305"
+        },
+        {
+          "id": "f2",
+          "description": "buildResult maps every carried self-check issue back to ValidationIssue with severity \"error\", so result.json validation_issues and red_flags overstate warning/info self-check findings as hard errors.",
+          "source_section": "tools/agent-role-builder/src/index.ts:557-565; tools/agent-role-builder/src/index.ts:658-663"
+        }
+      ],
+      "redesign_guidance": "Carry ValidationIssue objects with their original severity end-to-end. Derive material repair work, unresolved items, and result red_flags from the preserved severity rather than coercing all self-check output to major/error."
+    },
+    {
+      "id": "group-2",
+      "summary": "Run-postmortem closeout is still not canonical across exit paths.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The zero-round closeout writes PM-003 validation/self-check counts, but the main writeRunPostmortem path writes only PM-002 and PM-007. Normal board exits and executeBoard blocked exits therefore emit a different run-postmortem schema than the validation-blocked path.",
+          "source_section": "tools/agent-role-builder/src/index.ts:345-378; tools/agent-role-builder/src/services/board.ts:677-799"
+        },
+        {
+          "id": "f2",
+          "description": "executeBoard startup failures such as rulebook-load failure or initial-rule-sweep failure return blocked through writeRunPostmortem, so those pre-round blocked exits also miss the PM-003 issue-count block that the dedicated zero-round path now emits.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:170-205; tools/agent-role-builder/src/services/board.ts:223-240; tools/agent-role-builder/src/services/board.ts:616-657; tools/agent-role-builder/src/services/board.ts:677-799"
+        }
+      ],
+      "redesign_guidance": "Use one canonical run-postmortem builder for zero-round, pre-round blocked, and normal round exits. Always emit the same question_outputs shape and derive PM-003 counts from explicit validation/self-check/review issue arrays on every terminal path."
+    },
+    {
+      "id": "group-3",
+      "summary": "Shared learning and repair outputs still are not validated against their declared schemas before they update machine-facing governed artifacts.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "shared/learning-engine/engine parses JSON but never validates it against LearningOutput/ProposedRule. board.ts then writes learningOutput.new_rules directly into rulebook.json after only coercing applies_to to an array, so malformed rule objects can be persisted into the authoritative rulebook.",
+          "source_section": "shared/learning-engine/engine.ts:91-106; tools/agent-role-builder/src/services/board.ts:477-497"
+        },
+        {
+          "id": "f2",
+          "description": "shared/component-repair-engine/engine accepts any parsed arrays for compliance_map and fix_items_map and returns them without schema checks, even though those artifacts drive later prompts and are written back out as governed round evidence.",
+          "source_section": "shared/component-repair-engine/engine.ts:52-72"
+        }
+      ],
+      "redesign_guidance": "Validate learning-engine output against LearningOutput and repair-engine output against the shared compliance/fix-item schemas at the boundary, and fail closed before updating rulebook.json or emitting round evidence when any entry is malformed."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "reject_fix",
+      "reason": "The zero-round validation-block path and cycle KPI count were improved, but terminal closeout is still not unified: normal and pre-round blocked board exits still emit a different run-postmortem shape and omit PM-003."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "The repair bundle now boxes authorities under their relative source paths, so distinct requested authority files no longer overwrite one another by basename."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "Referenced evidence paths are now normalized and unboxable paths throw instead of being silently dropped, which restores fail-closed evidence boxing for the reviewed sources."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "The validation-blocked zero-round path now writes the pushback artifact that result.json advertises, so the prior dangling pushback_path issue is closed."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "Round summaries now persist review_outcome, unresolved_items, and improvements_applied and loadPriorRoundSummaries reads those stored fields instead of reconstructing them from severity counts."
+    }
+  ],
+  "residual_risks": [
+    "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts still swallows malformed or unreadable round-summary.json files in loadPriorRoundSummaries, so reviewer context can silently lose prior-round history instead of surfacing the corruption.",
+    "shared/review-engine/config.ts validates audit required_outputs but does not enforce sharedContract.audit_requirements.required_fields, leaving part of the shared review contract unchecked by the runtime loader."
+  ],
+  "strengths": [
+    "Authority boxing in the shared repair bundle now preserves relative source paths, which closes the basename-collision hole from the prior round.",
+    "Evidence-path extraction for the ad-hoc review bundle now fails closed on unboxable references instead of silently omitting cited files.",
+    "Validation-blocked zero-round exits now emit a real pushback artifact, and prior-round summaries persist exact outcome/unresolved/improvements data for later review prompts."
+  ]
+}

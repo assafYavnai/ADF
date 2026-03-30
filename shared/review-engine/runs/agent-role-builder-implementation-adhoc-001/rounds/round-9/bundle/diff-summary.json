@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 8,
+  "changed": true,
+  "summary": "Closed the remaining PM-003 and revision-negotiation gaps by making postmortem issue counts canonical across writers and requiring non-empty fix_items_map output in revision mode.",
+  "implementation_scope": [
+    "shared/component-repair-engine/engine.ts",
+    "tools/agent-role-builder/src/index.ts",
+    "tools/agent-role-builder/src/services/board.ts"
+  ],
+  "highlights": [
+    "PM-003 now has the same four-field shape across run-postmortem and cycle-postmortem paths.",
+    "Board-path PM-003 now receives validation issue counts from executeBoard context.",
+    "Revision mode now blocks on missing or empty fix_items_map."
+  ],
+  "generated_at": "2026-03-29T21:55:00.000Z"
+}

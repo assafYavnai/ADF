@@ -1,0 +1,26 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "This is the direct failure mode COD-009 already covers: terminal artifacts, postmortems, and KPI summaries must be derived from one canonical result and evidence model on every exit path. The finding's request for one canonical terminal evidence object and shared PM-003 counters is residual implementation work under that rule, not a new principle."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-010",
+      "explanation": "A `fix_items_map` is a machine-generated governed artifact, and the contract already defines when it becomes mandatory (`required_from_round`). COD-010 already requires validating governed artifacts against their canonical schema/contract at the boundary before they can drive workflow state or update machine-facing artifacts, so missing or empty required fix-items evidence must fail closed rather than continue."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "COD-009 explicitly requires one canonical result/evidence model across all exit paths, including pre-round exits. Divergent PM-003 shapes between `writeRunPostmortem` and `writeZeroRoundRunPostmortem` are exactly the multi-writer terminal-artifact drift that rule is meant to prevent."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "The missing `review_issue_count` and undercounted `total_issue_count` in `writeCyclePostmortem` are another case of terminal KPI fields drifting away from the canonical issue evidence. COD-009 already requires those counters to be derived from the same canonical result/evidence model used everywhere else."
+    }
+  ],
+  "no_rule_needed": []
+}

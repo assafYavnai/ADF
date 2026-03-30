@@ -1,0 +1,45 @@
+{
+  "new_rules": [
+    {
+      "id": "COD-008",
+      "rule": "Boxed review and repair bundles must fail closed unless every referenced evidence file and required authority file is present in the manifest.",
+      "applies_to": "Bundle builders, boxed manifest generators, review/repair evidence collection, authority-file inclusion checks",
+      "do": "When building a review or repair box, gather every path cited by the diff summary, compliance map, fix-items map, and requested authority list, compare that set to the boxed manifest, and stop the run if any referenced file is missing.",
+      "dont": "Build a bundle that omits a file named in the compliance map or requested authority list and continue as if the reviewer can still verify the claim from inside the box.",
+      "source": "Round 5: boxed review and repair bundles could omit referenced evidence without blocking the workflow",
+      "version": 1
+    },
+    {
+      "id": "COD-009",
+      "rule": "Terminal artifacts, postmortems, and KPI summaries must be derived from one canonical result/evidence model on every exit path, including blocked and pre-round exits.",
+      "applies_to": "Top-level orchestrators, terminal result builders, postmortem writers, KPI/count aggregation, machine-facing run artifacts",
+      "do": "Create one final run-result object that contains the full issue arrays and terminal state, then compute postmortem content and counters directly from that object for success, blocked, and zero-round exits.",
+      "dont": "Maintain separate ad hoc counters and artifact writers so a blocked run skips its postmortem or reports counts that do not match the actual issue arrays.",
+      "source": "Round 5: non-happy-path artifacts and KPI counts could disagree with the actual run state",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-002",
+      "explanation": "Verdict tokens are contract-defined workflow vocabulary. Accepting an off-contract alias instead of rejecting it breaks the single-sourced status set and violates the requirement that unhandled values fail closed."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "The audit contract requires canonical audit provenance fields end-to-end. Passing `reviewMode: null` without an explicit contract-sanctioned representation loses required audit data instead of preserving it faithfully."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "Duplicating `uniqueStrings` in multiple live modules with different semantics is the exact mirrored-logic divergence this rule is meant to prevent; shared governed behavior should come from one canonical implementation or be explicitly separated."
+    }
+  ],
+  "no_rule_needed": [
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "reason": "This is a local documentation-drift issue. The fix is to align or remove the stale comment, but it is too specific and low-impact to justify a new governance rule."
+    }
+  ]
+}

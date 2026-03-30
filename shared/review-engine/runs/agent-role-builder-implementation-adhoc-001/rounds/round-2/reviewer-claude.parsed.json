@@ -1,0 +1,110 @@
+{
+  "verdict": "approved",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "preValidateResponse and cleanJsonResponse are duplicated verbatim between shared/review-engine/engine.ts (exported) and board.ts (private local copies). The board uses its own copies, not the shared module versions. If the shared implementations diverge or are updated, board.ts will silently stay on the old path.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "shared/review-engine/engine.ts exports preValidateResponse (line 56) and cleanJsonResponse (line 69). board.ts declares identical private functions at lines 1018 and 1031 respectively. The board never calls ctx.reviewEngine.preValidateResponse / cleanJsonResponse; it calls its own copies. This is a residual COD-004 violation at helper scope.",
+          "source_section": "board.ts:1018-1048 vs shared/review-engine/engine.ts:56-82"
+        }
+      ],
+      "redesign_guidance": "Delete the local preValidateResponse and cleanJsonResponse from board.ts. Call ctx.reviewEngine.preValidateResponse and ctx.reviewEngine.cleanJsonResponse (both are already exported by the shared engine). This closes the last residual duplication left after the review-runtime.ts deletion."
+    },
+    {
+      "id": "group-2",
+      "summary": "pathExists in board.ts checks file existence by calling readFile with utf-8 encoding, reading the full file content. index.ts uses stat (metadata only). Reading file content to test existence is wasteful, introduces unnecessary memory pressure on large artifacts, and uses a different failure mode than stat.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "board.ts:799-806 defines pathExists using readFile. index.ts:582-589 defines the same helper using stat. Two divergent implementations of the same utility exist within the same tool. The readFile variant would fail incorrectly on binary files and wastes I/O for large artifacts.",
+          "source_section": "board.ts:799-806 vs index.ts:582-589"
+        }
+      ],
+      "redesign_guidance": "Align board.ts pathExists to use stat (import { stat } from 'node:fs/promises'), matching index.ts. If the shared module has a canonical pathExists, use that instead of maintaining two local copies."
+    },
+    {
+      "id": "group-3",
+      "summary": "shared-module-loader.ts catches all errors from both access() and import() in the same empty catch block. If import() throws a runtime error (e.g. syntax error in engine.ts, missing transitive dependency), the error is silently swallowed and the loader falls through to the next candidate or throws 'Shared module not found', obscuring the real failure.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f3",
+          "description": "shared-module-loader.ts:12-15 — the try/catch wraps both access() (existence check) and import() (module load). Only ENOENT from access() should be swallowed; errors from import() should propagate as-is so the caller sees the real module-load failure rather than a misleading 'not found' message.",
+          "source_section": "shared-module-loader.ts:5-23"
+        }
+      ],
+      "redesign_guidance": "Split the try/catch: catch only the ENOENT case from access() (check error.code === 'ENOENT') and let import() errors propagate without being swallowed. This makes broken shared modules immediately diagnosable."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "validator.ts checks existence and parseability of all three governance files before board execution. config.ts loadJsonRequired throws on missing or malformed files. Board startup fails closed with bug report. Fix is verified complete."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "index.ts includes frozen_with_conditions in canonical promotion, canonical paths in result.json, conditions-manifest.json write, CLI exit semantics (exit 0), and telemetry success flag. Fix is verified complete across all four required locations."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "accept_fix",
+      "reason": "The learning/revision catch block in board.ts (lines 560-583) writes a bug report and throws BoardBlockedError, stopping the board. learning-engine/engine.ts throws on JSON parse failure. Fix is verified complete."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "decision": "accept_fix",
+      "reason": "buildAuditEnvelope in board.ts now includes all nine required fields from the shared contract: component, job_id, round, review_mode, provider, model, latency_ms, fallback_used, artifact_refs. Used in review.json, run-postmortem.json, and cycle-postmortem.json. Fix is verified complete."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-5",
+      "decision": "accept_fix",
+      "reason": "review-runtime.ts is deleted. board.ts loads loadSharedReviewEngineModule() once at startup and uses the returned reviewEngine for resolveReviewMode, buildReviewerPrompt, buildLeaderPrompt, parseReviewerOutput, parseLeaderOutput. No live local mirror remains."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "review-runtime.ts removed from bundle (deleted in git status). board.ts uses ctx.reviewEngine exclusively for all shared review engine operations. ReviewRuntimeConfig and ReviewVerdictShape are no longer locally re-declared — ReviewerVerdict is derived via ReturnType<> from the shared module's parseReviewerOutput."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "writeRunPostmortem in board.ts calls buildAuditEnvelope which sets provider/model from leader participant, latency_ms from sum of all participant latencies, fallback_used from any participant was_fallback flag. All four previously missing fields are now present in run-postmortem.json audit block."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "board.ts lines 373-396: board validates frozen_with_conditions against hasMaterialRepairWork, writes a bug report, appends override reason to leaderRationale, and forces effective verdict to pushback (or blocked on final round). New rule COD-005 is present in implementor-rulebook.json."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "decision": "accept_fix",
+      "reason": "index.ts lines 231-236: frozen_with_conditions is included in the freeze promotion block and canonical artifact writes. result.json populates canonical_* paths for both frozen states. conditions_manifest_path is set. Fix is verified complete."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "decision": "accept_fix",
+      "reason": "index.ts writes cycle-postmortem with cycle_postmortem: false, then calls pathExists to verify, then rewrites with cycle_postmortem: true if confirmed. No longer self-certifies existence before writing."
+    }
+  ],
+  "residual_risks": [
+    "shared-module-loader.ts dynamically imports engine.ts via pathToFileURL at runtime. If the shared module path resolves but the module has a TypeScript syntax error (in source mode), the import error is silently swallowed and replaced with 'Shared module not found'. This masks broken shared module states.",
+    "writeRunPostmortem artifact_refs are derived from buildArtifactRefs using expected paths, not verified writes. A round where review.json was not actually written (e.g. due to a writeFile failure earlier in the round) would still report artifact_refs pointing to a missing file. The pathExists checks on round.artifacts cover only review_json and compliance_map, not learning.json or diff-summary.json.",
+    "Learning engine extractRules accepts empty arrays for all three output categories without any structural validation. If the LLM returns a syntactically valid JSON object with wrong keys (e.g. {ok: true}), all three arrays would be silently empty and the board would continue without emitting a bug report or any signal that learning produced no output despite having findings to analyze."
+  ],
+  "strengths": [
+    "All ten prior blocking and major findings from rounds 0 and 1 are confirmed fixed by direct source inspection. The implementation surface is substantially cleaner than round 1.",
+    "review-runtime.ts is fully deleted and the board exclusively consumes the shared review engine via shared-module-loader.ts. The single-canonical-runtime requirement (COD-004) is met for all live paths.",
+    "The governance prerequisite gate is comprehensive: validator.ts checks existence and JSON parseability of all three governance files before board execution, and config.ts loadJsonRequired throws on any missing or malformed file.",
+    "The frozen_with_conditions cross-field invariant check (COD-005) is correctly placed before canRevise and terminal-state exits, with a bug report and rationale override trail when the guard fires.",
+    "The audit envelope is consistent across all three required outputs (review.json, run-postmortem.json, cycle-postmortem.json) with all nine contract-required fields present.",
+    "cycle-postmortem self-certification is eliminated — the artifact is written, verified via pathExists, then conditionally rewritten with the confirmed presence flag.",
+    "Learning failures now escalate via BoardBlockedError rather than silently continuing, preserving the required review → learning → rule check → fix → re-review sequence."
+  ]
+}

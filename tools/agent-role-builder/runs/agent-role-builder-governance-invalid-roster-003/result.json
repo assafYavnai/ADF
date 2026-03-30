@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "tool_name": "agent-role-builder",
+  "request_job_id": "agent-role-builder-governance-invalid-roster-001",
+  "role_slug": "agent-role-builder-governance-invalid-roster",
+  "operation": "create",
+  "status": "blocked",
+  "execution_mode": "live-roster-v1",
+  "summary": "Agent Role Builder Governance Invalid Roster role blocked: Blocked: 1 governed roster validation error",
+  "status_reason": "Blocked: 1 governed roster validation error",
+  "output_dir": "tools/agent-role-builder/runs/agent-role-builder-governance-invalid-roster-003",
+  "canonical_role_directory": null,
+  "canonical_role_markdown_path": null,
+  "canonical_role_contract_path": null,
+  "canonical_decision_log_path": null,
+  "canonical_board_summary_path": null,
+  "pushback_path": null,
+  "conditions_manifest_path": null,
+  "resume_package_path": null,
+  "board": {
+    "profile": "medium",
+    "leader_count": 1,
+    "reviewer_count": 2,
+    "rounds_executed": 0,
+    "arbitration_used": false,
+    "participant_records": []
+  },
+  "evidence": {
+    "source_count": 5,
+    "missing_required_source_count": 0,
+    "validation_issue_count": 1,
+    "self_check_issue_count": 0
+  },
+  "governance_binding": null,
+  "learning_artifact": null,
+  "validation_issues": [
+    {
+      "code": "INVALID_REVIEWER_PAIR",
+      "severity": "error",
+      "message": "Reviewer pair 1 must be one Codex + one Claude, got: codex + codex"
+    }
+  ],
+  "open_questions": [],
+  "red_flags": [
+    "Reviewer pair 1 must be one Codex + one Claude, got: codex + codex"
+  ]
+}

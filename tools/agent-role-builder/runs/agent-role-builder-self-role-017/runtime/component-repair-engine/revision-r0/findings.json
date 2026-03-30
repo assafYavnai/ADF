@@ -1,0 +1,31 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "blocking",
+      "summary": "Authority layering is internally contradictory: a doc marked non-operative is also used as a source of binding runtime obligations.",
+      "redesignGuidance": "Keep binding behavior sourced only from the operative chain. If contracts own sequencing and terminal mechanics, say that directly and leave the architecture docs as explanatory reference only.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-2",
+      "severity": "major",
+      "summary": "Artifact lifecycle semantics collapse job-scoped and run-scoped evidence, especially for the cycle post-mortem.",
+      "redesignGuidance": "Keep one-attempt evidence separate from job-level closeout evidence. Make `cycle-postmortem.json` explicitly job-scoped and define its lifecycle in terms of job terminal closeout, including what happens on resume.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-3",
+      "severity": "blocking",
+      "summary": "Outcome mechanics are not fully mechanical: terminal-state selection and arbitration persistence are still partly ambiguous.",
+      "redesignGuidance": "Define a fail-closed mapping from each insufficiency class to one terminal state, and key arbitration persistence to the carried-forward conceptual-group ID already required elsewhere in the draft.",
+      "findingCount": 2
+    }
+  ],
+  "unresolved": [
+    "group-1: Authority layering is internally contradictory: a doc marked non-operative is also used as a source of binding runtime obligations.",
+    "group-2: Artifact lifecycle semantics collapse job-scoped and run-scoped evidence, especially for the cycle post-mortem.",
+    "group-3: Outcome mechanics are not fully mechanical: terminal-state selection and arbitration persistence are still partly ambiguous."
+  ],
+  "leader_rationale": "The draft is materially improved, but it is not freezable under the provided source authority. The remaining defects are governance-level, not cosmetic: the authority section still treats a document marked as non-operative reference evidence as a source of binding runtime obligations, the canonical role still hardcodes a run-specific governance snapshot path, the lifecycle model still collapses job-scoped and run-scoped closeout semantics around cycle-postmortem, and the arbitration trigger includes a locally invented `2 consecutive rounds` threshold that is not present in the supplied authority docs. Because those are blocking/major issues, the self-check pass is not credible enough to support freeze.\nConvergence trend: 3 -> 3 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

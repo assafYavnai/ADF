@@ -1,0 +1,257 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Not freezeable yet. The draft has the right high-level authority split, lifecycle separation, and arbitration cap, but material source-authority mechanics still fail: the freeze predicates are not mechanically exclusive because frozen_with_conditions is defined as satisfying frozen; resume_required does not encode the authority-defined budget-exhaustion ultimatum and audit behavior; reviewer-pair validation is only indirect and does not explicitly evidence the Codex+Claude minimum from the source authority; and cross-round fix negotiation is still coarser than the per-reviewer-finding protocol in the review-process architecture. Those gaps also make the claimed pass on terminal-state and self-check compliance not yet credible.",
+  "unresolved": [
+    "group-1: Terminal-state contract is not mechanically exclusive and the budget-exhaustion path is underspecified.",
+    "group-2: Review mechanics do not hard-gate the required reviewer pair and carry-forward tracking is too coarse for the source negotiation model.",
+    "group-3: The draft blurs generic inherited workflow with this smoke run's executable behavior, which also makes the supplied compliance claims not credible."
+  ],
+  "deferredItems": [
+    "group-1: Compliance map silently omits ARB-012 with no not-applicable justification",
+    "group-2: frozen_with_conditions predicate references the frozen predicate in a way that produces testability ambiguity for arbitrated conditional items",
+    "group-3: Decision log append trigger phrasing in guardrails is ambiguous relative to the outputs table state condition",
+    "group-4: Scope exclusion for code execution adds a qualifier not present in the governing contract"
+  ],
+  "improvementsApplied": [
+    "Authority is now a strict operative precedence chain with non-operative reference evidence separated.",
+    "Context gathering is defined as preconditions before Step 1 instead of as a numbered workflow step.",
+    "Canonical artifacts and run-scoped evidence are separated with explicit tool-relative paths and lifecycle rules.",
+    "Arbitration is constrained to minor or suggestion disagreements and capped at frozen_with_conditions.",
+    "Decision-log preservation and canonical versus run-scoped board-summary behavior are explicitly defined."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Terminal-state contract is not mechanically exclusive and the budget-exhaustion path is underspecified.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "g1-f1",
+              "description": "`frozen_with_conditions` is defined as \"the `frozen` predicate is satisfied\" plus deferred arbitrated items, so `frozen` and `frozen_with_conditions` overlap instead of being mutually exclusive clean vs conditional end states.",
+              "source_section": "<completion>"
+            },
+            {
+              "id": "g1-f2",
+              "description": "`resume_required` omits the source-defined final-round budget-exhaustion mechanics: each reviewer picks one most important remaining fix, the implementer fixes only those items, and deferred items are documented in the resume result.",
+              "source_section": "<completion>; Step 4.7-4.9"
+            }
+          ],
+          "redesign_guidance": "Rewrite terminal states as disjoint predicates. Make `frozen` mean no deferred items and no arbitration. Make `frozen_with_conditions` require `arbitration_used = true` with only deferred minor/suggestion items. Make `resume_required` require explicit budget-exhaustion evidence, reviewer ultimatum items, the limited-fix action taken, and documented deferred findings."
+        },
+        {
+          "id": "group-2",
+          "summary": "Review mechanics do not hard-gate the required reviewer pair and carry-forward tracking is too coarse for the source negotiation model.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "g2-f1",
+              "description": "The draft only requires a roster that satisfies the shared contract, but the source architecture for this review process says review is a `Codex + Claude pair minimum`, and the smoke contract summary also centers Codex+Claude pairs. That pair requirement is not enforced as a request-time gate here.",
+              "source_section": "<inputs>; <context-gathering>; Step 1"
+            },
+            {
+              "id": "g2-f2",
+              "description": "Cross-round carry-forward is keyed to conceptual-group IDs, but the source review/fix protocol is negotiated for each reviewer finding and for each item in the implementer's fix map. Group-only carry-forward can hide unresolved sub-findings inside a reused group.",
+              "source_section": "Step 4.2; Step 4.6"
+            }
+          ],
+          "redesign_guidance": "Make the Codex+Claude pair an explicit validation gate for this smoke package before drafting or review launch. Track carry-forward by stable finding or fix-item IDs, with conceptual-group IDs used only as grouping metadata."
+        },
+        {
+          "id": "group-3",
+          "summary": "The draft blurs generic inherited workflow with this smoke run's executable behavior, which also makes the supplied compliance claims not credible.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "g3-f1",
+              "description": "Step 4 is labeled `current inherited workflow` while describing reruns after rejection and split-verdict recovery, but the smoke runtime contract summary caps `max_review_rounds` at 1. The text does not separate generic architecture inheritance from what this run can actually do.",
+              "source_section": "Step 4; contract summary governance/runtime"
+            },
+            {
+              "id": "g3-f2",
+              "description": "The supplied self-check/compliance claims overstate compliance for at least ARB-004, ARB-009, ARB-011, and ARB-012, because the written draft still has overlapping terminal predicates, incomplete `resume_required` semantics, group-level rather than item-level carry-forward, and no explicit Codex+Claude hard gate.",
+              "source_section": "Self-check and compliance map claims versus <completion>, <inputs>, Step 4"
+            }
+          ],
+          "redesign_guidance": "For each step, distinguish inherited architecture behavior from active smoke-run behavior. If a behavior is only inherited and not executable under the current runtime budget, label it that way and point to the runtime gate. Recompute the self-check only after the text mechanically supports each claimed rule."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "The canonical output root under `tools/agent-role-builder/role/` is internally consistent, but the two cited authority docs do not themselves establish that directory, so freeze should still verify it against the active runtime contract.",
+        "Several mechanics are delegated to inherited shared-review contracts; if those contracts diverge from the architecture docs, this draft could still drift unless the local text states the smoke-specific gates explicitly."
+      ],
+      "strengths": [
+        "Operative authority and reference evidence are separated instead of flattened into one list.",
+        "Context gathering is correctly treated as a precondition rather than a numbered execution step.",
+        "The outputs section gives a clear canonical vs run-scoped artifact matrix with explicit lifecycle language."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Compliance map silently omits ARB-012 with no not-applicable justification",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The compliance map lists ARB-001–011 and ARB-013–025 (24 entries; count is internally consistent) but contains no entry for ARB-012. No 'not applicable' or rationale annotation is present. ARB-012 appears explicitly in the mandatory focus areas for this review, so silent omission does not satisfy ARB-005 even though the numeric claim '24 rules checked' is technically accurate.",
+              "source_section": "Compliance map header 'Compliance map (24 rules checked)'; focus areas list ARB-012; ARB-005"
+            },
+            {
+              "id": "f2",
+              "description": "The artifact substantively satisfies ARB-012: Step 1 verifies the reviewer roster against the shared review contract requirements and the required inputs section lists the roster as a hard required input before drafting. However, because the self-check evidence record for ARB-012 is absent, the 'self-check: passed' claim is incomplete for this rule.",
+              "source_section": "brief-markdown-r0-reviewer.md <steps> Step 1; <inputs> 'An active reviewer roster that satisfies the shared review contract roster requirements'; ARB-005, ARB-012"
+            }
+          ],
+          "redesign_guidance": "Add an explicit ARB-012 entry to the compliance map citing Step 1 ('Verify the reviewer roster… reject structurally invalid input before drafting') and the required <inputs> roster entry as the hard-gate evidence. If the implementer intentionally excluded ARB-012, a specific not-applicable rationale must accompany the exclusion; silent omission is not acceptable for a focus-area rule."
+        },
+        {
+          "id": "group-2",
+          "summary": "frozen_with_conditions predicate references the frozen predicate in a way that produces testability ambiguity for arbitrated conditional items",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "The frozen predicate requires 'any conditional-only fixes are applied.' The frozen_with_conditions predicate asserts 'the frozen predicate is satisfied AND the only deferred items are arbitrated minor or suggestion items.' When minor/suggestion items are deferred via arbitration rather than fixed, and those items originated as conditional review findings, the frozen predicate clause 'any conditional-only fixes are applied' is false (the fixes were not applied—they were arbitrated away). A mechanical evaluator cannot resolve whether 'conditional-only fixes' in the frozen predicate scopes to non-arbitrated items without an explicit carve-out. This creates a non-testable boundary between the two terminal states.",
+              "source_section": "brief-markdown-r0-reviewer.md <completion> frozen and frozen_with_conditions predicates; ARB-004, ARB-009"
+            }
+          ],
+          "redesign_guidance": "Add an explicit scoping clause to the frozen predicate: 'any conditional-only fixes that were not resolved via arbitration are applied.' Alternatively, replace the frozen_with_conditions reference to 'the frozen predicate is satisfied' with a self-contained predicate that enumerates its own preconditions independently: every required reviewer verdict is approved or conditional, all non-arbitrated conditional findings are resolved, the only remaining deferred items are explicitly arbitrated minor or suggestion items, result.json records arbitration_used plus deferred item IDs and rationale, canonical outputs are promoted, and terminal run evidence is written."
+        },
+        {
+          "id": "group-3",
+          "summary": "Decision log append trigger phrasing in guardrails is ambiguous relative to the outputs table state condition",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "In <guardrails>: 'On update or fix, [the decision log] is appended with a dated section on frozen or frozen_with_conditions' — 'On update or fix' reads as an operation-type trigger and could be interpreted as unconditionally firing on update or fix operations regardless of terminal state, with the 'on frozen or frozen_with_conditions' phrase read as labeling the section rather than gating the append. The <outputs> table is unambiguous: 'Update/fix: append a dated section on frozen or frozen_with_conditions.' The two formulations are consistent in intent but the guardrail phrasing admits an alternative reading that would incorrectly append the decision log on update/fix operations reaching pushback, blocked, or resume_required.",
+              "source_section": "brief-markdown-r0-reviewer.md <guardrails> decision log clause; <outputs> Decision log lifecycle row; ARB-002"
+            }
+          ],
+          "redesign_guidance": "Align the guardrail phrasing with the outputs table by making the state condition explicit and primary: 'On frozen or frozen_with_conditions for update or fix operations, the decision log is appended with a dated section; prior entries are never deleted.' This removes the ambiguity about whether the append fires unconditionally on any update or fix terminal state."
+        },
+        {
+          "id": "group-4",
+          "summary": "Scope exclusion for code execution adds a qualifier not present in the governing contract",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "The contract out_of_scope lists 'Direct code execution.' The artifact <scope> not-in-scope lists 'Direct code execution outside governed role-package artifact generation.' The added qualifier creates an implicit exception that allows code execution during artifact generation. The contract does not authorize this exception and the role package does not require executing code — it writes JSON and markdown artifacts and invokes the learning engine via the review workflow, which is orchestration rather than code execution in the contract sense.",
+              "source_section": "brief-markdown-r0-reviewer.md <scope> not-in-scope; contract out_of_scope; ARB-006"
+            }
+          ],
+          "redesign_guidance": "Remove the qualifier and align with the contract verbatim: 'Direct code execution.' If the role genuinely requires executing code as part of artifact generation (e.g., running a validator script), this must be explicitly authorized in the contract rather than implied via a scope exclusion qualifier. If the qualifier was intended to carve out learning engine invocation, that activity is orchestration under the review workflow and is already in scope under 'orchestrate governed review rounds.'"
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "ARB-012 roster validation relies entirely on Step 1 verification logic. The compliance map gap means this gate was not explicitly validated in the self-check. If the Step 1 runtime implementation is permissive or checks only structural shape rather than roster legality against the shared review contract, a malformed reviewer pair could proceed to drafting without hard rejection.",
+        "The frozen_with_conditions ambiguity in group-2 could cause inconsistent terminal state recording in automated pipeline evaluation. A run that used arbitration might incorrectly self-classify as frozen if the evaluating agent resolves the predicate ambiguity in favor of the frozen predicate, silently dropping arbitration evidence from result.json."
+      ],
+      "strengths": [
+        "Authority chain is correctly ordered (numbered 1–4, operative layers first) with reference evidence explicitly separated and classified non-operative — fully satisfies ARB-001 and ARB-020.",
+        "Material pushback has a single canonical definition in <guardrails> and is applied consistently in freeze, arbitration, and all five terminal state predicates — satisfies ARB-002 for this core concept.",
+        "All five terminal states (frozen, frozen_with_conditions, pushback, blocked, resume_required) have distinct artifact requirements and explicit predicates tied to run evidence — satisfies ARB-009.",
+        "Arbitration mechanics are fully constrained: mechanical trigger (minor/suggestion only remaining), named actor (leader), required evidence fields (arbitration_used, disputed item IDs, rationale), and a hard outcome cap (frozen_with_conditions only, never frozen) — satisfies ARB-007.",
+        "The outputs table provides an authoritative artifact matrix with class, full tool-relative path, and per-operation/per-state lifecycle behavior for every artifact — satisfies ARB-008 and ARB-016.",
+        "Step labels (current inherited workflow vs target-state contract) are applied consistently across all five steps without mixing the two labels within a step — satisfies ARB-014.",
+        "Learning engine integration is correctly positioned between review and fix in Step 4.4 with a required learning.json output before any fix attempt following a rejection — matches the standard sequence in review-process-architecture.md.",
+        "Split-verdict handling in Step 4.8 names the exact sequence (rerun rejecting reviewer only, then sanity-check the previously approving reviewer once before freeze) — matches review-process-architecture.md Split Verdict Handling section.",
+        "Context gathering is correctly placed as labeled preconditions before Step 1 with no numbered step in the main execution sequence — satisfies ARB-010.",
+        "Canonical and run-scoped artifacts are clearly separated in distinct table sections with explicit lifecycle differences and a promotion rule that restricts canonical writes to frozen and frozen_with_conditions only — satisfies ARB-003."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-governance-smoke-001",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 687882,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/agent-role-builder-governance-smoke-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 167706,
+        "fallback_used": false,
+        "invocation_id": "3ae3efe1-0617-46cc-adc2-ad0347c0dcbe"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 321679,
+        "fallback_used": false,
+        "invocation_id": "8d847505-93f6-4752-acbb-864cab880b53"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 198497,
+        "fallback_used": false,
+        "invocation_id": "68774a50-5b3c-4c76-9237-30157ad66110"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 167706,
+      "invocation_id": "3ae3efe1-0617-46cc-adc2-ad0347c0dcbe",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 321679,
+      "invocation_id": "8d847505-93f6-4752-acbb-864cab880b53",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 198497,
+      "invocation_id": "68774a50-5b3c-4c76-9237-30157ad66110",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "68ca077a-720b-457e-b78c-02cc40acb8e9",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-001/governance-snapshot.json"
+  }
+}

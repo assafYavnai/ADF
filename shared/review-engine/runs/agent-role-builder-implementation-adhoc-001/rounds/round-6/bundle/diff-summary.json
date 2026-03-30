@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 5,
+  "changed": true,
+  "summary": "Closed the round-5 boxing and non-happy-path evidence gaps by making both review and repair bundles fail closed on missing referenced files, removing verdict aliasing, writing run-postmortem.json for zero-round blocked exits, normalizing run-level audit review_mode to a non-null sentinel, and sharing the uniqueStrings helpers through audit-utils.ts.",
+  "implementation_scope": [
+    "shared/component-repair-engine/engine.ts",
+    "shared/learning-engine/implementor-rulebook.json",
+    "shared/review-engine/engine.ts",
+    "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts",
+    "tools/agent-role-builder/src/index.ts",
+    "tools/agent-role-builder/src/services/audit-utils.ts",
+    "tools/agent-role-builder/src/services/board.ts"
+  ],
+  "highlights": [
+    "Evidence-referenced files are now added to the boxed review bundle automatically and missing required authorities now block the repair bundle.",
+    "The shared parser rejects off-contract verdict tokens instead of rewriting them.",
+    "Run-level audit and terminal evidence now stay populated on blocked and zero-round exits."
+  ],
+  "generated_at": "2026-03-29T20:45:00.000Z"
+}

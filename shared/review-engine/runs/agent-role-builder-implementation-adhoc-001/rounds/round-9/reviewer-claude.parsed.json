@@ -1,0 +1,69 @@
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Ultimatum-branch evidence is still not fully canonical: (a) self_check_issue_count is read from different sources in run-postmortem vs cycle-postmortem when the ultimatum revision runs, and (b) the ultimatum revision's updated compliance map and fix-items map are never persisted to the canonical round-artifact locations before returning.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "board.ts writeRunPostmortem (line ~794) populates PM-003 self_check_issue_count from latestRound.selfCheckIssues — the pre-ultimatum value stored when executeRound returned. After the ultimatum revision fires (lines 560-587), currentSelfCheckIssues is updated (line 578) but roundResult.selfCheckIssues is not. index.ts writeCyclePostmortem receives boardResult.finalSelfCheckIssues which is the post-ultimatum currentSelfCheckIssues (returned at line 651). These two canonical artifacts will therefore report different self_check_issue_count values for the same run whenever the ultimatum path executes.",
+          "source_section": "board.ts:writeRunPostmortem (lines 793-797), index.ts:writeCyclePostmortem (lines 477-480), index.ts:executeBoard return at line 651"
+        },
+        {
+          "id": "f2",
+          "description": "The ultimatum revision (lines 560-587) produces updated complianceMap (line 576) and fixItemsMap (line 577) and writes them to the component-repair-engine bundleDir (final-ultimatum-rN), but never writes them to the canonical round directory (rounds/round-N/compliance-map.json and rounds/round-N/fix-items-map.json). The run-postmortem audit trail (latestArtifactRefs, line 767) references the pre-ultimatum round-level artifacts. The ultimatum revision's evidence is therefore buried in the runtime bundle dir and unreachable via the standard artifact reference chain.",
+          "source_section": "board.ts:executeBoard lines 259-277 (round-dir artifact writes at round start), lines 560-587 (ultimatum revision), lines 765-768 (latestArtifactRefs pointing to round dir)"
+        }
+      ],
+      "redesign_guidance": "After the ultimatum revision completes (lines 575-578), write the updated complianceMap and fixItemsMap to the canonical round directory (same paths used at round start: join(roundDir, 'compliance-map.json') and join(roundDir, 'fix-items-map.json')) so the postmortem audit trail references the post-ultimatum state. Additionally, update roundResult.selfCheckIssues (or pass currentSelfCheckIssues explicitly to writeRunPostmortem) so both run-postmortem and cycle-postmortem read self_check_issue_count from the same post-ultimatum source. This is the residual implementation work from prior group-1 redesign guidance: 'persist the matching compliance map, fix-items map... from that object before returning' and 'feed both postmortems from the same explicit arrays.'"
+    },
+    {
+      "id": "group-2",
+      "summary": "index.ts countBoardReviewIssues counts all conceptual_groups including any synthetic parse-error group, while board.ts countRoundSeverities only counts groups whose severity matches a known enum value (blocking/major/minor/suggestion), silently dropping others via default:break. Under the current code parse-error groups cannot reach reviewerVerdicts (parse errors throw BoardBlockedError before storing any verdict), so these functions agree in practice. However the divergence is latent: any future path that allows a partial or synthetic verdict into reviewerVerdicts would cause cycle-postmortem review_issue_count > run-postmortem review_issue_count for the same run.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f3",
+          "description": "index.ts countBoardReviewIssues (lines 658-666) counts verdict.conceptual_groups.length unconditionally. board.ts countRoundSeverities (lines 1183-1208) iterates group.severity and skips unrecognized values (default: break). If a conceptual_group ever has a severity outside {blocking, major, minor, suggestion}, the two PM-003 review_issue_count values will diverge between run-postmortem and cycle-postmortem.",
+          "source_section": "index.ts:countBoardReviewIssues lines 658-666, board.ts:countRoundSeverities lines 1183-1208"
+        }
+      ],
+      "redesign_guidance": "Normalize review_issue_count by using the same counting function in both postmortem writers, or by passing a pre-computed review_issue_count from board.ts (where it is already calculated from severity_counts) into the BoardResult return value so index.ts does not need its own counting logic. Eliminating the duplicate count reduces the coupling surface and ensures both documents are always consistent."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "reject_fix",
+      "reason": "The implementer's fix unified PM-003 field shape across board-path and zero-round writers, which is correct as far as it goes. But the prior group-1 redesign guidance also required (a) feeding both postmortems from the same explicit arrays and (b) persisting compliance map, fix-items map, and evidence from the ultimatum branch before returning. Neither of these requirements was met: self_check_issue_count in run-postmortem still reads from latestRound.selfCheckIssues (pre-ultimatum) while cycle-postmortem reads from finalSelfCheckIssues (post-ultimatum), and the ultimatum revision's compliance/fix-items output is never written to the canonical round directory."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "component-repair-engine/engine.ts now throws on missing fix_items_map section (line 61) and on empty fix_items_map (line 68) in revision mode. Both failure modes are caught before any workflow state can advance. The fail-closed requirement is met."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "reject_fix",
+      "reason": "The PM-003 four-field shape is now uniform across writeRunPostmortem (board.ts) and writeZeroRoundRunPostmortem (index.ts), and validation_issue_count in board.ts now reads from ctx.validationIssues. However the same COD-009 violation persists in the ultimatum branch: writeRunPostmortem's self_check_issue_count comes from latestRound.selfCheckIssues (pre-ultimatum) while writeCyclePostmortem's comes from boardResult.finalSelfCheckIssues (post-ultimatum). The canonical four-field shape requirement was met; the canonical-source requirement was not met for this branch."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "writeCyclePostmortem PM-003 now includes review_issue_count: params.reviewIssueCount (line 479) and total_issue_count now sums all three phase counts (line 480). The four-field canonical shape is present and total_issue_count is complete."
+    }
+  ],
+  "residual_risks": [
+    "Ultimatum path creates a post-revision self_check_issue_count discrepancy between run-postmortem and cycle-postmortem — two canonical audit artifacts for the same run will disagree on this KPI field whenever the ultimatum executes.",
+    "Ultimatum revision's compliance map and fix-items map are accessible only via the component-repair-engine bundle directory and are not reachable through the standard postmortem artifact reference chain, leaving the ultimatum evidence effectively invisible to downstream tooling that consumes round-level artifacts.",
+    "countBoardReviewIssues (index.ts) and countRoundSeverities (board.ts) use different group-inclusion logic; a future synthetic verdict with an out-of-enum severity would silently diverge review_issue_count across the two postmortem documents."
+  ],
+  "strengths": [
+    "All four PM-003 fields (validation_issue_count, self_check_issue_count, review_issue_count, total_issue_count) are now present and correctly populated on all three postmortem writers (writeZeroRoundRunPostmortem, writeRunPostmortem, writeCyclePostmortem) — the multi-round shape divergence from prior rounds is resolved.",
+    "component-repair-engine revision mode now fails closed with distinct error messages for both the missing-section and empty-output cases, satisfying the COD-010 boundary contract requirement cleanly.",
+    "board.ts writeRunPostmortem now receives validation_issue_count from ctx.validationIssues, eliminating the prior hardcoded-zero regression and making the board-path postmortem consistent with the zero-round path.",
+    "writeCyclePostmortem PM-003 total_issue_count now correctly accumulates all three phase counts, so the cycle-level KPI report is no longer undercounting by omitting review-phase findings."
+  ]
+}

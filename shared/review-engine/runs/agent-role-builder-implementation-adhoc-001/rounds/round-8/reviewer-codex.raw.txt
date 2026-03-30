@@ -1,0 +1,77 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Terminal-state evidence is still not canonical after the merged repair flow: final-round ultimatum edits and PM-003 counters diverge from the machine-facing artifacts that are supposed to describe them.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "On the final-round budget-exhaustion path, the board applies an ultimatum repair and updates `currentMarkdown`, `pendingComplianceMap`, `pendingFixItemsMap`, and `currentSelfCheckIssues`, but the round artifacts were already written from the pre-repair state. The function then exits `resume_required` without persisting the repaired compliance/fix evidence or reconciling `roundResult`, so the returned final markdown and resume package no longer match the last round's `review.json`, `compliance-map.json`, `fix-items-map.json`, unresolved list, or board summary.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:256-274; tools/agent-role-builder/src/services/board.ts:561-648"
+        },
+        {
+          "id": "f2",
+          "description": "PM-003 is still inconsistent across exit paths. Board-driven run postmortems hardcode `validation_issue_count` to `0` and omit `total_issue_count`, while cycle postmortems omit `review_issue_count` and compute `total_issue_count` from validation plus self-check only. That does not satisfy the architecture requirement to derive canonical PM-003 counts from the explicit validation, self-check, and review issue arrays on every terminal path.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:789-793; tools/agent-role-builder/src/index.ts:472-477"
+        }
+      ],
+      "redesign_guidance": "Create one canonical terminal evidence object after any repair pass, including the final-round ultimatum branch, and persist the matching markdown, compliance map, fix-items map, unresolved items, and summary from that object before returning. Feed both run-postmortem and cycle-postmortem PM-003 from the same explicit validation/self-check/review arrays so every exit path emits the same fields and counts."
+    },
+    {
+      "id": "group-2",
+      "summary": "The merged revision flow does not fail closed when required fix-items evidence is missing, so round 1+ can silently drop the review negotiation contract.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "In revision mode, the shared component-repair engine prompts for `<fix_items_map>`, but its parser only requires the artifact and `<compliance_map>`. If the merged response omits `<fix_items_map>`, the engine silently returns an empty array instead of treating the response as invalid.",
+          "source_section": "shared/component-repair-engine/engine.ts:48-63"
+        },
+        {
+          "id": "f2",
+          "description": "That silent empty-array fallback propagates through the live consumer: the board writes `fix-items-map.json` only when the array is non-empty, and reviewer parsing only requires `fix_decisions` when fix-items evidence is present. A missing tag in the implementer response therefore suppresses both the fix-items artifact and the reviewer-side fix-decision contract for later rounds.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:269-274; shared/review-engine/engine.ts:175-180"
+        }
+      ],
+      "redesign_guidance": "For `revision` mode, make `<fix_items_map>` mandatory at the component-repair-engine boundary and fail closed if it is absent or empty when the round contract requires it. Keep that requirement single-sourced so the repair engine, board artifact writer, and reviewer parser all agree on when fix-items evidence must exist."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Self-check severity now stays intact through the reviewed board/result paths; I did not find a remaining warning-to-major/error flattening regression."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "reject_fix",
+      "reason": "The closeout is still not canonical. PM-003 remains inconsistent across run and cycle postmortems, and the final-round ultimatum path mutates the artifact after round evidence is written without persisting matching terminal evidence."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "accept_fix",
+      "reason": "Learning and repair outputs are now schema-validated before governed writes; the remaining issue is missing required fix-items presence enforcement, not a regression of the prior boundary-validation fix."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "The reviewed result path no longer upcasts warning-level self-check issues into error-severity red flags."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "The redundant cycle-postmortem existence check and the unused self-check variable are no longer present in the boxed source."
+    }
+  ],
+  "residual_risks": [
+    "Run-postmortem and cycle-postmortem logic are still split across `board.ts` and `index.ts`, so KPI/schema drift is likely to recur until PM-003 is built from one shared result model.",
+    "The merged XML-tag parsing path has no visible verification evidence in the bundle for malformed revision responses, so missing-section regressions may not be caught until runtime."
+  ],
+  "strengths": [
+    "Reviewer and leader outputs now go through shared contract-driven validation before workflow state transitions.",
+    "Learning and repair boundaries now validate machine-generated JSON against shared schemas before updating governed artifacts.",
+    "The repair flow is boxed through explicit manifests instead of broad repo access, which materially improves auditability."
+  ]
+}

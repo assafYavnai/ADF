@@ -1,0 +1,21 @@
+{
+  "schema_version": "2.1",
+  "operation": "update",
+  "job_id": "llm-tool-builder-bom-001",
+  "tool_name": "bom-tool",
+  "tool_slug": "bom-tool",
+  "tool_root": "tools/llm-tool-builder/tmp/bom-tool",
+  "goal": "Register agent-role-builder as a governed tool in bootstrap mode. Role creation is deferred.",
+  "business_context": "agent-role-builder is the first tool in the ADF bootstrap sequence. It must be registered before it can create its own role (chicken-and-egg). This registration uses bootstrap mode (skip_build_agent_role=true) as a documented exception.",
+  "owner": "COO",
+  "entry_point": "tools/llm-tool-builder/src/index.ts",
+  "baseline_contract_path": "tools/agent-role-builder/tool-contract.json",
+  "skip_build_agent_role": true,
+  "notes": [
+    "Bootstrap mode: role creation deferred. Will be attached in subsequent step.",
+    "See docs/v0/context/step2e-tool-bootstrap-plan.md for full bootstrap sequence."
+  ],
+  "required_outputs": [
+    "tools/llm-tool-builder/tmp/bom-tool/tool-contract.json"
+  ]
+}

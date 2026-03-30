@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 7,
+  "changed": true,
+  "summary": "Closed the round-7 integrity gaps by preserving self-check severity end-to-end, adding PM-003 issue counts to the board run-postmortem path, and validating learning/repair outputs against their declared schemas before they mutate governed artifacts.",
+  "implementation_scope": [
+    "shared/component-repair-engine/engine.ts",
+    "shared/component-repair-engine/types.ts",
+    "shared/learning-engine/engine.ts",
+    "shared/learning-engine/implementor-rulebook.json",
+    "shared/review-engine/config.ts",
+    "shared/review-engine/types.ts",
+    "tools/agent-role-builder/src/index.ts",
+    "tools/agent-role-builder/src/services/board.ts",
+    "tools/agent-role-builder/src/services/validator.ts"
+  ],
+  "highlights": [
+    "Board and result pipelines now preserve self-check severity instead of promoting warnings into material or error-level evidence.",
+    "Run-postmortem PM-003 is now present on board-driven exits as well as zero-round closeout.",
+    "Learning and repair outputs now fail closed on schema validation before touching rulebook or round evidence."
+  ],
+  "generated_at": "2026-03-29T21:30:00.000Z"
+}

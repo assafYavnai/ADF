@@ -1,0 +1,90 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Boxing still fails open, so both the external review bundle and the internal repair bundle can omit required evidence without stopping the workflow.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The round-5 boxed review artifact omits `tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts` and `tools/agent-role-builder/src/services/audit-utils.ts` even though `diff-summary.json`, `compliance-map.json`, and `fix-items-map.json` cite them as changed or governing evidence, so the reviewer cannot verify the claimed delta while staying inside the required box.",
+          "source_section": "bundle/source-manifest.json; bundle/diff-summary.json; bundle/compliance-map.json; bundle/fix-items-map.json"
+        },
+        {
+          "id": "f2",
+          "description": "The shared repair engine copies requested source-authority files with `copyOptionalFile(...)` and silently drops any missing file, so a repair pass can proceed with an incomplete boxed authority set and no audit-visible failure.",
+          "source_section": "source/shared/component-repair-engine/engine.ts:26-38; source/shared/component-repair-engine/engine.ts:87-93"
+        }
+      ],
+      "redesign_guidance": "Make bundle construction fail closed when any file cited by the diff summary, compliance map, fix map, or requested authority list is missing from the box. The boxed manifest must be complete enough for a reviewer or repair pass to verify claims without leaving the declared bundle."
+    },
+    {
+      "id": "group-2",
+      "summary": "Runtime contract enforcement is still not fully fail-closed because the shared reviewer parser accepts an off-contract verdict token instead of rejecting it.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The shared reviewer parser rewrites raw `approve` to `approved` before vocabulary validation, so a reviewer payload that does not match the governed contract is still accepted and can drive live workflow branches.",
+          "source_section": "source/shared/review-engine/engine.ts:109-123"
+        }
+      ],
+      "redesign_guidance": "Remove verdict aliasing and validate reviewer outputs strictly against the shared contract vocabulary at the boundary. Any off-contract token should fail closed and trigger the existing error path instead of being normalized into a legal value."
+    },
+    {
+      "id": "group-3",
+      "summary": "Terminal and machine-facing evidence remains inconsistent on non-happy paths, so required artifacts and KPI counts can still disagree with the actual run state.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "If board startup fails while loading the rulebook or during the initial rule sweep, `executeBoard()` returns `blocked` before calling `writeRunPostmortem()`, so the run can terminate without the shared contract's required `run-postmortem.json` artifact.",
+          "source_section": "source/tools/agent-role-builder/src/services/board.ts:179-206; source/tools/agent-role-builder/src/services/board.ts:221-242; authority/shared/learning-engine/review-contract.json"
+        },
+        {
+          "id": "f2",
+          "description": "`result.json` evidence counters are derived from ad hoc filters instead of the canonical issue arrays: `validation_issue_count` counts only error-severity items, and `self_check_issue_count` counts only codes starting with `MISSING_`, so the result artifact can underreport issues relative to `validation_issues[]`, `cycle-postmortem.json`, and real self-check failures such as `COMPLETION_MISSING_RESULT`.",
+          "source_section": "source/tools/agent-role-builder/src/index.ts:350-360; source/tools/agent-role-builder/src/index.ts:427-432; source/tools/agent-role-builder/src/services/validator.ts:174-188"
+        }
+      ],
+      "redesign_guidance": "Derive terminal artifacts and KPI fields from one canonical result/evidence model. Zero-round blocked exits should still emit an explicit run postmortem, and result counters should be computed directly from the full issue arrays with field names that match their semantics."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "reject_fix",
+      "reason": "The shared reviewer validator still accepts the off-contract verdict `approve` by rewriting it to `approved`, so malformed reviewer payloads do not fully fail closed."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "The board now rebuilds canonical unresolved items from the effective verdict, material checklist, and deferred items before persisting review and resume evidence."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "executeBoard now catches BoardBlockedError at the top level and returns the typed blocked result instead of letting the exception escape."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "reject_fix",
+      "reason": "The claimed audit-utils single-sourcing change is not review-verifiable inside the supplied box because `audit-utils.ts` is omitted from the round-5 bundle even though the evidence files cite it."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "attemptAutoFix now takes a role/context label and uses it in the repair prompt, so reviewer parse failures no longer get mislabeled as leader failures."
+    }
+  ],
+  "residual_risks": [
+    "The merged repair path still has no boxed proof in this bundle that cited helper files and ad-hoc runner changes actually match the compliance claims, because key source files are missing from the artifact.",
+    "No bundled verification evidence demonstrates the zero-round blocked path or confirms result/postmortem counter consistency across terminal states."
+  ],
+  "strengths": [
+    "Canonical unresolved persistence appears corrected: `board.ts` now recomputes unresolved items from the effective verdict and checklist before writing round artifacts.",
+    "BoardBlockedError is now converted into a typed blocked result at the board boundary.",
+    "The parse auto-fix prompt now preserves the actual failing participant role instead of always claiming the leader failed."
+  ]
+}

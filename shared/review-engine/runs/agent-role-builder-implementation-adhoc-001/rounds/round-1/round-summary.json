@@ -1,0 +1,52 @@
+{
+  "round": 1,
+  "review_mode": "delta",
+  "reviewers": [
+    {
+      "reviewer_id": "reviewer-codex",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "latency_ms": 465941,
+      "was_fallback": false,
+      "verdict": "reject",
+      "severity_counts": {
+        "blocking": 2,
+        "major": 3,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-1/reviewer-codex.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-1/reviewer-codex.parsed.json"
+    },
+    {
+      "reviewer_id": "reviewer-claude",
+      "provider": "claude",
+      "model": "sonnet",
+      "latency_ms": 394107,
+      "was_fallback": false,
+      "verdict": "conditional",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 4,
+        "minor": 1,
+        "suggestion": 0
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-1/reviewer-claude.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-1/reviewer-claude.parsed.json"
+    }
+  ],
+  "merged_findings_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-1/merged-findings.json",
+  "learning_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-1/learning.json",
+  "totals": {
+    "blocking": 2,
+    "major": 7,
+    "minor": 1,
+    "suggestion": 0
+  },
+  "learning": {
+    "new_rules": 1,
+    "existing_rules_covering": 9,
+    "no_rule_needed": 0,
+    "latency_ms": 104225
+  }
+}

@@ -12,5 +12,12 @@ Read [docs/bootstrap/vscode-agent.md](docs/bootstrap/vscode-agent.md)
 The COO controller governs all turns.
 Rules are loaded from the memory engine, not from this file.
 
+## Direct Instruction Discipline
+
+- Follow user instructions to the letter.
+- Do not jump into execution when the user asked a question or did not explicitly ask for implementation.
+- Do not take shortcuts by jumping to conclusions about user intent.
+- Do not choose the lazy path, the shortest pass, or a weaker substitute when the user asked for something more exact, thorough, or explicit.
+
 For Phase 1 design, workflow, context-recovery, and requirements-definition work, auto-load:
 - [docs/v0/context/phase1-definition-source-pack.md](docs/v0/context/phase1-definition-source-pack.md)

@@ -1,0 +1,76 @@
+```json
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "BoardBlockedError thrown by the revision catch block (board.ts:613) propagates uncaught out of executeBoard instead of being caught and converted to { status: 'blocked' }, so revision crashes escape the board's typed return contract, produce no result.json or cycle-postmortem.json, and terminate the process via exit(2).",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The learning/revision try-catch block (board.ts:440-618) catches revision crashes and throws BoardBlockedError at line 613 to signal unrecoverability. However, this throw is outside the try-catch at lines 287-299 that wraps executeRound. There is no catch for BoardBlockedError in the for-loop body or in executeBoard itself. The error propagates through executeBoard, through index.ts line 141 (no wrapping catch), and is caught only by the top-level .catch at index.ts:605, which logs and calls process.exit(2). No result.json, cycle-postmortem.json, or run-postmortem.json are written when this path is taken (the intermediate write at line 655 and the terminal-state writes are all bypassed by the throw).",
+          "source_section": "board.ts:440-618 (revision try-catch), board.ts:287-299 (only wraps executeRound), board.ts:613 (throw site), index.ts:141 (uncaught call site), index.ts:605 (fatal exit)"
+        }
+      ],
+      "redesign_guidance": "Add a catch for BoardBlockedError in the for-loop body around the revision/learning block, or wrap the entire for-loop in executeBoard with a top-level catch that converts any BoardBlockedError into the expected typed return shape: { status: 'blocked', rounds, allParticipants, statusReason: err.message, finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues }. The board contract requires executeBoard to always return its typed result shape for all governed failure modes — it must not propagate exceptions to the caller. The bug report is correctly written before the throw; only the catch-and-return wrapper is missing."
+    },
+    {
+      "id": "group-2",
+      "summary": "pathExists and buildAuditEnvelope are duplicated between board.ts and index.ts with divergent type signatures on buildAuditEnvelope, creating an IMP-004 mirror-module drift risk.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "pathExists is defined identically in board.ts:833 and index.ts:582. buildAuditEnvelope is defined in board.ts:808 (artifactRefs: Record<string, string | null> | null) and index.ts:555 (artifactRefs: Record<string, string>), with divergent type signatures for the artifactRefs parameter. A future edit to one copy will silently diverge from the other.",
+          "source_section": "board.ts:808-827 and index.ts:555-576 (buildAuditEnvelope), board.ts:833-840 and index.ts:582-589 (pathExists)"
+        }
+      ],
+      "redesign_guidance": "Extract pathExists and buildAuditEnvelope into a shared utility module imported by both board.ts and index.ts. This directly resolves the IMP-004 violation and ensures both callers use a single implementation. Unify the buildAuditEnvelope type signature at the same time."
+    },
+    {
+      "id": "group-3",
+      "summary": "attemptAutoFix prompt body hard-codes 'The leader LLM returned a response that could not be parsed as JSON' for all callers, including reviewer parse failures, creating a misleading auto-fix context when the failing slot is a reviewer.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f3",
+          "description": "attemptAutoFix (board.ts:53) contains the fixed string 'The leader LLM returned a response that could not be parsed as JSON.' This function is called from parseReviewerResponse (line 1098) and parseLeaderResponse (line 1160). For reviewer failures the narrative context is wrong. The EXPECTED FORMAT field is correctly set per-caller (reviewer vs leader schema), but the prompt body misidentifies the role, which may cause the auto-fixer to reason toward a leader-shaped correction when the target is a reviewer response.",
+          "source_section": "board.ts:53-62 (prompt text), board.ts:1098 (reviewer caller), board.ts:1160 (leader caller)"
+        }
+      ],
+      "redesign_guidance": "Add a role or contextLabel parameter to attemptAutoFix so the prompt correctly identifies which participant's output failed. Replace the hard-coded 'leader LLM' string with the parameterized label. This keeps the EXPECTED FORMAT and the narrative context consistent and removes ambiguity for the auto-fixer."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Verified: parseReviewerResponse (board.ts:1058-1079) calls preValidateResponse first and throws BoardBlockedError on failure. parseLeaderResponse (board.ts:1121-1141) does the same. Both BoardBlockedErrors from executeRound propagate to the try-catch at lines 287-299 which returns { status: 'blocked' }. Pre-validation failures no longer produce synthetic review findings, enter learning flows, or reach the repair checklist."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "Verified: engine.ts parseReviewerOutput validates verdict enum (lines 91-93), severity enum per group (lines 100-103), and fix-decision enum per entry (lines 118-125). parseLeaderOutput validates status enum (lines 143-151). Invalid values throw immediately, failing closed before returning typed objects to consumers. The shared parser no longer trusts raw contract fields at runtime."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "accept_fix",
+      "reason": "Verified: board.ts:392 sets roundResult.deferredItems and board.ts:393 sets roundResult.leaderVerdict = effectiveLeaderVerdict before review.json is written at board.ts:404. The effective verdict override logic (lines 334-385) runs before the write. The persisted review.json now reflects the finalized effective leader verdict, override rationale, and deferred-item set."
+    }
+  ],
+  "residual_risks": [
+    "If revision crashes in any round, BoardBlockedError escapes executeBoard and reaches index.ts:605, calling process.exit(2). result.json and cycle-postmortem.json are not written. The bug report is persisted by the catch block at board.ts:610, but the run has no machine-readable terminal artifact.",
+    "buildAuditEnvelope exists in both board.ts and index.ts with different type signatures. A change to one copy that is not mirrored will silently produce divergent audit envelopes.",
+    "attemptAutoFix uses leader-specific prompt language when called for reviewer parse failures; if the auto-fixer uses the role narrative to infer output shape, it may produce a leader-shaped response for a reviewer slot."
+  ],
+  "strengths": [
+    "All three round-3 material fixes are correctly implemented and verified: pre-validation failures escalate through BoardBlockedError, enum validation is fail-closed in the shared parser, and review.json is written after effective verdict finalization.",
+    "The effective-verdict override logic (board.ts:334-385) correctly handles frozen and frozen_with_conditions verdicts emitted while material repair work remains, writing bug reports and overriding to pushback or blocked rather than silently accepting the leader's claim.",
+    "cycle-postmortem.json is correctly written in index.ts for all terminal states including blocked at validation time and all board terminal states, satisfying the audit contract's required_outputs.",
+    "The withFileLock pattern (board.ts:842-866) prevents concurrent rulebook write corruption and handles contention with bounded retry logic.",
+    "The budget-exhaustion ultimatum path (board.ts:553-589) correctly limits the final-round checklist to the single most important material item per reviewer, preserving the resume_required audit trail.",
+    "The shared-module-loader correctly tries both source and dist candidates, enabling the tool to run from both development and compiled environments without configuration."
+  ]
+}
+```

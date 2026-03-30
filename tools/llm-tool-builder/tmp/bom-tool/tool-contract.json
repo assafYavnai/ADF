@@ -1,0 +1,46 @@
+{
+  "schema_version": "2.1",
+  "tool_name": "bom-tool",
+  "tool_slug": "bom-tool",
+  "operation": "update",
+  "goal": "Register agent-role-builder as a governed tool in bootstrap mode. Role creation is deferred.",
+  "business_context": "agent-role-builder is the first tool in the ADF bootstrap sequence. It must be registered before it can create its own role (chicken-and-egg). This registration uses bootstrap mode (skip_build_agent_role=true) as a documented exception.",
+  "owner": "COO",
+  "entry_point": "tools/llm-tool-builder/src/index.ts",
+  "baseline_contract_path": "tools/agent-role-builder/tool-contract.json",
+  "imported_role_directory": null,
+  "role_directory": "tools\\llm-tool-builder\\tmp\\bom-tool\\role",
+  "skip_build_agent_role": true,
+  "required_outputs": [
+    "tools/llm-tool-builder/tmp/bom-tool/tool-contract.json"
+  ],
+  "notes": [
+    "Bootstrap mode: role creation deferred. Will be attached in subsequent step.",
+    "See docs/v0/context/step2e-tool-bootstrap-plan.md for full bootstrap sequence."
+  ],
+  "generated_at_utc": "2026-03-30T08:54:07.066Z",
+  "previous_contract": {
+    "schema_version": "2.1",
+    "tool_name": "agent-role-builder",
+    "tool_slug": "agent-role-builder",
+    "operation": "update",
+    "goal": "Attach the governed role package to agent-role-builder, replacing the bootstrap registration.",
+    "business_context": "agent-role-builder created its own role through 9 rounds of governed multi-LLM review. The role is now promoted. This update attaches it formally, completing the bootstrap sequence.",
+    "owner": "COO",
+    "entry_point": "tools/agent-role-builder/src/index.ts",
+    "baseline_contract_path": null,
+    "imported_role_directory": "tools/agent-role-builder/role",
+    "role_directory": "C:\\ADF\\tools\\agent-role-builder\\role",
+    "skip_build_agent_role": false,
+    "required_outputs": [
+      "tools/agent-role-builder/tool-contract.json"
+    ],
+    "notes": [
+      "Replaces bootstrap mode registration with governed role",
+      "Role was created by agent-role-builder itself (dog food)",
+      "Evidence: 4 runs, 9 review rounds, 24+ improvements applied"
+    ],
+    "generated_at_utc": "2026-03-27T12:26:51.311Z",
+    "previous_contract": null
+  }
+}

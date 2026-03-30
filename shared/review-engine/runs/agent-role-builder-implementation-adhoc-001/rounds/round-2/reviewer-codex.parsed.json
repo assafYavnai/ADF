@@ -1,0 +1,84 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "The live board still keeps a mirrored reviewer/leader parsing runtime in `board.ts`, so the shared review engine is not actually the single canonical implementation on the active path.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`executeRound()` still routes reviewer and leader outputs through local `parseReviewerResponse()` and `parseLeaderResponse()` helpers instead of the shared review-engine parser exports, even though the board already loads the shared module at startup. That means parser fixes in `shared/review-engine` will not govern the live board path.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:861-870"
+        },
+        {
+          "id": "f2",
+          "description": "`board.ts` retains local copies of `preValidateResponse`, `cleanJsonResponse`, and the JSON field-coercion logic that already exists in `shared/review-engine/engine.ts`. This leaves duplicated runtime behavior on the same governed surface and re-opens the drift problem the round-1 fix claimed to close.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:1018-1200; shared/review-engine/engine.ts:56-104"
+        }
+      ],
+      "redesign_guidance": "Delete the board-local parsing/prevalidation helpers and make the board call the shared review-engine exports for response cleaning and parsing. If the board still needs bug-report and auto-fix escalation, keep that wrapper locally but hand repaired payloads back to the shared parser functions so parser behavior remains single-sourced."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Governance prerequisite files are now required and parse-checked before execution, and the shared config loader fails closed on malformed JSON."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "`frozen_with_conditions` now promotes canonical artifacts, populates canonical result paths, and returns success semantics."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "accept_fix",
+      "reason": "Learning failures now propagate through the board as critical errors instead of being swallowed."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "decision": "accept_fix",
+      "reason": "`review.json`, `run-postmortem.json`, and `cycle-postmortem.json` now emit the canonical audit envelope with provider/model/latency/fallback provenance."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-5",
+      "decision": "reject_fix",
+      "reason": "The local `review-runtime.ts` mirror is gone, but live parsing/prevalidation logic is still duplicated in `board.ts`, so the active board path has not fully converged on one canonical shared review runtime."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "reject_fix",
+      "reason": "The fix removed the obvious local module mirror, but `board.ts` still keeps its own reviewer/leader parsing helpers instead of consuming the shared parser implementation."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "`run-postmortem.json` now includes the missing audit provenance fields and matches the shared audit envelope."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "Illegal `frozen_with_conditions` plus material-work combinations are now detected, bug-reported, and overridden before terminal-state handling."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "decision": "accept_fix",
+      "reason": "Conditional freeze now promotes canonical outputs and preserves machine-facing canonical paths while also writing a conditions manifest."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "decision": "accept_fix",
+      "reason": "`cycle-postmortem.json` now verifies its own artifact-presence flag mechanically instead of hardcoding success."
+    }
+  ],
+  "residual_risks": [
+    "Any future hardening of reviewer/leader JSON parsing in `shared/review-engine` can still miss the live board path until the duplicated parser code in `board.ts` is removed.",
+    "No automatic self-check artifact was provided for this ad-hoc review, so verification relies on manual inspection of the boxed bundle."
+  ],
+  "strengths": [
+    "Governance prerequisite loading, learning failure handling, conditional-freeze promotion, and audit-envelope alignment were materially improved and largely match the declared contracts.",
+    "The leader verdict override for illegal `frozen_with_conditions` states now closes the prior budget-burning fail-open path.",
+    "The implementation bundle stays boxed and the major machine-facing artifacts now use a much more consistent contract shape."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "status": "blocked",
+  "role_slug": "agent-role-builder-governance-invalid-roster",
+  "issue": "The requested role package is not safe to freeze as submitted.",
+  "why_it_blocks": "Blocked: 1 validation errors",
+  "evidence": {
+    "validation_issues": [
+      {
+        "code": "INVALID_REVIEWER_PAIR",
+        "severity": "error",
+        "message": "Reviewer pair 1 must be one Codex + one Claude, got: codex + codex"
+      }
+    ],
+    "self_check_issues": [],
+    "board_rounds": 0,
+    "decision_log_path": null,
+    "board_summary_path": null
+  }
+}

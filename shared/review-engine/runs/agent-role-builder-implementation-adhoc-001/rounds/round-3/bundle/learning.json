@@ -1,0 +1,26 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "This is exactly the mirrored-runtime failure COD-004 was written for: the live board kept its own reviewer/leader parsing path instead of importing the shared review-engine implementation, so fixes to the shared parser would not reach the active runtime."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "The duplicated `preValidateResponse` and `cleanJsonResponse` helpers are a direct example of diverging local copies of shared governed runtime logic. COD-004 already requires one canonical implementation and live consumers importing it."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "The `pathExists` drift is another copy-divergence problem: two live consumers maintain separate implementations with different behavior and cost. COD-004 covers consolidating shared runtime helpers so consumers do not keep divergent local versions."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "covered_by_rule_id": "IMP-007",
+      "explanation": "The issue is a silent broad catch that hides the real loader failure. IMP-007 already requires every catch to log or propagate instead of swallowing errors, which would prevent `import()` failures from being masked as 'not found'."
+    }
+  ],
+  "no_rule_needed": []
+}

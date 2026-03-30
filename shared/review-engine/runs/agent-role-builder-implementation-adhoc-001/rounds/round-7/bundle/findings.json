@@ -1,0 +1,37 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Terminal evidence is still inconsistent on the zero-round blocked path, and one cycle KPI field still misstates what it counts.",
+    "severity": "major",
+    "redesign_guidance": "Route every terminal exit, including pre-board validation blocks, through one canonical closeout path that writes the same blocked artifact set and derives both result fields and postmortem KPIs from explicitly named validation and self-check arrays. If blocked validation exits are not supposed to produce a pushback artifact, set pushback_path to null on that path instead of advertising a file that does not exist.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "The shared repair bundle still is not fully fail-closed because authority boxing flattens paths and can silently overwrite distinct required authorities.",
+    "severity": "major",
+    "redesign_guidance": "Box repair authorities with their relative source paths, not bare basenames, or explicitly detect duplicate basename collisions and block before invoking repair. The manifest should prove one unique boxed file per requested authority path.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "extractReferencedPaths silently drops evidence paths that don't match the ^(shared|tools|docs)/ prefix filter, creating a conditional rather than unconditional fail-closed guarantee for COD-008. Any compliance, fix-items, or diff-summary evidence_location that uses an absolute path, Windows-style separator, or an unrecognized prefix is silently excluded from the bundle without error or warning.",
+    "severity": "minor",
+    "redesign_guidance": "Emit at minimum a console.warn when a path part is dropped due to unrecognized prefix, so bundle construction doesn't silently diverge from what the evidence map claims. Alternatively, validate that all extracted paths have a recognized prefix before discarding, and throw if any path is unboxable and the evidence document that cited it is from a required evidence file (compliance map, fix-items map).",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "buildResult sets pushback_path to a non-existent file for validation-blocked exits that occur before board execution in index.ts. The pushback.json write is guarded by a post-board code path that is never reached in the early blocked exit, so result.json carries a dangling machine-facing reference.",
+    "severity": "minor",
+    "redesign_guidance": "Either write a minimal pushback.json in the pre-board blocked exit path (containing at minimum the validation_issues that caused the block), or set pushback_path to null in buildResult when the caller signals a pre-board blocked status. The validation_issues array in result.json already carries the canonical signal; the dangling path reference is purely a machine-facing evidence integrity issue.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-3",
+    "summary": "loadPriorRoundSummaries in run-adhoc-code-review-round.ts synthesizes leaderVerdict from blocking/major issue counts and always emits empty unresolved and improvementsApplied arrays. The prior rounds context embedded in the reviewer prompt is therefore approximate and may not match actual board outcomes for rounds that had real unresolved items.",
+    "severity": "suggestion",
+    "redesign_guidance": "Persist the actual leader_verdict, unresolved items, and improvements_applied in round-summary.json at write time (the round-summary is already written at line 247), then read them back in loadPriorRoundSummaries instead of synthesizing from count heuristics. This gives reviewers accurate prior-round context rather than a count-derived approximation.",
+    "finding_count": 1
+  }
+]

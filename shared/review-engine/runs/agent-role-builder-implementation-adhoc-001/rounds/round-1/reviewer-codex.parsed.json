@@ -1,0 +1,172 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Governance prerequisite handling still fails open, so the board can continue without the component-owned review artifacts the shared contract requires.",
+      "severity": "blocking",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`validateRequest()` enforces reviewer roster shape but never verifies the required governed files (`review-prompt.json`, `review-contract.json`, `rulebook.json`) exist and are readable before execution starts.",
+          "source_section": "tools/agent-role-builder/src/services/validator.ts:8-84"
+        },
+        {
+          "id": "f2",
+          "description": "If the component rulebook cannot be read, `executeBoard()` logs the error and continues with an empty in-memory rulebook instead of stopping the governed run.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:179-184"
+        },
+        {
+          "id": "f3",
+          "description": "Both runtime config loaders fall back to built-in defaults when review contracts/prompts are missing or malformed, which masks broken governance state instead of failing closed.",
+          "source_section": "tools/agent-role-builder/src/services/review-runtime.ts:134-149,224-231; shared/review-engine/config.ts:53-67,128-135"
+        }
+      ],
+      "redesign_guidance": "Make governance artifact presence and parseability a startup gate. Validate `review-prompt.json`, `review-contract.json`, and `rulebook.json` before board execution, and change both runtime loaders to throw on missing/malformed governed files instead of substituting defaults."
+    },
+    {
+      "id": "group-2",
+      "summary": "`frozen_with_conditions` is recognized by the board, but the live tool still treats it like a non-frozen failure state at promotion and process-exit time.",
+      "severity": "blocking",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The tool writes `conditions-manifest.json` for `frozen_with_conditions` but only promotes canonical outputs when status is exactly `frozen`, so a conditional freeze never produces canonical artifacts.",
+          "source_section": "tools/agent-role-builder/src/index.ts:209-237"
+        },
+        {
+          "id": "f2",
+          "description": "`buildResult()` nulls all canonical output paths unless status is exactly `frozen`, so the machine result misrepresents `frozen_with_conditions` as if no frozen artifact exists.",
+          "source_section": "tools/agent-role-builder/src/index.ts:359-399"
+        },
+        {
+          "id": "f3",
+          "description": "The CLI exits with status 0 only for `frozen`, so a conditional freeze is surfaced as command failure despite being an allowed terminal status in the shared contract.",
+          "source_section": "tools/agent-role-builder/src/index.ts:552-556"
+        }
+      ],
+      "redesign_guidance": "Treat `frozen_with_conditions` as a successful terminal freeze path. Promote artifacts, populate canonical paths in `result.json`, emit the conditions manifest, and return success exit semantics while preserving the deferred-item contract for the invoker."
+    },
+    {
+      "id": "group-3",
+      "summary": "The learning step still fails open, which breaks the required review -> learning -> rule check -> fix -> re-review workflow.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The shared learning engine suppresses missing review-context files and JSON parse failures by returning empty context or a synthetic `no_rule_needed` record instead of escalating a broken learning pass.",
+          "source_section": "shared/learning-engine/engine.ts:20-33,101-119"
+        },
+        {
+          "id": "f2",
+          "description": "`executeBoard()` catches `extractRules()` failures, logs them, and continues into revision, so fixes can proceed without the learning output and rulebook update the architecture makes mandatory.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:361-395"
+        }
+      ],
+      "redesign_guidance": "Make learning failures fatal to the round. Propagate missing-context and parse errors from `shared/learning-engine`, write a bug report, and stop before revision so the mandated sequence remains intact."
+    },
+    {
+      "id": "group-4",
+      "summary": "Audit and postmortem outputs still do not match the shared machine contract, so downstream consumers cannot rely on one stable audit schema.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`review.json` writes an `audit` object, but the top-level audit block omits the contract-required `provider`, `model`, `latency_ms`, and `fallback_used` fields and instead nests participant-specific data ad hoc.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:287-318"
+        },
+        {
+          "id": "f2",
+          "description": "`run-postmortem.json` repeats the same schema drift: its audit block contains only component/job/round/mode/artifact refs and omits the required provider/model/latency/fallback fields.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:684-692"
+        },
+        {
+          "id": "f3",
+          "description": "`cycle-postmortem.json` has no contract-shaped audit block at all, and it still hardcodes `cycle_postmortem: true` instead of deriving that artifact claim mechanically.",
+          "source_section": "tools/agent-role-builder/src/index.ts:303-356"
+        }
+      ],
+      "redesign_guidance": "Emit one canonical audit object matching `shared/learning-engine/review-contract.json` in `review.json`, `run-postmortem.json`, and `cycle-postmortem.json`. Keep provider/model/latency/fallback fields at the audit root and derive artifact presence from actual writes or stat checks."
+    },
+    {
+      "id": "group-5",
+      "summary": "Shared review-runtime logic is still mirrored in a live local module, so the board has not actually converged on one canonical shared implementation.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "`board.ts` still imports and executes the local `review-runtime.ts` for config loading and review-mode resolution rather than using a shared runtime surface end to end.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:6-11,160,264"
+        },
+        {
+          "id": "f2",
+          "description": "The local `review-runtime.ts` still carries duplicated defaults, config loading, and helper logic instead of being reduced to a thin re-export over `shared/review-engine`, leaving a live drift point beside the shared runtime.",
+          "source_section": "tools/agent-role-builder/src/services/review-runtime.ts:79-236"
+        }
+      ],
+      "redesign_guidance": "Move config loading and review-mode resolution into `shared/review-engine`, then make the tool-local module a thin re-export or delete it. The board should consume one canonical shared review runtime, not a mixed shared/local path."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "Reviewer roster parity and Codex+Claude pair validation are now enforced in `validateRequest()`."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "reject_fix",
+      "reason": "Status values were added, but the live tool still treats `frozen_with_conditions` as a non-success terminal state and does not promote canonical artifacts for it."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "decision": "reject_fix",
+      "reason": "Audit provenance is still not emitted in the stable contract shape across `review.json`, `run-postmortem.json`, and `cycle-postmortem.json`."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-4",
+      "decision": "reject_fix",
+      "reason": "The board still boots through a local `review-runtime.ts`, so shared review logic is not the single live authority."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "reject_fix",
+      "reason": "`frozen_with_conditions` now exists in the board state machine, but the top-level tool does not freeze/promote artifacts or return success semantics for that terminal state."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "Freeze gating now distinguishes material repair work from minor/suggestion-only deferred items."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "reject_fix",
+      "reason": "Prompt construction moved into the shared engine, but the duplicated local review-runtime module and helper logic remain in the live path instead of being removed."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-4",
+      "decision": "accept_fix",
+      "reason": "Initial rule sweep and revisions now route through `runComponentRepair()` from the shared repair engine."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-5",
+      "decision": "accept_fix",
+      "reason": "The exact minor issues called out there were addressed: arbitration tracking is plumbed, required repair-bundle copies now fail closed, and config loading no longer fails silently."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-6",
+      "decision": "reject_fix",
+      "reason": "`writeCyclePostmortem()` still hardcodes `cycle_postmortem: true` instead of deriving the artifact claim from actual file state."
+    }
+  ],
+  "residual_risks": [
+    "The boxed bundle provides no execution/test artifact proving the new terminal states end to end, so the unreviewed runtime path around `frozen_with_conditions` may hide additional regressions.",
+    "`shared-module-loader.ts` and the result schema files are not included in this boxed bundle, so cross-file status propagation outside the reviewed files could still drift from the shared contract.",
+    "The repair path still references `docs/v0/architecture.md`, which is outside the declared authority set for this ad-hoc review bundle and leaves boxed authority scope sensitive to external drift."
+  ],
+  "strengths": [
+    "The board now has explicit runtime branches for `resume_required` and `frozen_with_conditions`, and the material-only freeze gate from the prior round is in place.",
+    "Role revision work is routed through `shared/component-repair-engine`, so artifact repair, compliance-map generation, and fix-items generation are centralized.",
+    "Reviewer reuse, arbitration tracking, fallback provenance capture, and final-round ultimatum handling are materially more explicit than in the prior round."
+  ]
+}

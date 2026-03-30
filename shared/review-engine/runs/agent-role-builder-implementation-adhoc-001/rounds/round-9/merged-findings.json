@@ -1,0 +1,23 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Terminal closeout is still not derived from one canonical post-repair evidence object, so the final-round ultimatum path can emit stale machine-facing artifacts and PM-003 is still not single-shaped across writers.",
+    "severity": "major",
+    "redesign_guidance": "After any repair pass, including the final-round ultimatum branch, build one canonical terminal-evidence object that carries the final markdown, compliance map, fix-items map, self-check issues, unresolved/deferred items, and review issue counts. Persist round artifacts, `result.json`, `run-postmortem.json`, and `cycle-postmortem.json` from that object instead of mixing `current*` state with stale `roundResult` snapshots. Also centralize PM-003 generation behind one helper that emits exactly `{ validation_issue_count, self_check_issue_count, review_issue_count, total_issue_count }` on every writer.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "Ultimatum-branch evidence is still not fully canonical: (a) self_check_issue_count is read from different sources in run-postmortem vs cycle-postmortem when the ultimatum revision runs, and (b) the ultimatum revision's updated compliance map and fix-items map are never persisted to the canonical round-artifact locations before returning.",
+    "severity": "major",
+    "redesign_guidance": "After the ultimatum revision completes (lines 575-578), write the updated complianceMap and fixItemsMap to the canonical round directory (same paths used at round start: join(roundDir, 'compliance-map.json') and join(roundDir, 'fix-items-map.json')) so the postmortem audit trail references the post-ultimatum state. Additionally, update roundResult.selfCheckIssues (or pass currentSelfCheckIssues explicitly to writeRunPostmortem) so both run-postmortem and cycle-postmortem read self_check_issue_count from the same post-ultimatum source. This is the residual implementation work from prior group-1 redesign guidance: 'persist the matching compliance map, fix-items map... from that object before returning' and 'feed both postmortems from the same explicit arrays.'",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "index.ts countBoardReviewIssues counts all conceptual_groups including any synthetic parse-error group, while board.ts countRoundSeverities only counts groups whose severity matches a known enum value (blocking/major/minor/suggestion), silently dropping others via default:break. Under the current code parse-error groups cannot reach reviewerVerdicts (parse errors throw BoardBlockedError before storing any verdict), so these functions agree in practice. However the divergence is latent: any future path that allows a partial or synthetic verdict into reviewerVerdicts would cause cycle-postmortem review_issue_count > run-postmortem review_issue_count for the same run.",
+    "severity": "suggestion",
+    "redesign_guidance": "Normalize review_issue_count by using the same counting function in both postmortem writers, or by passing a pre-computed review_issue_count from board.ts (where it is already calculated from severity_counts) into the BoardResult return value so index.ts does not need its own counting logic. Eliminating the duplicate count reduces the coupling surface and ensures both documents are always consistent.",
+    "finding_count": 1
+  }
+]

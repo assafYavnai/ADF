@@ -1,0 +1,226 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Material issues remain against the governing sources. The freeze path still allows canonical promotion after `conditional` verdicts without an explicit conditional-item-fix gate, the carry-forward/fix protocol is keyed to conceptual-group IDs instead of individual reviewer findings required by the review-process architecture, and the evidence package is not credible because `self-check.json` records output-path errors while the submitted self-check claims pass and `round-0/compliance-map.json` is anchored to a different/nonexistent artifact path.",
+  "unresolved": [
+    "group-1: Terminal-state and request-gate mechanics are not fully testable or internally consistent.",
+    "group-2: Cross-round finding carry-forward is too coarse because it tracks conceptual groups instead of individual findings.",
+    "group-3: The self-check/compliance evidence is not credible for the reviewed artifact."
+  ],
+  "deferredItems": [
+    "group-2: ARB-012 is silently absent from the compliance map with no documented exclusion rationale, creating an audit traceability gap."
+  ],
+  "improvementsApplied": [
+    "Authority is structured as a strict operative precedence chain with reference evidence separated.",
+    "Canonical artifacts and run-scoped evidence are cleanly split with explicit full paths and lifecycle/write rules.",
+    "Context gathering is modeled as preconditions before Step 1 instead of as an execution step.",
+    "Arbitration is mechanically constrained to minor/suggestion disagreements and can only yield `frozen_with_conditions`.",
+    "Decision-history preservation and target-state workflow labeling are explicitly stated."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Terminal-state and request-gate mechanics are not fully testable or internally consistent.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The `frozen` predicate allows reviewers to return `conditional` while requiring only that no `blocking` or `major` pushback remains. Neither `<steps>` nor `<completion>` requires the conditional items themselves to be fixed before freeze, which conflicts with the review-process architecture rule that conditional items are fixed before leader freeze.",
+              "source_section": "<completion> `frozen`; <steps> Step 4 / Step 5"
+            },
+            {
+              "id": "f2",
+              "description": "Reviewer-pair failure is declared as a fail-closed pre-review gate, and the bug-report row says `blocked` covers fail-closed validation, but `<completion>` narrows `blocked` to governance-file errors or unrecoverable execution errors. An invalid Codex+Claude pair therefore has no explicit, mutually exclusive terminal predicate.",
+              "source_section": "<guardrails> reviewer-pair rule; <outputs> Bug report row; <completion> `blocked`"
+            }
+          ],
+          "redesign_guidance": "Add an explicit post-conditional-fix path before any `frozen` closeout, and define one canonical terminal predicate for request-time fail-closed validation, including invalid reviewer rosters, with the same wording across guardrails, outputs, and completion."
+        },
+        {
+          "id": "group-2",
+          "summary": "Cross-round finding carry-forward is too coarse because it tracks conceptual groups instead of individual findings.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "Unresolved issues are carried forward by conceptual-group ID and the fix-items map is keyed by conceptual-group ID. The governing review architecture says fix handling is per reviewer finding, so a multi-finding group can no longer be tracked or accepted/rejected mechanically by finding.",
+              "source_section": "<guardrails>; <steps> Step 4.1 and Step 4.3"
+            }
+          ],
+          "redesign_guidance": "Introduce stable finding IDs inside each conceptual group and require carry-forward, fix decisions, and rejection handling by finding ID. Group IDs can remain as a reporting layer, but not as the sole cross-round identity."
+        },
+        {
+          "id": "group-3",
+          "summary": "The self-check/compliance evidence is not credible for the reviewed artifact.",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "The supplied `Self-check: passed` claim is contradicted by the executed `self-check.json`, which contains four `MISSING_REQUIRED_OUTPUT` errors.",
+              "source_section": "self-check.json"
+            },
+            {
+              "id": "f5",
+              "description": "The compliance map is anchored to `tools/agent-role-builder/runs/.../agent-role-builder-governance-smoke-role.md`, but that file does not exist. The evidence therefore does not prove compliance of the reviewed artifact.",
+              "source_section": "round-0/compliance-map.json `artifact_path`"
+            },
+            {
+              "id": "f6",
+              "description": "The compliance map marks ARB-008 compliant despite the self-check output errors, omits ARB-012 entirely, and still reports `unchecked_rules: []`. That breaks the claim that only actually executed, semantically valid checks were reported.",
+              "source_section": "round-0/compliance-map.json entries; `unchecked_rules`"
+            }
+          ],
+          "redesign_guidance": "Regenerate self-check and compliance evidence against the actual artifact under review, fail the smoke run when executed checks return errors, and make rule coverage explicit so omitted rules are either checked or reported as unchecked/noncompliant."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "Authority and lifecycle wording are otherwise close to target state, so these gaps are easy to miss unless the run evidence is validated against real files.",
+        "Because several review mechanics are inherited by reference, any remaining mismatch between local closeout language and the shared contract can still surface at runtime even after text fixes."
+      ],
+      "strengths": [
+        "The authority section cleanly separates operative precedence from reference evidence.",
+        "The outputs matrix clearly distinguishes canonical artifacts from run-scoped evidence and gives explicit lifecycle/write rules.",
+        "Context gathering is correctly modeled as preconditions, and the steps are explicitly labeled as target-state governed behavior."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "conditional",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "The frozen promotion path lacks an explicit conditional-item-fix step, creating a workflow gap where reviewer conditional items can be skipped before canonical artifact promotion.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "Steps 4.5 and 4.6 (learning and fix) are explicitly gated on a `reject` verdict only. There is no parallel sub-step for the approved/conditional path that collects and applies conditional items from a `conditional` reviewer verdict before proceeding to terminal closeout. Step 5 promotion proceeds directly once terminal status resolves to `frozen` with no intervening requirement that conditional items were applied. The source authority (review-process-architecture.md §Step 6) mandates: 'Conditional items are fixed (specific minor changes only), Leader confirms freeze.' This requirement is absent from the role's operational steps.",
+              "source_section": "<steps> §4.5, §4.6, §5"
+            },
+            {
+              "id": "f2",
+              "description": "The `frozen` completion predicate reads: 'all active reviewers returned `approved` or `conditional`, no material pushback remains.' Because material pushback is defined as blocking/major severity only, this predicate is satisfiable while minor conditional items from a `conditional` verdict remain unapplied. With max_review_rounds: 1 (smoke contract), there is no round budget to apply conditional fixes after the single review round completes, yet the predicate would still permit canonical promotion.",
+              "source_section": "<completion> frozen predicate; <guardrails> material pushback definition"
+            }
+          ],
+          "redesign_guidance": "Add a conditional-item-fix sub-step between step 4.4 (reviewer verdicts) and step 4.10 (evidence persistence) on the approved/conditional path: 'If any reviewer returned `conditional`, collect all conditional items, apply them to the draft, update self-check evidence, and record leader confirmation before proceeding to terminal closeout.' Update the `frozen` completion predicate to add a testable criterion: 'all conditional items from any `conditional` reviewer verdicts have been applied and confirmed by the leader.' This aligns the role with review-process-architecture.md §Step 6 and closes the budget-exhaustion edge case under max_review_rounds: 1."
+        },
+        {
+          "id": "group-2",
+          "summary": "ARB-012 is silently absent from the compliance map with no documented exclusion rationale, creating an audit traceability gap.",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "The compliance map header states '24 rules checked' and lists ARB-001 through ARB-025 with ARB-012 ('Reviewer pair validation: hard gate at request time') omitted and no documented reason for its exclusion. The artifact correctly implements ARB-012 behavior in `<guardrails>` ('Each active reviewer pair must contain one Codex reviewer and one Claude reviewer; the run fails closed before review') and Step 1 ('Validate the board roster against the inherited roster contract before any draft work'). However, no compliance evidence entry links the implementation to the rule. Per ARB-005, silent omission without explanation leaves the audit trail ambiguous about whether the check was intentionally deferred to the inherited contract level or accidentally missed.",
+              "source_section": "Compliance map header (24 rules); <guardrails> reviewer-pair clause; <steps> §1"
+            }
+          ],
+          "redesign_guidance": "Add an ARB-012 entry to the compliance map: 'ARB-012: compliant — Reviewer pair validation is enforced as a hard gate in Step 1 before any draft work begins, and the fail-closed Codex+Claude roster requirement is stated explicitly in guardrails.' Alternatively, if roster validation is intentionally delegated entirely to the inherited review contract, document that explicitly: 'ARB-012: excluded from local self-check — roster contract validation is enforced by the inherited review contract; local re-check is not applicable.' Either option removes the silent gap and makes the 24-count unambiguous."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "With max_review_rounds: 1 (smoke contract), the conditional-item-fix gap in group-1 is directly exercisable: a round-0 review producing all-conditional verdicts satisfies the `frozen` predicate while leaving minor items unapplied in canonical promotion. This is not a hypothetical edge case for this specific contract.",
+        "The role does not specify whether the run-postmortem learning sub-path runs on approved/conditional rounds (no reject). If learning is strictly reject-gated, the rulebook does not grow from clean conditional runs. This is consistent with the source authority (learning is tied to reject verdicts) but creates a known blind spot for failures that manifest only as conditional rather than reject verdicts."
+      ],
+      "strengths": [
+        "Authority chain is precise and complete: operative precedence from COO controller to review contract to request is correctly ordered, reference evidence is cleanly separated under a distinct label, and no flat authority lists are present.",
+        "Terminal state predicates are mutually exclusive and enumerate all five defined states with testable artifact expectations; the separation of `frozen` vs `frozen_with_conditions` vs `resume_required` is unambiguous by construction.",
+        "Artifact lifecycle matrix is comprehensive: every artifact carries a full tool-relative path, explicit create/update/write rules, and the canonical vs run-scoped split is enforced throughout with no basename-only references.",
+        "Material pushback definition is canonical: defined once in `<guardrails>` and reused consistently across the freeze predicate, the `frozen_with_conditions` guardrail, and terminal-state completion criteria with no semantic drift.",
+        "Arbitration mechanics are complete: trigger condition, actor, required evidence locations, and the single allowed outcome (`frozen_with_conditions`) are all specified; the rule that arbitration cannot override blocking/major findings or a `reject` verdict is explicit.",
+        "Context-gathering is correctly modeled as labeled preconditions before Step 1, not numbered among the execution steps.",
+        "Decision-history preservation mechanism is explicit and correct: append-only decision log on update/fix, canonical board summary replaced on each freeze, run-specific board summary snapshot preserved permanently in the run directory.",
+        "Writable governed surface is bounded to exact canonical paths and the active run root with an explicit prohibition on write authority outside those paths."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-governance-smoke-001",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 831175,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/agent-role-builder-governance-smoke-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 260208,
+        "fallback_used": false,
+        "invocation_id": "44556417-c12b-49d7-b8a5-b6081e1fe6c7"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 294373,
+        "fallback_used": false,
+        "invocation_id": "1795eb1d-0467-4bd8-ad44-a219392d33c5"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 276594,
+        "fallback_used": false,
+        "invocation_id": "272af98a-48d6-4a67-997c-6c28a6f51214"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 260208,
+      "invocation_id": "44556417-c12b-49d7-b8a5-b6081e1fe6c7",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 294373,
+      "invocation_id": "1795eb1d-0467-4bd8-ad44-a219392d33c5",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 276594,
+      "invocation_id": "272af98a-48d6-4a67-997c-6c28a6f51214",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "5de50665-bad7-49d6-a216-0bda34a23b48",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-governance-smoke-002/governance-snapshot.json"
+  }
+}

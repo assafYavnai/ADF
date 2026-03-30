@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 2,
+  "items": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Removed the board-local parser mirror by routing reviewer and leader parsing through the shared review-engine helpers, while keeping bug-report and auto-fix escalation local to the board.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Deleted the local pre-validation and JSON-cleaning helpers from the board and reused the shared review-engine versions instead.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts; shared/review-engine/engine.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Aligned board-side path existence checks with the tool-wide `stat`-based behavior instead of reading file contents.",
+      "evidence_location": "tools/agent-role-builder/src/services/board.ts"
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Tightened shared-module-loader so it only swallows ENOENT from the existence check and now lets real import errors surface directly.",
+      "evidence_location": "tools/agent-role-builder/src/services/shared-module-loader.ts"
+    }
+  ],
+  "generated_at": "2026-03-29T17:45:00.000Z"
+}

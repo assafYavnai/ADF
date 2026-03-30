@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 1,
+  "items": [
+    {
+      "finding_id": "group-1-r0",
+      "finding_group_id": "group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Removed the architecture doc path from the 'Runtime obligations inherited by reference' clause. Obligations now state they come from 'the active review contracts (levels 2 and 3 above)' exclusively, with an explicit sentence that reference documents explain and narrate those contracts but do not grant operative authority or impose binding obligations. Also replaced hardcoded run-specific snapshot path ('agent-role-builder-self-role-017') in the Reference evidence entries with the parameterized '<job-id>' template, eliminating run-specific path coupling from the durable role definition.",
+      "evidence_location": "<authority> — 'Runtime obligations inherited by reference' clause and 'Reference evidence' entries"
+    },
+    {
+      "finding_id": "group-2-r0",
+      "finding_group_id": "group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Separated job-scoped from run-scoped evidence for cycle-postmortem throughout the artifact. (1) <outputs> cycle-postmortem row now carries a 'Job-scoped.' label with lifecycle: 'Write once when the job (all attempts) reaches its terminal state. If the job is resumed and reaches a new terminal state, replace with the final job-spanning summary. Per-attempt history is preserved in run-postmortem.json.' (2) run-postmortem row now annotates 'Scope: single-attempt KPI snapshot.' (3) Step 5 promotion rules add an explicit paragraph defining when cycle-postmortem.json is written at job-level terminal closeout and what happens on resume. Prior lifecycle wording 'when the run reaches terminal closeout' has been removed.",
+      "evidence_location": "<outputs> — cycle-postmortem and run-postmortem rows; <steps> Step 5 — promotion and preservation rules"
+    },
+    {
+      "finding_id": "group-3-r0",
+      "finding_group_id": "group-3",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Two sub-issues addressed. (1) Arbitration persistence: Replaced locally-invented '2 consecutive rounds' threshold in Step 4.6 with the carried-forward conceptual-group ID mechanism already mandated by the contracts. New wording: 'If split verdicts on the same carried-forward minor or suggestion conceptual-group ID remain unresolved after the rejecting reviewer's re-run confirms the finding, the leader may arbitrate exactly once under the inherited contracts.' This keys arbitration availability to the finding-ID tracking mechanism, not an invented round counter. (2) Fail-closed terminal-state mapping: Added explicit three-way fail-closed mapping to <guardrails>: (a) insufficient authority/inputs recoverable by caller → pushback; (b) structural/unrecoverable error regardless of caller input → blocked; (c) budget exhausted with material pushback → resume_required. This disambiguates the previously ambiguous 'may return pushback, blocked, or resume_required' guidance.",
+      "evidence_location": "<steps> Step 4.6 — arbitration trigger; <guardrails> — fail-closed terminal-state mapping guardrail"
+    }
+  ],
+  "generated_at": "2026-03-30T11:14:06.750Z"
+}

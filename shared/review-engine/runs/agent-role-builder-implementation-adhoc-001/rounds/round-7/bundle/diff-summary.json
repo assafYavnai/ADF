@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 6,
+  "changed": true,
+  "summary": "Closed the remaining round-6 gaps by completing the zero-round blocked artifact set, preserving repair authorities with unique boxed paths, making evidence-path extraction fail closed for unboxable references, and persisting exact prior-round context for the ad-hoc reviewer prompt.",
+  "implementation_scope": [
+    "shared/component-repair-engine/engine.ts",
+    "shared/review-engine/engine.ts",
+    "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts",
+    "tools/agent-role-builder/src/index.ts"
+  ],
+  "highlights": [
+    "Validation-blocked exits now emit both pushback.json and run-postmortem.json before result/cycle closeout.",
+    "Repair authorities are boxed under relative source paths, preventing basename collisions.",
+    "Prior-round reviewer context now comes from persisted round summary fields instead of count heuristics."
+  ],
+  "generated_at": "2026-03-29T21:05:00.000Z"
+}

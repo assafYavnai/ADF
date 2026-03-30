@@ -1,0 +1,72 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Governance prerequisite handling still fails open, so the board can continue without the component-owned review artifacts the shared contract requires.",
+    "severity": "blocking",
+    "redesign_guidance": "Make governance artifact presence and parseability a startup gate. Validate `review-prompt.json`, `review-contract.json`, and `rulebook.json` before board execution, and change both runtime loaders to throw on missing/malformed governed files instead of substituting defaults.",
+    "finding_count": 3
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "`frozen_with_conditions` is recognized by the board, but the live tool still treats it like a non-frozen failure state at promotion and process-exit time.",
+    "severity": "blocking",
+    "redesign_guidance": "Treat `frozen_with_conditions` as a successful terminal freeze path. Promote artifacts, populate canonical paths in `result.json`, emit the conditions manifest, and return success exit semantics while preserving the deferred-item contract for the invoker.",
+    "finding_count": 3
+  },
+  {
+    "group_id": "reviewer-codex:group-3",
+    "summary": "The learning step still fails open, which breaks the required review -> learning -> rule check -> fix -> re-review workflow.",
+    "severity": "major",
+    "redesign_guidance": "Make learning failures fatal to the round. Propagate missing-context and parse errors from `shared/learning-engine`, write a bug report, and stop before revision so the mandated sequence remains intact.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-4",
+    "summary": "Audit and postmortem outputs still do not match the shared machine contract, so downstream consumers cannot rely on one stable audit schema.",
+    "severity": "major",
+    "redesign_guidance": "Emit one canonical audit object matching `shared/learning-engine/review-contract.json` in `review.json`, `run-postmortem.json`, and `cycle-postmortem.json`. Keep provider/model/latency/fallback fields at the audit root and derive artifact presence from actual writes or stat checks.",
+    "finding_count": 3
+  },
+  {
+    "group_id": "reviewer-codex:group-5",
+    "summary": "Shared review-runtime logic is still mirrored in a live local module, so the board has not actually converged on one canonical shared implementation.",
+    "severity": "major",
+    "redesign_guidance": "Move config loading and review-mode resolution into `shared/review-engine`, then make the tool-local module a thin re-export or delete it. The board should consume one canonical shared review runtime, not a mixed shared/local path.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "review-runtime.ts is still a live mirror of shared/review-engine/config.ts — COD-004 only partially fixed. board.ts imports loadReviewRuntimeConfig, resolveReviewMode, ReviewRuntimeConfig, and ReviewVerdictShape from the local copy, not through loadSharedReviewEngineModule. The local module retains full copies of all config helpers. buildReviewerSummaryText is exported but dead code. Type definitions are independently defined in both modules with no enforced shared source — structural compatibility is accidental.",
+    "severity": "major",
+    "redesign_guidance": "Delete loadReviewRuntimeConfig, resolveReviewMode, formatFocusAreas, formatSourceAuthorities, formatIgnoreAreas, buildReviewerSummaryText, countSeverities, normalizeMode, uniqueStrings, and loadJson from review-runtime.ts. Board.ts should call loadSharedReviewEngineModule() once at executeBoard startup and use the returned loadReviewRuntimeConfig (wrapping the componentRoot arg with the agent-role-builder path), resolveReviewMode, and all other config helpers from the single shared source. Import ReviewRuntimeConfig and ReviewVerdictShape from the shared types module (via the module loader or a direct path). review-runtime.ts should retain only the component-specific DEFAULT_COMPONENT_PROMPT and DEFAULT_COMPONENT_CONTRACT constants if they cannot be encoded in the JSON files.",
+    "finding_count": 3
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "run-postmortem.json audit block is missing four contract-required fields: provider, model, latency_ms, fallback_used. The shared review contract lists all nine fields as required for audit output. review.json correctly tracks these per-participant, but the run-postmortem audit block emits only component, job_id, round, review_mode, and artifact_refs. COD-003 was accepted but the run-postmortem gap was not closed.",
+    "severity": "major",
+    "redesign_guidance": "Extend the run-postmortem audit block to include aggregate last-round provenance: provider and model from the leader participant, total latency_ms for the round (sum across participants), and fallback_used (true if any participant in the last round was a fallback). These values are available from rounds[rounds.length - 1].participants. The per-participant breakdown can remain in round_snapshots; the top-level audit block must satisfy the contract schema independently.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-3",
+    "summary": "When a leader emits frozen_with_conditions while material repair work exists, canRevise is false (frozen_with_conditions is in the exclusion list) and no terminal-state branch fires until finalRound. The board silently iterates through all remaining rounds without revision, re-running reviewers on unrevised content and burning budget. The shared contract's arbitration rule explicitly forbids frozen_with_conditions for blocking or major issues; the board has no detection or escalation path for this leader contract violation.",
+    "severity": "major",
+    "redesign_guidance": "Add an explicit pre-exit contract-violation check: if (roundResult.leaderVerdict === 'frozen_with_conditions' && hasMaterialRepairWork) { log a governance violation; write a bug report; treat the effective verdict as 'pushback' and allow canRevise if rounds remain, or escalate to blocked if on the final round. } This check should run before the canRevise predicate and before the terminal-state branches so the override is visible in the audit trail. Update the diff-summary written in roundDir to record the override reason.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-4",
+    "summary": "frozen_with_conditions does not promote artifacts to the canonical directory. The original reviewer-claude:group-1 redesign guidance explicitly required 'a frozen_with_conditions branch that promotes artifacts but writes deferred items to a conditions manifest.' The implementation writes conditions-manifest.json but performs no mkdir or file copy to canonical paths. buildResult hardcodes all canonical path fields to null for any status that is not 'frozen'.",
+    "severity": "major",
+    "redesign_guidance": "Extend the frozen check to include frozen_with_conditions for canonical promotion: const frozen = status === 'frozen' || status === 'frozen_with_conditions'. Promote markdown, contract, decision log, and board summary to the canonical directory in the frozen_with_conditions branch (mirroring the frozen block at index.ts:231-237). Update buildResult to return populated canonical paths for frozen_with_conditions. The conditions-manifest.json should be written in addition to the canonical files, not instead of them. Canonical paths serve consumers who need to read the output; the conditions manifest signals what still needs resolution.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-5",
+    "summary": "cycle-postmortem.json artifacts.cycle_postmortem is hardcoded true. All other artifact presence flags in the same block use pathExists() for mechanical verification. The hardcoded value violates the evidence-integrity principle (IMP-002) and was a finding in reviewer-claude:group-6 that was marked accepted but not closed.",
+    "severity": "minor",
+    "redesign_guidance": "Move the cycle_postmortem presence check out of writeCyclePostmortem. After the function returns, call pathExists(join(params.runDir, 'cycle-postmortem.json')) and record the result in the postmortem or in a separate wrapper that collects all four artifact flags with the same pathExists pattern. Alternatively, write cycle_postmortem last after all other artifacts and check for its own existence using pathExists before including the flag — or simply remove the self-referential flag and rely on the other three independently verified flags.",
+    "finding_count": 1
+  }
+]

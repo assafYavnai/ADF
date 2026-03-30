@@ -1,0 +1,189 @@
+{
+  "schema_version": "1.0",
+  "component": "system-wide-implementor",
+  "purpose": "Generic rulebook for any LLM implementor in ADF. Component-specific rulebooks extend this with domain rules.",
+  "last_updated": "2026-03-28",
+  "rules": [
+    {
+      "id": "IMP-001",
+      "rule": "Preserve upstream authority. Execute approved specs, contracts, and plans \u2014 do not redesign them during implementation.",
+      "applies_to": [
+        "all implementation work"
+      ],
+      "do": "Read the approved contract/spec before starting. Implement exactly what it says. If something seems wrong, flag it as a finding \u2014 do not silently fix it.",
+      "dont": "Silently reinterpret or improve the spec during implementation. Example: contract says 'write to rounds/round-N/' but implementor writes to 'rounds/round-N.json' because it seems simpler.",
+      "source": "ProjectBrain implementation-guide: 'Execute approved authority, not redesign.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-002",
+      "rule": "Self-check before submitting for review. Walk every rule in the rulebook mechanically \u2014 do not rely on memory or confidence.",
+      "applies_to": [
+        "all implementation work",
+        "pre-review submission"
+      ],
+      "do": "Before submitting: load rulebook, check each rule against the artifact, produce compliance map. The compliance map IS the self-check evidence.",
+      "dont": "Submit without checking. Example: implementor is 'confident' the code is correct because it compiled \u2014 but missed that a guard skips artifact writing on the final round.",
+      "source": "ProjectBrain implementation-guide + review cycle evidence: self-check claims must match actual behavior (ARB-005).",
+      "version": 1
+    },
+    {
+      "id": "IMP-003",
+      "rule": "Every conditional guard must be tested against all terminal states, not just the happy path.",
+      "applies_to": [
+        "control flow",
+        "guard conditions",
+        "if/switch statements"
+      ],
+      "do": "For every `if` guard that controls artifact writing or behavior: list all possible states (frozen, pushback, blocked, resume_required, final round, empty unresolved). Verify the guard allows the artifact to be produced in each applicable state.",
+      "dont": "Gate code with `if (round < maxRounds - 1 && unresolved.length > 0)` when the artifact should be written on every round. Example: learning.json skipped on final round because the revision guard excluded it.",
+      "source": "Step 2f review cycle NF-1: learning engine skipped on final round due to overly restrictive guard.",
+      "version": 1
+    },
+    {
+      "id": "IMP-004",
+      "rule": "When a fix is applied to a module that has copies or re-exports, apply the fix to ALL locations.",
+      "applies_to": [
+        "all code with re-exports",
+        "shared-imports patterns"
+      ],
+      "do": "After fixing a bug, grep for all copies/re-exports of the affected code. Apply the fix to every location. List all locations in the fix items map.",
+      "dont": "Fix the canonical module and forget the copy. Example: Gemini shell injection fixed in shared/llm-invoker/invoker.ts but NOT in tools/agent-role-builder/src/shared-imports.ts \u2014 caught by reviewer in Round 2.",
+      "source": "Step 2f review cycle R2-1 + system rule SYS-001.",
+      "version": 1
+    },
+    {
+      "id": "IMP-005",
+      "rule": "Every schema that is created must be imported and used by code. No orphan schemas.",
+      "applies_to": [
+        "all schema definitions",
+        "all Zod types"
+      ],
+      "do": "After creating a schema file, immediately write the code that imports and uses it. Verify with grep that the schema is imported by at least one consumer.",
+      "dont": "Create a schema and defer wiring it. Example: compliance-map.ts and fix-items-map.ts existed for a full commit cycle without any code importing them.",
+      "source": "Step 2f board review: schemas defined but never wired. CEO directive: 'no shortcuts \u2014 follow through A to Z.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-006",
+      "rule": "After a rewrite, grep for unused parameters, dead imports, and dead functions before submitting.",
+      "applies_to": [
+        "all code rewrites",
+        "refactors"
+      ],
+      "do": "After rewriting a file: run type-check, then grep for the old function/import names to find dead references. Remove them. Check parameter lists against actual usage.",
+      "dont": "Leave dead code after a refactor. Example: execPromise function and execFile import left behind after migrating all CLI calls to spawn+stdin. isSanityCheck parameter passed through but never used.",
+      "source": "Step 2f review cycles R3-2 (dead execPromise) and NF-R2-2 (dead isSanityCheck parameter).",
+      "version": 1
+    },
+    {
+      "id": "IMP-007",
+      "rule": "Never swallow errors silently. Every catch block must log or propagate.",
+      "applies_to": [
+        "all error handling",
+        "try/catch blocks"
+      ],
+      "do": "Every catch block must either: (a) log to stderr with context prefix and error message, or (b) re-throw. Use `console.error('[component] context:', e instanceof Error ? e.message : e)`.",
+      "dont": "Write `catch { }` or `catch { /* ignore */ }`. Example: 7 empty catch blocks in board.ts swallowed compliance map failures, learning engine errors, and parse failures with no trace.",
+      "source": "Step 2f review NF-7: all 7 empty catches found and fixed. ProjectBrain track-4-error-rules: 'no silent failures.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-008",
+      "rule": "Stubs that are not yet implemented must return errors, not success. An unimplemented action must never look like a successful one.",
+      "applies_to": [
+        "all stub/placeholder code",
+        "switch defaults"
+      ],
+      "do": "Throw an Error with a clear message: `throw new Error('Action X not yet implemented for Y.')`. The caller's error handler will surface it.",
+      "dont": "Return a success response from a stub. Example: governance update/transition actions returned `{ content: [{ type: 'text', text: 'not yet implemented' }] }` without `isError: true` \u2014 caller could not distinguish success from stub.",
+      "source": "Step 2f review B-3: governance stubs returning success.",
+      "version": 1
+    },
+    {
+      "id": "IMP-009",
+      "rule": "Never pass user/LLM-provided strings as shell arguments. Pipe via stdin.",
+      "applies_to": [
+        "all CLI invocations",
+        "child_process calls"
+      ],
+      "do": "Use spawn() with arguments array (no shell:true). Pass the prompt via stdin: `proc.stdin.write(prompt); proc.stdin.end()`. This prevents shell injection.",
+      "dont": "Pass prompt as a positional CLI argument with shell:true. Example: `args.push(params.prompt)` with `execFile(cmd, args, {shell:true})` \u2014 backticks or $() in prompt execute arbitrary commands.",
+      "source": "Step 2f review B-1: Gemini shell injection. Codex and Claude correctly piped via stdin; Gemini did not.",
+      "version": 1
+    },
+    {
+      "id": "IMP-010",
+      "rule": "Implementation closeout must be explicit. Update status, record gate results, and write verification evidence.",
+      "applies_to": [
+        "all implementation steps",
+        "phase completion"
+      ],
+      "do": "When a step is done: update the context file status, write the result artifact, commit with descriptive message. The evidence must exist or the step is not done.",
+      "dont": "Declare a step complete without evidence. Example: 'compliance map integration done' when the schema exists but no code imports it.",
+      "source": "ProjectBrain implementation-guide: 'Implementation closeout must be explicit.' + CEO directive on no shortcuts.",
+      "version": 1
+    },
+    {
+      "id": "IMP-011",
+      "rule": "Use file locking for concurrent writes to shared files. Never assume single-writer access.",
+      "applies_to": [
+        "shared files",
+        "logs",
+        "state files"
+      ],
+      "do": "Use a locking mechanism (advisory lock, atomic rename, or database transaction) when multiple processes may write to the same file.",
+      "dont": "Write to shared files without locking. Example: two concurrent tool runs writing to the same action-log.jsonl \u2014 interleaved writes corrupt entries.",
+      "source": "ProjectBrain TBR-001: 'Always use file locking for concurrent file I/O.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-012",
+      "rule": "Git operations must not kill the tool on failure. Git commit failures are non-fatal.",
+      "applies_to": [
+        "all git operations within tools"
+      ],
+      "do": "Wrap git operations in try/catch. Log the failure. Continue execution. The tool's primary output is the artifact, not the commit.",
+      "dont": "Let a git commit failure crash the tool. Example: git hook rejects the commit \u2014 tool exits with error, losing all work.",
+      "source": "ProjectBrain TBR-002: 'Git operations must not kill tool on failure.'",
+      "version": 1
+    },
+    {
+      "id": "IMP-013",
+      "rule": "Postmortem is part of implementation. Lessons must be extracted and routed to the appropriate rulebook.",
+      "applies_to": [
+        "all completed implementations",
+        "review cycles"
+      ],
+      "do": "After implementation is approved: run through postmortem questions (PM-001 through PM-007). Extract rule candidates. Update the component rulebook.",
+      "dont": "Skip the postmortem because the implementation is approved. Example: review cycle finds 3 blocking issues but no rules are extracted \u2014 the same issues recur in the next cycle.",
+      "source": "ProjectBrain implementation-guide: 'Postmortem is part of implementation.' + Three-tier post-mortem architecture.",
+      "version": 1
+    },
+    {
+      "id": "IMP-016",
+      "rule": "Never silently swallow errors in catch blocks for critical operations. If the operation is critical (revision, compliance generation, rule update), the catch must write a bug report and escalate. If the operation is non-critical (telemetry, logging), the catch must log with enough context for post-mortem analysis.",
+      "applies_to": [
+        "all try/catch blocks",
+        "error handling"
+      ],
+      "do": "For critical operations: write bug report, attempt auto-fix, throw BoardBlockedError if fix fails. For non-critical: console.error with [component] prefix, operation name, error message, and relevant context (round number, input size, etc).",
+      "dont": "Catch an error from a critical operation and silently restore the previous state. Example: revision crashes on r.applies_to.join() \u2014 catch restores old markdown, logs one line, continues. Result: draft never changes, 3 rounds of reviews wasted on identical input.",
+      "source": "Run 013: revision crashed every round on applies_to.join() but catch block silently restored old draft. 12.6 minutes and 9 LLM calls wasted reviewing the same unchanged document.",
+      "version": 1
+    },
+    {
+      "id": "IMP-017",
+      "rule": "When consuming LLM-generated JSON, normalize every field to its expected type before use. LLMs return strings where arrays are expected, numbers where strings are expected, etc. Always coerce at the boundary.",
+      "applies_to": [
+        "all JSON parsing from LLM responses",
+        "learning engine output",
+        "reviewer output"
+      ],
+      "do": "At the point where LLM output is consumed: if field should be array and is string, wrap in array. If field should be string and is number, convert. Example: applies_to = Array.isArray(r.applies_to) ? r.applies_to : [r.applies_to]",
+      "dont": "Call array methods (.join, .map, .filter) on LLM-returned fields without checking the type. Example: r.applies_to.join(\", \") crashes when applies_to is a string.",
+      "source": "Run 013: learning engine returned applies_to as string, revision prompt called .join() on it, crashed every round.",
+      "version": 1
+    }
+  ]
+}

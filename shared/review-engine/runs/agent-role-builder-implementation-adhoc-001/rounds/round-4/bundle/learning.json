@@ -1,0 +1,21 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "IMP-016",
+      "explanation": "Reviewer pre-validation is a critical runtime operation. IMP-016 already requires critical failures in parsing/validation/revision paths to write a bug report and escalate, not to be downgraded into normal review findings or fed into learning and repair flows."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "COD-002",
+      "explanation": "This is the same contract-vocabulary failure class COD-002 already covers: allowed values must be single-sourced across contracts, prompts, parsers, types, and runtime branches, and invalid values must fail closed. The finding extends that principle from leader statuses to reviewer verdicts, severities, and fix-decision enums, so it fits existing coverage rather than needing a new rule."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-3",
+      "covered_by_rule_id": "COD-003",
+      "explanation": "COD-003 already requires canonical review data and audit evidence to be preserved end-to-end. Writing round artifacts before the final effective verdict and deferred-item set are resolved violates that rule by persisting stale, non-canonical machine evidence that can disagree with the true runtime outcome."
+    }
+  ],
+  "no_rule_needed": []
+}

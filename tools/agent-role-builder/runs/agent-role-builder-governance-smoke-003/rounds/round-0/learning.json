@@ -1,0 +1,31 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-001",
+      "explanation": "ARB-001 already requires authority to be expressed as one strict ordered operative precedence chain with explicit layers rather than a flat superior list. The reviewer guidance to keep controller/runtime first, order local and shared governance sources explicitly, and move reference documents outside that chain is an application/refinement of that existing rule, not a new principle."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "ARB-011 already requires unresolved findings to be carried forward explicitly by ID across rounds; preferring `finding_id` and using `finding_group_id` only as fallback is a refinement of that existing rule, not a new one. The arbitration part of the same finding is also already covered by the existing mechanical-arbitration requirement in ARB-007 and the ordered round-sequence requirement in ARB-023, so no new rule is needed."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-005",
+      "explanation": "ARB-005 already requires the self-check to validate exactly what it claims to validate and to pass only when the claimed structure is actually present. This finding is a direct instance of that rule: the self-check overstated scope deduplication and should only pass once the markdown really uses the single canonical exclusion model it claims to check."
+    },
+    {
+      "finding_group_id": "group-4",
+      "covered_by_rule_id": "ARB-003",
+      "explanation": "ARB-003 already requires canonical artifacts and run-scoped evidence artifacts to be separated with explicit lifecycle behavior. The undefined decision-log timing for `frozen_with_conditions` is a specific artifact-lifecycle gap within that rule: conditional evidence may be written immediately, while canonical promotion actions must stay clearly gated until acceptance."
+    }
+  ],
+  "no_rule_needed": [
+    {
+      "finding_group_id": "group-5",
+      "reason": "Too specific to generalize. This is a local presentation/clarity choice about whether two sections should intentionally share the same exclusion list or include a note explaining the duplication; it does not establish a broader reusable rule beyond the existing scope and authority rules."
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "verdict": "reject",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Terminal closeout is still not derived from one canonical post-repair evidence object, so the final-round ultimatum path can emit stale machine-facing artifacts and PM-003 is still not single-shaped across writers.",
+      "severity": "major",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "The final-round ultimatum branch mutates `currentMarkdown`, `pendingComplianceMap`, `pendingFixItemsMap`, and `currentSelfCheckIssues`, but it never updates `roundResult`/`rounds` before returning. The terminal `resume_required` path then writes `result.json`, `run-postmortem.json`, cycle metrics, unresolved/open-question summaries, and round artifact refs from the pre-ultimatum round snapshot, while the saved markdown is the post-ultimatum draft. That leaves terminal evidence out of sync with the artifact that was actually repaired.",
+          "source_section": "tools/agent-role-builder/src/services/board.ts:552-650; tools/agent-role-builder/src/index.ts:261-288"
+        },
+        {
+          "id": "f2",
+          "description": "`writeCyclePostmortem()` still adds `telemetry_events_captured` inside PM-003 even though the accepted repair claims a canonical four-field PM-003 across writers. Run-postmortem/zero-round and cycle-postmortem therefore still do not share one exact machine-facing PM-003 shape.",
+          "source_section": "tools/agent-role-builder/src/index.ts:475-480"
+        }
+      ],
+      "redesign_guidance": "After any repair pass, including the final-round ultimatum branch, build one canonical terminal-evidence object that carries the final markdown, compliance map, fix-items map, self-check issues, unresolved/deferred items, and review issue counts. Persist round artifacts, `result.json`, `run-postmortem.json`, and `cycle-postmortem.json` from that object instead of mixing `current*` state with stale `roundResult` snapshots. Also centralize PM-003 generation behind one helper that emits exactly `{ validation_issue_count, self_check_issue_count, review_issue_count, total_issue_count }` on every writer."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "reject_fix",
+      "reason": "The final-round ultimatum repair still updates only the live `current*` variables. Terminal artifacts and summaries continue to read the last reviewed round snapshot, so the machine-facing closeout is still not canonical after a repair pass."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "`runComponentRepair()` now fails closed when revision responses omit `<fix_items_map>` or return an empty parsed fix-items array."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "`writeRunPostmortem()` and `writeZeroRoundRunPostmortem()` now both emit `validation_issue_count`, `self_check_issue_count`, `review_issue_count`, and `total_issue_count`."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "`writeCyclePostmortem()` now includes `review_issue_count` and includes it in `total_issue_count`; the remaining problem is the extra PM-003 field, not the originally missing counter."
+    }
+  ],
+  "residual_risks": [
+    "There is still no dedicated schema or shared builder for postmortem `question_outputs`, so PM-003 drift can recur without a boundary validator catching it.",
+    "The bundle contains no execution evidence for a final-round ultimatum run, so the highest-risk terminal path remains weakly verified."
+  ],
+  "strengths": [
+    "Revision-mode repair now blocks on missing or empty `fix_items_map` at the shared component-repair-engine boundary.",
+    "Reviewer and leader parsing now flows through shared review-engine validators instead of local ad hoc parsing.",
+    "Run-postmortem and zero-round closeout now agree on the core four PM-003 counters."
+  ]
+}

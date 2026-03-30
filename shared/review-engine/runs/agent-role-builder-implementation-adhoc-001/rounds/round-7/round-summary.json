@@ -1,0 +1,65 @@
+{
+  "round": 7,
+  "review_mode": "delta",
+  "review_outcome": "pushback",
+  "unresolved_items": [
+    "reviewer-codex:group-1: Self-check severity is flattened away, so warning-level self-check findings are treated as material failures throughout the board and result pipeline.",
+    "reviewer-codex:group-2: Run-postmortem closeout is still not canonical across exit paths.",
+    "reviewer-codex:group-3: Shared learning and repair outputs still are not validated against their declared schemas before they update machine-facing governed artifacts."
+  ],
+  "improvements_applied": [
+    "Validation-blocked exits now emit the blocked pushback artifact plus a zero-round run-postmortem, and cycle-postmortem PM-003 now counts validation and self-check issues separately.",
+    "The shared component-repair engine now boxes each authority under its relative source path so duplicate basenames cannot overwrite one another inside the repair bundle.",
+    "Referenced evidence paths are now normalized and must be boxable under shared/, tools/, or docs/; otherwise bundle construction throws instead of silently dropping the path.",
+    "The pre-board validation-block path now writes the pushback artifact that result.json advertises, so pushback_path is no longer a dangling machine-facing reference.",
+    "Ad-hoc round summaries now persist review_outcome, unresolved_items, and improvements_applied, and prior-round prompt context loads those stored values instead of fabricating them from severity counts."
+  ],
+  "reviewers": [
+    {
+      "reviewer_id": "reviewer-codex",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "latency_ms": 352010,
+      "was_fallback": false,
+      "verdict": "reject",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 3,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-7/reviewer-codex.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-7/reviewer-codex.parsed.json"
+    },
+    {
+      "reviewer_id": "reviewer-claude",
+      "provider": "claude",
+      "model": "sonnet",
+      "latency_ms": 260996,
+      "was_fallback": false,
+      "verdict": "conditional",
+      "severity_counts": {
+        "blocking": 0,
+        "major": 0,
+        "minor": 1,
+        "suggestion": 1
+      },
+      "raw_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-7/reviewer-claude.raw.txt",
+      "parsed_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-7/reviewer-claude.parsed.json"
+    }
+  ],
+  "merged_findings_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-7/merged-findings.json",
+  "learning_path": "C:/ADF/shared/review-engine/runs/agent-role-builder-implementation-adhoc-001/rounds/round-7/learning.json",
+  "totals": {
+    "blocking": 0,
+    "major": 3,
+    "minor": 1,
+    "suggestion": 1
+  },
+  "learning": {
+    "new_rules": 1,
+    "existing_rules_covering": 4,
+    "no_rule_needed": 0,
+    "latency_ms": 60846
+  }
+}

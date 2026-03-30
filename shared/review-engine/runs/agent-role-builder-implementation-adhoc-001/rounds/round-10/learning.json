@@ -1,0 +1,53 @@
+{
+  "new_rules": [
+    {
+      "id": "COD-011",
+      "rule": "Fallback loaders for shared runtime modules must choose candidates by successful loadability in the current runtime, not by file existence alone, and must continue to the next candidate when a preferred format is unsupported.",
+      "applies_to": [
+        "shared-module loaders",
+        "dynamic import bridges between source and dist",
+        "runtime bootstrap for shared governed modules"
+      ],
+      "do": "In a loader that prefers source `engine.ts` but can fall back to built `engine.js`, wrap the import itself in try/catch; if importing the `.ts` file fails with an unsupported-format/runtime-loader error, continue to `shared/dist/.../engine.js` and only throw after all candidates are exhausted or a selected candidate loads and then fails internally.",
+      "dont": "Check `access('shared/review-engine/engine.ts')` and immediately `import()` it because the file exists, then abort on an unsupported `.ts` import error without ever trying `shared/dist/review-engine/engine.js`.",
+      "source": "Round 10: source/dist shared-module fallback stopped at an unsupported source candidate instead of reaching the canonical runtime module.",
+      "version": 1
+    },
+    {
+      "id": "COD-012",
+      "rule": "Canonical machine-facing artifacts must be rewritten from the current state on every update path, even when the new collection is empty, so stale prior artifacts cannot persist as false current truth.",
+      "applies_to": [
+        "round artifact writers",
+        "machine-facing JSON evidence files",
+        "compliance/fix-item/post-repair artifact persistence"
+      ],
+      "do": "When rewriting `fix-items-map.json`, always write the current schema object after repair, including `items: []` when nothing remains, so downstream readers can distinguish 'resolved to empty' from 'file missing' or stale prior contents.",
+      "dont": "Skip writing the artifact when the new items array is empty, leaving yesterday's non-empty `fix-items-map.json` on disk and causing later consumers to treat old findings as still active.",
+      "source": "Round 10: zero-item ultimatum output left a stale canonical fix-items artifact on disk.",
+      "version": 1
+    }
+  ],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-005",
+      "explanation": "This is already the cross-field invariant rule: leader status must be legal for the actual unresolved severity set before it drives workflow state. Treating raw `pushback` as proof of material work instead of validating against blocking/major items is exactly the illegal status/output combination COD-005 is meant to catch and override."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "covered_by_rule_id": "IMP-009",
+      "explanation": "The generalized failure is already captured: prompt text was transported through shell command-line construction instead of a safe non-shell stdin/file boundary. The fact that it lives in a mirrored Codex invoker is an instance of the same shell-argument rule violation, even if the mirror drift also has a secondary copy-maintenance aspect."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "The terminal `resume_required` reason and deferred-work count should be computed from the canonical post-ultimatum result on that exit path. Reporting a pre-ultimatum material count in the final status reason is a terminal-summary derivation mismatch, which COD-009 already forbids."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "This is directly the single-canonical-implementation rule. Keeping a second `review_issue_count` computation in another module, even if logically aligned today, preserves duplicate live workflow logic and reintroduces drift risk that COD-004 was written to eliminate."
+    }
+  ],
+  "no_rule_needed": []
+}

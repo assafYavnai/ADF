@@ -1,0 +1,189 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-017",
+  "questions_ref": "shared/learning-engine/postmortem-questions.json",
+  "updated_at": "2026-03-30T11:27:35.741Z",
+  "terminal_status": "blocked",
+  "rounds_completed": 2,
+  "round_snapshots": [
+    {
+      "round": 0,
+      "review_mode": "full",
+      "reviewer_invocations": 2,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 0,
+      "participant_count": 3,
+      "leader_verdict": "pushback",
+      "unresolved_count": 3,
+      "unresolved_items": [
+        "group-1: Authority layering is internally contradictory: a doc marked non-operative is also used as a source of binding runtime obligations.",
+        "group-2: Artifact lifecycle semantics collapse job-scoped and run-scoped evidence, especially for the cycle post-mortem.",
+        "group-3: Outcome mechanics are not fully mechanical: terminal-state selection and arbitration persistence are still partly ambiguous."
+      ],
+      "improvements_applied_count": 5,
+      "reviewer_verdict_breakdown": {
+        "approved": 0,
+        "conditional": 1,
+        "reject": 1,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 2,
+        "major": 2,
+        "minor": 1,
+        "suggestion": 0
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 625575,
+        "max": 258465,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r0",
+            "latency_ms": 205261,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "reviewer-1-claude-r0",
+            "latency_ms": 258465,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r0",
+            "latency_ms": 161849,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": false
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/compliance-map.json",
+        "fix_items_map": null,
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-0/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/self-check.json"
+      }
+    },
+    {
+      "round": 1,
+      "review_mode": "delta",
+      "reviewer_invocations": 1,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 1,
+      "participant_count": 2,
+      "leader_verdict": "pushback",
+      "unresolved_count": 3,
+      "unresolved_items": [
+        "group-1: Cycle post-mortem scope and terminal closeout rules are still semantically inconsistent with the source authority.",
+        "group-2: The self-check and fix-acceptance narrative overclaim closure, so the review evidence is not fully trustworthy yet.",
+        "group-2-r0: Separated job-scoped from run-scoped evidence for cycle-postmortem throughout the artifact. (1) <outputs> cycle-postmortem row now carries a 'Job-scoped.' label with lifecycle: 'Write once when the job (all attempts) reaches its terminal state. If the job is resumed and reaches a new terminal state, replace with the final job-spanning summary. Per-attempt history is preserved in run-postmortem.json.' (2) run-postmortem row now annotates 'Scope: single-attempt KPI snapshot.' (3) Step 5 promotion rules add an explicit paragraph defining when cycle-postmortem.json is written at job-level terminal closeout and what happens on resume. Prior lifecycle wording 'when the run reaches terminal closeout' has been removed."
+      ],
+      "improvements_applied_count": 4,
+      "reviewer_verdict_breakdown": {
+        "approved": 0,
+        "conditional": 0,
+        "reject": 1,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 2,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 633692,
+        "max": 509638,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r1",
+            "latency_ms": 509638,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r1",
+            "latency_ms": 124054,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": true
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/compliance-map.json",
+        "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/fix-items-map.json",
+        "learning_json": null,
+        "diff_summary": null,
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/self-check.json"
+      }
+    }
+  ],
+  "kpi_summary": {
+    "unresolved_trend": [
+      3,
+      3
+    ],
+    "convergence_delta": 0,
+    "total_fallbacks": 0,
+    "total_participant_invocations": 5,
+    "skipped_reviewer_invocations": 1
+  },
+  "question_outputs": {
+    "PM-002": {
+      "rounds": 2,
+      "participant_invocations": 5,
+      "total_latency_ms": 1259267,
+      "reviewer_reuse_savings": 1
+    },
+    "PM-003": {
+      "validation_issue_count": 0,
+      "self_check_issue_count": 0,
+      "review_issue_count": 7,
+      "total_issue_count": 7
+    },
+    "PM-007": {
+      "unresolved_trend": [
+        3,
+        3
+      ],
+      "latest_unresolved_count": 3,
+      "convergence_observed": true
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-017",
+    "round": 1,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 633692,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/fix-items-map.json",
+      "learning_json": null,
+      "diff_summary": null,
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/self-check.json"
+    }
+  },
+  "governance_binding": {
+    "snapshot_id": "45e2d43f-919a-4ba2-b73e-8e4120799be7",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/governance-snapshot.json"
+  }
+}

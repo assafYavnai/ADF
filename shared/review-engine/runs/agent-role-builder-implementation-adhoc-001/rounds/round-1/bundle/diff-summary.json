@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "component": "shared-review-engine-code-review",
+  "round": 0,
+  "changed": true,
+  "summary": "Applied the round-0 ad-hoc review findings across the shared review, learning, and component-repair runtimes plus agent-role-builder. The main changes aligned terminal statuses, centralized shared workflow helpers, strengthened validation and audit evidence, added KPI/audit fields, and switched role generation to the shared component-repair-engine.",
+  "implementation_scope": [
+    "shared/review-engine/",
+    "shared/component-repair-engine/",
+    "shared/learning-engine/",
+    "tools/agent-role-builder/"
+  ],
+  "changed_files": [
+    "shared/component-repair-engine/engine.ts",
+    "shared/component-repair-engine/types.ts",
+    "shared/learning-engine/fix-items-map.ts",
+    "shared/learning-engine/implementor-rulebook.json",
+    "shared/learning-engine/review-contract.json",
+    "shared/review-engine/config.ts",
+    "shared/review-engine/engine.ts",
+    "shared/review-engine/types.ts",
+    "shared/review-engine/code-review/review-contract.json",
+    "shared/review-engine/code-review/review-prompt.json",
+    "shared/tsconfig.json",
+    "tools/agent-role-builder/scripts/run-adhoc-code-review-round.ts",
+    "tools/agent-role-builder/src/index.ts",
+    "tools/agent-role-builder/src/schemas/result.ts",
+    "tools/agent-role-builder/src/services/board.ts",
+    "tools/agent-role-builder/src/services/review-runtime.ts",
+    "tools/agent-role-builder/src/services/role-generator.ts",
+    "tools/agent-role-builder/src/services/shared-module-loader.ts",
+    "tools/agent-role-builder/src/services/validator.ts"
+  ],
+  "diff_stat": {
+    "tracked_files_changed": 15,
+    "insertions": 522,
+    "deletions": 394,
+    "new_files": 4
+  },
+  "highlights": [
+    "Added frozen_with_conditions to the shared contract and all live status unions.",
+    "Added explicit board handling for resume_required and frozen_with_conditions.",
+    "Added material-only freeze gating and final-round ultimatum handling.",
+    "Routed board prompt construction through the shared review engine.",
+    "Routed repair execution through shared/component-repair-engine.",
+    "Added artifact_refs, fallback provenance, and arbitration tracking to audit outputs.",
+    "Added fail-closed governance validation and required review config loading.",
+    "Added shared code-review contract/prompt and the ad-hoc review round runner."
+  ],
+  "generated_at": "2026-03-29T11:10:00.000Z"
+}

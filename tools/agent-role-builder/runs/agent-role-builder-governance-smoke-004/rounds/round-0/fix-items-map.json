@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 0,
+  "items": [
+    {
+      "finding_id": "group-1-blocked-pushback-overlap",
+      "finding_group_id": "group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Made 'blocked' and 'pushback' mutually exclusive by restricting 'blocked' to mechanical or structural failures only, and requiring that 'pushback' can only be reached after structural validation succeeds. Added explicit polarity statements to each predicate in Step 5 and updated the 'pushback' completion criterion in <completion> to match.",
+      "evidence_location": "<steps> Step 5 predicates 1 and 2; <completion> pushback criterion"
+    },
+    {
+      "finding_id": "group-2-mixed-tracking-granularity",
+      "finding_group_id": "group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Unified all cross-round tracking language to 'conceptual-group ID' as the canonical identity. Changed Step 4 item 2 from 'unresolved findings' to 'unresolved conceptual groups'; changed Step 4 item 6 from 'unresolved findings' to 'unresolved conceptual groups'; changed the guardrails fix-items-map trigger from 'carried-forward finding' to 'carried-forward unresolved conceptual group'; changed the outputs table fix-items row from 'carried-forward findings' to 'unresolved conceptual groups'; changed the completion closing sentence from 'carried-forward finding ID' to 'carried-forward conceptual-group ID'.",
+      "evidence_location": "<steps> Step 4 items 2 and 6; <guardrails> last bullet; <outputs> fix-items row; <completion> closing sentence"
+    },
+    {
+      "finding_id": "group-3-unsourced-review-mode-vocabulary",
+      "finding_group_id": "group-3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Replaced 'a full sweep again on the final clean round' with 'a regression_sanity sweep on the final clean round' in Step 4 item 1. This aligns the compliance-sweep rule with the review-contract.json's declared review_modes vocabulary (full, delta, regression_sanity) and removes the duplicated, conflicting form that implied the final round uses a plain full sweep rather than the regression_sanity mode declared in the active contract.",
+      "evidence_location": "<steps> Step 4 item 1"
+    }
+  ],
+  "generated_at": "2026-03-30T08:34:43.099Z"
+}

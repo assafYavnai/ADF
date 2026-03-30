@@ -1,0 +1,19 @@
+{
+  "what_failed": "Revision or learning engine during board loop",
+  "error_message": "Learning engine response failed schema validation: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"string\",\n    \"path\": [\n      \"new_rules\",\n      0,\n      \"applies_to\"\n    ],\n    \"message\": \"Expected array, received string\"\n  }\n]",
+  "where": "Round 0, revision/learning block",
+  "context": {
+    "round": 0,
+    "maxRounds": 1,
+    "markdown_length": 17879,
+    "repair_item_count": 4
+  },
+  "input_that_caused_failure": "(revision round 0, unresolved: group-1: Terminal-state contract is not mechanically exclusive and the budget-exhaustion path is underspecified.; group-2: Review mechanics do not hard-gate the required reviewer pair and carry-forward tracking is too coarse for the source negotiation model.; group-3: The draft blurs generic inherited workflow with this smoke run's executable behavior, which also makes the supplied compliance claims not credible.)",
+  "expected_format": "Successful revision producing updated markdown, compliance map, fix items map",
+  "component": "tools/agent-role-builder/board/revision-block",
+  "provenance": {
+    "provider": "codex",
+    "model": "gpt-5.4"
+  },
+  "timestamp": "2026-03-30T00:14:28.474Z"
+}

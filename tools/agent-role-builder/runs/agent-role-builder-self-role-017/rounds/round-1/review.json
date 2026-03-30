@@ -1,0 +1,157 @@
+{
+  "round": 1,
+  "reviewMode": "delta",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Accepted delta work improved the authority model, arbitration mechanics, and fail-closed terminal-state mapping, but the package is still not freezable. `cycle-postmortem.json` remains semantically mis-modeled against the source authority: the governing docs define it as job-specific and triggered when the job reaches `frozen`, `blocked`, or `resume_required`, while the artifact still places it under a run-scoped terminal evidence section and requires it for `pushback` completion. Because the self-check and fix-acceptance narrative marked that separation as resolved, the evidence package still overclaims compliance and is not yet trustworthy enough for freeze.",
+  "unresolved": [
+    "group-1: Cycle post-mortem scope and terminal closeout rules are still semantically inconsistent with the source authority.",
+    "group-2: The self-check and fix-acceptance narrative overclaim closure, so the review evidence is not fully trustworthy yet.",
+    "group-2-r0: Separated job-scoped from run-scoped evidence for cycle-postmortem throughout the artifact. (1) <outputs> cycle-postmortem row now carries a 'Job-scoped.' label with lifecycle: 'Write once when the job (all attempts) reaches its terminal state. If the job is resumed and reaches a new terminal state, replace with the final job-spanning summary. Per-attempt history is preserved in run-postmortem.json.' (2) run-postmortem row now annotates 'Scope: single-attempt KPI snapshot.' (3) Step 5 promotion rules add an explicit paragraph defining when cycle-postmortem.json is written at job-level terminal closeout and what happens on resume. Prior lifecycle wording 'when the run reaches terminal closeout' has been removed."
+  ],
+  "deferredItems": [],
+  "improvementsApplied": [
+    "Separated operative authority from reference evidence and replaced hardcoded run-specific reference paths with `<job-id>` templates.",
+    "Replaced the locally invented arbitration threshold with a carried-forward conceptual-group trigger and kept arbitration limited to `minor` and `suggestion` disputes.",
+    "Added explicit fail-closed terminal-state mapping for caller-resolvable gaps, unrecoverable errors, and budget exhaustion.",
+    "Clarified the intended job-level nature of `cycle-postmortem.json` and its relationship to per-attempt `run-postmortem.json`, although the lifecycle is still not fully reconciled."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r1": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Cycle post-mortem scope and terminal closeout rules are still semantically inconsistent with the source authority.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The artifact still gives cycle-postmortem.json two competing scope definitions: it sits inside the section titled 'Run-scoped terminal evidence' while its own row labels it 'Job-scoped.' That leaves the lifecycle model non-canonical for a single artifact.",
+              "source_section": "<outputs> / Run-scoped terminal evidence / Cycle post-mortem"
+            },
+            {
+              "id": "f2",
+              "description": "The pushback completion rule still requires cycle-postmortem.json, but the source authority defines the Tier 2 cycle post-mortem trigger only for frozen, blocked, and resume_required terminal outcomes. This widens terminal behavior beyond the cited authority.",
+              "source_section": "<completion> / pushback; review-process-architecture.md / Tier 2: Cycle Post-Mortem"
+            }
+          ],
+          "redesign_guidance": "Give cycle-postmortem.json one canonical classification as job-scoped evidence, remove it from run-scoped headings, and align every trigger/completion reference to the source-authority terminal set unless an operative contract explicitly broadens that trigger."
+        },
+        {
+          "id": "group-2",
+          "summary": "The self-check and fix-acceptance narrative overclaim closure, so the review evidence is not fully trustworthy yet.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "The review request says 'Self-check: passed' and '24 rules checked' but does not show any explicit ARB-012 evaluation, even though reviewer-pair validation is a required focus area for this review.",
+              "source_section": "Review request / Self-check and compliance map summary"
+            },
+            {
+              "id": "f4",
+              "description": "The accepted fix note for group-2-r0 says job-scoped and run-scoped evidence were separated 'throughout the artifact,' but the delivered artifact still keeps cycle-postmortem.json inside a run-scoped section. The acceptance note therefore overstates what was actually fixed.",
+              "source_section": "Review request / Fix items map from implementer: group-2-r0; <outputs> / Run-scoped terminal evidence"
+            }
+          ],
+          "redesign_guidance": "Do not mark the round as fully passed until every required ARB rule has an explicit check result, and keep fix-acceptance notes exact to the delivered text. If a remediation is partial, record it as partial instead of complete."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_id": "group-1-r0",
+          "finding_group_id": "group-1-r0",
+          "decision": "accept_fix",
+          "reason": "The authority model issue was resolved: reference docs are now explicitly non-operative and the run-specific hardcoded path was replaced with the <job-id> template."
+        },
+        {
+          "finding_id": "group-2-r0",
+          "finding_group_id": "group-2-r0",
+          "decision": "reject_fix",
+          "reason": "The lifecycle wording improved, but the artifact still places cycle-postmortem.json under a run-scoped section and still requires it for pushback completion, so the separation is incomplete."
+        },
+        {
+          "finding_id": "group-3-r0",
+          "finding_group_id": "group-3-r0",
+          "decision": "accept_fix",
+          "reason": "Arbitration is now keyed to carried-forward conceptual-group IDs and the fail-closed terminal-state mapping is explicit, removing the earlier locally invented threshold ambiguity."
+        }
+      ],
+      "residual_risks": [
+        "Reviewer-roster legality is intentionally inherited rather than restated, so final freeze still depends on the active review contract explicitly enforcing the Codex-plus-Claude pair gate during request validation.",
+        "Budget-exhaustion ultimatum behavior is mostly inherited by reference, so later revisions should keep verifying that the operative contracts still define the one-fix-per-reviewer closeout path."
+      ],
+      "strengths": [
+        "Operative authority and reference evidence are now cleanly separated.",
+        "Material pushback has one canonical definition and is reused consistently.",
+        "Context-gathering is correctly framed as a precondition rather than a numbered execution step.",
+        "Arbitration is mechanically limited to minor or suggestion disagreements and tied to carried-forward conceptual-group IDs.",
+        "Decision-history preservation is explicit and append-only for update and fix work."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-017",
+    "round": 1,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 633692,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/fix-items-map.json",
+      "learning_json": null,
+      "diff_summary": null,
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/rounds/round-1/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 509638,
+        "fallback_used": false,
+        "invocation_id": "8a5248ed-1ef6-414b-9870-abcdb31dd5f7"
+      },
+      {
+        "participant_id": "leader-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 124054,
+        "fallback_used": false,
+        "invocation_id": "41912d88-ee08-4a56-8765-a60dd100c6a4"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 1,
+      "latency_ms": 509638,
+      "invocation_id": "8a5248ed-1ef6-414b-9870-abcdb31dd5f7",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 1,
+      "latency_ms": 124054,
+      "invocation_id": "41912d88-ee08-4a56-8765-a60dd100c6a4",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "45e2d43f-919a-4ba2-b73e-8e4120799be7",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-017/governance-snapshot.json"
+  }
+}

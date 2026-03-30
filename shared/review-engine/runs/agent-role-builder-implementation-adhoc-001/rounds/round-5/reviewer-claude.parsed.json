@@ -1,0 +1,89 @@
+{
+  "verdict": "conditional",
+  "conceptual_groups": [
+    {
+      "id": "group-1",
+      "summary": "Stale comment at parseReviewerResponse pre-validation contradicts actual throwing behavior, creating misleading inline documentation that signals a softer degraded path that no longer exists.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f1",
+          "description": "board.ts lines 1051-1052 comment reads 'Pre-validation failures are not auto-fixable — return parse-error verdict (the board loop will detect parse-error and mark reviewer as error)' but the code immediately throws BoardBlockedError (line 1054), which blocks the entire board rather than allowing the loop to mark the reviewer as 'error' and continue. The comment is a stale artefact from before the throw was added.",
+          "source_section": "board.ts:parseReviewerResponse:1051-1057"
+        }
+      ],
+      "redesign_guidance": "Remove or rewrite the stale comment to accurately describe the current fail-closed behavior: pre-validation failures are unrecoverable and immediately block the board via BoardBlockedError. Remove the (now incorrect) 'return parse-error verdict' framing and the '(the board loop will detect parse-error and mark reviewer as error)' clause entirely."
+    },
+    {
+      "id": "group-2",
+      "summary": "reviewMode: null is passed to buildAuditEnvelope at two call sites (cycle-postmortem in index.ts and run-postmortem in board.ts), but the shared audit contract lists review_mode as a required audit field. Since audit-utils.ts is absent from this bundle, compliance cannot be confirmed.",
+      "severity": "minor",
+      "findings": [
+        {
+          "id": "f2",
+          "description": "index.ts line 342 passes reviewMode: null to buildAuditEnvelope for the cycle-postmortem audit block. board.ts lines 789-793 also pass reviewMode: latestRound?.reviewMode ?? null, which resolves to null when no rounds have completed (e.g., blocked before first round). The shared review-contract.json audit_requirements.required_fields includes 'review_mode'. If buildAuditEnvelope serialises null as review_mode: null in the envelope, both cycle-postmortem.json and run-postmortem.json will emit a required field whose value is null rather than a valid mode string, potentially failing contract compliance.",
+          "source_section": "index.ts:writeCyclePostmortem:342; board.ts:writeRunPostmortem:789-793; shared/learning-engine/review-contract.json:audit_requirements.required_fields"
+        },
+        {
+          "id": "f3",
+          "description": "audit-utils.ts is imported by both board.ts (line 6) and index.ts (line 10) and cited as compliant in the prior round-4 compliance map (IMP-004), but the file is absent from this bundle's source-manifest.json. The delta review cannot verify the buildAuditEnvelope signature or how it handles null reviewMode, meaning the reviewMode: null compliance gap identified in f2 cannot be closed in this review round.",
+          "source_section": "source-manifest.json; board.ts:6; index.ts:10; prior compliance-map IMP-004"
+        }
+      ],
+      "redesign_guidance": "Either (a) add audit-utils.ts to the bundle so reviewMode: null handling can be verified, or (b) ensure buildAuditEnvelope substitutes a sentinel value (e.g., 'none' or omits the field when null) that satisfies the contract's required_fields contract for run-level artifacts generated before or outside a review round. Document the null contract explicitly so future delta reviewers can verify it."
+    },
+    {
+      "id": "group-3",
+      "summary": "uniqueStrings is implemented twice with divergent deduplication semantics: board.ts uses a simple trimmed-Set (case-sensitive), index.ts uses a case-insensitive lowercased key with original-case preservation. Both are private local copies.",
+      "severity": "suggestion",
+      "findings": [
+        {
+          "id": "f4",
+          "description": "board.ts uniqueStrings (line 1397-1399) deduplicates via new Set on trimmed strings — case-sensitive. index.ts uniqueStrings (lines 536-547) deduplicates via a lowercased key map — case-insensitive, preserving original casing. These are not shared governed workflow logic (COD-004 does not apply), but the divergent semantics mean identical unresolved-items lists might deduplicate differently depending on which path generates them.",
+          "source_section": "board.ts:1397-1399; index.ts:536-547"
+        }
+      ],
+      "redesign_guidance": "If consistent deduplication semantics are required across callers, extract uniqueStrings into audit-utils.ts or a shared utility and import it from both. If the divergence is intentional (different use-cases), add a brief comment explaining the semantic difference at each definition."
+    }
+  ],
+  "fix_decisions": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "decision": "accept_fix",
+      "reason": "engine.ts parseReviewerOutput and parseLeaderOutput now both require a loaded ReviewRuntimeConfig via requireRuntimeConfig(options.config) and enforce vocabulary, required sections, field shapes, and arbitration invariants from the governed contract before any workflow branch. The fix is complete and correctly applied."
+    },
+    {
+      "finding_group_id": "reviewer-codex:group-2",
+      "decision": "accept_fix",
+      "reason": "buildCanonicalUnresolvedItems in board.ts lines 1314-1340 derives the canonical unresolved set from materialRepairChecklist (for pushback/blocked/resume_required) or deferredItems (for frozen_with_conditions), not from the raw leader-provided unresolved array. review.json is written after this canonicalization at lines 382-387. The fix is complete and correctly eliminates post-override evidence drift."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "decision": "accept_fix",
+      "reason": "The outer try/catch at board.ts lines 245/651-664 wraps the entire for-loop and converts any BoardBlockedError into the typed { status: 'blocked', rounds, allParticipants, statusReason, finalMarkdown, finalSelfCheckIssues } return shape. writeRunPostmortem is called before returning, enabling cycle-postmortem.json to be written by the caller. The fix fully closes the prior escape path."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "decision": "accept_fix",
+      "reason": "board.ts line 6 and index.ts line 10 both import buildAuditEnvelope and pathExists from ./audit-utils.js. The prior duplicate implementations are gone. IMP-004 is closed per the round-4 compliance map. audit-utils.ts is absent from this bundle but its existence is evidenced by the live imports."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-3",
+      "decision": "accept_fix",
+      "reason": "attemptAutoFix now has a contextLabel: 'leader' | 'reviewer' parameter (board.ts line 46). The prompt body at line 56 uses '${contextLabel} LLM'. Call sites pass 'reviewer' (line 1080) and 'leader' (line 1145) respectively. The stale 'leader LLM' string is gone and context provenance is correct."
+    }
+  ],
+  "residual_risks": [
+    "audit-utils.ts is not included in this bundle; reviewMode: null behavior in buildAuditEnvelope is unverifiable. If it emits null for review_mode, cycle-postmortem.json and run-postmortem.json will carry a non-compliant audit block for runs that terminate before completing a review round.",
+    "When BoardBlockedError is thrown during executeRound (e.g., reviewer pre-validation failure or leader parse failure after auto-fix), review.json is not written for the failed round. The round's reviewer verdicts (if any completed before the failure) are also not persisted since roundResult is never pushed to rounds. This is acceptable under fail-closed semantics but means the blocked-round evidence is always absent.",
+    "shared-module-loader.ts imports shared modules via dynamic pathToFileURL with no exported-symbol verification; if shared engine module exports change, runtime failures will surface as TypeErrors rather than startup errors."
+  ],
+  "strengths": [
+    "All five prior major and minor findings (reviewer-codex:group-1/2, reviewer-claude:group-1/2/3) are correctly and completely addressed in this delta.",
+    "The outer try/catch for BoardBlockedError is correctly scoped to the entire for-loop, covering throws from parseReviewerResponse, parseLeaderResponse, executeRound, and the revision/learning block uniformly.",
+    "buildCanonicalUnresolvedItems cleanly handles all five terminal-state paths and falls back to leaderUnresolved only when materialRepairChecklist is empty — preventing phantom unresolved inflation.",
+    "The contextLabel parameter in attemptAutoFix eliminates the misleading 'leader LLM' provenance for reviewer parse failures and preserves accurate audit context for the auto-fixer.",
+    "The contract-driven validation in engine.ts correctly applies both reviewer and leader governed constraints (required sections, allowed vocabularies, arbitration invariants, fix-decision identity fields) from a single loaded config rather than local defaults, satisfying COD-006.",
+    "File locking via withFileLock on rulebook.json writes is correctly preserved in this delta, maintaining IMP-011 compliance for concurrent board runs."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "reviewer-codex:group-1",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "COD-009 already requires terminal artifacts, postmortems, and KPI summaries to be derived from one canonical result and evidence model on every exit path. The observed defect is a direct violation of that rule: the ultimatum path mixes stale round snapshots with current repair state, so final markdown, PM-003, and other machine-facing artifacts are not all emitted from one final evidence object."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-1",
+      "covered_by_rule_id": "COD-009",
+      "explanation": "COD-009 already covers both issues here. Self-check counts for run-postmortem and cycle-postmortem must come from the same canonical terminal evidence source, and the canonical round artifacts must be updated to the final repaired state before exit. Reading counts from different sources and failing to persist the post-ultimatum compliance/fix-items maps are both failures to derive closeout artifacts from one canonical evidence model."
+    },
+    {
+      "finding_group_id": "reviewer-claude:group-2",
+      "covered_by_rule_id": "COD-004",
+      "explanation": "COD-004 already requires one canonical implementation for shared governed workflow logic. The duplicate review-issue counting logic in index.ts and board.ts is exactly the kind of mirrored logic this rule is meant to prevent, because drift between the two implementations can produce inconsistent machine-facing counts for the same run."
+    }
+  ],
+  "no_rule_needed": []
+}

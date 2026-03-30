@@ -1,0 +1,44 @@
+[
+  {
+    "group_id": "reviewer-codex:group-1",
+    "summary": "Terminal-state validation is still asymmetric: `frozen` and `frozen_with_conditions` are checked against remaining material work, but `pushback` is itself treated as proof of materiality, so minor-only end states can be escalated into `resume_required`.",
+    "severity": "major",
+    "redesign_guidance": "Derive materiality only from blocking/major checklist items, not from the raw leader status. Add the same legality check for `pushback` and `resume_required` that already exists for `frozen` variants, emit a bug report when the leader status contradicts the actual severity set, and route minor-only final states to the contract-safe conditional/arbitrated path instead of `resume_required`.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-2",
+    "summary": "The mirrored Codex invoker still routes prompt text through `bash` command-line transport, which violates the shared implementor rulebook and makes live Windows execution depend on an unvalidated shell path.",
+    "severity": "major",
+    "redesign_guidance": "Remove shell-argument prompt transport from the Codex mirror. Use a non-shell child-process path that keeps prompt text off argv, or fail closed with an explicit environment prerequisite if the Codex CLI cannot consume stdin/file input safely on Windows.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-codex:group-3",
+    "summary": "The shared-module loader is not a true source/dist fallback, so live JS consumers can fail before reaching the intended canonical shared runtime.",
+    "severity": "major",
+    "redesign_guidance": "Choose the source or dist candidate based on actual import capability, not existence alone. If the source `.ts` candidate is unsupported in the current runtime, continue to the dist candidate; only rethrow when the selected implementation itself loads and then fails.",
+    "finding_count": 2
+  },
+  {
+    "group_id": "reviewer-claude:group-1",
+    "summary": "Fix-items-map not cleared when ultimatum revision produces zero items: pre-ultimatum file persists on disk as stale canonical artifact.",
+    "severity": "minor",
+    "redesign_guidance": "After the ultimatum revision completes, unconditionally rewrite the canonical round fix-items-map.json with the post-ultimatum state (even if the items array is empty). An explicit empty-items stub ensures downstream readers can distinguish 'all items resolved' from 'file missing'. This is the same pattern already applied to compliance-map.json at line 596, which rewrites unconditionally.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-2",
+    "summary": "Budget-exhaustion resume_required status reason reports pre-ultimatum material item count, overstating deferred work.",
+    "severity": "minor",
+    "redesign_guidance": "After the ultimatum revision runs, re-derive the post-ultimatum material item count (e.g. from the updated roundResult.selfCheckIssues and pendingFixItemsMap) and use that count in the status reason. At minimum, label the number as a pre-ultimatum estimate so the terminal summary is not misleading.",
+    "finding_count": 1
+  },
+  {
+    "group_id": "reviewer-claude:group-3",
+    "summary": "Duplicate review_issue_count implementations remain despite logic alignment: COD-004 structural risk is not fully closed.",
+    "severity": "suggestion",
+    "redesign_guidance": "Export the board-computed review_issue_count (already available in writeRunPostmortem as totalReviewIssueCount) as a field on the BoardResult return value so index.ts can consume the pre-computed count directly. This eliminates countBoardReviewIssues and makes both postmortem documents read from the same single source, fully satisfying the COD-004 single-implementation requirement.",
+    "finding_count": 1
+  }
+]
