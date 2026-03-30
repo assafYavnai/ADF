@@ -1,520 +1,199 @@
 {
+  // Draft blueprint only.
+  // The future function-builder should turn this into a richer execution map.
   "Name": "feature",
-  "SchemaVersion": "0.4-draft",
+  "SchemaVersion": "0.5-draft",
   "RequirementsFile": "finalized-requirement-list",
 
-  "Governance": {
-    "RoleFormat": "markdown-with-tags",
-    "RulesFormat": "json",
-    "ContractFormat": "json",
-    "Approval": {
-      "RequirementScopeFreeze": "ceo-explicit",
-      "UiFreeze": "ceo-explicit-if-ui",
-      "DoneAfter": "lifecycle-postmortem"
-    },
-    "EscalateOn": [
-      "intent-change",
-      "scope-change",
-      "user-visible-behavior-change",
-      "business-visible-behavior-change",
-      "priority-change-affecting-other-approved-work",
-      "approved-requirement-waiver",
-      "approved-requirement-deferment",
-      "irreversible-impact",
-      "destructive-impact",
-      "material-cost-change",
-      "material-effort-change"
-    ],
-    "AlertPolicy": {
-      "NoSilentStall": true,
-      "BlockedOrRejected": "urgent-ceo-alert",
-      "InSession": "immediate",
-      "Background": "next-interaction-first",
-      "CeoOptions": [
-        "address-now",
-        "defer"
-      ]
-    },
-    "StateTree": {
-      "Collection": "bottom-up",
-      "Presentation": "top-down",
-      "Shape": "folding-context-tree",
-      "Root": [
-        "Issues",
-        "OnTheTable",
-        "InMotion",
-        "Completed"
-      ],
-      "NodeApi": [
-        "summary"
-      ],
-      "Notifications": true
-    },
-    "Delivery": {
-      "WorkspaceRoot": "dev/",
-      "WorkspacePattern": "dev/<feature-key>/",
-      "Isolation": "git-worktree",
-      "MergeAfter": "lifecycle-postmortem",
-      "Merger": "merger-engine",
-      "DeleteBranchAfterMerge": true
-    },
-    "Effort": {
-      "Format": "json",
-      "Precedence": [
-        "project-default",
-        "feature-override",
-        "run-override"
-      ]
-    },
-    "DependencyImpact": {
-      "Enabled": true,
-      "Reference": "docs/v0/dependency-map.md"
-    }
-  },
-
-  "Builder": {
-    "Uses": "function-builder",
-    "Contract": "COO/functions/feature/contracts/function-builder-contract.json",
-    "Settings": "COO/functions/feature/settings/function-builder-settings.json",
-    "Overrides": null,
-    "Subtools": [
-      "phase-builder",
-      "step-builder",
-      "lane-builder",
-      "gate-builder",
-      "handoff-builder",
-      "agent-role-builder",
-      "llm-tool-builder"
-    ]
-  },
-
-  "SharedObjects": {
-    "Engines": {
-      "Phase": {
-        "Id": "phase-engine",
-        "DependsOn": [
-          "review-cycle-engine",
-          "finalization-engine",
-          "postmortem-engine",
-          "handoff-engine"
-        ]
-      },
-      "ComplianceStep": {
-        "Id": "compliance-step-engine",
-        "DependsOn": []
-      },
-      "ArtifactStep": {
-        "Id": "artifact-step-engine",
-        "DependsOn": []
-      },
-      "ReviewCycle": {
-        "Id": "review-cycle-engine",
-        "DependsOn": [
-          "review-engine",
-          "learning-engine",
-          "component-repair-engine"
-        ]
-      },
-      "Finalization": {
-        "Id": "finalization-engine",
-        "DependsOn": [
-          "component-repair-engine"
-        ]
-      },
-      "Postmortem": {
-        "Id": "postmortem-engine",
-        "DependsOn": []
-      },
-      "Handoff": {
-        "Id": "handoff-engine",
-        "DependsOn": []
-      },
-      "Lane": {
-        "Id": "lane-engine",
-        "DependsOn": [
-          "phase-engine"
-        ]
-      }
-    }
-  },
-
   "Lifecycle": {
-    "Id": "feature-lifecycle",
-    "Uses": "lifecycle-engine",
-    "Contract": "COO/functions/feature/contracts/lifecycle-contract.json",
-    "Settings": "COO/functions/feature/settings/lifecycle-settings.json",
-    "Overrides": null,
+    "Name": "feature-lifecycle",
+    "ExecutionOrderIndex": 1,
+    "Handoff": "coo-or-cto-results",
 
-    "Routing": {
-      "RequirementListApprovalToDesign": "when-design-is-required",
-      "RequirementListApprovalToPlanning": "when-design-is-not-required",
-      "DesignToPlanning": "always",
-      "PlanningToSetupAnalysis": "always",
-      "SetupAnalysisToImplementation": "always",
-      "ImplementationToLifecycleFinalization": "always",
-      "LifecycleFinalizationToLifecyclePostmortem": "always",
-      "LifecyclePostmortemToLifecycleHandoff": "always"
-    },
-
-    "Phases": {
-      "RequirementListApproval": {
-        "Uses": "phase-engine",
-        "Contract": "COO/functions/feature/phases/requirement-list-approval/phase-contract.json",
-        "Settings": "COO/functions/feature/phases/requirement-list-approval/phase-settings.json",
-        "Overrides": null,
-        "InputArtifact": "finalized-requirement-list",
-        "OutputArtifact": "frozen-requirement-list",
-        "PushbackTo": "coo.requirements-gathering",
-        "Steps": {
-          "Compliance": {
-            "Uses": "compliance-step-engine",
-            "Role": "COO/functions/feature/phases/requirement-list-approval/steps/compliance/role.md",
-            "Rules": "COO/functions/feature/phases/requirement-list-approval/steps/compliance/rules.json",
-            "Contract": "COO/functions/feature/phases/requirement-list-approval/steps/compliance/contract.json",
-            "Settings": "COO/functions/feature/phases/requirement-list-approval/steps/compliance/settings.json",
-            "Overrides": null
-          },
-          "ReviewCycle": {
-            "Uses": "review-cycle-engine",
-            "Role": "COO/functions/feature/phases/requirement-list-approval/steps/review-cycle/role.md",
-            "Rules": "COO/functions/feature/phases/requirement-list-approval/steps/review-cycle/rules.json",
-            "Contract": "COO/functions/feature/phases/requirement-list-approval/steps/review-cycle/contract.json",
-            "Settings": "COO/functions/feature/phases/requirement-list-approval/steps/review-cycle/settings.json",
-            "Overrides": null
-          },
-          "Finalization": {
-            "Uses": "finalization-engine",
-            "Role": "COO/functions/feature/phases/requirement-list-approval/steps/finalization/role.md",
-            "Rules": "COO/functions/feature/phases/requirement-list-approval/steps/finalization/rules.json",
-            "Contract": "COO/functions/feature/phases/requirement-list-approval/steps/finalization/contract.json",
-            "Settings": "COO/functions/feature/phases/requirement-list-approval/steps/finalization/settings.json",
-            "Overrides": null
-          },
-          "Postmortem": {
-            "Uses": "postmortem-engine",
-            "Role": "COO/functions/feature/phases/requirement-list-approval/steps/postmortem/role.md",
-            "Rules": "COO/functions/feature/phases/requirement-list-approval/steps/postmortem/rules.json",
-            "Contract": "COO/functions/feature/phases/requirement-list-approval/steps/postmortem/contract.json",
-            "Settings": "COO/functions/feature/phases/requirement-list-approval/steps/postmortem/settings.json",
-            "Overrides": null
-          },
-          "Handoff": {
-            "Uses": "handoff-engine",
-            "Role": "COO/functions/feature/phases/requirement-list-approval/steps/handoff/role.md",
-            "Rules": "COO/functions/feature/phases/requirement-list-approval/steps/handoff/rules.json",
-            "Contract": "COO/functions/feature/phases/requirement-list-approval/steps/handoff/contract.json",
-            "Settings": "COO/functions/feature/phases/requirement-list-approval/steps/handoff/settings.json",
-            "Overrides": null
-          }
-        }
-      },
-
-      "Design": {
-        "Uses": "phase-engine",
-        "Contract": "COO/functions/feature/phases/design/phase-contract.json",
-        "Settings": "COO/functions/feature/phases/design/phase-settings.json",
-        "Overrides": null,
-        "Conditional": "when-design-is-required",
-        "Steps": {
-          "Compliance": {
-            "Uses": "compliance-step-engine",
-            "Role": "COO/functions/feature/phases/design/steps/compliance/role.md",
-            "Rules": "COO/functions/feature/phases/design/steps/compliance/rules.json",
-            "Contract": "COO/functions/feature/phases/design/steps/compliance/contract.json",
-            "Settings": "COO/functions/feature/phases/design/steps/compliance/settings.json",
-            "Overrides": null
-          },
-          "CreateArtifact": {
-            "Uses": "artifact-step-engine",
-            "Role": "COO/functions/feature/phases/design/steps/create-artifact/role.md",
-            "Rules": "COO/functions/feature/phases/design/steps/create-artifact/rules.json",
-            "Contract": "COO/functions/feature/phases/design/steps/create-artifact/contract.json",
-            "Settings": "COO/functions/feature/phases/design/steps/create-artifact/settings.json",
-            "Overrides": null
-          },
-          "ReviewCycle": {
-            "Uses": "review-cycle-engine",
-            "Role": "COO/functions/feature/phases/design/steps/review-cycle/role.md",
-            "Rules": "COO/functions/feature/phases/design/steps/review-cycle/rules.json",
-            "Contract": "COO/functions/feature/phases/design/steps/review-cycle/contract.json",
-            "Settings": "COO/functions/feature/phases/design/steps/review-cycle/settings.json",
-            "Overrides": null
-          },
-          "Finalization": {
-            "Uses": "finalization-engine",
-            "Role": "COO/functions/feature/phases/design/steps/finalization/role.md",
-            "Rules": "COO/functions/feature/phases/design/steps/finalization/rules.json",
-            "Contract": "COO/functions/feature/phases/design/steps/finalization/contract.json",
-            "Settings": "COO/functions/feature/phases/design/steps/finalization/settings.json",
-            "Overrides": null
-          },
-          "Postmortem": {
-            "Uses": "postmortem-engine",
-            "Role": "COO/functions/feature/phases/design/steps/postmortem/role.md",
-            "Rules": "COO/functions/feature/phases/design/steps/postmortem/rules.json",
-            "Contract": "COO/functions/feature/phases/design/steps/postmortem/contract.json",
-            "Settings": "COO/functions/feature/phases/design/steps/postmortem/settings.json",
-            "Overrides": null
-          },
-          "Handoff": {
-            "Uses": "handoff-engine",
-            "Role": "COO/functions/feature/phases/design/steps/handoff/role.md",
-            "Rules": "COO/functions/feature/phases/design/steps/handoff/rules.json",
-            "Contract": "COO/functions/feature/phases/design/steps/handoff/contract.json",
-            "Settings": "COO/functions/feature/phases/design/steps/handoff/settings.json",
-            "Overrides": null
-          }
-        }
-      },
-
-      "Planning": {
-        "Uses": "phase-engine",
-        "Contract": "COO/functions/feature/phases/planning/phase-contract.json",
-        "Settings": "COO/functions/feature/phases/planning/phase-settings.json",
-        "Overrides": null,
-        "Steps": {
-          "Compliance": {
-            "Uses": "compliance-step-engine",
-            "Role": "COO/functions/feature/phases/planning/steps/compliance/role.md",
-            "Rules": "COO/functions/feature/phases/planning/steps/compliance/rules.json",
-            "Contract": "COO/functions/feature/phases/planning/steps/compliance/contract.json",
-            "Settings": "COO/functions/feature/phases/planning/steps/compliance/settings.json",
-            "Overrides": null
-          },
-          "CreateArtifact": {
-            "Uses": "artifact-step-engine",
-            "Role": "COO/functions/feature/phases/planning/steps/create-artifact/role.md",
-            "Rules": "COO/functions/feature/phases/planning/steps/create-artifact/rules.json",
-            "Contract": "COO/functions/feature/phases/planning/steps/create-artifact/contract.json",
-            "Settings": "COO/functions/feature/phases/planning/steps/create-artifact/settings.json",
-            "Overrides": null
-          },
-          "ReviewCycle": {
-            "Uses": "review-cycle-engine",
-            "Role": "COO/functions/feature/phases/planning/steps/review-cycle/role.md",
-            "Rules": "COO/functions/feature/phases/planning/steps/review-cycle/rules.json",
-            "Contract": "COO/functions/feature/phases/planning/steps/review-cycle/contract.json",
-            "Settings": "COO/functions/feature/phases/planning/steps/review-cycle/settings.json",
-            "Overrides": null
-          },
-          "Finalization": {
-            "Uses": "finalization-engine",
-            "Role": "COO/functions/feature/phases/planning/steps/finalization/role.md",
-            "Rules": "COO/functions/feature/phases/planning/steps/finalization/rules.json",
-            "Contract": "COO/functions/feature/phases/planning/steps/finalization/contract.json",
-            "Settings": "COO/functions/feature/phases/planning/steps/finalization/settings.json",
-            "Overrides": null
-          },
-          "Postmortem": {
-            "Uses": "postmortem-engine",
-            "Role": "COO/functions/feature/phases/planning/steps/postmortem/role.md",
-            "Rules": "COO/functions/feature/phases/planning/steps/postmortem/rules.json",
-            "Contract": "COO/functions/feature/phases/planning/steps/postmortem/contract.json",
-            "Settings": "COO/functions/feature/phases/planning/steps/postmortem/settings.json",
-            "Overrides": null
-          },
-          "Handoff": {
-            "Uses": "handoff-engine",
-            "Role": "COO/functions/feature/phases/planning/steps/handoff/role.md",
-            "Rules": "COO/functions/feature/phases/planning/steps/handoff/rules.json",
-            "Contract": "COO/functions/feature/phases/planning/steps/handoff/contract.json",
-            "Settings": "COO/functions/feature/phases/planning/steps/handoff/settings.json",
-            "Overrides": null
-          }
-        }
-      },
-
-      "SetupAnalysis": {
-        "Uses": "phase-engine",
-        "Contract": "COO/functions/feature/phases/setup-analysis/phase-contract.json",
-        "Settings": "COO/functions/feature/phases/setup-analysis/phase-settings.json",
-        "Overrides": null,
-        "Steps": {
-          "Compliance": {
-            "Uses": "compliance-step-engine",
-            "Role": "COO/functions/feature/phases/setup-analysis/steps/compliance/role.md",
-            "Rules": "COO/functions/feature/phases/setup-analysis/steps/compliance/rules.json",
-            "Contract": "COO/functions/feature/phases/setup-analysis/steps/compliance/contract.json",
-            "Settings": "COO/functions/feature/phases/setup-analysis/steps/compliance/settings.json",
-            "Overrides": null
-          },
-          "CreateArtifact": {
-            "Uses": "artifact-step-engine",
-            "Role": "COO/functions/feature/phases/setup-analysis/steps/create-artifact/role.md",
-            "Rules": "COO/functions/feature/phases/setup-analysis/steps/create-artifact/rules.json",
-            "Contract": "COO/functions/feature/phases/setup-analysis/steps/create-artifact/contract.json",
-            "Settings": "COO/functions/feature/phases/setup-analysis/steps/create-artifact/settings.json",
-            "Overrides": null
-          },
-          "ReviewCycle": {
-            "Uses": "review-cycle-engine",
-            "Role": "COO/functions/feature/phases/setup-analysis/steps/review-cycle/role.md",
-            "Rules": "COO/functions/feature/phases/setup-analysis/steps/review-cycle/rules.json",
-            "Contract": "COO/functions/feature/phases/setup-analysis/steps/review-cycle/contract.json",
-            "Settings": "COO/functions/feature/phases/setup-analysis/steps/review-cycle/settings.json",
-            "Overrides": null
-          },
-          "Finalization": {
-            "Uses": "finalization-engine",
-            "Role": "COO/functions/feature/phases/setup-analysis/steps/finalization/role.md",
-            "Rules": "COO/functions/feature/phases/setup-analysis/steps/finalization/rules.json",
-            "Contract": "COO/functions/feature/phases/setup-analysis/steps/finalization/contract.json",
-            "Settings": "COO/functions/feature/phases/setup-analysis/steps/finalization/settings.json",
-            "Overrides": null
-          },
-          "Postmortem": {
-            "Uses": "postmortem-engine",
-            "Role": "COO/functions/feature/phases/setup-analysis/steps/postmortem/role.md",
-            "Rules": "COO/functions/feature/phases/setup-analysis/steps/postmortem/rules.json",
-            "Contract": "COO/functions/feature/phases/setup-analysis/steps/postmortem/contract.json",
-            "Settings": "COO/functions/feature/phases/setup-analysis/steps/postmortem/settings.json",
-            "Overrides": null
-          },
-          "Handoff": {
-            "Uses": "handoff-engine",
-            "Role": "COO/functions/feature/phases/setup-analysis/steps/handoff/role.md",
-            "Rules": "COO/functions/feature/phases/setup-analysis/steps/handoff/rules.json",
-            "Contract": "COO/functions/feature/phases/setup-analysis/steps/handoff/contract.json",
-            "Settings": "COO/functions/feature/phases/setup-analysis/steps/handoff/settings.json",
-            "Overrides": null
-          }
-        }
-      },
-
-      "Implementation": {
-        "Uses": "phase-engine",
-        "Contract": "COO/functions/feature/phases/implementation/phase-contract.json",
-        "Settings": "COO/functions/feature/phases/implementation/phase-settings.json",
-        "Overrides": null,
-        "Lanes": {
-          "Main": {
-            "Uses": "lane-engine",
-            "Contract": "COO/functions/feature/phases/implementation/lanes/main/lane-contract.json",
-            "Settings": "COO/functions/feature/phases/implementation/lanes/main/lane-settings.json",
-            "Overrides": null,
-            "Steps": {
-              "Compliance": {
-                "Uses": "compliance-step-engine",
-                "Role": "COO/functions/feature/phases/implementation/lanes/main/steps/compliance/role.md",
-                "Rules": "COO/functions/feature/phases/implementation/lanes/main/steps/compliance/rules.json",
-                "Contract": "COO/functions/feature/phases/implementation/lanes/main/steps/compliance/contract.json",
-                "Settings": "COO/functions/feature/phases/implementation/lanes/main/steps/compliance/settings.json",
-                "Overrides": null
-              },
-              "CreateArtifact": {
-                "Uses": "artifact-step-engine",
-                "Role": "COO/functions/feature/phases/implementation/lanes/main/steps/create-artifact/role.md",
-                "Rules": "COO/functions/feature/phases/implementation/lanes/main/steps/create-artifact/rules.json",
-                "Contract": "COO/functions/feature/phases/implementation/lanes/main/steps/create-artifact/contract.json",
-                "Settings": "COO/functions/feature/phases/implementation/lanes/main/steps/create-artifact/settings.json",
-                "Overrides": null
-              },
-              "ReviewCycle": {
-                "Uses": "review-cycle-engine",
-                "Role": "COO/functions/feature/phases/implementation/lanes/main/steps/review-cycle/role.md",
-                "Rules": "COO/functions/feature/phases/implementation/lanes/main/steps/review-cycle/rules.json",
-                "Contract": "COO/functions/feature/phases/implementation/lanes/main/steps/review-cycle/contract.json",
-                "Settings": "COO/functions/feature/phases/implementation/lanes/main/steps/review-cycle/settings.json",
-                "Overrides": null
-              },
-              "Finalization": {
-                "Uses": "finalization-engine",
-                "Role": "COO/functions/feature/phases/implementation/lanes/main/steps/finalization/role.md",
-                "Rules": "COO/functions/feature/phases/implementation/lanes/main/steps/finalization/rules.json",
-                "Contract": "COO/functions/feature/phases/implementation/lanes/main/steps/finalization/contract.json",
-                "Settings": "COO/functions/feature/phases/implementation/lanes/main/steps/finalization/settings.json",
-                "Overrides": null
-              },
-              "Postmortem": {
-                "Uses": "postmortem-engine",
-                "Role": "COO/functions/feature/phases/implementation/lanes/main/steps/postmortem/role.md",
-                "Rules": "COO/functions/feature/phases/implementation/lanes/main/steps/postmortem/rules.json",
-                "Contract": "COO/functions/feature/phases/implementation/lanes/main/steps/postmortem/contract.json",
-                "Settings": "COO/functions/feature/phases/implementation/lanes/main/steps/postmortem/settings.json",
-                "Overrides": null
-              },
-              "Handoff": {
-                "Uses": "handoff-engine",
-                "Role": "COO/functions/feature/phases/implementation/lanes/main/steps/handoff/role.md",
-                "Rules": "COO/functions/feature/phases/implementation/lanes/main/steps/handoff/rules.json",
-                "Contract": "COO/functions/feature/phases/implementation/lanes/main/steps/handoff/contract.json",
-                "Settings": "COO/functions/feature/phases/implementation/lanes/main/steps/handoff/settings.json",
-                "Overrides": null
+    "Phases": [
+      {
+        "Name": "requirement-list-approval",
+        "ExecutionOrderIndex": 1,
+        "Handoff": "design-or-planning",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "approve-requirement-list",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/phases/requirement-list-approval/role.md",
+                "Rules": "COO/functions/feature/phases/requirement-list-approval/rules.json",
+                "Contract": "COO/functions/feature/phases/requirement-list-approval/contract.json",
+                "Settings": "COO/functions/feature/phases/requirement-list-approval/settings.json",
+                "Overrides": null,
+                "Handoff": "design-or-planning"
               }
-            },
-            "ParallelLanes": {}
+            ]
           }
-        }
+        ]
+      },
+
+      {
+        "Name": "design",
+        "ExecutionOrderIndex": 2,
+        "Handoff": "planning",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "run-design",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/phases/design/role.md",
+                "Rules": "COO/functions/feature/phases/design/rules.json",
+                "Contract": "COO/functions/feature/phases/design/contract.json",
+                "Settings": "COO/functions/feature/phases/design/settings.json",
+                "Overrides": null,
+                "Handoff": "planning"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "Name": "planning",
+        "ExecutionOrderIndex": 3,
+        "Handoff": "setup-analysis",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "run-planning",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/phases/planning/role.md",
+                "Rules": "COO/functions/feature/phases/planning/rules.json",
+                "Contract": "COO/functions/feature/phases/planning/contract.json",
+                "Settings": "COO/functions/feature/phases/planning/settings.json",
+                "Overrides": null,
+                "Handoff": "setup-analysis"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "Name": "setup-analysis",
+        "ExecutionOrderIndex": 4,
+        "Handoff": "implementation",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "run-setup-analysis",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/phases/setup-analysis/role.md",
+                "Rules": "COO/functions/feature/phases/setup-analysis/rules.json",
+                "Contract": "COO/functions/feature/phases/setup-analysis/contract.json",
+                "Settings": "COO/functions/feature/phases/setup-analysis/settings.json",
+                "Overrides": null,
+                "Handoff": "implementation"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        // Lanes are not predefined here.
+        // Setup-analysis should produce the lane map later.
+        "Name": "implementation",
+        "ExecutionOrderIndex": 5,
+        "Handoff": "lifecycle-finalization",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "run-implementation",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/phases/implementation/role.md",
+                "Rules": "COO/functions/feature/phases/implementation/rules.json",
+                "Contract": "COO/functions/feature/phases/implementation/contract.json",
+                "Settings": "COO/functions/feature/phases/implementation/settings.json",
+                "Overrides": null,
+                "Handoff": "lifecycle-finalization"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "Name": "lifecycle-finalization",
+        "ExecutionOrderIndex": 6,
+        "Handoff": "lifecycle-postmortem",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "run-lifecycle-finalization",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/lifecycle/finalization/role.md",
+                "Rules": "COO/functions/feature/lifecycle/finalization/rules.json",
+                "Contract": "COO/functions/feature/lifecycle/finalization/contract.json",
+                "Settings": "COO/functions/feature/lifecycle/finalization/settings.json",
+                "Overrides": null,
+                "Handoff": "lifecycle-postmortem"
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        "Name": "lifecycle-postmortem",
+        "ExecutionOrderIndex": 7,
+        "Handoff": "coo-or-cto-results",
+        "Steps": [
+          {
+            "Name": "main",
+            "ExecutionOrderIndex": 1,
+            "Handoff": "phase-complete",
+            "Sequences": [
+              {
+                "Name": "run-lifecycle-postmortem",
+                "ExecutionOrderIndex": 1,
+                "Uses": "phase-engine",
+                "Role": "COO/functions/feature/lifecycle/postmortem/role.md",
+                "Rules": "COO/functions/feature/lifecycle/postmortem/rules.json",
+                "Contract": "COO/functions/feature/lifecycle/postmortem/contract.json",
+                "Settings": "COO/functions/feature/lifecycle/postmortem/settings.json",
+                "Overrides": null,
+                "Handoff": "coo-or-cto-results"
+              }
+            ]
+          }
+        ]
       }
-    },
-
-    "Finalization": {
-      "Uses": "finalization-engine",
-      "Role": "COO/functions/feature/lifecycle/finalization/role.md",
-      "Rules": "COO/functions/feature/lifecycle/finalization/rules.json",
-      "Contract": "COO/functions/feature/lifecycle/finalization/contract.json",
-      "Settings": "COO/functions/feature/lifecycle/finalization/settings.json",
-      "Overrides": null
-    },
-
-    "Postmortem": {
-      "Uses": "postmortem-engine",
-      "Role": "COO/functions/feature/lifecycle/postmortem/role.md",
-      "Rules": "COO/functions/feature/lifecycle/postmortem/rules.json",
-      "Contract": "COO/functions/feature/lifecycle/postmortem/contract.json",
-      "Settings": "COO/functions/feature/lifecycle/postmortem/settings.json",
-      "Overrides": null
-    },
-
-    "Handoff": {
-      "Uses": "handoff-engine",
-      "Role": "COO/functions/feature/lifecycle/handoff/role.md",
-      "Rules": "COO/functions/feature/lifecycle/handoff/rules.json",
-      "Contract": "COO/functions/feature/lifecycle/handoff/contract.json",
-      "Settings": "COO/functions/feature/lifecycle/handoff/settings.json",
-      "Overrides": null,
-      "Targets": [
-        "coo",
-        "cto"
-      ]
-    }
-  },
-
-  "Dependencies": {
-    "Roles": [
-      "coo.requirements-gathering",
-      "feature.requirement-list-approval",
-      "feature.design",
-      "feature.planning",
-      "feature.setup-analysis",
-      "feature.implementation",
-      "feature.lifecycle-finalization",
-      "feature.lifecycle-postmortem",
-      "feature.lifecycle-handoff"
-    ],
-    "Builders": [
-      "function-builder",
-      "phase-builder",
-      "step-builder",
-      "lane-builder",
-      "gate-builder",
-      "handoff-builder",
-      "agent-role-builder",
-      "llm-tool-builder"
-    ],
-    "Engines": [
-      "phase-engine",
-      "compliance-step-engine",
-      "artifact-step-engine",
-      "review-cycle-engine",
-      "finalization-engine",
-      "postmortem-engine",
-      "handoff-engine",
-      "lane-engine",
-      "review-engine",
-      "learning-engine",
-      "component-repair-engine",
-      "merger-engine"
     ]
   }
 }

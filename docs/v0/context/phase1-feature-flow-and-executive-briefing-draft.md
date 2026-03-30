@@ -77,29 +77,39 @@ Clarifications:
 
 Current draft direction:
 
-- company functions should be represented by a canonical function-definition JSON
-- that JSON should be defined top-down from the CEO/COO view of the function
-- it should be composition-first, explicit, and easy to read
-- shared repeated behavior should live in shared objects, especially engines
-- engines should accept governed inputs such as `role`, `rules`, `contract`, and `settings` when applicable
-- engines should own the repeated outputs they always produce, including fixed KPI families, logs, and memory artifacts
-- layer-specific members should only capture local specifics such as skip/create-artifact, routes, pushback targets, and local overrides
-- it should still contain enough lifecycle structure that builders can materialize the function without inventing missing hierarchy
+- company functions should be represented by a canonical function-blueprint JSON
+- that blueprint should be defined top-down from the CEO/COO view of the function
+- it should stay structural, explicit, and easy to read
+- it should focus on:
+  - lifecycle
+  - phases
+  - steps
+  - sequences
+  - handoffs
+  - known tool / engine / component bindings where already decided
+- it is **not** the final execution map
+- a later function-builder should use it to:
+  - walk the lifecycle path
+  - identify shared building blocks
+  - connect existing tools / engines / components
+  - detect missing pieces
+  - build missing pieces
+- unresolved ids are acceptable in the draft blueprint because they signal builder work, not blueprint failure
 
 Current intended build order:
 
-1. define the function JSON
+1. define the function blueprint JSON
 2. build lower-level builders bottom-up
 3. build a function-builder that orchestrates those builders
-4. build the company function
+4. build the company function from the blueprint
 5. wire the company function into the COO
 
 Current builder assumptions:
 
 - lower-level builders should include at least a `phase-builder` and a `step-builder`
 - gate and handoff generation should be reusable across functions and phases
-- builders should materialize shared-object bindings plus layer members instead of rewriting repeated behavior inside every phase
-- once the function JSON is stable, independent phases and independent steps should be buildable in parallel
+- builders should turn the blueprint into a detailed execution map instead of inventing the lifecycle path
+- once the function blueprint is stable, independent phases and independent steps should be buildable in parallel
 
 Current generic phase form:
 

@@ -62,32 +62,45 @@ Important rule:
 
 ## Function Definition Direction
 
-Phase 1 company functions should be defined from a canonical top-down JSON artifact.
+Phase 1 company functions should be defined from a canonical top-down JSON **blueprint**.
 
 Current intended model:
 
-- each company function should have a function-definition JSON
-- the function-definition JSON should be composition-first, explicit, and easy to read
-- shared repeated behavior should live in shared objects, especially engines
-- engines should accept governed inputs such as `role`, `rules`, `contract`, and `settings` when applicable
-- engines should own the repeated outputs they always produce, including fixed KPI families, logs, and memory artifacts
-- layer-specific members should only capture local specifics such as skip/create-artifact, routes, pushback targets, and local overrides
-- the JSON should still describe the lifecycle, phases, steps, lanes, gates, and handoffs clearly enough that builders can materialize the function without re-inventing its structure
+- each company function should have a function-blueprint JSON
+- the blueprint is primarily for `CEO -> COO` clarity
+- the blueprint should describe the lifecycle path the function needs to walk
+- the blueprint should stay structural and easy to read
+- the blueprint should focus on:
+  - lifecycle
+  - phases
+  - steps
+  - sequences
+  - handoffs
+  - known tool / engine / component bindings where already decided
+- the blueprint is **not** the final execution map
+- a later function-builder should turn the blueprint into the richer execution map
+- the builder should use the blueprint to:
+  - walk the lifecycle path
+  - identify shared building blocks across layers
+  - connect existing tools / engines / components
+  - detect missing pieces
+  - build missing pieces when needed
+- unresolved ids are acceptable in the draft blueprint because they signal build targets
 
 Current intended build chain:
 
-1. define the function JSON top-down
+1. define the function blueprint JSON top-down
 2. build shared lower-level builders bottom-up
 3. build a function-builder that orchestrates those lower-level builders
-4. materialize the company function from the JSON
+4. materialize the company function from the blueprint
 5. wire the function into the COO
 
 Builder orchestration direction:
 
 - lower-level builders should include at least phase-builder and step-builder
 - shared gate and handoff generation should be reusable instead of redefined per function
-- builders should materialize shared-object bindings plus layer members, not hand-write repeated behavior per phase
-- once the function JSON is frozen, independent phases and independent steps should be buildable in parallel
+- builders should turn the blueprint into a detailed execution map rather than invent the lifecycle path
+- once the function blueprint is stable, independent phases and independent steps should be buildable in parallel
 
 Current generic phase form:
 
