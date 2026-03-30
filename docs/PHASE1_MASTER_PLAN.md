@@ -81,6 +81,19 @@ Before any major work starts, ask:
 
 If the answer points to "later," record it and keep Phase 1 clean.
 
+## Authority Format Rule
+
+Phase 1 governed execution must use the right authority format for each artifact type.
+
+- canonical lane authority is JSON
+- LLM role authority is structured tagged Markdown
+- rulebooks are JSON
+- role and lane contracts are JSON
+- the CEO is not part of the machine contract surface
+- the COO is responsible for translating governed state into executive language when needed
+- requirements, design, planning, setup-analysis, implementation, finalization, and postmortem should all converge on JSON-governed lane contracts and JSON-governed handoff/closeout contracts
+- every governed LLM role should pair its tagged Markdown role file with a JSON contract and JSON rulebook
+
 ## Role Alignment Rules
 
 - **COO** must protect the table, shape CEO requests from the outer shell inward until the scope is clear, turn approved scope into development-ready briefs, push back on out-of-phase work, and log future-company ideas instead of letting them distort the current mission.

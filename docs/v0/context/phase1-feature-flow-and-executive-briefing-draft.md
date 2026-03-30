@@ -23,6 +23,26 @@ All decisions here should be treated as **draft high-level decisions** until the
 
 ---
 
+## Governed Authority Format
+
+Current strong direction:
+
+- governed lane authority must be **JSON contracts**
+- governed LLM roles must be **structured tagged Markdown**
+- rulebooks remain **JSON**
+- the CEO is not part of the machine contract surface
+- the COO may translate governed state into CEO-facing language when needed
+
+This means:
+
+- requirements, design, planning, setup-analysis, implementation, finalization, and postmortem should be governed by JSON lane authority surfaces
+- lane closeout and handoff should be contract-driven, not markdown-driven
+- LLM-facing role definitions should remain structured Markdown prompt surfaces using the established tag model
+- every governed role should be paired with a JSON contract and JSON rulebook
+- CEO-facing summaries are outputs derived from governed state, not governing artifacts themselves
+
+---
+
 ## Phase 1 Company Scope
 
 ### Agreed direction
@@ -739,6 +759,115 @@ Those still require later freezing against implementation reality.
 
 ---
 
+## Git Delivery Policy
+
+The current high-level Git delivery policy is now frozen enough for Phase 1 direction.
+
+### Development workspace
+
+Each implementation run should get its own local development folder.
+
+Current direction:
+
+- use a stable path under `dev/`
+- example shape: `dev/<feature-key>/`
+- if later needed, this can expand to `dev/<feature-key>/<run-id>/`
+
+Current implementation recommendation:
+
+- prefer a **git worktree** over a full clone by default
+
+Reasoning:
+
+- isolated working folder per feature/run
+- lower setup and disk cost than full clone
+- still supports full audit trail and branch isolation
+
+### Audit trail rule
+
+Every edit must be committed.
+
+The purpose is:
+
+- full audit trail
+- no hidden or accidental work left outside version control
+
+### Mandatory clean handoff rule
+
+Every phase or component must hand over a **clean tree** to the next phase or component.
+
+This is not a preference.
+It is a required contract.
+
+If the tree is not clean, governance must push back for repair.
+
+The pushback should include at minimum:
+
+- acceptance failure reason
+- list of uncommitted files
+
+### Finalization role
+
+Finalization is the safeguard, not the normal cleanup owner.
+
+The expected operating model is:
+
+- each prior phase/component should already hand over a clean tree
+- finalization checks that this really happened
+
+If finalization finds a rogue component or dirty handoff, it should:
+
+1. log a warning-level finding
+2. call the fix engine / self-healing path to repair the rogue prompt, code, or governance behavior so the failure is less likely to recur
+3. log the fix result
+4. commit required non-volatile files or delete true temp files
+5. end with a clean tree
+
+### Temp vs non-volatile files
+
+By finalization:
+
+- temp files must be deleted
+- required audit, evidence, and postmortem files are **not** temp files
+- those durable files must remain as non-volatile project truth
+
+### Merge
+
+Merge does not happen at finalization.
+
+Current frozen direction:
+
+- merge happens only **after postmortem**
+- merge will be performed by a future `merger-engine`
+- `merger-engine` is expected to be created through the tool-builder path
+- after successful merge, the local development branch is deleted
+
+---
+
+## Effort Settings
+
+The current high-level direction is to use a settings JSON to control effort.
+
+Current precedence model:
+
+1. project default
+2. feature override
+3. run or test override
+
+Reasoning:
+
+- the company needs a stable default operating mode
+- a specific feature may require stronger or lighter governance
+- a one-off run or test may need a temporary override without changing the feature or project default
+
+This is the current direction for future effort modes such as:
+
+- production
+- ad-hoc
+- or later briefing/governance intensity variations
+
+---
+
 ## Still Open Or Only Partially Frozen
 
 These points remain open or draft-only:
@@ -749,8 +878,6 @@ These points remain open or draft-only:
 - exact internal operational state model beneath the CEO-facing brief
 - exact resume semantics after pushback across all phases
 - exact CEO approval boundaries between phases
-- exact git/branch/merge governance for implementation execution
-- effort modes such as production vs ad-hoc and how they affect phase intensity
 
 ---
 
@@ -780,6 +907,14 @@ If a contextless agent needs the current practical understanding in one block, u
 - A feature is truly complete for the CEO only after postmortem.
 - That completion closeout should include result, run summary, and improvements.
 - The COO defines the initial `v1` KPI set, the CTO may add delivery KPIs, and the CEO may reshape the KPI view by preference.
+- Each implementation run should use its own local development folder under `dev/`.
+- Every edit must be committed for full audit trail.
+- Every phase/component must hand over a clean tree to the next one.
+- If a handoff is dirty, governance must push back with the failure reason and the list of uncommitted files.
+- Finalization is the safeguard that catches rogue components, logs warning-level findings, invokes self-healing/fix behavior, and ends with a clean tree.
+- Merge happens only after postmortem through a future `merger-engine`.
+- After successful merge, the local development branch is deleted.
+- Effort settings should use JSON-based precedence: project default, then feature override, then run/test override.
 
 ---
 

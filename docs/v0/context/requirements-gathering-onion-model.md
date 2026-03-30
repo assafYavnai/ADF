@@ -28,6 +28,14 @@ This model is **human-facing only**.
 Its purpose is to make the feature scope crystal clear to the CEO.
 Only after this approval does the COO move on to the technical requirement package and downstream CTO handoff.
 
+Strong authority rule:
+
+- the onion itself is not the governed machine authority
+- governed lane authority must be JSON
+- governed LLM roles remain structured tagged Markdown backed by JSON rules and contracts
+- any markdown or prose generated from the onion is optional derived view only unless it is an approved role artifact
+- the COO may translate governed JSON state back into CEO language when needed
+
 ---
 
 ## Why This Model Exists
