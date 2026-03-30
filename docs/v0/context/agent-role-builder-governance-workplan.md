@@ -86,6 +86,10 @@ If a new finding appears:
 
 ### V2A Revision Path Unblock
 
+Status:
+
+- implemented
+
 Purpose:
 
 - make the live `agent-role-builder` revision path mature enough for a real run
@@ -124,6 +128,26 @@ Execution note:
   1. patch the live copied invoker path so it matches the canonical Codex delivery behavior
   2. add one regression guard that will fail if the copied Codex implementation falls out of sync again
   3. keep provider fallback, resume carry-forward, and broader module-boundary redesign out of scope
+
+Implementation note:
+
+1. the live copied Codex path in [shared-imports.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.ts) now matches the canonical temp-file prompt delivery pattern from [invoker.ts](C:/ADF/shared/llm-invoker/invoker.ts)
+2. a focused regression test now fails if the copied `callCodex()` path drops:
+   - prompt temp-file creation
+   - bash shell-file loading
+   - prompt-file cleanup
+   - or if it reintroduces stdin prompt delivery
+3. this unblocks the known revision-path regression without widening into provider fallback or broader shared-boundary redesign
+
+Validation:
+
+1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test tools/agent-role-builder/src/shared-imports.codex-sync.test.ts`
+2. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+
+Remaining risk deferred beyond `V2A`:
+
+- the copied/shared module boundary still exists
+- broader elimination of manual-copy drift remains `V3A`
 
 ### V2B Bounded ARB Validation
 

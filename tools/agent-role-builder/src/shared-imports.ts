@@ -196,7 +196,12 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
 
 async function callCodex(params: InvocationParams, id: string): Promise<string> {
   const tmpFile = join(TEMP_DIR, `adf-codex-${id}.txt`);
+  const promptFile = join(TEMP_DIR, `adf-codex-prompt-${id}.txt`);
   try {
+    // Keep this critical Windows prompt-delivery path aligned with shared/llm-invoker/invoker.ts.
+    // Codex stdin has regressed repeatedly in copied invoker code.
+    await writeFile(promptFile, params.prompt, "utf-8");
+
     const args = ["exec", "-m", params.model];
     if (params.reasoning) args.push("-c", `model_reasoning_effort="${params.reasoning}"`);
     if (params.sandbox) args.push("-s", params.sandbox);
@@ -204,14 +209,15 @@ async function callCodex(params: InvocationParams, id: string): Promise<string> 
     args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check");
     const { spawn } = await import("node:child_process");
 
+    const escapedPromptPath = promptFile.replace(/\\/g, "/");
+    const codexArgs = args.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(" ");
+    const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
+
     await new Promise<void>((resolve, reject) => {
-      const proc = spawn("codex", args, {
-        shell: true,
+      const proc = spawn("bash", ["-c", shellCmd], {
         timeout: params.timeout_ms ?? 120_000,
         env: { ...process.env },
       });
-      proc.stdin?.write(params.prompt);
-      proc.stdin?.end();
       let stderr = "";
       proc.stderr?.on("data", (d: Buffer) => { stderr += d.toString(); });
       proc.on("close", (code: number | null) => {
@@ -223,6 +229,7 @@ async function callCodex(params: InvocationParams, id: string): Promise<string> 
     return (await readFile(tmpFile, "utf-8")).trim();
   } finally {
     await unlink(tmpFile).catch(() => {});
+    await unlink(promptFile).catch(() => {});
   }
 }
 

@@ -168,3 +168,32 @@ Focused validation was added for:
 
 1. absolute in-repo authority inputs produce repo-relative `repo_path` values in `governance-snapshot.json`
 2. absolute out-of-repo authority inputs are rejected cleanly
+
+## V2A Revision Path Unblock
+
+Status: implemented after the version plan was corrected to treat `V1` as complete-but-not-live-validated
+
+The active runtime still used the copied invoker path in [shared-imports.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.ts), and that copied Codex implementation had drifted back to stdin prompt delivery even though the canonical [invoker.ts](C:/ADF/shared/llm-invoker/invoker.ts) already used temp-file prompt delivery.
+
+Implemented change:
+
+1. the copied `callCodex()` path in `tools/agent-role-builder/src/shared-imports.ts` now matches the canonical temp-file prompt-delivery behavior
+
+Focused regression guard:
+
+1. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) verifies that the copied Codex path still includes:
+   - prompt temp-file creation
+   - bash shell-file loading
+   - prompt-file cleanup
+   - and does not reintroduce `proc.stdin.write(params.prompt)`
+
+Validation:
+
+1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test tools/agent-role-builder/src/shared-imports.codex-sync.test.ts`
+2. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+
+Deferred beyond `V2A`:
+
+- provider fallback
+- resume carry-forward
+- elimination of the manual copied/shared boundary
