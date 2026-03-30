@@ -174,7 +174,8 @@ export async function executeBoard(
   telemetryContext: {
     startedAtMs: number;
     startedAtIso: string;
-  }
+  },
+  initialReviewerStatus: Record<string, "approved" | "conditional" | "reject" | "error" | "pending"> = {}
 ): Promise<{
   status: RoleBuilderStatus;
   rounds: BoardRoundResult[];
@@ -182,6 +183,7 @@ export async function executeBoard(
   statusReason: string;
   finalMarkdown: string;
   finalSelfCheckIssues: ValidationIssue[];
+  finalReviewerStatus: Record<string, "approved" | "conditional" | "reject" | "error" | "pending">;
 }> {
   const reviewEngine = await loadSharedReviewEngineModule();
   const governanceRuntime = await loadSharedGovernanceRuntimeModule();
@@ -209,7 +211,7 @@ export async function executeBoard(
 
   const reviewerStatus = new Map<string, "approved" | "conditional" | "reject" | "error" | "pending">();
   for (const reviewer of reviewerSlots) {
-    reviewerStatus.set(reviewer.slotKey, "pending");
+    reviewerStatus.set(reviewer.slotKey, initialReviewerStatus[reviewer.slotKey] ?? "pending");
   }
   let consecutiveDisputeRounds = 0;
 
@@ -237,14 +239,15 @@ export async function executeBoard(
       timestamp: new Date().toISOString(),
     }, ctx);
     await writeRunPostmortem(request, rounds, ctx, "blocked");
-    return {
-      status: "blocked",
-      rounds,
-      allParticipants,
-      statusReason: `Failed to load required rulebook: ${errorMsg}`,
-      finalMarkdown: currentMarkdown,
-      finalSelfCheckIssues: currentSelfCheckIssues,
-    };
+      return {
+        status: "blocked",
+        rounds,
+        allParticipants,
+        statusReason: `Failed to load required rulebook: ${errorMsg}`,
+        finalMarkdown: currentMarkdown,
+        finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+      };
   }
 
   let pendingComplianceMap: ComplianceEntry[] = [];
@@ -282,6 +285,7 @@ export async function executeBoard(
       statusReason: `Initial rulebook sweep failed: ${errorMsg}`,
       finalMarkdown: currentMarkdown,
       finalSelfCheckIssues: currentSelfCheckIssues,
+      finalReviewerStatus: Object.fromEntries(reviewerStatus),
     };
   }
 
@@ -631,35 +635,40 @@ export async function executeBoard(
       await writeRunPostmortem(request, rounds, ctx, "blocked");
       return { status: "blocked", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
-        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues };
+        finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
     }
 
     if (effectiveLeaderVerdict === "resume_required") {
       await writeRunPostmortem(request, rounds, ctx, "resume_required");
       return { status: "resume_required", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
-        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues };
+        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
     }
 
     if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen_with_conditions") {
       await writeRunPostmortem(request, rounds, ctx, "frozen_with_conditions");
       return { status: "frozen_with_conditions", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
-        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues };
+        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
     }
 
     if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen") {
       await writeRunPostmortem(request, rounds, ctx, "frozen");
       return { status: "frozen", rounds, allParticipants,
         statusReason: "All reviewers approved and no remaining repair work was found after learning and rule checks.",
-        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues };
+        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
     }
 
     if (finalRound && hasMaterialRepairWork) {
       await writeRunPostmortem(request, rounds, ctx, "resume_required");
       return { status: "resume_required", rounds, allParticipants,
         statusReason: `Budget exhausted after ${rounds.length} rounds. Final-round ultimatum applied; ${materialRepairChecklist.length} material items remain deferred.`,
-        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues };
+        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
     }
 
     await writeRunPostmortem(request, rounds, ctx);
@@ -675,6 +684,7 @@ export async function executeBoard(
         statusReason: error.message,
         finalMarkdown: currentMarkdown,
         finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
       };
     }
     throw error;
@@ -685,7 +695,8 @@ export async function executeBoard(
   return { status: "resume_required", rounds, allParticipants,
     statusReason: `Budget exhausted after ${rounds.length} rounds. ${lastRound?.unresolved.length ?? 0} unresolved.`,
     finalMarkdown: lastRound?.markdown ?? currentMarkdown,
-    finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues };
+    finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues,
+    finalReviewerStatus: Object.fromEntries(reviewerStatus) };
 }
 
 async function writeRunPostmortem(
