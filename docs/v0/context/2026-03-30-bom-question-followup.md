@@ -138,6 +138,20 @@ These checks were run immediately after implementation:
 
 The broader runtime tests remain a separate final step after both the runtime bug-fix commit and the BOM-support commit are in place.
 
+## Follow-Up Fix After Runtime Validation
+
+Runtime validation exposed one small bootstrap-audit defect:
+
+- bootstrap incident files were named with a doubled `.json.json` suffix when the incoming request file already ended in `.json`
+
+That defect has now been corrected in `tools/agent-role-builder/src/services/json-ingress.ts` by normalizing the request stem before appending the incident extension.
+
+Focused regression coverage was added for:
+
+1. request names ending in `.json`
+2. request names without an extension
+3. multi-dot request names such as `request.payload.json`
+
 ## Outcome
 
 The BOM-resistance change is now explicitly implemented as a separate phase after the runtime bug fixes.

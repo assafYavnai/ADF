@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { appendFile, mkdir, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, extname, join } from "node:path";
 
 export interface JsonIngressMeta {
   had_utf8_bom: boolean;
@@ -38,7 +38,7 @@ export async function writeBootstrapIngressIncident(params: {
   message: string;
 }): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const fileName = `${timestamp}-${basename(params.requestPath)}.json`;
+  const fileName = `${timestamp}-${buildBootstrapIncidentStem(params.requestPath)}.json`;
   const incidentPath = join(params.toolRunRoot, "_bootstrap", fileName);
   await mkdir(dirnameOf(incidentPath), { recursive: true });
   await writeFile(incidentPath, JSON.stringify({
@@ -57,6 +57,17 @@ export async function writeBootstrapIngressIncident(params: {
 
 function sha256(content: string): string {
   return createHash("sha256").update(content, "utf-8").digest("hex");
+}
+
+function buildBootstrapIncidentStem(requestPath: string): string {
+  const requestBaseName = basename(requestPath);
+  const extension = extname(requestBaseName);
+  if (!extension) {
+    return requestBaseName;
+  }
+
+  const stem = requestBaseName.slice(0, -extension.length);
+  return stem.length > 0 ? stem : requestBaseName;
 }
 
 function dirnameOf(pathValue: string): string {
