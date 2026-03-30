@@ -1,7 +1,7 @@
 # Phase 1 Definition Source Pack
 
 Status: active reference pack
-Last updated: 2026-03-29
+Last updated: 2026-03-30
 Purpose: preserve the current source set for Phase 1 company-definition, feature-flow, and requirements-gathering decisions so future agents do not need the CEO to restate it.
 
 ---
@@ -37,6 +37,56 @@ The memory engine is an MCP server over stdio JSON-RPC. The direct call shape is
 4. `tools/call`
 
 Use the MCP tool surface before inventing one-off wrappers.
+
+### Preferred ADF invocation path
+
+When working inside ADF, use the existing front door first:
+
+- [memory-engine-client.ts](C:/ADF/COO/controller/memory-engine-client.ts)
+
+Current ADF access pattern:
+
+1. import `MemoryEngineClient`
+2. call `MemoryEngineClient.connect(projectRoot)`
+3. call the relevant tool wrapper such as:
+   - `searchMemory(...)`
+   - `captureMemory(...)`
+   - `logDecision(...)`
+   - `createRule(...)`
+   - `manageOpenLoops(...)`
+4. close the client with `close()`
+
+Important behavior:
+
+- `client.connect(...)` already performs the MCP client startup path for you
+- use the client/tool wrapper before building a one-off MCP caller
+- the memory engine server entrypoint is:
+  - `components/memory-engine/dist/server.js`
+
+### Direct MCP notes
+
+If you must call the MCP server directly instead of using `MemoryEngineClient`:
+
+- use stdio transport to start:
+  - `components/memory-engine/dist/server.js`
+- then follow the normal MCP sequence:
+  1. `initialize`
+  2. `notifications/initialized`
+  3. `tools/list`
+  4. `tools/call`
+
+### Known execution pitfalls
+
+These were verified in the current ADF environment:
+
+- On Windows ESM, absolute imports must be `file://` URLs, not raw `C:\...` or `C:/...` paths.
+  - use `pathToFileURL(...).href`
+- If running a TypeScript one-off from repo root, do not assume a root `tsx` exists.
+  - use the package-local runtime when needed, for example:
+    - `COO/node_modules/.bin/tsx.cmd`
+- Governance writes require valid provenance.
+  - `provenance.invocation_id` must be a real UUID
+- If stdio spawn is blocked by the environment, use the same front-door path but with the minimum required execution approval rather than inventing another transport
 
 ### What to pull from the Brain for context
 
