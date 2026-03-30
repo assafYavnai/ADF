@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { parseJsonTextWithBomSupport } from "../json-ingress.js";
 import { loadReviewRuntimeConfigFromPaths } from "../review-engine/config.js";
 import type {
@@ -107,14 +107,14 @@ export async function createPilotGovernanceContext(input: PilotGovernanceContext
   await mkdir(snapshotRoot, { recursive: true });
 
   const governedFiles = await Promise.all([
-    copyRequiredFile("shared_contract", input.authority.shared_contract, rewriteMap[normalizePath(input.authority.shared_contract)]),
-    copyRequiredFile("component_contract", input.authority.component_contract, rewriteMap[normalizePath(input.authority.component_contract)], rewriteMap),
-    copyRequiredFile("component_rulebook", input.authority.component_rulebook, rewriteMap[normalizePath(input.authority.component_rulebook)]),
-    copyRequiredFile("component_review_prompt", input.authority.component_review_prompt, rewriteMap[normalizePath(input.authority.component_review_prompt)], rewriteMap),
+    copyRequiredFile("shared_contract", input.authority.shared_contract, lookupSnapshotPath(rewriteMap, input.authority.shared_contract), toRepoRelativePath(input.authority.shared_contract)),
+    copyRequiredFile("component_contract", input.authority.component_contract, lookupSnapshotPath(rewriteMap, input.authority.component_contract), toRepoRelativePath(input.authority.component_contract), rewriteMap),
+    copyRequiredFile("component_rulebook", input.authority.component_rulebook, lookupSnapshotPath(rewriteMap, input.authority.component_rulebook), toRepoRelativePath(input.authority.component_rulebook)),
+    copyRequiredFile("component_review_prompt", input.authority.component_review_prompt, lookupSnapshotPath(rewriteMap, input.authority.component_review_prompt), toRepoRelativePath(input.authority.component_review_prompt), rewriteMap),
   ]);
   const authorityDocs = await Promise.all(
     input.authority.authority_docs.map((repoPath) =>
-      copyRequiredFile("authority_doc", repoPath, rewriteMap[normalizePath(repoPath)])
+      copyRequiredFile("authority_doc", repoPath, lookupSnapshotPath(rewriteMap, repoPath), toRepoRelativePath(repoPath))
     )
   );
 
@@ -127,27 +127,27 @@ export async function createPilotGovernanceContext(input: PilotGovernanceContext
   await writeJson(snapshotManifestPath, snapshot);
 
   await validateSnapshotAuthorityIdentity(
-    rewriteMap[normalizePath(input.authority.component_review_prompt)],
-    rewriteMap[normalizePath(input.authority.component_contract)],
+    lookupSnapshotPath(rewriteMap, input.authority.component_review_prompt),
+    lookupSnapshotPath(rewriteMap, input.authority.component_contract),
     input.authority.authority_docs,
     rewriteMap
   );
 
   const reviewRuntimeConfig = await loadReviewRuntimeConfigFromPaths({
-    sharedContractPath: rewriteMap[normalizePath(input.authority.shared_contract)],
-    componentPromptPath: rewriteMap[normalizePath(input.authority.component_review_prompt)],
-    componentContractPath: rewriteMap[normalizePath(input.authority.component_contract)],
+    sharedContractPath: lookupSnapshotPath(rewriteMap, input.authority.shared_contract),
+    componentPromptPath: lookupSnapshotPath(rewriteMap, input.authority.component_review_prompt),
+    componentContractPath: lookupSnapshotPath(rewriteMap, input.authority.component_contract),
   });
 
   return {
     snapshot_id: snapshotId,
     snapshot_manifest_path: snapshotManifestPath,
     snapshot_root: snapshotRoot,
-    shared_contract_path: rewriteMap[normalizePath(input.authority.shared_contract)],
-    component_contract_path: rewriteMap[normalizePath(input.authority.component_contract)],
-    component_rulebook_path: rewriteMap[normalizePath(input.authority.component_rulebook)],
-    component_review_prompt_path: rewriteMap[normalizePath(input.authority.component_review_prompt)],
-    authority_doc_paths: input.authority.authority_docs.map((repoPath) => rewriteMap[normalizePath(repoPath)]),
+    shared_contract_path: lookupSnapshotPath(rewriteMap, input.authority.shared_contract),
+    component_contract_path: lookupSnapshotPath(rewriteMap, input.authority.component_contract),
+    component_rulebook_path: lookupSnapshotPath(rewriteMap, input.authority.component_rulebook),
+    component_review_prompt_path: lookupSnapshotPath(rewriteMap, input.authority.component_review_prompt),
+    authority_doc_paths: input.authority.authority_docs.map((repoPath) => lookupSnapshotPath(rewriteMap, repoPath)),
     review_runtime_config: reviewRuntimeConfig,
   };
 }
@@ -227,8 +227,9 @@ function buildRewriteMap(authority: PilotAuthorityInputPaths, snapshotRoot: stri
     ...authority.authority_docs,
   ];
 
-  for (const repoPath of allPaths) {
-    rewriteMap[normalizePath(repoPath)] = normalizePath(join(snapshotRoot, normalizePath(repoPath)));
+  for (const sourcePath of allPaths) {
+    const repoPath = toRepoRelativePath(sourcePath);
+    rewriteMap[repoPath] = normalizePath(join(snapshotRoot, repoPath));
   }
 
   return rewriteMap;
@@ -236,12 +237,13 @@ function buildRewriteMap(authority: PilotAuthorityInputPaths, snapshotRoot: stri
 
 async function copyRequiredFile(
   kind: string,
-  repoPath: string,
+  sourcePath: string,
   snapshotPath: string,
+  repoPath: string,
   rewriteMap?: Record<string, string>
 ) {
   await mkdir(dirname(snapshotPath), { recursive: true });
-  const raw = await readFile(repoPath, "utf-8");
+  const raw = await readFile(sourcePath, "utf-8");
   const content = rewriteMap
     ? JSON.stringify(rewriteKnownAuthorityPaths(parseJsonTextWithBomSupport<unknown>(raw, `${kind} snapshot source`).value, rewriteMap), null, 2)
     : raw;
@@ -249,7 +251,7 @@ async function copyRequiredFile(
 
   return {
     kind,
-    repo_path: normalizePath(repoPath),
+    repo_path: repoPath,
     snapshot_path: normalizePath(snapshotPath),
     source_sha256: sha256(raw),
     snapshot_sha256: sha256(content),
@@ -258,7 +260,13 @@ async function copyRequiredFile(
 
 function rewriteKnownAuthorityPaths(value: unknown, rewriteMap: Record<string, string>): unknown {
   if (typeof value === "string") {
-    return rewriteMap[normalizePath(value)] ?? value;
+    const exactMatch = rewriteMap[normalizePath(value)];
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const repoRelativePath = tryToRepoRelativePath(value);
+    return repoRelativePath ? (rewriteMap[repoRelativePath] ?? value) : value;
   }
   if (Array.isArray(value)) {
     return value.map((entry) => rewriteKnownAuthorityPaths(entry, rewriteMap));
@@ -280,7 +288,7 @@ async function validateSnapshotAuthorityIdentity(
   const inverseMap = new Map<string, string>(
     Object.entries(rewriteMap).map(([repoPath, snapshotPath]) => [normalizePath(snapshotPath), normalizePath(repoPath)])
   );
-  const expected = new Set(expectedAuthorityRepoPaths.map((path) => normalizePath(path)));
+  const expected = new Set(expectedAuthorityRepoPaths.map((path) => toRepoRelativePath(path)));
   const prompt = await readJsonRequired<Record<string, unknown>>(promptSnapshotPath, "snapshot review prompt");
   const contract = await readJsonRequired<Record<string, unknown>>(contractSnapshotPath, "snapshot component review contract");
 
@@ -308,6 +316,15 @@ async function validateSnapshotAuthorityIdentity(
   }
 }
 
+function lookupSnapshotPath(rewriteMap: Record<string, string>, sourcePath: string): string {
+  const repoPath = toRepoRelativePath(sourcePath);
+  const snapshotPath = rewriteMap[repoPath];
+  if (!snapshotPath) {
+    throw new Error(`[governance-runtime] Missing snapshot rewrite target for ${sourcePath}`);
+  }
+  return snapshotPath;
+}
+
 async function readJsonRequired<T>(path: string, label: string): Promise<T> {
   let raw: string;
   try {
@@ -325,6 +342,29 @@ async function readJsonRequired<T>(path: string, label: string): Promise<T> {
 
 function normalizePath(path: string): string {
   return path.replace(/\\/g, "/");
+}
+
+function toRepoRelativePath(pathValue: string): string {
+  const normalizedInput = normalizePath(pathValue);
+  if (!isAbsolute(pathValue)) {
+    return normalizedInput;
+  }
+
+  const repoRoot = resolve(process.cwd());
+  const absolutePath = resolve(pathValue);
+  const repoRelative = normalizePath(relative(repoRoot, absolutePath));
+  if (repoRelative.startsWith("../") || repoRelative === "..") {
+    throw new Error(`[governance-runtime] Absolute authority path is outside the repo root and is not allowed in the frozen V1 pilot: ${normalizedInput}`);
+  }
+  return repoRelative;
+}
+
+function tryToRepoRelativePath(pathValue: string): string | null {
+  try {
+    return toRepoRelativePath(pathValue);
+  } catch {
+    return null;
+  }
 }
 
 function sha256(content: string): string {

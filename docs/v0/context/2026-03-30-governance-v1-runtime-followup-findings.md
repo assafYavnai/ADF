@@ -148,3 +148,23 @@ Deferred to the later BOM phase:
 - governance file BOM tolerance
 - review/learning/repair JSON BOM tolerance
 - bootstrap healing/audit for pre-run normalization
+
+## Governance Snapshot Path Follow-Up
+
+Status: implemented after the BOM split, as a narrow V1 hardening fix
+
+Runtime validation exposed one additional edge in the frozen V1 pilot:
+
+- `shared/governance-runtime/engine.ts` assumed authority inputs were repo-relative when building snapshot mirror paths
+- absolute paths inside the repo produced invalid nested snapshot paths
+
+The implemented V1 boundary is now explicit:
+
+- repo-relative authority inputs are accepted as-is
+- absolute authority inputs inside the repo root are relativized before snapshot mirroring
+- absolute authority inputs outside the repo root fail closed
+
+Focused validation was added for:
+
+1. absolute in-repo authority inputs produce repo-relative `repo_path` values in `governance-snapshot.json`
+2. absolute out-of-repo authority inputs are rejected cleanly
