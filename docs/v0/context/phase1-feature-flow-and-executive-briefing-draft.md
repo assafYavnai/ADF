@@ -11,7 +11,7 @@ Purpose: capture the current high-level Phase 1 decisions discussed with the use
 This document captures the current agreed direction for:
 
 - what Phase 1 company scope is
-- what the first supported work type is
+- what the first supported company function is
 - what the high-level feature lifecycle is
 - how queue ownership should work between CEO, COO, and CTO
 - how pushback and CEO alerts should behave
@@ -43,13 +43,43 @@ This means:
 
 ---
 
+## Phase 1 Terminology
+
+Current frozen terminology:
+
+- **Company Function**
+  - examples: `feature`, `bugfix`, `task`, `research`
+- **Lifecycle**
+  - the full end-to-end flow for one company function
+- **Phase**
+  - a major stage inside a lifecycle
+- **Step**
+  - a bounded unit inside a phase
+- **Lane**
+  - a parallel path inside a phase when needed
+
+Cross-cutting terms:
+
+- **Gate**
+  - a blocking checkpoint at any level
+- **Handoff**
+  - a transfer and closeout package at any level
+
+Clarifications:
+
+- `review` is not its own taxonomy level
+- review may appear inside a phase as a step, a gate, or an invoked shared mechanism
+- the CEO-facing layer should talk in terms of company functions and lifecycle progress, not internal execution taxonomy unless the CEO drills down
+
+---
+
 ## Phase 1 Company Scope
 
 ### Agreed direction
 
 Phase 1 is focused on **implementation**.
 
-The first and most important supported work type is **feature delivery**.
+The first and most important supported company function is **feature delivery**.
 
 This is intentionally close to the ProjectBrain flow, but with stronger governance in ADF.
 
@@ -68,11 +98,11 @@ Later capabilities such as finance, broader staffing, marketing, lighter effort 
 
 ---
 
-## Phase 1 Golden Path For Features
+## Feature Lifecycle Golden Path
 
-The current intended feature lifecycle is:
+The current intended Phase 1 feature lifecycle is:
 
-`requirements gathering -> review cycle -> design -> review cycle -> planning -> review cycle -> setup analysis -> review cycle -> implementation -> review cycle -> finalization -> postmortem`
+`requirements gathering -> review -> design -> review -> planning -> review -> setup analysis -> review -> implementation -> review -> finalization -> postmortem`
 
 ### Important note
 
@@ -886,7 +916,7 @@ These points remain open or draft-only:
 If a contextless agent needs the current practical understanding in one block, use this:
 
 - Phase 1 is an implementation-focused startup.
-- Features are the first supported work type.
+- Features are the first supported company function.
 - The feature path is governed phase-by-phase, with review between meaningful stages.
 - The COO starts from vague user intent and must extract goal, high-level requirements, expected results, and UI direction when relevant.
 - If UI is involved, mockups are part of alignment before later phases harden.

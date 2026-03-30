@@ -14,6 +14,34 @@ Use it to check whether current work strengthens the actual mission or is drifti
 
 Build the first reliable ADF startup: a company that can take CEO demand, shape it, admit it to development intelligently, manage the queue, and deliver reviewed implementation with durable operational state.
 
+## Phase 1 Terminology
+
+Phase 1 should use one simple hierarchy for company work:
+
+- **Company Function**
+  - examples: `feature`, `bugfix`, `task`, `research`
+- **Lifecycle**
+  - the full end-to-end flow for one company function
+- **Phase**
+  - a major stage inside a lifecycle
+- **Step**
+  - a bounded unit of work inside a phase
+- **Lane**
+  - a parallel path inside a phase when needed
+
+Cross-cutting terms that may apply at any level:
+
+- **Gate**
+  - a blocking checkpoint
+- **Handoff**
+  - a transfer package and closeout to the next unit
+
+Important rule:
+
+- `review` is not a taxonomy level
+- review may appear as a phase activity, a step, or a shared invoked mechanism, depending on the lifecycle design
+- the CEO-facing language should stay at the company-function and lifecycle level by default, with drill-down only when needed
+
 ## What Success Looks Like
 
 Phase 1 is working when:
