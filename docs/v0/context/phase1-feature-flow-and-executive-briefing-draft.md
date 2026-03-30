@@ -124,9 +124,22 @@ Later capabilities such as finance, broader staffing, marketing, lighter effort 
 
 ## Feature Lifecycle Golden Path
 
-The current intended Phase 1 feature lifecycle is:
+Important boundary clarification:
 
-`requirements gathering -> review -> design -> review -> planning -> review -> setup analysis -> review -> implementation -> review -> finalization -> postmortem`
+- requirements gathering is owned by the COO
+- it is a pre-function shaping activity
+- the COO starts with a draft requirement list and ends with a finalized requirement list
+- the finalized requirement list is the COO handoff artifact
+- in the fuller company model, the COO passes that artifact to the CTO
+- the CTO decides when the feature enters the company queue and reaches its true starting point
+- for the current scope, that CTO queue/admission layer is intentionally skipped
+- the feature function therefore begins directly from the finalized requirement-list handoff
+- the first feature-function target is not another finalized state
+- the first feature-function target is the frozen requirement-list state
+
+So the current intended Phase 1 feature-function lifecycle is:
+
+`requirement-list review -> design -> review -> planning -> review -> setup analysis -> review -> implementation -> review -> finalization -> postmortem`
 
 ### Important note
 
@@ -191,6 +204,11 @@ Example direction from discussion:
 
 For now, the important thing is:
 
+- COO-owned requirements gathering happens before the feature function starts
+- the COO hands the feature function a finalized requirement list
+- in the fuller company model, that finalized requirement list would first go through CTO queue/admission
+- in the current Phase 1 scope, CTO queue/admission is intentionally skipped
+- the first feature-function phase tries to freeze that requirement list or pushes back to the COO
 - every meaningful phase has its own workflow
 - every meaningful phase has a review gate
 - learning can be captured from both phase work and phase review failure
@@ -314,6 +332,13 @@ For the dedicated discussion model and a concrete example, see:
 ---
 
 ## Combined Requirements-Gathering Flow
+
+Important boundary note:
+
+- this combined requirements-gathering flow is COO-owned pre-function work
+- it produces the finalized requirement list handoff artifact
+- the feature function starts only after that handoff
+- the first feature-function phase then tries to reach a frozen requirement-list state or pushes back to the COO
 
 This is the current best combined flow when the ProjectBrain workflow, the seed requirement artifact, the referenced Claude/Codex discussions, and the current ADF discussion are read together.
 
@@ -941,6 +966,9 @@ If a contextless agent needs the current practical understanding in one block, u
 
 - Phase 1 is an implementation-focused startup.
 - Features are the first supported company function.
+- The COO owns requirements gathering before the feature function starts.
+- The feature function starts from the finalized requirement-list handoff.
+- The first feature-function phase is requirement-list review, which either freezes the requirement list or pushes back to the COO.
 - The feature path is governed phase-by-phase, with review between meaningful stages.
 - The COO starts from vague user intent and must extract goal, high-level requirements, expected results, and UI direction when relevant.
 - If UI is involved, mockups are part of alignment before later phases harden.

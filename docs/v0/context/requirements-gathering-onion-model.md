@@ -259,6 +259,14 @@ From the CEO point of view, the feature is now with the company and can leave th
 
 The onion model stops when the human-facing scope is clear and approved.
 
+From there:
+
+- the COO turns the approved scope into the technical requirement package
+- the COO output artifact is the **finalized requirement list**
+- that finalized requirement list is the handoff into the feature function
+- the feature function then tries to turn it into a **frozen requirement list**
+- if it cannot, the feature function pushes back to the COO
+
 After that, the COO moves into a different job:
 
 - translate approved scope into the formal requirement package

@@ -5,7 +5,7 @@
   "function_id": "feature",
   "name": "Feature Delivery",
   "phase_alignment": "Phase 1",
-  "summary": "Turn vague CEO feature requests into high-quality production implementation through a governed lifecycle with durable state, explicit handoffs, review, audit, and postmortem learning.",
+  "summary": "Turn a COO-finalized requirement list into high-quality production implementation through a governed lifecycle with durable state, explicit handoffs, review, audit, and postmortem learning.",
   "source_refs": [
     {
       "type": "adf_doc",
@@ -115,12 +115,12 @@
   },
   "mission": {
     "ceo_value": [
-      "take vague high-level feature demand",
-      "shape it into governed implementation authority",
+      "take a COO-finalized feature request",
+      "turn it into governed implementation authority",
       "deliver production-quality results",
       "preserve durable state so the CEO does not need to remember operational details"
     ],
-    "phase_1_goal": "Perfect governed execution of features from vague request to postmortem.",
+    "phase_1_goal": "Perfect governed execution of features from finalized requirement list to postmortem.",
     "not_now": [
       "finance-heavy company functions",
       "marketing-heavy company functions",
@@ -325,9 +325,20 @@
   },
   "lifecycle": {
     "lifecycle_id": "feature-lifecycle-v1-draft",
-    "entrypoint": "requirements-gathering",
+    "entrypoint": "finalized-requirement-list-handoff",
+    "entry_contract": {
+      "producer": "COO requirements-gathering lane",
+      "artifact": "finalized requirement list",
+      "producer_state": "finalized",
+      "future_queue_owner": "CTO",
+      "future_queue_note": "In the fuller company model, the COO passes the finalized requirement list to the CTO, who decides when the feature reaches its real starting point.",
+      "current_scope_queue_behavior": "skip_cto_queue_and_call_feature_entry_directly",
+      "first_feature_target_state": "frozen",
+      "failure_route": "pushback_to_coo",
+      "note": "The feature function starts only after COO handoff. It does not start from vague CEO input. The first feature-function phase tries to turn the finalized requirement list into a frozen requirement list."
+    },
     "default_phase_order": [
-      "requirements-gathering",
+      "requirement-list-review",
       "design",
       "planning",
       "setup-analysis",
@@ -336,56 +347,62 @@
       "postmortem"
     ],
     "phase_routing_rules": [
-      "Requirements always start from CEO-facing high-level intake.",
+      "The COO owns requirements gathering before the feature function starts.",
+      "In the fuller company model, the COO passes the finalized requirement list to the CTO, who decides when the feature reaches its starting point.",
+      "For the current scope, the CTO queue/admission layer is intentionally skipped and the feature function begins directly from a finalized requirement-list handoff.",
+      "The first feature-function phase tries to reach a frozen requirement-list state or pushes back to the COO.",
       "Design is required only when the feature crosses the design complexity gate.",
-      "Simple features may route directly from requirements to planning.",
+      "Simple features may route directly from requirement-list review to planning.",
       "Setup-analysis is required for substantial work or any work that benefits from explicit execution mapping.",
       "Implementation may start only after approved planning and setup-analysis, unless setup-analysis is explicitly waived.",
       "Postmortem completes the feature from the CEO point of view."
     ],
     "phases": [
       {
-        "phase_id": "requirements-gathering",
-        "owner": "COO",
-        "purpose": "Turn a vague CEO request into a frozen requirement package without losing business intent.",
+        "phase_id": "requirement-list-review",
+        "owner": "Feature Function / Requirements Review",
+        "purpose": "Take the COO-finalized requirement list, try to reach a frozen requirement-list state, or push back to the COO if it is not freeze-ready.",
+        "state_transition": {
+          "entry_state": "finalized",
+          "success_state": "frozen",
+          "failure_state": "pushback_to_coo"
+        },
         "entry_from": [
-          "CEO vague or high-level feature request"
+          "COO finalized requirement list handoff"
         ],
         "step_sequence": [
-          "high-level-definition",
-          "feature-frame-and-scope",
-          "readiness-check",
-          "feature-scope-freeze",
-          "requirement-package-and-cto-handoff"
+          "validate-finalized-requirement-list",
+          "requirement-list-self-check",
+          "governed-requirement-list-review",
+          "freeze-requirement-list-or-pushback",
+          "route-frozen-requirement-list"
         ],
         "exception_paths": [
-          "pushback-ceo-alert"
+          "pushback-to-coo"
         ],
         "gates": [
-          "UI Freeze Gate",
-          "Requirement Freeze Gate",
-          "Requirement Readiness Gate"
+          "Finalized Requirement List Entry Gate",
+          "Frozen Requirement List Gate"
         ],
         "review_required": true,
-        "ui_policy": "If UI is involved, mockup alignment happens here before freeze.",
         "outputs": [
-          "frozen requirement package",
-          "confirmed task identity",
-          "requirements closeout evidence",
-          "readiness-reviewed handoff bundle"
+          "frozen requirement list",
+          "requirement-list review evidence",
+          "pushback package to COO when freeze fails",
+          "design-or-planning handoff bundle"
         ],
         "handoff_to": [
           "design",
           "planning"
         ],
-        "ceo_checkpoint": "explicit_scope_freeze"
+        "ceo_checkpoint": "pushback_returns_through_coo"
       },
       {
         "phase_id": "design",
         "owner": "CTO / Design Function",
         "purpose": "Turn a frozen requirement package into an approved design contract when complexity requires design-first routing.",
         "entry_from": [
-          "requirements-gathering"
+          "requirement-list-review"
         ],
         "entry_condition": "design_complexity_gate_passed",
         "step_sequence": [
@@ -420,7 +437,7 @@
         "owner": "CTO / Planning Function",
         "purpose": "Turn requirements or approved design into execution authority that implementers can follow without guessing.",
         "entry_from": [
-          "requirements-gathering",
+          "requirement-list-review",
           "design"
         ],
         "step_sequence": [

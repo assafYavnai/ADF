@@ -14,6 +14,24 @@ Use it to check whether current work strengthens the actual mission or is drifti
 
 Build the first reliable ADF startup: a company that can take CEO demand, shape it, admit it to development intelligently, manage the queue, and deliver reviewed implementation with durable operational state.
 
+## Feature Function Boundary
+
+The COO owns requirements gathering as a pre-function shaping activity.
+
+That means:
+
+- the CEO works with the COO until the requirement list is **finalized**
+- the COO handoff artifact is the **finalized requirement list**
+- in the fuller company model, the COO passes that finalized requirement list to the CTO
+- the CTO decides when the feature actually enters the company queue and reaches its starting point
+- for the current Phase 1 scope, that CTO queue/admission layer is intentionally skipped
+- the feature function therefore starts directly from the finalized requirement-list handoff
+- the feature function does **not** start from vague CEO input
+- the first feature-function phase is requirement-list review
+- that first feature-function phase either:
+  - reaches a **frozen** requirement-list state
+  - or pushes back to the COO
+
 ## Phase 1 Terminology
 
 Phase 1 should use one simple hierarchy for company work:
