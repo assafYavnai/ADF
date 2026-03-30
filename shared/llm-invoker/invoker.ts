@@ -1,5 +1,6 @@
 import { readFile, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
+import { runManagedProcess } from "./managed-process.js";
 // Use Windows user temp, not MSYS2 /tmp which may not be accessible to child processes
 const TEMP_DIR = process.env.USERPROFILE
   ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp`
@@ -119,26 +120,17 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
     args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check");
 
     // Pass prompt via temp file loaded into shell variable (Codex stdin is unreliable on Windows)
-    const { spawn } = await import("node:child_process");
     const escapedPromptPath = promptFile.replace(/\\/g, "/");
     // Build the full shell command: read prompt from file, pass as last positional arg
     const codexArgs = args.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(" ");
     const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
 
-    await new Promise<void>((resolve, reject) => {
-      const proc = spawn("bash", ["-c", shellCmd], {
-        timeout: params.timeout_ms ?? 120_000,
-        env: { ...process.env },
-      });
-
-      let stderr = "";
-      proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
-
-      proc.on("close", (code: number | null) => {
-        if (code !== 0) reject(new Error(`codex failed (exit ${code}): ${stderr}`));
-        else resolve();
-      });
-      proc.on("error", (err: Error) => reject(new Error(`codex failed: ${err.message}`)));
+    await runManagedProcess({
+      command: "bash",
+      args: ["-c", shellCmd],
+      timeoutMs: params.timeout_ms ?? 120_000,
+      label: "codex",
+      env: { ...process.env },
     });
 
     const result = await readFile(tmpFile, "utf-8");
@@ -162,34 +154,16 @@ async function callClaude(params: InvocationParams): Promise<string> {
   args.push("--no-session-persistence");
 
   // Pipe prompt via stdin to avoid shell argument length limits
-  const { spawn } = await import("node:child_process");
-  return new Promise((resolve, reject) => {
-    const proc = spawn("claude", args, {
-      shell: true,   // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
-      timeout: params.timeout_ms ?? 120_000,
-      env: { ...process.env },
-    });
-
-    let stdout = "";
-    let stderr = "";
-
-    proc.stdout?.on("data", (data: Buffer) => { stdout += data.toString(); });
-    proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
-
-    proc.on("close", (code: number | null) => {
-      if (code !== 0) {
-        reject(new Error(`claude failed (exit ${code}): ${stderr}`));
-      } else {
-        resolve(stdout.trim());
-      }
-    });
-
-    proc.on("error", (err: Error) => reject(new Error(`claude failed: ${err.message}`)));
-
-    // Write prompt to stdin
-    proc.stdin?.write(params.prompt);
-    proc.stdin?.end();
+  const result = await runManagedProcess({
+    command: "claude",
+    args,
+    timeoutMs: params.timeout_ms ?? 120_000,
+    label: "claude",
+    env: { ...process.env },
+    shell: true, // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
+    stdinText: params.prompt,
   });
+  return result.stdout;
 }
 
 async function callGemini(params: InvocationParams): Promise<string> {
@@ -200,26 +174,14 @@ async function callGemini(params: InvocationParams): Promise<string> {
   }
 
   // Pipe prompt via stdin to avoid shell injection (B-1 fix)
-  const { spawn } = await import("node:child_process");
-  return new Promise((resolve, reject) => {
-    const proc = spawn("gemini", args, {
-      shell: true,   // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
-      timeout: params.timeout_ms ?? 120_000,
-      env: { ...process.env },
-    });
-
-    let stdout = "";
-    let stderr = "";
-    proc.stdout?.on("data", (data: Buffer) => { stdout += data.toString(); });
-    proc.stderr?.on("data", (data: Buffer) => { stderr += data.toString(); });
-
-    proc.on("close", (code: number | null) => {
-      if (code !== 0) reject(new Error(`gemini failed (exit ${code}): ${stderr}`));
-      else resolve(stdout.trim());
-    });
-    proc.on("error", (err: Error) => reject(new Error(`gemini failed: ${err.message}`)));
-
-    proc.stdin?.write(params.prompt);
-    proc.stdin?.end();
+  const result = await runManagedProcess({
+    command: "gemini",
+    args,
+    timeoutMs: params.timeout_ms ?? 120_000,
+    label: "gemini",
+    env: { ...process.env },
+    shell: true, // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
+    stdinText: params.prompt,
   });
+  return result.stdout;
 }

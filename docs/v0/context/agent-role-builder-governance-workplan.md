@@ -274,6 +274,26 @@ Narrow follow-up freeze for the next implementation slice:
      - initial-rule-sweep-complete
      - round-0-started
 
+Implementation note:
+
+1. `shared/llm-invoker` now runs provider CLIs through one managed-process path instead of relying on `spawn(..., { timeout })`
+2. the managed path now:
+   - tracks active provider process-tree roots
+   - kills timed-out trees explicitly
+   - kills tracked trees on process termination signals before exit
+3. the board now writes extra telemetry checkpoints for:
+   - `initial-rule-sweep-started`
+   - `initial-rule-sweep-complete`
+4. this narrows the next rerun question:
+   - if the bounded run still stalls, the telemetry gap will now show whether the stall is inside the initial sweep or later
+
+Validation for this slice:
+
+1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test shared/llm-invoker/managed-process.test.ts`
+2. `node --import tsx --test src/services/run-telemetry.test.ts src/services/board.artifact-refs.test.ts` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+3. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared)
+4. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+
 ### V2C Minimal Telemetry Baseline
 
 Status:
@@ -689,11 +709,9 @@ Execution note:
 
 Do the next work in this order:
 
-1. isolate the hang between `governance-ready` and the first round-start checkpoint from `V2B`
-2. make bounded-run timeout/teardown propagate cleanly to spawned subprocesses
-3. implement `V3D` shared invocation-session resume
-4. perform the one-time manual recovery pass for older missing session UUIDs, if needed
-5. rerun bounded `ARB` validation
+1. implement `V3D` shared invocation-session resume
+2. perform the one-time manual recovery pass for older missing session UUIDs, if needed
+3. rerun bounded `ARB` validation
 
 ## Explicit Non-Goals Right Now
 

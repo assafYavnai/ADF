@@ -442,6 +442,25 @@ Frozen next implementation slice:
    - no broader invoker redesign
    - no change to review/learning semantics
 
+Implemented timeout/teardown slice:
+
+1. `shared/llm-invoker` now uses one managed-process path that:
+   - tracks live provider process-tree roots
+   - kills timed-out trees explicitly
+   - kills tracked trees on process termination signals before exit
+2. `tools/agent-role-builder/src/services/board.ts` now writes:
+   - `initial-rule-sweep-started`
+   - `initial-rule-sweep-complete`
+   before the existing `round-0-started` checkpoint
+3. this does not yet prove bounded-run closeout, but it removes the previous blind spot where a timeout could leave provider subprocesses behind without a narrower phase marker
+
+Focused validation:
+
+1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test shared/llm-invoker/managed-process.test.ts`
+2. `node --import tsx --test src/services/run-telemetry.test.ts src/services/board.artifact-refs.test.ts` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+3. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared)
+4. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+
 ## Planned Shared Invocation-Session Resume Slice
 
 Status: frozen as the last implementation step before the next bounded `ARB` rerun

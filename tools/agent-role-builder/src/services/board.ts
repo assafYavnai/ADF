@@ -253,6 +253,23 @@ export async function executeBoard(
   let pendingComplianceMap: ComplianceEntry[] = [];
   let pendingFixItemsMap: FixItem[] | undefined;
   try {
+    if (ctx.runDir) {
+      await writeRunTelemetry({
+        request,
+        runDir: ctx.runDir,
+        startedAtMs: ctx.telemetryStartedAtMs,
+        startedAtIso: ctx.telemetryStartedAtIso,
+        currentPhase: "initial-rule-sweep-started",
+        roundsAttempted: 0,
+        roundsCompleted: 0,
+        participants: allParticipants,
+        governanceBinding: {
+          snapshot_id: ctx.governanceContext.snapshot_id,
+          snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
+        },
+        runPostmortemPath: join(ctx.runDir, "run-postmortem.json").replace(/\\/g, "/"),
+      });
+    }
     const initialSweep = await performInitialRuleSweep(
       request,
       currentMarkdown,
@@ -264,6 +281,23 @@ export async function executeBoard(
     currentMarkdown = initialSweep.markdown;
     pendingComplianceMap = initialSweep.complianceMap as ComplianceEntry[];
     currentSelfCheckIssues = selfCheck(currentMarkdown, request);
+    if (ctx.runDir) {
+      await writeRunTelemetry({
+        request,
+        runDir: ctx.runDir,
+        startedAtMs: ctx.telemetryStartedAtMs,
+        startedAtIso: ctx.telemetryStartedAtIso,
+        currentPhase: "initial-rule-sweep-complete",
+        roundsAttempted: 0,
+        roundsCompleted: 0,
+        participants: allParticipants,
+        governanceBinding: {
+          snapshot_id: ctx.governanceContext.snapshot_id,
+          snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
+        },
+        runPostmortemPath: join(ctx.runDir, "run-postmortem.json").replace(/\\/g, "/"),
+      });
+    }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     await writeBugReport({
