@@ -115,6 +115,16 @@ Acceptance target:
 
 - revision no longer fails because the copied invoker reverted to stdin or otherwise diverged from the canonical fixed path
 
+Execution note:
+
+- `V2A` is implementation-ready from the CEO perspective and does not require new input
+- current live evidence shows the active `agent-role-builder` path still imports `invoke` from the copied [shared-imports.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.ts)
+- that copied file still uses Codex stdin prompt delivery, while the canonical [invoker.ts](C:/ADF/shared/llm-invoker/invoker.ts) uses temp-file prompt delivery
+- this step is therefore frozen to:
+  1. patch the live copied invoker path so it matches the canonical Codex delivery behavior
+  2. add one regression guard that will fail if the copied Codex implementation falls out of sync again
+  3. keep provider fallback, resume carry-forward, and broader module-boundary redesign out of scope
+
 ### V2B Bounded ARB Validation
 
 Purpose:
