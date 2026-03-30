@@ -115,7 +115,7 @@ Goal:
 
 Status:
 
-- next active implementation slice
+- implemented on current `main`
 
 Required KPI families:
 
@@ -145,11 +145,50 @@ Acceptance:
 - what the major bottlenecks were
 - whether the artifact was worth the effort
 
+Delivered in this step:
+
+- explicit LLM-attempt telemetry is now emitted for:
+  - board reviewer and leader calls
+  - `self-learning-engine`
+  - `rules-compliance-enforcer`
+- telemetry now tracks:
+  - llm call count
+  - llm failures
+  - estimated tokens in/out
+  - estimated cost
+  - session status counts (`none`, `fresh`, `resumed`, `replaced`)
+  - session latency by status
+  - provider failures
+- engine-level KPI summaries now exist for:
+  - `board-review`
+  - `self-learning-engine`
+  - `rules-compliance-enforcer`
+- rule-lifecycle-oriented metrics now aggregate:
+  - rules checked
+  - non-compliant rule hits
+  - learning coverage hits
+  - new rule proposals
+- cycle postmortem now records:
+  - major bottleneck engine
+  - phase durations from `runtime/run-history.jsonl`
+  - artifact quality score
+  - cost-per-quality and latency-per-quality summaries
+- zero-round reviewer reuse savings no longer fabricate reuse on blocked runs
+
+Important note:
+
+- token and cost reporting are now explicit heuristic estimates, not provider billing truth
+- live validation of these KPI surfaces is deferred to run 19 / 20
+
 ### Step 3. `self-repair-engine` V1
 
 Goal:
 
 - add the first explicit self-healing engine for runtime incidents
+
+Status:
+
+- next active implementation slice
 
 Name:
 

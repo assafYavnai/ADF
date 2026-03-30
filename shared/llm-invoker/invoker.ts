@@ -15,11 +15,64 @@ const TEMP_DIR = process.env.USERPROFILE
 import { randomUUID } from "node:crypto";
 import { createLLMProvenance } from "../provenance/types.js";
 import type {
+  InvocationAttempt,
+  InvocationAttemptSessionStatus,
   InvocationParams,
   InvocationResult,
   InvocationSessionHandle,
   InvocationSessionResult,
+  InvocationUsageEstimate,
 } from "./types.js";
+
+const CHARS_PER_ESTIMATED_TOKEN = 4;
+
+const MODEL_COST_ESTIMATES: Array<{
+  provider: "codex" | "claude" | "gemini";
+  match: RegExp;
+  input_per_1k_usd: number;
+  output_per_1k_usd: number;
+  basis: string;
+}> = [
+  {
+    provider: "codex",
+    match: /gpt-5\.4/i,
+    input_per_1k_usd: 0.005,
+    output_per_1k_usd: 0.015,
+    basis: "configured_model_rate_v1",
+  },
+  {
+    provider: "claude",
+    match: /sonnet/i,
+    input_per_1k_usd: 0.003,
+    output_per_1k_usd: 0.015,
+    basis: "configured_model_rate_v1",
+  },
+  {
+    provider: "gemini",
+    match: /gemini/i,
+    input_per_1k_usd: 0.0015,
+    output_per_1k_usd: 0.006,
+    basis: "configured_model_rate_v1",
+  },
+];
+
+class InvocationFailureError extends Error {
+  readonly attempts: InvocationAttempt[];
+
+  constructor(message: string, attempts: InvocationAttempt[]) {
+    super(message);
+    this.name = "InvocationFailureError";
+    this.attempts = attempts;
+  }
+}
+
+interface InternalCLIAttempt {
+  latency_ms: number;
+  success: boolean;
+  session_status: InvocationAttemptSessionStatus;
+  response_text?: string;
+  error_message?: string;
+}
 
 /**
  * Generic LLM CLI Invoker.
@@ -31,27 +84,54 @@ import type {
  */
 export async function invoke(params: InvocationParams): Promise<InvocationResult> {
   const invocationId = randomUUID();
-  const start = Date.now();
+  const primaryStart = Date.now();
 
   try {
     const cliResult = await callCLI(params, invocationId);
-    const latency_ms = Date.now() - start;
+    const attempts = cliResult.attempts.map((attempt) =>
+      buildInvocationAttempt({
+        invocationId,
+        provider: params.cli,
+        model: params.model,
+        reasoning: params.reasoning ?? params.effort ?? "default",
+        wasFallback: false,
+        sourcePath: params.source_path,
+        prompt: params.prompt,
+        attempt,
+      })
+    );
+    const finalAttempt = attempts[attempts.length - 1];
+    if (!finalAttempt) {
+      throw new Error("LLM invocation completed without any recorded attempt");
+    }
 
     return {
-      provenance: createLLMProvenance(
-        invocationId,
-        params.cli,
-        params.model,
-        params.reasoning ?? params.effort ?? "default",
-        false,
-        params.source_path
-      ),
+      provenance: finalAttempt.provenance,
       response: cliResult.response,
-      latency_ms,
+      latency_ms: attempts.reduce((sum, attempt) => sum + attempt.latency_ms, 0),
       session: cliResult.session,
+      usage: finalAttempt.usage,
+      attempts,
     };
   } catch (primaryErr) {
-    if (!params.fallback) throw primaryErr;
+    const primaryAttempts = extractInvocationAttempts(primaryErr);
+    if (!params.fallback) {
+      throw wrapInvocationFailure(
+        primaryErr,
+        primaryAttempts.length > 0
+          ? primaryAttempts
+          : [buildFailedInvocationAttempt({
+              invocationId,
+              provider: params.cli,
+              model: params.model,
+              reasoning: params.reasoning ?? params.effort ?? "default",
+              wasFallback: false,
+              sourcePath: params.source_path,
+              sessionStatus: inferRequestedSessionStatus(params),
+              latencyMs: Date.now() - primaryStart,
+            }, primaryErr)],
+      );
+    }
 
     const fallbackId = randomUUID();
     const fallbackStart = Date.now();
@@ -69,30 +149,174 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
       };
 
       const cliResult = await callCLI(fallbackParams, fallbackId);
-      const latency_ms = Date.now() - fallbackStart;
+      const fallbackAttempts = cliResult.attempts.map((attempt) =>
+        buildInvocationAttempt({
+          invocationId: fallbackId,
+          provider: params.fallback!.cli,
+          model: params.fallback!.model,
+          reasoning: params.fallback!.reasoning ?? params.fallback!.effort ?? "default",
+          wasFallback: true,
+          sourcePath: params.source_path,
+          prompt: params.prompt,
+          attempt,
+        })
+      );
+      const attempts = [...primaryAttempts, ...fallbackAttempts];
+      const finalAttempt = attempts[attempts.length - 1];
+      if (!finalAttempt) {
+        throw new Error("Fallback LLM invocation completed without any recorded attempt");
+      }
 
       return {
-        provenance: createLLMProvenance(
-          fallbackId,
-          params.fallback.cli,
-          params.fallback.model,
-          params.fallback.reasoning ?? params.fallback.effort ?? "default",
-          true,
-          params.source_path
-        ),
+        provenance: finalAttempt.provenance,
         response: cliResult.response,
-        latency_ms,
+        latency_ms: attempts.reduce((sum, attempt) => sum + attempt.latency_ms, 0),
         session: cliResult.session,
+        usage: finalAttempt.usage,
+        attempts,
       };
     } catch (fallbackErr) {
       const primaryMsg = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
       const fallbackMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
-      throw new Error(
+      const fallbackAttempts = extractInvocationAttempts(fallbackErr);
+      throw new InvocationFailureError(
         `Both primary (${params.cli}/${params.model}) and fallback (${params.fallback.cli}/${params.fallback.model}) failed.\n` +
-          `Primary: ${primaryMsg}\nFallback: ${fallbackMsg}`
+          `Primary: ${primaryMsg}\nFallback: ${fallbackMsg}`,
+        [
+          ...primaryAttempts,
+          ...(fallbackAttempts.length > 0
+            ? fallbackAttempts
+            : [buildFailedInvocationAttempt({
+                invocationId: fallbackId,
+                provider: params.fallback.cli,
+                model: params.fallback.model,
+                reasoning: params.fallback.reasoning ?? params.fallback.effort ?? "default",
+                wasFallback: true,
+                sourcePath: params.source_path,
+                sessionStatus: inferRequestedSessionStatus({
+                  ...params,
+                  cli: params.fallback.cli,
+                  model: params.fallback.model,
+                  reasoning: params.fallback.reasoning,
+                  effort: params.fallback.effort,
+                  session: undefined,
+                }),
+                latencyMs: Date.now() - fallbackStart,
+              }, fallbackErr)]),
+        ]
       );
     }
   }
+}
+
+function inferRequestedSessionStatus(params: InvocationParams): InvocationAttemptSessionStatus {
+  if (!params.session?.persist) {
+    return "none";
+  }
+  return params.session.handle ? "resumed" : "fresh";
+}
+
+function buildInvocationAttempt(params: {
+  invocationId: string;
+  provider: "codex" | "claude" | "gemini";
+  model: string;
+  reasoning: string;
+  wasFallback: boolean;
+  sourcePath: string;
+  prompt: string;
+  attempt: InternalCLIAttempt;
+}): InvocationAttempt {
+  return {
+    provenance: createLLMProvenance(
+      params.invocationId,
+      params.provider,
+      params.model,
+      params.reasoning,
+      params.wasFallback,
+      params.sourcePath
+    ),
+    latency_ms: params.attempt.latency_ms,
+    success: params.attempt.success,
+    session_status: params.attempt.session_status,
+    error_message: params.attempt.error_message,
+    usage: params.attempt.success && params.attempt.response_text !== undefined
+      ? estimateInvocationUsage(params.provider, params.model, params.prompt, params.attempt.response_text)
+      : undefined,
+  };
+}
+
+function buildFailedInvocationAttempt(
+  params: {
+    invocationId: string;
+    provider: "codex" | "claude" | "gemini";
+    model: string;
+    reasoning: string;
+    wasFallback: boolean;
+    sourcePath: string;
+    sessionStatus: InvocationAttemptSessionStatus;
+    latencyMs: number;
+  },
+  error: unknown
+): InvocationAttempt {
+  return {
+    provenance: createLLMProvenance(
+      params.invocationId,
+      params.provider,
+      params.model,
+      params.reasoning,
+      params.wasFallback,
+      params.sourcePath
+    ),
+    latency_ms: params.latencyMs,
+    success: false,
+    session_status: params.sessionStatus,
+    error_message: error instanceof Error ? error.message : String(error),
+  };
+}
+
+function extractInvocationAttempts(error: unknown): InvocationAttempt[] {
+  if (
+    error
+    && typeof error === "object"
+    && "attempts" in error
+    && Array.isArray((error as { attempts?: unknown[] }).attempts)
+  ) {
+    return (error as { attempts: InvocationAttempt[] }).attempts;
+  }
+  return [];
+}
+
+function wrapInvocationFailure(error: unknown, attempts: InvocationAttempt[]): InvocationFailureError {
+  if (error instanceof InvocationFailureError) {
+    return error;
+  }
+  return new InvocationFailureError(error instanceof Error ? error.message : String(error), attempts);
+}
+
+function estimateInvocationUsage(
+  provider: "codex" | "claude" | "gemini",
+  model: string,
+  prompt: string,
+  response: string
+): InvocationUsageEstimate {
+  const promptChars = prompt.length;
+  const responseChars = response.length;
+  const tokensIn = Math.max(1, Math.ceil(promptChars / CHARS_PER_ESTIMATED_TOKEN));
+  const tokensOut = Math.max(1, Math.ceil(responseChars / CHARS_PER_ESTIMATED_TOKEN));
+  const matchedRate = MODEL_COST_ESTIMATES.find((entry) => entry.provider === provider && entry.match.test(model));
+  const estimatedCostUsd = matchedRate
+    ? Number((((tokensIn / 1000) * matchedRate.input_per_1k_usd) + ((tokensOut / 1000) * matchedRate.output_per_1k_usd)).toFixed(6))
+    : undefined;
+
+  return {
+    prompt_chars: promptChars,
+    response_chars: responseChars,
+    tokens_in_estimated: tokensIn,
+    tokens_out_estimated: tokensOut,
+    estimated_cost_usd: estimatedCostUsd,
+    token_estimation_basis: "char_heuristic_v1",
+    cost_estimation_basis: matchedRate?.basis,
+  };
 }
 
 // --- CLI-specific dispatch ---
@@ -100,6 +324,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
 interface CLIResult {
   response: string;
   session: InvocationSessionResult | null;
+  attempts: InternalCLIAttempt[];
 }
 
 async function callCLI(params: InvocationParams, invocationId: string): Promise<CLIResult> {
@@ -107,7 +332,7 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
     case "codex":
       return callCodex(params, invocationId);
     case "claude":
-      return callClaude(params);
+      return callClaude(params, invocationId);
     case "gemini":
       return callGemini(params);
     default:
@@ -126,31 +351,82 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
 
     const sessionRequest = params.session;
     const sessionHandle = selectCompatibleSessionHandle(sessionRequest?.handle, "codex", params.model);
+    const attempts: InternalCLIAttempt[] = [];
     let codexResult: CLIResult | null = null;
 
     if (sessionRequest?.persist && sessionHandle) {
+      const resumedStart = Date.now();
       try {
         codexResult = await runCodexWithSession(params, promptFile, tmpFile, "resumed", sessionHandle);
+        attempts.push({
+          latency_ms: Date.now() - resumedStart,
+          success: true,
+          session_status: "resumed",
+          response_text: codexResult.response,
+        });
       } catch (error) {
+        attempts.push({
+          latency_ms: Date.now() - resumedStart,
+          success: false,
+          session_status: "resumed",
+          error_message: error instanceof Error ? error.message : String(error),
+        });
         if (!shouldRetryWithFreshSession("codex", error)) {
-          throw error;
+          throw new InvocationFailureError(
+            error instanceof Error ? error.message : String(error),
+            attempts.map((attempt) => buildInvocationAttempt({
+              invocationId,
+              provider: "codex",
+              model: params.model,
+              reasoning: params.reasoning ?? params.effort ?? "default",
+              wasFallback: false,
+              sourcePath: params.source_path,
+              prompt: params.prompt,
+              attempt,
+            }))
+          );
         }
+        const replacedStart = Date.now();
         codexResult = await runCodexWithSession(params, promptFile, tmpFile, "replaced");
+        attempts.push({
+          latency_ms: Date.now() - replacedStart,
+          success: true,
+          session_status: "replaced",
+          response_text: codexResult.response,
+        });
       }
     } else if (sessionRequest?.persist) {
+      const freshStart = Date.now();
       codexResult = await runCodexWithSession(params, promptFile, tmpFile, "fresh");
+      attempts.push({
+        latency_ms: Date.now() - freshStart,
+        success: true,
+        session_status: "fresh",
+        response_text: codexResult.response,
+      });
     } else {
+      const noSessionStart = Date.now();
       codexResult = await runCodexWithoutSession(params, promptFile, tmpFile);
+      attempts.push({
+        latency_ms: Date.now() - noSessionStart,
+        success: true,
+        session_status: "none",
+        response_text: codexResult.response,
+      });
     }
 
-    return codexResult;
+    return {
+      response: codexResult.response,
+      session: codexResult.session,
+      attempts,
+    };
   } finally {
     await unlink(tmpFile).catch(() => {});
     await unlink(promptFile).catch(() => {});
   }
 }
 
-async function callClaude(params: InvocationParams): Promise<CLIResult> {
+async function callClaude(params: InvocationParams, invocationId: string): Promise<CLIResult> {
   const args = ["--print", "--model", params.model];
 
   if (params.effort) {
@@ -164,22 +440,75 @@ async function callClaude(params: InvocationParams): Promise<CLIResult> {
   const sessionHandle = selectCompatibleSessionHandle(sessionRequest?.handle, "claude", params.model);
 
   if (sessionRequest?.persist && sessionHandle) {
+    const resumedStart = Date.now();
     try {
-      return await runClaudeWithSession(params, args, "resumed", sessionHandle);
+      const resumedResult = await runClaudeWithSession(params, args, "resumed", sessionHandle);
+      return {
+        response: resumedResult.response,
+        session: resumedResult.session,
+        attempts: [{
+          latency_ms: Date.now() - resumedStart,
+          success: true,
+          session_status: "resumed",
+          response_text: resumedResult.response,
+        }],
+      };
     } catch (error) {
+      const attempts: InternalCLIAttempt[] = [{
+        latency_ms: Date.now() - resumedStart,
+        success: false,
+        session_status: "resumed",
+        error_message: error instanceof Error ? error.message : String(error),
+      }];
       if (!shouldRetryWithFreshSession("claude", error)) {
-        throw error;
+        throw new InvocationFailureError(
+          error instanceof Error ? error.message : String(error),
+          attempts.map((attempt) => buildInvocationAttempt({
+            invocationId,
+            provider: "claude",
+            model: params.model,
+            reasoning: params.reasoning ?? params.effort ?? "default",
+            wasFallback: false,
+            sourcePath: params.source_path,
+            prompt: params.prompt,
+            attempt,
+          }))
+        );
       }
-      return await runClaudeWithSession(params, args, "replaced");
+      const replacedStart = Date.now();
+      const replacedResult = await runClaudeWithSession(params, args, "replaced");
+      attempts.push({
+        latency_ms: Date.now() - replacedStart,
+        success: true,
+        session_status: "replaced",
+        response_text: replacedResult.response,
+      });
+      return {
+        response: replacedResult.response,
+        session: replacedResult.session,
+        attempts,
+      };
     }
   }
 
   if (sessionRequest?.persist) {
-    return await runClaudeWithSession(params, args, "fresh");
+    const freshStart = Date.now();
+    const freshResult = await runClaudeWithSession(params, args, "fresh");
+    return {
+      response: freshResult.response,
+      session: freshResult.session,
+      attempts: [{
+        latency_ms: Date.now() - freshStart,
+        success: true,
+        session_status: "fresh",
+        response_text: freshResult.response,
+      }],
+    };
   }
 
   args.push("--no-session-persistence");
 
+  const noSessionStart = Date.now();
   const result = await runManagedProcess({
     command: "claude",
     args,
@@ -192,6 +521,12 @@ async function callClaude(params: InvocationParams): Promise<CLIResult> {
   return {
     response: result.stdout,
     session: null,
+    attempts: [{
+      latency_ms: Date.now() - noSessionStart,
+      success: true,
+      session_status: "none",
+      response_text: result.stdout,
+    }],
   };
 }
 
@@ -203,6 +538,7 @@ async function callGemini(params: InvocationParams): Promise<CLIResult> {
   }
 
   // Pipe prompt via stdin to avoid shell injection (B-1 fix)
+  const noSessionStart = Date.now();
   const result = await runManagedProcess({
     command: "gemini",
     args,
@@ -215,6 +551,12 @@ async function callGemini(params: InvocationParams): Promise<CLIResult> {
   return {
     response: result.stdout,
     session: null,
+    attempts: [{
+      latency_ms: Date.now() - noSessionStart,
+      success: true,
+      session_status: "none",
+      response_text: result.stdout,
+    }],
   };
 }
 
@@ -231,6 +573,7 @@ async function runCodexWithoutSession(
   return {
     response: result.trim(),
     session: null,
+    attempts: [],
   };
 }
 
@@ -260,6 +603,7 @@ async function runCodexWithSession(
       },
       mode
     ),
+    attempts: [],
   };
 }
 
@@ -350,6 +694,7 @@ async function runClaudeWithSession(
       },
       mode
     ),
+    attempts: [],
   };
 }
 

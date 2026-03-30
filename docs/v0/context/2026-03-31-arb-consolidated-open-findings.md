@@ -140,27 +140,29 @@ Resolution:
 
 Status:
 
-- open
+- implemented in Step 2, live validation pending
 
-Problem:
+Resolution:
 
-- current telemetry still underreports or zeros out:
-  - `llm_call_count`
-  - `provider_failures`
-  - `reviewer_success_count`
-  - `reviewer_error_count`
-  - token usage
-  - cost
-- zero-round blocked runs can also fabricate reviewer reuse savings
+- explicit llm-attempt telemetry now exists for board review, `self-learning-engine`, and `rules-compliance-enforcer`
+- telemetry now aggregates:
+  - llm call counts and failures
+  - provider failures
+  - reviewer success/error counts
+  - estimated token in/out
+  - estimated cost
+  - session reuse economics
+  - per-engine latency and failure summaries
+- zero-round blocked runs no longer fabricate reviewer reuse savings
 
 Run 018 evidence:
 
 - [run-telemetry.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-self-role-018/runtime/run-telemetry.json)
 - [cycle-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-self-role-018/cycle-postmortem.json)
 
-Impact:
+Remaining gap:
 
-- the lane cannot yet answer the CEO's real questions about cost, bottlenecks, session economics, or whether the output was worth the effort
+- run 19 / 20 still needs to validate that these KPI surfaces are truthful under a fresh live run
 
 ### 9. Run 018 exposed value, but not enough learning-cycle proof
 
@@ -180,7 +182,7 @@ What run 018 did not prove:
 - quality of newly learned rules
 - future-run promotion quality, because all three learning artifacts had `new_rules: []`
 - rules cleanup / retirement behavior
-- truthful KPI coverage
+- live KPI coverage on the new telemetry baseline
 
 ### 11. A true runtime self-heal path still does not exist
 
@@ -233,19 +235,19 @@ Required safety model:
 
 Status:
 
-- open
+- implemented in Step 2, live validation pending
 
-Problem:
+Resolution:
 
-- the lane can now run
-- but it still does not produce a stable answer to:
-  - was the output worth the time, tokens, and operational complexity
+- cycle postmortem now writes:
+  - artifact quality score
+  - quality band
+  - cost-per-quality summary
+  - latency-per-quality summary
 
-Needed:
+Remaining gap:
 
-- end-of-run artifact quality scoring
-- cost-versus-value comparison
-- comparison against prior baseline runs
+- the first meaningful comparison is still deferred to the run 19 / 20 sanity pass and the later replay of run 01 on current code
 
 ## Frozen Discussion Decisions
 

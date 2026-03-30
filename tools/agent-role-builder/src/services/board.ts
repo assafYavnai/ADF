@@ -5,6 +5,7 @@ import type { ParticipantRecord, RoleBuilderStatus, ValidationIssue } from "../s
 import { selfCheck } from "./validator.js";
 import { stripUtf8Bom } from "./json-ingress.js";
 import { performInitialRuleSweep, reviseRoleMarkdown } from "./role-generator.js";
+import { emitInvocationFailureTelemetry, emitInvocationResultTelemetry } from "./llm-telemetry.js";
 import { writeRunTelemetry } from "./run-telemetry.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseSensitive } from "./audit-utils.js";
 import { buildLeaderSlotKey, updateSessionRegistrySlot } from "./session-registry.js";
@@ -517,38 +518,108 @@ export async function executeBoard(
     {
       try {
         const { extractRules } = await loadSharedSelfLearningEngineModule();
+        const learningStart = Date.now();
         let learningOutput = { new_rules: [] as unknown[], existing_rules_covering: [] as unknown[], no_rule_needed: [] as unknown[] };
-        if (reviewChecklist.length > 0) {
-          learningOutput = await extractRules(
-            {
-              component: "agent-role-builder",
+        try {
+          if (reviewChecklist.length > 0) {
+            learningOutput = await extractRules(
+              {
+                component: "agent-role-builder",
+                round,
+                review_findings: reviewChecklist.map((finding) => ({
+                  group_id: finding.groupId,
+                  summary: finding.summary,
+                  severity: normalizeLearningSeverity(finding.severity),
+                  redesign_guidance: finding.redesignGuidance,
+                  finding_count: finding.findingCount,
+                })),
+                current_rulebook: currentRulebook,
+                review_prompt_domain: ctx.reviewConfig?.componentPrompt.domain ?? "design",
+                review_prompt_path: governanceContext.component_review_prompt_path,
+                review_contract_path: governanceContext.component_contract_path,
+                unresolved_from_leader: roundResult.unresolved,
+              },
+              async (prompt: string, sourcePath: string) => {
+                try {
+                  const learningResult = await invoke({
+                    cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+                    model: request.board_roster.leader.model,
+                    reasoning: "high",
+                    bypass: false,
+                    timeout_ms: 120_000,
+                    prompt,
+                    source_path: sourcePath,
+                  });
+                  emitInvocationResultTelemetry(learningResult, {
+                    engine: "self-learning-engine",
+                    stage: "extract-rules",
+                    round,
+                    metadata: {
+                      provider: request.board_roster.leader.provider,
+                      model: request.board_roster.leader.model,
+                    },
+                  });
+                  return learningResult.response;
+                } catch (error) {
+                  emitInvocationFailureTelemetry(error, {
+                    engine: "self-learning-engine",
+                    stage: "extract-rules",
+                    round,
+                    metadata: {
+                      provider: request.board_roster.leader.provider,
+                      model: request.board_roster.leader.model,
+                    },
+                  }, {
+                    provider: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+                    model: request.board_roster.leader.model,
+                    reasoning: "high",
+                    sourcePath,
+                    errorMessage: error instanceof Error ? error.message : String(error),
+                  });
+                  throw error;
+                }
+              }
+            );
+          }
+
+          emit({
+            provenance: createSystemProvenance("tools/agent-role-builder/board/self-learning"),
+            category: "tool",
+            operation: "self-learning-engine",
+            latency_ms: Date.now() - learningStart,
+            success: true,
+            metadata: {
+              engine: "self-learning-engine",
+              stage: "extract-rules",
               round,
-              review_findings: reviewChecklist.map((finding) => ({
-                group_id: finding.groupId,
-                summary: finding.summary,
-                severity: normalizeLearningSeverity(finding.severity),
-                redesign_guidance: finding.redesignGuidance,
-                finding_count: finding.findingCount,
-              })),
-              current_rulebook: currentRulebook,
-              review_prompt_domain: ctx.reviewConfig?.componentPrompt.domain ?? "design",
-              review_prompt_path: governanceContext.component_review_prompt_path,
-              review_contract_path: governanceContext.component_contract_path,
-              unresolved_from_leader: roundResult.unresolved,
+              review_finding_count: reviewChecklist.length,
+              new_rule_count: learningOutput.new_rules.length,
+              new_rule_ids: learningOutput.new_rules
+                .map((rule) => (rule && typeof rule === "object" ? (rule as { id?: unknown }).id : undefined))
+                .filter((ruleId): ruleId is string => typeof ruleId === "string"),
+              existing_rule_cover_count: learningOutput.existing_rules_covering.length,
+              covered_rule_ids: learningOutput.existing_rules_covering
+                .map((entry) => (entry && typeof entry === "object" ? (entry as { covered_by_rule_id?: unknown }).covered_by_rule_id : undefined))
+                .filter((ruleId): ruleId is string => typeof ruleId === "string"),
+              no_rule_needed_count: learningOutput.no_rule_needed.length,
             },
-            async (prompt: string, sourcePath: string) => {
-              const learningResult = await invoke({
-                cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
-                model: request.board_roster.leader.model,
-                reasoning: "high",
-                bypass: false,
-                timeout_ms: 120_000,
-                prompt,
-                source_path: sourcePath,
-              });
-              return learningResult.response;
-            }
-          );
+          });
+        } catch (error) {
+          emit({
+            provenance: createSystemProvenance("tools/agent-role-builder/board/self-learning"),
+            category: "tool",
+            operation: "self-learning-engine",
+            latency_ms: Date.now() - learningStart,
+            success: false,
+            metadata: {
+              engine: "self-learning-engine",
+              stage: "extract-rules",
+              round,
+              review_finding_count: reviewChecklist.length,
+              error: error instanceof Error ? error.message : String(error),
+            },
+          });
+          throw error;
         }
 
         if (roundDir) {
@@ -1197,6 +1268,19 @@ async function executeParticipant(
           }
         : undefined,
     });
+    emitInvocationResultTelemetry(result, {
+      engine: "board-review",
+      stage: role,
+      role,
+      round,
+      reviewMode,
+      slotKey: participantKey,
+      metadata: {
+        participant_id: participantId,
+        provider: participant.provider,
+        model: participant.model,
+      },
+    });
     if (participantKey && ctx?.sessionRegistryPath && result.session) {
       await updateSessionRegistrySlot({
         sessionRegistryPath: ctx.sessionRegistryPath,
@@ -1211,7 +1295,14 @@ async function executeParticipant(
     emit({ provenance: result.provenance, category: "tool",
       operation: `role-builder-${role}`, latency_ms, success: true,
       board_rounds: round + 1, participants: 1,
-      metadata: { review_mode: reviewMode, was_fallback: result.provenance.was_fallback } });
+      metadata: {
+        engine: "board-review",
+        stage: role,
+        round,
+        review_mode: reviewMode,
+        was_fallback: result.provenance.was_fallback,
+        session_status: result.session?.status ?? "none",
+      } });
     return { participant_id: participantId, provider: participant.provider,
       model: participant.model, role, verdict: result.response,
       round, latency_ms, invocation_id: result.provenance.invocation_id,
@@ -1219,9 +1310,31 @@ async function executeParticipant(
   } catch (err) {
     const latency_ms = Date.now() - start;
     const errorMsg = err instanceof Error ? err.message : String(err);
+    emitInvocationFailureTelemetry(err, {
+      engine: "board-review",
+      stage: role,
+      role,
+      round,
+      reviewMode,
+      slotKey: participantKey,
+      metadata: {
+        participant_id: participantId,
+        provider: participant.provider,
+        model: participant.model,
+      },
+    }, {
+      provider: participant.provider as "codex" | "claude" | "gemini",
+      model: participant.model,
+      reasoning: participant.throttle ?? "default",
+      sourcePath,
+      sessionStatus: participantKey
+        ? (ctx?.sessionHandles.get(participantKey) ? "resumed" : "fresh")
+        : "none",
+      errorMessage: errorMsg,
+    });
     emit({ provenance: createSystemProvenance(sourcePath), category: "tool",
       operation: `role-builder-${role}`, latency_ms, success: false,
-      metadata: { error: errorMsg } });
+      metadata: { engine: "board-review", stage: role, round, review_mode: reviewMode, error: errorMsg } });
     return { participant_id: participantId, provider: participant.provider,
       model: participant.model, role, verdict: `ERROR: ${errorMsg}`,
       round, latency_ms };

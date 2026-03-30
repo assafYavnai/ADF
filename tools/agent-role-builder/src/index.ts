@@ -12,7 +12,7 @@ import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncide
 import { applyFutureRunRulebookPromotion } from "./services/rulebook-promotion.js";
 import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState } from "./services/resume-state.js";
 import { assertSessionRegistryMatchesRequest, buildInitialSessionRegistry, extractActiveSessionHandles, loadSessionRegistry, writeSessionRegistry } from "./services/session-registry.js";
-import { writeRunTelemetry } from "./services/run-telemetry.js";
+import { buildArtifactQualityAssessment, buildRunTelemetrySnapshot, readPhaseDurations, writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
 import type { InvocationSessionHandle } from "./shared-imports.js";
@@ -989,13 +989,49 @@ async function writeCyclePostmortem(params: {
   unresolvedTrend?: number[];
 }): Promise<void> {
   const telemetry = getTelemetryBuffer();
-  const llmEvents = telemetry.filter((event) => event.category === "llm");
   const toolEvents = telemetry.filter((event) => event.category === "tool");
   const reviewerParticipants = params.participants.filter((participant) => participant.role === "reviewer");
   const fallbackCount = params.participants.filter((participant) => participant.was_fallback).length;
   const reviewerInvocations = reviewerParticipants.length;
-  const reviewerSlotsTotal = params.request.board_roster.reviewers.length * Math.max(params.roundsExecuted, 1);
+  const reviewerSlotsTotal = params.request.board_roster.reviewers.length * params.roundsExecuted;
   const skippedReviewerInvocations = Math.max(0, reviewerSlotsTotal - reviewerInvocations);
+  const telemetrySnapshot = buildRunTelemetrySnapshot({
+    request: params.request,
+    startedAtMs: params.startedAtMs,
+    startedAtIso: new Date(params.startedAtMs).toISOString(),
+    currentPhase: `board-terminal-${params.status}`,
+    roundsAttempted: params.roundsExecuted,
+    roundsCompleted: params.roundsExecuted,
+    participants: params.participants,
+    telemetryEvents: telemetry,
+    governanceBinding: params.governanceBinding,
+    latestLearningPath: params.roundsExecuted > 0
+      ? join(params.runDir, "rounds", `round-${params.roundsExecuted - 1}`, "learning.json").replace(/\\/g, "/")
+      : null,
+    runPostmortemPath: join(params.runDir, "run-postmortem.json").replace(/\\/g, "/"),
+    cyclePostmortemPath: join(params.runDir, "cycle-postmortem.json").replace(/\\/g, "/"),
+    resultPath: join(params.runDir, "result.json").replace(/\\/g, "/"),
+    terminalStatus: params.status,
+    stopReason: params.statusReason,
+  });
+  const phaseDurations = await readPhaseDurations(params.runDir);
+  const latestUnresolvedCount = params.unresolvedTrend?.[params.unresolvedTrend.length - 1] ?? 0;
+  const artifactQuality = buildArtifactQualityAssessment({
+    terminalStatus: params.status,
+    validationIssueCount: params.validationIssues.length,
+    selfCheckIssueCount: params.selfCheckIssues.length,
+    reviewIssueCount: params.reviewIssueCount,
+    unresolvedCount: latestUnresolvedCount,
+  });
+  const valueSummary = {
+    artifact_quality: artifactQuality,
+    cost_per_quality_point_usd: artifactQuality.score > 0
+      ? Number((telemetrySnapshot.total_estimated_cost_usd / artifactQuality.score).toFixed(6))
+      : null,
+    latency_per_quality_point_ms: artifactQuality.score > 0
+      ? Math.round((Date.now() - params.startedAtMs) / artifactQuality.score)
+      : null,
+  };
 
   const resultJsonExists = await pathExists(join(params.runDir, "result.json"));
   const runPostmortemExists = await pathExists(join(params.runDir, "run-postmortem.json"));
@@ -1020,13 +1056,20 @@ async function writeCyclePostmortem(params: {
       reviewer_invocations: reviewerInvocations,
       skipped_reviewer_invocations: skippedReviewerInvocations,
       fallback_count: fallbackCount,
-      llm_call_count: llmEvents.length,
-      llm_failures: llmEvents.filter((event) => !event.success).length,
+      llm_call_count: telemetrySnapshot.llm_call_count,
+      llm_failures: telemetrySnapshot.llm_failure_count,
       tool_events: toolEvents.length,
-      total_llm_latency_ms: llmEvents.reduce((sum, event) => sum + event.latency_ms, 0),
-      total_tokens_in: sumOptionalNumber(llmEvents.map((event) => event.tokens_in)),
-      total_tokens_out: sumOptionalNumber(llmEvents.map((event) => event.tokens_out)),
-      total_estimated_cost_usd: sumOptionalNumber(llmEvents.map((event) => event.estimated_cost_usd)),
+      total_llm_latency_ms: telemetrySnapshot.total_llm_latency_ms,
+      total_tokens_in: telemetrySnapshot.total_tokens_in_estimated,
+      total_tokens_out: telemetrySnapshot.total_tokens_out_estimated,
+      total_estimated_cost_usd: telemetrySnapshot.total_estimated_cost_usd,
+      provider_failures: telemetrySnapshot.provider_failures,
+      session_status_counts: telemetrySnapshot.session_status_counts,
+      session_latency_ms: telemetrySnapshot.session_latency_ms,
+      engine_metrics: telemetrySnapshot.engine_metrics,
+      rule_metrics: telemetrySnapshot.rule_metrics,
+      phase_durations_ms: phaseDurations,
+      major_bottleneck_engine: telemetrySnapshot.major_bottleneck_engine,
       unresolved_trend: params.unresolvedTrend ?? [],
     },
     artifacts: {
@@ -1054,9 +1097,15 @@ async function writeCyclePostmortem(params: {
       "PM-002": {
         rounds: params.roundsExecuted,
         duration_ms: Date.now() - params.startedAtMs,
-        llm_call_count: llmEvents.length,
+        llm_call_count: telemetrySnapshot.llm_call_count,
         fallback_count: fallbackCount,
         reviewer_reuse_savings: skippedReviewerInvocations,
+        total_tokens_in: telemetrySnapshot.total_tokens_in_estimated,
+        total_tokens_out: telemetrySnapshot.total_tokens_out_estimated,
+        total_estimated_cost_usd: telemetrySnapshot.total_estimated_cost_usd,
+        session_status_counts: telemetrySnapshot.session_status_counts,
+        major_bottleneck_engine: telemetrySnapshot.major_bottleneck_engine,
+        phase_durations_ms: phaseDurations,
       },
       "PM-003": {
         validation_issue_count: params.validationIssues.length,
@@ -1071,6 +1120,7 @@ async function writeCyclePostmortem(params: {
           : (params.unresolvedTrend?.[params.unresolvedTrend.length - 1] ?? 0) <= (params.unresolvedTrend?.[0] ?? 0),
       },
     },
+    value_summary: valueSummary,
   }, params.governanceBinding, params.bindGovernance);
 
   await writeFile(cyclePostmortemPath, JSON.stringify(finalizedPostmortem, null, 2), "utf-8");

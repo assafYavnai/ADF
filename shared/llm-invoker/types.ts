@@ -31,6 +31,30 @@ export const InvocationSessionResult = z.object({
 });
 export type InvocationSessionResult = z.infer<typeof InvocationSessionResult>;
 
+export const InvocationAttemptSessionStatus = z.enum(["none", "fresh", "resumed", "replaced"]);
+export type InvocationAttemptSessionStatus = z.infer<typeof InvocationAttemptSessionStatus>;
+
+export const InvocationUsageEstimate = z.object({
+  prompt_chars: z.number(),
+  response_chars: z.number(),
+  tokens_in_estimated: z.number(),
+  tokens_out_estimated: z.number(),
+  estimated_cost_usd: z.number().optional(),
+  token_estimation_basis: z.literal("char_heuristic_v1"),
+  cost_estimation_basis: z.string().optional(),
+});
+export type InvocationUsageEstimate = z.infer<typeof InvocationUsageEstimate>;
+
+export const InvocationAttempt = z.object({
+  provenance: ProvenanceSchema,
+  latency_ms: z.number(),
+  success: z.boolean(),
+  session_status: InvocationAttemptSessionStatus,
+  error_message: z.string().optional(),
+  usage: InvocationUsageEstimate.optional(),
+});
+export type InvocationAttempt = z.infer<typeof InvocationAttempt>;
+
 export const InvocationParams = z.object({
   cli: LLMProvider,
   model: z.string(),
@@ -61,6 +85,8 @@ export const InvocationResult = z.object({
   response: z.string(),
   latency_ms: z.number(),
   session: InvocationSessionResult.nullable().optional(),
+  usage: InvocationUsageEstimate.optional(),
+  attempts: z.array(InvocationAttempt),
 });
 
 export type InvocationResult = z.infer<typeof InvocationResult>;

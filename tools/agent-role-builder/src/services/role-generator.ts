@@ -2,6 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { RoleBuilderRequest } from "../schemas/request.js";
 import { loadSharedRulesComplianceEnforcerModule } from "./shared-module-loader.js";
+import { emitInvocationFailureTelemetry, emitInvocationResultTelemetry } from "./llm-telemetry.js";
 
 const REQUIRED_XML_TAGS = [
   "role",
@@ -180,15 +181,18 @@ async function runRepairPass(
   feedback: RevisionFeedback,
   mode: "initial_rule_sweep" | "revision"
 ): Promise<RevisionResult> {
-  const { invoke } = await import("../shared-imports.js");
+  const { invoke, emit, createSystemProvenance } = await import("../shared-imports.js");
   const { runRulesComplianceEnforcer } = await loadSharedRulesComplianceEnforcerModule();
 
   const bundleDir = feedback.bundleRoot
     ?? join("tools", "agent-role-builder", "runs", request.job_id, "runtime", "rules-compliance-enforcer", `${mode}-r${feedback.round}`);
   await mkdir(bundleDir, { recursive: true });
 
-  const repairResult = await runRulesComplianceEnforcer(
-    {
+  const repairStart = Date.now();
+  let repairResult: Awaited<ReturnType<typeof runRulesComplianceEnforcer>>;
+  try {
+    repairResult = await runRulesComplianceEnforcer(
+      {
       component: "agent-role-builder",
       mode,
       round: feedback.round,
@@ -213,27 +217,97 @@ async function runRepairPass(
       priorIssueCounts: feedback.priorRoundIssueCount,
     },
     async (prompt: string, sourcePath: string) => {
-      const result = await invoke({
-        cli: request.board_roster.leader.provider,
-        model: request.board_roster.leader.model,
-        reasoning: request.board_roster.leader.throttle,
-        fallback: buildRepairFallback(request),
-        bypass: false,
-        timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
-        prompt,
-        source_path: sourcePath,
-      });
-      return {
-        response: result.response,
-        provenance: {
-          invocation_id: result.provenance.invocation_id,
-          provider: result.provenance.provider,
-          model: result.provenance.model,
-          was_fallback: result.provenance.was_fallback,
-        },
-      };
-    }
-  );
+      try {
+        const result = await invoke({
+          cli: request.board_roster.leader.provider,
+          model: request.board_roster.leader.model,
+          reasoning: request.board_roster.leader.throttle,
+          fallback: buildRepairFallback(request),
+          bypass: false,
+          timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+          prompt,
+          source_path: sourcePath,
+        });
+        emitInvocationResultTelemetry(result, {
+          engine: "rules-compliance-enforcer",
+          stage: mode,
+          round: feedback.round,
+          metadata: {
+            provider: request.board_roster.leader.provider,
+            model: request.board_roster.leader.model,
+          },
+        });
+        return {
+          response: result.response,
+          provenance: {
+            invocation_id: result.provenance.invocation_id,
+            provider: result.provenance.provider,
+            model: result.provenance.model,
+            was_fallback: result.provenance.was_fallback,
+          },
+        };
+      } catch (error) {
+        emitInvocationFailureTelemetry(error, {
+          engine: "rules-compliance-enforcer",
+          stage: mode,
+          round: feedback.round,
+          metadata: {
+            provider: request.board_roster.leader.provider,
+            model: request.board_roster.leader.model,
+          },
+        }, {
+          provider: request.board_roster.leader.provider,
+          model: request.board_roster.leader.model,
+          reasoning: request.board_roster.leader.throttle ?? "default",
+          sourcePath,
+          errorMessage: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      }
+      }
+    );
+  } catch (error) {
+    emit({
+      provenance: createSystemProvenance("tools/agent-role-builder/role-generator"),
+      category: "tool",
+      operation: "rules-compliance-enforcer",
+      latency_ms: Date.now() - repairStart,
+      success: false,
+      metadata: {
+        engine: "rules-compliance-enforcer",
+        mode,
+        round: feedback.round,
+        unresolved_count: feedback.unresolved.length,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
+  }
+
+  emit({
+    provenance: createSystemProvenance("tools/agent-role-builder/role-generator"),
+    category: "tool",
+    operation: "rules-compliance-enforcer",
+    latency_ms: Date.now() - repairStart,
+    success: true,
+    metadata: {
+      engine: "rules-compliance-enforcer",
+      mode,
+      round: feedback.round,
+      rule_count_checked: repairResult.complianceMap.length,
+      rule_ids_checked: repairResult.complianceMap.map((entry: { rule_id: string }) => entry.rule_id),
+      compliant_count: repairResult.complianceMap.filter((entry: { status: string }) => entry.status === "compliant").length,
+      non_compliant_count: repairResult.complianceMap.filter((entry: { status: string }) => entry.status === "non_compliant").length,
+      rule_ids_non_compliant: repairResult.complianceMap
+        .filter((entry: { status: string }) => entry.status === "non_compliant")
+        .map((entry: { rule_id: string }) => entry.rule_id),
+      not_applicable_count: repairResult.complianceMap.filter((entry: { status: string }) => entry.status === "not_applicable").length,
+      fix_item_count: repairResult.fixItemsMap.length,
+      changed: repairResult.diffSummary.changed,
+      new_rule_ids: feedback.newRuleIds ?? [],
+      unresolved_count: feedback.unresolved.length,
+    },
+  });
 
   return {
     markdown: repairResult.artifact || currentMarkdown,
