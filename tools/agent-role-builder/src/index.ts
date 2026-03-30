@@ -9,6 +9,7 @@ import { generateRoleMarkdown, generateRoleContract } from "./services/role-gene
 import { executeBoard } from "./services/board.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./services/audit-utils.js";
 import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./services/json-ingress.js";
+import { writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
 
@@ -42,6 +43,7 @@ interface LearningArtifactRef {
  */
 export async function buildRole(requestPath: string, outputDir?: string): Promise<RoleBuilderResult> {
   const start = Date.now();
+  const startIso = new Date().toISOString();
   const prov = createSystemProvenance("tools/agent-role-builder/build");
   clearTelemetryBuffer();
   const toolRunRoot = join("tools", "agent-role-builder", "runs");
@@ -165,13 +167,52 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
         role_slug: request.role_slug,
         execution_mode: request.runtime.execution_mode,
         watchdog_timeout_seconds: request.runtime.watchdog_timeout_seconds,
-        started_at_utc: new Date().toISOString(),
+        started_at_utc: startIso,
       },
       null,
       2
     ),
     "utf-8"
   );
+
+  const recordRunTelemetry = async (params: {
+    currentPhase: string;
+    roundsAttempted: number;
+    roundsCompleted: number;
+    participants: ParticipantRecord[];
+    governanceBinding?: GovernanceBindingValue | null;
+    latestLearningPath?: string | null;
+    runPostmortemPath?: string | null;
+    cyclePostmortemPath?: string | null;
+    resultPath?: string | null;
+    terminalStatus?: RoleBuilderStatus | null;
+    stopReason?: string | null;
+  }) => {
+    await writeRunTelemetry({
+      request,
+      runDir,
+      startedAtMs: start,
+      startedAtIso: startIso,
+      currentPhase: params.currentPhase,
+      roundsAttempted: params.roundsAttempted,
+      roundsCompleted: params.roundsCompleted,
+      participants: params.participants,
+      governanceBinding: params.governanceBinding ?? null,
+      latestLearningPath: params.latestLearningPath ?? null,
+      runPostmortemPath: params.runPostmortemPath ?? null,
+      cyclePostmortemPath: params.cyclePostmortemPath ?? null,
+      resultPath: params.resultPath ?? null,
+      terminalStatus: params.terminalStatus ?? null,
+      stopReason: params.stopReason ?? null,
+    });
+  };
+
+  await recordRunTelemetry({
+    currentPhase: "startup",
+    roundsAttempted: 0,
+    roundsCompleted: 0,
+    participants: [],
+  });
 
   const validationIssues = validateRequestSanity(request);
   let governanceBinding: GovernanceBindingValue | null = null;
@@ -450,6 +491,13 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
       authority: authorityPaths,
     });
     governanceBinding = governanceRuntime.buildGovernanceBinding(governanceContext);
+    await recordRunTelemetry({
+      currentPhase: "governance-ready",
+      roundsAttempted: 0,
+      roundsCompleted: 0,
+      participants: [],
+      governanceBinding,
+    });
   } catch (error) {
     const manifestExists = await pathExists(join(runDir, "governance-snapshot.json"));
     governanceBinding = manifestExists
@@ -534,7 +582,11 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     initialSelfCheckIssues,
     validationIssues,
     runDir,
-    governanceContext!
+    governanceContext!,
+    {
+      startedAtMs: start,
+      startedAtIso: startIso,
+    }
   );
 
   for (const round of boardResult.rounds) {
@@ -676,6 +728,19 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     bindGovernance: governanceRuntime.bindGovernance,
     startedAtMs: start,
     unresolvedTrend: boardResult.rounds.map((round) => round.unresolved.length),
+  });
+  await recordRunTelemetry({
+    currentPhase: "terminal",
+    roundsAttempted: boardResult.rounds.length,
+    roundsCompleted: boardResult.rounds.length,
+    participants: boardResult.allParticipants,
+    governanceBinding,
+    latestLearningPath: latestLearningPath && await pathExists(latestLearningPath) ? latestLearningPath : null,
+    runPostmortemPath: join(runDir, "run-postmortem.json").replace(/\\/g, "/"),
+    cyclePostmortemPath: join(runDir, "cycle-postmortem.json").replace(/\\/g, "/"),
+    resultPath: join(runDir, "result.json").replace(/\\/g, "/"),
+    terminalStatus: result.status,
+    stopReason: result.status_reason,
   });
 
   emit({
@@ -888,6 +953,26 @@ async function writeCyclePostmortem(params: {
   }, params.governanceBinding, params.bindGovernance);
 
   await writeFile(cyclePostmortemPath, JSON.stringify(finalizedPostmortem, null, 2), "utf-8");
+  const latestLearningPath = params.roundsExecuted > 0
+    ? join(params.runDir, "rounds", `round-${params.roundsExecuted - 1}`, "learning.json").replace(/\\/g, "/")
+    : null;
+  await writeRunTelemetry({
+    request: params.request,
+    runDir: params.runDir,
+    startedAtMs: params.startedAtMs,
+    startedAtIso: new Date(params.startedAtMs).toISOString(),
+    currentPhase: "terminal",
+    roundsAttempted: params.roundsExecuted,
+    roundsCompleted: params.roundsExecuted,
+    participants: params.participants,
+    governanceBinding: params.governanceBinding,
+    latestLearningPath: latestLearningPath && await pathExists(latestLearningPath) ? latestLearningPath : null,
+    runPostmortemPath: join(params.runDir, "run-postmortem.json").replace(/\\/g, "/"),
+    cyclePostmortemPath: cyclePostmortemPath.replace(/\\/g, "/"),
+    resultPath: join(params.runDir, "result.json").replace(/\\/g, "/"),
+    terminalStatus: params.status,
+    stopReason: params.statusReason,
+  });
 }
 
 function buildResult(params: {

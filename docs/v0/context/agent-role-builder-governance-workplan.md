@@ -228,7 +228,7 @@ Classification:
 
 Status:
 
-- implementation-ready
+- implemented
 
 Purpose:
 
@@ -274,6 +274,44 @@ Execution note:
 - it is a minimum run-telemetry and closeout baseline for the live `agent-role-builder` lane
 - the implementation should prefer one small authoritative run-telemetry artifact that is updated during execution rather than adding many new log surfaces
 - the telemetry baseline should survive partial runs well enough that an externally stopped run still leaves useful state on disk
+
+Implementation note:
+
+1. the live lane now writes one authoritative telemetry artifact at:
+   - `runtime/run-telemetry.json`
+2. the telemetry file is updated at:
+   - startup
+   - governance-ready checkpoint
+   - round-start checkpoint
+   - run-postmortem checkpoint
+   - terminal closeout
+3. the file now carries the frozen minimum fields:
+   - run id
+   - commit sha
+   - execution mode
+   - current phase
+   - terminal status
+   - stop reason
+   - rounds attempted/completed
+   - reviewer success/error counts
+   - provider failure counts
+   - fallback used
+   - learning artifact written or not
+   - governance snapshot path
+   - result/postmortem artifact refs
+
+Validation:
+
+1. [run-telemetry.test.ts](C:/ADF/tools/agent-role-builder/src/services/run-telemetry.test.ts) passes
+2. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+3. a governed blocked-run smoke wrote:
+   - [run-telemetry.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001/runtime/run-telemetry.json)
+   - [cycle-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001/cycle-postmortem.json)
+
+Outcome:
+
+- minimum telemetry is now in place before focus shifts to other components
+- broader KPI/dashboard work remains `V3C`
 
 ### V2D Revision Recovery And Resume Correctness
 

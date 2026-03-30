@@ -4,6 +4,7 @@ import type { ParticipantRecord, RoleBuilderStatus, ValidationIssue } from "../s
 import { selfCheck } from "./validator.js";
 import { stripUtf8Bom } from "./json-ingress.js";
 import { performInitialRuleSweep, reviseRoleMarkdown } from "./role-generator.js";
+import { writeRunTelemetry } from "./run-telemetry.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseSensitive } from "./audit-utils.js";
 import { mkdir, open, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -26,6 +27,8 @@ interface BugReport {
 interface BoardContext {
   runDir: string | null;
   bugReportCounter: number;
+  telemetryStartedAtMs: number;
+  telemetryStartedAtIso: string;
   validationIssues: ValidationIssue[];
   reviewEngine?: Awaited<ReturnType<typeof loadSharedReviewEngineModule>>;
   reviewConfig?: Awaited<ReturnType<Awaited<ReturnType<typeof loadSharedReviewEngineModule>>["loadReviewRuntimeConfig"]>>;
@@ -167,6 +170,10 @@ export async function executeBoard(
     component_contract_path: string;
     authority_doc_paths: string[];
     review_runtime_config: unknown;
+  },
+  telemetryContext: {
+    startedAtMs: number;
+    startedAtIso: string;
   }
 ): Promise<{
   status: RoleBuilderStatus;
@@ -181,6 +188,8 @@ export async function executeBoard(
   const ctx: BoardContext = {
     runDir,
     bugReportCounter: 0,
+    telemetryStartedAtMs: telemetryContext.startedAtMs,
+    telemetryStartedAtIso: telemetryContext.startedAtIso,
     validationIssues,
     governanceContext,
     bindGovernance: governanceRuntime.bindGovernance,
@@ -283,6 +292,23 @@ export async function executeBoard(
     const roundSnapshotPaths = roundDir
       ? await writeRoundInputSnapshots(roundDir, request, currentMarkdown, currentSelfCheckIssues)
       : null;
+    if (ctx.runDir) {
+      await writeRunTelemetry({
+        request,
+        runDir: ctx.runDir,
+        startedAtMs: ctx.telemetryStartedAtMs,
+        startedAtIso: ctx.telemetryStartedAtIso,
+        currentPhase: `round-${round}-started`,
+        roundsAttempted: round + 1,
+        roundsCompleted: rounds.length,
+        participants: allParticipants,
+        governanceBinding: {
+          snapshot_id: ctx.governanceContext.snapshot_id,
+          snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
+        },
+        runPostmortemPath: join(ctx.runDir, "run-postmortem.json").replace(/\\/g, "/"),
+      });
+    }
 
     // Bug 7: Use compliance map and fix items map produced by the prior round's revision
     const complianceMap = pendingComplianceMap;
@@ -798,7 +824,25 @@ async function writeRunPostmortem(
     },
   }, ctx);
 
-  await writeFile(join(runDir, "run-postmortem.json"), JSON.stringify(postmortem, null, 2), "utf-8");
+  const runPostmortemPath = join(runDir, "run-postmortem.json");
+  await writeFile(runPostmortemPath, JSON.stringify(postmortem, null, 2), "utf-8");
+  await writeRunTelemetry({
+    request,
+    runDir,
+    startedAtMs: ctx.telemetryStartedAtMs,
+    startedAtIso: ctx.telemetryStartedAtIso,
+    currentPhase: terminalStatus ? `board-terminal-${terminalStatus}` : `round-${Math.max(0, rounds.length - 1)}-complete`,
+    roundsAttempted: rounds.length,
+    roundsCompleted: rounds.length,
+    participants: rounds.flatMap((round) => round.participants),
+    governanceBinding: {
+      snapshot_id: ctx.governanceContext.snapshot_id,
+      snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
+    },
+    latestLearningPath: latestArtifactRefs?.learning_json ?? null,
+    runPostmortemPath: runPostmortemPath.replace(/\\/g, "/"),
+    terminalStatus: terminalStatus ?? null,
+  });
 }
 
 export function buildRoundSnapshotPaths(roundDir: string, request: RoleBuilderRequest) {
@@ -1325,6 +1369,8 @@ function createNullBoardContext(): BoardContext {
   return {
     runDir: null,
     bugReportCounter: 0,
+    telemetryStartedAtMs: 0,
+    telemetryStartedAtIso: new Date(0).toISOString(),
     validationIssues: [],
     governanceContext: {
       snapshot_id: "none",

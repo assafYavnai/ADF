@@ -229,3 +229,33 @@ Classification:
 - useful bounded validation
 - not yet a terminal validation pass
 - next step should be `V2C` minimum telemetry/closeout baseline before relying on repeated bounded runs for project memory
+
+## V2C Minimum Telemetry Baseline
+
+Status: implemented
+
+Implemented artifact:
+
+- `runtime/run-telemetry.json`
+
+Implemented behavior:
+
+1. startup writes the initial run telemetry file
+2. governance-ready updates it after the snapshot is established
+3. board round start updates it before long live review work begins
+4. run-postmortem writes refresh it after completed rounds
+5. terminal closeout writes refresh it with status, stop reason, and artifact refs
+
+What this fixes:
+
+- a run can now leave structured operational state even when focus later shifts away from `agent-role-builder`
+- partial or externally stopped runs are less dependent on memory or ad hoc shell inspection
+
+Focused validation:
+
+1. [run-telemetry.test.ts](C:/ADF/tools/agent-role-builder/src/services/run-telemetry.test.ts) verifies reviewer counts and provider-failure aggregation
+2. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+3. governed smoke:
+   - [agent-role-builder-v2c-telemetry-smoke-001](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001)
+   - [run-telemetry.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001/runtime/run-telemetry.json)
+   - [cycle-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2c-telemetry-smoke-001/cycle-postmortem.json)
