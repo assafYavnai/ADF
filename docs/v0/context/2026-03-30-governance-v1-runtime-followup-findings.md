@@ -319,3 +319,41 @@ Focused validation:
 2. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) still passes
 3. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
 4. shared package build passes in [shared](C:/ADF/shared)
+
+## V3B Resume-Only Rulebook Promotion Slice
+
+Status: implemented for the first narrow governance-expansion slice
+
+What changed:
+
+1. resumed runs now resolve a prior learning artifact from the resume package
+2. only `component_rulebook` proposals are applied
+3. application happens through a run-local promoted rulebook at:
+   - `runtime/promoted-rulebook.json`
+4. the source `rulebook.json` remains unchanged
+5. one audit artifact now records the decision at:
+   - `runtime/rulebook-promotion.json`
+
+What this fixes:
+
+1. the future-run rule-application contract is now explicit instead of remaining only as `learning.json` evidence
+2. resumed runs can benefit from prior learned rule proposals without same-run authority drift
+3. missing or invalid prior learning evidence no longer leaves the behavior ambiguous; the promotion artifact records the fallback reason
+
+What remained out of scope for this slice:
+
+1. meta-policy execution
+2. non-rulebook routing
+3. domain-contract rollout
+4. cross-tool rollout
+5. broader proposal lifecycle
+
+Focused validation:
+
+1. [engine.test.ts](C:/ADF/shared/learning-engine/engine.test.ts) covers BOM-safe learning-output parsing and `applies_to` normalization
+2. [rulebook-promotion.test.ts](C:/ADF/tools/agent-role-builder/src/services/rulebook-promotion.test.ts) covers:
+   - promoted rulebook creation from prior learning output
+   - clean fallback when no prior learning artifact exists
+3. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) now also covers fallback resolution of older resume packages without `latest_learning_path`
+4. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+5. shared package build passes in [shared](C:/ADF/shared)

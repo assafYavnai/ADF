@@ -459,7 +459,7 @@ Validation:
 
 Status:
 
-- frozen for first narrow slice
+- first narrow slice implemented
 
 Purpose:
 
@@ -502,6 +502,28 @@ Execution note:
   3. domain-contract rollout
   4. cross-tool rollout
   5. broader proposal lifecycle
+
+Implementation note:
+
+1. resumed `agent-role-builder` runs now resolve a prior `learning.json` artifact and apply only `component_rulebook` proposals from that prior run
+2. application happens through a run-local promoted rulebook at:
+   - `runtime/promoted-rulebook.json`
+3. the source `tools/agent-role-builder/rulebook.json` is not mutated
+4. one audit artifact now records the application decision at:
+   - `runtime/rulebook-promotion.json`
+5. if there is no prior learning artifact, or it is missing/invalid, the run falls back to the governed source rulebook and records the reason in the promotion artifact
+6. this slice remains resume-only and future-run-only:
+   - same-run learning still does not affect the current run
+   - non-rulebook routing is still out of scope
+
+Validation:
+
+1. [engine.test.ts](C:/ADF/shared/learning-engine/engine.test.ts) passes
+2. [rulebook-promotion.test.ts](C:/ADF/tools/agent-role-builder/src/services/rulebook-promotion.test.ts) passes
+3. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) still passes
+4. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) still passes
+5. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder) passes
+6. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared) passes
 
 ### V3C Observability, KPI, And Broader Audit Expansion
 

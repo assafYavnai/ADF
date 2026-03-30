@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { isAbsolute, resolve } from "node:path";
+import { access, readFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { z } from "zod";
 
 export const ResumeReviewerStatus = z.enum(["approved", "conditional", "reject", "error", "pending"]);
@@ -15,6 +15,7 @@ export const ResumePackageSchema = z.object({
   latest_contract_path: z.string(),
   latest_board_summary_path: z.string(),
   latest_decision_log_path: z.string(),
+  latest_learning_path: z.string().optional(),
   round_files: z.array(z.string()).default([]),
   reviewer_status: z.record(ResumeReviewerStatus).default({}),
   rounds_completed: z.number().int().nonnegative().optional(),
@@ -45,6 +46,7 @@ export function buildNextResumePackage(params: {
   latestContractPath: string;
   latestBoardSummaryPath: string;
   latestDecisionLogPath: string;
+  latestLearningPath?: string | null;
   roundFiles: string[];
   reviewerStatus: Record<string, ResumeReviewerStatus>;
   roundsCompletedThisRun: number;
@@ -62,6 +64,7 @@ export function buildNextResumePackage(params: {
     latest_contract_path: params.latestContractPath,
     latest_board_summary_path: params.latestBoardSummaryPath,
     latest_decision_log_path: params.latestDecisionLogPath,
+    ...(params.latestLearningPath ? { latest_learning_path: params.latestLearningPath } : {}),
     round_files: mergedRoundFiles,
     reviewer_status: params.reviewerStatus,
     rounds_completed: (params.priorResumePackage?.rounds_completed ?? 0) + params.roundsCompletedThisRun,
@@ -73,6 +76,25 @@ export function assertResumePackageMatchesRole(resumePackage: ResumePackage, rol
     throw new Error(
       `Resume package role_slug mismatch: expected "${roleSlug}", got "${resumePackage.role_slug}"`
     );
+  }
+}
+
+export async function resolveResumeLearningArtifactPath(resumePackage: ResumePackage): Promise<string | null> {
+  if (resumePackage.latest_learning_path) {
+    return resolveFromRepoRoot(resumePackage.latest_learning_path);
+  }
+
+  const lastRoundFile = resumePackage.round_files[resumePackage.round_files.length - 1];
+  if (!lastRoundFile) {
+    return null;
+  }
+
+  const candidate = join(dirname(resolveFromRepoRoot(lastRoundFile)), "learning.json");
+  try {
+    await access(candidate);
+    return candidate;
+  } catch {
+    return null;
   }
 }
 

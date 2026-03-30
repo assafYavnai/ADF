@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
-import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState } from "./resume-state.js";
+import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState, resolveResumeLearningArtifactPath } from "./resume-state.js";
 
 test("loadResumeState loads markdown and defaults missing reviewer_status", async () => {
   const tempRoot = await mkdtemp(join(tmpdir(), "adf-resume-state-test-"));
@@ -114,4 +114,35 @@ test("assertResumePackageMatchesRole rejects mismatched role slug", () => {
       ),
     /role_slug mismatch/
   );
+});
+
+test("resolveResumeLearningArtifactPath falls back to the latest round learning.json for older resume packages", async () => {
+  const tempRoot = await mkdtemp(join(tmpdir(), "adf-resume-learning-test-"));
+  const roundFilePath = join(tempRoot, "rounds", "round-0.json");
+  const learningPath = join(dirname(roundFilePath), "learning.json");
+  await mkdir(dirname(roundFilePath), { recursive: true });
+
+  await writeFile(roundFilePath, JSON.stringify({ round: 0 }, null, 2), "utf-8");
+  await writeFile(learningPath, JSON.stringify({ new_rules: [], existing_rules_covering: [], no_rule_needed: [] }, null, 2), "utf-8");
+
+  try {
+    const resolved = await resolveResumeLearningArtifactPath({
+      schema_version: "1.0",
+      role_slug: "agent-role-builder",
+      request_job_id: "resume-test-prev",
+      next_step: "resume_board_review",
+      unresolved: [],
+      latest_markdown_path: "older.md",
+      latest_contract_path: "older.json",
+      latest_board_summary_path: "older-summary.md",
+      latest_decision_log_path: "older-log.md",
+      round_files: [roundFilePath],
+      reviewer_status: {},
+      rounds_completed: 1,
+    });
+
+    assert.equal(resolved, learningPath);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 });

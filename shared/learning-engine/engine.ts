@@ -92,6 +92,10 @@ IMPORTANT:
 JSON response:`;
 
   const rawResponse = await invoker(prompt, `shared/learning-engine/extract-rules/${input.component}`);
+  return parseLearningOutputJson(rawResponse);
+}
+
+export function parseLearningOutputJson(rawResponse: string): LearningOutput {
   const cleaned = rawResponse.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
   let parsed: Record<string, unknown>;
   try {

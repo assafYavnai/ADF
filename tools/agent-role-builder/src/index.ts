@@ -9,6 +9,7 @@ import { generateRoleMarkdown, generateRoleContract } from "./services/role-gene
 import { executeBoard } from "./services/board.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./services/audit-utils.js";
 import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./services/json-ingress.js";
+import { applyFutureRunRulebookPromotion } from "./services/rulebook-promotion.js";
 import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState } from "./services/resume-state.js";
 import { writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
@@ -633,6 +634,20 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     }
   }
 
+  let rulebookPromotionArtifactPath: string | null = null;
+  if (loadedResumeState) {
+    const rulebookPromotion = await applyFutureRunRulebookPromotion({
+      runDir,
+      sourceRulebookPath: governanceContext!.component_rulebook_path,
+      resumePackage: loadedResumeState.resumePackage,
+    });
+    governanceContext = {
+      ...governanceContext!,
+      component_rulebook_path: rulebookPromotion.effectiveRulebookPath,
+    };
+    rulebookPromotionArtifactPath = rulebookPromotion.promotionArtifactPath;
+  }
+
   const draftMarkdown = loadedResumeState?.markdown ?? generateRoleMarkdown(request);
   const draftContract = generateRoleContract(
     request,
@@ -709,6 +724,9 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   }
 
   if (boardResult.status === "resume_required") {
+    const latestLearningPathForResume = boardResult.rounds.length > 0
+      ? join(runDir, "rounds", `round-${boardResult.rounds[boardResult.rounds.length - 1].round}`, "learning.json").replace(/\\/g, "/")
+      : null;
     const nextResumePackage = buildNextResumePackage({
       roleSlug: request.role_slug,
       requestJobId: request.job_id,
@@ -717,6 +735,9 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
       latestContractPath: runArtifacts.contract,
       latestBoardSummaryPath: runArtifacts.boardSummary,
       latestDecisionLogPath: runArtifacts.decisionLog,
+      latestLearningPath: latestLearningPathForResume && await pathExists(latestLearningPathForResume)
+        ? latestLearningPathForResume
+        : null,
       roundFiles: boardResult.rounds.map((round) => join(runDir, "rounds", `round-${round.round}.json`)),
       reviewerStatus: boardResult.finalReviewerStatus,
       roundsCompletedThisRun: boardResult.rounds.length,
