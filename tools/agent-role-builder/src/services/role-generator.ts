@@ -1,8 +1,9 @@
 import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { RoleBuilderRequest } from "../schemas/request.js";
 import { loadSharedRulesComplianceEnforcerModule } from "./shared-module-loader.js";
 import { emitInvocationFailureTelemetry, emitInvocationResultTelemetry } from "./llm-telemetry.js";
+import { invokeWithSelfRepair as invokeWithRuntimeSelfRepair } from "./self-repair.js";
 
 const REQUIRED_XML_TAGS = [
   "role",
@@ -218,15 +219,35 @@ async function runRepairPass(
     },
     async (prompt: string, sourcePath: string) => {
       try {
-        const result = await invoke({
-          cli: request.board_roster.leader.provider,
+        const result = await invokeWithRuntimeSelfRepair({
+          request,
+          runDir: resolveRunDir(feedback.bundleRoot, request.job_id),
+          engine: "rules-compliance-enforcer",
+          message: "rules-compliance-enforcer provider call failed",
+          provider: request.board_roster.leader.provider,
           model: request.board_roster.leader.model,
-          reasoning: request.board_roster.leader.throttle,
-          fallback: buildRepairFallback(request),
-          bypass: false,
-          timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
-          prompt,
-          source_path: sourcePath,
+          sourcePath,
+          round: feedback.round,
+          primary: () => invoke({
+            cli: request.board_roster.leader.provider,
+            model: request.board_roster.leader.model,
+            reasoning: request.board_roster.leader.throttle,
+            fallback: buildRepairFallback(request),
+            bypass: false,
+            timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+            prompt,
+            source_path: sourcePath,
+          }),
+          buildColdStartParams: () => ({
+            cli: request.board_roster.leader.provider,
+            model: request.board_roster.leader.model,
+            reasoning: request.board_roster.leader.throttle,
+            fallback: buildRepairFallback(request),
+            bypass: false,
+            timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+            prompt,
+            source_path: sourcePath,
+          }),
         });
         emitInvocationResultTelemetry(result, {
           engine: "rules-compliance-enforcer",
@@ -476,6 +497,14 @@ function buildRepairFallback(request: RoleBuilderRequest) {
     bypass: false,
     timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
   };
+}
+
+function resolveRunDir(bundleRoot: string | undefined, jobId: string): string {
+  if (!bundleRoot) {
+    return join("tools", "agent-role-builder", "runs", jobId);
+  }
+
+  return resolve(bundleRoot, "..", "..", "..");
 }
 
 function buildConvergenceNote(feedback: RevisionFeedback): string {

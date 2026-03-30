@@ -9,6 +9,7 @@ import { emitInvocationFailureTelemetry, emitInvocationResultTelemetry } from ".
 import { writeRunTelemetry } from "./run-telemetry.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseSensitive } from "./audit-utils.js";
 import { buildLeaderSlotKey, updateSessionRegistrySlot } from "./session-registry.js";
+import { invokeWithSelfRepair as invokeWithRuntimeSelfRepair } from "./self-repair.js";
 import { mkdir, open, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { loadSharedGovernanceRuntimeModule, loadSharedReviewEngineModule, loadSharedSelfLearningEngineModule } from "./shared-module-loader.js";
@@ -66,7 +67,8 @@ async function attemptAutoFix(
   bugReport: BugReport,
   request: RoleBuilderRequest,
   rawInput: string,
-  contextLabel: "leader" | "reviewer"
+  contextLabel: "leader" | "reviewer",
+  ctx?: BoardContext
 ): Promise<string | null> {
   // TODO: Wire llm-tool-builder when complete. For now, use Codex agent.
   if (!rawInput || rawInput.trim().length === 0) {
@@ -86,14 +88,32 @@ ${rawInput.slice(0, 2000)}
 Extract the JSON from the raw input. The response may contain markdown, explanatory text, or multiple JSON blocks.
 Return ONLY the valid JSON object matching the expected format. Nothing else.`;
 
-    const result = await invoke({
-      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+    const result = await invokeWithRuntimeSelfRepair({
+      request,
+      runDir: ctx?.runDir ?? null,
+      engine: "parse-auto-fix",
+      message: `${contextLabel} parse auto-fix provider call failed`,
+      provider: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
       model: request.board_roster.leader.model,
-      reasoning: "medium",
-      bypass: false,
-      timeout_ms: 60_000,
-      prompt: fixPrompt,
-      source_path: "tools/agent-role-builder/auto-fix/parse-error",
+      sourcePath: "tools/agent-role-builder/auto-fix/parse-error",
+      primary: () => invoke({
+        cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+        model: request.board_roster.leader.model,
+        reasoning: "medium",
+        bypass: false,
+        timeout_ms: 60_000,
+        prompt: fixPrompt,
+        source_path: "tools/agent-role-builder/auto-fix/parse-error",
+      }),
+      buildColdStartParams: () => ({
+        cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+        model: request.board_roster.leader.model,
+        reasoning: "medium",
+        bypass: false,
+        timeout_ms: 60_000,
+        prompt: fixPrompt,
+        source_path: "tools/agent-role-builder/auto-fix/parse-error",
+      }),
     });
 
     const cleaned = reviewEngine.cleanJsonResponse(result.response);
@@ -541,14 +561,33 @@ export async function executeBoard(
               },
               async (prompt: string, sourcePath: string) => {
                 try {
-                  const learningResult = await invoke({
-                    cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+                  const learningResult = await invokeWithRuntimeSelfRepair({
+                    request,
+                    runDir: ctx.runDir ?? null,
+                    engine: "self-learning-engine",
+                    message: "self-learning-engine provider call failed",
+                    provider: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
                     model: request.board_roster.leader.model,
-                    reasoning: "high",
-                    bypass: false,
-                    timeout_ms: 120_000,
-                    prompt,
-                    source_path: sourcePath,
+                    sourcePath,
+                    round,
+                    primary: () => invoke({
+                      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+                      model: request.board_roster.leader.model,
+                      reasoning: "high",
+                      bypass: false,
+                      timeout_ms: 120_000,
+                      prompt,
+                      source_path: sourcePath,
+                    }),
+                    buildColdStartParams: () => ({
+                      cli: request.board_roster.leader.provider as "codex" | "claude" | "gemini",
+                      model: request.board_roster.leader.model,
+                      reasoning: "high",
+                      bypass: false,
+                      timeout_ms: 120_000,
+                      prompt,
+                      source_path: sourcePath,
+                    }),
                   });
                   emitInvocationResultTelemetry(learningResult, {
                     engine: "self-learning-engine",
@@ -1255,18 +1294,46 @@ async function executeParticipant(
   const start = Date.now();
   try {
     const sessionHandle = participantKey ? (ctx?.sessionHandles.get(participantKey) ?? null) : null;
-    const result = await invoke({
-      cli: participant.provider as "codex" | "claude" | "gemini",
-      model: participant.model, reasoning: participant.throttle,
-      bypass: false, timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
-      prompt: brief,
-      source_path: sourcePath,
-      session: participantKey
-        ? {
-            persist: true,
-            handle: sessionHandle,
-          }
-        : undefined,
+    const result = await invokeWithRuntimeSelfRepair({
+      request,
+      runDir: ctx?.runDir ?? null,
+      engine: "board-review",
+      message: `${role} provider call failed`,
+      provider: participant.provider as "codex" | "claude" | "gemini",
+      model: participant.model,
+      sourcePath,
+      round,
+      slotKey: participantKey ?? null,
+      primary: () => invoke({
+        cli: participant.provider as "codex" | "claude" | "gemini",
+        model: participant.model,
+        reasoning: participant.throttle,
+        bypass: false,
+        timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+        prompt: brief,
+        source_path: sourcePath,
+        session: participantKey
+          ? {
+              persist: true,
+              handle: sessionHandle,
+            }
+          : undefined,
+      }),
+      buildColdStartParams: () => ({
+        cli: participant.provider as "codex" | "claude" | "gemini",
+        model: participant.model,
+        reasoning: participant.throttle,
+        bypass: false,
+        timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+        prompt: brief,
+        source_path: sourcePath,
+        session: participantKey
+          ? {
+              persist: true,
+              handle: null,
+            }
+          : undefined,
+      }),
     });
     emitInvocationResultTelemetry(result, {
       engine: "board-review",
@@ -1513,7 +1580,7 @@ async function parseReviewerResponse(
     };
     const reportPath = await writeBugReport(bugReport, defaultCtx);
 
-    const fixed = await attemptAutoFix(bugReport, request, raw, "reviewer");
+    const fixed = await attemptAutoFix(bugReport, request, raw, "reviewer", ctx);
     if (fixed) {
       try {
         console.error("[board] Auto-fix succeeded for reviewer response parse");
@@ -1579,7 +1646,7 @@ async function parseLeaderResponse(raw: string, request: RoleBuilderRequest, rou
     };
     const reportPath = await writeBugReport(bugReport, defaultCtx);
 
-    const fixed = await attemptAutoFix(bugReport, request, raw, "leader");
+    const fixed = await attemptAutoFix(bugReport, request, raw, "leader", ctx);
     if (fixed) {
       try {
         console.error("[board] Auto-fix succeeded for leader response parse");

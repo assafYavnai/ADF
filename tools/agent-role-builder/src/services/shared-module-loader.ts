@@ -3,11 +3,20 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 async function importSharedModule(sourceRelativePath: string, distRelativePath: string) {
-  const candidates = [
+  return importModuleCandidates([
     join(process.cwd(), sourceRelativePath),
     join(process.cwd(), "shared", "dist", distRelativePath),
-  ];
+  ]);
+}
 
+async function importToolModule(sourceRelativePath: string, distRelativePath: string) {
+  return importModuleCandidates([
+    join(process.cwd(), sourceRelativePath),
+    join(process.cwd(), distRelativePath),
+  ]);
+}
+
+async function importModuleCandidates(candidates: string[]) {
   for (const candidate of candidates) {
     try {
       await access(candidate);
@@ -60,5 +69,12 @@ export async function loadSharedGovernanceRuntimeModule() {
   return importSharedModule(
     join("shared", "governance-runtime", "engine.ts"),
     join("governance-runtime", "engine.js")
+  );
+}
+
+export async function loadSelfRepairEngineModule() {
+  return importToolModule(
+    join("tools", "self-repair-engine", "src", "index.ts"),
+    join("tools", "self-repair-engine", "dist", "index.js")
   );
 }

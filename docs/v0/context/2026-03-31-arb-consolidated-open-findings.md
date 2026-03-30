@@ -188,7 +188,7 @@ What run 018 did not prove:
 
 Status:
 
-- open
+- implemented in Step 3 for bounded mechanical incidents, broader self-heal still open
 
 Problem:
 
@@ -211,6 +211,21 @@ Step 3 freeze:
   - provider CLI failures for board review, parse auto-fix, `self-learning-engine`, and `rules-compliance-enforcer`
 - malformed resume packages, governance corruption, and semantic review disagreements remain non-repairable and must escalate explicitly
 - `llm-tool-builder` is used for governed tool registration, while the executable runtime is implemented directly in `tools/self-repair-engine`
+
+Delivered in Step 3:
+
+- `tools/self-repair-engine` now exists as the explicit bounded runtime self-heal surface
+- `agent-role-builder` now uses it for:
+  - supplemental session-registry regeneration on resume
+  - one bounded cold-start retry after provider CLI failures in board review
+  - one bounded cold-start retry after provider CLI failures in parse auto-fix
+  - one bounded cold-start retry after provider CLI failures in `self-learning-engine`
+  - one bounded cold-start retry after provider CLI failures in `rules-compliance-enforcer`
+- each repair attempt now writes explicit artifacts under `runtime/self-repair-engine/`
+
+Remaining gap:
+
+- the broader runtime self-heal vision is still open beyond these bounded mechanical classes
 
 ### 12. Rules GC is not implemented, but is now a required direction
 

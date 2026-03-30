@@ -14,6 +14,7 @@ import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState
 import { assertSessionRegistryMatchesRequest, buildInitialSessionRegistry, extractActiveSessionHandles, loadSessionRegistry, writeSessionRegistry } from "./services/session-registry.js";
 import { buildArtifactQualityAssessment, buildRunTelemetrySnapshot, readPhaseDurations, writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
+import { repairSupplementalSessionRegistry } from "./services/self-repair.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
 import type { InvocationSessionHandle } from "./shared-imports.js";
 
@@ -572,11 +573,6 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     try {
       loadedResumeState = await loadResumeState(request.resume.resume_package_path);
       assertResumePackageMatchesRole(loadedResumeState.resumePackage, request.role_slug, request.job_id);
-      if (request.resume.session_registry_path) {
-        const loadedSessionRegistry = await loadSessionRegistry(request.resume.session_registry_path);
-        assertSessionRegistryMatchesRequest(loadedSessionRegistry, request);
-        loadedResumeSessionHandles = extractActiveSessionHandles(loadedSessionRegistry);
-      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const resumeValidationIssue: ValidationIssue = {
@@ -643,6 +639,41 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
         startedAtMs: start,
       });
       return result;
+    }
+
+    if (request.resume.session_registry_path) {
+      try {
+        const loadedSessionRegistry = await loadSessionRegistry(request.resume.session_registry_path);
+        assertSessionRegistryMatchesRequest(loadedSessionRegistry, request);
+        loadedResumeSessionHandles = extractActiveSessionHandles(loadedSessionRegistry);
+      } catch (error) {
+        const fallbackRegistry = buildInitialSessionRegistry({
+          request,
+          startedAtIso: startIso,
+        });
+        try {
+          await repairSupplementalSessionRegistry({
+            request,
+            runDir,
+            sessionRegistryPath: request.resume.session_registry_path,
+            message: `Supplemental session registry could not be loaded and was regenerated for cold-start resume: ${error instanceof Error ? error.message : String(error)}`,
+            incidentType: error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT"
+              ? "missing_runtime_artifact"
+              : "invalid_runtime_artifact",
+            details: {
+              resume_package_path: request.resume.resume_package_path,
+              session_registry_path: request.resume.session_registry_path,
+            },
+            replacementText: JSON.stringify(fallbackRegistry, null, 2),
+          });
+        } catch (repairError) {
+          console.error(
+            "[build] Failed to repair supplemental session registry:",
+            repairError instanceof Error ? repairError.message : repairError
+          );
+        }
+        loadedResumeSessionHandles = {};
+      }
     }
   }
 

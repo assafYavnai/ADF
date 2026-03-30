@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.1",
+  "tool_name": "self-repair-engine",
+  "tool_slug": "self-repair-engine",
+  "operation": "create",
+  "goal": "Register self-repair-engine as the governed bounded runtime self-heal tool for mechanical incidents in agent-role-builder.",
+  "business_context": "ADF needs an explicit self-healing engine separate from rules compliance and self-learning. V1 is intentionally narrow and mechanical.",
+  "owner": "COO",
+  "entry_point": "tools/self-repair-engine/src/index.ts",
+  "baseline_contract_path": null,
+  "imported_role_directory": "tools/self-repair-engine/role",
+  "role_directory": "C:\\ADF\\tools\\self-repair-engine\\role",
+  "skip_build_agent_role": false,
+  "required_outputs": [
+    "tools/self-repair-engine/tool-contract.json"
+  ],
+  "notes": [
+    "Bootstrap role only; to be superseded by a governed version later",
+    "V1 scope is mechanical runtime repair only"
+  ],
+  "generated_at_utc": "2026-03-30T23:18:50.774Z",
+  "previous_contract": null
+}

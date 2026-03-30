@@ -188,7 +188,7 @@ Goal:
 
 Status:
 
-- next active implementation slice
+- implemented on current `main`
 
 Name:
 
@@ -245,6 +245,34 @@ Acceptance:
 - `llm-tool-builder` registration exists for `self-repair-engine`
 - `agent-role-builder` routes the mechanical classes in this frozen slice through `self-repair-engine`
 - non-repairable classes escalate with explicit `self-repair-engine` incident artifacts instead of ad hoc handling
+
+Delivered in this step:
+
+- `tools/self-repair-engine` now exists as a governed registered tool with:
+  - bootstrap role
+  - tool contract written through `llm-tool-builder`
+  - direct runtime implementation in `src/index.ts`
+- `agent-role-builder` now routes these mechanical classes through `self-repair-engine`:
+  - supplemental `session-registry.json` missing or malformed on resume
+  - provider CLI failures for:
+    - board reviewer and leader calls
+    - parse auto-fix calls
+    - `self-learning-engine`
+    - `rules-compliance-enforcer`
+- `self-repair-engine` now writes explicit per-attempt artifacts under:
+  - `runtime/self-repair-engine/`
+- bounded repair behavior in V1 is now:
+  - backup + regenerate supplemental session registry state
+  - one explicit cold-start relaunch after provider CLI failure
+  - explicit escalation artifact for non-repairable or still-failing cases
+
+Validation completed for this step:
+
+- `tools/self-repair-engine` TypeScript compile passed
+- `tools/self-repair-engine` unit tests passed
+- `agent-role-builder` TypeScript compile passed
+- `shared` TypeScript compile passed
+- `agent-role-builder` self-repair wrapper test passed
 
 ### Step 4. Run 19 and maybe 20 as bounded sanity runs
 
