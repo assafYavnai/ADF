@@ -417,6 +417,10 @@ What changed compared with the earlier bounded run:
 New runtime finding from the rerun:
 
 1. the outer timeout did not clean up the spawned validation subprocess chain automatically; the matching processes had to be terminated manually after the timeout
+2. the stall is narrower than the first telemetry gap implied:
+   - the `runtime/component-repair-engine/initial-rule-sweep/manifest.json` bundle artifact exists
+   - `response.raw.txt` and `response.parsed.json` do not
+   - that points to the invoker call inside the initial rule-sweep repair pass hanging before it returns, rather than the round loop itself
 
 Classification:
 
@@ -425,6 +429,18 @@ Classification:
 - next work should focus on:
   1. isolating the hang between `governance-ready` and the first round-start checkpoint
   2. making bounded-run timeout/teardown propagate cleanly to spawned subprocesses
+
+Frozen next implementation slice:
+
+1. add a managed timeout/teardown path in `shared/llm-invoker` so timed-out bounded runs kill the spawned provider process tree, not just the parent shell
+2. add extra telemetry checkpoints around the initial rule-sweep repair pass so the next bounded rerun can distinguish:
+   - `initial-rule-sweep-started`
+   - `initial-rule-sweep-complete`
+   - `round-0-started`
+3. keep the slice narrow:
+   - no provider-session resume yet
+   - no broader invoker redesign
+   - no change to review/learning semantics
 
 ## Planned Shared Invocation-Session Resume Slice
 

@@ -255,6 +255,25 @@ New deferred items from this rerun:
 1. isolate the hang between `governance-ready` and the first round-start telemetry checkpoint
 2. make bounded-run timeout/teardown propagate cleanly to the spawned subprocess chain
 
+Narrow follow-up freeze for the next implementation slice:
+
+1. the current best evidence points to the initial rule-sweep repair pass, not the round loop:
+   - the `initial-rule-sweep` repair bundle and manifest are written
+   - `response.raw.txt` and `response.parsed.json` are missing there
+   - telemetry never reaches `round-0-started`
+2. this slice is therefore frozen to:
+   - add one managed timeout/teardown path in `shared/llm-invoker`
+   - add a small number of extra telemetry checkpoints around initial rule-sweep start and completion
+   - keep provider-session resume, broader invoker redesign, and broader runtime expansion out of scope
+3. acceptance for this slice:
+   - timed-out bounded runs do not leave the spawned provider subprocess chain alive
+   - telemetry can distinguish:
+     - startup complete
+     - governance-ready
+     - initial-rule-sweep-started
+     - initial-rule-sweep-complete
+     - round-0-started
+
 ### V2C Minimal Telemetry Baseline
 
 Status:
