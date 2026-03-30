@@ -226,6 +226,10 @@ Classification:
 
 ### V2C Minimal Telemetry Baseline
 
+Status:
+
+- implementation-ready
+
 Purpose:
 
 - ensure we do not lose operational memory when focus later moves to another component
@@ -262,6 +266,14 @@ Sub-steps:
 Acceptance target:
 
 - future runs leave enough stable telemetry that the project does not lose operational memory when focus shifts
+
+Execution note:
+
+- `V2C` does not require new CEO input
+- this step is not a KPI/dashboard build
+- it is a minimum run-telemetry and closeout baseline for the live `agent-role-builder` lane
+- the implementation should prefer one small authoritative run-telemetry artifact that is updated during execution rather than adding many new log surfaces
+- the telemetry baseline should survive partial runs well enough that an externally stopped run still leaves useful state on disk
 
 ### V2D Revision Recovery And Resume Correctness
 
