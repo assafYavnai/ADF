@@ -276,6 +276,9 @@ export async function executeBoard(
     for (let round = 0; round < maxRounds; round++) {
     const roundDir = ctx.runDir ? join(ctx.runDir, "rounds", `round-${round}`) : null;
     if (roundDir) await mkdir(roundDir, { recursive: true });
+    const roundSnapshotPaths = roundDir
+      ? await writeRoundInputSnapshots(roundDir, request, currentMarkdown, currentSelfCheckIssues)
+      : null;
 
     // Bug 7: Use compliance map and fix items map produced by the prior round's revision
     const complianceMap = pendingComplianceMap;
@@ -285,9 +288,10 @@ export async function executeBoard(
       await writeFile(join(roundDir, "compliance-map.json"), JSON.stringify({
         schema_version: "1.0", component: "agent-role-builder",
         scope: round === 0 ? "full" : "delta",
-        artifact_path: (ctx.runDir
-          ? join(ctx.runDir, `${request.role_slug}-role.md`)
-          : `tools/agent-role-builder/runs/${request.job_id}/${request.role_slug}-role.md`).replace(/\\/g, "/"),
+        artifact_path: (roundSnapshotPaths?.artifactMarkdownPath
+          ?? (ctx.runDir
+            ? join(ctx.runDir, `${request.role_slug}-role.md`)
+            : `tools/agent-role-builder/runs/${request.job_id}/${request.role_slug}-role.md`)).replace(/\\/g, "/"),
         git_commit: undefined,
         round,
         entries: complianceMap,
@@ -320,11 +324,10 @@ export async function executeBoard(
     rounds.push(roundResult);
     allParticipants.push(...roundResult.participants);
 
-    // Update per-reviewer status (Bug 2 fix: parse-error verdicts are marked "error", not "reject")
+    // Update per-reviewer status so reviewer-local parse/runtime failures stay in the reviewer error lane.
     for (const [pid, verdict] of roundResult.reviewerVerdicts) {
       const key = pid.replace(/-r\d+$/, "");
-      const isParseError = verdict.conceptual_groups.some((g: { id: string }) => g.id === "parse-error");
-      if (isParseError) {
+      if (isParseErrorVerdict(verdict)) {
         reviewerStatus.set(key, "error");
       } else if (verdict.verdict === "approved") {
         reviewerStatus.set(key, "approved");
@@ -400,47 +403,7 @@ export async function executeBoard(
     });
 
     if (roundDir) {
-      const artifactRefs = await buildArtifactRefs(roundDir, request, roundResult);
-      const audit = buildAuditEnvelope({
-        requestJobId: request.job_id,
-        round: roundResult.round,
-        reviewMode: roundResult.reviewMode,
-        participants: roundResult.participants,
-        artifactRefs,
-      });
-      await writeFile(join(roundDir, "review.json"), JSON.stringify(attachGovernanceBinding({
-        round: roundResult.round,
-        reviewMode: roundResult.reviewMode,
-        leaderVerdict: roundResult.leaderVerdict,
-        leaderRationale: roundResult.leaderRationale,
-        unresolved: roundResult.unresolved,
-        deferredItems: roundResult.deferredItems,
-        improvementsApplied: roundResult.improvementsApplied,
-        arbitrationUsed: roundResult.arbitrationUsed,
-        arbitrationRationale: roundResult.arbitrationRationale,
-        reviewerVerdicts: Object.fromEntries(roundResult.reviewerVerdicts),
-        audit: {
-          ...audit,
-          participants: roundResult.participants.map((participant) => ({
-            participant_id: participant.participant_id,
-            provider: participant.provider,
-            model: participant.model,
-            latency_ms: participant.latency_ms ?? null,
-            fallback_used: participant.was_fallback ?? false,
-            invocation_id: participant.invocation_id ?? null,
-          })),
-        },
-        participants: roundResult.participants.map((p) => ({
-          participant_id: p.participant_id,
-          provider: p.provider,
-          model: p.model,
-          role: p.role,
-          round: p.round,
-          latency_ms: p.latency_ms,
-          invocation_id: p.invocation_id,
-          was_fallback: p.was_fallback ?? false,
-        })),
-      }, ctx), null, 2), "utf-8");
+      await writeRoundReviewArtifact(roundDir, request, roundResult, ctx);
     }
 
     // --- Step 4: Learning engine (always) + revision (if not final and unresolved) ---
@@ -585,9 +548,10 @@ export async function executeBoard(
               schema_version: "1.0",
               component: "agent-role-builder",
               scope: "delta",
-              artifact_path: (ctx.runDir
-                ? join(ctx.runDir, `${request.role_slug}-role.md`)
-                : `tools/agent-role-builder/runs/${request.job_id}/${request.role_slug}-role.md`).replace(/\\/g, "/"),
+              artifact_path: (roundSnapshotPaths?.artifactMarkdownPath
+                ?? (ctx.runDir
+                  ? join(ctx.runDir, `${request.role_slug}-role.md`)
+                  : `tools/agent-role-builder/runs/${request.job_id}/${request.role_slug}-role.md`)).replace(/\\/g, "/"),
               git_commit: undefined,
               round,
               entries: pendingComplianceMap,
@@ -605,6 +569,7 @@ export async function executeBoard(
             }
           }
           await writeFile(join(roundDir, "diff-summary.json"), JSON.stringify(diffSummary, null, 2), "utf-8");
+          await writeRoundReviewArtifact(roundDir, request, roundResult, ctx);
         }
       } catch (e) {
         // IMP-016: Revision is critical — never silently swallow. Write bug report, escalate.
@@ -713,8 +678,7 @@ async function writeRunPostmortem(
     };
 
     for (const verdict of round.reviewerVerdicts.values()) {
-      const hasParseError = verdict.conceptual_groups.some((group: { id: string }) => group.id === "parse-error");
-      if (hasParseError) {
+      if (isParseErrorVerdict(verdict)) {
         verdictBreakdown.error++;
       } else {
         switch (verdict.verdict) {
@@ -734,7 +698,7 @@ async function writeRunPostmortem(
       }
     }
 
-    const artifactRefs = await buildArtifactRefs(join(runDir, "rounds", `round-${round.round}`), request, round);
+    const artifactRefs = await buildRunArtifactRefs(runDir, join(runDir, "rounds", `round-${round.round}`), request);
     return {
       round: round.round,
       review_mode: round.reviewMode,
@@ -780,7 +744,7 @@ async function writeRunPostmortem(
   );
   const latestRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
   const latestArtifactRefs = latestRound
-    ? await buildArtifactRefs(join(runDir, "rounds", `round-${latestRound.round}`), request, latestRound)
+    ? await buildRunArtifactRefs(runDir, join(runDir, "rounds", `round-${latestRound.round}`), request)
     : null;
   const postmortem = attachGovernanceBinding({
     schema_version: "1.0",
@@ -833,28 +797,110 @@ async function writeRunPostmortem(
   await writeFile(join(runDir, "run-postmortem.json"), JSON.stringify(postmortem, null, 2), "utf-8");
 }
 
-async function buildArtifactRefs(
+function buildRoundSnapshotPaths(roundDir: string, request: RoleBuilderRequest) {
+  return {
+    artifactMarkdownPath: join(roundDir, `${request.role_slug}-role.md`),
+    selfCheckPath: join(roundDir, "self-check.json"),
+  };
+}
+
+async function writeRoundInputSnapshots(
   roundDir: string,
   request: RoleBuilderRequest,
-  round: Pick<BoardRoundResult, "round" | "fixItemsMap">
+  markdown: string,
+  selfCheckIssues: ValidationIssue[]
 ) {
+  const paths = buildRoundSnapshotPaths(roundDir, request);
+  await writeFile(paths.artifactMarkdownPath, markdown, "utf-8");
+  await writeFile(paths.selfCheckPath, JSON.stringify(selfCheckIssues, null, 2), "utf-8");
+  return paths;
+}
+
+async function buildRoundArtifactRefs(
+  roundDir: string,
+  request: RoleBuilderRequest
+) {
+  const roundSnapshots = buildRoundSnapshotPaths(roundDir, request);
+  const fixItemsMapPath = join(roundDir, "fix-items-map.json");
   const learningJsonPath = join(roundDir, "learning.json");
   const diffSummaryPath = join(roundDir, "diff-summary.json");
   return {
     review_json: join(roundDir, "review.json").replace(/\\/g, "/"),
     compliance_map: join(roundDir, "compliance-map.json").replace(/\\/g, "/"),
-    fix_items_map: round.fixItemsMap && round.fixItemsMap.length > 0
-      ? join(roundDir, "fix-items-map.json").replace(/\\/g, "/")
-      : null,
+    fix_items_map: await pathExists(fixItemsMapPath) ? fixItemsMapPath.replace(/\\/g, "/") : null,
     learning_json: await pathExists(learningJsonPath) ? learningJsonPath.replace(/\\/g, "/") : null,
     diff_summary: await pathExists(diffSummaryPath) ? diffSummaryPath.replace(/\\/g, "/") : null,
-    artifact_markdown: join(ctxSafeBase(roundDir), `${request.role_slug}-role.md`).replace(/\\/g, "/"),
-    self_check: join(ctxSafeBase(roundDir), "self-check.json").replace(/\\/g, "/"),
+    artifact_markdown: roundSnapshots.artifactMarkdownPath.replace(/\\/g, "/"),
+    self_check: roundSnapshots.selfCheckPath.replace(/\\/g, "/"),
   };
 }
 
-function ctxSafeBase(roundDir: string): string {
-  return join(roundDir, "..", "..");
+async function buildRunArtifactRefs(
+  runDir: string,
+  roundDir: string,
+  request: RoleBuilderRequest
+) {
+  const fixItemsMapPath = join(roundDir, "fix-items-map.json");
+  const learningJsonPath = join(roundDir, "learning.json");
+  const diffSummaryPath = join(roundDir, "diff-summary.json");
+  return {
+    review_json: join(roundDir, "review.json").replace(/\\/g, "/"),
+    compliance_map: join(roundDir, "compliance-map.json").replace(/\\/g, "/"),
+    fix_items_map: await pathExists(fixItemsMapPath) ? fixItemsMapPath.replace(/\\/g, "/") : null,
+    learning_json: await pathExists(learningJsonPath) ? learningJsonPath.replace(/\\/g, "/") : null,
+    diff_summary: await pathExists(diffSummaryPath) ? diffSummaryPath.replace(/\\/g, "/") : null,
+    artifact_markdown: join(runDir, `${request.role_slug}-role.md`).replace(/\\/g, "/"),
+    self_check: join(runDir, "self-check.json").replace(/\\/g, "/"),
+  };
+}
+
+async function writeRoundReviewArtifact(
+  roundDir: string,
+  request: RoleBuilderRequest,
+  roundResult: BoardRoundResult,
+  ctx: BoardContext
+) {
+  const artifactRefs = await buildRoundArtifactRefs(roundDir, request);
+  const audit = buildAuditEnvelope({
+    requestJobId: request.job_id,
+    round: roundResult.round,
+    reviewMode: roundResult.reviewMode,
+    participants: roundResult.participants,
+    artifactRefs,
+  });
+  await writeFile(join(roundDir, "review.json"), JSON.stringify(attachGovernanceBinding({
+    round: roundResult.round,
+    reviewMode: roundResult.reviewMode,
+    leaderVerdict: roundResult.leaderVerdict,
+    leaderRationale: roundResult.leaderRationale,
+    unresolved: roundResult.unresolved,
+    deferredItems: roundResult.deferredItems,
+    improvementsApplied: roundResult.improvementsApplied,
+    arbitrationUsed: roundResult.arbitrationUsed,
+    arbitrationRationale: roundResult.arbitrationRationale,
+    reviewerVerdicts: Object.fromEntries(roundResult.reviewerVerdicts),
+    audit: {
+      ...audit,
+      participants: roundResult.participants.map((participant) => ({
+        participant_id: participant.participant_id,
+        provider: participant.provider,
+        model: participant.model,
+        latency_ms: participant.latency_ms ?? null,
+        fallback_used: participant.was_fallback ?? false,
+        invocation_id: participant.invocation_id ?? null,
+      })),
+    },
+    participants: roundResult.participants.map((p) => ({
+      participant_id: p.participant_id,
+      provider: p.provider,
+      model: p.model,
+      role: p.role,
+      round: p.round,
+      latency_ms: p.latency_ms,
+      invocation_id: p.invocation_id,
+      was_fallback: p.was_fallback ?? false,
+    })),
+  }, ctx), null, 2), "utf-8");
 }
 
 function attachGovernanceBinding<T extends Record<string, unknown>>(payload: T, ctx: BoardContext) {
@@ -920,9 +966,34 @@ async function executeRound(
     reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id, ctx, fixItemsMap));
   }
 
+  const leaderInputReviewerVerdicts = new Map(
+    [...reviewerVerdicts.entries()].filter(([, verdict]) => !isParseErrorVerdict(verdict))
+  );
+  if (leaderInputReviewerVerdicts.size === 0) {
+    const reportPath = await writeBugReport({
+      what_failed: "No healthy reviewer verdicts remained after reviewer-local parse/runtime failures",
+      error_message: "All active reviewer slots failed before producing governed JSON verdicts.",
+      where: `Round ${roundIndex}, reviewer aggregation before leader synthesis`,
+      context: {
+        round: roundIndex,
+        active_reviewer_count: activeReviewers.length,
+        reviewer_ids: [...reviewerVerdicts.keys()],
+      },
+      input_that_caused_failure: JSON.stringify(Object.fromEntries(reviewerVerdicts), null, 2).slice(0, 3000),
+      expected_format: "At least one successfully parsed reviewer verdict must remain before leader synthesis can continue.",
+      component: "tools/agent-role-builder/board/executeRound",
+      provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
+      timestamp: new Date().toISOString(),
+    }, ctx ?? createNullBoardContext());
+    throw new BoardBlockedError(
+      `All reviewer slots failed before producing usable verdicts in round ${roundIndex}. Bug report: ${reportPath ?? "unknown"}`,
+      reportPath
+    );
+  }
+
   const leaderRecord = await executeParticipant(
     request.board_roster.leader, request, markdown, contract, selfCheckIssues,
-    roundIndex, "leader", priorRounds, reviewerVerdicts, complianceMap, fixItemsMap, ctx,
+    roundIndex, "leader", priorRounds, leaderInputReviewerVerdicts, complianceMap, fixItemsMap, ctx,
     undefined, reviewMode
   );
   participants.push(leaderRecord);
@@ -1069,6 +1140,44 @@ class BoardBlockedError extends Error {
   }
 }
 
+function isParseErrorGroup(group: { id: string }): boolean {
+  return group.id === "parse-error";
+}
+
+function isParseErrorVerdict(verdict: ReviewerVerdict): boolean {
+  return verdict.conceptual_groups.some((group: { id: string }) => isParseErrorGroup(group));
+}
+
+function buildReviewerParseErrorVerdict(participantId: string | undefined, message: string, bugReportPath: string | null): ReviewerVerdict {
+  const evidence = bugReportPath
+    ? `Review transport/runtime failure. See bug report: ${bugReportPath}`
+    : "Review transport/runtime failure. Bug report path unavailable.";
+
+  return {
+    verdict: "reject",
+    conceptual_groups: [
+      {
+        id: "parse-error",
+        summary: message,
+        severity: "blocking",
+        findings: [
+          {
+            id: "parse-error-detail",
+            description: evidence,
+            source_section: participantId ?? "reviewer-response",
+          },
+        ],
+        redesign_guidance: "Treat this reviewer slot as unavailable for the round. Do not convert this transport/runtime failure into artifact repair work.",
+      },
+    ],
+    fix_decisions: [],
+    residual_risks: [
+      "One reviewer slot failed before producing a governed verdict for this round.",
+    ],
+    strengths: [],
+  };
+}
+
 async function parseReviewerResponse(
   raw: string,
   request: RoleBuilderRequest,
@@ -1094,10 +1203,10 @@ async function parseReviewerResponse(
       timestamp: new Date().toISOString(),
     };
     const reportPath = await writeBugReport(bugReport, defaultCtx);
-    // Pre-validation failures are unrecoverable and block the board immediately.
     console.error(`[board] Reviewer response pre-validation failed: ${preValidationFailure}`);
-    throw new BoardBlockedError(
-      `Reviewer ${participantId ?? "unknown"} response pre-validation failed: ${preValidationFailure}. Bug report: ${reportPath ?? "unknown"}`,
+    return buildReviewerParseErrorVerdict(
+      participantId,
+      `Reviewer ${participantId ?? "unknown"} response pre-validation failed: ${preValidationFailure}.`,
       reportPath
     );
   }
@@ -1136,9 +1245,10 @@ async function parseReviewerResponse(
     }
 
     // Bug 1 fix: auto-fix failed — throw BoardBlockedError instead of returning degraded fallback
-    console.error("[board] Reviewer parse failed and auto-fix failed. Blocking board.");
-    throw new BoardBlockedError(
-      `Reviewer ${participantId ?? "unknown"} response parse failed after auto-fix attempt. Bug report: ${reportPath ?? "unknown"}`,
+    console.error("[board] Reviewer parse failed and auto-fix failed. Returning reviewer-local parse-error verdict.");
+    return buildReviewerParseErrorVerdict(
+      participantId,
+      `Reviewer ${participantId ?? "unknown"} response parse failed after auto-fix attempt.`,
       reportPath
     );
   }
@@ -1235,6 +1345,7 @@ function countRoundSeverities(reviewerVerdicts: Map<string, ReviewerVerdict>) {
 
   for (const verdict of reviewerVerdicts.values()) {
     for (const group of verdict.conceptual_groups) {
+      if (isParseErrorGroup(group)) continue;
       switch (group.severity) {
         case "blocking":
           counts.blocking++;
@@ -1266,6 +1377,7 @@ function collectReviewChecklist(
 
   for (const [, verdict] of reviewerVerdicts) {
     for (const group of verdict.conceptual_groups) {
+      if (isParseErrorGroup(group)) continue;
       if (seenChecklistIds.has(group.id)) continue;
       seenChecklistIds.add(group.id);
       checklist.push({

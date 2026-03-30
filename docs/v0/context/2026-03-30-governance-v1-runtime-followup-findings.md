@@ -120,3 +120,31 @@ Minimum expectation:
 - deterministic normalization only
 - no silent semantic changes
 - explicit tests for request, governance, review, learning, and repair parse points
+
+## Runtime Bug-Fix Implementation Notes
+
+Status: implemented after this note was frozen for sequencing
+
+The runtime bug-fix pass intentionally did not include BOM support.
+
+Implemented changes:
+
+- reviewer parse/pre-validation failures are reviewer-local again instead of aborting the whole board immediately
+- the leader no longer receives synthetic parse-error verdicts as normal review evidence
+- if every active reviewer slot fails before producing a healthy verdict, the round blocks explicitly with a bug report
+- parse-error verdicts are excluded from artifact-repair checklist generation and from review-issue counting
+- round input snapshots are written before review, and round `review.json` is rewritten after `learning.json` / `diff-summary.json` so successful rounds carry stable refs
+- round `artifact_markdown` and `self_check` refs now point to round-local snapshot files instead of later-overwritten run-root files
+- repair-engine authority mirroring now normalizes absolute snapshot paths into safe bundle-local paths and records source-to-bundle mapping in the manifest
+
+Validation at the bug-fix phase:
+
+- `tsc -p shared/tsconfig.json --noEmit`
+- `tsc -p tools/agent-role-builder/tsconfig.json --noEmit`
+
+Deferred to the later BOM phase:
+
+- request-file BOM tolerance
+- governance file BOM tolerance
+- review/learning/repair JSON BOM tolerance
+- bootstrap healing/audit for pre-run normalization

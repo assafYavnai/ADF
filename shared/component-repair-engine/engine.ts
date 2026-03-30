@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { ComplianceEntry } from "../learning-engine/compliance-map.js";
 import { FixItem } from "../learning-engine/fix-items-map.js";
 import type { RepairInvokeResult, RepairRequest, RepairResult } from "./types.js";
@@ -27,9 +27,14 @@ export async function runComponentRepair(
 
   const authorityCopies = await Promise.all(
     request.sourceAuthorityPaths.map((sourcePath) =>
-      copyRequiredFile(sourcePath, join(authorityDir, sourcePath), `source authority (${sourcePath})`).then(() =>
-        join(authorityDir, sourcePath)
-      )
+      copyRequiredFile(
+        sourcePath,
+        buildAuthorityMirrorPath(authorityDir, sourcePath),
+        `source authority (${sourcePath})`
+      ).then((bundlePath) => ({
+        source_path: normalizePath(sourcePath),
+        bundled_path: normalizePath(bundlePath),
+      }))
     )
   );
   const manifestPath = join(request.bundleDir, "manifest.json");
@@ -42,7 +47,8 @@ export async function runComponentRepair(
     self_check: selfCheckFile.replace(/\\/g, "/"),
     review_prompt: reviewPromptFile.replace(/\\/g, "/"),
     review_contract: reviewContractFile.replace(/\\/g, "/"),
-    source_authorities: authorityCopies.map((filePath) => filePath.replace(/\\/g, "/")),
+    source_authorities: authorityCopies.map((entry) => entry.bundled_path),
+    source_authority_sources: authorityCopies,
   }, null, 2), "utf-8");
 
   const prompt = `You are the shared ADF component repair engine for ${request.component}.\n\nREAD ONLY THE FILES DECLARED IN THIS MANIFEST:\n${manifestPath.replace(/\\/g, "/")}\n\nYOUR JOB:\n1. Walk every rule in the rulebook against the artifact.\n2. Fix all direct review findings and self-check gaps.\n3. Produce full updated artifact and machine-readable evidence.\n\nRESPONSE FORMAT:\n<${request.artifactTag}>\n${request.requiredArtifactInstructions}\n</${request.artifactTag}>\n\n<compliance_map>\n[{"rule_id":"RULE-001","status":"compliant"|"non_compliant"|"not_applicable","evidence_location":"<section>","evidence_summary":"..."}]\n</compliance_map>\n\n${request.mode === "revision" ? `<fix_items_map>\n[{"finding_id":"preferred-if-known","finding_group_id":"group-1","severity":"blocking"|"major"|"minor"|"suggestion","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>","rejection_reason":"only if rejected"}]\n</fix_items_map>` : ""}`;
@@ -98,14 +104,47 @@ export async function runComponentRepair(
   };
 }
 
-async function copyRequiredFile(source: string, destination: string, label: string): Promise<void> {
+async function copyRequiredFile(source: string, destination: string, label: string): Promise<string> {
   try {
     await mkdir(dirname(destination), { recursive: true });
     const content = await readFile(source, "utf-8");
     await writeFile(destination, content, "utf-8");
+    return destination;
   } catch (error) {
     throw new Error(`Failed to copy required ${label} from ${source}: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+function buildAuthorityMirrorPath(authorityDir: string, sourcePath: string): string {
+  const normalizedSource = normalizePath(sourcePath);
+  const repoRoot = resolve(process.cwd());
+
+  if (!isAbsolute(sourcePath)) {
+    return join(authorityDir, ...safeAuthoritySegments(normalizedSource));
+  }
+
+  const absoluteSource = resolve(sourcePath);
+  const relativeToRepo = normalizePath(relative(repoRoot, absoluteSource));
+  if (!relativeToRepo.startsWith("../") && relativeToRepo !== "..") {
+    return join(authorityDir, ...safeAuthoritySegments(relativeToRepo));
+  }
+
+  const driveNormalized = normalizePath(absoluteSource).replace(/^([A-Za-z]):/, "$1");
+  return join(authorityDir, "__absolute__", ...safeAuthoritySegments(driveNormalized));
+}
+
+function safeAuthoritySegments(pathValue: string): string[] {
+  const segments = normalizePath(pathValue)
+    .split("/")
+    .filter((segment) => segment.length > 0 && segment !== ".");
+  if (segments.some((segment) => segment === "..")) {
+    throw new Error(`Authority path cannot escape its mirror root: ${pathValue}`);
+  }
+  return segments;
+}
+
+function normalizePath(pathValue: string): string {
+  return pathValue.replace(/\\/g, "/");
 }
 
 function stripCodeFences(text: string): string {

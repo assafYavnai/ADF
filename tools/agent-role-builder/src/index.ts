@@ -1010,14 +1010,17 @@ function attachGovernanceBinding<T extends Record<string, unknown>>(
   return bindGovernance(payload, governanceBinding);
 }
 
-function countBoardReviewIssues(rounds: Array<{ reviewerVerdicts: Map<string, { conceptual_groups: Array<{ severity: string }> }> }>): number {
+function countBoardReviewIssues(rounds: Array<{ reviewerVerdicts: Map<string, { conceptual_groups: Array<{ severity: string; id?: string }> }> }>): number {
   return rounds.reduce((sum, round) => {
     const roundIssueCount = [...round.reviewerVerdicts.values()].reduce(
       (innerSum, verdict) => innerSum + verdict.conceptual_groups.filter((group) =>
-        group.severity === "blocking"
-        || group.severity === "major"
-        || group.severity === "minor"
-        || group.severity === "suggestion"
+        group.id !== "parse-error"
+        && (
+          group.severity === "blocking"
+          || group.severity === "major"
+          || group.severity === "minor"
+          || group.severity === "suggestion"
+        )
       ).length,
       0
     );
