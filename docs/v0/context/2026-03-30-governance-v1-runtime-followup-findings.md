@@ -463,7 +463,7 @@ Focused validation:
 
 ## Planned Shared Invocation-Session Resume Slice
 
-Status: implemented for the first narrow slice; manual recovery still pending before the next bounded `ARB` rerun
+Status: implemented for the first narrow slice; one-time manual recovery pass completed with no trustworthy pre-V3D backfill applied
 
 Decision:
 
@@ -526,6 +526,22 @@ Artifact fields added in this slice:
    - `slots.<slot_key>.last_round`
 2. `resume-package.json`
    - `session_handles`
+
+Manual recovery result:
+
+1. the one-time recovery pass was executed before the next bounded `ARB` rerun gate
+2. inspected sources:
+   - older resumable run artifacts under `tools/agent-role-builder/runs/`
+   - `~/.claude/history.jsonl`
+   - `~/.codex/session_index.jsonl`
+3. no trustworthy slot-to-session backfill was applied for pre-V3D runs
+4. reason:
+   - older `ARB` review calls predated explicit session-handle persistence
+   - the older live path did not own resumable provider sessions explicitly
+   - the remaining home-folder traces are not strong enough to bind a provider session to a specific `ARB` slot and governance state without weakening audit trust
+5. consequence:
+   - pre-V3D runs remain non-resumable at the provider-session layer
+   - V3D+ runs are the first runs that can resume through explicit `session_handles`
 
 Focused validation:
 

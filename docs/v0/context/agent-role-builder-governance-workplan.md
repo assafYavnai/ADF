@@ -650,7 +650,8 @@ Validation:
 
 Status:
 
-- implemented for the first narrow slice; manual recovery pass still pending
+- implemented for the first narrow slice
+- one-time manual recovery pass completed with no trustworthy pre-V3D backfill applied
 
 Purpose:
 
@@ -658,11 +659,8 @@ Purpose:
 
 Open items:
 
-1. define one shared invocation-session handle contract owned by the invoker boundary
-2. capture provider session UUIDs during live review/revision calls
-3. persist session handles in `runtime/session-registry.json` and `resume-package.json`
-4. reuse those handles on resume when present
-5. document the new functionality and artifact fields
+1. extend resumable session coverage beyond the current first-slice provider/call surface
+2. decide later whether broader consumers beyond `agent-role-builder` should adopt the same shared session contract
 
 Primary sources:
 
@@ -735,6 +733,21 @@ Artifact fields frozen in this slice:
    - `session_handles`
    - slot-key to shared invocation-session handle mapping
 
+Manual recovery note:
+
+1. the one-time recovery pass was executed before the next bounded `ARB` rerun gate
+2. the pass inspected:
+   - older resumable run artifacts under `tools/agent-role-builder/runs/`
+   - `~/.claude/history.jsonl`
+   - `~/.codex/session_index.jsonl`
+3. no trustworthy slot-to-session backfill was applied for pre-V3D runs because:
+   - those older `ARB` review calls predated explicit session-handle persistence in runtime artifacts
+   - the old live path did not own resumable provider sessions explicitly
+   - remaining home-folder traces are not strong enough to bind a provider session to a specific `ARB` slot and governance state without weakening audit trust
+4. consequence:
+   - pre-V3D runs remain non-resumable at the provider-session layer
+   - V3D+ runs are the first runs that can resume through explicit `session_handles`
+
 Focused validation:
 
 1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test shared/llm-invoker/session.test.ts shared/llm-invoker/managed-process.test.ts`
@@ -746,8 +759,7 @@ Focused validation:
 
 Do the next work in this order:
 
-1. perform the one-time manual recovery pass for older missing session UUIDs, if needed
-2. rerun bounded `ARB` validation
+1. rerun bounded `ARB` validation
 
 ## Explicit Non-Goals Right Now
 
