@@ -10,6 +10,10 @@ Related docs:
 - [2026-03-30-bom-question-followup.md](C:/ADF/docs/v0/context/2026-03-30-bom-question-followup.md)
 - [agent-role-builder-governance-research-and-findings.md](C:/ADF/docs/v0/context/agent-role-builder-governance-research-and-findings.md)
 
+External review corroboration:
+
+- Codex agent `019d3dd7-893f-7313-b90c-64eabd28e2bc`
+
 Implementation baseline reviewed:
 
 - `b54c464` Record governance V1 runtime and BOM follow-up findings
@@ -39,6 +43,7 @@ Current startup audit reliably covers raw request JSON parse failure, but not ev
 
 Remaining uncovered or inconsistently covered cases include:
 
+- unreadable request file before request ingress normalization completes
 - shared-module load failure before request processing fully enters the governed path
 - request schema validation failure after JSON parse but before the run becomes a normal governed execution
 
@@ -73,7 +78,18 @@ The detailed round artifact path is much better than before, but the run-level p
 High-level impact:
 
 - `review.json` is more trustworthy than the run-level summary for exact round evidence
-- the run summary still blurs “what round N reviewed” with “what the run later contained”
+- the run summary still blurs "what round N reviewed" with "what the run later contained"
+
+### 4. Relative traversal-style authority inputs are not yet fail-closed
+
+Accepted.
+
+Current snapshot-path hardening rejects absolute paths outside the repo root, but relative traversal-style inputs such as `../outside.json` are still accepted as non-absolute values and then joined into the snapshot tree.
+
+High-level impact:
+
+- snapshot authority boundaries are stronger than before, but not fully closed
+- a caller can still attempt repo escape through relative traversal inputs unless the caller surface is otherwise trusted
 
 ## Open Questions
 
@@ -156,6 +172,24 @@ Before broader rollout or new governance features, add narrow tests for:
 4. run-postmortem round refs match round-local review evidence
 5. every referenced artifact exists at write time
 
+## External Review Delta
+
+The external review mostly corroborated this audit rather than replacing it.
+
+Accepted additions from the external review:
+
+- startup audit gap explicitly includes unreadable request files, not only schema-invalid or shared-module failures
+- relative traversal-style authority inputs are a real remaining fail-closed gap
+
+Corroborated findings already present in this audit:
+
+- startup audit is incomplete
+- run-postmortem round snapshots are not round-stable
+
+Findings still unique to this audit after external review:
+
+- required rulebook governance is not yet fully fail-closed on shape validation
+
 ## Conclusion
 
 The remaining work is now mostly about fail-closed behavior and audit precision.
@@ -167,4 +201,5 @@ What remains is implementation hardening:
 - broaden startup audit
 - tighten rulebook governance validation
 - make round evidence canonical in summaries
+- fully close authority path boundaries
 - add invariant coverage so these regressions stop recurring
