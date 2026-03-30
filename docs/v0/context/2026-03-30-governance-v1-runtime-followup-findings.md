@@ -425,3 +425,35 @@ Classification:
 - next work should focus on:
   1. isolating the hang between `governance-ready` and the first round-start checkpoint
   2. making bounded-run timeout/teardown propagate cleanly to spawned subprocesses
+
+## Planned Shared Invocation-Session Resume Slice
+
+Status: frozen as the last implementation step before the next bounded `ARB` rerun
+
+Decision:
+
+1. provider-session reuse will be generalized through a shared invoker-owned session layer
+2. `review-engine` remains a consumer and does not become the session owner
+3. session UUIDs/handles must move through explicit JSON contracts and be persisted in:
+   - `runtime/session-registry.json`
+   - `resume-package.json`
+4. resumed `agent-role-builder` runs should reuse those persisted handles when present
+
+Explicit non-goals:
+
+1. no home-folder scraping as normal runtime behavior
+2. no silent provider-session discovery at runtime
+3. no cross-tool rollout in the first slice
+
+Migration note:
+
+1. if older runs are missing explicit UUIDs, one manual recovery pass may search `~/.claude` / `~/.codex`
+2. that recovery is outside `ARB`
+3. recovered mappings must be written back into resume/audit artifacts with an explicit recovery marker before use
+
+Documentation requirement:
+
+1. the implementation step must update context/docs to describe:
+   - the new session-handle fields
+   - resume behavior
+   - recovery source markers

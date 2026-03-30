@@ -607,17 +607,74 @@ Validation:
 2. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder) passes
 3. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared) passes
 
+### V3D Shared Invocation-Session Resume
+
+Status:
+
+- frozen for first narrow slice
+
+Purpose:
+
+- add explicit audited provider-session reuse before the next bounded `ARB` rerun
+
+Open items:
+
+1. define one shared invocation-session handle contract owned by the invoker boundary
+2. capture provider session UUIDs during live review/revision calls
+3. persist session handles in `runtime/session-registry.json` and `resume-package.json`
+4. reuse those handles on resume when present
+5. document the new functionality and artifact fields
+
+Primary sources:
+
+- [context-cache-layer-ideas.md](C:/ADF/docs/v0/context/context-cache-layer-ideas.md)
+- [2026-03-30-governance-v1-runtime-followup-findings.md](C:/ADF/docs/v0/context/2026-03-30-governance-v1-runtime-followup-findings.md)
+
+Sub-steps:
+
+1. freeze the shared JSON contract passed between the invoker/session layer and review consumers
+2. keep session ownership in the shared invoker layer, not in `review-engine`
+3. persist one slot-to-session mapping per leader/reviewer slot for `agent-role-builder`
+4. on resume, attempt provider-session reuse from those persisted handles
+5. if explicit UUIDs are missing from older artifacts, perform one manual recovery pass outside `ARB` by searching `~/.claude` / `~/.codex`, then backfill the recovered mapping into resume/audit artifacts
+6. update docs/context to describe:
+   - new session-handle fields
+   - resume behavior
+   - recovery source markers
+
+Acceptance target:
+
+- resumed `agent-role-builder` runs can explicitly reuse persisted provider sessions instead of always cold-starting
+
+Execution note:
+
+- `V3D` requires no new CEO input for the first narrow slice
+- to prevent scope creep, the first slice is frozen to:
+  1. one shared owner only: `shared/llm-invoker` session layer
+  2. one consumer only: `agent-role-builder`
+  3. one runtime use only: leader/reviewer review-session resume
+  4. one migration path only: manual one-time recovery outside `ARB` for older runs with missing UUIDs
+- explicitly out of scope for this slice:
+  1. making `review-engine` the session owner
+  2. home-folder scraping as normal runtime behavior
+  3. cross-tool rollout
+  4. dashboard/KPI expansion
+  5. generalized provider-fallback redesign
+  6. same-run semantic changes
+- docs update is mandatory in this slice:
+  1. workplan state
+  2. implementation findings/context note
+  3. artifact-field documentation for resume/session data
+
 ## Immediate Recommended Order
 
 Do the next work in this order:
 
-1. `V2A` Revision Path Unblock
-2. `V2B` Bounded ARB Validation
-3. `V2C` Minimal Telemetry Baseline
-4. `V2D` Revision Recovery And Resume Correctness
-5. `V3A` Runtime Boundary Cleanup
-6. `V3B` Governance And Learning Expansion
-7. `V3C` Observability, KPI, And Broader Audit Expansion
+1. isolate the hang between `governance-ready` and the first round-start checkpoint from `V2B`
+2. make bounded-run timeout/teardown propagate cleanly to spawned subprocesses
+3. implement `V3D` shared invocation-session resume
+4. perform the one-time manual recovery pass for older missing session UUIDs, if needed
+5. rerun bounded `ARB` validation
 
 ## Explicit Non-Goals Right Now
 
