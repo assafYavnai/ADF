@@ -527,6 +527,10 @@ Validation:
 
 ### V3C Observability, KPI, And Broader Audit Expansion
 
+Status:
+
+- frozen for first narrow slice
+
 Purpose:
 
 - add richer measurement only after runtime correctness is stable enough to measure
@@ -552,6 +556,19 @@ Sub-steps:
 Acceptance target:
 
 - observability grows after correctness, not instead of correctness
+
+Execution note:
+
+- `V3C` requires no new CEO input for the first narrow slice
+- to prevent scope creep, the first slice is frozen to:
+  1. one consumer only: `agent-role-builder`
+  2. one artifact only: an append-only run-history ledger derived from `runtime/run-telemetry.json`
+  3. no dashboards, no cross-tool aggregation, no KPI redesign
+- explicitly out of scope for this slice:
+  1. dashboard views
+  2. multi-component reporting
+  3. new runtime semantics
+  4. broad logging framework changes
 
 ## Immediate Recommended Order
 
