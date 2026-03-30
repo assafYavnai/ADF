@@ -42,6 +42,30 @@ Important rule:
 - review may appear as a phase activity, a step, or a shared invoked mechanism, depending on the lifecycle design
 - the CEO-facing language should stay at the company-function and lifecycle level by default, with drill-down only when needed
 
+## Function Definition Direction
+
+Phase 1 company functions should be defined from a canonical top-down JSON artifact.
+
+Current intended model:
+
+- each company function should have a function-definition JSON
+- the function-definition JSON should describe the lifecycle, phases, steps, lanes, gates, and handoffs
+- the JSON should be detailed enough that builders can materialize the function without re-inventing its structure
+
+Current intended build chain:
+
+1. define the function JSON top-down
+2. build shared lower-level builders bottom-up
+3. build a function-builder that orchestrates those lower-level builders
+4. materialize the company function from the JSON
+5. wire the function into the COO
+
+Builder orchestration direction:
+
+- lower-level builders should include at least phase-builder and step-builder
+- shared gate and handoff generation should be reusable instead of redefined per function
+- once the function JSON is frozen, independent phases and independent steps should be buildable in parallel
+
 ## What Success Looks Like
 
 Phase 1 is working when:

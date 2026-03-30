@@ -73,6 +73,30 @@ Clarifications:
 
 ---
 
+## Function Definition Direction
+
+Current draft direction:
+
+- company functions should be represented by a canonical function-definition JSON
+- that JSON should be defined top-down from the CEO/COO view of the function
+- it should contain enough lifecycle structure that builders can materialize the function without inventing missing hierarchy
+
+Current intended build order:
+
+1. define the function JSON
+2. build lower-level builders bottom-up
+3. build a function-builder that orchestrates those builders
+4. build the company function
+5. wire the company function into the COO
+
+Current builder assumptions:
+
+- lower-level builders should include at least a `phase-builder` and a `step-builder`
+- gate and handoff generation should be reusable across functions and phases
+- once the function JSON is stable, independent phases and independent steps should be buildable in parallel
+
+---
+
 ## Phase 1 Company Scope
 
 ### Agreed direction
