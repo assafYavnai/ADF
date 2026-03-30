@@ -382,7 +382,7 @@ Validation:
 
 Status:
 
-- frozen for first structural slice
+- first structural slice implemented
 
 Purpose:
 
@@ -424,6 +424,21 @@ Execution note:
   1. `agent-role-builder` no longer owns a duplicated LLM invoker implementation
   2. the Codex regression guard still passes
   3. package compile still passes
+
+Implementation note:
+
+1. [shared-imports.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.ts) is now a thin bridge over canonical shared modules instead of owning its own invoker/provenance implementation
+2. the only local logic retained there is the minimal telemetry-buffer shim still used by the current run-telemetry path
+3. the regression guard now verifies:
+   - shared invoker source and built `shared/dist` both keep temp-file Codex prompt delivery
+   - `shared-imports.ts` remains a bridge and does not reintroduce local `callCodex()` logic
+
+Validation:
+
+1. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) passes
+2. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) still passes
+3. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder) passes
+4. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared) passes
 
 ### V3B Governance And Learning Expansion
 

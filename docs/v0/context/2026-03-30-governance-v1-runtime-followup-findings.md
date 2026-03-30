@@ -289,3 +289,33 @@ Focused validation:
    - carrying forward reviewer status, round files, and rounds completed
 2. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) still passes after the resume wiring
 3. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+
+## V3A Shared-Imports Bridge Slice
+
+Status: implemented for the first structural cleanup slice
+
+What changed:
+
+1. [shared-imports.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.ts) no longer owns a copied invoker/provenance implementation
+2. the file now bridges to canonical shared modules
+3. only the local telemetry-buffer shim remains there, because the current run-telemetry path still reads buffered events directly
+
+What this fixes:
+
+1. the repeated Codex/path regression no longer depends on manually keeping a full copied invoker in sync
+2. the active tool path now consumes the canonical shared invoker/provenance implementation instead of a locally forked copy
+
+What remained out of scope for this slice:
+
+1. removing every other copied/shared boundary in the tool
+2. cwd hardening across all shared runtime imports
+3. broader build or workspace redesign
+
+Focused validation:
+
+1. [shared-imports.codex-sync.test.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.codex-sync.test.ts) now verifies:
+   - shared source and built `shared/dist` both keep temp-file Codex prompt delivery
+   - `shared-imports.ts` remains a thin bridge and does not reintroduce local `callCodex()` logic
+2. [resume-state.test.ts](C:/ADF/tools/agent-role-builder/src/services/resume-state.test.ts) still passes
+3. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+4. shared package build passes in [shared](C:/ADF/shared)
