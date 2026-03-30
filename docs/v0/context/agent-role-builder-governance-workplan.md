@@ -315,6 +315,10 @@ Outcome:
 
 ### V2D Revision Recovery And Resume Correctness
 
+Status:
+
+- implementation-ready with narrowed scope
+
 Purpose:
 
 - prevent recoverable revision failures from blocking too early
@@ -342,6 +346,21 @@ Acceptance target:
 
 - recoverable revision/provider failure does not immediately hard-stop the run
 - resumed runs preserve reviewer status correctly
+
+Execution note:
+
+- `V2D` does not require new CEO input
+- the older postmortem finding about revision fallback is now only partially current:
+  - the revision repair path already uses a Codex-to-Claude fallback in [role-generator.ts](C:/ADF/tools/agent-role-builder/src/services/role-generator.ts)
+- the real missing gap is resume carry-forward:
+  1. resume-package state is written but not loaded back into the live run
+  2. reviewer status still initializes to `pending` for every resumed run
+  3. resumed runs do not reuse the latest markdown from the resume package
+- this step is therefore frozen to:
+  1. extend the resume package with the minimum reviewer-status state
+  2. load resume-package state when `request.resume` is present
+  3. initialize resumed runs from the latest markdown and reviewer-status state
+  4. keep broader fixer-platform expansion out of scope
 
 ### V3A Runtime Boundary Cleanup
 
