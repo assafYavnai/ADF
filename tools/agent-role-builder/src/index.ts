@@ -11,6 +11,7 @@ import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./
 import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./services/json-ingress.js";
 import { applyFutureRunRulebookPromotion } from "./services/rulebook-promotion.js";
 import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState } from "./services/resume-state.js";
+import { buildInitialSessionRegistry, writeSessionRegistry } from "./services/session-registry.js";
 import { writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
@@ -161,20 +162,13 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     ),
     "utf-8"
   );
-  await writeFile(
-    join(runDir, "runtime", "session-registry.json"),
-    JSON.stringify(
-      {
-        request_job_id: request.job_id,
-        role_slug: request.role_slug,
-        execution_mode: request.runtime.execution_mode,
-        watchdog_timeout_seconds: request.runtime.watchdog_timeout_seconds,
-        started_at_utc: startIso,
-      },
-      null,
-      2
-    ),
-    "utf-8"
+  const sessionRegistryPath = join(runDir, "runtime", "session-registry.json");
+  await writeSessionRegistry(
+    sessionRegistryPath,
+    buildInitialSessionRegistry({
+      request,
+      startedAtIso: startIso,
+    })
   );
 
   const recordRunTelemetry = async (params: {
@@ -648,6 +642,16 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     rulebookPromotionArtifactPath = rulebookPromotion.promotionArtifactPath;
   }
 
+  const initialSessionHandles = loadedResumeState?.resumePackage.session_handles ?? {};
+  await writeSessionRegistry(
+    sessionRegistryPath,
+    buildInitialSessionRegistry({
+      request,
+      startedAtIso: startIso,
+      initialHandles: initialSessionHandles,
+    })
+  );
+
   const draftMarkdown = loadedResumeState?.markdown ?? generateRoleMarkdown(request);
   const draftContract = generateRoleContract(
     request,
@@ -675,7 +679,8 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
       startedAtMs: start,
       startedAtIso: startIso,
     },
-    loadedResumeState?.resumePackage.reviewer_status ?? {}
+    loadedResumeState?.resumePackage.reviewer_status ?? {},
+    initialSessionHandles
   );
 
   for (const round of boardResult.rounds) {
@@ -740,6 +745,7 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
         : null,
       roundFiles: boardResult.rounds.map((round) => join(runDir, "rounds", `round-${round.round}.json`)),
       reviewerStatus: boardResult.finalReviewerStatus,
+      sessionHandles: boardResult.finalSessionHandles,
       roundsCompletedThisRun: boardResult.rounds.length,
       priorResumePackage: loadedResumeState?.resumePackage ?? null,
     });

@@ -1,6 +1,10 @@
 import { access, readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { z } from "zod";
+import {
+  InvocationSessionHandle as InvocationSessionHandleSchema,
+  type InvocationSessionHandle,
+} from "../../../../shared/dist/llm-invoker/types.js";
 
 export const ResumeReviewerStatus = z.enum(["approved", "conditional", "reject", "error", "pending"]);
 export type ResumeReviewerStatus = z.infer<typeof ResumeReviewerStatus>;
@@ -18,6 +22,7 @@ export const ResumePackageSchema = z.object({
   latest_learning_path: z.string().optional(),
   round_files: z.array(z.string()).default([]),
   reviewer_status: z.record(ResumeReviewerStatus).default({}),
+  session_handles: z.record(InvocationSessionHandleSchema).default({}),
   rounds_completed: z.number().int().nonnegative().optional(),
 });
 
@@ -49,6 +54,7 @@ export function buildNextResumePackage(params: {
   latestLearningPath?: string | null;
   roundFiles: string[];
   reviewerStatus: Record<string, ResumeReviewerStatus>;
+  sessionHandles: Record<string, InvocationSessionHandle>;
   roundsCompletedThisRun: number;
   priorResumePackage?: ResumePackage | null;
 }): ResumePackage {
@@ -67,6 +73,7 @@ export function buildNextResumePackage(params: {
     ...(params.latestLearningPath ? { latest_learning_path: params.latestLearningPath } : {}),
     round_files: mergedRoundFiles,
     reviewer_status: params.reviewerStatus,
+    session_handles: params.sessionHandles,
     rounds_completed: (params.priorResumePackage?.rounds_completed ?? 0) + params.roundsCompletedThisRun,
   };
 }

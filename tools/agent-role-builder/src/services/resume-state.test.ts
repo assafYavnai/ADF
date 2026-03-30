@@ -25,6 +25,7 @@ test("loadResumeState loads markdown and defaults missing reviewer_status", asyn
         latest_board_summary_path: join(tempRoot, "board-summary.md"),
         latest_decision_log_path: join(tempRoot, "decision-log.md"),
         round_files: [],
+        session_handles: {},
       },
       null,
       2
@@ -36,6 +37,7 @@ test("loadResumeState loads markdown and defaults missing reviewer_status", asyn
     const loaded = await loadResumeState(resumePath);
     assert.equal(loaded.markdown, "# Resumed markdown");
     assert.deepEqual(loaded.resumePackage.reviewer_status, {});
+    assert.deepEqual(loaded.resumePackage.session_handles, {});
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }
@@ -58,6 +60,13 @@ test("buildNextResumePackage carries forward reviewer status, rounds, and prior 
       "reviewer-0-codex": "approved",
       "reviewer-1-claude": "conditional",
     },
+    sessionHandles: {
+      "leader-codex": {
+        provider: "codex",
+        session_id: "019d401d-3bd7-7dd0-89c9-40b49398b1fb",
+        source: "provider_returned",
+      },
+    },
     roundsCompletedThisRun: 2,
     priorResumePackage: {
       schema_version: "1.0",
@@ -76,6 +85,13 @@ test("buildNextResumePackage carries forward reviewer status, rounds, and prior 
       reviewer_status: {
         "reviewer-0-codex": "reject",
       },
+      session_handles: {
+        "leader-codex": {
+          provider: "codex",
+          session_id: "older-session",
+          source: "manual_recovery",
+        },
+      },
       rounds_completed: 3,
     },
   });
@@ -83,6 +99,13 @@ test("buildNextResumePackage carries forward reviewer status, rounds, and prior 
   assert.deepEqual(nextResumePackage.reviewer_status, {
     "reviewer-0-codex": "approved",
     "reviewer-1-claude": "conditional",
+  });
+  assert.deepEqual(nextResumePackage.session_handles, {
+    "leader-codex": {
+      provider: "codex",
+      session_id: "019d401d-3bd7-7dd0-89c9-40b49398b1fb",
+      source: "provider_returned",
+    },
   });
   assert.equal(nextResumePackage.rounds_completed, 5);
   assert.deepEqual(nextResumePackage.round_files, [
@@ -108,6 +131,7 @@ test("assertResumePackageMatchesRole rejects mismatched role slug", () => {
           latest_decision_log_path: "older-log.md",
           round_files: [],
           reviewer_status: {},
+          session_handles: {},
           rounds_completed: 0,
         },
         "agent-role-builder"
@@ -138,6 +162,7 @@ test("resolveResumeLearningArtifactPath falls back to the latest round learning.
       latest_decision_log_path: "older-log.md",
       round_files: [roundFilePath],
       reviewer_status: {},
+      session_handles: {},
       rounds_completed: 1,
     });
 

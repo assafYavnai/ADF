@@ -463,7 +463,7 @@ Focused validation:
 
 ## Planned Shared Invocation-Session Resume Slice
 
-Status: frozen as the last implementation step before the next bounded `ARB` rerun
+Status: implemented for the first narrow slice; manual recovery still pending before the next bounded `ARB` rerun
 
 Decision:
 
@@ -492,3 +492,44 @@ Documentation requirement:
    - the new session-handle fields
    - resume behavior
    - recovery source markers
+
+Implemented session-resume slice:
+
+1. the shared invoker now owns one explicit session-handle contract with:
+   - `provider`
+   - `session_id`
+   - `source`
+   - invocation status `fresh | resumed | replaced`
+2. the live `agent-role-builder` review lane now persists leader/reviewer session handles in:
+   - `runtime/session-registry.json`
+   - `resume-package.json` under `session_handles`
+3. resumed runs now pass cached handles back into the shared invoker for leader/reviewer review calls
+4. provider behavior was verified directly before implementation:
+   - Codex fresh calls expose `thread.started.thread_id` under `codex exec --json`
+   - Codex resume uses `codex exec resume <thread_id>`
+   - Claude print JSON returns `session_id`
+   - Claude resume uses `--resume <session_id>`
+5. missing-session fallback is now explicit and audited for the supported providers:
+   - Codex missing thread -> fresh replacement handle
+   - Claude missing conversation -> fresh replacement handle
+6. current first-slice coverage remains intentionally narrow:
+   - Codex and Claude review sessions are resumable
+   - Gemini remains cold-start only
+   - revision/repair/learning calls still do not use persisted sessions
+
+Artifact fields added in this slice:
+
+1. `runtime/session-registry.json`
+   - `slots.<slot_key>.handle`
+   - `slots.<slot_key>.last_status`
+   - `slots.<slot_key>.last_invocation_id`
+   - `slots.<slot_key>.last_round`
+2. `resume-package.json`
+   - `session_handles`
+
+Focused validation:
+
+1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test shared/llm-invoker/session.test.ts shared/llm-invoker/managed-process.test.ts`
+2. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test tools/agent-role-builder/src/services/resume-state.test.ts tools/agent-role-builder/src/services/session-registry.test.ts tools/agent-role-builder/src/services/rulebook-promotion.test.ts tools/agent-role-builder/src/shared-imports.codex-sync.test.ts`
+3. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared)
+4. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)

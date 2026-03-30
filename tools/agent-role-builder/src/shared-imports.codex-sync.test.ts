@@ -33,12 +33,12 @@ test("shared invoker source and built dist both keep temp-file codex prompt deli
   const sourceText = await readFile(sourcePath, "utf-8");
   const distText = await readFile(distPath, "utf-8");
   const sourceBody = extractFunctionBody(sourceText, "callCodex");
-  const distBody = extractFunctionBody(distText, "callCodex");
 
   for (const marker of [
     "const promptFile = join(TEMP_DIR, `adf-codex-prompt-",
     "await writeFile(promptFile, params.prompt, \"utf-8\");",
-    "const shellCmd = `PROMPT=$(cat \"${escapedPromptPath}\") && codex ${codexArgs} \"$PROMPT\"`;",
+    "runCodexWithoutSession(params, promptFile, tmpFile)",
+    "runCodexWithSession(params, promptFile, tmpFile, \"fresh\")",
   ]) {
     assert.match(sourceBody, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
@@ -46,13 +46,13 @@ test("shared invoker source and built dist both keep temp-file codex prompt deli
   for (const marker of [
     "adf-codex-prompt-",
     "PROMPT=$(cat",
-    "spawn(\"bash\", [\"-c\", shellCmd]",
+    "command: \"bash\"",
   ]) {
-    assert.match(distBody, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.match(distText, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 
   assert.doesNotMatch(sourceBody, /proc\.stdin\?\.write\(params\.prompt\)/);
-  assert.doesNotMatch(distBody, /args\.push\(params\.prompt\)/);
+  assert.doesNotMatch(distText, /args\.push\(params\.prompt\)/);
 });
 
 test("shared-imports stays a thin bridge over shared runtime modules", async () => {

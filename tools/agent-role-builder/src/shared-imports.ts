@@ -14,7 +14,12 @@ export {
 export type { Provenance } from "../../../shared/dist/provenance/types.js";
 
 export { invoke } from "../../../shared/dist/llm-invoker/invoker.js";
-export type { InvocationParams, InvocationResult } from "../../../shared/dist/llm-invoker/types.js";
+export type {
+  InvocationParams,
+  InvocationResult,
+  InvocationSessionHandle,
+  InvocationSessionResult,
+} from "../../../shared/dist/llm-invoker/types.js";
 
 import type { MetricEvent } from "../../../shared/dist/telemetry/types.js";
 

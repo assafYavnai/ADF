@@ -650,7 +650,7 @@ Validation:
 
 Status:
 
-- frozen for first narrow slice
+- implemented for the first narrow slice; manual recovery pass still pending
 
 Purpose:
 
@@ -705,13 +705,49 @@ Execution note:
   2. implementation findings/context note
   3. artifact-field documentation for resume/session data
 
+Implementation note:
+
+1. session ownership now lives in the shared invoker layer, not in `review-engine`
+2. `shared/llm-invoker` now exposes one explicit session-handle contract:
+   - provider
+   - session_id
+   - source
+   - invocation status (`fresh`, `resumed`, `replaced`)
+3. `agent-role-builder` now persists leader/reviewer review-session handles in:
+   - `runtime/session-registry.json`
+   - `resume-package.json` under `session_handles`
+4. resumed runs now seed leader/reviewer invocations from those persisted handles
+5. current provider coverage in the first slice is:
+   - Codex: supported through `codex exec --json` plus `codex exec resume <thread_id>`
+   - Claude: supported through `--session-id` / `--resume` and JSON print output
+   - Gemini: still cold-start only in this slice
+6. if a persisted Codex or Claude session no longer exists, the shared invoker now creates a fresh session and returns a replacement handle with audited status `replaced`
+
+Artifact fields frozen in this slice:
+
+1. `runtime/session-registry.json`
+   - one slot entry per leader/reviewer slot
+   - latest session handle
+   - last session status
+   - last invocation id
+   - last round
+2. `resume-package.json`
+   - `session_handles`
+   - slot-key to shared invocation-session handle mapping
+
+Focused validation:
+
+1. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test shared/llm-invoker/session.test.ts shared/llm-invoker/managed-process.test.ts`
+2. `tools/agent-role-builder/node_modules/.bin/tsx.cmd --test tools/agent-role-builder/src/services/resume-state.test.ts tools/agent-role-builder/src/services/session-registry.test.ts tools/agent-role-builder/src/services/rulebook-promotion.test.ts tools/agent-role-builder/src/shared-imports.codex-sync.test.ts`
+3. `npx tsc -p tsconfig.json` in [shared](C:/ADF/shared)
+4. `npx tsc -p tsconfig.json --noEmit` in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
+
 ## Immediate Recommended Order
 
 Do the next work in this order:
 
-1. implement `V3D` shared invocation-session resume
-2. perform the one-time manual recovery pass for older missing session UUIDs, if needed
-3. rerun bounded `ARB` validation
+1. perform the one-time manual recovery pass for older missing session UUIDs, if needed
+2. rerun bounded `ARB` validation
 
 ## Explicit Non-Goals Right Now
 

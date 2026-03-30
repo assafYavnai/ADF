@@ -80,6 +80,7 @@ test("applyFutureRunRulebookPromotion writes a promoted rulebook for prior learn
         latest_learning_path: learningPath,
         round_files: [join(roundsDir, "round-0.json")],
         reviewer_status: {},
+        session_handles: {},
         rounds_completed: 1,
       },
     });
@@ -130,6 +131,7 @@ test("applyFutureRunRulebookPromotion falls back to the source rulebook when no 
         latest_decision_log_path: "decision.md",
         round_files: [],
         reviewer_status: {},
+        session_handles: {},
         rounds_completed: 1,
       },
     });

@@ -1,4 +1,5 @@
 import { invoke, createSystemProvenance, emit } from "../shared-imports.js";
+import type { InvocationSessionHandle } from "../shared-imports.js";
 import type { RoleBuilderRequest, BoardParticipant } from "../schemas/request.js";
 import type { ParticipantRecord, RoleBuilderStatus, ValidationIssue } from "../schemas/result.js";
 import { selfCheck } from "./validator.js";
@@ -6,6 +7,7 @@ import { stripUtf8Bom } from "./json-ingress.js";
 import { performInitialRuleSweep, reviseRoleMarkdown } from "./role-generator.js";
 import { writeRunTelemetry } from "./run-telemetry.js";
 import { buildAuditEnvelope, pathExists, uniqueStringsCaseSensitive } from "./audit-utils.js";
+import { buildLeaderSlotKey, updateSessionRegistrySlot } from "./session-registry.js";
 import { mkdir, open, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { loadSharedGovernanceRuntimeModule, loadSharedLearningEngineModule, loadSharedReviewEngineModule } from "./shared-module-loader.js";
@@ -44,6 +46,9 @@ interface BoardContext {
   bindGovernance: <T extends Record<string, unknown>>(payload: T, context: { snapshot_id: string; snapshot_manifest_path: string }) => T & {
     governance_binding: { snapshot_id: string; snapshot_manifest_path: string };
   };
+  sessionRegistryPath?: string;
+  sessionHandles: Map<string, InvocationSessionHandle>;
+  leaderSlotKey: string;
 }
 
 async function writeBugReport(report: BugReport, ctx: BoardContext): Promise<string | null> {
@@ -175,7 +180,8 @@ export async function executeBoard(
     startedAtMs: number;
     startedAtIso: string;
   },
-  initialReviewerStatus: Record<string, "approved" | "conditional" | "reject" | "error" | "pending"> = {}
+  initialReviewerStatus: Record<string, "approved" | "conditional" | "reject" | "error" | "pending"> = {},
+  initialSessionHandles: Record<string, InvocationSessionHandle> = {}
 ): Promise<{
   status: RoleBuilderStatus;
   rounds: BoardRoundResult[];
@@ -184,9 +190,11 @@ export async function executeBoard(
   finalMarkdown: string;
   finalSelfCheckIssues: ValidationIssue[];
   finalReviewerStatus: Record<string, "approved" | "conditional" | "reject" | "error" | "pending">;
+  finalSessionHandles: Record<string, InvocationSessionHandle>;
 }> {
   const reviewEngine = await loadSharedReviewEngineModule();
   const governanceRuntime = await loadSharedGovernanceRuntimeModule();
+  const leaderSlotKey = buildLeaderSlotKey(request.board_roster.leader);
   const ctx: BoardContext = {
     runDir,
     bugReportCounter: 0,
@@ -197,6 +205,9 @@ export async function executeBoard(
     bindGovernance: governanceRuntime.bindGovernance,
     reviewEngine,
     reviewConfig: governanceContext.review_runtime_config as Awaited<ReturnType<Awaited<ReturnType<typeof loadSharedReviewEngineModule>>["loadReviewRuntimeConfig"]>>,
+    sessionRegistryPath: runDir ? join(runDir, "runtime", "session-registry.json") : undefined,
+    sessionHandles: new Map<string, InvocationSessionHandle>(Object.entries(initialSessionHandles)),
+    leaderSlotKey,
   };
   const maxRounds = request.governance.max_review_rounds;
   const rounds: BoardRoundResult[] = [];
@@ -247,6 +258,7 @@ export async function executeBoard(
         finalMarkdown: currentMarkdown,
         finalSelfCheckIssues: currentSelfCheckIssues,
         finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles),
       };
   }
 
@@ -320,6 +332,7 @@ export async function executeBoard(
       finalMarkdown: currentMarkdown,
       finalSelfCheckIssues: currentSelfCheckIssues,
       finalReviewerStatus: Object.fromEntries(reviewerStatus),
+      finalSessionHandles: Object.fromEntries(ctx.sessionHandles),
     };
   }
 
@@ -670,7 +683,8 @@ export async function executeBoard(
       return { status: "blocked", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
         finalMarkdown: roundResult.markdown, finalSelfCheckIssues: roundResult.selfCheckIssues,
-        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
     if (effectiveLeaderVerdict === "resume_required") {
@@ -678,7 +692,8 @@ export async function executeBoard(
       return { status: "resume_required", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
         finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
-        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
     if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen_with_conditions") {
@@ -686,7 +701,8 @@ export async function executeBoard(
       return { status: "frozen_with_conditions", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
         finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
-        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
     if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen") {
@@ -694,7 +710,8 @@ export async function executeBoard(
       return { status: "frozen", rounds, allParticipants,
         statusReason: "All reviewers approved and no remaining repair work was found after learning and rule checks.",
         finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
-        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
     if (finalRound && hasMaterialRepairWork) {
@@ -702,7 +719,8 @@ export async function executeBoard(
       return { status: "resume_required", rounds, allParticipants,
         statusReason: `Budget exhausted after ${rounds.length} rounds. Final-round ultimatum applied; ${materialRepairChecklist.length} material items remain deferred.`,
         finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
-        finalReviewerStatus: Object.fromEntries(reviewerStatus) };
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
     await writeRunPostmortem(request, rounds, ctx);
@@ -719,6 +737,7 @@ export async function executeBoard(
         finalMarkdown: currentMarkdown,
         finalSelfCheckIssues: currentSelfCheckIssues,
         finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles),
       };
     }
     throw error;
@@ -730,7 +749,8 @@ export async function executeBoard(
     statusReason: `Budget exhausted after ${rounds.length} rounds. ${lastRound?.unresolved.length ?? 0} unresolved.`,
     finalMarkdown: lastRound?.markdown ?? currentMarkdown,
     finalSelfCheckIssues: lastRound?.selfCheckIssues ?? currentSelfCheckIssues,
-    finalReviewerStatus: Object.fromEntries(reviewerStatus) };
+    finalReviewerStatus: Object.fromEntries(reviewerStatus),
+    finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
 }
 
 async function writeRunPostmortem(
@@ -1088,7 +1108,7 @@ async function executeRound(
   const leaderRecord = await executeParticipant(
     request.board_roster.leader, request, markdown, contract, selfCheckIssues,
     roundIndex, "leader", priorRounds, leaderInputReviewerVerdicts, complianceMap, fixItemsMap, ctx,
-    undefined, reviewMode
+    ctx?.leaderSlotKey, reviewMode
   );
   participants.push(leaderRecord);
   const leaderResponse = await parseLeaderResponse(leaderRecord.verdict ?? "pushback", request, roundIndex, leaderRecord.participant_id, ctx);
@@ -1126,12 +1146,30 @@ async function executeParticipant(
 
   const start = Date.now();
   try {
+    const sessionHandle = participantKey ? (ctx?.sessionHandles.get(participantKey) ?? null) : null;
     const result = await invoke({
       cli: participant.provider as "codex" | "claude" | "gemini",
       model: participant.model, reasoning: participant.throttle,
       bypass: false, timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
-      prompt: brief, source_path: sourcePath,
+      prompt: brief,
+      source_path: sourcePath,
+      session: participantKey
+        ? {
+            persist: true,
+            handle: sessionHandle,
+          }
+        : undefined,
     });
+    if (participantKey && ctx?.sessionRegistryPath && result.session) {
+      ctx.sessionHandles.set(participantKey, result.session.handle);
+      await updateSessionRegistrySlot({
+        sessionRegistryPath: ctx.sessionRegistryPath,
+        slotKey: participantKey,
+        round,
+        invocationId: result.provenance.invocation_id,
+        session: result.session,
+      });
+    }
     const latency_ms = Date.now() - start;
     emit({ provenance: result.provenance, category: "tool",
       operation: `role-builder-${role}`, latency_ms, success: true,
@@ -1433,6 +1471,9 @@ function createNullBoardContext(): BoardContext {
         snapshot_manifest_path: "none",
       },
     }),
+    sessionRegistryPath: undefined,
+    sessionHandles: new Map(),
+    leaderSlotKey: "leader-system",
   };
 }
 

@@ -1,13 +1,25 @@
 import { readFile, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { runManagedProcess } from "./managed-process.js";
+import {
+  buildInvocationSessionResult,
+  createClaudeFreshSessionHandle,
+  extractCodexThreadIdFromJsonOutput,
+  parseClaudePrintJson,
+  shouldRetryWithFreshSession,
+} from "./session.js";
 // Use Windows user temp, not MSYS2 /tmp which may not be accessible to child processes
 const TEMP_DIR = process.env.USERPROFILE
   ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp`
   : process.env.TEMP ?? process.env.TMP ?? ".";
 import { randomUUID } from "node:crypto";
-import { createLLMProvenance, type Provenance, type Provider } from "../provenance/types.js";
-import type { InvocationParams, InvocationResult } from "./types.js";
+import { createLLMProvenance } from "../provenance/types.js";
+import type {
+  InvocationParams,
+  InvocationResult,
+  InvocationSessionHandle,
+  InvocationSessionResult,
+} from "./types.js";
 
 /**
  * Generic LLM CLI Invoker.
@@ -22,7 +34,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
   const start = Date.now();
 
   try {
-    const response = await callCLI(params, invocationId);
+    const cliResult = await callCLI(params, invocationId);
     const latency_ms = Date.now() - start;
 
     return {
@@ -34,8 +46,9 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
         false,
         params.source_path
       ),
-      response,
+      response: cliResult.response,
       latency_ms,
+      session: cliResult.session,
     };
   } catch (primaryErr) {
     if (!params.fallback) throw primaryErr;
@@ -55,7 +68,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
         source_path: params.source_path,
       };
 
-      const response = await callCLI(fallbackParams, fallbackId);
+      const cliResult = await callCLI(fallbackParams, fallbackId);
       const latency_ms = Date.now() - fallbackStart;
 
       return {
@@ -67,8 +80,9 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
           true,
           params.source_path
         ),
-        response,
+        response: cliResult.response,
         latency_ms,
+        session: cliResult.session,
       };
     } catch (fallbackErr) {
       const primaryMsg = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
@@ -83,7 +97,12 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
 
 // --- CLI-specific dispatch ---
 
-async function callCLI(params: InvocationParams, invocationId: string): Promise<string> {
+interface CLIResult {
+  response: string;
+  session: InvocationSessionResult | null;
+}
+
+async function callCLI(params: InvocationParams, invocationId: string): Promise<CLIResult> {
   switch (params.cli) {
     case "codex":
       return callCodex(params, invocationId);
@@ -96,7 +115,7 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
   }
 }
 
-async function callCodex(params: InvocationParams, invocationId: string): Promise<string> {
+async function callCodex(params: InvocationParams, invocationId: string): Promise<CLIResult> {
   const tmpFile = join(TEMP_DIR, `adf-codex-${invocationId}.txt`);
   // Bug 1 fix: Codex stdin does NOT reliably deliver full prompts on Windows.
   // Write the prompt to a temp file and pass it as a CLI argument via shell variable.
@@ -105,43 +124,33 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
   try {
     await writeFile(promptFile, params.prompt, "utf-8");
 
-    const args = ["exec", "-m", params.model];
+    const sessionRequest = params.session;
+    const sessionHandle = sessionRequest?.handle?.provider === "codex" ? sessionRequest.handle : null;
+    let codexResult: CLIResult | null = null;
 
-    if (params.reasoning) {
-      args.push("-c", `model_reasoning_effort="${params.reasoning}"`);
+    if (sessionRequest?.persist && sessionHandle) {
+      try {
+        codexResult = await runCodexWithSession(params, promptFile, tmpFile, "resumed", sessionHandle);
+      } catch (error) {
+        if (!shouldRetryWithFreshSession("codex", error)) {
+          throw error;
+        }
+        codexResult = await runCodexWithSession(params, promptFile, tmpFile, "replaced");
+      }
+    } else if (sessionRequest?.persist) {
+      codexResult = await runCodexWithSession(params, promptFile, tmpFile, "fresh");
+    } else {
+      codexResult = await runCodexWithoutSession(params, promptFile, tmpFile);
     }
-    if (params.sandbox) {
-      args.push("-s", params.sandbox);
-    }
-    if (params.bypass) {
-      args.push("--dangerously-bypass-approvals-and-sandbox");
-    }
 
-    args.push("-o", tmpFile, "--ephemeral", "--skip-git-repo-check");
-
-    // Pass prompt via temp file loaded into shell variable (Codex stdin is unreliable on Windows)
-    const escapedPromptPath = promptFile.replace(/\\/g, "/");
-    // Build the full shell command: read prompt from file, pass as last positional arg
-    const codexArgs = args.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(" ");
-    const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
-
-    await runManagedProcess({
-      command: "bash",
-      args: ["-c", shellCmd],
-      timeoutMs: params.timeout_ms ?? 120_000,
-      label: "codex",
-      env: { ...process.env },
-    });
-
-    const result = await readFile(tmpFile, "utf-8");
-    return result.trim();
+    return codexResult;
   } finally {
     await unlink(tmpFile).catch(() => {});
     await unlink(promptFile).catch(() => {});
   }
 }
 
-async function callClaude(params: InvocationParams): Promise<string> {
+async function callClaude(params: InvocationParams): Promise<CLIResult> {
   const args = ["--print", "--model", params.model];
 
   if (params.effort) {
@@ -151,9 +160,26 @@ async function callClaude(params: InvocationParams): Promise<string> {
     args.push("--dangerously-skip-permissions");
   }
 
+  const sessionRequest = params.session;
+  const sessionHandle = sessionRequest?.handle?.provider === "claude" ? sessionRequest.handle : null;
+
+  if (sessionRequest?.persist && sessionHandle) {
+    try {
+      return await runClaudeWithSession(params, args, "resumed", sessionHandle);
+    } catch (error) {
+      if (!shouldRetryWithFreshSession("claude", error)) {
+        throw error;
+      }
+      return await runClaudeWithSession(params, args, "replaced");
+    }
+  }
+
+  if (sessionRequest?.persist) {
+    return await runClaudeWithSession(params, args, "fresh");
+  }
+
   args.push("--no-session-persistence");
 
-  // Pipe prompt via stdin to avoid shell argument length limits
   const result = await runManagedProcess({
     command: "claude",
     args,
@@ -163,10 +189,13 @@ async function callClaude(params: InvocationParams): Promise<string> {
     shell: true, // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
     stdinText: params.prompt,
   });
-  return result.stdout;
+  return {
+    response: result.stdout,
+    session: null,
+  };
 }
 
-async function callGemini(params: InvocationParams): Promise<string> {
+async function callGemini(params: InvocationParams): Promise<CLIResult> {
   const args = ["--model", params.model, "--output-format", "json"];
 
   if (params.bypass) {
@@ -183,5 +212,141 @@ async function callGemini(params: InvocationParams): Promise<string> {
     shell: true, // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
     stdinText: params.prompt,
   });
-  return result.stdout;
+  return {
+    response: result.stdout,
+    session: null,
+  };
+}
+
+async function runCodexWithoutSession(
+  params: InvocationParams,
+  promptFile: string,
+  tmpFile: string
+): Promise<CLIResult> {
+  const args = buildCodexArgs(params, tmpFile, false);
+
+  await runCodexShellCommand(params, promptFile, args);
+
+  const result = await readFile(tmpFile, "utf-8");
+  return {
+    response: result.trim(),
+    session: null,
+  };
+}
+
+async function runCodexWithSession(
+  params: InvocationParams,
+  promptFile: string,
+  tmpFile: string,
+  mode: "fresh" | "resumed" | "replaced",
+  handle?: InvocationSessionHandle
+): Promise<CLIResult> {
+  const args = buildCodexArgs(params, tmpFile, true, handle?.session_id);
+  const processResult = await runCodexShellCommand(params, promptFile, args);
+  const response = (await readFile(tmpFile, "utf-8")).trim();
+  const threadId = extractCodexThreadIdFromJsonOutput(processResult.stdout);
+  if (!threadId) {
+    throw new Error("codex session persistence enabled but no thread_id was returned in JSON output");
+  }
+
+  return {
+    response,
+    session: buildInvocationSessionResult(
+      {
+        provider: "codex",
+        session_id: threadId,
+        source: "provider_returned",
+      },
+      mode
+    ),
+  };
+}
+
+async function runCodexShellCommand(
+  params: InvocationParams,
+  promptFile: string,
+  args: string[]
+) {
+  const escapedPromptPath = promptFile.replace(/\\/g, "/");
+  const codexArgs = args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`).join(" ");
+  const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
+
+  return await runManagedProcess({
+    command: "bash",
+    args: ["-c", shellCmd],
+    timeoutMs: params.timeout_ms ?? 120_000,
+    label: "codex",
+    env: { ...process.env },
+  });
+}
+
+function buildCodexArgs(
+  params: InvocationParams,
+  tmpFile: string,
+  persistentSession: boolean,
+  resumeSessionId?: string
+): string[] {
+  const args = resumeSessionId ? ["exec", "resume", resumeSessionId] : ["exec"];
+
+  args.push("-m", params.model);
+
+  if (params.reasoning) {
+    args.push("-c", `model_reasoning_effort="${params.reasoning}"`);
+  }
+  if (params.sandbox) {
+    args.push("-s", params.sandbox);
+  }
+  if (params.bypass) {
+    args.push("--dangerously-bypass-approvals-and-sandbox");
+  }
+
+  args.push("-o", tmpFile, "--skip-git-repo-check");
+  if (persistentSession) {
+    args.push("--json");
+  } else {
+    args.push("--ephemeral");
+  }
+
+  return args;
+}
+
+async function runClaudeWithSession(
+  params: InvocationParams,
+  baseArgs: string[],
+  mode: "fresh" | "resumed" | "replaced",
+  handle?: InvocationSessionHandle
+): Promise<CLIResult> {
+  const effectiveHandle = handle ?? createClaudeFreshSessionHandle();
+  const args = [...baseArgs, "--output-format", "json"];
+  if (handle) {
+    args.push("--resume", handle.session_id);
+  } else {
+    args.push("--session-id", effectiveHandle.session_id);
+  }
+
+  const result = await runManagedProcess({
+    command: "claude",
+    args,
+    timeoutMs: params.timeout_ms ?? 120_000,
+    label: "claude",
+    env: { ...process.env },
+    shell: true,
+    stdinText: params.prompt,
+  });
+  const parsed = parseClaudePrintJson(result.stdout);
+  if (!parsed.sessionId) {
+    throw new Error("claude session persistence enabled but no session_id was returned in JSON output");
+  }
+
+  return {
+    response: parsed.response,
+    session: buildInvocationSessionResult(
+      {
+        provider: "claude",
+        session_id: parsed.sessionId,
+        source: handle ? handle.source : effectiveHandle.source,
+      },
+      mode
+    ),
+  };
 }
