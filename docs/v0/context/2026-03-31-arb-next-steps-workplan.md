@@ -198,6 +198,33 @@ Creation approach:
 
 - create with tool-builder and wire it explicitly into the lane
 
+Frozen V1 slice:
+
+1. use `llm-tool-builder` only for governed tool registration and bootstrap tool-contract ownership
+2. implement the executable runtime directly in `tools/self-repair-engine`
+3. keep the first repairable classes narrow and mechanical:
+   - supplemental `session-registry.json` missing or malformed on resume
+   - provider CLI failures during:
+     - board reviewer / leader invocation
+     - parse auto-fix invocation
+     - `self-learning-engine`
+     - `rules-compliance-enforcer`
+4. use one explicit incident/result artifact path under each run:
+   - `runtime/self-repair-engine/`
+5. permit only bounded repair actions in V1:
+   - backup + regenerate compatible supplemental session registry state
+   - one explicit cold-start relaunch after provider CLI failure
+6. treat these as non-repairable in V1:
+   - malformed resume package
+   - governance snapshot / authority corruption
+   - semantic review verdict disagreements
+7. keep out of scope for this slice:
+   - semantic governance rewriting
+   - source-governance mutation
+   - broad cross-tool rollout
+   - generalized background fixer orchestration
+   - repair of canonical promoted artifacts
+
 In scope for V1:
 
 - malformed or unreadable runtime artifacts
@@ -215,6 +242,9 @@ Out of scope:
 Acceptance:
 
 - at least the mechanical runtime incident classes above can be repaired or escalated through one explicit engine path
+- `llm-tool-builder` registration exists for `self-repair-engine`
+- `agent-role-builder` routes the mechanical classes in this frozen slice through `self-repair-engine`
+- non-repairable classes escalate with explicit `self-repair-engine` incident artifacts instead of ad hoc handling
 
 ### Step 4. Run 19 and maybe 20 as bounded sanity runs
 

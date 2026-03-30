@@ -203,6 +203,15 @@ Impact:
 
 - runtime faults still rely on narrow retries, inline overrides, or blocking behavior rather than a governed self-repair path
 
+Step 3 freeze:
+
+- `self-repair-engine` V1 is now frozen as a narrow mechanical slice
+- the first repairable classes are:
+  - supplemental `session-registry.json` missing or malformed on resume
+  - provider CLI failures for board review, parse auto-fix, `self-learning-engine`, and `rules-compliance-enforcer`
+- malformed resume packages, governance corruption, and semantic review disagreements remain non-repairable and must escalate explicitly
+- `llm-tool-builder` is used for governed tool registration, while the executable runtime is implemented directly in `tools/self-repair-engine`
+
 ### 12. Rules GC is not implemented, but is now a required direction
 
 Status:
