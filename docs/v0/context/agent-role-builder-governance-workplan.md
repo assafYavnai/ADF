@@ -82,6 +82,21 @@ If a new finding appears:
 - first try to place it inside an existing version and sub-step
 - only create a new version if the finding truly changes scope
 
+## Workplan Completeness Rule
+
+This workplan is not considered complete just because the current implementation pass is done.
+
+It stays active until:
+
+1. every deferred item is either:
+   - implemented
+   - explicitly reclassified into a later version
+   - or explicitly closed as no longer needed
+2. deferred items remain listed under an owning version so they cannot disappear between steps
+3. a later implementation step does not silently drop an older deferred item from the plan
+
+If an item is deferred, the deferment must stay visible in this file.
+
 ## Version Map
 
 ### V2A Revision Path Unblock
@@ -442,6 +457,10 @@ Validation:
 
 ### V3B Governance And Learning Expansion
 
+Status:
+
+- frozen for first narrow slice
+
 Purpose:
 
 - expand beyond the frozen V1 pilot only after the pilot is stable
@@ -468,6 +487,20 @@ Sub-steps:
 Acceptance target:
 
 - governance expansion happens deliberately, not as bleed-over from pilot hardening
+
+Execution note:
+
+- `V3B` requires no new CEO input for the first narrow slice
+- to prevent scope creep, the first slice is frozen to:
+  1. one consumer only: `agent-role-builder`
+  2. one routing surface only: `component_rulebook`
+  3. one effect only: future-run rule promotion/application contract
+- explicitly out of scope for this slice:
+  1. meta-policy execution
+  2. non-rulebook routing
+  3. domain-contract rollout
+  4. cross-tool rollout
+  5. broader proposal lifecycle
 
 ### V3C Observability, KPI, And Broader Audit Expansion
 
