@@ -277,6 +277,27 @@ Add a testing gate after each step.
 - `result.json` carries an explicit `learning_artifact` reference.
 - `learning.json` has no same-run effect.
 
+## Implementation Verification Notes
+
+Implementation verification on 2026-03-30 confirmed the core snapshot path is working in the pilot:
+
+- smoke-run snapshot creation wrote `governance-snapshot.json`
+- copied `review-prompt.json` and `review-contract.json` were rewritten to snapshot-local authority paths
+- bound orchestrator artifacts carried the same `governance_binding`
+- `audit.artifact_refs.self_check` pointed to the run-root `self-check.json`
+
+The same verification also exposed three implementation issues that must be fixed to satisfy the frozen V1 behavior:
+
+- pre-snapshot roster-governance failures must write `governance-incident.json`, not fall through the generic validation-error path
+- `result.json.learning_artifact` must be emitted only when `rounds/round-N/learning.json` was actually written
+- the learning engine needs bounded cleanup for the observed malformed `new_rules[*].applies_to` string-to-array mismatch so the governed run does not fail on that known shape drift alone
+
+First-run note:
+
+- the component rulebook is part of the required V1 authority set
+- a missing `tools/agent-role-builder/rulebook.json` is a blocked governance failure
+- the supported zero-prior-rule first-run state is an existing valid rulebook file with an empty `rules` array
+
 ## Explicit Non-Goals
 
 - `meta_policy`

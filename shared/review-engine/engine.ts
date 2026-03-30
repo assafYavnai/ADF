@@ -1,4 +1,40 @@
+export {
+  buildReviewerSummaryText,
+  formatFocusAreas,
+  formatIgnoreAreas,
+  formatSourceAuthorities,
+  loadReviewRuntimeConfig,
+  loadReviewRuntimeConfigFromPaths,
+  resolveReviewMode,
+} from "./config.js";
+import {
+  buildReviewerSummaryText,
+  formatFocusAreas,
+  formatIgnoreAreas,
+  formatSourceAuthorities,
+} from "./config.js";
 import type { ReviewRuntimeConfig, ReviewVerdictShape, LeaderVerdictShape, ReviewRoundSummary } from "./types.js";
+
+type GovernedReviewerContract = {
+  verdicts: string[];
+  severity_levels: string[];
+  required_sections: string[];
+  conceptual_groups: {
+    required_fields: string[];
+    finding_required_fields: string[];
+  };
+  fix_decisions: {
+    required_when_fix_items_map_present?: boolean;
+    identity_fields: string[];
+    allowed_decisions: string[];
+  };
+};
+
+type GovernedLeaderContract = {
+  allowed_statuses: string[];
+  required_fields: string[];
+  arbitration_rule: string;
+};
 
 export interface ReviewPromptInput {
   componentName: string;
@@ -15,14 +51,19 @@ export interface ReviewPromptInput {
   config: ReviewRuntimeConfig;
 }
 
+interface ParseReviewerOutputOptions {
+  requireFixDecisions?: boolean;
+  config?: ReviewRuntimeConfig;
+}
+
 export function buildReviewerPrompt(input: ReviewPromptInput): string {
-  const verdicts = input.config.sharedContract.reviewer_output?.verdicts ?? ["approved", "conditional", "reject"];
-  const severities = input.config.sharedContract.reviewer_output?.severity_levels ?? ["blocking", "major", "minor", "suggestion"];
-  const fixDecisionValues = input.config.sharedContract.reviewer_output?.fix_decisions?.allowed_decisions
-    ?? ["accept_fix", "reject_fix", "accept_rejection", "reject_rejection"];
+  const reviewerContract = requireReviewerContract(input.config);
+  const verdicts = reviewerContract.verdicts;
+  const severities = reviewerContract.severity_levels;
+  const fixDecisionValues = reviewerContract.fix_decisions.allowed_decisions;
   const priorContext = input.priorRounds.length > 0
     ? `\n\nPrior rounds:\n${input.priorRounds.map((round) =>
-        `Round ${round.round}: mode=${round.reviewMode}, Leader=${round.leaderVerdict}. Unresolved: ${round.unresolved.length}. Improvements: ${round.improvementsApplied.length}.`
+        `Round ${round.round}: mode=${round.reviewMode}, Outcome=${round.leaderVerdict}. Unresolved: ${round.unresolved.length}. Improvements: ${round.improvementsApplied.length}.`
       ).join("\n")}`
     : "";
 
@@ -33,8 +74,9 @@ export function buildLeaderPrompt(input: ReviewPromptInput): string {
   const reviewerContext = input.currentRoundReviewers && input.currentRoundReviewers.size > 0
     ? `\n\nReviewer verdict summary:\n${buildReviewerSummaryText(input.currentRoundReviewers)}`
     : "";
+  const allowedStatuses = requireLeaderContract(input.config).allowed_statuses;
 
-  return `You are the leader synthesizer for ${input.componentName}.\nReview mode: ${input.reviewMode}\n\nRESPOND WITH JSON ONLY:\n{ "status": "frozen"|"pushback"|"blocked"|"resume_required", "rationale": "...",\n  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],\n  "arbitration_used": false, "arbitration_rationale": null }\n\nRULES: frozen = all approved/conditional and no remaining material issues. pushback = repair work still required. blocked = unrecoverable execution failure.\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${reviewerContext}\n\nJSON response:`;
+  return `You are the leader synthesizer for ${input.componentName}.\nReview mode: ${input.reviewMode}\n\nRESPOND WITH JSON ONLY:\n{ "status": ${allowedStatuses.map((value) => `"${value}"`).join("|")}, "rationale": "...",\n  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],\n  "arbitration_used": false, "arbitration_rationale": null }\n\nRULES: frozen = all approved/conditional and no remaining material issues. frozen_with_conditions = only deferred minor/suggestion items remain after arbitration. pushback = repair work still required. blocked = unrecoverable execution failure. resume_required = budget exhausted with material issues still deferred.\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${reviewerContext}\n\nJSON response:`;
 }
 
 export function preValidateResponse(raw: string): string | null {
@@ -65,53 +107,214 @@ export function cleanJsonResponse(raw: string): string {
   return cleaned;
 }
 
-export function parseReviewerOutput(raw: string): ReviewVerdictShape {
-  const parsed = JSON.parse(cleanJsonResponse(raw));
+export function parseReviewerOutput(raw: string, options: ParseReviewerOutputOptions = {}): ReviewVerdictShape {
+  const parsed = parseJsonPayload(raw);
+  const reviewerContract = requireReviewerContract(requireRuntimeConfig(options.config));
+  const requiredSections = reviewerContract.required_sections;
+  for (const requiredSection of requiredSections) {
+    if (!(requiredSection in parsed)) {
+      throw new Error(`Reviewer output is missing required section: ${requiredSection}.`);
+    }
+  }
+
+  const allowedVerdicts = reviewerContract.verdicts;
+  const verdict = parsed.verdict;
+  if (!allowedVerdicts.includes(String(verdict))) {
+    throw new Error("Reviewer output contains an invalid verdict.");
+  }
+  if (!Array.isArray(parsed.conceptual_groups)) {
+    throw new Error("Reviewer output conceptual_groups must be an array.");
+  }
+  const conceptualGroups = parsed.conceptual_groups;
+  const allowedSeverities = reviewerContract.severity_levels;
+  const requiredGroupFields = reviewerContract.conceptual_groups.required_fields;
+  const requiredFindingFields = reviewerContract.conceptual_groups.finding_required_fields;
+  for (const group of conceptualGroups) {
+    if (!group || typeof group !== "object") {
+      throw new Error("Reviewer conceptual_groups must contain objects.");
+    }
+    const groupRecord = group as Record<string, unknown>;
+    for (const field of requiredGroupFields) {
+      if (!(field in groupRecord)) {
+        throw new Error(`Reviewer conceptual_groups entry is missing required field: ${field}.`);
+      }
+    }
+    if (typeof groupRecord.id !== "string" || typeof groupRecord.summary !== "string" || typeof groupRecord.redesign_guidance !== "string") {
+      throw new Error("Reviewer conceptual_groups entry contains invalid field types.");
+    }
+    if (!Array.isArray(groupRecord.findings)) {
+      throw new Error("Reviewer conceptual_groups findings must be an array.");
+    }
+    const severity = groupRecord.severity;
+    if (!allowedSeverities.includes(String(severity))) {
+      throw new Error("Reviewer conceptual_groups entry contains an invalid severity.");
+    }
+    for (const finding of groupRecord.findings as Array<Record<string, unknown>>) {
+      if (!finding || typeof finding !== "object") {
+        throw new Error("Reviewer findings must contain objects.");
+      }
+      for (const field of requiredFindingFields) {
+        if (!(field in finding)) {
+          throw new Error(`Reviewer finding is missing required field: ${field}.`);
+        }
+      }
+      if (
+        typeof finding.id !== "string"
+        || typeof finding.description !== "string"
+        || typeof finding.source_section !== "string"
+      ) {
+        throw new Error("Reviewer finding contains invalid field types.");
+      }
+    }
+  }
+  if (!Array.isArray(parsed.residual_risks) || parsed.residual_risks.some((entry) => typeof entry !== "string")) {
+    throw new Error("Reviewer output residual_risks must be an array of strings.");
+  }
+  if (!Array.isArray(parsed.strengths) || parsed.strengths.some((entry) => typeof entry !== "string")) {
+    throw new Error("Reviewer output strengths must be an array of strings.");
+  }
+  const fixDecisions = Array.isArray(parsed.fix_decisions) ? parsed.fix_decisions : undefined;
+  const requireFixDecisions = options.requireFixDecisions
+    ?? reviewerContract.fix_decisions.required_when_fix_items_map_present
+    ?? false;
+  if (requireFixDecisions && (!fixDecisions || fixDecisions.length === 0)) {
+    throw new Error("Reviewer output is missing required fix_decisions for a round with fix-items evidence.");
+  }
+  if (fixDecisions) {
+    const allowedFixDecisions = reviewerContract.fix_decisions.allowed_decisions;
+    const identityFields = reviewerContract.fix_decisions.identity_fields;
+    for (const decision of fixDecisions) {
+      if (!decision || typeof decision !== "object") {
+        throw new Error("Reviewer fix_decisions must contain objects.");
+      }
+      const record = decision as Record<string, unknown>;
+      const target = identityFields
+        .map((field) => record[field])
+        .find((value) => typeof value === "string" && value.trim().length > 0);
+      if (typeof target !== "string" || target.trim().length === 0) {
+        throw new Error(`Reviewer fix_decisions entries must include one of: ${identityFields.join(", ")}.`);
+      }
+      if (
+        !allowedFixDecisions.includes(String(record.decision))
+      ) {
+        throw new Error("Reviewer fix_decisions entry contains an invalid decision value.");
+      }
+      if (typeof record.reason !== "string" || record.reason.trim().length === 0) {
+        throw new Error("Reviewer fix_decisions entry is missing a reason.");
+      }
+    }
+  }
+
   return {
-    verdict: parsed.verdict === "approve" ? "approved" : (parsed.verdict ?? "reject"),
-    conceptual_groups: Array.isArray(parsed.conceptual_groups) ? parsed.conceptual_groups : [],
-    fix_decisions: Array.isArray(parsed.fix_decisions) ? parsed.fix_decisions : undefined,
+    verdict,
+    conceptual_groups: conceptualGroups,
+    fix_decisions: fixDecisions,
     residual_risks: Array.isArray(parsed.residual_risks) ? parsed.residual_risks : [],
     strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
   };
 }
 
-export function parseLeaderOutput(raw: string): LeaderVerdictShape {
-  const parsed = JSON.parse(cleanJsonResponse(raw));
+export function parseLeaderOutput(raw: string, options: { config?: ReviewRuntimeConfig } = {}): LeaderVerdictShape {
+  const parsed = parseJsonPayload(raw);
+  const leaderContract = requireLeaderContract(requireRuntimeConfig(options.config));
+  const requiredFields = leaderContract.required_fields;
+  for (const requiredField of requiredFields) {
+    if (!(requiredField in parsed)) {
+      throw new Error(`Leader output is missing required field: ${requiredField}.`);
+    }
+  }
+  const allowedStatuses = leaderContract.allowed_statuses;
+  if (!allowedStatuses.includes(String(parsed.status))) {
+    throw new Error("Leader output contains an invalid status.");
+  }
+  if (
+    typeof parsed.rationale !== "string"
+    || !Array.isArray(parsed.unresolved)
+    || !Array.isArray(parsed.improvements_applied)
+    || typeof parsed.arbitration_used !== "boolean"
+    || !parsed.unresolved.every((entry: unknown) => typeof entry === "string")
+    || !parsed.improvements_applied.every((entry: unknown) => typeof entry === "string")
+    || (parsed.arbitration_rationale !== null && typeof parsed.arbitration_rationale !== "string")
+  ) {
+    throw new Error("Leader output contains invalid field types.");
+  }
+  if (
+    parsed.status === "frozen_with_conditions"
+    && (parsed.arbitration_used !== true || typeof parsed.arbitration_rationale !== "string" || parsed.arbitration_rationale.trim().length === 0)
+  ) {
+    throw new Error("Leader output frozen_with_conditions requires arbitration evidence.");
+  }
+  if (parsed.arbitration_used === true && (typeof parsed.arbitration_rationale !== "string" || parsed.arbitration_rationale.trim().length === 0)) {
+    throw new Error("Leader output arbitration_used=true requires a non-empty arbitration_rationale.");
+  }
+  if (parsed.arbitration_used === false && parsed.arbitration_rationale !== null) {
+    throw new Error("Leader output arbitration_rationale must be null when arbitration_used=false.");
+  }
   return {
-    status: parsed.status ?? "pushback",
-    rationale: parsed.rationale ?? "No rationale",
-    unresolved: Array.isArray(parsed.unresolved) ? parsed.unresolved : [],
-    improvements_applied: Array.isArray(parsed.improvements_applied) ? parsed.improvements_applied : [],
-    arbitration_used: parsed.arbitration_used ?? false,
-    arbitration_rationale: parsed.arbitration_rationale ?? null,
+    status: parsed.status,
+    rationale: parsed.rationale,
+    unresolved: parsed.unresolved,
+    improvements_applied: parsed.improvements_applied,
+    arbitration_used: parsed.arbitration_used,
+    arbitration_rationale: typeof parsed.arbitration_rationale === "string" ? parsed.arbitration_rationale : null,
   };
 }
 
-function buildReviewerSummaryText(verdicts: Map<string, ReviewVerdictShape>): string {
-  const summaries = [...verdicts.entries()].map(([reviewerId, verdict]) => {
-    const unresolvedGroups = verdict.conceptual_groups
-      .filter((group) => group.severity === "blocking" || group.severity === "major")
-      .map((group) => `${group.id}: ${group.summary}`);
-    return `${reviewerId}\n  verdict: ${verdict.verdict}\n  unresolved_groups: ${unresolvedGroups.length > 0 ? unresolvedGroups.join(" | ") : "(none)"}`;
-  });
-  return summaries.join("\n\n");
+function parseJsonPayload(raw: string): Record<string, any> {
+  const attempts = [
+    cleanJsonResponse(raw),
+    extractFencedJson(raw),
+  ].filter((candidate, index, values) => candidate.length > 0 && values.indexOf(candidate) === index);
+
+  let lastError: unknown = null;
+  for (const attempt of attempts) {
+    try {
+      return JSON.parse(attempt) as Record<string, any>;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Failed to parse JSON payload.");
 }
 
-function formatFocusAreas(config: ReviewRuntimeConfig): string {
-  return (config.componentPrompt.focus_areas ?? []).map((area) => `- ${area}`).join("\n");
+function extractFencedJson(raw: string): string {
+  const match = raw.match(/```json\s*([\s\S]*?)```/i) ?? raw.match(/```\s*([\s\S]*?)```/i);
+  return match?.[1]?.trim() ?? "";
 }
 
-function formatSourceAuthorities(config: ReviewRuntimeConfig): string {
-  const values = [
-    ...(config.componentPrompt.source_authority_paths ?? []),
-    ...(config.componentContract.source_authority_paths ?? []),
-  ];
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))].map((path) => `- ${path}`).join("\n");
+function requireRuntimeConfig(config?: ReviewRuntimeConfig): ReviewRuntimeConfig {
+  if (!config) {
+    throw new Error("[shared-review-engine] Review runtime config is required for governed parsing.");
+  }
+  return config;
 }
 
-function formatIgnoreAreas(config: ReviewRuntimeConfig): string {
-  return (config.componentPrompt.ignore_areas ?? config.componentContract.ignore_areas ?? [])
-    .map((area) => `- ${area}`)
-    .join("\n");
+function requireReviewerContract(config: ReviewRuntimeConfig): GovernedReviewerContract {
+  if (
+    !config.sharedContract.reviewer_output
+    || !config.sharedContract.reviewer_output.verdicts
+    || !config.sharedContract.reviewer_output.severity_levels
+    || !config.sharedContract.reviewer_output.required_sections
+    || !config.sharedContract.reviewer_output.conceptual_groups?.required_fields
+    || !config.sharedContract.reviewer_output.conceptual_groups?.finding_required_fields
+    || !config.sharedContract.reviewer_output.fix_decisions?.allowed_decisions
+    || !config.sharedContract.reviewer_output.fix_decisions?.identity_fields
+  ) {
+    throw new Error("[shared-review-engine] Reviewer contract is incomplete or missing required governed fields.");
+  }
+  return config.sharedContract.reviewer_output as GovernedReviewerContract;
+}
+
+function requireLeaderContract(config: ReviewRuntimeConfig): GovernedLeaderContract {
+  if (
+    !config.sharedContract.leader_output
+    || !config.sharedContract.leader_output.allowed_statuses
+    || !config.sharedContract.leader_output.required_fields
+    || typeof config.sharedContract.leader_output.arbitration_rule !== "string"
+    || config.sharedContract.leader_output.arbitration_rule.trim().length === 0
+  ) {
+    throw new Error("[shared-review-engine] Leader contract is incomplete or missing required governed fields.");
+  }
+  return config.sharedContract.leader_output as GovernedLeaderContract;
 }

@@ -1,6 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { RoleBuilderRequest } from "../schemas/request.js";
+import { loadSharedComponentRepairEngineModule } from "./shared-module-loader.js";
 
 const REQUIRED_XML_TAGS = [
   "role",
@@ -110,13 +111,18 @@ export interface RevisionFeedback {
   rulebook?: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }>;
   newRuleIds?: string[];
   selfCheckIssues?: Array<{ code: string; message: string }>;
+  governanceContext: {
+    component_review_prompt_path: string;
+    component_contract_path: string;
+    authority_doc_paths: string[];
+  };
   bundleRoot?: string;
 }
 
 export interface RevisionResult {
   markdown: string;
   complianceMap: Array<{ rule_id: string; status: string; evidence_location: string; evidence_summary: string }>;
-  fixItemsMap: Array<{ finding_id?: string; finding_group_id: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
+  fixItemsMap: Array<{ finding_id?: string; finding_group_id: string; severity?: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
   diffSummary: { changed: boolean; prior_length: number; new_length: number; summary: string };
   audit: {
     bundleDir: string;
@@ -134,6 +140,11 @@ export async function performInitialRuleSweep(
   currentMarkdown: string,
   rulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }>,
   selfCheckIssues: Array<{ code: string; message: string }>,
+  governanceContext: {
+    component_review_prompt_path: string;
+    component_contract_path: string;
+    authority_doc_paths: string[];
+  },
   bundleRoot?: string
 ): Promise<RevisionResult> {
   return runRepairPass(
@@ -148,6 +159,7 @@ export async function performInitialRuleSweep(
       rulebook,
       newRuleIds: [],
       selfCheckIssues,
+      governanceContext,
       bundleRoot,
     },
     "initial_rule_sweep"
@@ -169,193 +181,73 @@ async function runRepairPass(
   mode: "initial_rule_sweep" | "revision"
 ): Promise<RevisionResult> {
   const { invoke } = await import("../shared-imports.js");
+  const { runComponentRepair } = await loadSharedComponentRepairEngineModule();
 
   const bundleDir = feedback.bundleRoot
     ?? join("tools", "agent-role-builder", "runs", request.job_id, "runtime", "component-repair-engine", `${mode}-r${feedback.round}`);
   await mkdir(bundleDir, { recursive: true });
 
-  const artifactFile = join(bundleDir, `${request.role_slug}-artifact.md`);
-  const rulebookFile = join(bundleDir, "rulebook.json");
-  const findingsFile = join(bundleDir, "findings.json");
-  const selfCheckFile = join(bundleDir, "self-check.json");
-  const reviewPromptSource = join("tools", "agent-role-builder", "review-prompt.json");
-  const reviewContractSource = join("tools", "agent-role-builder", "review-contract.json");
-  const reviewPromptFile = join(bundleDir, "review-prompt.json");
-  const reviewContractFile = join(bundleDir, "review-contract.json");
-  const authorityDir = join(bundleDir, "authority");
-  await mkdir(authorityDir, { recursive: true });
-
-  await writeFile(artifactFile, currentMarkdown, "utf-8");
-  await writeFile(rulebookFile, JSON.stringify({
-    schema_version: "1.0",
-    generated_at: new Date().toISOString(),
-    new_rule_ids: feedback.newRuleIds ?? [],
-    rules: (feedback.rulebook ?? []).map((rule) => ({
-      ...rule,
-      is_new_this_round: (feedback.newRuleIds ?? []).includes(rule.id),
-    })),
-  }, null, 2), "utf-8");
-  await writeFile(findingsFile, JSON.stringify({
-    schema_version: "1.0",
-    mode,
-    round: feedback.round,
-    leader_rationale: feedback.leaderRationale,
-    unresolved: feedback.unresolved,
-    convergence_note: buildConvergenceNote(feedback),
-    findings: feedback.fixChecklist.map((group, index) => ({
-      finding_group_id: group.groupId,
-      severity: group.severity,
-      summary: group.summary,
-      redesign_guidance: group.redesignGuidance,
-      finding_count: group.findingCount,
-      order: index + 1,
-    })),
-  }, null, 2), "utf-8");
-  await writeFile(selfCheckFile, JSON.stringify({
-    schema_version: "1.0",
-    round: feedback.round,
-    issues: feedback.selfCheckIssues ?? [],
-  }, null, 2), "utf-8");
-
-  await copyIfPresent(reviewPromptSource, reviewPromptFile);
-  await copyIfPresent(reviewContractSource, reviewContractFile);
-
-  const authorityCopies = await Promise.all([
-    copyAuthorityFile("docs/v0/review-process-architecture.md", join(authorityDir, "review-process-architecture.md")),
-    copyAuthorityFile("docs/v0/architecture.md", join(authorityDir, "architecture.md")),
-  ]);
-
-  const manifestPath = join(bundleDir, "manifest.json");
-  await writeFile(manifestPath, JSON.stringify({
-    schema_version: "1.0",
-    component: "agent-role-builder",
-    engine: "component-repair-engine",
-    mode,
-    round: feedback.round,
-    artifact: artifactFile.replace(/\\/g, "/"),
-    rulebook: rulebookFile.replace(/\\/g, "/"),
-    findings: findingsFile.replace(/\\/g, "/"),
-    self_check: selfCheckFile.replace(/\\/g, "/"),
-    review_prompt: reviewPromptFile.replace(/\\/g, "/"),
-    review_contract: reviewContractFile.replace(/\\/g, "/"),
-    source_authorities: authorityCopies.filter((value): value is string => Boolean(value)).map((value) => value.replace(/\\/g, "/")),
-    canonical_artifact_hint: `tools/agent-role-builder/role/${request.role_slug}-role.md`,
-  }, null, 2), "utf-8");
-
-  const prompt = `You are the ADF Component Repair Engine for ${request.role_name}.
-
-MODE: ${mode}
-COMPONENT: tools/agent-role-builder
-
-READ ONLY THE FILES DECLARED IN THIS MANIFEST:
-${manifestPath.replace(/\\/g, "/")}
-
-IMPORTANT BOXING RULES:
-- Stay boxed to the manifest files and copied authority files.
-- Do not roam the repo.
-- Do not change unknown scripts or files outside the declared artifact.
-- Use the review prompt, review contract, rulebook, findings, and self-check evidence together.
-
-YOUR JOB:
-1. Mechanically walk every rule in the rulebook against the artifact.
-2. Fix direct review findings from findings.json.
-3. Fix any rule-compliance gaps you detect, even if the reviewer did not call them out.
-4. Fix self-check issues.
-5. Produce a full updated artifact plus machine-readable compliance and fix evidence.
-
-ARTIFACT REQUIREMENTS:
-- The artifact is role-definition markdown.
-- It must include all required XML tags: ${REQUIRED_XML_TAGS.map((tag) => `<${tag}>`).join(", ")}.
-- Preserve intent unless a change is required by the rulebook, review findings, or authority docs.
-
-RESPONSE FORMAT:
-<draft>
-...full updated markdown...
-</draft>
-
-<compliance_map>
-[{"rule_id":"ARB-001","status":"compliant"|"non_compliant"|"not_applicable","evidence_location":"<section>","evidence_summary":"..."}]
-</compliance_map>
-${mode === "revision" ? `
-<fix_items_map>
-[{"finding_id":"preferred-if-known","finding_group_id":"group-1","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>","rejection_reason":"only if rejected"}]
-</fix_items_map>` : ""}
-
-${buildConvergenceNote(feedback)}
-CRITICAL:
-- Check every rule.
-- If there are no findings, still perform a full rulebook sweep.
-- Return only the tagged sections above.`;
-
-  const result = await invoke({
-    cli: request.board_roster.leader.provider,
-    model: request.board_roster.leader.model,
-    reasoning: request.board_roster.leader.throttle,
-    fallback: buildRepairFallback(request),
-    bypass: false,
-    timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
-    prompt,
-    source_path: "tools/agent-role-builder/component-repair-engine",
-  });
-
-  const rawResponsePath = join(bundleDir, "response.raw.txt");
-  await writeFile(rawResponsePath, result.response, "utf-8");
-
-  const draftMatch = result.response.match(/<draft>([\s\S]*?)<\/draft>/);
-  const complianceMatch = result.response.match(/<compliance_map>([\s\S]*?)<\/compliance_map>/);
-  const fixItemsMatch = result.response.match(/<fix_items_map>([\s\S]*?)<\/fix_items_map>/);
-
-  if (!draftMatch || !complianceMatch) {
-    throw new Error(`Repair engine response missing required sections in ${rawResponsePath}`);
-  }
-
-  const revised = stripCodeFences(draftMatch[1]).trim();
-
-  let complianceMap: RevisionResult["complianceMap"] = [];
-  try {
-    complianceMap = JSON.parse(complianceMatch[1].trim());
-  } catch (error) {
-    throw new Error(`Failed to parse compliance_map from repair response: ${error instanceof Error ? error.message : String(error)}`);
-  }
-
-  let fixItemsMap: RevisionResult["fixItemsMap"] = [];
-  if (mode === "revision" && fixItemsMatch) {
-    try {
-      fixItemsMap = JSON.parse(fixItemsMatch[1].trim());
-    } catch (error) {
-      throw new Error(`Failed to parse fix_items_map from repair response: ${error instanceof Error ? error.message : String(error)}`);
+  const repairResult = await runComponentRepair(
+    {
+      component: "agent-role-builder",
+      mode,
+      round: feedback.round,
+      artifactTag: "draft",
+      artifactPathHint: join("tools", "agent-role-builder", "role", `${request.role_slug}-role.md`),
+      artifactText: currentMarkdown,
+      requiredArtifactInstructions: [
+        "Return the full updated role-definition markdown.",
+        `It must include all required XML tags: ${REQUIRED_XML_TAGS.map((tag) => `<${tag}>`).join(", ")}.`,
+        "Preserve approved intent unless the rulebook, review findings, self-check issues, or authority documents require a change.",
+      ].join("\n"),
+      rulebook: feedback.rulebook ?? [],
+      newRuleIds: feedback.newRuleIds ?? [],
+      findings: feedback.fixChecklist,
+      unresolved: feedback.unresolved,
+      leaderRationale: [feedback.leaderRationale, buildConvergenceNote(feedback)].filter(Boolean).join("\n"),
+      selfCheckIssues: feedback.selfCheckIssues ?? [],
+      bundleDir,
+      reviewPromptPath: feedback.governanceContext.component_review_prompt_path,
+      reviewContractPath: feedback.governanceContext.component_contract_path,
+      sourceAuthorityPaths: feedback.governanceContext.authority_doc_paths,
+      priorIssueCounts: feedback.priorRoundIssueCount,
+    },
+    async (prompt: string, sourcePath: string) => {
+      const result = await invoke({
+        cli: request.board_roster.leader.provider,
+        model: request.board_roster.leader.model,
+        reasoning: request.board_roster.leader.throttle,
+        fallback: buildRepairFallback(request),
+        bypass: false,
+        timeout_ms: request.runtime.watchdog_timeout_seconds * 1000,
+        prompt,
+        source_path: sourcePath,
+      });
+      return {
+        response: result.response,
+        provenance: {
+          invocation_id: result.provenance.invocation_id,
+          provider: result.provenance.provider,
+          model: result.provenance.model,
+          was_fallback: result.provenance.was_fallback,
+        },
+      };
     }
-  }
-
-  await writeFile(join(bundleDir, "response.parsed.json"), JSON.stringify({
-    artifact_length: revised.length,
-    compliance_entries: Array.isArray(complianceMap) ? complianceMap.length : 0,
-    fix_item_entries: Array.isArray(fixItemsMap) ? fixItemsMap.length : 0,
-    was_fallback: result.provenance.was_fallback,
-    provider: result.provenance.provider,
-    model: result.provenance.model,
-  }, null, 2), "utf-8");
+  );
 
   return {
-    markdown: revised || currentMarkdown,
-    complianceMap: Array.isArray(complianceMap) ? complianceMap : [],
-    fixItemsMap: Array.isArray(fixItemsMap) ? fixItemsMap : [],
-    diffSummary: {
-      changed: revised !== currentMarkdown,
-      prior_length: currentMarkdown.length,
-      new_length: revised.length,
-      summary: revised !== currentMarkdown
-        ? `${mode} updated the artifact and regenerated compliance evidence.`
-        : `${mode} kept the artifact text unchanged but regenerated evidence.`,
-    },
+    markdown: repairResult.artifact || currentMarkdown,
+    complianceMap: repairResult.complianceMap,
+    fixItemsMap: repairResult.fixItemsMap,
+    diffSummary: repairResult.diffSummary,
     audit: {
-      bundleDir,
-      manifestPath,
-      rawResponsePath,
-      wasFallback: result.provenance.was_fallback,
-      invocationId: result.provenance.invocation_id,
-      provider: result.provenance.provider,
-      model: result.provenance.model,
+      bundleDir: repairResult.audit.bundleDir,
+      manifestPath: repairResult.audit.manifestPath,
+      rawResponsePath: repairResult.audit.rawResponsePath,
+      wasFallback: repairResult.audit.wasFallback,
+      invocationId: repairResult.audit.invocationId,
+      provider: repairResult.audit.provider ?? request.board_roster.leader.provider,
+      model: repairResult.audit.model ?? request.board_roster.leader.model,
     },
   };
 }
@@ -491,29 +383,6 @@ function renderArtifacts(artifacts: RoleBuilderRequest["role_requirements"]["out
     evidence: evidence.join("\n") || "- none",
     internal: internal.join("\n") || "- none",
   };
-}
-
-function stripCodeFences(text: string): string {
-  return text.replace(/^```(?:markdown|md)?\s*/i, "").replace(/\s*```$/, "");
-}
-
-async function copyIfPresent(source: string, destination: string): Promise<void> {
-  try {
-    const content = await readFile(source, "utf-8");
-    await writeFile(destination, content, "utf-8");
-  } catch {
-    await writeFile(destination, "{}", "utf-8");
-  }
-}
-
-async function copyAuthorityFile(source: string, destination: string): Promise<string | null> {
-  try {
-    const content = await readFile(source, "utf-8");
-    await writeFile(destination, content, "utf-8");
-    return destination;
-  } catch {
-    return null;
-  }
 }
 
 function buildRepairFallback(request: RoleBuilderRequest) {

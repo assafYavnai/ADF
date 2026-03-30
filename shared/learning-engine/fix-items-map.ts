@@ -10,6 +10,7 @@ import { z } from "zod";
 export const FixItem = z.object({
   finding_id: z.string().optional(),
   finding_group_id: z.string().optional(),
+  severity: z.enum(["blocking", "major", "minor", "suggestion"]).optional(),
   action: z.enum(["accepted", "rejected"]),
   summary: z.string().describe("What was changed (if accepted) or why it was rejected"),
   evidence_location: z.string().optional().describe("Where in the artifact the fix was applied"),

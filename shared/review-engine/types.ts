@@ -22,7 +22,7 @@ export interface ReviewVerdictShape {
 }
 
 export interface LeaderVerdictShape {
-  status: "frozen" | "pushback" | "blocked" | "resume_required";
+  status: "frozen" | "frozen_with_conditions" | "pushback" | "blocked" | "resume_required";
   rationale: string;
   unresolved: string[];
   improvements_applied: string[];
@@ -48,32 +48,60 @@ export interface ReviewPromptConfig {
 
 export interface SharedReviewContract {
   schema_version?: string;
+  roster_requirements?: {
+    minimum_reviewer_count?: number;
+    reviewer_count_must_be_even?: boolean;
+    required_pair_shape?: string;
+    validation_phase?: string;
+    fail_closed?: boolean;
+  };
   review_modes?: Record<string, string>;
   reviewer_output?: {
     verdicts?: string[];
     severity_levels?: string[];
+    required_sections?: string[];
+    conceptual_groups?: {
+      required_fields?: string[];
+      finding_required_fields?: string[];
+    };
     fix_decisions?: {
+      required_when_fix_items_map_present?: boolean;
       identity_fields?: string[];
       allowed_decisions?: string[];
     };
   };
   leader_output?: {
     allowed_statuses?: string[];
+    required_fields?: string[];
+    arbitration_rule?: string;
+    status_invariants?: Record<string, string>;
+    invalid_status_handling?: string;
   };
   audit_requirements?: {
+    required_fields?: string[];
     required_outputs?: string[];
+    field_ownership?: string;
   };
 }
 
 export interface ComponentReviewContract {
   schema_version?: string;
   component?: string;
+  extends?: string;
   review_modes?: Record<string, string>;
   source_authority_paths?: string[];
+  component_owned_files?: Record<string, string>;
+  validation_requirements?: Record<string, unknown>;
   artifact_scope?: string[];
   ignore_areas?: string[];
   schema_refs?: Record<string, string>;
   budget_hints?: Record<string, unknown>;
+}
+
+export interface ReviewRuntimeConfigPaths {
+  sharedContractPath: string;
+  componentPromptPath: string;
+  componentContractPath: string;
 }
 
 export interface ReviewRuntimeConfig {

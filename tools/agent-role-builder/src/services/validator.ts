@@ -3,9 +3,9 @@ import type { RoleBuilderRequest } from "../schemas/request.js";
 import type { ValidationIssue } from "../schemas/result.js";
 
 /**
- * Validate request: schema compliance, source refs, semantic rules.
+ * Validate request sanity that does not depend on governance files.
  */
-export function validateRequest(request: RoleBuilderRequest): ValidationIssue[] {
+export function validateRequestSanity(request: RoleBuilderRequest): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
   // Source refs exist
@@ -17,30 +17,6 @@ export function validateRequest(request: RoleBuilderRequest): ValidationIssue[] 
         message: `Required source not found: ${ref.path}`,
         evidence: ref.purpose,
       });
-    }
-  }
-
-  // Board roster pair validation
-  const reviewers = request.board_roster.reviewers;
-  if (reviewers.length !== request.board_roster.reviewer_count) {
-    issues.push({
-      code: "ROSTER_MISMATCH",
-      severity: "error",
-      message: `reviewer_count (${request.board_roster.reviewer_count}) does not match reviewers array length (${reviewers.length})`,
-    });
-  }
-
-  // Pair validation: every 2 reviewers should be one codex + one claude
-  for (let i = 0; i < reviewers.length; i += 2) {
-    if (i + 1 < reviewers.length) {
-      const pair = [reviewers[i].provider, reviewers[i + 1].provider].sort();
-      if (pair[0] !== "claude" || pair[1] !== "codex") {
-        issues.push({
-          code: "INVALID_REVIEWER_PAIR",
-          severity: "error",
-          message: `Reviewer pair ${i / 2 + 1} must be one Codex + one Claude, got: ${reviewers[i].provider} + ${reviewers[i + 1].provider}`,
-        });
-      }
     }
   }
 
@@ -103,7 +79,6 @@ export function selfCheck(
   // Semantic out-of-scope check: extract key concepts, not literal strings
   for (const item of request.out_of_scope) {
     const keywords = extractKeywords(item);
-    const mdLower = markdown.toLowerCase();
     const scopeSection = extractSection(markdown, "scope");
     if (scopeSection) {
       const scopeLower = scopeSection.toLowerCase();

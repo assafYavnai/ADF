@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const RoleBuilderStatus = z.enum(["frozen", "pushback", "blocked", "resume_required"]);
+export const RoleBuilderStatus = z.enum(["frozen", "frozen_with_conditions", "pushback", "blocked", "resume_required"]);
 export type RoleBuilderStatus = z.infer<typeof RoleBuilderStatus>;
 
 export const ValidationIssue = z.object({
@@ -24,6 +24,12 @@ export const ParticipantRecord = z.object({
 });
 export type ParticipantRecord = z.infer<typeof ParticipantRecord>;
 
+export const GovernanceBinding = z.object({
+  snapshot_id: z.string(),
+  snapshot_manifest_path: z.string(),
+});
+export type GovernanceBinding = z.infer<typeof GovernanceBinding>;
+
 export const RoleBuilderResult = z.object({
   schema_version: z.literal("1.0"),
   tool_name: z.literal("agent-role-builder"),
@@ -41,6 +47,7 @@ export const RoleBuilderResult = z.object({
   canonical_decision_log_path: z.string().nullable(),
   canonical_board_summary_path: z.string().nullable(),
   pushback_path: z.string().nullable(),
+  conditions_manifest_path: z.string().nullable(),
   resume_package_path: z.string().nullable(),
   board: z.object({
     profile: z.string(),
@@ -56,6 +63,11 @@ export const RoleBuilderResult = z.object({
     validation_issue_count: z.number(),
     self_check_issue_count: z.number(),
   }),
+  governance_binding: GovernanceBinding.nullable(),
+  learning_artifact: z.object({
+    path: z.string(),
+    effect: z.literal("future_run_candidate"),
+  }).nullable(),
   validation_issues: z.array(ValidationIssue),
   open_questions: z.array(z.string()),
   red_flags: z.array(z.string()),

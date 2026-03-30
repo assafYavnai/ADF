@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { LearningInput as LearningInputSchema, LearningOutput as LearningOutputSchema } from "./types.js";
 import type { LearningInput, LearningOutput, ProposedRule } from "./types.js";
 
 /**
@@ -14,23 +15,16 @@ export async function extractRules(
   input: LearningInput,
   invoker: (prompt: string, sourcePath: string) => Promise<string>,
 ): Promise<LearningOutput> {
+  LearningInputSchema.parse(input);
   let reviewPromptContext = "";
   let reviewContractContext = "";
 
   if (input.review_prompt_path) {
-    try {
-      reviewPromptContext = await readFile(input.review_prompt_path, "utf-8");
-    } catch {
-      reviewPromptContext = "";
-    }
+    reviewPromptContext = await readJsonContextFile(input.review_prompt_path, "review prompt");
   }
 
   if (input.review_contract_path) {
-    try {
-      reviewContractContext = await readFile(input.review_contract_path, "utf-8");
-    } catch {
-      reviewContractContext = "";
-    }
+    reviewContractContext = await readJsonContextFile(input.review_contract_path, "review contract");
   }
 
   const existingRulesSummary = input.current_rulebook
@@ -97,26 +91,23 @@ IMPORTANT:
 JSON response:`;
 
   const rawResponse = await invoker(prompt, `shared/learning-engine/extract-rules/${input.component}`);
-
+  const cleaned = rawResponse.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
+  let parsed: Record<string, unknown>;
   try {
-    const cleaned = rawResponse.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
-
-    return {
-      new_rules: Array.isArray(parsed.new_rules) ? parsed.new_rules : [],
-      existing_rules_covering: Array.isArray(parsed.existing_rules_covering) ? parsed.existing_rules_covering : [],
-      no_rule_needed: Array.isArray(parsed.no_rule_needed) ? parsed.no_rule_needed : [],
-    };
-  } catch {
-    return {
-      new_rules: [],
-      existing_rules_covering: [],
-      no_rule_needed: [{
-        finding_group_id: "parse-error",
-        reason: `Failed to parse learning engine response: ${rawResponse.slice(0, 200)}`,
-      }],
-    };
+    parsed = JSON.parse(cleaned) as Record<string, unknown>;
+  } catch (error) {
+    throw new Error(
+      `Failed to parse learning engine response: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
+
+  const normalized = normalizeLearningOutput(parsed);
+  const validated = LearningOutputSchema.safeParse(normalized);
+  if (!validated.success) {
+    throw new Error(`Learning engine response failed schema validation: ${validated.error.message}`);
+  }
+
+  return validated.data;
 }
 
 /**
@@ -130,4 +121,59 @@ export function applyProposedRules(
   const existingIds = new Set(currentRules.map((r) => r.id));
   const newRules = proposedRules.filter((r) => !existingIds.has(r.id));
   return [...currentRules, ...newRules];
+}
+
+async function readJsonContextFile(path: string, label: string): Promise<string> {
+  const raw = await readFile(path, "utf-8");
+  try {
+    JSON.parse(raw);
+  } catch (error) {
+    throw new Error(
+      `Failed to parse ${label} at ${path}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+  return raw;
+}
+
+function normalizeLearningOutput(parsed: Record<string, unknown>): Record<string, unknown> {
+  if (!Array.isArray(parsed.new_rules)) {
+    return parsed;
+  }
+
+  return {
+    ...parsed,
+    new_rules: parsed.new_rules.map((rule) => normalizeProposedRule(rule)),
+  };
+}
+
+function normalizeProposedRule(rule: unknown): unknown {
+  if (!rule || typeof rule !== "object" || Array.isArray(rule)) {
+    return rule;
+  }
+
+  const normalizedRule = { ...(rule as Record<string, unknown>) };
+  const appliesTo = normalizedRule.applies_to;
+  if (typeof appliesTo === "string") {
+    const trimmed = appliesTo.trim();
+    normalizedRule.applies_to = tryParseAppliesToArray(trimmed) ?? (trimmed.length > 0 ? [trimmed] : []);
+  }
+
+  return normalizedRule;
+}
+
+function tryParseAppliesToArray(value: string): string[] | null {
+  if (!(value.startsWith("[") && value.endsWith("]"))) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed) && parsed.every((entry) => typeof entry === "string")) {
+      return parsed;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }

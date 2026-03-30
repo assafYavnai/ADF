@@ -1,5 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
+import { ComplianceEntry } from "../learning-engine/compliance-map.js";
+import { FixItem } from "../learning-engine/fix-items-map.js";
 import type { RepairInvokeResult, RepairRequest, RepairResult } from "./types.js";
 
 export async function runComponentRepair(
@@ -20,10 +22,16 @@ export async function runComponentRepair(
   await writeFile(rulebookFile, JSON.stringify({ rules: request.rulebook, new_rule_ids: request.newRuleIds ?? [] }, null, 2), "utf-8");
   await writeFile(findingsFile, JSON.stringify({ findings: request.findings, unresolved: request.unresolved, leader_rationale: request.leaderRationale }, null, 2), "utf-8");
   await writeFile(selfCheckFile, JSON.stringify({ issues: request.selfCheckIssues ?? [] }, null, 2), "utf-8");
-  await copyIfPresent(request.reviewPromptPath, reviewPromptFile);
-  await copyIfPresent(request.reviewContractPath, reviewContractFile);
+  await copyRequiredFile(request.reviewPromptPath, reviewPromptFile, "review prompt");
+  await copyRequiredFile(request.reviewContractPath, reviewContractFile, "review contract");
 
-  const authorityCopies = await Promise.all(request.sourceAuthorityPaths.map((sourcePath) => copyIfPresent(sourcePath, join(authorityDir, basename(sourcePath)))));
+  const authorityCopies = await Promise.all(
+    request.sourceAuthorityPaths.map((sourcePath) =>
+      copyRequiredFile(sourcePath, join(authorityDir, sourcePath), `source authority (${sourcePath})`).then(() =>
+        join(authorityDir, sourcePath)
+      )
+    )
+  );
   const manifestPath = join(request.bundleDir, "manifest.json");
   await writeFile(manifestPath, JSON.stringify({
     component: request.component,
@@ -34,10 +42,10 @@ export async function runComponentRepair(
     self_check: selfCheckFile.replace(/\\/g, "/"),
     review_prompt: reviewPromptFile.replace(/\\/g, "/"),
     review_contract: reviewContractFile.replace(/\\/g, "/"),
-    source_authorities: authorityCopies.filter(Boolean).map((filePath) => String(filePath).replace(/\\/g, "/")),
+    source_authorities: authorityCopies.map((filePath) => filePath.replace(/\\/g, "/")),
   }, null, 2), "utf-8");
 
-  const prompt = `You are the shared ADF component repair engine for ${request.component}.\n\nREAD ONLY THE FILES DECLARED IN THIS MANIFEST:\n${manifestPath.replace(/\\/g, "/")}\n\nYOUR JOB:\n1. Walk every rule in the rulebook against the artifact.\n2. Fix all direct review findings and self-check gaps.\n3. Produce full updated artifact and machine-readable evidence.\n\nRESPONSE FORMAT:\n<${request.artifactTag}>\n${request.requiredArtifactInstructions}\n</${request.artifactTag}>\n\n<compliance_map>\n[{"rule_id":"RULE-001","status":"compliant"|"non_compliant"|"not_applicable","evidence_location":"<section>","evidence_summary":"..."}]\n</compliance_map>\n\n${request.mode === "revision" ? `<fix_items_map>\n[{"finding_group_id":"group-1","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>","rejection_reason":"only if rejected"}]\n</fix_items_map>` : ""}`;
+  const prompt = `You are the shared ADF component repair engine for ${request.component}.\n\nREAD ONLY THE FILES DECLARED IN THIS MANIFEST:\n${manifestPath.replace(/\\/g, "/")}\n\nYOUR JOB:\n1. Walk every rule in the rulebook against the artifact.\n2. Fix all direct review findings and self-check gaps.\n3. Produce full updated artifact and machine-readable evidence.\n\nRESPONSE FORMAT:\n<${request.artifactTag}>\n${request.requiredArtifactInstructions}\n</${request.artifactTag}>\n\n<compliance_map>\n[{"rule_id":"RULE-001","status":"compliant"|"non_compliant"|"not_applicable","evidence_location":"<section>","evidence_summary":"..."}]\n</compliance_map>\n\n${request.mode === "revision" ? `<fix_items_map>\n[{"finding_id":"preferred-if-known","finding_group_id":"group-1","severity":"blocking"|"major"|"minor"|"suggestion","action":"accepted"|"rejected","summary":"...","evidence_location":"<section>","rejection_reason":"only if rejected"}]\n</fix_items_map>` : ""}`;
 
   const invokeResult = await invoker(prompt, `shared/component-repair-engine/${request.component}`);
   const rawResponsePath = join(request.bundleDir, "response.raw.txt");
@@ -49,21 +57,27 @@ export async function runComponentRepair(
   if (!artifactMatch || !complianceMatch) {
     throw new Error(`Repair engine response missing required sections in ${rawResponsePath}`);
   }
+  if (request.mode === "revision" && !fixItemsMatch) {
+    throw new Error(`Repair engine response missing required <fix_items_map> section in ${rawResponsePath}`);
+  }
 
   const artifact = stripCodeFences(artifactMatch[1]).trim();
-  const complianceMap = JSON.parse(complianceMatch[1].trim());
-  const fixItemsMap = fixItemsMatch ? JSON.parse(fixItemsMatch[1].trim()) : [];
+  const complianceMap = ComplianceEntry.array().parse(JSON.parse(complianceMatch[1].trim()));
+  const fixItemsMap = fixItemsMatch ? FixItem.array().parse(JSON.parse(fixItemsMatch[1].trim())) : [];
+  if (request.mode === "revision" && fixItemsMap.length === 0) {
+    throw new Error(`Repair engine response returned an empty fix_items_map in revision mode (${rawResponsePath})`);
+  }
 
   await writeFile(join(request.bundleDir, "response.parsed.json"), JSON.stringify({
     artifact_length: artifact.length,
-    compliance_entries: Array.isArray(complianceMap) ? complianceMap.length : 0,
-    fix_item_entries: Array.isArray(fixItemsMap) ? fixItemsMap.length : 0,
+    compliance_entries: complianceMap.length,
+    fix_item_entries: fixItemsMap.length,
   }, null, 2), "utf-8");
 
   return {
     artifact,
-    complianceMap: Array.isArray(complianceMap) ? complianceMap : [],
-    fixItemsMap: Array.isArray(fixItemsMap) ? fixItemsMap : [],
+    complianceMap,
+    fixItemsMap,
     diffSummary: {
       changed: artifact !== request.artifactText,
       prior_length: request.artifactText.length,
@@ -84,13 +98,13 @@ export async function runComponentRepair(
   };
 }
 
-async function copyIfPresent(source: string, destination: string): Promise<string | null> {
+async function copyRequiredFile(source: string, destination: string, label: string): Promise<void> {
   try {
+    await mkdir(dirname(destination), { recursive: true });
     const content = await readFile(source, "utf-8");
     await writeFile(destination, content, "utf-8");
-    return destination;
-  } catch {
-    return null;
+  } catch (error) {
+    throw new Error(`Failed to copy required ${label} from ${source}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

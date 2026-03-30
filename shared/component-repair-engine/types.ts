@@ -55,7 +55,7 @@ export interface RepairInvokeResult {
 export interface RepairResult {
   artifact: string;
   complianceMap: Array<{ rule_id: string; status: string; evidence_location: string; evidence_summary: string }>;
-  fixItemsMap: Array<{ finding_id?: string; finding_group_id: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
+  fixItemsMap: Array<{ finding_id?: string; finding_group_id?: string; severity?: string; action: string; summary: string; evidence_location?: string; rejection_reason?: string }>;
   diffSummary: { changed: boolean; prior_length: number; new_length: number; summary: string };
   audit: {
     bundleDir: string;
