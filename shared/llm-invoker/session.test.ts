@@ -42,10 +42,11 @@ test("shouldRetryWithFreshSession recognizes missing-session errors", () => {
 });
 
 test("session helpers build fresh Claude handles and session results", () => {
-  const handle = createClaudeFreshSessionHandle();
+  const handle = createClaudeFreshSessionHandle("sonnet");
   const result = buildInvocationSessionResult(handle, "fresh");
 
   assert.equal(handle.provider, "claude");
+  assert.equal(handle.model, "sonnet");
   assert.match(handle.session_id, /^[0-9a-f-]{36}$/i);
   assert.equal(handle.source, "caller_assigned");
   assert.equal(result.handle, handle);

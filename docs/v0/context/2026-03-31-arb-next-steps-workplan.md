@@ -39,7 +39,7 @@ Goal:
 
 Status:
 
-- in progress
+- implemented on current `main`
 
 In scope:
 
@@ -60,6 +60,31 @@ Acceptance:
 
 - naming is no longer architecturally misleading
 - open correctness bugs above are closed
+
+Delivered in this step:
+
+- active shared-engine lane surfaces were renamed to:
+  - `shared/rules-compliance-enforcer`
+  - `shared/self-learning-engine`
+- active `agent-role-builder` imports, runtime artifact paths, prompts, contract refs, and authority refs now use the new names
+- legacy compatibility loader aliases remain in place so the current lane can transition without breaking older references in one jump
+- final-round legality now fail-closes invalid leader `pushback` / `resume_required` when only non-material work remains
+- split-verdict convergence now requires a final `regression_sanity` pass from the previously approving reviewer before freeze
+- `conditional` semantics are now tightened to mean acceptable now with only non-blocking recommendations or deferred minor risks
+- resume-package validation now requires `request_job_id` equality in addition to `role_slug`
+- `resume.session_registry_path` is now a real supplemental recovery input for fresher session handles on resume
+- session-handle load now validates provider/model identity explicitly and records mismatch status instead of silently pretending reuse
+- duplicate-job startup guard now writes a structured startup incident before blocking
+
+Validation completed for this step:
+
+- `shared` TypeScript compile passed
+- `agent-role-builder` TypeScript compile passed
+- governance runtime legality tests passed
+- invoker/session tests passed
+- startup incident tests passed
+- resume/session-registry tests passed
+- board split-verdict/final-sanity tests passed
 
 Frozen implementation slice:
 
@@ -87,6 +112,10 @@ Frozen implementation slice:
 Goal:
 
 - make the lane measurable enough to identify the real bottlenecks and future GC inputs
+
+Status:
+
+- next active implementation slice
 
 Required KPI families:
 

@@ -19,7 +19,7 @@ import type {
 
 const FROZEN_REVIEWER_PAIR_HINTS = ["codex reviewer", "claude reviewer"];
 
-export async function loadPilotRosterBootstrap(sharedContractPath = join("shared", "learning-engine", "review-contract.json")): Promise<PilotRosterBootstrap> {
+export async function loadPilotRosterBootstrap(sharedContractPath = join("shared", "self-learning-engine", "review-contract.json")): Promise<PilotRosterBootstrap> {
   const sharedContract = await readJsonRequired<Record<string, unknown>>(sharedContractPath, "shared review contract");
   const rosterRequirements = asRecord(sharedContract.roster_requirements, "shared_contract.roster_requirements");
   const minimumReviewerCount = asNumber(rosterRequirements.minimum_reviewer_count, "shared_contract.roster_requirements.minimum_reviewer_count");
@@ -178,7 +178,7 @@ export function resolvePilotTerminalVerdict(input: TerminalLegalityInput): Termi
 
   if (input.leaderVerdict === "frozen" && input.hasAnyRepairWork) {
     return {
-      effectiveVerdict: input.finalRound ? "frozen_with_conditions" : "pushback",
+      effectiveVerdict: "frozen_with_conditions",
       overrideReason: "Leader returned frozen while non-material repair work remained. Clean freeze is only legal when no repair work remains.",
     };
   }
@@ -187,6 +187,18 @@ export function resolvePilotTerminalVerdict(input: TerminalLegalityInput): Termi
     return {
       effectiveVerdict: input.finalRound ? "blocked" : "pushback",
       overrideReason: "Leader returned frozen_with_conditions while material repair work remained, which violates the arbitration contract.",
+    };
+  }
+
+  if (
+    (input.leaderVerdict === "pushback" || input.leaderVerdict === "resume_required")
+    && !input.hasMaterialRepairWork
+  ) {
+    return {
+      effectiveVerdict: input.hasAnyRepairWork ? "frozen_with_conditions" : "frozen",
+      overrideReason: input.hasAnyRepairWork
+        ? `Leader returned ${input.leaderVerdict} even though only non-material repair work remained. Safe effective status is frozen_with_conditions.`
+        : `Leader returned ${input.leaderVerdict} even though no repair work remained. Safe effective status is frozen.`,
     };
   }
 

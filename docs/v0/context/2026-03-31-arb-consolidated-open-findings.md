@@ -24,7 +24,10 @@ Consolidate the still-open items from:
 - run 018 live evidence
 - follow-up discussion after run 018
 
-This note is the current authoritative summary of what is still open before the next major implementation round.
+This note is the current authoritative summary of:
+
+- what Step 1 already closed
+- what is still open before ARB run 19
 
 ## Current State
 
@@ -34,122 +37,106 @@ The lane has now proven one live positive-path governed run at:
 
 That run is useful evidence, but it does not close the remaining correctness, audit, telemetry, and terminology gaps listed below.
 
-## Open Findings
+## Findings Status
 
-### 1. Final-round leader legality is still not fail-closed
+### Closed in Step 1
 
-Status:
-
-- open
-
-Problem:
-
-- illegal leader `pushback` on minor-only unresolved work can still drive the final round to `resume_required`
-- the legality helper normalizes illegal `frozen` and `frozen_with_conditions`, but not illegal `pushback`
-
-Impact:
-
-- the lane can still end with the wrong terminal status and a misleading audit story
-
-Why it matters:
-
-- run 018 succeeded only because one illegal leader `frozen` was corrected inline
-- that is evidence of useful override behavior, but also proof that terminal legality is still incomplete
-
-### 2. Split-verdict final sanity is not enforced strongly enough
+#### 1. Final-round leader legality fail-closed gap
 
 Status:
 
-- open
+- closed in Step 1
 
-Problem:
+Resolution:
 
-- the code still has a `regression_sanity` mode hook
-- but the live loop can freeze in the same round that the last rejecting reviewer becomes `approved` or `conditional`
-- this does not guarantee the authority requirement that the previously approving reviewer reruns one final sanity check
+- terminal-status legality now normalizes invalid leader `pushback` / `resume_required` when only non-material work remains
+- invalid `frozen` and `frozen_with_conditions` normalization remains in place
+- final rounds no longer drift to `resume_required` purely because minor/suggestion-only work remains
 
-Impact:
-
-- the split-verdict optimization can still skip the final regression-safety step
-
-Discussion decision:
-
-- keep split review optimization
-- when the rejecting reviewer reaches `approved` or `conditional`, rerun only the previously approving reviewer for the final sanity check
-
-### 3. `conditional` semantics are still too ambiguous
+#### 2. Split-verdict final sanity enforcement
 
 Status:
 
-- open
+- closed in Step 1
 
-Problem:
+Resolution:
 
-- `conditional` currently behaves like a non-reject in many places
-- but in discussion it became clear that it is ambiguous whether `conditional` means:
-  - usable now with non-blocking recommendations
-  - or still requires a minor fix before handoff
+- when the last rejecting reviewer becomes `approved` or true `conditional`, the lane now schedules one final `regression_sanity` pass for the previously approving reviewer
+- freeze is blocked until that sanity pass completes
 
-Decision from discussion:
-
-- tighten semantics
-- `conditional` must mean:
-  - usable now
-  - no required fixes remain
-  - only non-blocking recommendations or deferred minor risks remain
-
-Impact:
-
-- terminal-status rules, split-verdict logic, and postmortem interpretation all depend on this definition
-
-### 4. Resume-package identity validation is incomplete
+#### 3. `conditional` semantics ambiguity
 
 Status:
 
-- open
+- closed in Step 1
 
-Problem:
+Resolution:
 
-- resume-package mismatch checking currently validates `role_slug`
-- it does not hard-require `request_job_id` equality
+- `conditional` now means acceptable now with only non-blocking recommendations or deferred minor risks
+- any blocking/major conceptual group under `conditional` is normalized back to `reject`
 
-Impact:
-
-- a rerun can import foreign markdown, reviewer state, learning state, or session state from another job with the same role
-
-### 5. `resume.session_registry_path` is still not a true recovery input
+#### 4. Resume-package identity validation
 
 Status:
 
-- open
+- closed in Step 1
 
-Problem:
+Resolution:
 
-- the request schema exposes `resume.session_registry_path`
-- the live resume load path still depends on `resume_package_path`
-- partial bounded runs can therefore capture session handles without being able to resume from them directly unless a resume package exists
+- resume-package validation now requires both `role_slug` and `request_job_id`
+- cross-job resume state import for the same role now blocks cleanly
 
-Impact:
-
-- nonterminal bounded stops can still strand usable session data
-
-### 6. Session-handle load and reuse are not fully explicit/auditable
+#### 5. `resume.session_registry_path` recovery support
 
 Status:
 
-- open
+- closed in Step 1
 
-Problem:
+Resolution:
 
-- session-registry load currently marks slot-key matches as loaded without validating provider/model identity
-- the invoker can silently cold-start when a mismatched handle is passed
-- registry-write failure after a successful invocation can also leave in-memory handle state ahead of durable state
+- `resume.session_registry_path` is now a real supplemental recovery input
+- `resume_package_path` still owns artifact/reviewer state
+- a newer session registry can now provide fresher provider handles for resume without discarding the governed resume package
 
-Impact:
+#### 6. Session-handle reuse auditability
 
-- runtime/session audit can claim persisted-session reuse even when the current call actually fell back to a fresh session
+Status:
 
-### 7. Telemetry and KPI reporting are still not truthful enough
+- closed in Step 1
+
+Resolution:
+
+- session-registry load now validates provider/model identity before marking a handle as loaded
+- mismatches are recorded explicitly as ignored-provider or ignored-model drift
+- durable registry writes now happen before the in-memory active-handle map is advanced
+
+#### 8. Duplicate-job startup audit gap
+
+Status:
+
+- closed in Step 1
+
+Resolution:
+
+- the duplicate-job / existing-`result.json` guard now writes a structured startup incident before blocking
+
+#### 10. Current engine naming is misleading and blocks architectural clarity
+
+Status:
+
+- closed in Step 1 for the active lane
+
+Resolution:
+
+- active lane naming is now:
+  - `shared/rules-compliance-enforcer`
+  - `shared/self-learning-engine`
+- loader-level compatibility aliases remain temporarily so the lane can migrate without breaking older references in one jump
+- the future runtime-healing surface remains a separate planned engine: `self-repair-engine`
+
+### Still Open
+
+#### 7. Telemetry and KPI reporting are still not truthful enough
 
 Status:
 
@@ -175,22 +162,6 @@ Impact:
 
 - the lane cannot yet answer the CEO's real questions about cost, bottlenecks, session economics, or whether the output was worth the effort
 
-### 8. Startup audit is improved but not fully universal
-
-Status:
-
-- open
-
-Problem:
-
-- many startup failures now produce startup incidents
-- one known pre-run blocked path still bypasses structured startup audit:
-  - duplicate job / existing `result.json`
-
-Impact:
-
-- not every pre-run blocked path is yet inside the audit envelope
-
 ### 9. Run 018 exposed value, but not enough learning-cycle proof
 
 Status:
@@ -210,29 +181,6 @@ What run 018 did not prove:
 - future-run promotion quality, because all three learning artifacts had `new_rules: []`
 - rules cleanup / retirement behavior
 - truthful KPI coverage
-
-### 10. Current engine naming is misleading and blocks architectural clarity
-
-Status:
-
-- open
-
-Discussion decision:
-
-- rename `component-repair-engine` to `rules-compliance-enforcer`
-- rename `learning-engine` to `self-learning-engine`
-- introduce a separate `self-repair-engine`
-- later introduce `rules-gc`
-
-Why it matters:
-
-- current names blur:
-  - review-cycle artifact revision
-  - runtime incident healing
-  - rule extraction
-  - rule lifecycle improvement
-
-The current code history shows the existing engine was introduced as a governed revision engine, not a runtime incident fixer.
 
 ### 11. A true runtime self-heal path still does not exist
 

@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0",
+  "purpose": "System-level guide that defines what a good rulebook looks like. All component rulebooks must conform to this guide. The guide itself improves over time through jobs post-mortem (system-level changes).",
+  "last_updated": "2026-03-29",
+  "rule_schema": {
+    "required_fields": {
+      "id": {
+        "format": "<COMPONENT_PREFIX>-<NNN>",
+        "description": "Unique rule ID. Prefix matches the component slug (e.g., ARB for agent-role-builder, LTB for llm-tool-builder, CLS for classifier, INT for intelligence). Sequential numbering.",
+        "example": "ARB-001"
+      },
+      "rule": {
+        "description": "The generalized principle in one sentence. High-level, not implementation-specific. Should be understandable by someone with zero context about the specific component.",
+        "good_example": "Define authority as a strict precedence chain with explicit layers, not a flat list of superiors.",
+        "bad_example": "Fix the authority section. (too vague, no principle)"
+      },
+      "applies_to": {
+        "description": "Array of specific sections, files, or areas of the artifact where this rule is relevant. Helps the implementer know WHERE to check.",
+        "example": [
+          "<authority> section",
+          "<guardrails>",
+          "validator.ts"
+        ]
+      },
+      "do": {
+        "description": "Concrete instruction of what compliant behavior looks like. Include a specific example of correct implementation. The implementer should be able to copy/adapt this.",
+        "requirements": [
+          "Must start with an actionable verb (define, list, check, validate, separate, use, state)",
+          "Must include at least one concrete example of what compliance looks like",
+          "Must reference specific artifact sections or code locations where applicable"
+        ]
+      },
+      "dont": {
+        "description": "Concrete instruction of what violation looks like. Include a specific example of what NOT to do. The implementer should recognize this pattern and avoid it.",
+        "requirements": [
+          "Must describe the specific anti-pattern, not just negate the 'do'",
+          "Must include at least one concrete example of the violation",
+          "Must explain why it's wrong (what downstream problem it causes)"
+        ]
+      },
+      "source": {
+        "description": "Which review cycle(s) produced this rule. References specific runs and what was observed. Provides credibility - this rule exists because a real failure happened.",
+        "example": "Runs 003-006: authority modeling flagged in every run. Reviewers consistently rejected flat subordinate_to lists."
+      },
+      "version": {
+        "description": "Integer version number. Incremented when the rule is updated. History preserved in git.",
+        "example": 1
+      }
+    },
+    "optional_fields": {
+      "supersedes": {
+        "description": "ID of rule this replaces, if applicable. The superseded rule stays in git history.",
+        "example": "ARB-001-v1"
+      },
+      "severity": {
+        "description": "How critical this rule is. Helps prioritize during compliance checking.",
+        "values": [
+          "critical",
+          "important",
+          "advisory"
+        ],
+        "default": "important"
+      }
+    }
+  },
+  "rulebook_structure": {
+    "required_fields": {
+      "schema_version": "Must be '1.0' (or current version)",
+      "component": "The component this rulebook belongs to (e.g., 'agent-role-builder')",
+      "last_updated": "ISO date of last update",
+      "rules": "Array of rule objects conforming to rule_schema"
+    }
+  },
+  "principles": {
+    "what_rules_are": [
+      "High-level generalized core essence directives",
+      "Distilled from real review failures - not invented speculatively",
+      "Actionable by a first-time implementer with no prior context",
+      "Stable across runs - a rule that only applies to one specific artifact version is not a rule"
+    ],
+    "what_rules_are_not": [
+      "Not copies of reviewer feedback ('round 2 said X')",
+      "Not implementation details ('add null check on line 47')",
+      "Not temporary fixes ('workaround for encoding bug')",
+      "Not aspirational goals ('make it better')"
+    ],
+    "quality_checklist": [
+      "Can a first-time implementer understand this rule without reading the review history?",
+      "Does the 'do' example show exactly what compliance looks like?",
+      "Does the 'dont' example show exactly what violation looks like?",
+      "Is the rule general enough to apply across runs, not just one specific draft?",
+      "Is the rule specific enough that compliance can be mechanically verified?",
+      "Does the source field prove this rule emerged from a real failure?"
+    ],
+    "routing_policy": {
+      "purpose": "Route each learned finding to the narrowest authority surface that can actually enforce it.",
+      "destinations": {
+        "component_rulebook": "Recurring component-local directive that an implementer can mechanically self-check during authoring or repair.",
+        "component_contract": "Machine-enforced invariant, required input, output, or terminal-state rule specific to one component bundle.",
+        "shared_contract": "Machine-enforced invariant or vocabulary shared across multiple components or review domains.",
+        "doc_only": "Human-facing rationale, lifecycle explanation, or design authority note that is not itself a machine check."
+      },
+      "routing_questions": [
+        "Can the runtime, schema, or validator enforce this directly? If yes, it belongs in a contract, not a rulebook.",
+        "Is this mainly rationale, sequencing explanation, or authority narrative for humans? If yes, it belongs in docs, not a rulebook.",
+        "Is this a recurring component-local directive that an implementer can mechanically walk during self-check? If yes, it belongs in the component rulebook.",
+        "Does an existing rule or contract already cover the failure? If yes, rewrite, merge, or supersede instead of appending a near-duplicate rule."
+      ]
+    },
+    "system_rules": [
+      {
+        "id": "SYS-001",
+        "rule": "Every learned finding must be routed to the narrowest authority surface that can mechanically enforce it: component rulebook, component contract, shared contract, or doc-only guidance.",
+        "source": "2026-03-29 governance split review: overlap came from contract/process policy living inside rulebooks.",
+        "version": 1
+      },
+      {
+        "id": "SYS-002",
+        "rule": "Before adding a new active rule, check whether an existing rule can be rewritten, merged, or superseded so the rulebook does not accumulate overlapping guidance.",
+        "source": "2026-03-29 governance split review: overlapping authority, artifact, and error-handling rules reduced maintainability.",
+        "version": 1
+      }
+    ],
+    "lifecycle": [
+      "Rules are created by the learning engine from review feedback",
+      "Rules are never silently deleted - history preserved in git",
+      "Rules can be superseded by a new version with 'supersedes' field",
+      "The rulebook is updated at the end of every review round (run post-mortem)",
+      "When a learned finding is really a contract or documentation gap, update that authority surface instead of appending a rulebook entry",
+      "The rule book guide itself is updated during jobs post-mortem (system-level improvement)"
+    ]
+  }
+}

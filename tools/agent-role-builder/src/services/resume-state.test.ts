@@ -63,6 +63,7 @@ test("buildNextResumePackage carries forward reviewer status, rounds, and prior 
     sessionHandles: {
       "leader-codex": {
         provider: "codex",
+        model: "gpt-5.4",
         session_id: "019d401d-3bd7-7dd0-89c9-40b49398b1fb",
         source: "provider_returned",
       },
@@ -88,6 +89,7 @@ test("buildNextResumePackage carries forward reviewer status, rounds, and prior 
       session_handles: {
         "leader-codex": {
           provider: "codex",
+          model: "gpt-5.4",
           session_id: "older-session",
           source: "manual_recovery",
         },
@@ -103,6 +105,7 @@ test("buildNextResumePackage carries forward reviewer status, rounds, and prior 
   assert.deepEqual(nextResumePackage.session_handles, {
     "leader-codex": {
       provider: "codex",
+      model: "gpt-5.4",
       session_id: "019d401d-3bd7-7dd0-89c9-40b49398b1fb",
       source: "provider_returned",
     },
@@ -134,9 +137,36 @@ test("assertResumePackageMatchesRole rejects mismatched role slug", () => {
           session_handles: {},
           rounds_completed: 0,
         },
-        "agent-role-builder"
+        "agent-role-builder",
+        "resume-test-prev"
       ),
     /role_slug mismatch/
+  );
+});
+
+test("assertResumePackageMatchesRole rejects mismatched request_job_id", () => {
+  assert.throws(
+    () =>
+      assertResumePackageMatchesRole(
+        {
+          schema_version: "1.0",
+          role_slug: "agent-role-builder",
+          request_job_id: "other-job",
+          next_step: "resume_board_review",
+          unresolved: [],
+          latest_markdown_path: "older.md",
+          latest_contract_path: "older.json",
+          latest_board_summary_path: "older-summary.md",
+          latest_decision_log_path: "older-log.md",
+          round_files: [],
+          reviewer_status: {},
+          session_handles: {},
+          rounds_completed: 0,
+        },
+        "agent-role-builder",
+        "resume-test-prev"
+      ),
+    /request_job_id mismatch/
   );
 });
 

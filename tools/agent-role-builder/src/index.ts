@@ -11,10 +11,11 @@ import { buildAuditEnvelope, pathExists, uniqueStringsCaseInsensitive } from "./
 import { appendIngressAuditEvent, normalizeJsonText, writeBootstrapIngressIncident, writeBootstrapStartupIncident } from "./services/json-ingress.js";
 import { applyFutureRunRulebookPromotion } from "./services/rulebook-promotion.js";
 import { assertResumePackageMatchesRole, buildNextResumePackage, loadResumeState } from "./services/resume-state.js";
-import { buildInitialSessionRegistry, writeSessionRegistry } from "./services/session-registry.js";
+import { assertSessionRegistryMatchesRequest, buildInitialSessionRegistry, extractActiveSessionHandles, loadSessionRegistry, writeSessionRegistry } from "./services/session-registry.js";
 import { writeRunTelemetry } from "./services/run-telemetry.js";
 import { loadSharedGovernanceRuntimeModule } from "./services/shared-module-loader.js";
 import { clearTelemetryBuffer, createSystemProvenance, emit, getTelemetryBuffer } from "./shared-imports.js";
+import type { InvocationSessionHandle } from "./shared-imports.js";
 
 interface CanonicalRolePaths {
   directory: string;
@@ -115,9 +116,18 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   try {
     await stat(existingResult);
     // If stat succeeds, the file exists — block the run
-    throw new Error(
-      `Run directory already has a result (${existingResult}). Use a different job_id or delete the existing run.`
-    );
+    const incidentPath = await writeBootstrapStartupIncident({
+      toolRunRoot,
+      requestPath,
+      stage: "duplicate_job_id",
+      message: `Run directory already has a result (${existingResult}). Use a different job_id or delete the existing run.`,
+      details: {
+        job_id: request.job_id,
+        run_dir: runDir.replace(/\\/g, "/"),
+        existing_result_path: existingResult.replace(/\\/g, "/"),
+      },
+    });
+    throw new Error(`Run directory already has a result (${existingResult}). Bootstrap incident: ${incidentPath}`);
   } catch (e) {
     // ENOENT means file doesn't exist — that's the expected case, continue
     if (e instanceof Error && "code" in e && (e as NodeJS.ErrnoException).code === "ENOENT") {
@@ -223,7 +233,7 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     review_runtime_config: unknown;
   } | null = null;
   const authorityPaths = {
-    shared_contract: join("shared", "learning-engine", "review-contract.json"),
+    shared_contract: join("shared", "self-learning-engine", "review-contract.json"),
     component_contract: join("tools", "agent-role-builder", "review-contract.json"),
     component_rulebook: join("tools", "agent-role-builder", "rulebook.json"),
     component_review_prompt: join("tools", "agent-role-builder", "review-prompt.json"),
@@ -557,17 +567,25 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
   }
 
   let loadedResumeState: Awaited<ReturnType<typeof loadResumeState>> | null = null;
+  let loadedResumeSessionHandles: Record<string, InvocationSessionHandle> = {};
   if (request.resume) {
     try {
       loadedResumeState = await loadResumeState(request.resume.resume_package_path);
-      assertResumePackageMatchesRole(loadedResumeState.resumePackage, request.role_slug);
+      assertResumePackageMatchesRole(loadedResumeState.resumePackage, request.role_slug, request.job_id);
+      if (request.resume.session_registry_path) {
+        const loadedSessionRegistry = await loadSessionRegistry(request.resume.session_registry_path);
+        assertSessionRegistryMatchesRequest(loadedSessionRegistry, request);
+        loadedResumeSessionHandles = extractActiveSessionHandles(loadedSessionRegistry);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const resumeValidationIssue: ValidationIssue = {
         code: "INVALID_RESUME_PACKAGE",
         severity: "error",
         message: `Failed to load resume package: ${message}`,
-        evidence: request.resume.resume_package_path,
+        evidence: request.resume.session_registry_path
+          ? `${request.resume.resume_package_path} | ${request.resume.session_registry_path}`
+          : request.resume.resume_package_path,
       };
       validationIssues.push(resumeValidationIssue);
       const pushbackPath = join(runDir, `${request.role_slug}-pushback.json`);
@@ -642,14 +660,18 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
     rulebookPromotionArtifactPath = rulebookPromotion.promotionArtifactPath;
   }
 
-  const initialSessionHandles = loadedResumeState?.resumePackage.session_handles ?? {};
+  const initialSessionRegistry = buildInitialSessionRegistry({
+    request,
+    startedAtIso: startIso,
+    initialHandles: {
+      ...(loadedResumeState?.resumePackage.session_handles ?? {}),
+      ...loadedResumeSessionHandles,
+    },
+  });
+  const initialSessionHandles = extractActiveSessionHandles(initialSessionRegistry);
   await writeSessionRegistry(
     sessionRegistryPath,
-    buildInitialSessionRegistry({
-      request,
-      startedAtIso: startIso,
-      initialHandles: initialSessionHandles,
-    })
+    initialSessionRegistry
   );
 
   const draftMarkdown = loadedResumeState?.markdown ?? generateRoleMarkdown(request);
@@ -908,7 +930,7 @@ async function writeZeroRoundRunPostmortem(params: {
     schema_version: "1.0",
     component: "agent-role-builder",
     request_job_id: params.request.job_id,
-    questions_ref: "shared/learning-engine/postmortem-questions.json",
+    questions_ref: "shared/self-learning-engine/postmortem-questions.json",
     updated_at: new Date().toISOString(),
     terminal_status: params.status,
     rounds_completed: 0,
@@ -990,7 +1012,7 @@ async function writeCyclePostmortem(params: {
     final_status: params.status,
     final_status_reason: params.statusReason,
     generated_at: new Date().toISOString(),
-    questions_ref: "shared/learning-engine/postmortem-questions.json",
+    questions_ref: "shared/self-learning-engine/postmortem-questions.json",
     kpi_summary: {
       total_duration_ms: Date.now() - params.startedAtMs,
       rounds_executed: params.roundsExecuted,

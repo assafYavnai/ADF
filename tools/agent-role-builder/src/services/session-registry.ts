@@ -7,6 +7,7 @@ const SessionSourceSchema = z.enum(["provider_returned", "caller_assigned", "man
 
 const SessionHandleSchema = z.object({
   provider: z.enum(["codex", "claude", "gemini"]),
+  model: z.string().optional(),
   session_id: z.string(),
   source: SessionSourceSchema,
 });
@@ -17,7 +18,14 @@ const SessionRegistryEntrySchema = z.object({
   provider: z.enum(["codex", "claude", "gemini"]),
   model: z.string(),
   handle: SessionHandleSchema.nullable(),
-  last_status: z.enum(["loaded", "fresh", "resumed", "replaced"]).nullable(),
+  last_status: z.enum([
+    "loaded",
+    "ignored_provider_mismatch",
+    "ignored_model_mismatch",
+    "fresh",
+    "resumed",
+    "replaced",
+  ]).nullable(),
   updated_at: z.string().datetime().nullable(),
   last_invocation_id: z.string().uuid().nullable(),
   last_round: z.number().int().nonnegative().nullable(),
@@ -117,13 +125,52 @@ export async function updateSessionRegistrySlot(params: {
   });
 }
 
+export function assertSessionRegistryMatchesRequest(
+  registry: SessionRegistry,
+  request: Pick<RoleBuilderRequest, "job_id" | "role_slug" | "runtime">
+): void {
+  if (registry.request_job_id !== request.job_id) {
+    throw new Error(
+      `Session registry request_job_id mismatch: expected "${request.job_id}", got "${registry.request_job_id}"`
+    );
+  }
+  if (registry.role_slug !== request.role_slug) {
+    throw new Error(
+      `Session registry role_slug mismatch: expected "${request.role_slug}", got "${registry.role_slug}"`
+    );
+  }
+  if (registry.execution_mode !== request.runtime.execution_mode) {
+    throw new Error(
+      `Session registry execution_mode mismatch: expected "${request.runtime.execution_mode}", got "${registry.execution_mode}"`
+    );
+  }
+}
+
+export function extractActiveSessionHandles(registry: SessionRegistry): Record<string, InvocationSessionHandle> {
+  return Object.fromEntries(
+    Object.entries(registry.slots)
+      .filter(([, entry]) => entry.handle !== null && entry.last_status !== "ignored_provider_mismatch" && entry.last_status !== "ignored_model_mismatch")
+      .map(([slotKey, entry]) => [slotKey, entry.handle as InvocationSessionHandle])
+  );
+}
+
 function buildSessionRegistryEntry(
   slotKey: string,
   role: "leader" | "reviewer",
   participant: BoardParticipant,
   initialHandles: Record<string, InvocationSessionHandle>
 ): [string, SessionRegistryEntry] {
-  const handle = initialHandles[slotKey] ?? null;
+  const providedHandle = initialHandles[slotKey] ?? null;
+  const providerMismatch = providedHandle && providedHandle.provider !== participant.provider;
+  const modelMismatch = providedHandle && providedHandle.model && providedHandle.model !== participant.model;
+  const handle = providerMismatch || modelMismatch ? null : providedHandle;
+  const lastStatus = providerMismatch
+    ? "ignored_provider_mismatch"
+    : modelMismatch
+      ? "ignored_model_mismatch"
+      : handle
+        ? "loaded"
+        : null;
   return [
     slotKey,
     {
@@ -132,8 +179,8 @@ function buildSessionRegistryEntry(
       provider: participant.provider,
       model: participant.model,
       handle,
-      last_status: handle ? "loaded" : null,
-      updated_at: handle ? new Date().toISOString() : null,
+      last_status: lastStatus,
+      updated_at: lastStatus ? new Date().toISOString() : null,
       last_invocation_id: null,
       last_round: null,
     },

@@ -60,7 +60,7 @@ Rules are high-level, generalized core essence directives distilled from real re
 Each rule has an ID, the generalized principle, the source review cycle that produced it, and a version. Rules can be superseded but never silently deleted — history is preserved in git.
 
 **Who creates rules:**
-The learning engine (described below) extracts rules from review feedback. The implementer doesn't write rules — they follow them.
+The self-learning engine (described below) extracts rules from review feedback. The implementer doesn't write rules — they follow them.
 
 ---
 
@@ -82,18 +82,18 @@ Examples:
 
 ---
 
-## The Learning Engine
+## The Self-Learning Engine
 
-A shared generic service that lives in `shared/learning-engine/`. Its job is to analyze review feedback and extract generalizable rules that prevent the same failures from recurring.
+A shared generic service that lives in `shared/self-learning-engine/`. Its job is to analyze review feedback and extract generalizable rules that prevent the same failures from recurring.
 
 **How it works:**
-After each review round and before any fix attempt, the learning engine receives the reviewer feedback and asks: "What generalizable principle does this failure reveal?" It produces new rulebook entries (or identifies that existing rules already cover the issue). It updates the specific component's `rulebook.json` — the file in that component's directory, not a generic global file.
+After each review round and before any fix attempt, the self-learning engine receives the reviewer feedback and asks: "What generalizable principle does this failure reveal?" It produces new rulebook entries (or identifies that existing rules already cover the issue). It updates the specific component's `rulebook.json` — the file in that component's directory, not a generic global file.
 
 **Why it's generic:**
 The extraction logic is the same regardless of what's being reviewed. "What pattern does this failure reveal?" works for role definitions, TypeScript code, system prompts, and architecture documents. The only thing that changes is the prompt context.
 
 **How prompts are used:**
-Each component holds a `review-prompt.json` in its own directory. This prompt tells the learning engine what domain it's operating in (design review, code review, prompt review, architecture review) and what kinds of rules are relevant. The learning engine loads this prompt to contextualize its analysis. Without it, the engine doesn't know what domain patterns to look for.
+Each component holds a `review-prompt.json` in its own directory. This prompt tells the self-learning engine what domain it's operating in (design review, code review, prompt review, architecture review) and what kinds of rules are relevant. The self-learning engine loads this prompt to contextualize its analysis. Without it, the engine doesn't know what domain patterns to look for.
 
 **Why it runs between review and fix:**
 If the implementer fixes issues without first extracting the rule, the same class of issue will appear in future runs. The learning step ensures the rulebook grows before the fix is attempted. The implementer then reads the updated rulebook before fixing, which means the fix addresses the root pattern, not just the specific symptom.
@@ -102,7 +102,7 @@ If the implementer fixes issues without first extracting the rule, the same clas
 This is the required generic sequence for every review domain in ADF ג€” code review, design review, prompt review, architecture review, and any future governed review type.
 
 1. Run review on the current artifact
-2. Run the learning engine on the review findings
+2. Run the self-learning engine on the review findings
 3. Update or confirm the applicable rulebook
 4. Re-check the artifact against the full applicable rule set, including any new rules learned from this round
 5. Fix both:
@@ -111,7 +111,12 @@ This is the required generic sequence for every review domain in ADF ג€” co
 6. Produce updated compliance/fix evidence
 7. Re-run review
 
-The fix step is not allowed to address only the reviewer comments while ignoring rule compliance. The learning output and rulebook check are part of the authority chain for the next fix attempt.
+The fix step is not allowed to address only the reviewer comments while ignoring rule compliance. The self-learning output and rulebook check are part of the authority chain for the next fix attempt.
+
+Current active engine boundary:
+- `shared/self-learning-engine/` extracts and evaluates rule proposals
+- `shared/rules-compliance-enforcer/` performs the governed rule walk, artifact revision, and compliance/fix evidence generation
+- a future `self-repair-engine` is reserved for runtime incident healing and is not the same engine
 
 ---
 
@@ -146,7 +151,10 @@ This serves as both proof of fix AND reviewer context for the next round. The re
 
 ### Step 4: Review
 Reviewers (Codex + Claude pair minimum) independently review the artifact. Their feedback uses a structured contract (JSON):
-- **Verdict**: `approved` (ready to freeze), `conditional` (minor fixes only), or `reject` (blocking/major issues)
+- **Verdict**:
+  - `approved`: no required fixes remain
+  - `conditional`: acceptable now; only non-blocking recommendations or deferred minor risks remain
+  - `reject`: at least one required fix remains
 - **Conceptual groups**: findings grouped by root cause, not flat lists. Each group has:
   - Severity: `blocking`, `major`, `minor`, or `suggestion`
   - Specific findings with source section references
@@ -163,7 +171,7 @@ This creates a proper negotiation protocol between implementer and reviewer, not
 
 ### Step 5: On review failure (reject verdict)
 When a reviewer rejects:
-1. Learning engine digests the feedback and updates the component's `rulebook.json`
+1. Self-learning engine digests the feedback and updates the component's `rulebook.json`
 2. A fresh implementer receives: current artifact + updated rulebook + actionable fix checklist + prior compliance map
 3. The implementer first mechanically walks every rule in the rulebook against the artifact, including any newly learned rules from this round
 4. The implementer fixes both:
@@ -173,9 +181,10 @@ When a reviewer rejects:
 6. The round proceeds to the next review cycle
 
 ### Step 6: On review pass (approved/conditional)
-When all reviewers approve or go conditional:
-- Conditional items are fixed (specific minor changes only)
-- Leader confirms freeze
+When all reviewers approve or go true conditional:
+- `conditional` means the artifact is already acceptable now; only non-blocking recommendations or deferred minor risks remain
+- if any reviewer still requires a fix, that reviewer is still effectively `reject`
+- Leader confirms freeze only after reviewer approvals/conditionals are already in place
 - Artifacts promoted to canonical location
 - Decision log and board summary written
 
@@ -187,7 +196,7 @@ When one reviewer approves and another rejects:
 
 1. Fix only the rejecting reviewer's findings
 2. Re-run only the rejecting reviewer in the next round — don't waste the approving reviewer's time
-3. When the rejecting reviewer approves or goes conditional, run one final sanity check with the previously-approving reviewer to catch any regressions the fixes may have introduced
+3. When the rejecting reviewer approves or goes true conditional, run one final `regression_sanity` check with the previously-approving reviewer to catch any regressions the fixes may have introduced
 4. Both must approve/conditional before the artifact can freeze
 
 This cuts review cycles significantly — prior runs re-ran both reviewers every round even when one was satisfied.
@@ -200,13 +209,14 @@ Arbitration is strictly limited to prevent swallowing real issues:
 
 **When arbitration is allowed:**
 - Only on `minor` and `suggestion` severity items where reviewers disagree on whether something needs fixing
-- The leader can decide "this is acceptable as-is" for these items only
+- The leader can decide "this is acceptable as-is" for these items only after reviewer approvals/conditionals are already in place
 - The decision is logged with full rationale
 
 **When arbitration is NOT allowed:**
 - Never on `blocking` or `major` severity items
 - Never to override a `reject` verdict
 - Never to force a freeze when material pushback remains
+- Never to bypass the final sanity check required by split-verdict convergence
 
 **Budget exhaustion protocol (final round):**
 When the review budget is about to run out and blocking/major items remain:
@@ -235,7 +245,7 @@ This includes:
 - Compliance maps
 - Fix items maps
 - Review results
-- Learning engine outputs
+- Self-learning engine outputs
 - Post-mortem reports
 - Run artifacts
 
@@ -256,7 +266,7 @@ All run artifacts are committed to git. Nothing is volatile. The structure:
       rounds/
         round-0/
           review.json          # reviewer verdicts (structured)
-          learning.json        # learning engine output (new rules)
+          learning.json        # self-learning engine output (new rules)
           compliance-map.json  # implementer's delta compliance check
           fix-items-map.json   # implementer's fix/reject map (round 1+)
           diff-summary.json    # what changed from prior round
@@ -321,7 +331,7 @@ The system learns at three different scopes. Each tier has its own trigger, focu
 - **Scope**: single run (the rounds within one attempt)
 - **Trigger**: after every round completes
 - **Focus**: what happened in this specific run
-- **Does**: captures KPI snapshot (time per round, reviewer verdicts, issue counts, convergence rate) and updates the component's rulebook if the learning engine found new rules
+- **Does**: captures KPI snapshot (time per round, reviewer verdicts, issue counts, convergence rate) and updates the component's rulebook if the self-learning engine found new rules
 - **Does NOT**: fix anything or perform self-healing. Run post-mortem is an observer, not an actor. It must be fast and cheap because it runs after every round.
 - **Output**: `run-postmortem.json` in the run directory
 
@@ -357,8 +367,8 @@ Everything described above applies to every governed component in ADF, not just 
 
 - A rulebook in its directory (per LLM agent if multiple agents)
 - A review prompt in its directory (per LLM agent)
-- The learning engine between review and fix
-- The standard sequence: review ג†’ learning ג†’ rulebook check ג†’ fix findings + rule compliance ג†’ evidence ג†’ re-review
+- The self-learning engine between review and fix
+- The standard sequence: review -> self-learning -> rulebook check -> fix findings + rule compliance -> evidence -> re-review
 - Delta compliance maps from the implementer
 - Fix items maps with implementer accept/reject freedom
 - Structured reviewer feedback with fix decision maps
@@ -368,7 +378,7 @@ Everything described above applies to every governed component in ADF, not just 
 - Budget exhaustion protocol (no swallowing of blocking issues)
 - Arbitration only on minor items, result reflects partial acceptance
 
-The shared infrastructure (`shared/learning-engine/`, `shared/llm-invoker/`, `shared/telemetry/`) serves all components equally. The per-component artifacts (rulebook, review prompt, runs) live in each component's directory.
+The shared infrastructure (`shared/self-learning-engine/`, `shared/rules-compliance-enforcer/`, `shared/llm-invoker/`, `shared/telemetry/`) serves all components equally. The per-component artifacts (rulebook, review prompt, runs) live in each component's directory.
 
 ---
 

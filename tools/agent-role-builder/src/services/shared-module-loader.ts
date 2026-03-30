@@ -34,18 +34,26 @@ export async function loadSharedReviewEngineModule() {
   );
 }
 
-export async function loadSharedLearningEngineModule() {
+export async function loadSharedSelfLearningEngineModule() {
   return importSharedModule(
-    join("shared", "learning-engine", "engine.ts"),
-    join("learning-engine", "engine.js")
+    join("shared", "self-learning-engine", "engine.ts"),
+    join("self-learning-engine", "engine.js")
+  );
+}
+
+export async function loadSharedLearningEngineModule() {
+  return loadSharedSelfLearningEngineModule();
+}
+
+export async function loadSharedRulesComplianceEnforcerModule() {
+  return importSharedModule(
+    join("shared", "rules-compliance-enforcer", "engine.ts"),
+    join("rules-compliance-enforcer", "engine.js")
   );
 }
 
 export async function loadSharedComponentRepairEngineModule() {
-  return importSharedModule(
-    join("shared", "component-repair-engine", "engine.ts"),
-    join("component-repair-engine", "engine.js")
-  );
+  return loadSharedRulesComplianceEnforcerModule();
 }
 
 export async function loadSharedGovernanceRuntimeModule() {

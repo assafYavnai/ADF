@@ -5,9 +5,11 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { RoleBuilderRequest } from "../schemas/request.js";
 import {
+  assertSessionRegistryMatchesRequest,
   buildInitialSessionRegistry,
   buildLeaderSlotKey,
   buildReviewerSlotKey,
+  extractActiveSessionHandles,
   updateSessionRegistrySlot,
   writeSessionRegistry,
 } from "./session-registry.js";
@@ -44,6 +46,7 @@ test("buildInitialSessionRegistry seeds loaded session handles by slot", () => {
     initialHandles: {
       [buildLeaderSlotKey(request.board_roster.leader)]: {
         provider: "codex",
+        model: "gpt-5.4",
         session_id: "019d401d-3bd7-7dd0-89c9-40b49398b1fb",
         source: "provider_returned",
       },
@@ -78,6 +81,7 @@ test("updateSessionRegistrySlot records fresh or resumed session metadata", asyn
       session: {
         handle: {
           provider: "claude",
+          model: "sonnet",
           session_id: "53c67ac7-ccd7-43b5-9f92-525ad705f018",
           source: "caller_assigned",
         },
@@ -101,4 +105,49 @@ test("updateSessionRegistrySlot records fresh or resumed session metadata", asyn
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
+});
+
+test("buildInitialSessionRegistry ignores mismatched provider handles and keeps only active compatible handles", () => {
+  const request = createRequest();
+  const registry = buildInitialSessionRegistry({
+    request,
+    startedAtIso: "2026-03-30T18:00:00.000Z",
+    initialHandles: {
+      [buildLeaderSlotKey(request.board_roster.leader)]: {
+        provider: "claude",
+        model: "sonnet",
+        session_id: "wrong-provider",
+        source: "manual_recovery",
+      },
+      [buildReviewerSlotKey(0, request.board_roster.reviewers[0]!)]: {
+        provider: "claude",
+        model: "wrong-model",
+        session_id: "wrong-model",
+        source: "provider_returned",
+      },
+    },
+  });
+
+  assert.equal(registry.slots["leader-codex"]?.last_status, "ignored_provider_mismatch");
+  assert.equal(registry.slots["leader-codex"]?.handle, null);
+  assert.equal(registry.slots["reviewer-0-claude"]?.last_status, "ignored_model_mismatch");
+  assert.equal(registry.slots["reviewer-0-claude"]?.handle, null);
+  assert.deepEqual(extractActiveSessionHandles(registry), {});
+});
+
+test("assertSessionRegistryMatchesRequest rejects mismatched request identity", () => {
+  const request = createRequest();
+  const registry = buildInitialSessionRegistry({
+    request,
+    startedAtIso: "2026-03-30T18:00:00.000Z",
+  });
+
+  assert.throws(
+    () =>
+      assertSessionRegistryMatchesRequest(registry, {
+        ...request,
+        job_id: "different-job-id",
+      }),
+    /request_job_id mismatch/
+  );
 });

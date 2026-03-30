@@ -13,6 +13,7 @@ export type InvocationSessionSource = z.infer<typeof InvocationSessionSource>;
 
 export const InvocationSessionHandle = z.object({
   provider: LLMProvider,
+  model: z.string().optional(),
   session_id: z.string(),
   source: InvocationSessionSource,
 });

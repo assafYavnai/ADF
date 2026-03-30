@@ -28,9 +28,10 @@ export function parseClaudePrintJson(raw: string): {
   };
 }
 
-export function createClaudeFreshSessionHandle(): InvocationSessionHandle {
+export function createClaudeFreshSessionHandle(model: string): InvocationSessionHandle {
   return {
     provider: "claude",
+    model,
     session_id: randomUUID(),
     source: "caller_assigned",
   };

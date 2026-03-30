@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "extends": "shared/learning-engine/review-contract.json",
+  "extends": "shared/self-learning-engine/review-contract.json",
   "component": "agent-role-builder",
   "artifact_domain": "design",
   "artifact_kind": "role-definition",
@@ -38,9 +38,9 @@
     "Do not weaken terminal-state semantics to force convergence."
   ],
   "schema_refs": {
-    "shared_review_contract": "shared/learning-engine/review-contract.json",
-    "compliance_map": "shared/learning-engine/compliance-map.ts#ComplianceMap",
-    "fix_items_map": "shared/learning-engine/fix-items-map.ts#FixItemsMap"
+    "shared_review_contract": "shared/self-learning-engine/review-contract.json",
+    "compliance_map": "shared/self-learning-engine/compliance-map.ts#ComplianceMap",
+    "fix_items_map": "shared/self-learning-engine/fix-items-map.ts#FixItemsMap"
   },
   "budget_hints": {
     "prefer_changed_section_focus_after_round0": true,

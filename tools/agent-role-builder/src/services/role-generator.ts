@@ -1,7 +1,7 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { RoleBuilderRequest } from "../schemas/request.js";
-import { loadSharedComponentRepairEngineModule } from "./shared-module-loader.js";
+import { loadSharedRulesComplianceEnforcerModule } from "./shared-module-loader.js";
 
 const REQUIRED_XML_TAGS = [
   "role",
@@ -181,13 +181,13 @@ async function runRepairPass(
   mode: "initial_rule_sweep" | "revision"
 ): Promise<RevisionResult> {
   const { invoke } = await import("../shared-imports.js");
-  const { runComponentRepair } = await loadSharedComponentRepairEngineModule();
+  const { runRulesComplianceEnforcer } = await loadSharedRulesComplianceEnforcerModule();
 
   const bundleDir = feedback.bundleRoot
-    ?? join("tools", "agent-role-builder", "runs", request.job_id, "runtime", "component-repair-engine", `${mode}-r${feedback.round}`);
+    ?? join("tools", "agent-role-builder", "runs", request.job_id, "runtime", "rules-compliance-enforcer", `${mode}-r${feedback.round}`);
   await mkdir(bundleDir, { recursive: true });
 
-  const repairResult = await runComponentRepair(
+  const repairResult = await runRulesComplianceEnforcer(
     {
       component: "agent-role-builder",
       mode,

@@ -175,9 +175,12 @@ Bootstrap order:
 **Review rounds follow a structured protocol:**
 - Implementer produces delta compliance map (full sweep on first and last round only)
 - Implementer produces fix items map with accept/reject freedom (rounds 2+)
-- Reviewer produces structured verdict (approved/conditional/reject) with conceptual groups, severity, redesign guidance
+- Reviewer produces structured verdicts where:
+  - `approved` means no required fixes remain
+  - `conditional` means acceptable now with only non-blocking recommendations or deferred minor risks
+  - `reject` means at least one required fix remains
 - Reviewer responds to implementer rejections (accept_fix/reject_fix/accept_rejection/reject_rejection)
-- Learning engine extracts rules between review and fix — updates the component's rulebook.json
+- Self-learning engine extracts rules between review and fix — updates the component's rulebook.json
 
 **Arbitration is minor-only.** No arbitration on blocking/major items. Result is `frozen_with_conditions`, invoker decides acceptance.
 
@@ -185,9 +188,11 @@ Bootstrap order:
 
 See [review-process-architecture.md](review-process-architecture.md) for full specification.
 
-### Learning Engine Rule
+### Self-Learning Engine Rule
 
-**The learning engine (`shared/learning-engine/`) runs between every review and fix cycle.** It extracts generalizable rules from review feedback and updates the specific component's `rulebook.json`. Same generic engine, different domain prompt per component (loaded from `review-prompt.json`).
+**The self-learning engine (`shared/self-learning-engine/`) runs between every review and fix cycle.** It extracts generalizable rules from review feedback and updates the specific component's `rulebook.json`. Same generic engine, different domain prompt per component (loaded from `review-prompt.json`).
+
+**The rules-compliance-enforcer (`shared/rules-compliance-enforcer/`) is the governed revision engine.** It performs the rule walk, applies review-driven revisions, and emits compliance/fix evidence. A future `self-repair-engine` is the separate runtime incident-healing surface and should not be conflated with the revision engine.
 
 ### Three-Tier Post-Mortem Rule
 

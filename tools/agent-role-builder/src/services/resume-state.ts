@@ -1,6 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { z } from "zod";
+import { parseJsonTextWithBomSupport } from "../../../../shared/dist/json-ingress.js";
 import {
   InvocationSessionHandle as InvocationSessionHandleSchema,
   type InvocationSessionHandle,
@@ -34,7 +35,9 @@ export async function loadResumeState(resumePackagePath: string): Promise<{
 }> {
   const resolvedResumePath = resolveFromRepoRoot(resumePackagePath);
   const rawResume = await readFile(resolvedResumePath, "utf-8");
-  const resumePackage = ResumePackageSchema.parse(JSON.parse(rawResume));
+  const resumePackage = ResumePackageSchema.parse(
+    parseJsonTextWithBomSupport<unknown>(rawResume, `resume package at ${resolvedResumePath}`).value
+  );
   const resolvedMarkdownPath = resolveFromRepoRoot(resumePackage.latest_markdown_path);
   const markdown = await readFile(resolvedMarkdownPath, "utf-8");
   return {
@@ -78,10 +81,19 @@ export function buildNextResumePackage(params: {
   };
 }
 
-export function assertResumePackageMatchesRole(resumePackage: ResumePackage, roleSlug: string): void {
+export function assertResumePackageMatchesRole(
+  resumePackage: ResumePackage,
+  roleSlug: string,
+  requestJobId: string
+): void {
   if (resumePackage.role_slug !== roleSlug) {
     throw new Error(
       `Resume package role_slug mismatch: expected "${roleSlug}", got "${resumePackage.role_slug}"`
+    );
+  }
+  if (resumePackage.request_job_id !== requestJobId) {
+    throw new Error(
+      `Resume package request_job_id mismatch: expected "${requestJobId}", got "${resumePackage.request_job_id}"`
     );
   }
 }

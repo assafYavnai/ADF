@@ -68,7 +68,7 @@ export function buildReviewerPrompt(input: ReviewPromptInput): string {
       ).join("\n")}`
     : "";
 
-  return `You are a governed reviewer for ${input.componentName}.\nReview mode: ${input.reviewMode}\nArtifact: ${input.artifactLabel}\n\nRESPOND WITH JSON ONLY:\n{\n  "verdict": ${verdicts.map((value) => `"${value}"`).join(" | ")},\n  "conceptual_groups": [{ "id": "group-1", "summary": "...", "severity": ${severities.map((value) => `"${value}"`).join("|")},\n    "findings": [{ "id": "f1", "description": "...", "source_section": "..." }], "redesign_guidance": "..." }],\n  "fix_decisions": [{ "finding_id": "preferred-if-known", "finding_group_id": "group-fallback", "decision": ${fixDecisionValues.map((value) => `"${value}"`).join(" | ")}, "reason": "..." }],\n  "residual_risks": ["..."],\n  "strengths": ["..."]\n}\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n\nContract summary:\n${input.contractSummary}${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${priorContext}\n\nJSON response:`;
+  return `You are a governed reviewer for ${input.componentName}.\nReview mode: ${input.reviewMode}\nArtifact: ${input.artifactLabel}\n\nRESPOND WITH JSON ONLY:\n{\n  "verdict": ${verdicts.map((value) => `"${value}"`).join(" | ")},\n  "conceptual_groups": [{ "id": "group-1", "summary": "...", "severity": ${severities.map((value) => `"${value}"`).join("|")},\n    "findings": [{ "id": "f1", "description": "...", "source_section": "..." }], "redesign_guidance": "..." }],\n  "fix_decisions": [{ "finding_id": "preferred-if-known", "finding_group_id": "group-fallback", "decision": ${fixDecisionValues.map((value) => `"${value}"`).join(" | ")}, "reason": "..." }],\n  "residual_risks": ["..."],\n  "strengths": ["..."]\n}\n\nVERDICT RULES:\n- approved = no required fixes remain\n- reject = at least one required fix remains, even if minor\n- conditional = artifact is acceptable now; only non-blocking recommendations or deferred minor risks remain\n- conditional must not contain blocking or major conceptual groups\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n\nContract summary:\n${input.contractSummary}${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${priorContext}\n\nJSON response:`;
 }
 
 export function buildLeaderPrompt(input: ReviewPromptInput): string {
@@ -77,7 +77,7 @@ export function buildLeaderPrompt(input: ReviewPromptInput): string {
     : "";
   const allowedStatuses = requireLeaderContract(input.config).allowed_statuses;
 
-  return `You are the leader synthesizer for ${input.componentName}.\nReview mode: ${input.reviewMode}\n\nRESPOND WITH JSON ONLY:\n{ "status": ${allowedStatuses.map((value) => `"${value}"`).join("|")}, "rationale": "...",\n  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],\n  "arbitration_used": false, "arbitration_rationale": null }\n\nRULES: frozen = all approved/conditional and no remaining material issues. frozen_with_conditions = only deferred minor/suggestion items remain after arbitration. pushback = repair work still required. blocked = unrecoverable execution failure. resume_required = budget exhausted with material issues still deferred.\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${reviewerContext}\n\nJSON response:`;
+  return `You are the leader synthesizer for ${input.componentName}.\nReview mode: ${input.reviewMode}\n\nRESPOND WITH JSON ONLY:\n{ "status": ${allowedStatuses.map((value) => `"${value}"`).join("|")}, "rationale": "...",\n  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],\n  "arbitration_used": false, "arbitration_rationale": null }\n\nRULES: frozen = all reviewers are approved and no remaining material issues exist. frozen_with_conditions = no reviewer is rejecting and only deferred minor/suggestion items remain. pushback = repair work still required. blocked = unrecoverable execution failure. resume_required = budget exhausted with material issues still deferred. If a previously rejecting reviewer becomes approved or conditional after a split verdict, freeze must wait for one final regression sanity review from the previously approving reviewer.\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${reviewerContext}\n\nJSON response:`;
 }
 
 export function preValidateResponse(raw: string): string | null {
@@ -167,6 +167,12 @@ export function parseReviewerOutput(raw: string, options: ParseReviewerOutputOpt
         throw new Error("Reviewer finding contains invalid field types.");
       }
     }
+  }
+  if (
+    verdict === "conditional"
+    && conceptualGroups.some((group: { severity: string }) => group.severity === "blocking" || group.severity === "major")
+  ) {
+    throw new Error("Reviewer conditional verdict cannot contain blocking or major conceptual groups.");
   }
   if (!Array.isArray(parsed.residual_risks) || parsed.residual_risks.some((entry) => typeof entry !== "string")) {
     throw new Error("Reviewer output residual_risks must be an array of strings.");

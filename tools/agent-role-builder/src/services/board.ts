@@ -10,7 +10,7 @@ import { buildAuditEnvelope, pathExists, uniqueStringsCaseSensitive } from "./au
 import { buildLeaderSlotKey, updateSessionRegistrySlot } from "./session-registry.js";
 import { mkdir, open, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { loadSharedGovernanceRuntimeModule, loadSharedLearningEngineModule, loadSharedReviewEngineModule } from "./shared-module-loader.js";
+import { loadSharedGovernanceRuntimeModule, loadSharedReviewEngineModule, loadSharedSelfLearningEngineModule } from "./shared-module-loader.js";
 
 // --- Bug Report (Error Escalation Pattern) ---
 
@@ -140,6 +140,8 @@ interface ReviewerSlot {
   participant: BoardParticipant;
 }
 
+type ReviewerSlotStatus = "approved" | "conditional" | "reject" | "error" | "pending";
+
 export interface BoardRoundResult {
   round: number;
   reviewMode: "full" | "delta" | "regression_sanity";
@@ -220,11 +222,12 @@ export async function executeBoard(
     participant,
   }));
 
-  const reviewerStatus = new Map<string, "approved" | "conditional" | "reject" | "error" | "pending">();
+  const reviewerStatus = new Map<string, ReviewerSlotStatus>();
   for (const reviewer of reviewerSlots) {
     reviewerStatus.set(reviewer.slotKey, initialReviewerStatus[reviewer.slotKey] ?? "pending");
   }
   let consecutiveDisputeRounds = 0;
+  let pendingFinalSanityReviewerKeys: string[] = [];
 
   // Load rulebook once
   let currentRulebook: Array<{ id: string; rule: string; applies_to: string[]; do: string; dont: string; source: string; version: number }> = [];
@@ -288,7 +291,7 @@ export async function executeBoard(
       currentRulebook,
       currentSelfCheckIssues,
       governanceContext,
-      ctx.runDir ? join(ctx.runDir, "runtime", "component-repair-engine", "initial-rule-sweep") : undefined
+      ctx.runDir ? join(ctx.runDir, "runtime", "rules-compliance-enforcer", "initial-rule-sweep") : undefined
     );
     currentMarkdown = initialSweep.markdown;
     pendingComplianceMap = initialSweep.complianceMap as ComplianceEntry[];
@@ -315,10 +318,10 @@ export async function executeBoard(
     await writeBugReport({
       what_failed: "Initial rulebook sweep before first review",
       error_message: errorMsg,
-      where: "Pre-round-0 component-repair-engine pass",
+      where: "Pre-round-0 rules-compliance-enforcer pass",
       context: { markdown_length: currentMarkdown.length, rule_count: currentRulebook.length },
       input_that_caused_failure: currentMarkdown.slice(0, 3000),
-      expected_format: "Updated markdown plus compliance_map from the component-repair-engine",
+      expected_format: "Updated markdown plus compliance_map from the rules-compliance-enforcer",
       component: "tools/agent-role-builder/board/initial-rule-sweep",
       provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
       timestamp: new Date().toISOString(),
@@ -388,12 +391,19 @@ export async function executeBoard(
     }
 
     // --- Step 3: Review ---
+    const priorReviewerStatus = new Map(reviewerStatus);
     const reviewersToRun = reviewerSlots.filter((reviewer) => {
       return reviewerStatus.get(reviewer.slotKey) !== "approved"
         && reviewerStatus.get(reviewer.slotKey) !== "conditional";
     });
-    const isSanityCheck = reviewersToRun.length === 0;
-    const activeReviewers = isSanityCheck ? reviewerSlots : reviewersToRun;
+    const isForcedFinalSanityCheck = pendingFinalSanityReviewerKeys.length > 0;
+    const isSanityCheck = isForcedFinalSanityCheck || reviewersToRun.length === 0;
+    const activeReviewers = isForcedFinalSanityCheck
+      ? reviewerSlots.filter((reviewer) => pendingFinalSanityReviewerKeys.includes(reviewer.slotKey))
+      : isSanityCheck
+        ? reviewerSlots
+        : reviewersToRun;
+    pendingFinalSanityReviewerKeys = [];
 
     const roundResult = await executeRound(
         request, currentMarkdown, draftContract, currentSelfCheckIssues,
@@ -408,14 +418,24 @@ export async function executeBoard(
     // Update per-reviewer status so reviewer-local parse/runtime failures stay in the reviewer error lane.
     for (const [pid, verdict] of roundResult.reviewerVerdicts) {
       const key = pid.replace(/-r\d+$/, "");
-      if (isParseErrorVerdict(verdict)) {
-        reviewerStatus.set(key, "error");
-      } else if (verdict.verdict === "approved") {
-        reviewerStatus.set(key, "approved");
-      } else if (verdict.verdict === "conditional") {
-        reviewerStatus.set(key, "conditional");
-      } else {
-        reviewerStatus.set(key, "reject");
+      const statusResolution = deriveReviewerSlotStatus(verdict);
+      reviewerStatus.set(key, statusResolution.status);
+      if (statusResolution.overrideReason) {
+        await writeBugReport({
+          what_failed: "Reviewer emitted invalid conditional verdict",
+          error_message: statusResolution.overrideReason,
+          where: `Round ${round}, reviewer verdict normalization`,
+          context: {
+            round,
+            participant_id: pid,
+            original_verdict: verdict.verdict,
+          },
+          input_that_caused_failure: JSON.stringify(verdict, null, 2).slice(0, 3000),
+          expected_format: "Conditional verdicts may contain only non-blocking minor or suggestion findings.",
+          component: "tools/agent-role-builder/board/reviewer-verdict-normalization",
+          provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model, participant_id: pid },
+          timestamp: new Date().toISOString(),
+        }, ctx);
       }
     }
 
@@ -439,34 +459,40 @@ export async function executeBoard(
     });
     let effectiveLeaderVerdict = legalityDecision.effectiveVerdict;
     let leaderVerdictOverrideReason: string | null = legalityDecision.overrideReason;
+    const finalSanityReviewerKeys = determineFinalSanityReviewerKeys({
+      wasSanityCheck: isSanityCheck,
+      previousReviewerStatus: Object.fromEntries(priorReviewerStatus),
+      nextReviewerStatus: Object.fromEntries(reviewerStatus),
+    });
+    const finalSanityRequired = finalSanityReviewerKeys.length > 0;
     if (leaderVerdictOverrideReason) {
-      if (
-        roundResult.leaderVerdict === "frozen"
-        || roundResult.leaderVerdict === "frozen_with_conditions"
-      ) {
-        await writeBugReport({
-          what_failed: `Leader emitted invalid ${roundResult.leaderVerdict} verdict`,
-          error_message: leaderVerdictOverrideReason,
-          where: `Round ${round}, leader terminal-state validation`,
-          context: {
-            round,
-            material_repair_items: materialRepairChecklist.map((item) => item.groupId),
-            unresolved: roundResult.unresolved,
-            effective_leader_verdict: effectiveLeaderVerdict,
-          },
-          input_that_caused_failure: JSON.stringify({
-            leader_verdict: roundResult.leaderVerdict,
-            leader_rationale: roundResult.leaderRationale,
-            material_repair_items: materialRepairChecklist,
-            any_repair_items: repairChecklist.map((item) => item.groupId),
-          }, null, 2).slice(0, 3000),
-          expected_format: "A leader verdict that matches the live repair state after review, learning, and self-check evaluation.",
-          component: "tools/agent-role-builder/board/leader-contract-validation",
-          provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
-          timestamp: new Date().toISOString(),
-        }, ctx);
-      }
+      await writeBugReport({
+        what_failed: `Leader emitted invalid ${roundResult.leaderVerdict} verdict`,
+        error_message: leaderVerdictOverrideReason,
+        where: `Round ${round}, leader terminal-state validation`,
+        context: {
+          round,
+          material_repair_items: materialRepairChecklist.map((item) => item.groupId),
+          unresolved: roundResult.unresolved,
+          effective_leader_verdict: effectiveLeaderVerdict,
+        },
+        input_that_caused_failure: JSON.stringify({
+          leader_verdict: roundResult.leaderVerdict,
+          leader_rationale: roundResult.leaderRationale,
+          material_repair_items: materialRepairChecklist,
+          any_repair_items: repairChecklist.map((item) => item.groupId),
+        }, null, 2).slice(0, 3000),
+        expected_format: "A leader verdict that matches the live repair state after review, learning, self-check evaluation, and final sanity requirements.",
+        component: "tools/agent-role-builder/board/leader-contract-validation",
+        provenance: { provider: request.board_roster.leader.provider, model: request.board_roster.leader.model },
+        timestamp: new Date().toISOString(),
+      }, ctx);
       roundResult.leaderRationale = `${roundResult.leaderRationale}\nGovernance override: ${leaderVerdictOverrideReason}`;
+    }
+    if (finalSanityRequired) {
+      const finalSanityReason = "Freeze deferred pending one final regression sanity review from the previously approving reviewer after split-verdict convergence.";
+      roundResult.leaderRationale = `${roundResult.leaderRationale}\n${finalSanityReason}`;
+      pendingFinalSanityReviewerKeys = finalSanityReviewerKeys;
     }
     const canRevise = !finalRound
       && effectiveLeaderVerdict !== "blocked"
@@ -490,7 +516,7 @@ export async function executeBoard(
     // --- Step 4: Learning engine (always) + revision (if not final and unresolved) ---
     {
       try {
-        const { extractRules } = await loadSharedLearningEngineModule();
+        const { extractRules } = await loadSharedSelfLearningEngineModule();
         let learningOutput = { new_rules: [] as unknown[], existing_rules_covering: [] as unknown[], no_rule_needed: [] as unknown[] };
         if (reviewChecklist.length > 0) {
           learningOutput = await extractRules(
@@ -545,7 +571,9 @@ export async function executeBoard(
                   : "no repair work")
             : undefined,
           summary: !canRevise
-            ? (leaderVerdictOverrideReason
+            ? (finalSanityRequired
+                ? "No repair pass was executed after this round because a final regression sanity review is required before freeze."
+                : leaderVerdictOverrideReason
                 ? `No repair pass was executed after this round. Governance override applied: ${leaderVerdictOverrideReason}`
                 : "No repair pass was executed after this round.")
             : "Repair pass executed.",
@@ -565,7 +593,7 @@ export async function executeBoard(
               newRuleIds,
               selfCheckIssues: currentSelfCheckIssues,
               governanceContext,
-              bundleRoot: ctx.runDir ? join(ctx.runDir, "runtime", "component-repair-engine", `revision-r${round}`) : undefined,
+                bundleRoot: ctx.runDir ? join(ctx.runDir, "runtime", "rules-compliance-enforcer", `revision-r${round}`) : undefined,
             }
           );
           currentMarkdown = revisionResult.markdown;
@@ -601,7 +629,7 @@ export async function executeBoard(
                 newRuleIds,
                 selfCheckIssues: currentSelfCheckIssues,
                 governanceContext,
-                bundleRoot: ctx.runDir ? join(ctx.runDir, "runtime", "component-repair-engine", `final-ultimatum-r${round}`) : undefined,
+                bundleRoot: ctx.runDir ? join(ctx.runDir, "runtime", "rules-compliance-enforcer", `final-ultimatum-r${round}`) : undefined,
               }
             );
             currentMarkdown = revisionResult.markdown;
@@ -696,7 +724,16 @@ export async function executeBoard(
         finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
-    if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen_with_conditions") {
+    if (finalRound && finalSanityRequired) {
+      await writeRunPostmortem(request, rounds, ctx, "resume_required");
+      return { status: "resume_required", rounds, allParticipants,
+        statusReason: "Budget exhausted before the mandatory final regression sanity review could complete after split-verdict convergence.",
+        finalMarkdown: currentMarkdown, finalSelfCheckIssues: currentSelfCheckIssues,
+        finalReviewerStatus: Object.fromEntries(reviewerStatus),
+        finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
+    }
+
+    if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen_with_conditions" && !finalSanityRequired) {
       await writeRunPostmortem(request, rounds, ctx, "frozen_with_conditions");
       return { status: "frozen_with_conditions", rounds, allParticipants,
         statusReason: roundResult.leaderRationale,
@@ -705,7 +742,7 @@ export async function executeBoard(
         finalSessionHandles: Object.fromEntries(ctx.sessionHandles) };
     }
 
-    if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen") {
+    if (!hasMaterialRepairWork && effectiveLeaderVerdict === "frozen" && !finalSanityRequired) {
       await writeRunPostmortem(request, rounds, ctx, "frozen");
       return { status: "frozen", rounds, allParticipants,
         statusReason: "All reviewers approved and no remaining repair work was found after learning and rule checks.",
@@ -845,7 +882,7 @@ async function writeRunPostmortem(
     schema_version: "1.0",
     component: "agent-role-builder",
     request_job_id: request.job_id,
-    questions_ref: "shared/learning-engine/postmortem-questions.json",
+    questions_ref: "shared/self-learning-engine/postmortem-questions.json",
     updated_at: new Date().toISOString(),
     terminal_status: terminalStatus ?? null,
     rounds_completed: rounds.length,
@@ -1161,7 +1198,6 @@ async function executeParticipant(
         : undefined,
     });
     if (participantKey && ctx?.sessionRegistryPath && result.session) {
-      ctx.sessionHandles.set(participantKey, result.session.handle);
       await updateSessionRegistrySlot({
         sessionRegistryPath: ctx.sessionRegistryPath,
         slotKey: participantKey,
@@ -1169,6 +1205,7 @@ async function executeParticipant(
         invocationId: result.provenance.invocation_id,
         session: result.session,
       });
+      ctx.sessionHandles.set(participantKey, result.session.handle);
     }
     const latency_ms = Date.now() - start;
     emit({ provenance: result.provenance, category: "tool",
@@ -1475,6 +1512,64 @@ function createNullBoardContext(): BoardContext {
     sessionHandles: new Map(),
     leaderSlotKey: "leader-system",
   };
+}
+
+export function deriveReviewerSlotStatus(verdict: ReviewerVerdict): {
+  status: ReviewerSlotStatus;
+  overrideReason: string | null;
+} {
+  if (isParseErrorVerdict(verdict)) {
+    return {
+      status: "error",
+      overrideReason: null,
+    };
+  }
+  if (verdict.verdict === "approved") {
+    return {
+      status: "approved",
+      overrideReason: null,
+    };
+  }
+  if (verdict.verdict === "conditional") {
+    const hasMaterialFinding = verdict.conceptual_groups.some((group: { id: string; severity: string }) =>
+      !isParseErrorGroup(group) && (group.severity === "blocking" || group.severity === "major")
+    );
+    if (hasMaterialFinding) {
+      return {
+        status: "reject",
+        overrideReason: "Conditional verdicts may contain only non-blocking minor or suggestion findings.",
+      };
+    }
+    return {
+      status: "conditional",
+      overrideReason: null,
+    };
+  }
+  return {
+    status: "reject",
+    overrideReason: null,
+  };
+}
+
+export function determineFinalSanityReviewerKeys(params: {
+  wasSanityCheck: boolean;
+  previousReviewerStatus: Record<string, ReviewerSlotStatus>;
+  nextReviewerStatus: Record<string, ReviewerSlotStatus>;
+}): string[] {
+  if (params.wasSanityCheck) {
+    return [];
+  }
+
+  const previouslyApprovingReviewerKeys = Object.entries(params.previousReviewerStatus)
+    .filter(([, status]) => status === "approved" || status === "conditional")
+    .map(([slotKey]) => slotKey);
+  const hadRejectingReviewer = Object.values(params.previousReviewerStatus).some((status) => status === "reject");
+  const allReviewersNowAccepted = Object.values(params.nextReviewerStatus).length > 0
+    && Object.values(params.nextReviewerStatus).every((status) => status === "approved" || status === "conditional");
+
+  return hadRejectingReviewer && allReviewersNowAccepted
+    ? previouslyApprovingReviewerKeys
+    : [];
 }
 
 function countRoundSeverities(reviewerVerdicts: Map<string, ReviewerVerdict>) {

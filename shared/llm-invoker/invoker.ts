@@ -125,7 +125,7 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
     await writeFile(promptFile, params.prompt, "utf-8");
 
     const sessionRequest = params.session;
-    const sessionHandle = sessionRequest?.handle?.provider === "codex" ? sessionRequest.handle : null;
+    const sessionHandle = selectCompatibleSessionHandle(sessionRequest?.handle, "codex", params.model);
     let codexResult: CLIResult | null = null;
 
     if (sessionRequest?.persist && sessionHandle) {
@@ -161,7 +161,7 @@ async function callClaude(params: InvocationParams): Promise<CLIResult> {
   }
 
   const sessionRequest = params.session;
-  const sessionHandle = sessionRequest?.handle?.provider === "claude" ? sessionRequest.handle : null;
+  const sessionHandle = selectCompatibleSessionHandle(sessionRequest?.handle, "claude", params.model);
 
   if (sessionRequest?.persist && sessionHandle) {
     try {
@@ -254,6 +254,7 @@ async function runCodexWithSession(
     session: buildInvocationSessionResult(
       {
         provider: "codex",
+        model: params.model,
         session_id: threadId,
         source: "provider_returned",
       },
@@ -316,7 +317,7 @@ async function runClaudeWithSession(
   mode: "fresh" | "resumed" | "replaced",
   handle?: InvocationSessionHandle
 ): Promise<CLIResult> {
-  const effectiveHandle = handle ?? createClaudeFreshSessionHandle();
+  const effectiveHandle = handle ?? createClaudeFreshSessionHandle(params.model);
   const args = [...baseArgs, "--output-format", "json"];
   if (handle) {
     args.push("--resume", handle.session_id);
@@ -343,10 +344,28 @@ async function runClaudeWithSession(
     session: buildInvocationSessionResult(
       {
         provider: "claude",
+        model: params.model,
         session_id: parsed.sessionId,
         source: handle ? handle.source : effectiveHandle.source,
       },
       mode
     ),
   };
+}
+
+function selectCompatibleSessionHandle(
+  handle: InvocationSessionHandle | null | undefined,
+  provider: "codex" | "claude" | "gemini",
+  model: string
+): InvocationSessionHandle | null {
+  if (!handle) {
+    return null;
+  }
+  if (handle.provider !== provider) {
+    throw new Error(`Invocation session handle provider mismatch: expected ${provider}, got ${handle.provider}`);
+  }
+  if (handle.model && handle.model !== model) {
+    throw new Error(`Invocation session handle model mismatch: expected ${model}, got ${handle.model}`);
+  }
+  return handle;
 }

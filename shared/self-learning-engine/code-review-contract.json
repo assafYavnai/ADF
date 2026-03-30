@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "extends": "shared/self-learning-engine/review-contract.json",
+  "contract_name": "adf-code-review-contract-draft",
+  "domain": "code",
+  "purpose": "Draft boxed review contract for source-code review using the shared reviewer engine.",
+  "artifact_kinds": [
+    "typescript",
+    "javascript",
+    "json",
+    "schema",
+    "prompt-runtime-code"
+  ],
+  "focus_areas": [
+    "Correctness and behavioral regressions",
+    "API and schema contract alignment",
+    "Edge cases and terminal-state handling",
+    "Test coverage and verification gaps",
+    "Security and sandbox safety",
+    "Performance and runtime efficiency",
+    "Error handling and observability",
+    "Maintainability and dead-code drift"
+  ],
+  "severity_guidance": {
+    "blocking": "Unsafe, data-loss, security, or guaranteed execution failure.",
+    "major": "Likely functional regression, broken contract, or critical missing verification.",
+    "minor": "Low-risk inconsistency, maintainability issue, or small gap.",
+    "suggestion": "Optional improvement with no current correctness impact."
+  },
+  "reviewer_required_outputs": {
+    "verdict": true,
+    "conceptual_groups": true,
+    "residual_risks": true,
+    "strengths": true,
+    "fix_decisions_when_fix_items_present": true
+  },
+  "code_specific_checks": {
+    "must_cover": [
+      "changed files",
+      "call-site impact",
+      "state transitions",
+      "error paths",
+      "test impact"
+    ],
+    "should_flag": [
+      "missing tests",
+      "stale contract definitions",
+      "unsafe shell usage",
+      "broad filesystem writes",
+      "copy drift across mirrored modules"
+    ]
+  },
+  "recommended_component_local_files": [
+    "review-prompt.json",
+    "review-contract.json",
+    "rulebook.json",
+    "test-plan.json"
+  ]
+}

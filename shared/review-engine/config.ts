@@ -14,7 +14,7 @@ const ALLOWED_REVIEW_MODES = new Set(["full", "delta", "regression_sanity"]);
 
 export async function loadReviewRuntimeConfig(componentRoot: string): Promise<ReviewRuntimeConfig> {
   return loadReviewRuntimeConfigFromPaths({
-    sharedContractPath: join("shared", "learning-engine", "review-contract.json"),
+    sharedContractPath: join("shared", "self-learning-engine", "review-contract.json"),
     componentPromptPath: join(componentRoot, "review-prompt.json"),
     componentContractPath: join(componentRoot, "review-contract.json"),
   });
