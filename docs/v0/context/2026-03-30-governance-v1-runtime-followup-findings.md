@@ -392,3 +392,36 @@ Focused validation:
    - latest-state preservation in `run-telemetry.json`
 2. package compile passes in [tools/agent-role-builder](C:/ADF/tools/agent-role-builder)
 3. shared package build passes in [shared](C:/ADF/shared)
+
+## V2B Bounded Validation Rerun
+
+Status: executed on the newer baseline; still not ready for terminal validation sign-off
+
+Run artifact root:
+
+- [agent-role-builder-v2b-bounded-002](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002)
+
+What the rerun proved:
+
+1. the new append-only telemetry ledger works in the live path:
+   - [run-history.jsonl](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/runtime/run-history.jsonl)
+2. the run still does not reach truthful terminal closeout under a bounded outer timeout
+
+What changed compared with the earlier bounded run:
+
+1. the rerun stalled earlier than `v2b-bounded-001`
+2. it never reached the first round-start checkpoint
+3. [run-telemetry.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/runtime/run-telemetry.json) stopped at `governance-ready`
+4. no [result.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/result.json), [run-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/run-postmortem.json), or [cycle-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/cycle-postmortem.json) was produced
+
+New runtime finding from the rerun:
+
+1. the outer timeout did not clean up the spawned validation subprocess chain automatically; the matching processes had to be terminated manually after the timeout
+
+Classification:
+
+- useful bounded rerun
+- still not a truthful end-to-end validation pass
+- next work should focus on:
+  1. isolating the hang between `governance-ready` and the first round-start checkpoint
+  2. making bounded-run timeout/teardown propagate cleanly to spawned subprocesses

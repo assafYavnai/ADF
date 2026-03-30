@@ -239,6 +239,22 @@ Classification:
 - `V2B` did not yet prove mature terminal behavior under bounded execution
 - this makes `V2C` the right next step before broader retry/expansion work
 
+Re-validation note:
+
+1. a second bounded run was executed at:
+   - [agent-role-builder-v2b-bounded-002](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002)
+2. this rerun still did not reach truthful closeout
+3. unlike `v2b-bounded-001`, it did not even reach the first round-start checkpoint:
+   - [run-telemetry.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/runtime/run-telemetry.json) stopped at `governance-ready`
+   - [run-history.jsonl](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-002/runtime/run-history.jsonl) contains only `startup` and `governance-ready`
+   - no `result.json`, `run-postmortem.json`, or `cycle-postmortem.json` was written
+4. the outer timeout also left the bounded validation subprocess chain alive and it had to be terminated manually
+
+New deferred items from this rerun:
+
+1. isolate the hang between `governance-ready` and the first round-start telemetry checkpoint
+2. make bounded-run timeout/teardown propagate cleanly to the spawned subprocess chain
+
 ### V2C Minimal Telemetry Baseline
 
 Status:
