@@ -37,6 +37,10 @@ Goal:
 
 - clear the blocking correctness and terminology issues before broader telemetry or self-heal work
 
+Status:
+
+- in progress
+
 In scope:
 
 - rename:
@@ -56,6 +60,27 @@ Acceptance:
 
 - naming is no longer architecturally misleading
 - open correctness bugs above are closed
+
+Frozen implementation slice:
+
+1. rename the active shared-engine surfaces used by the lane:
+   - `shared/component-repair-engine` -> `shared/rules-compliance-enforcer`
+   - `shared/learning-engine` -> `shared/self-learning-engine`
+2. update active lane imports, runtime artifact paths, prompts, contract refs, and current context docs to use the new names
+3. keep this rename scoped to the current lane and shared runtime sources actually used by `agent-role-builder`
+4. close the correctness gaps in the same slice:
+   - final-round legality for illegal `pushback`
+   - final sanity rerun after split-verdict convergence
+   - tighter `conditional` semantics
+   - resume-package `request_job_id` validation
+   - real handling for `resume.session_registry_path`
+   - explicit mismatch handling for session-handle/provider-model drift
+   - startup incident for duplicate-job guard
+5. keep out of scope for this slice:
+   - KPI expansion
+   - `self-repair-engine`
+   - `rules-gc`
+   - broad rollout to other tools/components
 
 ### Step 2. KPI and telemetry expansion
 
