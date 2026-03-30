@@ -197,3 +197,35 @@ Deferred beyond `V2A`:
 - provider fallback
 - resume carry-forward
 - elimination of the manual copied/shared boundary
+
+## V2B Bounded ARB Validation
+
+Status: executed as one bounded validation cycle; not yet sufficient for terminal validation sign-off
+
+Run artifact root:
+
+- [agent-role-builder-v2b-bounded-001](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001)
+
+What the run proved:
+
+1. the live path now gets past the old revision-path regression
+2. the run completed round 0, wrote `learning.json`, built the `revision-r0` repair bundle, and started round 1
+3. the bounded run therefore exercised more than startup-only or unit-only paths
+
+What the run did not prove:
+
+1. truthful terminal closeout under bounded execution
+2. stable terminal artifact production when the outer run is stopped by timeout
+
+Observed outcome:
+
+1. [run-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/run-postmortem.json) exists and captures round 0 truth
+2. no [result.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/result.json) was written
+3. no [cycle-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/cycle-postmortem.json) was written
+4. round 1 remained partial when the outer timeout hit
+
+Classification:
+
+- useful bounded validation
+- not yet a terminal validation pass
+- next step should be `V2C` minimum telemetry/closeout baseline before relying on repeated bounded runs for project memory

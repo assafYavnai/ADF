@@ -153,7 +153,7 @@ Remaining risk deferred beyond `V2A`:
 
 Status:
 
-- implementation-ready
+- executed, follow-up required
 
 Purpose:
 
@@ -201,6 +201,28 @@ Execution note:
   5. set a hard wall-clock timeout
   6. do not auto-chain into resume
   7. inspect the postmortem and artifact truth before deciding whether `V2C` or `V2D` comes next
+
+Implementation note:
+
+1. a bounded validation run was executed at:
+   - [agent-role-builder-v2b-bounded-001](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001)
+2. the run exercised:
+   - governance snapshot creation
+   - round 0 review
+   - learning output
+   - revision-r0 repair bundle
+   - partial round 1 execution
+3. the run did not reach truthful terminal closeout before the outer timeout:
+   - no `result.json`
+   - no `cycle-postmortem.json`
+4. the most useful artifact produced was:
+   - [run-postmortem.json](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-v2b-bounded-001/run-postmortem.json)
+
+Classification:
+
+- `V2B` proved the live path is functionally deeper than startup-only checks
+- `V2B` did not yet prove mature terminal behavior under bounded execution
+- this makes `V2C` the right next step before broader retry/expansion work
 
 ### V2C Minimal Telemetry Baseline
 
