@@ -380,6 +380,10 @@ Validation:
 
 ### V3A Runtime Boundary Cleanup
 
+Status:
+
+- frozen for first structural slice
+
 Purpose:
 
 - remove the structural causes of repeated regressions in the shared/runtime boundary
@@ -408,6 +412,18 @@ Sub-steps:
 Acceptance target:
 
 - canonical shared fixes cannot silently disappear in copied tool-local modules
+
+Execution note:
+
+- `V3A` does not require new CEO input for the first slice
+- the first structural slice is narrower than the full boundary-cleanup bucket:
+  1. replace the copied invoker/provenance implementation in [shared-imports.ts](C:/ADF/tools/agent-role-builder/src/shared-imports.ts) with a thin bridge to canonical shared modules
+  2. keep a tiny local telemetry-buffer shim only, because the current run-telemetry path still reads buffered events locally
+  3. keep cwd hardening, broader shared-module import redesign, and other copied surfaces out of scope for this slice
+- this slice is accepted when:
+  1. `agent-role-builder` no longer owns a duplicated LLM invoker implementation
+  2. the Codex regression guard still passes
+  3. package compile still passes
 
 ### V3B Governance And Learning Expansion
 
