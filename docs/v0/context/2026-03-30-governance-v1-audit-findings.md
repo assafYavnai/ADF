@@ -203,3 +203,74 @@ What remains is implementation hardening:
 - make round evidence canonical in summaries
 - fully close authority path boundaries
 - add invariant coverage so these regressions stop recurring
+
+## Frozen V1 Fix Round
+
+The next implementation pass for V1 is intentionally narrow.
+
+In scope now:
+
+1. universal startup incident coverage for every pre-run blocked failure
+2. governed rulebook shape validation during governance snapshot creation
+3. run-postmortem round snapshots must use round-local artifact refs for `artifact_markdown` and `self_check`
+4. relative traversal-style authority paths must fail closed
+5. invariant tests for the above
+
+Explicitly out of this V1 fix round:
+
+- ad-hoc/code-review lane rollout
+- generalized KPI or observability expansion
+- provider-fallback fixer orchestration
+- resume-state carry-forward
+- broader workspace/module-boundary redesign
+
+## V2 Candidate Push
+
+These items are real, but they should be treated as V2 or later unless a new decision changes scope.
+
+### 1. Fixer/provider-fallback contract
+
+Input source:
+
+- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
+
+Candidate scope:
+
+- define a concrete fixer contract
+- allow provider fallback when a provider-specific failure is recoverable
+- define fix verification before application
+
+### 2. Resume-state carry-forward
+
+Input source:
+
+- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
+
+Candidate scope:
+
+- resume package carries prior reviewer status
+- board initializes reviewer status from resume state rather than resetting all reviewers to pending
+
+### 3. Module-boundary / manual-copy elimination
+
+Input source:
+
+- [step2-run017-postmortem.md](C:/ADF/docs/v0/context/step2-run017-postmortem.md)
+
+Candidate scope:
+
+- remove or generate manual shared-module copies like `shared-imports.ts`
+- prevent canonical/shared fixes from being lost in copied files
+
+### 4. KPI and broader logging expansion
+
+Candidate scope:
+
+- richer operational KPIs
+- broader cross-tool normalization/healing logs
+- dashboards or aggregated reporting
+
+Deferred rationale:
+
+- current need is fail-closed behavior and audit precision
+- observability breadth should not widen the V1 hardening pass
