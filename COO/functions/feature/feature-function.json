@@ -1,0 +1,700 @@
+{
+  "schema_version": "0.1-draft",
+  "artifact_type": "company_function_definition",
+  "status": "draft",
+  "function_id": "feature",
+  "name": "Feature Delivery",
+  "phase_alignment": "Phase 1",
+  "summary": "Turn vague CEO feature requests into high-quality production implementation through a governed lifecycle with durable state, explicit handoffs, review, audit, and postmortem learning.",
+  "source_refs": [
+    {
+      "type": "adf_doc",
+      "path": "C:/ADF/docs/PHASE1_MASTER_PLAN.md",
+      "reason": "Phase 1 mission, terminology, authority format, and function-definition direction."
+    },
+    {
+      "type": "adf_doc",
+      "path": "C:/ADF/docs/v0/context/phase1-feature-flow-and-executive-briefing-draft.md",
+      "reason": "Current agreed feature lifecycle, CEO/COO/CTO boundaries, alerts, audit, git policy, and effort settings."
+    },
+    {
+      "type": "adf_doc",
+      "path": "C:/ADF/docs/v0/context/requirements-gathering-onion-model.md",
+      "reason": "Human-facing requirements-gathering model."
+    },
+    {
+      "type": "adf_doc",
+      "path": "C:/ADF/docs/v0/context/phase1-definition-source-pack.md",
+      "reason": "Registered source pack and synthesis rules."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/requirements-gathering.md",
+      "reason": "Canonical requirements workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/design.md",
+      "reason": "Canonical design workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/planning.md",
+      "reason": "Canonical planning workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/setup-analysis.md",
+      "reason": "Canonical setup-analysis workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/implementation.md",
+      "reason": "Canonical implementation workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/review-cycle.md",
+      "reason": "Canonical governed review workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/postmortem.md",
+      "reason": "Canonical postmortem workflow reference."
+    },
+    {
+      "type": "projectbrain_workflow",
+      "path": "C:/ProjectBrain/ADF/WAT/Workflows/run-finalization.md",
+      "reason": "Canonical finalization workflow reference."
+    },
+    {
+      "type": "discussion_thread",
+      "id": "fe414e1e-ec03-430b-ad0c-05662a3f4fda",
+      "reason": "Requirements freeze, outer-scope object, and postmortem depth discussions."
+    },
+    {
+      "type": "discussion_thread",
+      "id": "019cdbb4-e909-7491-b583-efaa955ea5c1",
+      "reason": "Feature-mode intake and source-trace expectations."
+    },
+    {
+      "type": "discussion_thread",
+      "id": "019d2c3c-a887-7140-bce3-778e169396f4",
+      "reason": "Current ADF company model and Phase 1 decisions."
+    }
+  ],
+  "terminology": {
+    "hierarchy": [
+      "company_function",
+      "lifecycle",
+      "phase",
+      "step",
+      "lane"
+    ],
+    "cross_cutting_terms": [
+      "gate",
+      "handoff"
+    ],
+    "notes": [
+      "Review is not a taxonomy level.",
+      "Review may appear as a step, a gate, or an invoked shared mechanism.",
+      "CEO-facing language should stay at the company-function and lifecycle level by default."
+    ]
+  },
+  "authority_format": {
+    "function_definition": "JSON",
+    "lane_authority": "JSON",
+    "role_authority": "structured_tagged_markdown",
+    "rulebook": "JSON",
+    "contract": "JSON"
+  },
+  "mission": {
+    "ceo_value": [
+      "take vague high-level feature demand",
+      "shape it into governed implementation authority",
+      "deliver production-quality results",
+      "preserve durable state so the CEO does not need to remember operational details"
+    ],
+    "phase_1_goal": "Perfect governed execution of features from vague request to postmortem.",
+    "not_now": [
+      "finance-heavy company functions",
+      "marketing-heavy company functions",
+      "broad staffing systems",
+      "speculative platform abstractions outside the implementation startup mission"
+    ]
+  },
+  "ceo_coo_interface": {
+    "ceo_entry_mode": "high_level_by_default",
+    "requirements_model": "onion",
+    "executive_brief_sections": [
+      "Issues That Need Your Attention",
+      "On The Table",
+      "In Motion",
+      "What's Next"
+    ],
+    "brief_defaults": {
+      "style": "focused",
+      "max_forward_items": 2
+    },
+    "brief_learning": {
+      "enabled": true,
+      "source": "memory_engine",
+      "analysis_trigger": "every_5_briefs",
+      "status": "draft"
+    }
+  },
+  "approval_policy": {
+    "requirements_freeze": "CEO explicit approval required",
+    "ui_freeze": "CEO explicit approval required when UI is involved",
+    "local_resolution_rule": "If conflicts can be resolved locally at runtime, COO/CTO must resolve them locally.",
+    "escalation_required_when": [
+      "approved intent changes",
+      "approved scope changes",
+      "user-visible or business-visible product behavior changes",
+      "priority changes affect other approved work",
+      "an approved requirement would be deferred, waived, or weakened",
+      "the resolution would have irreversible or destructive impact",
+      "material cost or effort changes"
+    ],
+    "final_closeout": "CEO sees the feature as done only after postmortem."
+  },
+  "alert_policy": {
+    "no_silent_stall": true,
+    "blocked_or_rejected_feature": "urgent_ceo_alert",
+    "in_session_behavior": "surface_immediately",
+    "background_behavior": "surface_first_on_next_interaction",
+    "ceo_response_options": [
+      "address_now",
+      "defer"
+    ],
+    "alert_persistence": "until_explicitly_resolved_or_deferred"
+  },
+  "state_integration": {
+    "collection_model": "bottom_up",
+    "presentation_model": "top_down",
+    "canonical_shape": "folding_context_tree_json",
+    "root_buckets": [
+      "Issues",
+      "On The Table",
+      "In Motion",
+      "Completed"
+    ],
+    "coo_access_model": "pointer_to_tree_snapshot",
+    "node_api": [
+      "summary()"
+    ],
+    "notifications": {
+      "watch_registration_supported": true,
+      "examples": [
+        "notify when feature X is implemented",
+        "notify when a blocked feature changes state"
+      ]
+    }
+  },
+  "audit_and_traceability": {
+    "all_internal_decisions_logged": true,
+    "all_problems_logged": true,
+    "all_fixes_logged": true,
+    "kpis_logged_per_step": true,
+    "file_crud_requires_commit_at_step_closeout": true,
+    "mandatory_clean_handoff_between_phases": true,
+    "handover_layers": {
+      "substep_layer": [
+        "decision logging",
+        "finding and problem logging",
+        "fix logging",
+        "KPI logging",
+        "evidence capture"
+      ],
+      "handover_layer": [
+        "clean tree check",
+        "required-file commit check",
+        "run summary",
+        "next-step package assembly"
+      ]
+    },
+    "sink_contract": {
+      "raw_evidence": "** TBD **",
+      "brain_memory": "** TBD **",
+      "telemetry_metrics": "** TBD **"
+    }
+  },
+  "delivery_policy": {
+    "development_workspace_root": "dev/",
+    "development_workspace_shape": "dev/<feature-key>/",
+    "workspace_isolation_recommendation": "git_worktree",
+    "finalization_role": "safeguard",
+    "dirty_tree_behavior": {
+      "governance_pushback": true,
+      "pushback_payload": [
+        "acceptance failure reason",
+        "list of uncommitted files"
+      ],
+      "self_heal_on_rogue_component": true
+    },
+    "temp_file_policy": {
+      "delete_temp_files_by_finalization": true,
+      "keep_nonvolatile_audit_and_postmortem_files": true
+    },
+    "merge_policy": {
+      "merge_after": "postmortem",
+      "merge_engine": "merger-engine",
+      "merge_engine_status": "** TBD **",
+      "branch_deleted_after_merge": true
+    }
+  },
+  "effort_settings": {
+    "format": "JSON",
+    "precedence": [
+      "project_default",
+      "feature_override",
+      "run_or_test_override"
+    ],
+    "future_modes": [
+      "production",
+      "ad_hoc",
+      "** TBD **"
+    ]
+  },
+  "builder_strategy": {
+    "canonical_input": "function_definition_json",
+    "top_down_definition": true,
+    "bottom_up_materialization": true,
+    "function_builder_required": true,
+    "subtools": [
+      "phase-builder",
+      "step-builder",
+      "agent-role-builder",
+      "llm-tool-builder",
+      "** TBD ** gate-builder_or_template",
+      "** TBD ** handoff-builder_or_template",
+      "** TBD ** lane-builder_if_needed"
+    ],
+    "parallelization": {
+      "independent_phases_buildable_in_parallel": true,
+      "independent_steps_buildable_in_parallel": true,
+      "note": "Requires frozen shared schemas and reusable builder contracts first."
+    }
+  },
+  "shared_patterns": {
+    "shared_review_model": {
+      "enabled": true,
+      "engine": "shared_review_engine",
+      "core_cycle_same_across_major_lanes": true,
+      "lane_specific_role_and_contract": true
+    },
+    "shared_phase_closeout_model": {
+      "required": true,
+      "closeout_module_status": "** TBD **",
+      "must_enforce_clean_handoff": true
+    },
+    "requirements_onion": {
+      "enabled": true,
+      "layers": [
+        "topic",
+        "goal",
+        "expected_result",
+        "success_view",
+        "major_parts",
+        "part_clarification",
+        "experience_ui",
+        "boundaries",
+        "open_decisions",
+        "whole_onion_freeze"
+      ]
+    }
+  },
+  "lifecycle": {
+    "lifecycle_id": "feature-lifecycle-v1-draft",
+    "entrypoint": "requirements-gathering",
+    "default_phase_order": [
+      "requirements-gathering",
+      "design",
+      "planning",
+      "setup-analysis",
+      "implementation",
+      "finalization",
+      "postmortem"
+    ],
+    "phase_routing_rules": [
+      "Requirements always start from CEO-facing high-level intake.",
+      "Design is required only when the feature crosses the design complexity gate.",
+      "Simple features may route directly from requirements to planning.",
+      "Setup-analysis is required for substantial work or any work that benefits from explicit execution mapping.",
+      "Implementation may start only after approved planning and setup-analysis, unless setup-analysis is explicitly waived.",
+      "Postmortem completes the feature from the CEO point of view."
+    ],
+    "phases": [
+      {
+        "phase_id": "requirements-gathering",
+        "owner": "COO",
+        "purpose": "Turn a vague CEO request into a frozen requirement package without losing business intent.",
+        "entry_from": [
+          "CEO vague or high-level feature request"
+        ],
+        "step_sequence": [
+          "high-level-definition",
+          "feature-frame-and-scope",
+          "readiness-check",
+          "feature-scope-freeze",
+          "requirement-package-and-cto-handoff"
+        ],
+        "exception_paths": [
+          "pushback-ceo-alert"
+        ],
+        "gates": [
+          "UI Freeze Gate",
+          "Requirement Freeze Gate",
+          "Requirement Readiness Gate"
+        ],
+        "review_required": true,
+        "ui_policy": "If UI is involved, mockup alignment happens here before freeze.",
+        "outputs": [
+          "frozen requirement package",
+          "confirmed task identity",
+          "requirements closeout evidence",
+          "readiness-reviewed handoff bundle"
+        ],
+        "handoff_to": [
+          "design",
+          "planning"
+        ],
+        "ceo_checkpoint": "explicit_scope_freeze"
+      },
+      {
+        "phase_id": "design",
+        "owner": "CTO / Design Function",
+        "purpose": "Turn a frozen requirement package into an approved design contract when complexity requires design-first routing.",
+        "entry_from": [
+          "requirements-gathering"
+        ],
+        "entry_condition": "design_complexity_gate_passed",
+        "step_sequence": [
+          "confirm-routed-entry",
+          "draft-or-revise-design-contract",
+          "design-self-check",
+          "governed-design-review",
+          "redesign-if-rejected",
+          "freeze-approved-design",
+          "write-controller-receipts"
+        ],
+        "gates": [
+          "Design Entry Gate",
+          "Design Contract Gate",
+          "Design Self-Check Gate",
+          "Design Approval Gate"
+        ],
+        "review_required": true,
+        "outputs": [
+          "approved design contract",
+          "design review evidence",
+          "design guide updates",
+          "design handoff bundle"
+        ],
+        "handoff_to": [
+          "planning"
+        ],
+        "ceo_checkpoint": "only_if_approved_intent_scope_or_behavior_changes"
+      },
+      {
+        "phase_id": "planning",
+        "owner": "CTO / Planning Function",
+        "purpose": "Turn requirements or approved design into execution authority that implementers can follow without guessing.",
+        "entry_from": [
+          "requirements-gathering",
+          "design"
+        ],
+        "step_sequence": [
+          "classify-planning-source",
+          "planning-entry-gate",
+          "load-learning-and-context",
+          "discover-gaps",
+          "draft-or-revise-plan-spec",
+          "planning-self-check",
+          "no-guessing-readiness-check",
+          "governed-planning-review",
+          "redesign-if-rejected",
+          "freeze-approved-plan-spec"
+        ],
+        "gates": [
+          "Artifact Classification Gate",
+          "No-Guessing Gate",
+          "Planning Approval Gate"
+        ],
+        "review_required": true,
+        "outputs": [
+          "approved plan/spec",
+          "planning draft",
+          "planning review evidence",
+          "setup-analysis-ready handoff"
+        ],
+        "handoff_to": [
+          "setup-analysis"
+        ],
+        "ceo_checkpoint": "only_if_business_decision_needed"
+      },
+      {
+        "phase_id": "setup-analysis",
+        "owner": "CTO / Execution Analysis Function",
+        "purpose": "Turn approved planning authority into a concrete execution map, dependency set, and safe parallel branch plan.",
+        "entry_from": [
+          "planning"
+        ],
+        "step_sequence": [
+          "confirm-approved-planning-source",
+          "identify-execution-units-and-dependencies",
+          "mark-safe-parallel-branches",
+          "identify-aot-and-missing-capability",
+          "generate-execution-map",
+          "setup-analysis-self-check",
+          "governed-setup-analysis-review",
+          "refine-if-rejected",
+          "handoff-approved-execution-map"
+        ],
+        "gates": [
+          "Source Approval Gate",
+          "Execution Map Gate",
+          "Setup-Analysis Approval Gate"
+        ],
+        "review_required": true,
+        "outputs": [
+          "execution-map.json",
+          "execution-map.md",
+          "dependency gate list",
+          "parallel branch plan",
+          "implementation readiness bundle"
+        ],
+        "handoff_to": [
+          "implementation"
+        ],
+        "ceo_checkpoint": "only_if_business_decision_needed"
+      },
+      {
+        "phase_id": "implementation",
+        "owner": "Implementation Department",
+        "purpose": "Execute the approved plan/spec and execution map in bounded phases without redesigning upstream authority.",
+        "entry_from": [
+          "setup-analysis"
+        ],
+        "step_sequence": [
+          "confirm-implementation-authority",
+          "execute-governed-phase",
+          "phase-self-check-or-equivalent-closeout",
+          "advance-only-after-explicit-phase-closeout",
+          "governed-implementation-review",
+          "revise-if-rejected",
+          "close-approved-implementation-state",
+          "prepare-postmortem-inputs"
+        ],
+        "gates": [
+          "Implementation Entry Gate",
+          "Phase Closeout Gate",
+          "Implementation Approval Gate",
+          "Implementation Closeout Gate"
+        ],
+        "review_required": true,
+        "lane_policy": {
+          "default_lane_shape": "single_main_lane",
+          "parallel_lanes_allowed": true,
+          "parallel_lanes_condition": "Only when setup-analysis declares safe parallel branches and governing execution authority permits it.",
+          "parallel_branch_ownership_required": true,
+          "sub_lane_term": "** TBD **"
+        },
+        "outputs": [
+          "implemented changes",
+          "phase closeout artifacts",
+          "implementation review evidence",
+          "implementation closeout evidence",
+          "postmortem-ready bundle"
+        ],
+        "handoff_to": [
+          "finalization"
+        ],
+        "ceo_checkpoint": "only_if_business_decision_needed"
+      },
+      {
+        "phase_id": "finalization",
+        "owner": "COO / Finalization Function",
+        "purpose": "Act as safeguard closeout before final CEO-visible completion, enforce clean tree, validate durable evidence, and prepare the postmortem boundary.",
+        "entry_from": [
+          "implementation"
+        ],
+        "step_sequence": [
+          "load-finalization-state",
+          "refresh-learning",
+          "validate-closeout-artifacts",
+          "validate-merge-readiness-when-required",
+          "verify-brain-and-discussion-close-obligations",
+          "shut-down-owned-processes",
+          "refresh-dependency-map-when-available",
+          "clean-disposable-scratch-and-write-finalization-artifacts"
+        ],
+        "gates": [
+          "Brain Closeout Gate",
+          "Closeout Validation Gate",
+          "Cleanup Gate"
+        ],
+        "review_required": "** TBD **",
+        "outputs": [
+          "finalization status",
+          "finalization report",
+          "validated durable closeout evidence",
+          "postmortem input bundle"
+        ],
+        "handoff_to": [
+          "postmortem"
+        ],
+        "ceo_checkpoint": "no"
+      },
+      {
+        "phase_id": "postmortem",
+        "owner": "COO / Board Learning Function",
+        "purpose": "Preserve what happened, measure outcome, classify findings and improvements, and produce the real CEO-visible closeout.",
+        "entry_from": [
+          "finalization"
+        ],
+        "step_sequence": [
+          "determine-postmortem-type-and-depth",
+          "preserve-raw-evidence",
+          "summarize-step-cycle-or-run",
+          "verify-closeout-and-lifecycle-fidelity",
+          "extract-findings-lessons-and-evidence",
+          "classify-findings",
+          "decide-next-action-and-route-or-apply",
+          "record-result-and-refresh-learning",
+          "close-postmortem-scope"
+        ],
+        "gates": [
+          "Postmortem Type Gate",
+          "Governance Fidelity Gate",
+          "Classification Gate",
+          "Closeout Gate"
+        ],
+        "review_required": "** TBD **",
+        "outputs": [
+          "postmortem summary",
+          "raw evidence",
+          "lessons intake",
+          "runtime evolution summary",
+          "requirement-to-runtime evidence summary",
+          "cycle health summary",
+          "brain evidence record",
+          "CEO closeout package"
+        ],
+        "ceo_closeout_payload": [
+          "result",
+          "run summary",
+          "improvements"
+        ],
+        "handoff_to": [
+          "merger-engine"
+        ],
+        "ceo_checkpoint": "feature_done_after_this_phase"
+      }
+    ]
+  },
+  "post_lifecycle_handoff": {
+    "target": "merger-engine",
+    "status": "** TBD **",
+    "rule": "Merge occurs only after postmortem. After successful merge, the local development branch is deleted."
+  },
+  "required_roles": [
+    {
+      "role_id": "coo-intake-and-executive-interface",
+      "status": "partial"
+    },
+    {
+      "role_id": "cto-preflight-and-planning",
+      "status": "emerging"
+    },
+    {
+      "role_id": "designer",
+      "status": "** TBD **"
+    },
+    {
+      "role_id": "planner",
+      "status": "** TBD **"
+    },
+    {
+      "role_id": "implementer",
+      "status": "** TBD **"
+    },
+    {
+      "role_id": "postmortem-analyst",
+      "status": "** TBD **"
+    }
+  ],
+  "required_tools_and_modules": [
+    {
+      "id": "agent-role-builder",
+      "type": "tool",
+      "status": "exists"
+    },
+    {
+      "id": "llm-tool-builder",
+      "type": "tool",
+      "status": "partial"
+    },
+    {
+      "id": "review-engine",
+      "type": "module",
+      "status": "exists"
+    },
+    {
+      "id": "component-repair-engine",
+      "type": "module",
+      "status": "exists"
+    },
+    {
+      "id": "handover-closeout-module",
+      "type": "module",
+      "status": "** TBD **"
+    },
+    {
+      "id": "function-builder",
+      "type": "tool",
+      "status": "** TBD **"
+    },
+    {
+      "id": "phase-builder",
+      "type": "tool_or_module",
+      "status": "** TBD **"
+    },
+    {
+      "id": "step-builder",
+      "type": "tool_or_module",
+      "status": "** TBD **"
+    },
+    {
+      "id": "merger-engine",
+      "type": "module_or_tool",
+      "status": "** TBD **"
+    }
+  ],
+  "open_items": [
+    "Exact JSON schema for company-function definitions is ** TBD **.",
+    "Exact per-phase contract shapes are ** TBD **.",
+    "Exact builder input/output contracts for function-builder, phase-builder, and step-builder are ** TBD **.",
+    "Exact gate-builder and handoff-builder split is ** TBD **.",
+    "Exact sink contract for decisions, findings, fixes, and KPI records is ** TBD **.",
+    "Exact internal state-tree function branch shape for feature delivery is ** TBD **.",
+    "Exact review depth and board shape for finalization and postmortem are ** TBD **.",
+    "Exact lane hierarchy term under implementation is ** TBD **.",
+    "Exact role roster and ownership model for every phase is ** TBD **.",
+    "Exact wire-up contract between this function and the COO controller is ** TBD **."
+  ],
+  "source_conflicts_or_mismatches": [
+    {
+      "topic": "finalization_vs_postmortem_order",
+      "current_phase_1_decision": "finalization_then_postmortem",
+      "legacy_projectbrain_reference": "ProjectBrain implementation workflow currently hands implementation into postmortem and then finalization.",
+      "resolution": "Use the current Phase 1 decision as the active direction. Keep the legacy mismatch visible until the ADF-native lane contracts are written."
+    },
+    {
+      "topic": "role_authority_format",
+      "current_phase_1_decision": "roles_are_structured_tagged_markdown_with_json_rules_and_contracts",
+      "legacy_or_prior_adf_confusion": "Some recent ADF draft wording implied JSON-only governed authority for all artifacts.",
+      "resolution": "Use the corrected split: role = Markdown, rules = JSON, contract = JSON."
+    }
+  ]
+}
