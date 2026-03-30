@@ -495,6 +495,7 @@ Execution note:
   1. one consumer only: `agent-role-builder`
   2. one routing surface only: `component_rulebook`
   3. one effect only: future-run rule promotion/application contract
+  4. no source `rulebook.json` mutation; application must happen through a run-local promoted rulebook plus one audit artifact
 - explicitly out of scope for this slice:
   1. meta-policy execution
   2. non-rulebook routing
