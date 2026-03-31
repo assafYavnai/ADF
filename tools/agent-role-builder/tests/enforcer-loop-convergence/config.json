@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "experiment_slug": "enforcer-loop-convergence",
+  "reviewer_model": {
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "high",
+    "timeout_ms": 900000
+  },
+  "fixer_model": {
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "high",
+    "timeout_ms": 900000
+  },
+  "learning_model": {
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "high",
+    "timeout_ms": 900000
+  },
+  "execution": {
+    "review_concurrency_limit": 3,
+    "retry_once_on_failure": true,
+    "retry_backoff_ms": 1500,
+    "max_cycles": 4,
+    "learning_after_failed_reviews": 2
+  }
+}
+

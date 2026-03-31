@@ -591,6 +591,64 @@ Acceptance:
 - grouped plus targeted second-pass coverage has been tested
 - the runtime optimization-profile design is either frozen or explicitly rejected
 
+### Step 10. Enforcer loop convergence experiments
+
+Goal:
+
+- move from first-pass review economics to full `review -> fix -> review` convergence testing without the governance layer
+
+Status:
+
+- frozen for implementation
+
+Required rules:
+
+1. use the same core engines as ARB where possible
+2. keep the governance layer out of the test harness
+3. persist and reuse provider sessions across cycles
+4. run all scenario variants in parallel
+5. maximize shared reusable components between tests
+
+Experiment groups:
+
+- Group A:
+  - `per-rule-full`
+  - `grouped-full`
+- Group B:
+  - `per-rule-shrinking`
+  - `grouped-shrinking`
+- Group C:
+  - `per-rule-learning`
+  - `grouped-learning`
+
+Frozen intent:
+
+- Group A tests full-loop speed against the current live path
+- Group B tests whether shrinking active rules keeps enough quality at lower effort
+- Group C tests whether learning should enter the loop only after the second failed review
+
+Acceptance:
+
+- the shared loop-test core exists
+- all six scenario variants can run from the same locked baseline fixture
+- session resume works across cycles
+- result artifacts are comparable across all variants
+
+Live `002` result:
+
+- completed after fixing Windows prompt-size failure by switching reviewer tasks to file-backed bundles
+- all 6 scenarios then ran in parallel successfully
+- `grouped-full` beat `per-rule-full` on both time and final findings
+- `grouped-shrinking` is the current speed/cost leader
+- `per-rule-shrinking` is the current quality leader by a small margin
+- `self-learning-engine` did not justify its added overhead in this slice
+
+Current recommendation:
+
+- treat `grouped-shrinking` as the leading production candidate
+- keep `per-rule-shrinking` as the quality-mode candidate
+- do not collapse to one permanent path yet; gather more evidence before freezing implementation
+
 ## Reviewer Policy To Freeze In Implementation
 
 These discussion decisions should be implemented as part of Step 1.
