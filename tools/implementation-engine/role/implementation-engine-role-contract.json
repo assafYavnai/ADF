@@ -219,7 +219,7 @@
                                        "id":  6,
                                        "name":  "Route review-cycle governance proposals and revise",
                                        "writes":  [
-                                                      "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json",
+                                                      "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json and carrying target surface, affected paths, requested action, owner, base version, and gatekeeper outcome; resolved proposals also record gatekeeper actor and decision time, and stale proposals record the stale-against version.",
                                                       "candidate/",
                                                       "candidate-manifest.json"
                                                   ]
@@ -229,7 +229,7 @@
                                        "name":  "Re-verify and run parity audit",
                                        "writes":  [
                                                       "parity-audit.json",
-                                                      "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json when parity findings require routing"
+                                                      "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json and carrying target surface, affected paths, requested action, owner, base version, and gatekeeper outcome; resolved proposals also record gatekeeper actor and decision time, and stale proposals record the stale-against version when parity findings require routing"
                                                   ]
                                    },
                                    {
@@ -282,7 +282,7 @@
                                                "rounds/round-\u003cn\u003e/fix-items-map.json when applicable",
                                                "rounds/round-\u003cn\u003e/review.json",
                                                "rounds/round-\u003cn\u003e/learning.json",
-                                               "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json when applicable",
+                                               "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json and carrying target surface, affected paths, requested action, owner, base version, and gatekeeper outcome; resolved proposals also record gatekeeper actor and decision time, and stale proposals record the stale-against version when applicable",
                                                "rounds/round-\u003cn\u003e/diff-summary.json",
                                                "parity-audit.json",
                                                "run-postmortem.json",
