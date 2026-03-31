@@ -77,7 +77,7 @@ export function buildLeaderPrompt(input: ReviewPromptInput): string {
     : "";
   const allowedStatuses = requireLeaderContract(input.config).allowed_statuses;
 
-  return `You are the leader synthesizer for ${input.componentName}.\nReview mode: ${input.reviewMode}\n\nRESPOND WITH JSON ONLY:\n{ "status": ${allowedStatuses.map((value) => `"${value}"`).join("|")}, "rationale": "...",\n  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],\n  "arbitration_used": false, "arbitration_rationale": null }\n\nRULES: frozen = all reviewers are approved and no remaining material issues exist. frozen_with_conditions = no reviewer is rejecting and only deferred minor/suggestion items remain. pushback = repair work still required. blocked = unrecoverable execution failure. resume_required = budget exhausted with material issues still deferred. If a previously rejecting reviewer becomes approved or conditional after a split verdict, freeze must wait for one final regression sanity review from the previously approving reviewer.\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${reviewerContext}\n\nJSON response:`;
+  return `You are the leader synthesizer for ${input.componentName}.\nReview mode: ${input.reviewMode}\n\nRESPOND WITH JSON ONLY:\n{ "status": ${allowedStatuses.map((value) => `"${value}"`).join("|")}, "rationale": "...",\n  "unresolved": ["blocking/major only"], "improvements_applied": ["..."],\n  "arbitration_used": false, "arbitration_rationale": null }\n\nRULES: frozen = all reviewers are approved and no remaining material issues exist. frozen_with_conditions = no reviewer is rejecting and at least one true conditional or deferred minor/suggestion item remains. pushback = repair work still required. blocked = unrecoverable execution failure. resume_required = budget exhausted with material issues still deferred. If a previously rejecting reviewer becomes approved or conditional after a split verdict, freeze must wait for one final regression sanity review from the previously approving reviewer. Set arbitration_used=true only when you explicitly used minor-only arbitration to close an otherwise acceptable frozen_with_conditions result. Otherwise arbitration_used=false and arbitration_rationale=null.\n\nFOCUS AREAS:\n${formatFocusAreas(input.config)}\n\nSOURCE AUTHORITY:\n${formatSourceAuthorities(input.config)}\n${formatIgnoreAreas(input.config) ? `\nIGNORE AREAS:\n${formatIgnoreAreas(input.config)}` : ""}\n\nREAD the artifact from: ${input.artifactPath}\n${input.selfCheckContext}${input.complianceContext}${input.fixItemsContext}${reviewerContext}\n\nJSON response:`;
 }
 
 export function preValidateResponse(raw: string): string | null {
@@ -245,14 +245,11 @@ export function parseLeaderOutput(raw: string, options: { config?: ReviewRuntime
   ) {
     throw new Error("Leader output contains invalid field types.");
   }
-  if (
-    parsed.status === "frozen_with_conditions"
-    && (parsed.arbitration_used !== true || typeof parsed.arbitration_rationale !== "string" || parsed.arbitration_rationale.trim().length === 0)
-  ) {
-    throw new Error("Leader output frozen_with_conditions requires arbitration evidence.");
-  }
   if (parsed.arbitration_used === true && (typeof parsed.arbitration_rationale !== "string" || parsed.arbitration_rationale.trim().length === 0)) {
     throw new Error("Leader output arbitration_used=true requires a non-empty arbitration_rationale.");
+  }
+  if (parsed.arbitration_used === true && parsed.status !== "frozen_with_conditions") {
+    throw new Error("Leader output arbitration_used=true is only legal for frozen_with_conditions.");
   }
   if (parsed.arbitration_used === false && parsed.arbitration_rationale !== null) {
     throw new Error("Leader output arbitration_rationale must be null when arbitration_used=false.");

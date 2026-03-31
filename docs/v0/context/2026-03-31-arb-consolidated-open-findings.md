@@ -408,3 +408,37 @@ Accepted findings from the artifact inspection:
    - minor-only `pushback` legality
    - split-verdict closeout enforcement re-verification
    - current-baseline re-verification that no-op self-repair artifacts stay absent
+
+### 18. Run 019 terminal-status semantics mismatch
+
+Status:
+
+- closed in Step 4A
+
+Resolution:
+
+- shared leader parsing no longer requires arbitration evidence for every `frozen_with_conditions`
+- `frozen_with_conditions` is now legal when no reviewer rejects and at least one true `conditional` or deferred minor item remains
+- `arbitration_used=true` is now limited to actual minor-only arbitration on `frozen_with_conditions`, and is rejected on other statuses
+
+### 19. Minor-only leader `pushback` could still force materiality
+
+Status:
+
+- closed in Step 4A
+
+Resolution:
+
+- board legality now derives repair state from normalized reviewer status plus review/self-check/compliance evidence
+- explicit reviewer `reject` still remains material even if the associated conceptual groups are minor-only
+- leader `pushback` alone no longer forces `resume_required` or `blocked` when the real unresolved state is non-material
+
+### 20. In-flight telemetry still advertised future postmortem artifacts
+
+Status:
+
+- closed in Step 4A
+
+Resolution:
+
+- board phase telemetry no longer writes `run_postmortem_path` before `run-postmortem.json` exists

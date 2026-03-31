@@ -350,6 +350,10 @@ Goal:
 
 - close the remaining correctness and audit gaps before the unattended replay of the run 01 baseline
 
+Status:
+
+- implemented on current `main`
+
 Frozen scope:
 
 1. unify leader terminal-status semantics across prompt, parser, board legality, and runtime closeout:
@@ -374,6 +378,25 @@ After this step:
 
 - do not rerun the stale run 019 job
 - replay the run 01 baseline under a new job id with a 10-cycle cap or until approved
+
+Delivered in this step:
+
+- shared leader prompt and parser semantics are now aligned:
+  - `frozen` = all reviewers approved
+  - `frozen_with_conditions` = no reviewer rejects and at least one true `conditional` or deferred minor item remains
+  - `arbitration_used=true` is now optional evidence for `frozen_with_conditions`, not a mandatory precondition
+  - arbitration evidence is now rejected on statuses other than `frozen_with_conditions`
+- board legality no longer lets leader `pushback` force materiality by itself when the actual reviewer/checklist state is minor-only
+- reviewer `reject` still remains material even when the associated findings are only minor, so freeze cannot bypass an explicit rejecting reviewer
+- in-flight board telemetry no longer advertises `run-postmortem.json` before that file exists
+
+Validation completed for this step:
+
+- shared review-engine leader parser tests passed
+- shared governance-runtime legality tests passed
+- `agent-role-builder` board legality tests passed
+- `shared` TypeScript compile passed
+- `agent-role-builder` TypeScript compile passed
 
 ### Step 5. Replay run 01 baseline on current code under a new job id
 

@@ -4,7 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { RoleBuilderRequest } from "../schemas/request.js";
-import { buildRoundArtifactRefs, buildRunArtifactRefs, buildRoundSnapshotPaths, deriveReviewerSlotStatus, determineFinalSanityReviewerKeys } from "./board.js";
+import { buildRoundArtifactRefs, buildRunArtifactRefs, buildRoundSnapshotPaths, deriveRepairState, deriveReviewerSlotStatus, determineFinalSanityReviewerKeys } from "./board.js";
 
 function createMinimalRequest(roleSlug: string): RoleBuilderRequest {
   return { role_slug: roleSlug } as RoleBuilderRequest;
@@ -75,4 +75,32 @@ test("determineFinalSanityReviewerKeys requires the previously approving reviewe
   });
 
   assert.deepEqual(reviewerKeys, ["reviewer-0-codex"]);
+});
+
+test("deriveRepairState treats reject verdicts as material even when findings are minor", () => {
+  const repairState = deriveRepairState({
+    reviewerStatus: {
+      "reviewer-0-codex": "reject",
+      "reviewer-1-claude": "approved",
+    },
+    repairChecklist: [{ severity: "minor" }],
+    materialRepairChecklist: [],
+  });
+
+  assert.equal(repairState.hasAnyRepairWork, true);
+  assert.equal(repairState.hasMaterialRepairWork, true);
+});
+
+test("deriveRepairState keeps conditional-only minor work non-material", () => {
+  const repairState = deriveRepairState({
+    reviewerStatus: {
+      "reviewer-0-codex": "approved",
+      "reviewer-1-claude": "conditional",
+    },
+    repairChecklist: [{ severity: "minor" }],
+    materialRepairChecklist: [],
+  });
+
+  assert.equal(repairState.hasAnyRepairWork, true);
+  assert.equal(repairState.hasMaterialRepairWork, false);
 });

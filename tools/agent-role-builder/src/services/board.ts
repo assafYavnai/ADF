@@ -303,7 +303,6 @@ export async function executeBoard(
           snapshot_id: ctx.governanceContext.snapshot_id,
           snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
         },
-        runPostmortemPath: join(ctx.runDir, "run-postmortem.json").replace(/\\/g, "/"),
       });
     }
     const initialSweep = await performInitialRuleSweep(
@@ -331,7 +330,6 @@ export async function executeBoard(
           snapshot_id: ctx.governanceContext.snapshot_id,
           snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
         },
-        runPostmortemPath: join(ctx.runDir, "run-postmortem.json").replace(/\\/g, "/"),
       });
     }
   } catch (error) {
@@ -381,7 +379,6 @@ export async function executeBoard(
           snapshot_id: ctx.governanceContext.snapshot_id,
           snapshot_manifest_path: ctx.governanceContext.snapshot_manifest_path,
         },
-        runPostmortemPath: join(ctx.runDir, "run-postmortem.json").replace(/\\/g, "/"),
       });
     }
 
@@ -470,8 +467,13 @@ export async function executeBoard(
     const repairChecklist = extendRepairChecklist(reviewChecklist, complianceMap, currentSelfCheckIssues);
     const materialRepairChecklist = filterMaterialChecklist(repairChecklist);
     const finalRound = round >= maxRounds - 1;
-    const hasAnyRepairWork = repairChecklist.length > 0 || roundResult.leaderVerdict === "pushback";
-    const hasMaterialRepairWork = materialRepairChecklist.length > 0 || roundResult.leaderVerdict === "pushback";
+    const repairState = deriveRepairState({
+      reviewerStatus: Object.fromEntries(reviewerStatus),
+      repairChecklist,
+      materialRepairChecklist,
+    });
+    const hasAnyRepairWork = repairState.hasAnyRepairWork;
+    const hasMaterialRepairWork = repairState.hasMaterialRepairWork;
     const legalityDecision = governanceRuntime.resolvePilotTerminalVerdict({
       leaderVerdict: roundResult.leaderVerdict,
       finalRound,
@@ -1752,6 +1754,21 @@ export function determineFinalSanityReviewerKeys(params: {
   return hadRejectingReviewer && allReviewersNowAccepted
     ? previouslyApprovingReviewerKeys
     : [];
+}
+
+export function deriveRepairState(params: {
+  reviewerStatus: Record<string, ReviewerSlotStatus>;
+  repairChecklist: Array<{ severity: string }>;
+  materialRepairChecklist: Array<{ severity: string }>;
+}): {
+  hasAnyRepairWork: boolean;
+  hasMaterialRepairWork: boolean;
+} {
+  const hasRejectingReviewer = Object.values(params.reviewerStatus).some((status) => status === "reject");
+  return {
+    hasAnyRepairWork: hasRejectingReviewer || params.repairChecklist.length > 0,
+    hasMaterialRepairWork: hasRejectingReviewer || params.materialRepairChecklist.length > 0,
+  };
 }
 
 function countRoundSeverities(reviewerVerdicts: Map<string, ReviewerVerdict>) {
