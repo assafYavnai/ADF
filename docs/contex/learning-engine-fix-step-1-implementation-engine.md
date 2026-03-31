@@ -72,6 +72,25 @@ Bootstrap `implementation-engine` manually:
 
 ## High-Level Decisions Already Agreed
 
+### 0. Shared-engine boundary
+
+`implementation-engine` is a new top-level orchestrator. It is not a replacement for every shared engine, and it does not absorb their governance.
+
+Target high-level stack:
+
+- `implementation-engine` orchestrates the run lifecycle
+- `shared/review-engine/` remains the generic review execution and parsing surface
+- `shared/self-learning-engine/` remains the generic learning surface
+- `shared/rules-compliance-enforcer/` remains the generic governed revision and rules-compliance surface
+
+Explicit migration decision:
+
+- `shared/component-repair-engine/` is not part of the target steady-state stack
+- it should be merged into, aliased to, or retired in favor of `shared/rules-compliance-enforcer/`
+- until that migration is completed, `implementation-engine` should not treat `shared/component-repair-engine/` as a first-class dependency
+
+This freezes the missing reuse/replace boundary before role drafting.
+
 ### 1. Rulebook split
 
 `implementation-engine` has two rule layers:
@@ -108,10 +127,50 @@ If the task is "create a contract," that does not change the engine's own contra
 
 But governance mutation must be serialized:
 
+- unit of parallelism is one invocation or job
+- each worker may write only to its bounded writable surface and its run-local artifacts
+- shared governance promotion must run against a versioned base and fail closed on stale state
 - workers may propose rule or governance changes
 - only a gatekeeper path may promote them into shared mutable state
 
 This avoids race conditions in rulebook updates.
+
+### 5. Gatekeeper scope
+
+The gatekeeper is not limited to rulebook mutation.
+
+It must serialize governance-surface routing and promotion across:
+
+- rulebook updates
+- contract updates
+- validator or enforcer updates
+- review prompt updates
+- docs-only governance updates
+
+This keeps the system aligned with the architecture rule that findings must be routed to the narrowest enforceable surface, not defaulted into rulebook-only promotion.
+
+### 6. Conditional acceptance authority
+
+`implementation-engine` may return `frozen_with_conditions`, but it does not own the final business acceptance of that state.
+
+The invoker or domain tool decides whether to accept the conditional result. The engine may declare the condition set and supporting evidence, but it must not silently treat conditional freeze as equivalent to clean freeze.
+
+## Minimum Target Governance Input Package
+
+The target-governance package must be explicit before role and contract drafting. The minimum package is:
+
+- artifact kind
+- bounded writable surface
+- target contract
+- target rulebook
+- target review prompt
+- authority documents
+- runtime review configuration
+- canonical output declarations
+- stop conditions
+- acceptance authority for conditional outcomes
+
+Without this package, the engine role and contract will drift because the live governed surface is larger than a target rulebook alone.
 
 ## Intended Scope of `implementation-engine`
 
@@ -125,11 +184,13 @@ This avoids race conditions in rulebook updates.
 - run rules-compliance
 - run review
 - run learning extraction
-- route rule proposals to the promotion gatekeeper
+- route governance-surface proposals to the promotion gatekeeper
 - revise and re-verify
 - produce governed terminal artifacts and status
 
 It should not own domain-specific semantics for ARB, tool-builder, or other future tools. Those remain with the invoker/domain tool.
+
+It also should not replace governance ownership of the shared engines it orchestrates. Runtime control flow sits above them; governance ownership remains with each shared engine and with the domain tool that invoked the run.
 
 ## Governance Lifecycle
 
@@ -143,10 +204,11 @@ It should not own domain-specific semantics for ARB, tool-builder, or other futu
 6. Run rules-compliance.
 7. Run review.
 8. Run learning extraction.
-9. Send rule proposals to the gatekeeper.
+9. Route governance-surface proposals to the gatekeeper.
 10. Apply approved fixes and revisions.
 11. Re-verify the artifact.
-12. Close as `frozen`, `resume_required`, `pushback`, or `blocked`.
+12. Run parity audit across declared surfaces, emitted artifacts, self-check evidence, and terminal payload.
+13. Close as `frozen`, `frozen_with_conditions`, `resume_required`, `pushback`, or `blocked`.
 
 ### Flow chart
 
@@ -167,14 +229,40 @@ Review
   ->
 Learning extraction
   ->
-Gatekeeper decides promotion
+Gatekeeper decides promotion / routing
   ->
 Revise again if needed
   ->
 Final verification
   ->
+Parity audit
+  ->
 Terminal state
 ```
+
+## Terminal Semantics and Artifact Matrix
+
+Step 1 must freeze the terminal-state model up front.
+
+Required generic terminal states:
+
+- `frozen`
+- `frozen_with_conditions`
+- `resume_required`
+- `pushback`
+- `blocked`
+
+High-level artifact matrix:
+
+| Terminal state | Required artifacts | Intentionally not written |
+|---|---|---|
+| `frozen` | result, final artifact outputs, self-check evidence, parity audit, run postmortem, cycle postmortem | conditions manifest, resume package, pushback artifact |
+| `frozen_with_conditions` | result, final artifact outputs, conditions manifest, self-check evidence, parity audit, run postmortem, cycle postmortem | resume package, pushback artifact |
+| `resume_required` | result, resume package, self-check evidence, parity audit, run postmortem, cycle postmortem | canonical promotion reserved for clean or conditional freeze |
+| `pushback` | result, pushback artifact, self-check evidence, parity audit, run postmortem, cycle postmortem | canonical promotion, resume package unless explicitly part of pushback semantics |
+| `blocked` | result, blocking incident or bug artifact, available self-check evidence, parity audit if the run reached auditable state, run postmortem, cycle postmortem | canonical promotion, conditions manifest |
+
+This matrix is intentionally generic. Domain tools may add domain-specific artifacts, but they must not weaken these state distinctions.
 
 ## What This Engine Enables
 
@@ -228,6 +316,20 @@ These are generic implementation-discipline rules, not ARB-specific rules.
 
 Implement the engine by reusing ARB core and governance patterns rather than waiting for ARB or tool-builder to generate it.
 
+## Bootstrap Governance Path
+
+Before implementation begins, the manually created bootstrap artifacts must themselves go through a lightweight governed path:
+
+1. Freeze the boundary decisions in this document.
+2. Draft the engine role manually under strict ARB-style artifact discipline.
+3. Run an independent contextless review of the role draft.
+4. Draft the engine contract manually.
+5. Run an independent contextless review of the contract draft.
+6. Draft the seed rulebook and review it the same way.
+7. Freeze the role, contract, seed rulebook, target-governance package, and terminal artifact matrix before code-level design starts.
+
+This is the bootstrap substitute for a full ARB-generated package.
+
 ## What Must Be Preserved From Replay vs Run 018
 
 The engine should preserve the stronger semantics learned from replay, while also making room for the operational completeness that run 018 still handled better.
@@ -252,12 +354,16 @@ These concepts should be implemented generically in `implementation-engine`, not
 
 Step 1 is complete when all of the following exist:
 
+- a frozen shared-engine boundary memo
 - a governed `implementation-engine` role
 - a fixed engine contract
 - a seeded generic implementer rulebook
-- a clear invocation model for target governance inputs
+- a concrete target-governance input package
 - a defined parallel-safe execution model
-- a defined serialized gatekeeper path for rulebook mutation
+- a defined serialized gatekeeper path for governance-surface routing and mutation
+- a frozen terminal-state model including `frozen_with_conditions`
+- one authoritative terminal-state artifact matrix
+- a required parity-audit stage in the lifecycle
 - a documented terminal-state model
 - a documented artifact set for runs and reviews
 - a clear statement that the first implementation is bootstrapped manually from ARB patterns, not generated by tool-builder
@@ -281,5 +387,6 @@ After this plan, the next concrete artifacts are:
 1. `implementation-engine` role draft
 2. `implementation-engine` contract draft
 3. `implementation-engine` seed rulebook draft
+4. a concrete target-governance invocation schema draft
 
 Only after those exist should the implementation plan move into code-level design.

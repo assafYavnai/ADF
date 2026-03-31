@@ -103,7 +103,18 @@ The agreed model is:
 - each invocation also supplies target-specific governance inputs
 - the engine's own contract stays fixed even when the target artifact is itself a contract
 - the engine is parallel-safe for work execution
-- rulebook promotion and shared-governance mutation go through a serialized gatekeeper path
+- governance-surface promotion and shared-governance mutation go through a serialized gatekeeper path
+
+Additional boundary decisions now frozen for Step 1:
+
+- `implementation-engine` is a top-level orchestrator, not a replacement for every shared engine
+- it should orchestrate `shared/review-engine/`, `shared/self-learning-engine/`, and `shared/rules-compliance-enforcer/`
+- it should not absorb governance ownership of those shared engines
+- `shared/component-repair-engine/` is not part of the target steady-state stack and should be merged into, aliased to, or retired in favor of `shared/rules-compliance-enforcer/`
+- the gatekeeper must route and serialize changes across rulebook, contract, validator or enforcer, review prompt, and docs surfaces, not only rulebooks
+- terminal semantics must include `frozen_with_conditions`
+- conditional acceptance remains invoker-owned, not silently engine-owned
+- parity audit is part of Step 1, not a later optional enhancement
 
 This means the future fix path is:
 
@@ -560,13 +571,21 @@ Create a new governed top-level tool that owns the reusable implementation loop:
 - run rules-compliance
 - run review
 - run learning extraction
-- route rule proposals through a serialized gatekeeper
+- route governance-surface proposals through a serialized gatekeeper
 - revise and re-verify
-- close with governed terminal semantics
+- run parity audit
+- close with governed terminal semantics, including `frozen_with_conditions`
 
 This is the first step because it creates the reusable place where replay-vs-018 lessons can be enforced generically rather than only inside ARB.
 
 Detailed plan: `docs/contex/learning-engine-fix-step-1-implementation-engine.md`
+
+Step 1 must also freeze four boundaries before role and contract drafting:
+
+- shared-engine orchestration vs replacement
+- minimum target-governance input package
+- terminal-state artifact matrix
+- gatekeeper mutation-routing scope
 
 ### Step 2. Upgrade the shared learning engine to feed and improve `implementation-engine`
 
