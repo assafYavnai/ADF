@@ -580,11 +580,11 @@ This is the first step because it creates the reusable place where replay-vs-018
 
 Detailed plan: `docs/contex/learning-engine-fix-step-1-implementation-engine.md`
 
-Current draft status: bootstrap `implementation-engine` role, governed role contract draft, stricter invocation schema, governance-routing schema, clarified source-ref versus authority-doc split, writable-surface base version enforcement, and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending one final cleanup-and-review pass. `tools/implementation-engine/tool-contract.json` is currently governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
+Current draft status: bootstrap `implementation-engine` role, governed role contract draft, stricter invocation schema, governance-routing schema, clarified source-ref versus authority-doc split, writable-surface base version enforcement, a machine-valid seed rulebook, and companion governance artifacts now exist under `tools/implementation-engine/`. `tools/implementation-engine/src/index.ts` now implements the Step-2 bootstrap runtime core: it validates invocation, snapshots fixed governance, freezes the write domain, stages candidate artifacts, and fails closed after Step 2 until live implementation/review/compliance/learning wiring exists. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
 
-Current known remaining issues are low-severity and text-level:
-- remove the undeclared override-policy exception so the authority-input model stays fail-closed across every surface
-- add runtime review configuration explicitly to the reviewer-facing target-governance checklist in `tools/implementation-engine/review-contract.json`
+The last low-severity bootstrap text contradictions are now closed:
+- the authority-input model is fail-closed across every implementation-engine governance surface
+- the reviewer-facing target-governance checklist in `tools/implementation-engine/review-contract.json` now explicitly includes runtime review configuration
 
 Step 1 must also keep four boundaries frozen before the bootstrap governance set can be frozen:
 
@@ -649,3 +649,4 @@ The right path is now:
 3. Merge run 018's missing branch and artifact declarations into that stronger base.
 4. Add parity audit and real self-check evidence.
 5. Upgrade the learning pipeline so it can learn from concrete findings and refine existing rules instead of only appending new IDs.
+

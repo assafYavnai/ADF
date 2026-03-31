@@ -336,7 +336,7 @@ Implement the engine by reusing ARB core and governance patterns rather than wai
 
 ## Bootstrap Governance Path
 
-Before implementation begins, the manually created bootstrap artifacts must themselves go through a lightweight governed path:
+Before live shared-engine execution begins, the manually created bootstrap artifacts must themselves go through a lightweight governed path:
 
 1. Freeze the boundary decisions in this document.
 2. Draft the engine role manually under strict governed artifact discipline informed by ARB lessons, not literal ARB compliance.
@@ -344,7 +344,7 @@ Before implementation begins, the manually created bootstrap artifacts must them
 4. Run an independent contextless review of the role markdown plus the role companion contract together.
 5. Draft and review any remaining engine-contract detail that is still outside the role companion contract surface.
 6. Draft the seed rulebook and review it the same way.
-7. Freeze the role, role companion contract, seed rulebook, target-governance package, and terminal artifact matrix before code-level design starts.
+7. Freeze the role, role companion contract, seed rulebook, target-governance package, and terminal artifact matrix before live shared-engine wiring starts.
 
 This is the bootstrap substitute for a full ARB-generated package.
 
@@ -410,18 +410,19 @@ The first bootstrap artifacts now exist in draft form under `tools/implementatio
 6. invocation-request schema draft
 7. role companion contract draft
 8. governance-routing schema draft
+9. bootstrap runtime scaffolding (`package.json`, `tsconfig.json`)
+10. bootstrap runtime core at `tools/implementation-engine/src/index.ts`
 
 These artifacts are not frozen yet. They exist so the next independent review can test boundary clarity, artifact completeness, and operational usability instead of reviewing an empty placeholder surface.
 
-Important limitations: `tools/implementation-engine/role/implementation-engine-role-contract.json` is now a governed draft, but it remains unfrozen until an independent review confirms markdown-to-contract parity and package-level coherence. `tools/implementation-engine/tool-contract.json` is still governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. The current review state is down to two low-severity text contradictions: the authority-input model should stay fail-closed everywhere unless a governed override surface is later added, and `tools/implementation-engine/review-contract.json` should explicitly list runtime review configuration in its reviewer-facing target-governance checklist.
+Important limitations: `tools/implementation-engine/role/implementation-engine-role-contract.json` is now a governed draft, but it remains unfrozen until an independent review confirms markdown-to-contract parity and package-level coherence. `tools/implementation-engine/src/index.ts` now implements the bootstrap runtime core for Step 2: it validates invocation, snapshots fixed governance, freezes the write domain, stages candidate artifacts, and then fails closed after Step 2 until live implementation, review, compliance, learning, and parity-audit execution are wired. The final low-severity bootstrap text contradictions are now resolved: the authority-input model is fail-closed everywhere on `source_refs` versus `authority_documents` conflict, and the reviewer-facing target-governance checklist explicitly includes runtime review configuration.
 
 ## Immediate Next Review And Freeze Steps
 
-1. remove the undeclared override-policy exception so every authority-input surface stays fail-closed on `source_refs` vs `authority_documents` conflict
-2. add runtime review configuration explicitly to the reviewer-facing target-governance checklist in `tools/implementation-engine/review-contract.json`
-3. run one more independent contextless review of the role, role contract, rulebook, schemas, and companion governance artifacts
-4. freeze the role markdown and role contract together only after parity review passes
-5. review and tighten the seed rulebook
-6. freeze the target-governance invocation package, governance-routing schema, and bootstrap governance set before code-level design
+1. run one more independent contextless review of the role, role contract, rulebook, schemas, and companion governance artifacts
+2. freeze the role markdown and role contract together only after parity review passes
+3. review and tighten the seed rulebook
+4. freeze the target-governance invocation package, governance-routing schema, and bootstrap governance set before live shared-engine wiring begins
 
-Only after those are reviewed and frozen should the implementation plan move into code-level design.
+Only after those are reviewed and frozen should the implementation plan move into live shared-engine wiring and the remaining runtime phases.
+
