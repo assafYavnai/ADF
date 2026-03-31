@@ -1,4 +1,4 @@
-﻿<!-- profile: agent -->
+<!-- profile: agent -->
 # Implementation Engine
 
 <role>
@@ -315,9 +315,9 @@ Evaluate terminal predicates in this order so they stay mutually exclusive:
 Because reviewer-clear requires only `approved` or true `conditional` verdicts in the latest required review evidence, any active `reject` prevents both frozen states even when no material pushback remains.
 
 A run is complete for each terminal state only when its required artifacts exist:
-- `frozen`: `staged-final/`, final target outputs on the declared promotion surface, `result.json`, `parity-audit.json`, and `cycle-postmortem.json` exist, and the latest required review artifacts already make reviewer-clear true.
-- `frozen_with_conditions`: `staged-final/`, `result.json`, `parity-audit.json`, `conditions-manifest.json`, and `cycle-postmortem.json` exist; the result records the conditional-acceptance authority and whether final target promotion occurred now or remains pending invoker acceptance.
-- `pushback`: if the pushback is pre-review, `pre-review-pushback.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json` exist and no round artifacts are required; if the pushback is post-review, the run directory contains the latest round artifacts, `implementation-engine-pushback.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json`.
-- `resume_required`: no target promotion occurs, but the run directory contains the latest round artifacts, `resume-package.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json`; `result.json` records the remaining work and restart conditions.
-- `blocked`: no target promotion occurs, but the run directory contains `result.json`, `bug-report.json`, and `cycle-postmortem.json`; `parity-audit.json` is present if the run reached an auditable state before blocking.
+- `frozen`: `staged-final/`, final target outputs on the declared promotion surface, `self-check.json`, `run-postmortem.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json` exist, and the latest required review artifacts already make reviewer-clear true.
+- `frozen_with_conditions`: `staged-final/`, `self-check.json`, `run-postmortem.json`, `result.json`, `parity-audit.json`, `conditions-manifest.json`, and `cycle-postmortem.json` exist; the result records the conditional-acceptance authority and whether final target promotion occurred now or remains pending invoker acceptance.
+- `pushback`: if the pushback is pre-review, `pre-review-pushback.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json` exist, and `self-check.json` and `run-postmortem.json` are not required; if the pushback is post-review, the run directory contains the latest round artifacts, `self-check.json`, `run-postmortem.json`, `implementation-engine-pushback.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json`.
+- `resume_required`: no target promotion occurs, but the run directory contains the latest round artifacts, `self-check.json`, `run-postmortem.json`, `resume-package.json`, `result.json`, `parity-audit.json`, and `cycle-postmortem.json`; `result.json` records the remaining work and restart conditions.
+- `blocked`: no target promotion occurs, but the run directory contains `result.json`, `bug-report.json`, and `cycle-postmortem.json`; `self-check.json` and `run-postmortem.json` are present when the run reached those stages, and `parity-audit.json` is present if the run reached an auditable state before blocking.
 </completion>

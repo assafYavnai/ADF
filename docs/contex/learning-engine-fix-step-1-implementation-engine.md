@@ -390,17 +390,18 @@ The first bootstrap artifacts now exist in draft form under `tools/implementatio
 4. review-prompt draft
 5. seed rulebook draft
 6. invocation-request schema draft
+7. role companion contract placeholder draft
 
 These artifacts are not frozen yet. They exist so the next independent review can test boundary clarity, artifact completeness, and operational usability instead of reviewing an empty placeholder surface.
+
+Important limitation: `tools/implementation-engine/role/implementation-engine-role-contract.json` currently exists only as a bootstrap placeholder. Markdown-to-contract parity is not established until that placeholder is replaced by the real governed role-contract draft.
 
 ## Immediate Next Review And Freeze Steps
 
 1. run another independent contextless review of the role plus companion governance artifacts
 2. tighten the role until the artifact matrix, authority chain, and terminal semantics are stable
-3. draft and review the fuller engine contract surface
+3. replace the placeholder role companion contract with the real governed contract draft and review it
 4. review and tighten the seed rulebook
 5. freeze the target-governance invocation package and bootstrap governance set before code-level design
 
 Only after those are reviewed and frozen should the implementation plan move into code-level design.
-
-
