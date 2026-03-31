@@ -318,3 +318,70 @@ It has:
 - enough discussion decisions to freeze the next implementation direction
 
 But it is still not ready for the final high-confidence replay run until the open issues above are addressed.
+
+## Pre-Run 19 Delta From Latest Audit And Review
+
+These findings were accepted after the Step 3 implementation review and the latest pre-run audit.
+
+### 14. `self-repair-engine` records fake provider-failure incidents on clean success
+
+Status:
+
+- closed in Step 3A
+
+Problem:
+
+- the current wrapper records `provider_cli_failure` incident/result artifacts even when the primary invocation succeeds and no repair was needed
+- the wrapper also emits successful `self-repair-engine` tool telemetry for that no-op path
+
+Resolution:
+
+- clean primary success through the wrapper now returns without writing `runtime/self-repair-engine/` artifacts
+- the wrapper no longer emits `self-repair-engine` telemetry on no-op success paths
+
+### 15. Reviewer KPI truth is still incomplete
+
+Status:
+
+- closed in Step 3A
+
+Problem:
+
+- reviewer success/error KPI logic still depends on free-form `ParticipantRecord.verdict`
+- successful reviewer records store raw provider response text, not a normalized reviewer outcome
+
+Resolution:
+
+- reviewer participant records now persist normalized `reviewer_status` alongside the raw provider response text
+- KPI aggregation now uses normalized reviewer outcome when present instead of guessing from raw JSON text
+
+### 16. Engine latency attribution is still double-counting wrapped work
+
+Status:
+
+- closed in Step 3A
+
+Problem:
+
+- engine latency is currently aggregated across overlapping `llm` and `tool` events for the same underlying work
+
+Resolution:
+
+- engine summaries now use wall-clock `tool_latency_ms` when available and fall back to raw `llm_latency_ms` only when no tool wrapper timing exists
+- `major_bottleneck_engine` now reflects wall-clock engine dominance instead of summed overlapping wrapper-plus-LLM latency
+
+### 17. Supplemental session-registry repair can still fail open
+
+Status:
+
+- closed in Step 3A
+
+Problem:
+
+- if supplemental session-registry repair itself fails, the lane currently logs the failure and silently degrades to cold-start resume
+- the current repair path also rewrites the supplied external registry path directly instead of materializing repaired runtime state under the current run
+
+Resolution:
+
+- supplemental session-registry repair now materializes repaired state under the current run instead of mutating the supplied external path
+- if supplemental repair itself fails, the run now blocks cleanly with governed evidence instead of silently degrading to cold-start resume

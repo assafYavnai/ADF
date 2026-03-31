@@ -17,6 +17,7 @@ export const ParticipantRecord = z.object({
   model: z.string(),
   role: z.enum(["leader", "reviewer"]),
   verdict: z.string().optional(),
+  reviewer_status: z.enum(["approved", "conditional", "reject", "error", "pending"]).optional(),
   round: z.number(),
   latency_ms: z.number().optional(),
   invocation_id: z.string().uuid().optional(),

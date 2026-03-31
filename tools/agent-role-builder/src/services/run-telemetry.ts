@@ -138,10 +138,18 @@ export function buildRunTelemetrySnapshot(params: {
 }): RunTelemetrySnapshot {
   const reviewerParticipants = params.participants.filter((participant) => participant.role === "reviewer");
   const reviewerSuccessCount = reviewerParticipants.filter((participant) => {
+    const normalizedStatus = participant.reviewer_status;
+    if (normalizedStatus) {
+      return normalizedStatus === "approved" || normalizedStatus === "conditional" || normalizedStatus === "reject";
+    }
     const verdict = participant.verdict?.toLowerCase();
     return verdict === "approved" || verdict === "conditional" || verdict === "reject";
   }).length;
   const reviewerErrorCount = reviewerParticipants.filter((participant) => {
+    const normalizedStatus = participant.reviewer_status;
+    if (normalizedStatus) {
+      return normalizedStatus === "error";
+    }
     const verdict = participant.verdict?.toLowerCase();
     return verdict === "error" || verdict === "parse-error" || (verdict?.startsWith("error:") ?? false);
   }).length;
@@ -400,7 +408,6 @@ function summarizeEngineMetrics(events: TelemetryEvent[]): RunTelemetrySnapshot[
       changed_artifact_count: 0,
     };
 
-    current.total_latency_ms += event.latency_ms;
     if (event.category === "llm") {
       current.llm_call_count += 1;
       current.llm_latency_ms += event.latency_ms;
@@ -431,7 +438,12 @@ function summarizeEngineMetrics(events: TelemetryEvent[]): RunTelemetrySnapshot[
     metrics.set(engine, current);
   }
 
-  return [...metrics.values()].sort((left, right) => left.engine.localeCompare(right.engine));
+  return [...metrics.values()]
+    .map((current) => ({
+      ...current,
+      total_latency_ms: current.tool_latency_ms > 0 ? current.tool_latency_ms : current.llm_latency_ms,
+    }))
+    .sort((left, right) => left.engine.localeCompare(right.engine));
 }
 
 function summarizeRuleMetrics(events: TelemetryEvent[]): RunTelemetrySnapshot["rule_metrics"] {
@@ -533,5 +545,5 @@ async function resolveCurrentCommitSha(): Promise<string | null> {
     cachedCommitSha = null;
   }
 
-  return cachedCommitSha;
+  return cachedCommitSha ?? null;
 }

@@ -91,52 +91,11 @@ export async function invokeWithSelfRepair<T>(params: {
   repair: () => Promise<T>;
 }): Promise<{
   value: T;
-  repair: SelfRepairResult;
+  repair: SelfRepairResult | null;
 }> {
   try {
     const value = await params.primary();
-    const attemptDir = await createAttemptDir(params.runDir, "provider_cli_failure");
-    const incidentPath = join(attemptDir, "incident.json");
-    const incident = SelfRepairIncidentSchema.parse({
-      schema_version: "1.0",
-      component: params.component,
-      request_job_id: params.requestJobId,
-      engine: params.engine,
-      incident_type: "provider_cli_failure",
-      run_dir: params.runDir,
-      message: `${params.message} did not require repair`,
-      round: params.round ?? null,
-      slot_key: params.slotKey ?? null,
-      provider: params.provider,
-      model: params.model,
-      target_path: null,
-      details: {
-        ...(params.details ?? {}),
-        cold_start_retry_attempted: false,
-      },
-      observed_at: new Date().toISOString(),
-    });
-    await writeFile(incidentPath, JSON.stringify(incident, null, 2), "utf-8");
-    const result = SelfRepairResultSchema.parse({
-      schema_version: "1.0",
-      component: params.component,
-      request_job_id: params.requestJobId,
-      engine: params.engine,
-      incident_type: "provider_cli_failure",
-      status: "repaired",
-      action: "none",
-      message: `${params.message} completed without repair`,
-      attempt_dir: normalizePath(attemptDir),
-      incident_path: normalizePath(incidentPath),
-      result_path: normalizePath(join(attemptDir, "result.json")),
-      backup_path: null,
-      updated_artifact_path: null,
-      primary_error: null,
-      repair_error: null,
-      completed_at: new Date().toISOString(),
-    });
-    await writeFile(join(attemptDir, "result.json"), JSON.stringify(result, null, 2), "utf-8");
-    return { value, repair: result };
+    return { value, repair: null };
   } catch (primaryError) {
     const attemptDir = await createAttemptDir(params.runDir, "provider_cli_failure");
     const incidentPath = join(attemptDir, "incident.json");

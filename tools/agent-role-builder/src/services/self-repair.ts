@@ -5,7 +5,8 @@ import { loadSelfRepairEngineModule } from "./shared-module-loader.js";
 export async function repairSupplementalSessionRegistry(params: {
   request: { job_id: string };
   runDir: string;
-  sessionRegistryPath: string;
+  sourceSessionRegistryPath: string;
+  repairedSessionRegistryPath: string;
   message: string;
   incidentType: "invalid_runtime_artifact" | "missing_runtime_artifact";
   details?: Record<string, unknown>;
@@ -23,9 +24,12 @@ export async function repairSupplementalSessionRegistry(params: {
       engine: "startup",
       incidentType: params.incidentType,
       message: params.message,
-      targetPath: params.sessionRegistryPath,
+      targetPath: params.repairedSessionRegistryPath,
       replacementText: params.replacementText,
-      details: params.details,
+      details: {
+        ...(params.details ?? {}),
+        source_session_registry_path: params.sourceSessionRegistryPath,
+      },
     });
     emit({
       provenance: createSystemProvenance("tools/agent-role-builder/self-repair"),
@@ -99,24 +103,26 @@ export async function invokeWithSelfRepair(params: {
         return invoke(params.buildColdStartParams());
       },
     });
-    emit({
-      provenance: createSystemProvenance("tools/agent-role-builder/self-repair"),
-      category: "tool",
-      operation: "self-repair-engine",
-      latency_ms: Date.now() - startedAt,
-      success: true,
-      metadata: {
-        engine: "self-repair-engine",
-        stage: params.engine,
-        incident_type: "provider_cli_failure",
-        action: outcome.repair.action,
-        status: outcome.repair.status,
-        provider: params.provider,
-        model: params.model,
-        round: params.round ?? null,
-        slot_key: params.slotKey ?? null,
-      },
-    });
+    if (outcome.repair) {
+      emit({
+        provenance: createSystemProvenance("tools/agent-role-builder/self-repair"),
+        category: "tool",
+        operation: "self-repair-engine",
+        latency_ms: Date.now() - startedAt,
+        success: true,
+        metadata: {
+          engine: "self-repair-engine",
+          stage: params.engine,
+          incident_type: "provider_cli_failure",
+          action: outcome.repair.action,
+          status: outcome.repair.status,
+          provider: params.provider,
+          model: params.model,
+          round: params.round ?? null,
+          slot_key: params.slotKey ?? null,
+        },
+      });
+    }
     return outcome.value;
   } catch (error) {
     emit({

@@ -1224,7 +1224,9 @@ async function executeRound(
       reviewer.slotKey, reviewMode
     );
     participants.push(record);
-    reviewerVerdicts.set(record.participant_id, await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id, ctx, fixItemsMap));
+    const parsedVerdict = await parseReviewerResponse(record.verdict ?? "", request, roundIndex, record.participant_id, ctx, fixItemsMap);
+    reviewerVerdicts.set(record.participant_id, parsedVerdict);
+    record.reviewer_status = deriveReviewerSlotStatus(parsedVerdict).status;
   }
 
   const leaderInputReviewerVerdicts = new Map(

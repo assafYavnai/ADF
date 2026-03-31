@@ -274,11 +274,55 @@ Validation completed for this step:
 - `shared` TypeScript compile passed
 - `agent-role-builder` self-repair wrapper test passed
 
+### Step 3A. Pre-run 19 telemetry and repair truthfulness delta
+
+Goal:
+
+- close the remaining audit-truth gaps found after Step 3 so run 19 becomes worth running
+
+Status:
+
+- implemented on current `main`
+
+In scope:
+
+- stop `self-repair-engine` from writing incident/result artifacts on clean success
+- stop `self-repair-engine` wrapper telemetry from recording no-op repair events
+- make reviewer KPI counting use normalized reviewer outcomes instead of raw provider response strings
+- remove double-counted engine latency from bottleneck attribution
+- make supplemental session-registry repair fail closed and keep repaired runtime state under the current run
+
+Acceptance:
+
+- clean provider calls leave no repair artifacts and no repair KPI events
+- reviewer success/error counts are truthful on the live board data model
+- per-engine latency attribution does not double-count wrapped work
+- supplemental session-registry repair either succeeds into run-local state or blocks/escalates explicitly
+
+Delivered in this step:
+
+- `self-repair-engine` clean primary success no longer writes incident/result artifacts
+- the ARB self-repair wrapper no longer emits repair telemetry for no-op success paths
+- reviewer participant records now persist normalized `reviewer_status` for KPI truth
+- reviewer KPI aggregation now keys off normalized reviewer outcome instead of raw provider response text when available
+- per-engine `total_latency_ms` and `major_bottleneck_engine` now use wall-clock wrapper time when present instead of summing overlapping wrapper and LLM latencies
+- supplemental session-registry repair now writes repaired state under the current run
+- supplemental session-registry repair failure now blocks explicitly instead of silently degrading to cold-start resume
+
+Validation completed for this step:
+
+- `tools/self-repair-engine` targeted tests passed
+- `agent-role-builder` self-repair targeted tests passed
+- `agent-role-builder` run telemetry targeted tests passed
+- `agent-role-builder` TypeScript compile passed
+- `tools/self-repair-engine` TypeScript compile passed
+- `shared` TypeScript compile passed
+
 ### Step 4. Run 19 and maybe 20 as bounded sanity runs
 
 Goal:
 
-- validate the current lane after steps 1 to 3
+- validate the current lane after steps 1 to 3A
 
 Run shape:
 

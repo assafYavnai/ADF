@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { invokeWithSelfRepair, repairRuntimeArtifact } from "./index.js";
@@ -56,9 +56,35 @@ test("invokeWithSelfRepair retries once and succeeds", async () => {
     });
 
     assert.equal(result.value, "ok");
+    assert.ok(result.repair);
     assert.equal(result.repair.status, "repaired");
     assert.equal(result.repair.action, "cold_start_retry");
     assert.equal(attempts, 2);
+  } finally {
+    await rm(runDir, { recursive: true, force: true });
+  }
+});
+
+test("invokeWithSelfRepair does not write repair artifacts when primary succeeds cleanly", async () => {
+  const runDir = await mkdtemp(join(tmpdir(), "adf-self-repair-clean-success-"));
+  try {
+    const result = await invokeWithSelfRepair({
+      component: "agent-role-builder",
+      requestJobId: "job-clean",
+      runDir,
+      engine: "board-review",
+      message: "Reviewer provider call failed",
+      provider: "codex",
+      model: "gpt-5.4",
+      primary: async () => "ok",
+      repair: async () => {
+        throw new Error("repair should not run");
+      },
+    });
+
+    assert.equal(result.value, "ok");
+    assert.equal(result.repair, null);
+    await assert.rejects(() => access(join(runDir, "runtime", "self-repair-engine")));
   } finally {
     await rm(runDir, { recursive: true, force: true });
   }

@@ -651,11 +651,13 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
           request,
           startedAtIso: startIso,
         });
+        const repairedSessionRegistryPath = join(runDir, "runtime", "supplemental-session-registry.json");
         try {
-          await repairSupplementalSessionRegistry({
+          const repair = await repairSupplementalSessionRegistry({
             request,
             runDir,
-            sessionRegistryPath: request.resume.session_registry_path,
+            sourceSessionRegistryPath: request.resume.session_registry_path,
+            repairedSessionRegistryPath,
             message: `Supplemental session registry could not be loaded and was regenerated for cold-start resume: ${error instanceof Error ? error.message : String(error)}`,
             incidentType: error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT"
               ? "missing_runtime_artifact"
@@ -666,13 +668,74 @@ export async function buildRole(requestPath: string, outputDir?: string): Promis
             },
             replacementText: JSON.stringify(fallbackRegistry, null, 2),
           });
+          const repairedSessionRegistry = await loadSessionRegistry(repair.result.updated_artifact_path);
+          assertSessionRegistryMatchesRequest(repairedSessionRegistry, request);
+          loadedResumeSessionHandles = extractActiveSessionHandles(repairedSessionRegistry);
         } catch (repairError) {
-          console.error(
-            "[build] Failed to repair supplemental session registry:",
-            repairError instanceof Error ? repairError.message : repairError
-          );
+          const message = repairError instanceof Error ? repairError.message : String(repairError);
+          const supplementalRegistryIssue: ValidationIssue = {
+            code: "SUPPLEMENTAL_SESSION_REGISTRY_REPAIR_FAILED",
+            severity: "error",
+            message: `Failed to repair supplemental session registry: ${message}`,
+            evidence: request.resume.session_registry_path,
+          };
+          validationIssues.push(supplementalRegistryIssue);
+          const pushbackPath = join(runDir, `${request.role_slug}-pushback.json`);
+          await writeFile(join(runDir, "self-check.json"), JSON.stringify([], null, 2), "utf-8");
+          await writePushbackArtifact({
+            request,
+            runDir,
+            status: "blocked",
+            statusReason: supplementalRegistryIssue.message,
+            validationIssues,
+            selfCheckIssues: [],
+            boardRounds: 0,
+          });
+          const result = buildResult({
+            request,
+            status: "blocked",
+            runDir,
+            canonical,
+            issues: validationIssues,
+            validationIssues,
+            selfCheckIssues: [],
+            participants: [],
+            governanceBinding,
+            pushbackPath,
+            learningArtifact: null,
+            openQuestions: [],
+            statusReason: supplementalRegistryIssue.message,
+            roundsExecuted: 0,
+            arbitrationUsed: false,
+          });
+          await writeFile(join(runDir, "result.json"), JSON.stringify(result, null, 2), "utf-8");
+          await writeZeroRoundRunPostmortem({
+            request,
+            runDir,
+            status: result.status,
+            statusReason: result.status_reason,
+            validationIssues,
+            selfCheckIssues: [],
+            governanceBinding,
+            pushbackPath,
+            bindGovernance: governanceRuntime.bindGovernance,
+          });
+          await writeCyclePostmortem({
+            request,
+            runDir,
+            status: result.status,
+            statusReason: result.status_reason,
+            roundsExecuted: 0,
+            participants: [],
+            validationIssues,
+            selfCheckIssues: [],
+            reviewIssueCount: 0,
+            governanceBinding,
+            bindGovernance: governanceRuntime.bindGovernance,
+            startedAtMs: start,
+          });
+          return result;
         }
-        loadedResumeSessionHandles = {};
       }
     }
   }

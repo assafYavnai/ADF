@@ -31,7 +31,8 @@ test("buildRunTelemetrySnapshot summarizes reviewer outcomes, llm economics, and
       provider: "codex",
       model: "gpt-5.4",
       role: "reviewer",
-      verdict: "approved",
+      verdict: "{\"verdict\":\"approved\",\"conceptual_groups\":[],\"residual_risks\":[],\"strengths\":[]}",
+      reviewer_status: "approved",
       round: 0,
       was_fallback: false,
     },
@@ -41,6 +42,7 @@ test("buildRunTelemetrySnapshot summarizes reviewer outcomes, llm economics, and
       model: "sonnet",
       role: "reviewer",
       verdict: "ERROR: claude timed out",
+      reviewer_status: "error",
       round: 0,
       was_fallback: false,
     },
@@ -55,6 +57,25 @@ test("buildRunTelemetrySnapshot summarizes reviewer outcomes, llm economics, and
     roundsCompleted: 1,
     participants,
     telemetryEvents: [
+      {
+        provenance: {
+          invocation_id: "00000000-0000-4000-8000-000000000001",
+          provider: "system",
+          model: "none",
+          reasoning: "none",
+          was_fallback: false,
+          source_path: "test",
+          timestamp: "2026-03-30T16:00:00.000Z",
+        },
+        category: "tool",
+        operation: "role-builder-reviewer",
+        latency_ms: 180,
+        success: true,
+        metadata: {
+          engine: "board-review",
+          session_status: "resumed",
+        },
+      },
       {
         provenance: {
           invocation_id: "11111111-1111-4111-8111-111111111111",
@@ -179,6 +200,8 @@ test("buildRunTelemetrySnapshot summarizes reviewer outcomes, llm economics, and
   ]);
   assert.equal(snapshot.engine_metrics.length, 3);
   assert.equal(snapshot.major_bottleneck_engine, "rules-compliance-enforcer");
+  assert.equal(snapshot.engine_metrics.find((entry) => entry.engine === "board-review")?.total_latency_ms, 180);
+  assert.equal(snapshot.engine_metrics.find((entry) => entry.engine === "board-review")?.llm_latency_ms, 100);
   assert.equal(snapshot.rule_metrics.checked_total, 3);
   assert.equal(snapshot.rule_metrics.non_compliant_total, 1);
   assert.equal(snapshot.rule_metrics.new_rule_proposal_total, 1);
