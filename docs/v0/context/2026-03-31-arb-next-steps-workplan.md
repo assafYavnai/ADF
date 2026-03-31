@@ -702,6 +702,21 @@ Current readiness result from `live-001` and `live-002`:
 - result note:
   - `docs/v0/context/2026-03-31-grouped-shrinking-readiness-live-001.md`
 
+Follow-up safety-layer batch (`safety-001`):
+
+- plain final sanity gate still failed
+- always-active safety rules improved the miss rate but still failed on `ARB-025`
+- `impact-based reactivation + safety subset + final sanity` approved cleanly
+- current implication:
+  - the leading live-integration candidate is no longer plain `grouped-shrinking`
+  - it is:
+    - `grouped-shrinking`
+    - plus always-active safety subset
+    - plus group-scope reactivation after failed review
+    - plus required final sanity gate
+- result note:
+  - `docs/v0/context/2026-03-31-grouped-shrinking-safety-layer-live-001.md`
+
 ## Reviewer Policy To Freeze In Implementation
 
 These discussion decisions should be implemented as part of Step 1.

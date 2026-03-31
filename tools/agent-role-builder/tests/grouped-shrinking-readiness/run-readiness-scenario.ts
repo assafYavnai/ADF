@@ -37,6 +37,8 @@ interface Config {
 interface ScenarioConfig {
   scenario_slug: string;
   final_full_sanity_sweep: boolean;
+  always_active_rule_ids?: string[];
+  keep_scope_active_on_failure?: boolean;
   fixture: {
     role_markdown_path: string;
     contract_json_path: string;
@@ -211,9 +213,13 @@ async function main(): Promise<void> {
   let currentArtifactText = priorState?.current_artifact_text ?? renderBundle(roleMarkdown, contractJsonText);
   let currentContractJsonText = priorState?.current_contract_json_text ?? contractJsonText;
   let currentRulebook = priorState?.current_rulebook ?? [...rulebook.rules];
+  const alwaysActiveRuleIds = new Set(scenario.always_active_rule_ids ?? []);
   const ruleState = new Map(currentRulebook.map((rule) => [rule.id, { active: true }]));
   for (const ruleId of priorState?.inactive_rule_ids ?? []) {
     ruleState.set(ruleId, { active: false });
+  }
+  for (const ruleId of alwaysActiveRuleIds) {
+    ruleState.set(ruleId, { active: true });
   }
   const cycleSummaries = priorState?.cycle_summaries ?? [];
   const reviewInvocations = priorState?.review_invocations ?? [];
@@ -396,7 +402,7 @@ async function main(): Promise<void> {
     await writeArtifactFiles(cycleDir, "artifact-after-fix", currentArtifactText);
     await writeFile(join(cycleDir, "fix-result.json"), JSON.stringify(fixResult, null, 2), "utf-8");
 
-    updateActiveRuleSet(ruleState, reviewResults);
+    updateActiveRuleSet(ruleState, reviewResults, alwaysActiveRuleIds, Boolean(scenario.keep_scope_active_on_failure));
     const cycleSummary: CycleSummary = {
       cycle,
       phase: "normal",
@@ -794,15 +800,25 @@ function normalizeFindings(results: ReviewTaskResult[]): NormalizedFinding[] {
   );
 }
 
-function updateActiveRuleSet(ruleState: Map<string, { active: boolean }>, results: ReviewTaskResult[]): void {
+function updateActiveRuleSet(
+  ruleState: Map<string, { active: boolean }>,
+  results: ReviewTaskResult[],
+  alwaysActiveRuleIds: Set<string>,
+  keepScopeActiveOnFailure: boolean
+): void {
   for (const result of results) {
-    for (const evaluation of result.reviewer_response?.evaluations ?? []) {
-      if (evaluation.status === "non_compliant") {
+    const evaluations = result.reviewer_response?.evaluations ?? [];
+    const keepWholeScopeActive = keepScopeActiveOnFailure && evaluations.some((evaluation) => evaluation.status === "non_compliant");
+    for (const evaluation of evaluations) {
+      if (keepWholeScopeActive || evaluation.status === "non_compliant") {
         ruleState.set(evaluation.rule_id, { active: true });
       } else {
         ruleState.set(evaluation.rule_id, { active: false });
       }
     }
+  }
+  for (const ruleId of alwaysActiveRuleIds) {
+    ruleState.set(ruleId, { active: true });
   }
 }
 
