@@ -1,7 +1,7 @@
 # Grouped Shrinking Readiness Plan
 
 Date: 2026-03-31
-Status: active sandbox-only readiness matrix
+Status: partial execution complete (`live-001` and `live-002` finished; `live-003` skipped by user request)
 
 ## Goal
 
@@ -85,6 +85,11 @@ Repeat the batch 3 times:
 - `batch-003`
 
 This gives 12 total runs without forcing all 12 into one fully contended batch.
+
+Execution note:
+
+- only `live-001` and `live-002` were actually executed
+- `live-003` was intentionally canceled before start to limit test time
 
 ## KPIs
 

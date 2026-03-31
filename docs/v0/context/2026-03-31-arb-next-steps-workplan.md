@@ -685,6 +685,23 @@ Next sandbox readiness matrix:
 - track this under:
   - `docs/v0/context/2026-03-31-grouped-shrinking-readiness-plan.md`
 
+Current readiness result from `live-001` and `live-002`:
+
+- plain `grouped-shrinking` approved on the role+contract pair
+- forced checkpoint/resume also approved
+- all 4 final-sanity variants failed by reopening findings after shrink-mode approval
+- the reopened findings clustered around:
+  - artifact-matrix authority / canonical paths
+  - output-category separation
+  - inherited governance semantics
+  - exact terminal-state wording
+- implication:
+  - keep `grouped-shrinking` as the frozen fast-path candidate
+  - do not change live ARB yet
+  - next sandbox step must add a retained safety layer instead of more broad shape comparisons
+- result note:
+  - `docs/v0/context/2026-03-31-grouped-shrinking-readiness-live-001.md`
+
 ## Reviewer Policy To Freeze In Implementation
 
 These discussion decisions should be implemented as part of Step 1.
