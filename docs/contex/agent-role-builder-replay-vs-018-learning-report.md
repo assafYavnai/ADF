@@ -580,7 +580,11 @@ This is the first step because it creates the reusable place where replay-vs-018
 
 Detailed plan: `docs/contex/learning-engine-fix-step-1-implementation-engine.md`
 
-Current draft status: bootstrap `implementation-engine` role, governed role contract draft, stricter invocation schema, governance-routing schema, clarified source-ref versus authority-doc split, writable-surface base version enforcement, and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending another independent review. `tools/implementation-engine/tool-contract.json` is currently governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
+Current draft status: bootstrap `implementation-engine` role, governed role contract draft, stricter invocation schema, governance-routing schema, clarified source-ref versus authority-doc split, writable-surface base version enforcement, and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending one final cleanup-and-review pass. `tools/implementation-engine/tool-contract.json` is currently governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
+
+Current known remaining issues are low-severity and text-level:
+- remove the undeclared override-policy exception so the authority-input model stays fail-closed across every surface
+- add runtime review configuration explicitly to the reviewer-facing target-governance checklist in `tools/implementation-engine/review-contract.json`
 
 Step 1 must also keep four boundaries frozen before the bootstrap governance set can be frozen:
 
