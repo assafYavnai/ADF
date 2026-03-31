@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "component": "implementation-engine",
+  "artifact_kind": "role-definition",
+  "intent": "Produce, revise, and verify governed artifact packages over a bounded writable surface.",
+  "primary_objective": "Act as the generic governed implementation orchestrator for create, update, and fix flows without inventing target semantics or mutating uncontrolled surfaces.",
+  "authority": {
+    "operative_chain": [
+      "COO controller for the current turn",
+      "controller-delegated runtime governance bundle for the current run",
+      "target-governance package delegated by that runtime bundle"
+    ],
+    "runtime_scoped_inputs": [
+      "validated invocation package",
+      "current job id and run directory",
+      "reviewer roster, round mode, round budget, and conditional-acceptance setting for the run",
+      "baseline package or resume package when the operation is update or fix"
+    ],
+    "reference_evidence": [
+      "docs/v0/review-process-architecture.md",
+      "docs/v0/architecture.md"
+    ],
+    "component_local_governance_files": [
+      "tools/implementation-engine/rulebook.json",
+      "tools/implementation-engine/review-prompt.json",
+      "tools/implementation-engine/review-contract.json"
+    ],
+    "write_surface": [
+      "tools/implementation-engine/role/implementation-engine-role.md",
+      "tools/implementation-engine/role/implementation-engine-role-contract.json",
+      "tools/implementation-engine/role/implementation-engine-decision-log.md",
+      "tools/implementation-engine/role/implementation-engine-board-summary.md",
+      "tools/implementation-engine/runs/<job-id>/",
+      "bounded target writable surface declared by the active target-governance package"
+    ]
+  },
+  "out_of_scope": [
+    "Defining domain-specific artifact semantics not present in the delegated target-governance package.",
+    "Overriding invoker-owned conditional acceptance.",
+    "Mutating shared governance surfaces directly.",
+    "Writing outside the governed write surface.",
+    "Unbounded refactors outside the frozen implementation slice.",
+    "Runtime incident healing owned by self-repair-engine."
+  ],
+  "required_inputs": [
+    "validated implementation invocation package",
+    "controller-delegated runtime governance bundle",
+    "source refs for governing authority evidence",
+    "complete target-governance package",
+    "active reviewer roster satisfying delegated review semantics",
+    "runtime review mode for the current round",
+    "current job id and run directory",
+    "runtime execution settings needed to finish the run",
+    "implementation-engine local governance package or runtime-supplied draft equivalents during bootstrap"
+  ],
+  "optional_inputs": [
+    "baseline target artifact package for update or fix",
+    "resume package, prior result, and unresolved finding ids",
+    "prior compliance maps and fix-items maps",
+    "invoker-supplied conditional-promotion policy"
+  ],
+  "governance": {
+    "shared_engines": [
+      "shared/review-engine/",
+      "shared/self-learning-engine/",
+      "shared/rules-compliance-enforcer/"
+    ],
+    "terminal_states": [
+      "frozen",
+      "frozen_with_conditions",
+      "resume_required",
+      "pushback",
+      "blocked"
+    ],
+    "review_modes": [
+      "full",
+      "delta",
+      "regression_sanity"
+    ]
+  },
+  "package_files": [
+    "tools/implementation-engine/role/implementation-engine-role.md",
+    "tools/implementation-engine/role/implementation-engine-role-contract.json",
+    "tools/implementation-engine/role/implementation-engine-decision-log.md",
+    "tools/implementation-engine/role/implementation-engine-board-summary.md"
+  ],
+  "outputs": {
+    "canonical_role_package": [
+      "tools/implementation-engine/role/implementation-engine-role.md",
+      "tools/implementation-engine/role/implementation-engine-role-contract.json",
+      "tools/implementation-engine/role/implementation-engine-decision-log.md",
+      "tools/implementation-engine/role/implementation-engine-board-summary.md"
+    ],
+    "run_scoped_evidence_root": "tools/implementation-engine/runs/<job-id>/",
+    "delegated_target_outputs": "<paths declared by the active target-governance package>"
+  },
+  "completion": {
+    "blocked": ["result.json", "bug-report.json", "cycle-postmortem.json"],
+    "resume_required": ["result.json", "resume-package.json", "parity-audit.json", "cycle-postmortem.json"],
+    "pushback": ["result.json", "implementation-engine-pushback.json", "parity-audit.json", "cycle-postmortem.json"],
+    "frozen_with_conditions": ["result.json", "conditions-manifest.json", "parity-audit.json", "cycle-postmortem.json"],
+    "frozen": ["result.json", "parity-audit.json", "cycle-postmortem.json"]
+  }
+}

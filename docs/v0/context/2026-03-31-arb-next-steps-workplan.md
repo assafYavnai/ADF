@@ -673,6 +673,18 @@ Current implication:
 - do not adopt the targeted hybrid yet
 - treat the missing governed companion contract package for `implementation-engine` as the next sandbox blocker before deciding any live ARB change
 
+Next sandbox readiness matrix:
+
+- freeze the chosen shape to `grouped-shrinking`
+- run only readiness checks from now on:
+  - role + contract pair
+  - final full sanity sweep
+  - forced checkpoint/resume
+  - repeatability across 3 batches
+- execute 4 scenarios in parallel per batch and repeat the batch 3 times
+- track this under:
+  - `docs/v0/context/2026-03-31-grouped-shrinking-readiness-plan.md`
+
 ## Reviewer Policy To Freeze In Implementation
 
 These discussion decisions should be implemented as part of Step 1.
