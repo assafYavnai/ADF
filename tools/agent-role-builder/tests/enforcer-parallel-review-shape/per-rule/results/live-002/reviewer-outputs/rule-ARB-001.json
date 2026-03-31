@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-001",
+  "reviewer_index": 0,
+  "response": {
+    "reviewer_id": "rule-ARB-001",
+    "scenario": "per-rule",
+    "scope_id": "ARB-001",
+    "evaluations": [
+      {
+        "rule_id": "ARB-001",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The authority model uses a flat subordinate list that treats governance documents as reporting authority instead of separating operative authority from reference evidence.",
+        "evidence_location": "Artifact markdown <authority> section; Artifact contract JSON role_requirements.authority.subordinate_to",
+        "evidence_quote": "- Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+        "why_it_matters": "This conflates binding runtime authority with static reference material, which creates governance ambiguity about what actually controls the role during a turn."
+      }
+    ],
+    "notes": [
+      "The same authority-structure defect appears in both the markdown artifact and the contract JSON."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 23481,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4113,
+    "total_tokens_out_estimated": 208,
+    "estimated_cost_usd": 0.023685,
+    "errors": []
+  }
+}

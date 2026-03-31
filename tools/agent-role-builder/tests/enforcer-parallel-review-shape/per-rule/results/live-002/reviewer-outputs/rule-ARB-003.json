@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-003",
+  "reviewer_index": 2,
+  "response": {
+    "reviewer_id": "rule-ARB-003",
+    "scenario": "per-rule",
+    "scope_id": "ARB-003",
+    "evaluations": [
+      {
+        "rule_id": "ARB-003",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Canonical promoted artifacts and run-scoped evidence are mixed together without explicit labels or full tool-relative path conventions.",
+        "evidence_location": "Artifact markdown: Step 5 'Resolve and promote' outputs, <outputs> section, and <completion> section; contract: role_requirements.outputs.artifacts and package_files",
+        "evidence_quote": "All artifacts written to output directory",
+        "why_it_matters": "This leaves downstream readers unable to tell whether a named file is the canonical frozen package or run-scoped evidence, and the missing full paths make governance, promotion, resume, and audit handling ambiguous. That is a significant lifecycle/control failure for freeze decisions."
+      }
+    ],
+    "notes": [
+      "The contract includes canonical paths in required_outputs, but the artifact-facing outputs/completion surfaces still use unlabeled relative names such as <slug>-role.md and result.json, so the required separation is not actually expressed where this rule applies."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 47910,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4135,
+    "total_tokens_out_estimated": 284,
+    "estimated_cost_usd": 0.024935,
+    "errors": []
+  }
+}

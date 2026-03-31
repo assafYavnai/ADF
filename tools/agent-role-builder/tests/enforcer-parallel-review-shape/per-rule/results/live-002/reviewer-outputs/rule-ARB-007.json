@@ -1,0 +1,32 @@
+{
+  "task_id": "rule-ARB-007",
+  "reviewer_index": 6,
+  "response": {
+    "reviewer_id": "rule-ARB-007",
+    "scenario": "per-rule",
+    "scope_id": "ARB-007",
+    "evaluations": [
+      {
+        "rule_id": "ARB-007",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Arbitration is referenced but not mechanically defined in Step 4 or guardrails: the artifact does not specify the trigger threshold, arbitrating actor, required evidence fields, or the limits on terminal-outcome effects.",
+        "evidence_location": "Artifact markdown <steps> Step 4; Artifact contract JSON governance; Artifact markdown <guardrails>",
+        "evidence_quote": "\"allow_single_arbitration_round\": true",
+        "why_it_matters": "Without a concrete arbitration trigger, named arbitrator, evidence record, and explicit constraint on which disagreements arbitration may resolve, board outcomes are left to interpretation. That creates governance ambiguity around freeze vs pushback decisions and makes result evidence non-verifiable downstream."
+      }
+    ],
+    "notes": []
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 30026,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4127,
+    "total_tokens_out_estimated": 229,
+    "estimated_cost_usd": 0.02407,
+    "errors": []
+  }
+}

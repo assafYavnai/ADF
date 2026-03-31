@@ -1,0 +1,32 @@
+{
+  "task_id": "rule-ARB-010",
+  "reviewer_index": 9,
+  "response": {
+    "reviewer_id": "rule-ARB-010",
+    "scenario": "per-rule",
+    "scope_id": "ARB-010",
+    "evaluations": [
+      {
+        "rule_id": "ARB-010",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact numbers context-gathering items as 1-4 and also starts execution steps at 1 without labeling context-gathering as a precondition phase before Step 1.",
+        "evidence_location": "Artifact markdown: <context-gathering> section and <steps> section",
+        "evidence_quote": "<context-gathering>\n1. Read the role definition request and validate against schema",
+        "why_it_matters": "This mixes precondition work into the numbered flow and creates the exact ambiguity the rule is meant to prevent: it is unclear whether validation is a precondition or part of Step 1, which can confuse execution order and governance interpretation."
+      }
+    ],
+    "notes": []
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 39050,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4106,
+    "total_tokens_out_estimated": 201,
+    "estimated_cost_usd": 0.023545,
+    "errors": []
+  }
+}

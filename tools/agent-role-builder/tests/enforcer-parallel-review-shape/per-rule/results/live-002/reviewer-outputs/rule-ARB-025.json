@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-025",
+  "reviewer_index": 23,
+  "response": {
+    "reviewer_id": "rule-ARB-025",
+    "scenario": "per-rule",
+    "scope_id": "ARB-025",
+    "evaluations": [
+      {
+        "rule_id": "ARB-025",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The required inputs section does not enumerate all external prerequisites that govern authority validation and board execution semantics.",
+        "evidence_location": "Artifact markdown `<inputs>` > `Required`; corroborated by contract fields `board_roster`, `governance`, and `runtime`",
+        "evidence_quote": "Required:\n- Role definition request JSON (matching RoleBuilderRequest schema)\n- Source refs pointing to authority documents",
+        "why_it_matters": "This role’s workflow explicitly depends on runtime-supplied board composition, governance settings, and runtime configuration to validate reviewer pairing, round limits, terminal handling, and live execution behavior. Omitting those prerequisites from required inputs leaves execution and review semantics under-specified and can cause governance failure or downstream confusion."
+      }
+    ],
+    "notes": [
+      "The contract includes the omitted prerequisites (`board_roster`, `governance`, `runtime`), but `<inputs>` does not enumerate them as required inputs."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 46719,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4078,
+    "total_tokens_out_estimated": 288,
+    "estimated_cost_usd": 0.02471,
+    "errors": []
+  }
+}

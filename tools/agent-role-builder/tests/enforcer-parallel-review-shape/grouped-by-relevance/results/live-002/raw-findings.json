@@ -1,0 +1,493 @@
+[
+  {
+    "task_id": "group-authority-and-governance",
+    "scope_id": "authority-and-governance",
+    "started_at": "2026-03-31T09:49:17.582Z",
+    "completed_at": "2026-03-31T09:50:53.440Z",
+    "latency_ms": 95858,
+    "success": true,
+    "reviewer_response": {
+      "reviewer_id": "group-authority-and-governance",
+      "scenario": "grouped-by-relevance",
+      "scope_id": "authority-and-governance",
+      "evaluations": [
+        {
+          "rule_id": "ARB-001",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The authority model uses a flat superior list and mixes reference documents into operative authority instead of declaring a precedence chain.",
+          "evidence_location": "Artifact markdown <authority>; Artifact contract JSON role_requirements.authority.subordinate_to",
+          "evidence_quote": "Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+          "why_it_matters": "This conflates binding runtime authority with static reference material, so reviewers and runtime cannot tell what actually governs the role when sources disagree."
+        },
+        {
+          "rule_id": "ARB-017",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The role restates local review and freeze behavior without deriving that order and semantics from explicit shared governing sources.",
+          "evidence_location": "Artifact markdown <authority>; Artifact markdown <guardrails>; Artifact contract JSON governance",
+          "evidence_quote": "Never freeze a role package with material pushback remaining",
+          "why_it_matters": "Without naming the governing shared contracts in precedence order, local review semantics can drift from platform policy and static docs can appear to outrank the live governing contract."
+        },
+        {
+          "rule_id": "ARB-019",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The artifact describes writes and promotions, but it never declares an explicit governed write boundary rooted in the active runtime contract.",
+          "evidence_location": "Artifact markdown <steps> step 5; Artifact markdown <outputs>; Artifact contract JSON required_outputs",
+          "evidence_quote": "If frozen: promote to canonical directory with lock",
+          "why_it_matters": "This leaves the writable surface implicit across drafts, runtime artifacts, review rounds, and canonical outputs, which weakens governance over where the role is allowed to write."
+        },
+        {
+          "rule_id": "ARB-020",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The durable authority chain includes static reference documents as superiors and does not separate operative authority from reference evidence.",
+          "evidence_location": "Artifact markdown <authority>; Artifact contract JSON role_requirements.authority",
+          "evidence_quote": "Reports to: COO",
+          "why_it_matters": "Authority layers must distinguish controller/runtime authority from reference material; otherwise the role's durable governance model becomes ambiguous and non-operative documents can be misread as binding."
+        },
+        {
+          "rule_id": "ARB-021",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The role package includes multiple governance mechanics that are not tied back to the declared authority set or inherited contracts.",
+          "evidence_location": "Artifact markdown <guardrails>; Artifact contract JSON governance",
+          "evidence_quote": "Every reviewer pair must contain one Codex and one Claude reviewer",
+          "why_it_matters": "Unsourced local governance behavior undermines review legitimacy because freeze, board composition, arbitration, and provenance rules are asserted without a declared governing basis."
+        },
+        {
+          "rule_id": "ARB-024",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The role does not declare the component-local governance files it depends on and does not identify inherited runtime obligations by reference.",
+          "evidence_location": "Artifact markdown <context-gathering>; Artifact markdown <guardrails>; Artifact contract JSON source_refs",
+          "evidence_quote": "Load all required source_refs and verify they exist",
+          "why_it_matters": "Governed roles need explicit local governance-file dependencies and clear inherited obligations so runtime and reviewers know which files must be loaded versus which policies are shared by reference."
+        },
+        {
+          "rule_id": "ARB-025",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The required inputs section omits external prerequisites that the workflow depends on, including board composition and governance/runtime configuration.",
+          "evidence_location": "Artifact markdown <inputs>; Artifact markdown <steps> step 1 and step 4; Artifact contract JSON board_roster/governance/runtime",
+          "evidence_quote": "Validate board roster pair composition",
+          "why_it_matters": "The workflow cannot validate authority, execute review, or reach a terminal decision from the declared required inputs alone, so critical runtime prerequisites are left implicit."
+        }
+      ],
+      "notes": [
+        "Findings are limited to the assigned authority-and-governance rules and the supplied artifact/contract."
+      ]
+    },
+    "error_message": null,
+    "invocation": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "attempts": [
+        {
+          "provenance": {
+            "invocation_id": "d8bed757-b73b-4e4c-a4b7-7476e8b13b6d",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "reasoning": "high",
+            "was_fallback": false,
+            "source_path": "tools/agent-role-builder/tests/enforcer-parallel-review-shape/grouped-by-relevance/group-authority-and-governance",
+            "timestamp": "2026-03-31T09:50:53.440Z"
+          },
+          "latency_ms": 95855,
+          "success": true,
+          "session_status": "none",
+          "usage": {
+            "prompt_chars": 21425,
+            "response_chars": 5026,
+            "tokens_in_estimated": 5357,
+            "tokens_out_estimated": 1257,
+            "estimated_cost_usd": 0.04564,
+            "token_estimation_basis": "char_heuristic_v1",
+            "cost_estimation_basis": "configured_model_rate_v1"
+          }
+        }
+      ],
+      "session_statuses": [
+        "none"
+      ],
+      "tokens_in_estimated": 5357,
+      "tokens_out_estimated": 1257,
+      "estimated_cost_usd": 0.04564
+    }
+  },
+  {
+    "task_id": "group-scope-and-identity",
+    "scope_id": "scope-and-identity",
+    "started_at": "2026-03-31T09:49:17.582Z",
+    "completed_at": "2026-03-31T09:50:16.833Z",
+    "latency_ms": 59251,
+    "success": true,
+    "reviewer_response": {
+      "reviewer_id": "group-scope-and-identity",
+      "scenario": "grouped-by-relevance",
+      "scope_id": "scope-and-identity",
+      "evaluations": [
+        {
+          "rule_id": "ARB-006",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The markdown `<scope>` exclusion list does not exactly match the contract `out_of_scope` list and includes extra undeduplicated exclusions.",
+          "evidence_location": "Artifact markdown `<scope>` -> `Not in scope`; Artifact contract JSON -> `out_of_scope`",
+          "evidence_quote": "Creating tools or workflows",
+          "why_it_matters": "This rule requires one deduplicated exclusion set with exact markdown-to-contract alignment. The current mismatch creates conflicting scope boundaries for reviewers and downstream consumers."
+        },
+        {
+          "rule_id": "ARB-018",
+          "status": "non_compliant",
+          "severity": "minor",
+          "summary": "The canonical `intent` field is written as a bootstrap-specific invocation description rather than an enduring role mission.",
+          "evidence_location": "Artifact contract JSON -> `intent`",
+          "evidence_quote": "This is the bootstrap act",
+          "why_it_matters": "Canonical identity fields should remain stable across runs. Encoding bootstrap or self-creation context into `intent` makes the role identity transient instead of timeless."
+        },
+        {
+          "rule_id": "ARB-022",
+          "status": "compliant",
+          "severity": "none",
+          "summary": "The out-of-scope list stays exclusion-only and does not mix positive in-scope authority into the exclusion bullets.",
+          "evidence_location": "Artifact markdown `<scope>` -> `Not in scope`",
+          "evidence_quote": "Making runtime decisions",
+          "why_it_matters": "This matters because polarity-pure scope sections keep inclusion and exclusion semantics interpretable, and the out-of-scope bullets here remain phrased as exclusions only."
+        }
+      ],
+      "notes": [
+        "Evaluation limited to ARB-006, ARB-018, and ARB-022 only."
+      ]
+    },
+    "error_message": null,
+    "invocation": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "attempts": [
+        {
+          "provenance": {
+            "invocation_id": "645b3873-948f-497e-8520-88ec3fdee94d",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "reasoning": "high",
+            "was_fallback": false,
+            "source_path": "tools/agent-role-builder/tests/enforcer-parallel-review-shape/grouped-by-relevance/group-scope-and-identity",
+            "timestamp": "2026-03-31T09:50:16.833Z"
+          },
+          "latency_ms": 59241,
+          "success": true,
+          "session_status": "none",
+          "usage": {
+            "prompt_chars": 17791,
+            "response_chars": 1769,
+            "tokens_in_estimated": 4448,
+            "tokens_out_estimated": 443,
+            "estimated_cost_usd": 0.028885,
+            "token_estimation_basis": "char_heuristic_v1",
+            "cost_estimation_basis": "configured_model_rate_v1"
+          }
+        }
+      ],
+      "session_statuses": [
+        "none"
+      ],
+      "tokens_in_estimated": 4448,
+      "tokens_out_estimated": 443,
+      "estimated_cost_usd": 0.028885
+    }
+  },
+  {
+    "task_id": "group-workflow-rounds-and-terminals",
+    "scope_id": "workflow-rounds-and-terminals",
+    "started_at": "2026-03-31T09:49:17.583Z",
+    "completed_at": "2026-03-31T09:51:20.625Z",
+    "latency_ms": 123042,
+    "success": true,
+    "reviewer_response": {
+      "reviewer_id": "group-workflow-rounds-and-terminals",
+      "scenario": "grouped-by-relevance",
+      "scope_id": "workflow-rounds-and-terminals",
+      "evaluations": [
+        {
+          "rule_id": "ARB-002",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The freeze threshold uses the term \"material pushback\" but never defines that concept canonically.",
+          "evidence_location": "<guardrails>; Artifact contract JSON primary_objective",
+          "evidence_quote": "producing frozen role packages only when no material pushback remains",
+          "why_it_matters": "Without a single explicit definition for \"material pushback,\" the freeze condition is not testable and different sections or reviewers can interpret the threshold differently."
+        },
+        {
+          "rule_id": "ARB-004",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The terminal states are named but their triggers are not defined as mutually exclusive, testable predicates.",
+          "evidence_location": "<completion>; <steps> 4; <steps> 5",
+          "evidence_quote": "Terminal status reached (frozen, pushback, blocked, or resume_required)",
+          "why_it_matters": "A governed review cannot converge reliably if run evidence does not tell the operator exactly what causes frozen versus pushback versus blocked versus resume_required."
+        },
+        {
+          "rule_id": "ARB-007",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "Arbitration is enabled in governance but has no mechanical definition for trigger, actor, evidence, or terminal-state effect.",
+          "evidence_location": "Artifact contract JSON governance",
+          "evidence_quote": "\"allow_single_arbitration_round\": true",
+          "why_it_matters": "An enabled but undefined arbitration path creates an ungoverned escape hatch in a multi-round review process, so outcomes cannot be audited consistently."
+        },
+        {
+          "rule_id": "ARB-009",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "Completion is described generically rather than separately for each terminal state and its required artifacts.",
+          "evidence_location": "<completion>",
+          "evidence_quote": "All artifacts written to output directory",
+          "why_it_matters": "Pushback, blocked, and resume_required runs cannot be judged complete consistently unless each state has its own explicit completion artifact set."
+        },
+        {
+          "rule_id": "ARB-010",
+          "status": "non_compliant",
+          "severity": "minor",
+          "summary": "Context-gathering is separated from execution steps, but it is still numbered like part of the main step flow instead of being labeled as preconditions before Step 1.",
+          "evidence_location": "<context-gathering>; <steps>",
+          "evidence_quote": "1. Read the role definition request and validate against schema",
+          "why_it_matters": "Reusing numbered lists for both context-gathering and execution leaves the workflow ambiguous about whether context-gathering is step 0, step 1, or a separate precondition phase."
+        },
+        {
+          "rule_id": "ARB-011",
+          "status": "not_applicable",
+          "severity": "none",
+          "summary": "The supplied artifact does not expose the board.ts revision loop or a fix-items map, so carry-forward tracking by finding ID cannot be evaluated directly here.",
+          "evidence_location": "<steps> 4",
+          "evidence_quote": "Iterate up to max_review_rounds",
+          "why_it_matters": "This rule targets implementation-level round-to-round finding tracking structures that are not present in the supplied markdown or contract artifact."
+        },
+        {
+          "rule_id": "ARB-013",
+          "status": "compliant",
+          "severity": "none",
+          "summary": "The artifact defines an explicit preservation mechanism for decision history by stating that the decision log is appended across runs.",
+          "evidence_location": "<outputs>; Artifact contract JSON role_requirements.outputs.artifacts",
+          "evidence_quote": "Prose history of board decisions (appended across runs)",
+          "why_it_matters": "The append-based mechanism makes preservation of prior decision history testable and avoids ambiguity about whether update or fix runs overwrite the existing log."
+        },
+        {
+          "rule_id": "ARB-015",
+          "status": "compliant",
+          "severity": "none",
+          "summary": "The visible artifact-writing guards keep universal outputs ungated and reserve conditions for state-specific outputs.",
+          "evidence_location": "<steps> 5",
+          "evidence_quote": "Write decision log, board summary, result.json",
+          "why_it_matters": "This structure preserves cross-state artifacts on every terminal outcome while limiting conditional writes to artifacts that are clearly state-specific."
+        },
+        {
+          "rule_id": "ARB-023",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The governed multi-round review is collapsed into a generic board-review step instead of an ordered per-round sub-sequence with required artifacts at each sub-step.",
+          "evidence_location": "<steps> 4; <outputs>; <completion>",
+          "evidence_quote": "### 4. Execute live board review",
+          "why_it_matters": "Without an explicit round structure and bound per-round artifacts, the inherited governed review process is not auditable, reproducible, or complete enough for terminal-state evaluation."
+        }
+      ],
+      "notes": [
+        "Evaluation was limited to the supplied markdown artifact and contract JSON; implementation files such as board.ts were not provided for direct inspection."
+      ]
+    },
+    "error_message": null,
+    "invocation": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "attempts": [
+        {
+          "provenance": {
+            "invocation_id": "efac15bb-2cb9-4258-ad67-6ec8d577788b",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "reasoning": "high",
+            "was_fallback": false,
+            "source_path": "tools/agent-role-builder/tests/enforcer-parallel-review-shape/grouped-by-relevance/group-workflow-rounds-and-terminals",
+            "timestamp": "2026-03-31T09:51:20.625Z"
+          },
+          "latency_ms": 123030,
+          "success": true,
+          "session_status": "none",
+          "usage": {
+            "prompt_chars": 24234,
+            "response_chars": 5590,
+            "tokens_in_estimated": 6059,
+            "tokens_out_estimated": 1398,
+            "estimated_cost_usd": 0.051265,
+            "token_estimation_basis": "char_heuristic_v1",
+            "cost_estimation_basis": "configured_model_rate_v1"
+          }
+        }
+      ],
+      "session_statuses": [
+        "none"
+      ],
+      "tokens_in_estimated": 6059,
+      "tokens_out_estimated": 1398,
+      "estimated_cost_usd": 0.051265
+    }
+  },
+  {
+    "task_id": "group-artifact-lifecycle-and-outputs",
+    "scope_id": "artifact-lifecycle-and-outputs",
+    "started_at": "2026-03-31T09:50:16.834Z",
+    "completed_at": "2026-03-31T09:51:15.756Z",
+    "latency_ms": 58922,
+    "success": true,
+    "reviewer_response": {
+      "reviewer_id": "group-artifact-lifecycle-and-outputs",
+      "scenario": "grouped-by-relevance",
+      "scope_id": "artifact-lifecycle-and-outputs",
+      "evaluations": [
+        {
+          "rule_id": "ARB-003",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "Canonical package artifacts and run-scoped evidence are not separated or explicitly labeled in the artifact declarations.",
+          "evidence_location": "Artifact markdown <outputs> section; Artifact markdown Step 5 Output; Artifact markdown <completion> section",
+          "evidence_quote": "Artifacts:\n- <slug>-role.md -- Tagged workflow markdown defining the agent role",
+          "why_it_matters": "The role file, contract, decision log, board summary, rounds, session registry, and result evidence are described across the workflow without a canonical-versus-evidence split or explicit path conventions. That creates artifact lifecycle ambiguity around what is promoted on freeze versus what is always written per run."
+        },
+        {
+          "rule_id": "ARB-008",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "Required outputs are not declared with full tool-relative canonical paths in the <outputs> section, and contract package file references fall back to basenames.",
+          "evidence_location": "Artifact markdown <outputs> section; Artifact contract JSON.required_outputs; Artifact contract JSON.package_files",
+          "evidence_quote": "- <slug>-role.md -- Tagged workflow markdown defining the agent role",
+          "why_it_matters": "The contract's required_outputs use full canonical paths under tools/agent-role-builder/role/, but the <outputs> section uses slug templates and package_files uses basename-only paths such as agent-role-builder-role.md. That breaks exact path matching and leaves canonical package identity ambiguous."
+        },
+        {
+          "rule_id": "ARB-016",
+          "status": "non_compliant",
+          "severity": "blocking",
+          "summary": "There is no single authoritative artifact matrix defining artifact class, canonical path/root, and exact lifecycle behavior across operations and terminal states.",
+          "evidence_location": "Artifact markdown <outputs> section; Artifact markdown <steps>; Artifact markdown <completion> section; Artifact contract JSON.required_outputs; Artifact contract JSON.package_files; Artifact contract JSON.role_requirements.outputs",
+          "evidence_quote": "All artifacts written to output directory",
+          "why_it_matters": "Artifact authority is split across multiple sections with conflicting representations: full paths in required_outputs, basenames in package_files, slug templates in <outputs>, and implicit state handling in Step 5 and completion. Create/update/fix behavior and frozen/pushback/blocked/resume_required write semantics are not defined in one governing matrix, which prevents safe governance of the role package before freeze."
+        }
+      ],
+      "notes": [
+        "Review limited to assigned rules ARB-003, ARB-008, and ARB-016."
+      ]
+    },
+    "error_message": null,
+    "invocation": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "attempts": [
+        {
+          "provenance": {
+            "invocation_id": "0310dcfa-fc77-4a20-a0d0-abe51bcf8d9b",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "reasoning": "high",
+            "was_fallback": false,
+            "source_path": "tools/agent-role-builder/tests/enforcer-parallel-review-shape/grouped-by-relevance/group-artifact-lifecycle-and-outputs",
+            "timestamp": "2026-03-31T09:51:15.756Z"
+          },
+          "latency_ms": 58921,
+          "success": true,
+          "session_status": "none",
+          "usage": {
+            "prompt_chars": 18368,
+            "response_chars": 2781,
+            "tokens_in_estimated": 4592,
+            "tokens_out_estimated": 696,
+            "estimated_cost_usd": 0.0334,
+            "token_estimation_basis": "char_heuristic_v1",
+            "cost_estimation_basis": "configured_model_rate_v1"
+          }
+        }
+      ],
+      "session_statuses": [
+        "none"
+      ],
+      "tokens_in_estimated": 4592,
+      "tokens_out_estimated": 696,
+      "estimated_cost_usd": 0.0334
+    }
+  },
+  {
+    "task_id": "group-validation-and-current-vs-target",
+    "scope_id": "validation-and-current-vs-target",
+    "started_at": "2026-03-31T09:50:53.441Z",
+    "completed_at": "2026-03-31T09:51:37.509Z",
+    "latency_ms": 44068,
+    "success": true,
+    "reviewer_response": {
+      "reviewer_id": "group-validation-and-current-vs-target",
+      "scenario": "grouped-by-relevance",
+      "scope_id": "validation-and-current-vs-target",
+      "evaluations": [
+        {
+          "rule_id": "ARB-005",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "Step 3 claims out-of-scope validation, but it does not specify semantic keyword-based coverage or executed-check reporting for that validation.",
+          "evidence_location": "Artifact markdown <steps> section, Step 3; Artifact contract JSON role_requirements.steps[2].actions[2]",
+          "evidence_quote": "Verify out_of_scope items represented",
+          "why_it_matters": "This states a claimed self-check without requiring the semantic matching the rule calls for. That leaves room for a self-check to report passed while missing conceptually covered out-of-scope items or relying on brittle literal matching."
+        },
+        {
+          "rule_id": "ARB-014",
+          "status": "non_compliant",
+          "severity": "major",
+          "summary": "The steps are written as if they describe implemented behavior, but they do not label whether they are current implementation behavior or target-state behavior.",
+          "evidence_location": "Artifact markdown <steps> section; Artifact contract JSON role_requirements.steps",
+          "evidence_quote": "### 3. Self-check coherence",
+          "why_it_matters": "Without explicit current-vs-target labels, readers will treat these steps as statements of actual implementation. If any step is aspirational or only partially implemented, the role creates false expectations and review confusion."
+        }
+      ],
+      "notes": [
+        "Evaluation is limited to the supplied markdown artifact and contract JSON; validator.ts was not supplied."
+      ]
+    },
+    "error_message": null,
+    "invocation": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "attempts": [
+        {
+          "provenance": {
+            "invocation_id": "b8d1e2a5-e786-4b67-acbb-e0025be500dc",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "reasoning": "high",
+            "was_fallback": false,
+            "source_path": "tools/agent-role-builder/tests/enforcer-parallel-review-shape/grouped-by-relevance/group-validation-and-current-vs-target",
+            "timestamp": "2026-03-31T09:51:37.509Z"
+          },
+          "latency_ms": 44067,
+          "success": true,
+          "session_status": "none",
+          "usage": {
+            "prompt_chars": 17845,
+            "response_chars": 1572,
+            "tokens_in_estimated": 4462,
+            "tokens_out_estimated": 393,
+            "estimated_cost_usd": 0.028205,
+            "token_estimation_basis": "char_heuristic_v1",
+            "cost_estimation_basis": "configured_model_rate_v1"
+          }
+        }
+      ],
+      "session_statuses": [
+        "none"
+      ],
+      "tokens_in_estimated": 4462,
+      "tokens_out_estimated": 393,
+      "estimated_cost_usd": 0.028205
+    }
+  }
+]

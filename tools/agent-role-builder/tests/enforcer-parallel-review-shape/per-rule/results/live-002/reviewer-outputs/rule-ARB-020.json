@@ -1,0 +1,32 @@
+{
+  "task_id": "rule-ARB-020",
+  "reviewer_index": 18,
+  "response": {
+    "reviewer_id": "rule-ARB-020",
+    "scenario": "per-rule",
+    "scope_id": "ARB-020",
+    "evaluations": [
+      {
+        "rule_id": "ARB-020",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The durable authority model treats static reference documents as superiors and does not define an operative precedence chain across controller governance, runtime contract, request/config, and reference evidence.",
+        "evidence_location": "Artifact markdown <authority> section; Artifact contract JSON role_requirements.authority.subordinate_to",
+        "evidence_quote": "Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+        "why_it_matters": "ARB-020 requires durable authority layers to use operative governance sources only and to classify reference documents separately unless explicitly promoted. Listing file references as superiors collapses reference evidence into authority, and the artifact also leaves the winning order between controller governance, runtime contract, request/config, and reference evidence unspecified, which creates governance ambiguity."
+      }
+    ],
+    "notes": []
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 32426,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4112,
+    "total_tokens_out_estimated": 259,
+    "estimated_cost_usd": 0.024445,
+    "errors": []
+  }
+}

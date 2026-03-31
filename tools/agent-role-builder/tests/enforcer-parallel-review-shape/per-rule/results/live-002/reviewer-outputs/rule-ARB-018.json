@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-018",
+  "reviewer_index": 16,
+  "response": {
+    "reviewer_id": "rule-ARB-018",
+    "scenario": "per-rule",
+    "scope_id": "ARB-018",
+    "evaluations": [
+      {
+        "rule_id": "ARB-018",
+        "status": "non_compliant",
+        "severity": "minor",
+        "summary": "The canonical contract intent is written as a bootstrap/run-specific statement instead of an enduring mission for the role package.",
+        "evidence_location": "Artifact contract JSON.intent",
+        "evidence_quote": "\"Define the governed role for the agent-role-builder tool itself. This is the bootstrap act\"",
+        "why_it_matters": "Canonical identity fields should remain valid across runs. Framing intent as a one-time bootstrap act makes the role package sound tied to this specific invocation rather than the standing purpose of the Agent Role Builder."
+      }
+    ],
+    "notes": [
+      "The role markdown and role_summary describe a stable enduring purpose; the issue is isolated to the contract intent field."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 23372,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4057,
+    "total_tokens_out_estimated": 211,
+    "estimated_cost_usd": 0.02345,
+    "errors": []
+  }
+}

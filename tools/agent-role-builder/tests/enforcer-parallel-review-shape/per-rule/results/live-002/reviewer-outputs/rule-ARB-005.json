@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-005",
+  "reviewer_index": 4,
+  "response": {
+    "reviewer_id": "rule-ARB-005",
+    "scenario": "per-rule",
+    "scope_id": "ARB-005",
+    "evaluations": [
+      {
+        "rule_id": "ARB-005",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Step 3 requires out-of-scope verification, but the artifact only states a generic representation check and does not require semantic concept matching or evidence of which concepts were actually checked.",
+        "evidence_location": "Artifact markdown `<steps>` section, Step 3 `Self-check coherence`; mirrored in contract `role_requirements.steps[2].actions`",
+        "evidence_quote": "Verify out_of_scope items represented",
+        "why_it_matters": "This leaves the self-check free to report success without demonstrating that each out_of_scope concept was actually validated. The assigned rule requires semantic coverage checks, not a vague or potentially literal-item presence check, because otherwise false 'passed' results can slip through governance."
+      }
+    ],
+    "notes": [
+      "No `validator.ts` implementation was supplied, so this evaluation is based on the Step 3 self-check contract defined in the artifact and mirrored contract JSON."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 36679,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4159,
+    "total_tokens_out_estimated": 269,
+    "estimated_cost_usd": 0.02483,
+    "errors": []
+  }
+}

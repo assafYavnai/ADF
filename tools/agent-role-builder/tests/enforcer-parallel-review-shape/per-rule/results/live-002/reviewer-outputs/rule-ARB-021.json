@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-021",
+  "reviewer_index": 19,
+  "response": {
+    "reviewer_id": "rule-ARB-021",
+    "scenario": "per-rule",
+    "scope_id": "ARB-021",
+    "evaluations": [
+      {
+        "rule_id": "ARB-021",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role package embeds governance mechanics in the durable role without citing them to the declared authority set or an inherited contract.",
+        "evidence_location": "Artifact contract JSON > governance",
+        "evidence_quote": "\"allow_single_arbitration_round\": true",
+        "why_it_matters": "ARB-021 requires each included governance behavior to be grounded in the declared authority list or inherited contracts. Leaving board/arbitration/terminal-policy mechanics uncited in the role package hard-codes provisional runtime policy into durable governance and creates downstream ambiguity about what is actually authorized."
+      }
+    ],
+    "notes": [
+      "The package names authorities and source_refs, but it does not map specific governance behaviors to those governing sources."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 63826,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4094,
+    "total_tokens_out_estimated": 229,
+    "estimated_cost_usd": 0.023905,
+    "errors": []
+  }
+}

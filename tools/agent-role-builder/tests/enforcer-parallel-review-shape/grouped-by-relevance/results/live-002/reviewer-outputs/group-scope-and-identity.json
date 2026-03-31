@@ -1,0 +1,52 @@
+{
+  "task_id": "group-scope-and-identity",
+  "reviewer_index": 1,
+  "response": {
+    "reviewer_id": "group-scope-and-identity",
+    "scenario": "grouped-by-relevance",
+    "scope_id": "scope-and-identity",
+    "evaluations": [
+      {
+        "rule_id": "ARB-006",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The markdown `<scope>` exclusion list does not exactly match the contract `out_of_scope` list and includes extra undeduplicated exclusions.",
+        "evidence_location": "Artifact markdown `<scope>` -> `Not in scope`; Artifact contract JSON -> `out_of_scope`",
+        "evidence_quote": "Creating tools or workflows",
+        "why_it_matters": "This rule requires one deduplicated exclusion set with exact markdown-to-contract alignment. The current mismatch creates conflicting scope boundaries for reviewers and downstream consumers."
+      },
+      {
+        "rule_id": "ARB-018",
+        "status": "non_compliant",
+        "severity": "minor",
+        "summary": "The canonical `intent` field is written as a bootstrap-specific invocation description rather than an enduring role mission.",
+        "evidence_location": "Artifact contract JSON -> `intent`",
+        "evidence_quote": "This is the bootstrap act",
+        "why_it_matters": "Canonical identity fields should remain stable across runs. Encoding bootstrap or self-creation context into `intent` makes the role identity transient instead of timeless."
+      },
+      {
+        "rule_id": "ARB-022",
+        "status": "compliant",
+        "severity": "none",
+        "summary": "The out-of-scope list stays exclusion-only and does not mix positive in-scope authority into the exclusion bullets.",
+        "evidence_location": "Artifact markdown `<scope>` -> `Not in scope`",
+        "evidence_quote": "Making runtime decisions",
+        "why_it_matters": "This matters because polarity-pure scope sections keep inclusion and exclusion semantics interpretable, and the out-of-scope bullets here remain phrased as exclusions only."
+      }
+    ],
+    "notes": [
+      "Evaluation limited to ARB-006, ARB-018, and ARB-022 only."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 59241,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4448,
+    "total_tokens_out_estimated": 443,
+    "estimated_cost_usd": 0.028885,
+    "errors": []
+  }
+}

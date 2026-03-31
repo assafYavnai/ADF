@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-016",
+  "reviewer_index": 14,
+  "response": {
+    "reviewer_id": "rule-ARB-016",
+    "scenario": "per-rule",
+    "scope_id": "ARB-016",
+    "evaluations": [
+      {
+        "rule_id": "ARB-016",
+        "status": "non_compliant",
+        "severity": "blocking",
+        "summary": "The package does not define one authoritative artifact matrix; artifact authority is split across multiple sections, uses basename or placeholder paths in several places, and omits explicit write lifecycle behavior by operation and terminal state.",
+        "evidence_location": "Artifact markdown `<steps>`, `<outputs>`, and `<completion>`; contract `required_outputs`, `role_requirements.steps`, `role_requirements.outputs.artifacts`, and `package_files`",
+        "evidence_quote": "\"<slug>-role.md\"; \"tools/agent-role-builder/role/agent-role-builder-role.md\"; \"If frozen: promote to canonical directory with lock\"",
+        "why_it_matters": "Without a single canonical matrix that declares each artifact once with its class, canonical path/root, and exact create/update/fix plus terminal-state lifecycle, downstream execution and governance cannot reliably determine which paths are authoritative, which artifacts are canonical versus run-scoped evidence, or how each artifact must be preserved, appended, replaced, or created in each terminal state."
+      }
+    ],
+    "notes": [
+      "No section provides a complete per-artifact lifecycle matrix covering create, update, fix, and frozen/pushback/blocked/resume_required terminal states."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 44524,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4119,
+    "total_tokens_out_estimated": 342,
+    "estimated_cost_usd": 0.025725,
+    "errors": []
+  }
+}

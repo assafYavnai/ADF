@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-008",
+  "reviewer_index": 7,
+  "response": {
+    "reviewer_id": "rule-ARB-008",
+    "scenario": "per-rule",
+    "scope_id": "ARB-008",
+    "evaluations": [
+      {
+        "rule_id": "ARB-008",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact <outputs> section and contract package_files use basename or slug-template paths instead of the full canonical tool-relative paths required by the contract's required_outputs list.",
+        "evidence_location": "Artifact markdown <outputs> section; Artifact contract JSON package_files",
+        "evidence_quote": "\"- <slug>-role.md\"",
+        "why_it_matters": "ARB-008 requires one exact canonical path representation across the <outputs> section and contract package_files. Using basename and slug-template forms while required_outputs uses full paths creates path ambiguity for packaging, promotion, and governance validation."
+      }
+    ],
+    "notes": [
+      "Contract required_outputs uses full canonical paths, but <outputs> and package_files do not match that representation."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 19409,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4099,
+    "total_tokens_out_estimated": 229,
+    "estimated_cost_usd": 0.02393,
+    "errors": []
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-015",
+  "reviewer_index": 13,
+  "response": {
+    "reviewer_id": "rule-ARB-015",
+    "scenario": "per-rule",
+    "scope_id": "ARB-015",
+    "evaluations": [
+      {
+        "rule_id": "ARB-015",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact and contract use terminal-state-specific artifact writes, but they do not define the required all-states guard verification for universal per-round artifacts in the execution loop.",
+        "evidence_location": "Artifact markdown <steps> Step 5; Artifact contract JSON role_requirements.steps[4], role_requirements.outputs.state_changes, and completion",
+        "evidence_quote": "If frozen: promote to canonical directory with lock\n- If pushback/blocked: write pushback evidence\n- If resume_required: write resume package",
+        "why_it_matters": "ARB-015 requires every artifact-writing guard in the board loop to be checked against all terminal states so universal artifacts are still produced on final or no-unresolved rounds. The supplied artifact and contract define terminal-branch writes, but they do not specify any state matrix or explicit always-write rule for universal round artifacts, leaving the NF-1 failure mode possible."
+      }
+    ],
+    "notes": [
+      "Review limited to the supplied artifact markdown and contract JSON, per request."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 48764,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4160,
+    "total_tokens_out_estimated": 298,
+    "estimated_cost_usd": 0.02527,
+    "errors": []
+  }
+}

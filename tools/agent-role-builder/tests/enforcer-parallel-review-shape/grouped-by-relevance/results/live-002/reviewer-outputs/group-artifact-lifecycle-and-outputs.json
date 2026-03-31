@@ -1,0 +1,52 @@
+{
+  "task_id": "group-artifact-lifecycle-and-outputs",
+  "reviewer_index": 3,
+  "response": {
+    "reviewer_id": "group-artifact-lifecycle-and-outputs",
+    "scenario": "grouped-by-relevance",
+    "scope_id": "artifact-lifecycle-and-outputs",
+    "evaluations": [
+      {
+        "rule_id": "ARB-003",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Canonical package artifacts and run-scoped evidence are not separated or explicitly labeled in the artifact declarations.",
+        "evidence_location": "Artifact markdown <outputs> section; Artifact markdown Step 5 Output; Artifact markdown <completion> section",
+        "evidence_quote": "Artifacts:\n- <slug>-role.md -- Tagged workflow markdown defining the agent role",
+        "why_it_matters": "The role file, contract, decision log, board summary, rounds, session registry, and result evidence are described across the workflow without a canonical-versus-evidence split or explicit path conventions. That creates artifact lifecycle ambiguity around what is promoted on freeze versus what is always written per run."
+      },
+      {
+        "rule_id": "ARB-008",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Required outputs are not declared with full tool-relative canonical paths in the <outputs> section, and contract package file references fall back to basenames.",
+        "evidence_location": "Artifact markdown <outputs> section; Artifact contract JSON.required_outputs; Artifact contract JSON.package_files",
+        "evidence_quote": "- <slug>-role.md -- Tagged workflow markdown defining the agent role",
+        "why_it_matters": "The contract's required_outputs use full canonical paths under tools/agent-role-builder/role/, but the <outputs> section uses slug templates and package_files uses basename-only paths such as agent-role-builder-role.md. That breaks exact path matching and leaves canonical package identity ambiguous."
+      },
+      {
+        "rule_id": "ARB-016",
+        "status": "non_compliant",
+        "severity": "blocking",
+        "summary": "There is no single authoritative artifact matrix defining artifact class, canonical path/root, and exact lifecycle behavior across operations and terminal states.",
+        "evidence_location": "Artifact markdown <outputs> section; Artifact markdown <steps>; Artifact markdown <completion> section; Artifact contract JSON.required_outputs; Artifact contract JSON.package_files; Artifact contract JSON.role_requirements.outputs",
+        "evidence_quote": "All artifacts written to output directory",
+        "why_it_matters": "Artifact authority is split across multiple sections with conflicting representations: full paths in required_outputs, basenames in package_files, slug templates in <outputs>, and implicit state handling in Step 5 and completion. Create/update/fix behavior and frozen/pushback/blocked/resume_required write semantics are not defined in one governing matrix, which prevents safe governance of the role package before freeze."
+      }
+    ],
+    "notes": [
+      "Review limited to assigned rules ARB-003, ARB-008, and ARB-016."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 58921,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4592,
+    "total_tokens_out_estimated": 696,
+    "estimated_cost_usd": 0.0334,
+    "errors": []
+  }
+}

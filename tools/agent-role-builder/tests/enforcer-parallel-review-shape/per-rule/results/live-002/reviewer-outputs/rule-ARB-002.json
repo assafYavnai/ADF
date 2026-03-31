@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-002",
+  "reviewer_index": 1,
+  "response": {
+    "reviewer_id": "rule-ARB-002",
+    "scenario": "per-rule",
+    "scope_id": "ARB-002",
+    "evaluations": [
+      {
+        "rule_id": "ARB-002",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact reuses \"material pushback\" as a freeze threshold but never provides a single canonical definition for that concept.",
+        "evidence_location": "Artifact markdown <guardrails> Primary objective; Artifact contract JSON.primary_objective; Artifact contract JSON.governance.freeze_requires_no_material_pushback",
+        "evidence_quote": "producing frozen role packages only when no material pushback remains.",
+        "why_it_matters": "This rule requires each threshold or semantic concept to be defined once and then referenced consistently. Here, the freeze threshold depends on \"material pushback,\" but the artifact never defines what qualifies as material, leaving the governance gate open to reviewer interpretation and downstream inconsistency."
+      }
+    ],
+    "notes": [
+      "The phrasing is mostly reused consistently, but the required canonical definition itself is missing."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 55203,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4125,
+    "total_tokens_out_estimated": 256,
+    "estimated_cost_usd": 0.024465,
+    "errors": []
+  }
+}

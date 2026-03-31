@@ -1,0 +1,88 @@
+{
+  "task_id": "group-authority-and-governance",
+  "reviewer_index": 0,
+  "response": {
+    "reviewer_id": "group-authority-and-governance",
+    "scenario": "grouped-by-relevance",
+    "scope_id": "authority-and-governance",
+    "evaluations": [
+      {
+        "rule_id": "ARB-001",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The authority model uses a flat superior list and mixes reference documents into operative authority instead of declaring a precedence chain.",
+        "evidence_location": "Artifact markdown <authority>; Artifact contract JSON role_requirements.authority.subordinate_to",
+        "evidence_quote": "Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+        "why_it_matters": "This conflates binding runtime authority with static reference material, so reviewers and runtime cannot tell what actually governs the role when sources disagree."
+      },
+      {
+        "rule_id": "ARB-017",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role restates local review and freeze behavior without deriving that order and semantics from explicit shared governing sources.",
+        "evidence_location": "Artifact markdown <authority>; Artifact markdown <guardrails>; Artifact contract JSON governance",
+        "evidence_quote": "Never freeze a role package with material pushback remaining",
+        "why_it_matters": "Without naming the governing shared contracts in precedence order, local review semantics can drift from platform policy and static docs can appear to outrank the live governing contract."
+      },
+      {
+        "rule_id": "ARB-019",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact describes writes and promotions, but it never declares an explicit governed write boundary rooted in the active runtime contract.",
+        "evidence_location": "Artifact markdown <steps> step 5; Artifact markdown <outputs>; Artifact contract JSON required_outputs",
+        "evidence_quote": "If frozen: promote to canonical directory with lock",
+        "why_it_matters": "This leaves the writable surface implicit across drafts, runtime artifacts, review rounds, and canonical outputs, which weakens governance over where the role is allowed to write."
+      },
+      {
+        "rule_id": "ARB-020",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The durable authority chain includes static reference documents as superiors and does not separate operative authority from reference evidence.",
+        "evidence_location": "Artifact markdown <authority>; Artifact contract JSON role_requirements.authority",
+        "evidence_quote": "Reports to: COO",
+        "why_it_matters": "Authority layers must distinguish controller/runtime authority from reference material; otherwise the role's durable governance model becomes ambiguous and non-operative documents can be misread as binding."
+      },
+      {
+        "rule_id": "ARB-021",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role package includes multiple governance mechanics that are not tied back to the declared authority set or inherited contracts.",
+        "evidence_location": "Artifact markdown <guardrails>; Artifact contract JSON governance",
+        "evidence_quote": "Every reviewer pair must contain one Codex and one Claude reviewer",
+        "why_it_matters": "Unsourced local governance behavior undermines review legitimacy because freeze, board composition, arbitration, and provenance rules are asserted without a declared governing basis."
+      },
+      {
+        "rule_id": "ARB-024",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role does not declare the component-local governance files it depends on and does not identify inherited runtime obligations by reference.",
+        "evidence_location": "Artifact markdown <context-gathering>; Artifact markdown <guardrails>; Artifact contract JSON source_refs",
+        "evidence_quote": "Load all required source_refs and verify they exist",
+        "why_it_matters": "Governed roles need explicit local governance-file dependencies and clear inherited obligations so runtime and reviewers know which files must be loaded versus which policies are shared by reference."
+      },
+      {
+        "rule_id": "ARB-025",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The required inputs section omits external prerequisites that the workflow depends on, including board composition and governance/runtime configuration.",
+        "evidence_location": "Artifact markdown <inputs>; Artifact markdown <steps> step 1 and step 4; Artifact contract JSON board_roster/governance/runtime",
+        "evidence_quote": "Validate board roster pair composition",
+        "why_it_matters": "The workflow cannot validate authority, execute review, or reach a terminal decision from the declared required inputs alone, so critical runtime prerequisites are left implicit."
+      }
+    ],
+    "notes": [
+      "Findings are limited to the assigned authority-and-governance rules and the supplied artifact/contract."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 95855,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 5357,
+    "total_tokens_out_estimated": 1257,
+    "estimated_cost_usd": 0.04564,
+    "errors": []
+  }
+}

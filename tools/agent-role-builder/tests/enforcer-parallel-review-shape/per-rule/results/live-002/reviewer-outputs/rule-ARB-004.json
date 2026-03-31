@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-004",
+  "reviewer_index": 3,
+  "response": {
+    "reviewer_id": "rule-ARB-004",
+    "scenario": "per-rule",
+    "scope_id": "ARB-004",
+    "evaluations": [
+      {
+        "rule_id": "ARB-004",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Terminal states are named but their mutually exclusive, evidence-testable triggers are not defined.",
+        "evidence_location": "Artifact markdown: <completion> section; <steps> Step 4; <steps> Step 5",
+        "evidence_quote": "Terminal status reached (frozen, pushback, blocked, or resume_required)",
+        "why_it_matters": "This leaves the board without explicit predicates for when each terminal state applies. Because Step 4 says to determine terminal status and Step 5 branches on those states without defining the triggers, downstream governance cannot reliably distinguish statuses such as pushback versus resume_required from run evidence."
+      }
+    ],
+    "notes": [
+      "The contract repeats the same omission by listing terminal states and state-dependent outputs without defining the triggering predicates."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 33911,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4137,
+    "total_tokens_out_estimated": 236,
+    "estimated_cost_usd": 0.024225,
+    "errors": []
+  }
+}

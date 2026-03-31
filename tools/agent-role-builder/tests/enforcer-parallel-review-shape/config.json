@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "experiment_slug": "enforcer-parallel-review-shape",
+  "reviewer_model": {
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "high",
+    "timeout_ms": 900000
+  },
+  "execution": {
+    "concurrency_limit": 3,
+    "retry_once_on_failure": true,
+    "retry_backoff_ms": 1500
+  }
+}
+

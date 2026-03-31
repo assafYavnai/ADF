@@ -1,0 +1,32 @@
+{
+  "task_id": "rule-ARB-013",
+  "reviewer_index": 11,
+  "response": {
+    "reviewer_id": "rule-ARB-013",
+    "scenario": "per-rule",
+    "scope_id": "ARB-013",
+    "evaluations": [
+      {
+        "rule_id": "ARB-013",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact requires preservation of decision history but does not define the exact update/fix preservation mechanism, and it does not state how prior board summaries are retained.",
+        "evidence_location": "Artifact markdown: <guardrails>; <steps> Step 5 (Resolve and promote); <outputs>",
+        "evidence_quote": "Decision history must be preserved across update/fix operations",
+        "why_it_matters": "ARB-013 requires an explicit mechanism for update/fix runs. The artifact says the decision log is preserved and later describes it as \"appended across runs,\" but Step 5 still only says \"Write decision log, board summary, result.json,\" which leaves overwrite behavior ambiguous at the execution step. It also does not specify that board-summary.md is replaced while the prior version is retained in the run directory, so downstream operators cannot tell exactly how history is preserved."
+      }
+    ],
+    "notes": []
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 23258,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4123,
+    "total_tokens_out_estimated": 264,
+    "estimated_cost_usd": 0.024575,
+    "errors": []
+  }
+}

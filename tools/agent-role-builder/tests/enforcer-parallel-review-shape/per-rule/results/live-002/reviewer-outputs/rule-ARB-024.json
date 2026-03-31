@@ -1,0 +1,32 @@
+{
+  "task_id": "rule-ARB-024",
+  "reviewer_index": 22,
+  "response": {
+    "reviewer_id": "rule-ARB-024",
+    "scenario": "per-rule",
+    "scope_id": "ARB-024",
+    "evaluations": [
+      {
+        "rule_id": "ARB-024",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role does not declare component-local governance files it depends on, and it does not identify runtime obligations as inherited by reference from governing contracts.",
+        "evidence_location": "Artifact markdown <authority> and <guardrails>; Artifact contract JSON role_requirements.authority.subordinate_to and role_requirements.guardrails",
+        "evidence_quote": "Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+        "why_it_matters": "ARB-024 requires the role to name its local governance files and make clear which runtime obligations come from shared or component review contracts by reference. Here, only top-level documents are named, while runtime obligations are restated inline. That creates governance ambiguity and raises drift risk between this role package and the governing contracts that are supposed to control it."
+      }
+    ],
+    "notes": []
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 36893,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4081,
+    "total_tokens_out_estimated": 252,
+    "estimated_cost_usd": 0.024185,
+    "errors": []
+  }
+}

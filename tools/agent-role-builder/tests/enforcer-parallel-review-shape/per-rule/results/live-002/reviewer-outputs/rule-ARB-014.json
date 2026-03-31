@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-014",
+  "reviewer_index": 12,
+  "response": {
+    "reviewer_id": "rule-ARB-014",
+    "scenario": "per-rule",
+    "scope_id": "ARB-014",
+    "evaluations": [
+      {
+        "rule_id": "ARB-014",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The artifact describes implementation-facing steps without labeling them as current implementation behavior or target-state behavior.",
+        "evidence_location": "Artifact markdown, <steps> section, Step 3 and Step 4",
+        "evidence_quote": "### 3. Self-check coherence",
+        "why_it_matters": "ARB-014 requires implementation-referencing steps to say whether they describe what the system does now or what it is intended to do. Here, steps such as self-check and live board review are written as factual behavior, but they are not labeled as current or target. That ambiguity creates false expectations for reviewers and operators trying to compare the role text against the actual implementation referenced in the contract."
+      }
+    ],
+    "notes": [
+      "The violation is in the unlabeled mode of the implementation-facing steps, not in whether those steps are otherwise well structured."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 29739,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4170,
+    "total_tokens_out_estimated": 255,
+    "estimated_cost_usd": 0.024675,
+    "errors": []
+  }
+}

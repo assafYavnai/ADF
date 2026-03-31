@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-009",
+  "reviewer_index": 8,
+  "response": {
+    "reviewer_id": "rule-ARB-009",
+    "scenario": "per-rule",
+    "scope_id": "ARB-009",
+    "evaluations": [
+      {
+        "rule_id": "ARB-009",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "Completion criteria are generic and do not define state-specific completion requirements for frozen, pushback, blocked, and resume_required.",
+        "evidence_location": "Artifact markdown <completion> section; mirrored in artifact contract JSON at role_requirements.completion",
+        "evidence_quote": "All artifacts written to output directory",
+        "why_it_matters": "ARB-009 requires completion to be testable for every terminal state separately. This wording only describes a shared generic path and leaves state-specific artifacts ambiguous, so downstream reviewers cannot tell what makes pushback, blocked, or resume_required complete."
+      }
+    ],
+    "notes": [
+      "The completion section names terminal states but does not specify distinct artifact requirements per state."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 18897,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4140,
+    "total_tokens_out_estimated": 228,
+    "estimated_cost_usd": 0.02412,
+    "errors": []
+  }
+}

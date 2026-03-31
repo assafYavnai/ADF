@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-011",
+  "reviewer_index": 10,
+  "response": {
+    "reviewer_id": "rule-ARB-011",
+    "scenario": "per-rule",
+    "scope_id": "ARB-011",
+    "evaluations": [
+      {
+        "rule_id": "ARB-011",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The review loop defines rounds, but it does not require unresolved findings to be carried forward and explicitly addressed by ID in subsequent rounds.",
+        "evidence_location": "Artifact markdown <steps> section, step 4 \"Execute live board review\"; Artifact contract JSON role_requirements.steps[3]",
+        "evidence_quote": "\"Determine terminal status per round\"",
+        "why_it_matters": "ARB-011 applies to the board revision loop and fix items map. This artifact describes iterative review rounds, but it never requires conceptual-group tracking, explicit reference to prior unresolved findings by ID, or a fix-items map that records each carried-forward item as accepted or rejected. Without that closure chain, the same issue can recur across rounds under different wording, which blocks convergence and weakens governance traceability."
+      }
+    ],
+    "notes": [
+      "No explicit carried-forward finding ID mechanism or fix-items-map requirement appears in the supplied artifact or contract."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 45050,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4149,
+    "total_tokens_out_estimated": 283,
+    "estimated_cost_usd": 0.02499,
+    "errors": []
+  }
+}

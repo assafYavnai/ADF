@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-023",
+  "reviewer_index": 21,
+  "response": {
+    "reviewer_id": "rule-ARB-023",
+    "scenario": "per-rule",
+    "scope_id": "ARB-023",
+    "evaluations": [
+      {
+        "rule_id": "ARB-023",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The governed multi-round review is collapsed into one generic step instead of an ordered per-round sub-sequence with named artifacts at each sub-step.",
+        "evidence_location": "Artifact markdown `<steps>` Step 4 'Execute live board review'; mirrored in contract `role_requirements.steps[3]`.",
+        "evidence_quote": "### 4. Execute live board review",
+        "why_it_matters": "This role explicitly inherits governed multi-round review, but it does not define the required ordered intra-round flow or bind sub-steps to per-round artifacts such as compliance mapping, learning output before fixes, fix-items mapping, reviewer verdict artifacts, and post-round writes. That creates a governance gap because required round evidence and write points are unspecified."
+      }
+    ],
+    "notes": [
+      "The omission is repeated in both the markdown artifact and the contract: only generic `rounds/` and `runtime/session-registry.json` outputs are named for review execution."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 38347,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4107,
+    "total_tokens_out_estimated": 299,
+    "estimated_cost_usd": 0.02502,
+    "errors": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "task_id": "rule-ARB-006",
+  "reviewer_index": 5,
+  "response": {
+    "reviewer_id": "rule-ARB-006",
+    "scenario": "per-rule",
+    "scope_id": "ARB-006",
+    "evaluations": [
+      {
+        "rule_id": "ARB-006",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The markdown <scope> exclusions do not match the contract out_of_scope list exactly and include overlapping entries.",
+        "evidence_location": "Artifact markdown <scope> section, 'Not in scope' list; Artifact contract JSON, out_of_scope",
+        "evidence_quote": "\"Creating tools or workflows\"",
+        "why_it_matters": "ARB-006 requires a single deduplicated exclusion set with exact alignment between contract out_of_scope and markdown <scope>. The markdown lists extra exclusions beyond the contract and includes overlapping concepts, which creates conflicting scope boundaries for downstream governance and review."
+      }
+    ],
+    "notes": [
+      "The markdown not-in-scope list has 9 items, while contract out_of_scope has 5.",
+      "Examples of overlapping exclusions in markdown include \"Creating tools or workflows\" vs \"Tool creation (that is llm-tool-builder)\" and \"Workflow creation\", and \"Writing implementation code\" vs \"Code implementation\"."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 55611,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4116,
+    "total_tokens_out_estimated": 272,
+    "estimated_cost_usd": 0.02466,
+    "errors": []
+  }
+}

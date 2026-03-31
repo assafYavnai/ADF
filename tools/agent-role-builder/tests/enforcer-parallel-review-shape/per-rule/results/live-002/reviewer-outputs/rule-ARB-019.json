@@ -1,0 +1,34 @@
+{
+  "task_id": "rule-ARB-019",
+  "reviewer_index": 17,
+  "response": {
+    "reviewer_id": "rule-ARB-019",
+    "scenario": "per-rule",
+    "scope_id": "ARB-019",
+    "evaluations": [
+      {
+        "rule_id": "ARB-019",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role does not define a complete governed write boundary from the runtime contract and instead treats static documents as authority while leaving multiple writable areas only partially specified.",
+        "evidence_location": "Artifact markdown `<authority>` and `<steps>`; artifact contract `role_requirements.authority`, `role_requirements.steps`, and `required_outputs`",
+        "evidence_quote": "Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+        "why_it_matters": "ARB-019 requires write authority to be rooted in the active runtime/COO contract and to list every writable surface precisely, including canonical package targets, the current run directory, and governed support artifacts. This artifact names some canonical outputs, but additional write areas such as `drafts/`, `rounds/`, `runtime/session-registry.json`, `result.json`, and resume/pushback artifacts are not fully defined as one explicit governed write surface."
+      }
+    ],
+    "notes": [
+      "`required_outputs` covers the final package files, but the workflow still introduces other writable locations without an explicit contract-rooted boundary."
+    ]
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 43902,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4113,
+    "total_tokens_out_estimated": 315,
+    "estimated_cost_usd": 0.02529,
+    "errors": []
+  }
+}

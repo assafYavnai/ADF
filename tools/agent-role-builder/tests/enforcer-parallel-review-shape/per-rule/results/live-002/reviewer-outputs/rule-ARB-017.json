@@ -1,0 +1,32 @@
+{
+  "task_id": "rule-ARB-017",
+  "reviewer_index": 15,
+  "response": {
+    "reviewer_id": "rule-ARB-017",
+    "scenario": "per-rule",
+    "scope_id": "ARB-017",
+    "evaluations": [
+      {
+        "rule_id": "ARB-017",
+        "status": "non_compliant",
+        "severity": "major",
+        "summary": "The role package assigns authority to local reference docs and defines review/freeze semantics locally instead of naming shared governing sources in precedence order and deriving only local consequences.",
+        "evidence_location": "Artifact markdown <authority>; Artifact markdown <guardrails>; Artifact contract JSON governance",
+        "evidence_quote": "Subordinate to: docs/v0/architecture.md, docs/VISION.md",
+        "why_it_matters": "ARB-017 requires inherited governance to point to the exact shared governing sources in precedence order, with the role package limited to component-local consequences. Here, the authority section elevates reference docs without establishing a governing-source order, and the role/package contract restates freeze/arbitration behavior locally through fields such as max_review_rounds, allow_single_arbitration_round, and freeze_requires_no_material_pushback. That creates governance ambiguity and risks local semantics drifting from the live shared contract."
+      }
+    ],
+    "notes": []
+  },
+  "invocation": {
+    "attempt_count": 1,
+    "total_latency_ms": 43816,
+    "session_statuses": [
+      "none"
+    ],
+    "total_tokens_in_estimated": 4099,
+    "total_tokens_out_estimated": 289,
+    "estimated_cost_usd": 0.02483,
+    "errors": []
+  }
+}
