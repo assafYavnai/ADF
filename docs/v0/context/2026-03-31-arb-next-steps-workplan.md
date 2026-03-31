@@ -339,6 +339,42 @@ Purpose:
 - verify KPI coverage
 - verify `self-repair-engine` path under live conditions if incidents occur
 
+Status update after run 019 on commit `f357725`:
+
+- run 019 is now treated as stale validation evidence for `self-repair-engine` and KPI truth because it predates Step 3A (`4853dab`)
+- the next execution slice before the long replay is a battle-readiness delta, not another immediate live rerun
+
+#### Step 4A. Pre-replay battle-readiness delta
+
+Goal:
+
+- close the remaining correctness and audit gaps before the unattended replay of the run 01 baseline
+
+Frozen scope:
+
+1. unify leader terminal-status semantics across prompt, parser, board legality, and runtime closeout:
+   - `approved` reviewers only -> `frozen`
+   - no `reject`, at least one true `conditional` -> `frozen_with_conditions`
+   - `arbitration_used=true` becomes optional evidence for `frozen_with_conditions`, not a mandatory precondition
+2. remove any remaining logic where leader `pushback` itself forces materiality when the actual unresolved set is minor-only
+3. keep split-verdict closeout exactly as frozen:
+   - skip already-approving reviewers during repair rounds
+   - when the rejecting reviewer becomes `approved` or true `conditional`, rerun only the previously approving reviewer as final sanity
+4. re-verify that `self-repair-engine` leaves no artifacts or KPI events on clean success paths on the current code baseline
+5. include narrow telemetry/audit hardening that materially affects unattended replay analysis
+
+Acceptance:
+
+- the run 019 round-2 leader output shape becomes legal on current semantics when it reflects true reviewer conditionals with no reject verdicts
+- leader `pushback` no longer forces `resume_required` or `blocked` on minor-only unresolved work
+- split-verdict final-sanity behavior remains mechanically enforced
+- no-op repair artifacts remain absent on clean success paths
+
+After this step:
+
+- do not rerun the stale run 019 job
+- replay the run 01 baseline under a new job id with a 10-cycle cap or until approved
+
 ### Step 5. Replay run 01 baseline on current code under a new job id
 
 Goal:

@@ -385,3 +385,26 @@ Resolution:
 
 - supplemental session-registry repair now materializes repaired state under the current run instead of mutating the supplied external path
 - if supplemental repair itself fails, the run now blocks cleanly with governed evidence instead of silently degrading to cold-start resume
+
+## Run 019 Delta
+
+Run 019 at:
+
+- [agent-role-builder-self-role-019](C:/ADF/tools/agent-role-builder/runs/agent-role-builder-self-role-019)
+
+is useful, but only as partial evidence because it ran on commit `f357725`, before Step 3A landed in `4853dab`.
+
+Accepted findings from the artifact inspection:
+
+1. the real runtime blocker was leader terminal-status semantics, not raw infrastructure failure
+2. the round-2 leader output attempted `frozen_with_conditions` with:
+   - `arbitration_used=false`
+   - `arbitration_rationale=null`
+   - no unresolved items
+   which the shared parser still rejected, even though the frozen reviewer-policy direction now allows `frozen_with_conditions` from true reviewer `conditional` closeout without mandatory arbitration
+3. run 019's 15 `self-repair-engine` attempt folders are stale evidence from the pre-Step-3A wrapper behavior, not trustworthy proof of 15 real provider outages
+4. current pre-replay work must therefore focus on:
+   - leader status semantics alignment
+   - minor-only `pushback` legality
+   - split-verdict closeout enforcement re-verification
+   - current-baseline re-verification that no-op self-repair artifacts stay absent
