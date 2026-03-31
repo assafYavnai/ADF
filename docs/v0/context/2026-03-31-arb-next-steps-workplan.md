@@ -425,7 +425,15 @@ Frozen scope:
    - either one designated prior approver
    - or all prior approvers
    and then implement/test exactly that policy
-5. add the missing tests that make the replay results trustworthy
+5. split terminal result semantics into explicit fields:
+   - `run_status`
+   - `artifact_status`
+   - `review_status`
+   - `error_code`
+   - `resume_required`
+   - `resumable`
+   - use `"none"` instead of null-like empty state where no error/status code applies
+6. add the missing tests that make the replay results trustworthy
 
 Acceptance:
 
@@ -433,7 +441,8 @@ Acceptance:
 - repaired provider failures appear in the main economics instead of disappearing behind self-repair success
 - cycle postmortem fallback reporting matches the chosen telemetry surface
 - final-sanity behavior is mechanically defined for `2`, `4`, and `6` reviewer rosters
-- new tests cover the freeze-on-error and repaired-failure KPI paths
+- terminal artifacts no longer overload one `status` field with run/artifact/review meaning
+- new tests cover the freeze-on-error, repaired-failure KPI, and split-status-result paths
 
 ### Step 5. Replay run 01 baseline on current code under a new job id
 
@@ -569,6 +578,7 @@ Before Step 5 starts, the lane should have:
    - repaired provider-failure economics fixed
    - fallback-count scope fixed or explicitly frozen
    - final-sanity policy for larger rosters fixed and tested
+   - terminal status model split into explicit run/artifact/review/error/resume fields
 
 ## Close Condition
 

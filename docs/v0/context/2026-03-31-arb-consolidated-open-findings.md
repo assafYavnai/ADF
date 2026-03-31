@@ -583,6 +583,59 @@ Impact:
 
 - the replay still assumes that shell dependency is present and operationally stable
 
+### 28. Terminal result status is overloaded and hard to read
+
+Status:
+
+- open
+
+Problem:
+
+- the current top-level result still overloads one `status` field with multiple meanings:
+  - run completion state
+  - artifact governance state
+  - effective review outcome
+  - resume semantics
+- this makes successful runs read as if `frozen` were a process/runtime state instead of an artifact-finalization state
+- it also makes blocked and resume-required cases harder to classify mechanically without parsing free-form reason text
+
+Discussion decision:
+
+- split the result model into explicit human-readable fields
+- prefer explicit string values over `null`
+- use `"none"` instead of null-like empty state for error/status placeholders
+
+Target shape:
+
+- `run_status`
+  - `complete | blocked | failed`
+- `artifact_status`
+  - `draft | frozen | frozen_with_conditions | pushback`
+- `review_status`
+  - `approved | approved_with_conditions | pushback | not_completed`
+- `error_code`
+  - stable machine code or `"none"`
+- `resume_required`
+  - `true | false`
+- `resumable`
+  - `true | false`
+- keep `status_reason` as the human-readable explanation
+
+Example for the successful replay:
+
+- `run_status = "complete"`
+- `artifact_status = "frozen"`
+- `review_status = "approved"`
+- `error_code = "none"`
+- `resume_required = false`
+- `resumable = false`
+
+Impact:
+
+- run reports become human-readable without losing machine utility
+- replay/postmortem analysis no longer has to infer whether `frozen` means runtime completion or artifact finalization
+- blocked and resume cases become easier to group and compare mechanically
+
 ## Additional Test Gaps
 
 These gaps were confirmed by the latest review and audit and should remain visible until covered explicitly.
@@ -593,3 +646,4 @@ These gaps were confirmed by the latest review and audit and should remain visib
 4. No test proves that repaired provider failures are counted in core LLM economics instead of disappearing behind the retry.
 5. No test proves that cycle-postmortem `fallback_count` covers non-board engines, or explicitly documents that it does not.
 6. No real provider CLI teardown test exists on Windows; current coverage is still the synthetic Node child-tree case.
+7. No test pins the new split status model once it is implemented (`run_status`, `artifact_status`, `review_status`, `error_code`, `resume_required`, `resumable`).
