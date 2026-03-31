@@ -1,0 +1,28 @@
+﻿{
+  "schema_version": "0.1-draft",
+  "role_name": "Implementation Engine",
+  "role_slug": "implementation-engine",
+  "status": "bootstrap-placeholder",
+  "purpose": "Companion contract surface for the implementation-engine role while the full governed role contract is being drafted.",
+  "authority_surfaces": [
+    "tools/implementation-engine/tool-contract.json",
+    "tools/implementation-engine/review-contract.json",
+    "tools/implementation-engine/review-prompt.json",
+    "tools/implementation-engine/rulebook.json"
+  ],
+  "required_sections": [
+    "role",
+    "authority",
+    "scope",
+    "context-gathering",
+    "inputs",
+    "guardrails",
+    "steps",
+    "outputs",
+    "completion"
+  ],
+  "notes": [
+    "Bootstrap placeholder only",
+    "Supersede with a governed role contract draft before implementation starts"
+  ]
+}

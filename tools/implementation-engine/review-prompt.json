@@ -1,0 +1,48 @@
+﻿{
+  "schema_version": "1.0",
+  "shared_review_contract_ref": "shared/self-learning-engine/review-contract.json",
+  "domain": "design",
+  "domain_description": "Generic governed implementation orchestration - bounded implementation, review, rule compliance, learning, parity audit, and terminal closeout.",
+  "artifact_kind": "implementation-orchestrator",
+  "focus_areas": [
+    "Authority model: fixed engine contract distinct from review contract and target contract",
+    "Boundary discipline: top-level orchestrator, not replacement for every shared engine",
+    "Target-governance completeness: writable surface, target contract, target rulebook, target review prompt, authority docs, runtime review configuration, outputs, and stop conditions",
+    "Terminal semantics: mutually exclusive triggers including pre-review pushback and frozen_with_conditions",
+    "Artifact lifecycle: staged candidate, immutable staged-final snapshot, canonical or staged outputs, and run-scoped evidence",
+    "Gatekeeper routing: rulebook, contract, validator or enforcer, prompt, and docs surfaces",
+    "Parity audit: declared surfaces, emitted artifacts, self-check evidence, and terminal payload must align",
+    "Concurrency discipline: one bounded write domain per run and versioned promotion"
+  ],
+  "review_modes": {
+    "first_round": "full",
+    "middle_rounds": "delta",
+    "sanity_check": "regression_sanity"
+  },
+  "severity_definitions": {
+    "blocking": "Prevents safe or governable use. Must be fixed before any frozen state.",
+    "major": "Significant governance or lifecycle gap. Must be fixed before any frozen state.",
+    "minor": "Non-blocking inconsistency. May be frozen with conditions.",
+    "suggestion": "Nice-to-have improvement. Does not affect freeze legality."
+  },
+  "source_authority_paths": [
+    "docs/v0/review-process-architecture.md",
+    "docs/v0/architecture.md",
+    "docs/contex/learning-engine-fix-step-1-implementation-engine.md"
+  ],
+  "ignore_areas": [
+    "Do not redesign unrelated ADF components.",
+    "Do not invent domain-specific semantics that belong to the invoker.",
+    "Do not treat shared component-repair-engine as a required steady-state dependency."
+  ],
+  "schema_refs": {
+    "review_contract": "shared/self-learning-engine/review-contract.json",
+    "invocation_request_schema": "tools/implementation-engine/schemas/invocation-request.schema.json",
+    "compliance_map": "shared/self-learning-engine/compliance-map.ts#ComplianceMap",
+    "fix_items_map": "shared/self-learning-engine/fix-items-map.ts#FixItemsMap"
+  },
+  "compliance_map_required": true,
+  "fix_items_map_required_from_round": 1,
+  "learning_engine_between_rounds": true,
+  "full_sweep_rounds": "first and last (when no pushbacks found)"
+}

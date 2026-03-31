@@ -1,7 +1,7 @@
 # Learning Engine Fix Step 1: Create `implementation-engine`
 
 Date: 2026-03-31
-Status: proposed first execution step
+Status: in progress - bootstrap artifacts drafted
 Related report: `docs/contex/agent-role-builder-replay-vs-018-learning-report.md`
 
 ## Purpose
@@ -249,17 +249,17 @@ Required generic terminal states:
 - `frozen`
 - `frozen_with_conditions`
 - `resume_required`
-- `pushback`
+- `pushback` (pre-review or post-review)
 - `blocked`
 
 High-level artifact matrix:
 
 | Terminal state | Required artifacts | Intentionally not written |
 |---|---|---|
-| `frozen` | result, final artifact outputs, self-check evidence, parity audit, run postmortem, cycle postmortem | conditions manifest, resume package, pushback artifact |
-| `frozen_with_conditions` | result, final artifact outputs, conditions manifest, self-check evidence, parity audit, run postmortem, cycle postmortem | resume package, pushback artifact |
+| `frozen` | result, immutable staged-final snapshot, final artifact outputs, self-check evidence, parity audit, run postmortem, cycle postmortem | conditions manifest, resume package, pushback artifact |
+| `frozen_with_conditions` | result, immutable staged-final snapshot, final artifact outputs, conditions manifest, self-check evidence, parity audit, run postmortem, cycle postmortem | resume package, pushback artifact |
 | `resume_required` | result, resume package, self-check evidence, parity audit, run postmortem, cycle postmortem | canonical promotion reserved for clean or conditional freeze |
-| `pushback` | result, pushback artifact, self-check evidence, parity audit, run postmortem, cycle postmortem | canonical promotion, resume package unless explicitly part of pushback semantics |
+| `pushback` | result, pre-review or post-review pushback artifact, self-check evidence when available, parity audit, cycle postmortem, and run postmortem when a review round actually ran | canonical promotion, resume package unless explicitly part of pushback semantics |
 | `blocked` | result, blocking incident or bug artifact, available self-check evidence, parity audit if the run reached auditable state, run postmortem, cycle postmortem | canonical promotion, conditions manifest |
 
 This matrix is intentionally generic. Domain tools may add domain-specific artifacts, but they must not weaken these state distinctions.
@@ -380,13 +380,27 @@ Step 1 does not require:
 
 Those come after the engine boundary, role, contract, and seeded governance are established.
 
-## Immediate Next Documents To Produce
+## Current Bootstrap Artifact State
 
-After this plan, the next concrete artifacts are:
+The first bootstrap artifacts now exist in draft form under `tools/implementation-engine/`:
 
-1. `implementation-engine` role draft
-2. `implementation-engine` contract draft
-3. `implementation-engine` seed rulebook draft
-4. a concrete target-governance invocation schema draft
+1. role draft
+2. tool-contract draft
+3. review-contract draft
+4. review-prompt draft
+5. seed rulebook draft
+6. invocation-request schema draft
 
-Only after those exist should the implementation plan move into code-level design.
+These artifacts are not frozen yet. They exist so the next independent review can test boundary clarity, artifact completeness, and operational usability instead of reviewing an empty placeholder surface.
+
+## Immediate Next Review And Freeze Steps
+
+1. run another independent contextless review of the role plus companion governance artifacts
+2. tighten the role until the artifact matrix, authority chain, and terminal semantics are stable
+3. draft and review the fuller engine contract surface
+4. review and tighten the seed rulebook
+5. freeze the target-governance invocation package and bootstrap governance set before code-level design
+
+Only after those are reviewed and frozen should the implementation plan move into code-level design.
+
+

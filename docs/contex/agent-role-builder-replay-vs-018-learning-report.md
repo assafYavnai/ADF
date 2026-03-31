@@ -580,6 +580,8 @@ This is the first step because it creates the reusable place where replay-vs-018
 
 Detailed plan: `docs/contex/learning-engine-fix-step-1-implementation-engine.md`
 
+Current draft status: bootstrap `implementation-engine` role and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending another independent review.
+
 Step 1 must also freeze four boundaries before role and contract drafting:
 
 - shared-engine orchestration vs replacement

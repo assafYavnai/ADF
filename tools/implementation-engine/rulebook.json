@@ -1,0 +1,27 @@
+﻿{
+  "schema_version": "1.0",
+  "component": "implementation-engine",
+  "last_updated": "2026-03-31",
+  "rules": [
+    {
+      "id": "IMPL-001",
+      "rule": "Freeze one bounded writable slice before implementation starts."
+    },
+    {
+      "id": "IMPL-002",
+      "rule": "No concept lands without an owner, consumer, lifecycle, and proof surface."
+    },
+    {
+      "id": "IMPL-003",
+      "rule": "Do not answer review criticism by expanding architecture outside the frozen slice."
+    },
+    {
+      "id": "IMPL-004",
+      "rule": "Keep execution status, artifact status, review outcome, and terminal reason semantically distinct."
+    },
+    {
+      "id": "IMPL-005",
+      "rule": "No frozen or ready claim is valid without adversarial verification and parity audit."
+    }
+  ]
+}

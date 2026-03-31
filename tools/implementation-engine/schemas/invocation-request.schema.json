@@ -1,0 +1,63 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tools/implementation-engine/schemas/invocation-request.schema.json",
+  "title": "Implementation Engine Invocation Request",
+  "type": "object",
+  "required": [
+    "job_id",
+    "operation",
+    "target_governance"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["create", "update", "fix"]
+    },
+    "source_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "purpose", "required"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "purpose": {"type": "string", "minLength": 1},
+          "required": {"type": "boolean"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "target_governance": {
+      "type": "object",
+      "required": [
+        "artifact_kind",
+        "writable_surface",
+        "target_contract",
+        "target_rulebook",
+        "target_review_prompt",
+        "authority_documents",
+        "runtime_review_configuration",
+        "output_declarations",
+        "stop_conditions",
+        "conditional_acceptance_authority"
+      ],
+      "properties": {
+        "artifact_kind": {"type": "string", "minLength": 1},
+        "writable_surface": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "target_contract": {"type": ["string", "object"]},
+        "target_rulebook": {"type": ["string", "object"]},
+        "target_review_prompt": {"type": ["string", "object"]},
+        "authority_documents": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "runtime_review_configuration": {"type": ["object", "string"]},
+        "output_declarations": {"type": ["object", "array", "string"]},
+        "stop_conditions": {"type": ["object", "array", "string"]},
+        "conditional_acceptance_authority": {"type": ["string", "object"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
