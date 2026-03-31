@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "experiment_slug": "enforcer-parallel-review-shape",
+  "primary_objective": "Reduce enforcer wall-clock time without losing artifact-quality signal.",
+  "controls": [
+    "same baseline fixture",
+    "same rulebook snapshot",
+    "same provider/model unless explicitly varied",
+    "same evidence-only review behavior",
+    "same result file schema"
+  ],
+  "priority_order": [
+    "wall_clock_ms",
+    "time_to_first_useful_finding_ms",
+    "blocking_major_issue_coverage",
+    "unique_useful_findings",
+    "merge_overhead_ms",
+    "total_tokens",
+    "estimated_cost_usd"
+  ],
+  "required_kpis": [
+    "wall_clock_ms",
+    "time_to_first_useful_finding_ms",
+    "tester_count",
+    "parallel_width",
+    "merge_overhead_ms",
+    "findings_raw_count",
+    "findings_deduped_count",
+    "blocking_findings_count",
+    "major_findings_count",
+    "minor_findings_count",
+    "suggestion_findings_count",
+    "false_positive_count",
+    "total_tokens_in",
+    "total_tokens_out",
+    "estimated_cost_usd"
+  ],
+  "required_result_files": [
+    "run-manifest.json",
+    "raw-findings.json",
+    "normalized-findings.json",
+    "kpi-summary.json",
+    "analysis.md"
+  ]
+}
+
