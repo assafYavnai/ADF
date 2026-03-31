@@ -18,12 +18,14 @@ Runtime-scoped governed inputs, governed by but not equal to the authority chain
 - The target-governance package:
   - artifact kind
   - bounded writable surface
+  - writable-surface base version
   - target contract
   - target rulebook
   - target review prompt
   - authority documents
   - runtime review configuration
   - canonical or staged output declarations
+  - preserved history outputs with explicit history mode and write trigger when used
   - stop conditions
   - conditional-acceptance authority
 - The current job id and run directory.
@@ -88,18 +90,18 @@ Not in scope:
 Preconditions before Step 1:
 1. Load the validated invocation package, the requested operation (`create`, `update`, or `fix`), the current job id, and the run directory.
 2. Load the fixed implementation-engine tool contract, the active component review contract, the shared review contract reference it extends, and the engine-governance files declared by those contracts; fail closed if any required engine-governance file is missing.
-3. Load the full target-governance package and fail closed if any required field, authority surface, or bounded writable surface is missing.
-4. Load the source authority documents supplied for the run and treat them as reference evidence, not operative superiors.
+3. Load the full target-governance package and fail closed if any required field, authority surface, bounded writable surface, or writable-surface base version is missing.
+4. Load the invocation-scoped source refs and the target-governance authority documents. Treat source refs as run-scoped authority or baseline evidence, treat target-governance authority documents as canonical target semantics, and fail closed on conflict.
 5. If the operation is `update` or `fix`, load the current target artifact package, existing decision history, and prior terminal result before revising.
 6. If the run resumes prior work, load the resume package, unresolved finding IDs, and any staged candidate package so carried-forward issues can be addressed explicitly.
 7. Validate that the active reviewer roster, runtime review configuration, and conditional-acceptance authority satisfy the shared, engine, and target contracts before implementation begins.
-8. Freeze the bounded writable surface, the canonical or staged output declarations, and the stop conditions before producing any candidate artifact.
+8. Freeze the bounded writable surface, writable-surface base version, the canonical or staged output declarations, and the stop conditions before producing any candidate artifact.
 </context-gathering>
 
 <inputs>
 Required:
 - Invocation request JSON that matches `tools/implementation-engine/schemas/invocation-request.schema.json`, including required `source_refs`.
-- Source refs for the authority evidence that constrains the target artifact.
+- Source refs for invocation-scoped authority and baseline evidence that constrains the target artifact without silently overriding target-governance authority documents.
 - The fixed implementation-engine tool contract at `tools/implementation-engine/tool-contract.json`.
 - The active shared review contract reference and the active component review contract for `tools/implementation-engine`.
 - The implementation-engine governance files declared by the review contract: `tools/implementation-engine/review-contract.json`, `tools/implementation-engine/review-prompt.json`, and `tools/implementation-engine/rulebook.json`.
@@ -107,12 +109,14 @@ Required:
 - A complete target-governance package:
   - artifact kind
   - bounded writable surface
+  - writable-surface base version
   - target contract
   - target rulebook
   - target review prompt
   - authority documents
   - runtime review configuration
   - canonical or staged output declarations
+  - preserved history outputs with explicit history mode and write trigger when used
   - stop conditions
   - conditional-acceptance authority
 - An active reviewer roster that satisfies the shared roster requirements.
@@ -140,14 +144,14 @@ Optional:
 - Never invent missing target semantics, writable scope, or governance behavior; return pushback or blocked evidence instead.
 - Never let reference documents outrank the live COO/controller plus active review contracts.
 - Never write outside the governed surface listed in `<authority>`.
-- Workers may write only to run-local artifacts and the frozen writable surface; shared governance promotion must run against a versioned base and fail closed on stale state.
+- Workers may write only to run-local artifacts and the frozen writable surface; the invocation must bind that writable surface to a declared base version, and both target-surface mutation and shared governance promotion must fail closed on stale state.
 - Gatekeeper scope is not rulebook-only. Governance-surface routing may target:
   - rulebook
   - contract
   - validator or enforcer logic
   - review prompt
   - docs-only governance surfaces
-- Every governance proposal must record its target surface, requested action, owner, base version, and gatekeeper outcome.
+- Every governance proposal must record its target surface, affected paths, requested action, owner, base version, and gatekeeper outcome; resolved proposals must also record gatekeeper actor and decision time, and stale proposals must record the stale-against version.
 - Role markdown, role companion contract, declared artifact matrix, completion clauses, and terminal payload must stay semantically aligned.
 - When the target-governance package declares preserved history artifacts, those artifacts are governed outputs and must not contradict the effective terminal status or result payload.
 - `frozen` and `frozen_with_conditions` are forbidden unless reviewer-clear is true, no material pushback remains, and parity-clear is true.
@@ -174,7 +178,7 @@ All numbered steps below describe the current governed workflow requirement inhe
 - Validate the reviewer roster, runtime review configuration, and conditional-acceptance authority against the shared, engine, and target contracts.
 - Derive the current round mode from the active runtime review configuration; do not accept a free-form round mode that conflicts with that configuration.
 - If recoverable authority or target-governance ambiguity exists before review, write pre-review pushback evidence and stop before round 0.
-- Normalize the operation type, bounded writable surface, target output declarations, and run-relative evidence paths.
+- Normalize the operation type, bounded writable surface, writable-surface base version, target output declarations, and run-relative evidence paths.
 
 Writes:
 - `tools/implementation-engine/runs/<job-id>/normalized-request.json`
@@ -184,7 +188,7 @@ Writes:
 - `tools/implementation-engine/runs/<job-id>/parity-audit.json` with `status: not_applicable_pre_review_pushback` when pre-review pushback is triggered
 
 ### Step 2. Freeze the bounded slice and stage the candidate
-- Freeze the writable surface, target output declarations, stop conditions, and conditional-acceptance authority for the run.
+- Freeze the writable surface, writable-surface base version, target output declarations, stop conditions, and conditional-acceptance authority for the run.
 - Stage the current target package or baseline package into a run-local candidate workspace before revision.
 - Record the exclusive write domain for the run.
 

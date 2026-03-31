@@ -37,7 +37,8 @@
                                                                  "tools/implementation-engine/runs/\u003cjob-id\u003e/",
                                                                  "the bounded target writable surface declared by the invocation package"
                                                              ],
-                                      "shared_governance_mutation":  "serialized through a versioned gatekeeper path"
+                                      "shared_governance_mutation":  "serialized through a versioned gatekeeper path",
+                                      "target_surface_mutation_policy":  "each invocation must declare writable_surface_base_version and fail closed on stale target state before mutating the bounded writable surface"
                                   },
     "terminal_states":  [
                             "frozen",

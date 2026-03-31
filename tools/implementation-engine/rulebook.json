@@ -1,39 +1,51 @@
 {
-  "schema_version": "1.1",
-  "component": "implementation-engine",
-  "last_updated": "2026-03-31",
-  "rules": [
-    {
-      "id": "IMPL-001",
-      "rule": "Freeze one bounded writable slice before implementation starts."
-    },
-    {
-      "id": "IMPL-002",
-      "rule": "No concept lands without an owner, consumer, lifecycle, and proof surface."
-    },
-    {
-      "id": "IMPL-003",
-      "rule": "Do not answer review criticism by expanding architecture outside the frozen slice."
-    },
-    {
-      "id": "IMPL-004",
-      "rule": "Keep execution status, artifact status, review outcome, and terminal reason semantically distinct."
-    },
-    {
-      "id": "IMPL-005",
-      "rule": "No frozen or ready claim is valid without adversarial verification and parity audit."
-    },
-    {
-      "id": "IMPL-006",
-      "rule": "Role markdown, role contract, artifact matrix, completion clauses, and terminal payload must stay semantically aligned."
-    },
-    {
-      "id": "IMPL-007",
-      "rule": "Declared governance history and audit artifacts are governed outputs and must not contradict effective terminal status or result payload semantics."
-    },
-    {
-      "id": "IMPL-008",
-      "rule": "Prior artifacts may inform a run only as reference evidence unless the active authority package explicitly imports them as authority."
-    }
-  ]
+    "schema_version":  "1.2",
+    "component":  "implementation-engine",
+    "last_updated":  "2026-03-31",
+    "rules":  [
+                  {
+                      "id":  "IMPL-001",
+                      "rule":  "Freeze one bounded writable slice before implementation starts."
+                  },
+                  {
+                      "id":  "IMPL-002",
+                      "rule":  "No concept lands without an owner, consumer, lifecycle, and proof surface."
+                  },
+                  {
+                      "id":  "IMPL-003",
+                      "rule":  "Do not answer review criticism by expanding architecture outside the frozen slice."
+                  },
+                  {
+                      "id":  "IMPL-004",
+                      "rule":  "Keep execution status, artifact status, review outcome, and terminal reason semantically distinct."
+                  },
+                  {
+                      "id":  "IMPL-005",
+                      "rule":  "No frozen or ready claim is valid without adversarial verification and parity audit."
+                  },
+                  {
+                      "id":  "IMPL-006",
+                      "rule":  "Role markdown, role contract, artifact matrix, completion clauses, and terminal payload must stay semantically aligned."
+                  },
+                  {
+                      "id":  "IMPL-007",
+                      "rule":  "Declared governance history and audit artifacts are governed outputs and must not contradict effective terminal status or result payload semantics."
+                  },
+                  {
+                      "id":  "IMPL-008",
+                      "rule":  "Prior artifacts may inform a run only as reference evidence unless the active authority package explicitly imports them as authority."
+                  },
+                  {
+                      "id":  "IMPL-009",
+                      "rule":  "Invocation source refs may add run-scoped authority or baseline evidence, but canonical target semantics come from target-governance authority documents unless an explicit override policy is declared; conflicts fail closed."
+                  },
+                  {
+                      "id":  "IMPL-010",
+                      "rule":  "Every mutable target surface must be bound to a declared writable-surface base version, and stale target mutations must fail closed."
+                  },
+                  {
+                      "id":  "IMPL-011",
+                      "rule":  "Governance-routing records must be machine-readable and auditable, including affected paths and gatekeeper decision metadata for resolved proposals."
+                  }
+              ]
 }

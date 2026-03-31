@@ -82,18 +82,18 @@
                               "preconditions":  [
                                                     "Load the validated invocation package, requested operation, current job id, and run directory.",
                                                     "Load the fixed tool contract, active component review contract, shared review contract reference, and engine-governance files declared by those contracts; fail closed if any required engine-governance file is missing.",
-                                                    "Load the full target-governance package and fail closed if any required field, authority surface, or bounded writable surface is missing.",
-                                                    "Load source authority documents as reference evidence, not operative superiors.",
+                                                    "Load the full target-governance package and fail closed if any required field, authority surface, bounded writable surface, or writable-surface base version is missing.",
+                                                    "Load invocation-scoped source refs and target-governance authority documents. Treat source refs as run-scoped authority or baseline evidence, treat target-governance authority documents as canonical target semantics, and fail closed on conflict.",
                                                     "For update or fix operations, load the current target artifact package, existing decision history, and prior terminal result before revising.",
                                                     "For resumed work, load the resume package, unresolved finding ids, and any staged candidate package.",
                                                     "Validate that reviewer roster, runtime review configuration, and conditional-acceptance authority satisfy shared, engine, and target contracts.",
-                                                    "Freeze the writable surface, output declarations, and stop conditions before producing any candidate artifact."
+                                                    "Freeze the writable surface, writable-surface base version, output declarations, and stop conditions before producing any candidate artifact."
                                                 ]
                           },
     "inputs":  {
                    "required":  [
                                     "Invocation request JSON matching tools/implementation-engine/schemas/invocation-request.schema.json, including required source_refs.",
-                                    "Source refs for authority evidence constraining the target artifact.",
+                                    "Source refs for invocation-scoped authority and baseline evidence constraining the target artifact without silently overriding target-governance authority docs.",
                                     "tools/implementation-engine/tool-contract.json.",
                                     "Active shared review contract reference and active component review contract for tools/implementation-engine.",
                                     "tools/implementation-engine/review-contract.json.",
@@ -109,12 +109,14 @@
                    "target_governance_fields":  [
                                                     "artifact kind",
                                                     "bounded writable surface",
+                                                    "writable-surface base version",
                                                     "target contract",
                                                     "target rulebook",
                                                     "target review prompt",
                                                     "authority documents",
                                                     "runtime review configuration",
                                                     "canonical or staged output declarations",
+                                                    "preserved history outputs with explicit history mode and write trigger when used",
                                                     "stop conditions",
                                                     "conditional-acceptance authority"
                                                 ],
@@ -146,7 +148,9 @@
                                      "Do not answer review criticism by expanding architecture outside the frozen writable surface.",
                                      "Never invent missing target semantics, writable scope, or governance behavior.",
                                      "Never let reference documents outrank the live COO/controller plus active review contracts.",
-                                     "Workers may write only to run-local artifacts and the frozen writable surface; shared governance promotion must run against a versioned base and fail closed on stale state.",
+                                     "Invocation source refs may add run-scoped authority or baseline evidence, but canonical target semantics come from target-governance authority documents unless an explicit override policy is declared; conflicts fail closed.",
+                                     "Workers may write only to run-local artifacts and the frozen writable surface; the invocation must bind that writable surface to a declared base version, and both target-surface mutation and shared governance promotion must fail closed on stale state.",
+                                     "Governance-routing records must carry affected paths, requested action, owner, base version, and gatekeeper outcome; resolved proposals must also record gatekeeper actor and decision time, and stale proposals must record the stale-against version.",
                                      "Frozen and frozen_with_conditions are forbidden unless reviewer_clear is true, no material pushback remains, and parity_clear is true.",
                                      "Conditional acceptance remains invoker-owned.",
                                      "Pushback, resume_required, and blocked must stay distinct.",

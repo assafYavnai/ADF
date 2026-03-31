@@ -137,7 +137,8 @@ But governance mutation must be serialized:
 
 - unit of parallelism is one invocation or job
 - each worker may write only to its bounded writable surface and its run-local artifacts
-- shared governance promotion must run against a versioned base and fail closed on stale state
+- each invocation must bind the target writable surface to a writable-surface base version
+- both target-surface mutation and shared governance promotion must fail closed on stale state
 - workers may propose rule or governance changes
 - only a gatekeeper path may promote them into shared mutable state
 
@@ -165,18 +166,27 @@ The invoker or domain tool decides whether to accept the conditional result. The
 
 ## Minimum Target Governance Input Package
 
-The target-governance package must be explicit before role and contract drafting. The minimum package is:
+The target-governance package must be explicit before the bootstrap governance set is frozen. The minimum package is:
 
 - artifact kind
 - bounded writable surface
+- writable-surface base version
 - target contract
 - target rulebook
 - target review prompt
 - authority documents
 - runtime review configuration
 - canonical output declarations
+- preserved history outputs with explicit history mode and write trigger when used
 - stop conditions
 - acceptance authority for conditional outcomes
+
+Authority-input split:
+
+- `source_refs` belong to the invocation package, not to target governance.
+- `source_refs` carry invocation-scoped authority or baseline evidence for this specific run.
+- `authority_documents` belong to the target-governance package and define the canonical target semantics the artifact must satisfy.
+- If invocation `source_refs` conflict with target-governance `authority_documents`, the engine must fail closed instead of guessing which source wins.
 
 Without this package, the engine role and contract will drift because the live governed surface is larger than a target rulebook alone.
 
@@ -408,7 +418,7 @@ Important limitations: `tools/implementation-engine/role/implementation-engine-r
 ## Immediate Next Review And Freeze Steps
 
 1. run another independent contextless review of the role, role contract, rulebook, schemas, and companion governance artifacts
-2. tighten any remaining markdown-to-contract, schema-enforceability, artifact-matrix, or history-parity gaps
+2. tighten any remaining markdown-to-contract, schema-enforceability, authority-split, artifact-matrix, or history-parity gaps
 3. freeze the role markdown and role contract together only after parity review passes
 4. review and tighten the seed rulebook
 5. freeze the target-governance invocation package, governance-routing schema, and bootstrap governance set before code-level design

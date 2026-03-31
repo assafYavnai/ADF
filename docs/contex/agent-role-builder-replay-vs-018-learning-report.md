@@ -580,9 +580,9 @@ This is the first step because it creates the reusable place where replay-vs-018
 
 Detailed plan: `docs/contex/learning-engine-fix-step-1-implementation-engine.md`
 
-Current draft status: bootstrap `implementation-engine` role, governed role contract draft, stricter invocation schema, governance-routing schema, and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending another independent review. `tools/implementation-engine/tool-contract.json` is currently governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
+Current draft status: bootstrap `implementation-engine` role, governed role contract draft, stricter invocation schema, governance-routing schema, clarified source-ref versus authority-doc split, writable-surface base version enforcement, and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending another independent review. `tools/implementation-engine/tool-contract.json` is currently governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
 
-Step 1 must also freeze four boundaries before role and contract drafting:
+Step 1 must also keep four boundaries frozen before the bootstrap governance set can be frozen:
 
 - shared-engine orchestration vs replacement
 - minimum target-governance input package

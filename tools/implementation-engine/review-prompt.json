@@ -8,15 +8,16 @@
                         "Authority model: fixed engine contract distinct from review contract and target contract",
                         "Boundary discipline: top-level orchestrator, not replacement for every shared engine",
                         "Source-baseline discipline: prior ARB artifacts are migration references, not compliance baselines unless explicitly imported as authority",
-                        "Target-governance completeness: writable surface, target contract, target rulebook, target review prompt, authority docs, runtime review configuration, outputs, and stop conditions",
+                        "Authority-input split: invocation source_refs constrain run-scoped authority and baseline evidence, while target-governance authority docs define canonical target semantics and conflicts fail closed",
+                        "Target-governance completeness: artifact kind, writable surface, writable-surface base version, target contract, target rulebook, target review prompt, authority docs, runtime review configuration, outputs, preserved-history lifecycle when declared, and stop conditions",
                         "Terminal semantics: mutually exclusive triggers including pre-review pushback and frozen_with_conditions",
-                        "Artifact lifecycle: staged candidate, immutable staged-final snapshot, canonical or staged outputs, and run-scoped evidence",
+                        "Artifact lifecycle: staged candidate, immutable staged-final snapshot, canonical or staged outputs, preserved history outputs when declared, and run-scoped evidence",
                         "Parity discipline: role markdown, role contract, artifact matrix, completion clauses, preserved history, and terminal payload must align",
                         "Gatekeeper routing: rulebook, contract, validator or enforcer, prompt, and docs surfaces",
-                        "Concurrency discipline: one bounded write domain per run and versioned promotion",
+                        "Concurrency discipline: one bounded write domain per run, a declared writable-surface base version, and versioned promotion",
                         "Request-schema discipline: source_refs must be required and critical target-governance subshapes must be validator-strong, not bag-of-keys placeholders",
                         "Bootstrap honesty: the fixed tool contract must state when the package is governance-only bootstrap metadata rather than runnable code",
-                        "Governance-routing discipline: routing records must be machine-readable and schema-validated, not prose-only"
+                        "Governance-routing discipline: routing records must be machine-readable, schema-validated, path-specific, and carry gatekeeper decision metadata"
                     ],
     "review_modes":  {
                          "first_round":  "full",
