@@ -1,63 +1,68 @@
 {
-  "schema_version": "2.2-draft",
-  "tool_name": "implementation-engine",
-  "tool_slug": "implementation-engine",
-  "status": "governed-draft",
-  "tool_type": "governed-implementation-orchestrator",
-  "operation": "create",
-  "goal": "Register implementation-engine as the governed generic artifact implementation orchestrator for ADF.",
-  "business_context": "ADF needs a reusable governed implement, review, comply, learn, revise, and verify executor that domain tools can call instead of rebuilding the full loop themselves.",
-  "owner": "COO",
-  "entry_point": "tools/implementation-engine/src/index.ts",
-  "imported_role_directory": "tools/implementation-engine/role",
-  "role_directory": "C:\\ADF\\tools\\implementation-engine\\role",
-  "fixed_contract_policy": "This contract governs implementation-engine itself. It remains distinct from target contracts that may be input authority surfaces, output artifacts, or both.",
-  "source_baseline_policy": "Prior ARB artifacts are reference sources and migration evidence only. They are not implementation-engine compliance baselines unless explicitly imported as authority by the active invocation or target-governance package.",
-  "fixed_governance_surfaces": {
-    "tool_contract": "tools/implementation-engine/tool-contract.json",
-    "review_contract": "tools/implementation-engine/review-contract.json",
-    "review_prompt": "tools/implementation-engine/review-prompt.json",
-    "rulebook": "tools/implementation-engine/rulebook.json",
-    "role_markdown": "tools/implementation-engine/role/implementation-engine-role.md",
-    "role_contract": "tools/implementation-engine/role/implementation-engine-role-contract.json",
-    "invocation_schema": "tools/implementation-engine/schemas/invocation-request.schema.json"
-  },
-  "runtime_orchestration_stack": [
-    "shared/review-engine/",
-    "shared/self-learning-engine/",
-    "shared/rules-compliance-enforcer/"
-  ],
-  "steady_state_exclusions": [
-    "shared/component-repair-engine/ is migration debt and must not be treated as a first-class steady-state dependency instead of shared/rules-compliance-enforcer/."
-  ],
-  "parallel_execution_policy": {
-    "unit_of_parallelism": "one invocation or job",
-    "worker_write_scope": [
-      "tools/implementation-engine/runs/<job-id>/",
-      "the bounded target writable surface declared by the invocation package"
-    ],
-    "shared_governance_mutation": "serialized through a versioned gatekeeper path"
-  },
-  "terminal_states": [
-    "frozen",
-    "frozen_with_conditions",
-    "resume_required",
-    "pushback",
-    "blocked"
-  ],
-  "required_bootstrap_artifacts": [
-    "tools/implementation-engine/tool-contract.json",
-    "tools/implementation-engine/review-contract.json",
-    "tools/implementation-engine/review-prompt.json",
-    "tools/implementation-engine/rulebook.json",
-    "tools/implementation-engine/role/implementation-engine-role.md",
-    "tools/implementation-engine/role/implementation-engine-role-contract.json",
-    "tools/implementation-engine/schemas/invocation-request.schema.json"
-  ],
-  "notes": [
-    "Governed bootstrap draft; not frozen until independent parity review passes.",
-    "Use ARB as a lesson source and migration reference, not as the literal compliance baseline for implementation-engine."
-  ],
-  "generated_at_utc": "2026-03-31T00:00:00.000Z",
-  "previous_contract": null
+    "schema_version":  "2.2-draft",
+    "tool_name":  "implementation-engine",
+    "tool_slug":  "implementation-engine",
+    "status":  "governed-draft",
+    "tool_type":  "governed-implementation-orchestrator",
+    "operation":  "create",
+    "goal":  "Register implementation-engine as the governed generic artifact implementation orchestrator for ADF.",
+    "business_context":  "ADF needs a reusable governed implement, review, comply, learn, revise, and verify executor that domain tools can call instead of rebuilding the full loop themselves.",
+    "owner":  "COO",
+    "entry_point":  "tools/implementation-engine/src/index.ts",
+    "imported_role_directory":  "tools/implementation-engine/role",
+    "role_directory":  "C:\\ADF\\tools\\implementation-engine\\role",
+    "fixed_contract_policy":  "This contract governs implementation-engine itself. It remains distinct from target contracts that may be input authority surfaces, output artifacts, or both.",
+    "source_baseline_policy":  "Prior ARB artifacts are reference sources and migration evidence only. They are not implementation-engine compliance baselines unless explicitly imported as authority by the active invocation or target-governance package.",
+    "fixed_governance_surfaces":  {
+                                      "tool_contract":  "tools/implementation-engine/tool-contract.json",
+                                      "review_contract":  "tools/implementation-engine/review-contract.json",
+                                      "review_prompt":  "tools/implementation-engine/review-prompt.json",
+                                      "rulebook":  "tools/implementation-engine/rulebook.json",
+                                      "role_markdown":  "tools/implementation-engine/role/implementation-engine-role.md",
+                                      "role_contract":  "tools/implementation-engine/role/implementation-engine-role-contract.json",
+                                      "invocation_schema":  "tools/implementation-engine/schemas/invocation-request.schema.json",
+                                      "governance_routing_schema":  "tools/implementation-engine/schemas/governance-routing-record.schema.json"
+                                  },
+    "runtime_orchestration_stack":  [
+                                        "shared/review-engine/",
+                                        "shared/self-learning-engine/",
+                                        "shared/rules-compliance-enforcer/"
+                                    ],
+    "steady_state_exclusions":  [
+                                    "shared/component-repair-engine/ is migration debt and must not be treated as a first-class steady-state dependency instead of shared/rules-compliance-enforcer/."
+                                ],
+    "parallel_execution_policy":  {
+                                      "unit_of_parallelism":  "one invocation or job",
+                                      "worker_write_scope":  [
+                                                                 "tools/implementation-engine/runs/\u003cjob-id\u003e/",
+                                                                 "the bounded target writable surface declared by the invocation package"
+                                                             ],
+                                      "shared_governance_mutation":  "serialized through a versioned gatekeeper path"
+                                  },
+    "terminal_states":  [
+                            "frozen",
+                            "frozen_with_conditions",
+                            "resume_required",
+                            "pushback",
+                            "blocked"
+                        ],
+    "required_bootstrap_artifacts":  [
+                                         "tools/implementation-engine/tool-contract.json",
+                                         "tools/implementation-engine/review-contract.json",
+                                         "tools/implementation-engine/review-prompt.json",
+                                         "tools/implementation-engine/rulebook.json",
+                                         "tools/implementation-engine/role/implementation-engine-role.md",
+                                         "tools/implementation-engine/role/implementation-engine-role-contract.json",
+                                         "tools/implementation-engine/schemas/invocation-request.schema.json",
+                                         "tools/implementation-engine/schemas/governance-routing-record.schema.json"
+                                     ],
+    "notes":  [
+                  "Governed bootstrap draft; not frozen until independent parity review passes.",
+                  "Use ARB as a lesson source and migration reference, not as the literal compliance baseline for implementation-engine.",
+                  "This tool contract is bootstrap governance metadata until tools/implementation-engine/src/index.ts exists."
+              ],
+    "generated_at_utc":  "2026-03-31T00:00:00.000Z",
+    "previous_contract":  null,
+    "implementation_status":  "governance_bootstrap_only_until_src_index_exists",
+    "entry_point_status":  "planned_not_implemented"
 }

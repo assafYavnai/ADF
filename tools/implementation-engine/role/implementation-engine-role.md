@@ -48,6 +48,7 @@ Component-local governance and companion files this role depends on:
 - `tools/implementation-engine/review-prompt.json`
 - `tools/implementation-engine/rulebook.json`
 - `tools/implementation-engine/schemas/invocation-request.schema.json`
+- `tools/implementation-engine/schemas/governance-routing-record.schema.json`
 - `tools/implementation-engine/role/implementation-engine-role-contract.json`
 
 Inherited runtime obligations used by this role:
@@ -97,7 +98,7 @@ Preconditions before Step 1:
 
 <inputs>
 Required:
-- Invocation request JSON that matches `tools/implementation-engine/schemas/invocation-request.schema.json`.
+- Invocation request JSON that matches `tools/implementation-engine/schemas/invocation-request.schema.json`, including required `source_refs`.
 - Source refs for the authority evidence that constrains the target artifact.
 - The fixed implementation-engine tool contract at `tools/implementation-engine/tool-contract.json`.
 - The active shared review contract reference and the active component review contract for `tools/implementation-engine`.
@@ -230,7 +231,7 @@ Writes:
 ### Step 6. Route review-cycle governance proposals and revise
 - Convert learning, compliance, and review findings into governance-surface proposals scoped to the narrowest enforceable surface.
 - Route proposals through the gatekeeper instead of mutating shared governance directly.
-- Every proposal must record target surface, requested action, owner, base version, and gatekeeper outcome when returned.
+- Every proposal must conform to `tools/implementation-engine/schemas/governance-routing-record.schema.json` and record target surface, requested action, owner, base version, and gatekeeper outcome when returned.
 - Apply approved revisions to the candidate and document which surfaces changed versus which were deferred.
 
 Writes:
@@ -295,7 +296,7 @@ Run-scoped governance and evidence artifacts:
 | Round fix-items map | `tools/implementation-engine/runs/<job-id>/rounds/round-<n>/fix-items-map.json` | Create on rounds that answer prior findings or carry unresolved IDs forward. |
 | Round review verdicts | `tools/implementation-engine/runs/<job-id>/rounds/round-<n>/review.json` | Create every round; the latest required review evidence is the source of truth for reviewer-clear. |
 | Round learning output | `tools/implementation-engine/runs/<job-id>/rounds/round-<n>/learning.json` | Create every round after review. |
-| Governance-routing record | `tools/implementation-engine/runs/<job-id>/rounds/round-<n>/governance-routing.json` | Create on rounds that route rule, contract, validator, prompt, or docs changes for gatekeeper review; each record must carry target surface, requested action, owner, base version, and gatekeeper outcome. |
+| Governance-routing record | `tools/implementation-engine/runs/<job-id>/rounds/round-<n>/governance-routing.json` | Create on rounds that route rule, contract, validator, prompt, or docs changes for gatekeeper review; each record must conform to `tools/implementation-engine/schemas/governance-routing-record.schema.json` and carry target surface, requested action, owner, base version, and gatekeeper outcome. |
 | Round diff summary | `tools/implementation-engine/runs/<job-id>/rounds/round-<n>/diff-summary.json` | Create every round, even when the round confirms no artifact change. |
 | Parity audit | `tools/implementation-engine/runs/<job-id>/parity-audit.json` | Replace after final verification and before terminal close; on pre-review pushback, create once with `status: not_applicable_pre_review_pushback`. |
 | Run post-mortem | `tools/implementation-engine/runs/<job-id>/run-postmortem.json` | Replace after each completed round with the cumulative run snapshot. |

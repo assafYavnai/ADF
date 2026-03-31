@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "tools/implementation-engine/schemas/invocation-request.schema.json",
   "title": "Implementation Engine Invocation Request",
@@ -6,6 +6,7 @@
   "required": [
     "job_id",
     "operation",
+    "source_refs",
     "target_governance"
   ],
   "properties": {
@@ -19,16 +20,79 @@
     },
     "source_refs": {
       "type": "array",
+      "minItems": 1,
       "items": {
-        "type": "object",
-        "required": ["path", "purpose", "required"],
-        "properties": {
-          "path": {"type": "string", "minLength": 1},
-          "purpose": {"type": "string", "minLength": 1},
-          "required": {"type": "boolean"}
-        },
-        "additionalProperties": true
+        "$ref": "#/$defs/source_ref"
       }
+    },
+    "target_governance": {
+      "$ref": "#/$defs/target_governance"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "source_ref": {
+      "type": "object",
+      "required": ["path", "purpose", "required"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "content_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "governed_surface_ref": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["contract", "rulebook", "prompt", "schema", "artifact"]
+        },
+        "must_exist": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "target_output_declaration": {
+      "type": "object",
+      "required": ["path", "artifact_class", "promotion_strategy"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "promotion_strategy": {
+          "type": "string",
+          "enum": ["frozen_only", "frozen_or_conditional", "staged_only"]
+        }
+      },
+      "additionalProperties": false
     },
     "target_governance": {
       "type": "object",
@@ -45,19 +109,163 @@
         "conditional_acceptance_authority"
       ],
       "properties": {
-        "artifact_kind": {"type": "string", "minLength": 1},
-        "writable_surface": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
-        "target_contract": {"type": ["string", "object"]},
-        "target_rulebook": {"type": ["string", "object"]},
-        "target_review_prompt": {"type": ["string", "object"]},
-        "authority_documents": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
-        "runtime_review_configuration": {"type": ["object", "string"]},
-        "output_declarations": {"type": ["object", "array", "string"]},
-        "stop_conditions": {"type": ["object", "array", "string"]},
-        "conditional_acceptance_authority": {"type": ["string", "object"]}
+        "artifact_kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "writable_surface": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "target_contract": {
+          "$ref": "#/$defs/governed_surface_ref"
+        },
+        "target_rulebook": {
+          "$ref": "#/$defs/governed_surface_ref"
+        },
+        "target_review_prompt": {
+          "$ref": "#/$defs/governed_surface_ref"
+        },
+        "authority_documents": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "runtime_review_configuration": {
+          "type": "object",
+          "required": [
+            "review_modes",
+            "max_rounds",
+            "split_verdict_handling",
+            "regression_sanity_required"
+          ],
+          "properties": {
+            "review_modes": {
+              "type": "object",
+              "required": ["first_round", "middle_rounds", "regression_sanity"],
+              "properties": {
+                "first_round": {
+                  "type": "string",
+                  "enum": ["full"]
+                },
+                "middle_rounds": {
+                  "type": "string",
+                  "enum": ["delta", "full"]
+                },
+                "regression_sanity": {
+                  "type": "string",
+                  "enum": ["regression_sanity"]
+                }
+              },
+              "additionalProperties": false
+            },
+            "max_rounds": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "split_verdict_handling": {
+              "type": "string",
+              "enum": ["rejecting_path_only_then_regression_sanity"]
+            },
+            "regression_sanity_required": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "output_declarations": {
+          "type": "object",
+          "required": [
+            "run_root",
+            "candidate_root",
+            "staged_final_root",
+            "target_outputs"
+          ],
+          "properties": {
+            "run_root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "candidate_root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "staged_final_root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target_outputs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/target_output_declaration"
+              }
+            },
+            "preserved_history_outputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/target_output_declaration"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "stop_conditions": {
+          "type": "object",
+          "required": [
+            "budget_exhaustion_outcome",
+            "missing_authority_outcome",
+            "failed_parity_outcome",
+            "blocked_execution_outcome"
+          ],
+          "properties": {
+            "budget_exhaustion_outcome": {
+              "type": "string",
+              "enum": ["resume_required", "blocked"]
+            },
+            "missing_authority_outcome": {
+              "type": "string",
+              "enum": ["pushback", "blocked"]
+            },
+            "failed_parity_outcome": {
+              "type": "string",
+              "enum": ["pushback", "blocked"]
+            },
+            "blocked_execution_outcome": {
+              "type": "string",
+              "enum": ["blocked"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "conditional_acceptance_authority": {
+          "type": "object",
+          "required": ["owner_type", "owner_ref", "delegated_to_run"],
+          "properties": {
+            "owner_type": {
+              "type": "string",
+              "enum": ["invoker", "domain_tool", "controller"]
+            },
+            "owner_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "delegated_to_run": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     }
-  },
-  "additionalProperties": true
+  }
 }

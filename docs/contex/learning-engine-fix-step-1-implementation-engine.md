@@ -399,17 +399,18 @@ The first bootstrap artifacts now exist in draft form under `tools/implementatio
 5. seed rulebook draft
 6. invocation-request schema draft
 7. role companion contract draft
+8. governance-routing schema draft
 
 These artifacts are not frozen yet. They exist so the next independent review can test boundary clarity, artifact completeness, and operational usability instead of reviewing an empty placeholder surface.
 
-Important limitation: `tools/implementation-engine/role/implementation-engine-role-contract.json` is now a governed draft, but it remains unfrozen until an independent review confirms markdown-to-contract parity and package-level coherence.
+Important limitations: `tools/implementation-engine/role/implementation-engine-role-contract.json` is now a governed draft, but it remains unfrozen until an independent review confirms markdown-to-contract parity and package-level coherence. `tools/implementation-engine/tool-contract.json` is still governance-only bootstrap metadata until `tools/implementation-engine/src/index.ts` exists. `tools/implementation-engine/schemas/invocation-request.schema.json` must continue enforcing required `source_refs` and the critical target-governance subshapes instead of drifting back to bag-of-keys validation.
 
 ## Immediate Next Review And Freeze Steps
 
-1. run another independent contextless review of the role, role contract, rulebook, and companion governance artifacts
-2. tighten any remaining markdown-to-contract, artifact-matrix, or history-parity gaps
+1. run another independent contextless review of the role, role contract, rulebook, schemas, and companion governance artifacts
+2. tighten any remaining markdown-to-contract, schema-enforceability, artifact-matrix, or history-parity gaps
 3. freeze the role markdown and role contract together only after parity review passes
 4. review and tighten the seed rulebook
-5. freeze the target-governance invocation package and bootstrap governance set before code-level design
+5. freeze the target-governance invocation package, governance-routing schema, and bootstrap governance set before code-level design
 
 Only after those are reviewed and frozen should the implementation plan move into code-level design.

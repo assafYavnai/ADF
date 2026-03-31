@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tools/implementation-engine/schemas/governance-routing-record.schema.json",
+  "title": "Implementation Engine Governance Routing Record",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "job_id",
+    "round_id",
+    "record_status",
+    "proposals"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "round_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "record_status": {
+      "type": "string",
+      "enum": ["pending", "mixed", "complete"]
+    },
+    "generated_from": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["review", "learning", "compliance", "parity_audit"]
+      },
+      "uniqueItems": true
+    },
+    "proposals": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/proposal"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "proposal": {
+      "type": "object",
+      "required": [
+        "proposal_id",
+        "target_surface",
+        "requested_action",
+        "owner",
+        "base_version",
+        "gatekeeper_outcome"
+      ],
+      "properties": {
+        "proposal_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_surface": {
+          "type": "string",
+          "enum": [
+            "rulebook",
+            "contract",
+            "validator_or_enforcer",
+            "review_prompt",
+            "docs_only"
+          ]
+        },
+        "requested_action": {
+          "type": "string",
+          "enum": ["create", "update", "replace", "append", "defer", "reject"]
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gatekeeper_outcome": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected", "deferred", "stale"]
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "related_finding_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "rationale": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

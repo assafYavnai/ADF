@@ -1,56 +1,59 @@
-﻿{
-  "schema_version": "1.0",
-  "extends": "shared/self-learning-engine/review-contract.json",
-  "component": "implementation-engine",
-  "artifact_domain": "design",
-  "artifact_kind": "implementation-orchestrator",
-  "component_root": "tools/implementation-engine",
-  "component_owned_files": {
-    "tool_contract": "tools/implementation-engine/tool-contract.json",
-    "review_prompt": "tools/implementation-engine/review-prompt.json",
-    "review_contract": "tools/implementation-engine/review-contract.json",
-    "rulebook": "tools/implementation-engine/rulebook.json",
-    "role_contract": "tools/implementation-engine/role/implementation-engine-role-contract.json"
-  },
-  "required_runtime_inputs": [
-    "Active reviewer roster that satisfies the shared review contract roster requirements",
-    "Runtime review configuration from which the engine derives round mode",
-    "Component-owned governance files listed in component_owned_files",
-    "Target-governance package declaring bounded writable surface, target contract, target rulebook, target review prompt, authority docs, canonical or staged outputs, stop conditions, and conditional-acceptance authority"
-  ],
-  "validation_requirements": {
-    "enforce_shared_roster_requirements": true,
-    "fail_closed_on_missing_component_governance_files": true,
-    "fail_closed_on_missing_target_governance": true
-  },
-  "review_modes": {
-    "first_round": "full",
-    "middle_rounds": "delta",
-    "sanity_check": "regression_sanity"
-  },
-  "source_authority_paths": [
-    "docs/v0/review-process-architecture.md",
-    "docs/v0/architecture.md",
-    "docs/contex/learning-engine-fix-step-1-implementation-engine.md"
-  ],
-  "artifact_scope": [
-    "tools/implementation-engine/role/",
-    "tools/implementation-engine/runs/"
-  ],
-  "ignore_areas": [
-    "Do not redefine domain-specific artifact semantics owned by the invoker.",
-    "Do not mutate shared governance surfaces outside the gatekeeper path.",
-    "Do not widen the writable surface beyond the declared target-governance package."
-  ],
-  "schema_refs": {
-    "shared_review_contract": "shared/self-learning-engine/review-contract.json",
-    "invocation_request_schema": "tools/implementation-engine/schemas/invocation-request.schema.json",
-    "compliance_map": "shared/self-learning-engine/compliance-map.ts#ComplianceMap",
-    "fix_items_map": "shared/self-learning-engine/fix-items-map.ts#FixItemsMap"
-  },
-  "budget_hints": {
-    "prefer_changed_section_focus_after_round0": true,
-    "leader_input_mode": "normalized-review-summary",
-    "full_sweep_on_regression_sanity": true
-  }
+{
+    "schema_version":  "1.0",
+    "extends":  "shared/self-learning-engine/review-contract.json",
+    "component":  "implementation-engine",
+    "artifact_domain":  "design",
+    "artifact_kind":  "implementation-orchestrator",
+    "component_root":  "tools/implementation-engine",
+    "component_owned_files":  {
+                                  "tool_contract":  "tools/implementation-engine/tool-contract.json",
+                                  "review_prompt":  "tools/implementation-engine/review-prompt.json",
+                                  "review_contract":  "tools/implementation-engine/review-contract.json",
+                                  "rulebook":  "tools/implementation-engine/rulebook.json",
+                                  "role_contract":  "tools/implementation-engine/role/implementation-engine-role-contract.json",
+                                  "governance_routing_schema":  "tools/implementation-engine/schemas/governance-routing-record.schema.json"
+                              },
+    "required_runtime_inputs":  [
+                                    "Active reviewer roster that satisfies the shared review contract roster requirements",
+                                    "Runtime review configuration from which the engine derives round mode",
+                                    "Component-owned governance files listed in component_owned_files",
+                                    "Target-governance package declaring bounded writable surface, target contract, target rulebook, target review prompt, authority docs, canonical or staged outputs, stop conditions, and conditional-acceptance authority",
+                                    "Source refs for authority evidence that constrain the target artifact"
+                                ],
+    "validation_requirements":  {
+                                    "enforce_shared_roster_requirements":  true,
+                                    "fail_closed_on_missing_component_governance_files":  true,
+                                    "fail_closed_on_missing_target_governance":  true
+                                },
+    "review_modes":  {
+                         "first_round":  "full",
+                         "middle_rounds":  "delta",
+                         "sanity_check":  "regression_sanity"
+                     },
+    "source_authority_paths":  [
+                                   "docs/v0/review-process-architecture.md",
+                                   "docs/v0/architecture.md",
+                                   "docs/contex/learning-engine-fix-step-1-implementation-engine.md"
+                               ],
+    "artifact_scope":  [
+                           "tools/implementation-engine/role/",
+                           "tools/implementation-engine/runs/"
+                       ],
+    "ignore_areas":  [
+                         "Do not redefine domain-specific artifact semantics owned by the invoker.",
+                         "Do not mutate shared governance surfaces outside the gatekeeper path.",
+                         "Do not widen the writable surface beyond the declared target-governance package."
+                     ],
+    "schema_refs":  {
+                        "shared_review_contract":  "shared/self-learning-engine/review-contract.json",
+                        "invocation_request_schema":  "tools/implementation-engine/schemas/invocation-request.schema.json",
+                        "compliance_map":  "shared/self-learning-engine/compliance-map.ts#ComplianceMap",
+                        "fix_items_map":  "shared/self-learning-engine/fix-items-map.ts#FixItemsMap",
+                        "governance_routing_record":  "tools/implementation-engine/schemas/governance-routing-record.schema.json"
+                    },
+    "budget_hints":  {
+                         "prefer_changed_section_focus_after_round0":  true,
+                         "leader_input_mode":  "normalized-review-summary",
+                         "full_sweep_on_regression_sanity":  true
+                     }
 }

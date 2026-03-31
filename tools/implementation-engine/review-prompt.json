@@ -13,7 +13,10 @@
                         "Artifact lifecycle: staged candidate, immutable staged-final snapshot, canonical or staged outputs, and run-scoped evidence",
                         "Parity discipline: role markdown, role contract, artifact matrix, completion clauses, preserved history, and terminal payload must align",
                         "Gatekeeper routing: rulebook, contract, validator or enforcer, prompt, and docs surfaces",
-                        "Concurrency discipline: one bounded write domain per run and versioned promotion"
+                        "Concurrency discipline: one bounded write domain per run and versioned promotion",
+                        "Request-schema discipline: source_refs must be required and critical target-governance subshapes must be validator-strong, not bag-of-keys placeholders",
+                        "Bootstrap honesty: the fixed tool contract must state when the package is governance-only bootstrap metadata rather than runnable code",
+                        "Governance-routing discipline: routing records must be machine-readable and schema-validated, not prose-only"
                     ],
     "review_modes":  {
                          "first_round":  "full",
@@ -40,7 +43,8 @@
                         "review_contract":  "shared/self-learning-engine/review-contract.json",
                         "invocation_request_schema":  "tools/implementation-engine/schemas/invocation-request.schema.json",
                         "compliance_map":  "shared/self-learning-engine/compliance-map.ts#ComplianceMap",
-                        "fix_items_map":  "shared/self-learning-engine/fix-items-map.ts#FixItemsMap"
+                        "fix_items_map":  "shared/self-learning-engine/fix-items-map.ts#FixItemsMap",
+                        "governance_routing_record":  "tools/implementation-engine/schemas/governance-routing-record.schema.json"
                     },
     "compliance_map_required":  true,
     "fix_items_map_required_from_round":  1,

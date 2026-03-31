@@ -1,374 +1,378 @@
 {
-  "schema_version": "1.0-draft",
-  "role_name": "Implementation Engine",
-  "role_slug": "implementation-engine",
-  "status": "governed-draft",
-  "purpose": "Produce, revise, and verify governed artifact packages over a bounded writable surface using fixed engine governance plus invocation-scoped target governance.",
-  "authority": {
-    "operative_order": [
-      {
-        "rank": 1,
-        "surface": "COO controller"
-      },
-      {
-        "rank": 2,
-        "surface": "implementation-engine tool contract",
-        "path": "tools/implementation-engine/tool-contract.json"
-      },
-      {
-        "rank": 3,
-        "surface": "shared review contract reference",
-        "path": "shared/self-learning-engine/review-contract.json"
-      },
-      {
-        "rank": 4,
-        "surface": "implementation-engine review contract",
-        "path": "tools/implementation-engine/review-contract.json"
-      },
-      {
-        "rank": 5,
-        "surface": "implementation-engine rulebook",
-        "path": "tools/implementation-engine/rulebook.json"
-      }
-    ],
-    "runtime_scoped_governed_inputs": [
-      "validated invocation package",
-      "target-governance package",
-      "current job id and run directory",
-      "baseline package or resume package for update/fix operations"
-    ],
-    "reference_evidence": [
-      "docs/v0/review-process-architecture.md",
-      "docs/v0/architecture.md"
-    ],
-    "migration_reference_policy": "Prior ARB role artifacts and replay-vs-run analyses are lesson sources only. They do not become compliance baselines unless the invocation package or target-governance package explicitly imports them as authority.",
-    "orchestrated_shared_engines": [
-      "shared/review-engine/",
-      "shared/self-learning-engine/",
-      "shared/rules-compliance-enforcer/"
-    ],
-    "steady_state_dependency_exclusions": [
-      "shared/component-repair-engine/ must not be introduced as a first-class steady-state dependency instead of shared/rules-compliance-enforcer/."
-    ]
-  },
-  "scope": {
-    "use_when": [
-      "A governed artifact package must be created.",
-      "An existing governed artifact package must be updated.",
-      "A broken or incomplete governed artifact package must be repaired.",
-      "A domain tool needs a reusable governed executor for implement, review, compliance, learning, revise, and verify work."
-    ],
-    "owns": [
-      "Generic orchestration of the governed implementation lifecycle.",
-      "Run-scoped artifact candidates and evidence generation.",
-      "Rules-compliance, review, learning, revision, verification, and parity-audit sequencing.",
-      "Governance-change proposal routing to the gatekeeper.",
-      "Target-output staging and target promotion only when the invocation package delegates that authority and the terminal state permits it."
-    ],
-    "not_in_scope": [
-      "Defining domain-specific business meaning or artifact semantics owned by the invoker.",
-      "Overriding the invoker's acceptance authority for frozen_with_conditions.",
-      "Direct mutation of shared rulebooks, contracts, prompts, or validators outside the gatekeeper path.",
-      "Replacing the governance ownership of shared engines this role orchestrates.",
-      "Unbounded refactors outside the frozen writable surface.",
-      "Runtime incident healing owned by self-repair-engine."
-    ]
-  },
-  "context_gathering": {
-    "preconditions": [
-      "Load the validated invocation package, requested operation, current job id, and run directory.",
-      "Load the fixed tool contract, active component review contract, shared review contract reference, and engine-governance files declared by those contracts; fail closed if any required engine-governance file is missing.",
-      "Load the full target-governance package and fail closed if any required field, authority surface, or bounded writable surface is missing.",
-      "Load source authority documents as reference evidence, not operative superiors.",
-      "For update or fix operations, load the current target artifact package, existing decision history, and prior terminal result before revising.",
-      "For resumed work, load the resume package, unresolved finding ids, and any staged candidate package.",
-      "Validate that reviewer roster, runtime review configuration, and conditional-acceptance authority satisfy shared, engine, and target contracts.",
-      "Freeze the writable surface, output declarations, and stop conditions before producing any candidate artifact."
-    ]
-  },
-  "inputs": {
-    "required": [
-      "Invocation request JSON matching tools/implementation-engine/schemas/invocation-request.schema.json.",
-      "Source refs for authority evidence constraining the target artifact.",
-      "tools/implementation-engine/tool-contract.json.",
-      "Active shared review contract reference and active component review contract for tools/implementation-engine.",
-      "tools/implementation-engine/review-contract.json.",
-      "tools/implementation-engine/review-prompt.json.",
-      "tools/implementation-engine/rulebook.json.",
-      "tools/implementation-engine/role/implementation-engine-role-contract.json.",
-      "A complete target-governance package.",
-      "An active reviewer roster satisfying shared roster requirements.",
-      "Runtime review configuration from which round mode is derived.",
-      "Current job id and a run directory under tools/implementation-engine/runs/<job-id>/.",
-      "Governance and runtime settings needed to finish the run, including round budget, concurrency mode, and execution watchdog settings."
-    ],
-    "target_governance_fields": [
-      "artifact kind",
-      "bounded writable surface",
-      "target contract",
-      "target rulebook",
-      "target review prompt",
-      "authority documents",
-      "runtime review configuration",
-      "canonical or staged output declarations",
-      "stop conditions",
-      "conditional-acceptance authority"
-    ],
-    "optional": [
-      "baseline target artifact package for update or fix",
-      "resume package, prior result.json, and unresolved finding ids",
-      "prior compliance map and fix-items map",
-      "invoker-supplied promotion policy"
-    ]
-  },
-  "guardrails": {
-    "semantic_definitions": {
-      "material_pushback": "The latest required review evidence still contains any unresolved conceptual-group finding with blocking or major severity.",
-      "reviewer_clear": "The latest required review evidence shows every active reviewer verdict is approved or true conditional, and any required regression_sanity pass after split-verdict convergence is already complete.",
-      "parity_clear": "The required parity audit finds no blocking discrepancy between declared surfaces, emitted artifacts, self-check evidence, and the terminal payload.",
-      "pre_review_pushback": "Recoverable authority or target-governance ambiguity prevents entry into review before round 0.",
-      "post_review_pushback": "Review has run, budget remains, and reviewer_clear or parity_clear is still false."
-    },
-    "governance_routing_targets": [
-      "rulebook",
-      "contract",
-      "validator or enforcer logic",
-      "review prompt",
-      "docs-only governance surfaces"
-    ],
-    "rules": [
-      "Freeze one bounded slice per invocation before implementation begins.",
-      "No concept lands without owner, consumer, lifecycle, and proof.",
-      "Do not answer review criticism by expanding architecture outside the frozen writable surface.",
-      "Never invent missing target semantics, writable scope, or governance behavior.",
-      "Never let reference documents outrank the live COO/controller plus active review contracts.",
-      "Workers may write only to run-local artifacts and the frozen writable surface; shared governance promotion must run against a versioned base and fail closed on stale state.",
-      "Frozen and frozen_with_conditions are forbidden unless reviewer_clear is true, no material pushback remains, and parity_clear is true.",
-      "Conditional acceptance remains invoker-owned.",
-      "Pushback, resume_required, and blocked must stay distinct.",
-      "Role markdown, role companion contract, declared artifact matrix, completion clauses, and terminal payload must stay semantically aligned.",
-      "When the target-governance package declares preserved history artifacts, those artifacts are governed outputs and must not contradict the effective terminal status or result payload."
-    ],
-    "split_verdict_rules": [
-      "The next revision may target only the rejecting path after split verdict.",
-      "regression_sanity is required before reviewer_clear becomes true again.",
-      "Arbitration may apply only to minor or suggestion disagreements after reviewer_clear is already true.",
-      "Arbitration cannot change a reject verdict, cannot resolve material pushback, and must be written into result.json with affected finding ids and rationale."
-    ]
-  },
-  "workflow": {
-    "round_mode_source": "Derived from the active runtime review configuration.",
-    "parity_audit_required": true,
-    "steps": [
-      {
-        "id": 1,
-        "name": "Validate and normalize the invocation",
-        "writes": [
-          "normalized-request.json",
-          "target-governance-manifest.json",
-          "source-manifest.json",
-          "pre-review-pushback.json when triggered",
-          "parity-audit.json with not_applicable_pre_review_pushback when pre-review pushback is triggered"
-        ]
-      },
-      {
-        "id": 2,
-        "name": "Freeze the bounded slice and stage the candidate",
-        "writes": [
-          "write-domain.json",
-          "candidate-manifest.json",
-          "candidate/"
-        ]
-      },
-      {
-        "id": 3,
-        "name": "Produce or revise the candidate artifact",
-        "writes": [
-          "candidate/",
-          "candidate-manifest.json"
-        ]
-      },
-      {
-        "id": 4,
-        "name": "Run self-check and rules-compliance",
-        "writes": [
-          "self-check.json",
-          "rounds/round-<n>/compliance-map.json"
-        ]
-      },
-      {
-        "id": 5,
-        "name": "Execute the governed review round",
-        "writes": [
-          "rounds/round-<n>/fix-items-map.json when findings are being answered",
-          "rounds/round-<n>/review.json",
-          "rounds/round-<n>/learning.json",
-          "rounds/round-<n>/diff-summary.json",
-          "run-postmortem.json"
-        ]
-      },
-      {
-        "id": 6,
-        "name": "Route review-cycle governance proposals and revise",
-        "writes": [
-          "rounds/round-<n>/governance-routing.json",
-          "candidate/",
-          "candidate-manifest.json"
-        ]
-      },
-      {
-        "id": 7,
-        "name": "Re-verify and run parity audit",
-        "writes": [
-          "parity-audit.json",
-          "rounds/round-<n>/governance-routing.json when parity findings require routing"
-        ]
-      },
-      {
-        "id": 8,
-        "name": "Resolve the terminal outcome and promote outputs",
-        "writes": [
-          "staged-final/ when a terminal candidate exists",
-          "result.json",
-          "cycle-postmortem.json",
-          "conditions-manifest.json on frozen_with_conditions",
-          "resume-package.json on resume_required",
-          "implementation-engine-pushback.json on post-review pushback",
-          "bug-report.json on blocked",
-          "declared target output paths when terminal state and acceptance authority permit promotion"
-        ]
-      }
-    ]
-  },
-  "outputs": {
-    "target_artifact_outputs": [
-      {
-        "artifact": "staged target candidate",
-        "path": "tools/implementation-engine/runs/<job-id>/candidate/",
-        "lifecycle": "Create on the first draft; replace on each revision before terminal close."
-      },
-      {
-        "artifact": "candidate manifest",
-        "path": "tools/implementation-engine/runs/<job-id>/candidate-manifest.json",
-        "lifecycle": "Create on the first draft; replace on each revision."
-      },
-      {
-        "artifact": "immutable staged-final snapshot",
-        "path": "tools/implementation-engine/runs/<job-id>/staged-final/",
-        "lifecycle": "Create once when the run reaches a terminal candidate; required for frozen and frozen_with_conditions."
-      },
-      {
-        "artifact": "final target outputs",
-        "path": "<paths declared by the invocation package>",
-        "lifecycle": "Promote on frozen; on frozen_with_conditions, promote only when conditional acceptance is delegated to the run; unchanged on pushback, resume_required, or blocked."
-      }
-    ],
-    "run_scoped_outputs": [
-      "normalized-request.json",
-      "target-governance-manifest.json",
-      "source-manifest.json",
-      "write-domain.json",
-      "pre-review-pushback.json when triggered",
-      "self-check.json",
-      "rounds/round-<n>/compliance-map.json",
-      "rounds/round-<n>/fix-items-map.json when applicable",
-      "rounds/round-<n>/review.json",
-      "rounds/round-<n>/learning.json",
-      "rounds/round-<n>/governance-routing.json when applicable",
-      "rounds/round-<n>/diff-summary.json",
-      "parity-audit.json",
-      "run-postmortem.json",
-      "result.json",
-      "conditions-manifest.json on frozen_with_conditions",
-      "resume-package.json on resume_required",
-      "implementation-engine-pushback.json on post-review pushback",
-      "bug-report.json on blocked",
-      "cycle-postmortem.json"
-    ]
-  },
-  "completion": {
-    "terminal_order": [
-      "blocked",
-      "resume_required",
-      "pushback",
-      "frozen_with_conditions",
-      "frozen"
-    ],
-    "states": {
-      "frozen": {
-        "predicate": "reviewer_clear is true, parity_clear is true, no material_pushback remains, arbitration was not used, and no deferred minor items remain.",
-        "required_artifacts": [
-          "staged-final/",
-          "final target outputs on the declared promotion surface",
-          "self-check.json",
-          "run-postmortem.json",
-          "result.json",
-          "parity-audit.json",
-          "cycle-postmortem.json"
-        ]
-      },
-      "frozen_with_conditions": {
-        "predicate": "reviewer_clear is true, parity_clear is true, no material_pushback remains, and either arbitration was used or deferred minor items remain accepted as conditions.",
-        "required_artifacts": [
-          "staged-final/",
-          "self-check.json",
-          "run-postmortem.json",
-          "result.json",
-          "parity-audit.json",
-          "conditions-manifest.json",
-          "cycle-postmortem.json"
-        ],
-        "extra_requirement": "result.json must record the conditional-acceptance authority and whether final target promotion occurred now or remains pending invoker acceptance."
-      },
-      "pushback": {
-        "predicate": "No blocked or resume_required condition exists, and either pre-review pushback or post-review pushback remains.",
-        "required_artifacts": {
-          "pre_review": [
-            "pre-review-pushback.json",
-            "result.json",
-            "parity-audit.json",
-            "cycle-postmortem.json"
-          ],
-          "post_review": [
-            "latest round artifacts",
-            "self-check.json",
-            "run-postmortem.json",
-            "implementation-engine-pushback.json",
-            "result.json",
-            "parity-audit.json",
-            "cycle-postmortem.json"
-          ]
-        }
-      },
-      "resume_required": {
-        "predicate": "No blocked error exists, reviewer_clear or parity_clear is still false, and the remaining work cannot be closed within the current budget or resume gate.",
-        "required_artifacts": [
-          "latest round artifacts",
-          "self-check.json",
-          "run-postmortem.json",
-          "resume-package.json",
-          "result.json",
-          "parity-audit.json",
-          "cycle-postmortem.json"
-        ]
-      },
-      "blocked": {
-        "predicate": "An unrecoverable validation, authority, or execution error occurred and the error chain was written.",
-        "required_artifacts": [
-          "result.json",
-          "bug-report.json",
-          "cycle-postmortem.json"
-        ],
-        "conditional_artifacts": [
-          "self-check.json and run-postmortem.json when the run reached those stages",
-          "parity-audit.json when the run reached an auditable state before blocking"
-        ]
-      }
-    }
-  },
-  "parity_requirements": [
-    "This contract and the role markdown must stay semantically aligned on authority, scope, inputs, guardrails, workflow, outputs, and completion.",
-    "Declared artifact matrix and completion clauses must agree on what each terminal state writes and what it intentionally does not write.",
-    "When target-governance declares preserved history artifacts, those artifacts must remain consistent with effective terminal status and result payload semantics."
-  ]
+    "schema_version":  "1.0-draft",
+    "role_name":  "Implementation Engine",
+    "role_slug":  "implementation-engine",
+    "status":  "governed-draft",
+    "purpose":  "Produce, revise, and verify governed artifact packages over a bounded writable surface using fixed engine governance plus invocation-scoped target governance.",
+    "authority":  {
+                      "operative_order":  [
+                                              {
+                                                  "rank":  1,
+                                                  "surface":  "COO controller"
+                                              },
+                                              {
+                                                  "rank":  2,
+                                                  "surface":  "implementation-engine tool contract",
+                                                  "path":  "tools/implementation-engine/tool-contract.json"
+                                              },
+                                              {
+                                                  "rank":  3,
+                                                  "surface":  "shared review contract reference",
+                                                  "path":  "shared/self-learning-engine/review-contract.json"
+                                              },
+                                              {
+                                                  "rank":  4,
+                                                  "surface":  "implementation-engine review contract",
+                                                  "path":  "tools/implementation-engine/review-contract.json"
+                                              },
+                                              {
+                                                  "rank":  5,
+                                                  "surface":  "implementation-engine rulebook",
+                                                  "path":  "tools/implementation-engine/rulebook.json"
+                                              }
+                                          ],
+                      "runtime_scoped_governed_inputs":  [
+                                                             "validated invocation package",
+                                                             "target-governance package",
+                                                             "current job id and run directory",
+                                                             "baseline package or resume package for update/fix operations"
+                                                         ],
+                      "reference_evidence":  [
+                                                 "docs/v0/review-process-architecture.md",
+                                                 "docs/v0/architecture.md"
+                                             ],
+                      "migration_reference_policy":  "Prior ARB role artifacts and replay-vs-run analyses are lesson sources only. They do not become compliance baselines unless the invocation package or target-governance package explicitly imports them as authority.",
+                      "orchestrated_shared_engines":  [
+                                                          "shared/review-engine/",
+                                                          "shared/self-learning-engine/",
+                                                          "shared/rules-compliance-enforcer/"
+                                                      ],
+                      "steady_state_dependency_exclusions":  [
+                                                                 "shared/component-repair-engine/ must not be introduced as a first-class steady-state dependency instead of shared/rules-compliance-enforcer/."
+                                                             ],
+                      "governed_runtime_schema_surfaces":  [
+                                                               "tools/implementation-engine/schemas/invocation-request.schema.json",
+                                                               "tools/implementation-engine/schemas/governance-routing-record.schema.json"
+                                                           ]
+                  },
+    "scope":  {
+                  "use_when":  [
+                                   "A governed artifact package must be created.",
+                                   "An existing governed artifact package must be updated.",
+                                   "A broken or incomplete governed artifact package must be repaired.",
+                                   "A domain tool needs a reusable governed executor for implement, review, compliance, learning, revise, and verify work."
+                               ],
+                  "owns":  [
+                               "Generic orchestration of the governed implementation lifecycle.",
+                               "Run-scoped artifact candidates and evidence generation.",
+                               "Rules-compliance, review, learning, revision, verification, and parity-audit sequencing.",
+                               "Governance-change proposal routing to the gatekeeper.",
+                               "Target-output staging and target promotion only when the invocation package delegates that authority and the terminal state permits it."
+                           ],
+                  "not_in_scope":  [
+                                       "Defining domain-specific business meaning or artifact semantics owned by the invoker.",
+                                       "Overriding the invoker\u0027s acceptance authority for frozen_with_conditions.",
+                                       "Direct mutation of shared rulebooks, contracts, prompts, or validators outside the gatekeeper path.",
+                                       "Replacing the governance ownership of shared engines this role orchestrates.",
+                                       "Unbounded refactors outside the frozen writable surface.",
+                                       "Runtime incident healing owned by self-repair-engine."
+                                   ]
+              },
+    "context_gathering":  {
+                              "preconditions":  [
+                                                    "Load the validated invocation package, requested operation, current job id, and run directory.",
+                                                    "Load the fixed tool contract, active component review contract, shared review contract reference, and engine-governance files declared by those contracts; fail closed if any required engine-governance file is missing.",
+                                                    "Load the full target-governance package and fail closed if any required field, authority surface, or bounded writable surface is missing.",
+                                                    "Load source authority documents as reference evidence, not operative superiors.",
+                                                    "For update or fix operations, load the current target artifact package, existing decision history, and prior terminal result before revising.",
+                                                    "For resumed work, load the resume package, unresolved finding ids, and any staged candidate package.",
+                                                    "Validate that reviewer roster, runtime review configuration, and conditional-acceptance authority satisfy shared, engine, and target contracts.",
+                                                    "Freeze the writable surface, output declarations, and stop conditions before producing any candidate artifact."
+                                                ]
+                          },
+    "inputs":  {
+                   "required":  [
+                                    "Invocation request JSON matching tools/implementation-engine/schemas/invocation-request.schema.json, including required source_refs.",
+                                    "Source refs for authority evidence constraining the target artifact.",
+                                    "tools/implementation-engine/tool-contract.json.",
+                                    "Active shared review contract reference and active component review contract for tools/implementation-engine.",
+                                    "tools/implementation-engine/review-contract.json.",
+                                    "tools/implementation-engine/review-prompt.json.",
+                                    "tools/implementation-engine/rulebook.json.",
+                                    "tools/implementation-engine/role/implementation-engine-role-contract.json.",
+                                    "A complete target-governance package.",
+                                    "An active reviewer roster satisfying shared roster requirements.",
+                                    "Runtime review configuration from which round mode is derived.",
+                                    "Current job id and a run directory under tools/implementation-engine/runs/\u003cjob-id\u003e/.",
+                                    "Governance and runtime settings needed to finish the run, including round budget, concurrency mode, and execution watchdog settings."
+                                ],
+                   "target_governance_fields":  [
+                                                    "artifact kind",
+                                                    "bounded writable surface",
+                                                    "target contract",
+                                                    "target rulebook",
+                                                    "target review prompt",
+                                                    "authority documents",
+                                                    "runtime review configuration",
+                                                    "canonical or staged output declarations",
+                                                    "stop conditions",
+                                                    "conditional-acceptance authority"
+                                                ],
+                   "optional":  [
+                                    "baseline target artifact package for update or fix",
+                                    "resume package, prior result.json, and unresolved finding ids",
+                                    "prior compliance map and fix-items map",
+                                    "invoker-supplied promotion policy"
+                                ]
+               },
+    "guardrails":  {
+                       "semantic_definitions":  {
+                                                    "material_pushback":  "The latest required review evidence still contains any unresolved conceptual-group finding with blocking or major severity.",
+                                                    "reviewer_clear":  "The latest required review evidence shows every active reviewer verdict is approved or true conditional, and any required regression_sanity pass after split-verdict convergence is already complete.",
+                                                    "parity_clear":  "The required parity audit finds no blocking discrepancy between declared surfaces, emitted artifacts, self-check evidence, and the terminal payload.",
+                                                    "pre_review_pushback":  "Recoverable authority or target-governance ambiguity prevents entry into review before round 0.",
+                                                    "post_review_pushback":  "Review has run, budget remains, and reviewer_clear or parity_clear is still false."
+                                                },
+                       "governance_routing_targets":  [
+                                                          "rulebook",
+                                                          "contract",
+                                                          "validator or enforcer logic",
+                                                          "review prompt",
+                                                          "docs-only governance surfaces"
+                                                      ],
+                       "rules":  [
+                                     "Freeze one bounded slice per invocation before implementation begins.",
+                                     "No concept lands without owner, consumer, lifecycle, and proof.",
+                                     "Do not answer review criticism by expanding architecture outside the frozen writable surface.",
+                                     "Never invent missing target semantics, writable scope, or governance behavior.",
+                                     "Never let reference documents outrank the live COO/controller plus active review contracts.",
+                                     "Workers may write only to run-local artifacts and the frozen writable surface; shared governance promotion must run against a versioned base and fail closed on stale state.",
+                                     "Frozen and frozen_with_conditions are forbidden unless reviewer_clear is true, no material pushback remains, and parity_clear is true.",
+                                     "Conditional acceptance remains invoker-owned.",
+                                     "Pushback, resume_required, and blocked must stay distinct.",
+                                     "Role markdown, role companion contract, declared artifact matrix, completion clauses, and terminal payload must stay semantically aligned.",
+                                     "When the target-governance package declares preserved history artifacts, those artifacts are governed outputs and must not contradict the effective terminal status or result payload."
+                                 ],
+                       "split_verdict_rules":  [
+                                                   "The next revision may target only the rejecting path after split verdict.",
+                                                   "regression_sanity is required before reviewer_clear becomes true again.",
+                                                   "Arbitration may apply only to minor or suggestion disagreements after reviewer_clear is already true.",
+                                                   "Arbitration cannot change a reject verdict, cannot resolve material pushback, and must be written into result.json with affected finding ids and rationale."
+                                               ]
+                   },
+    "workflow":  {
+                     "round_mode_source":  "Derived from the active runtime review configuration.",
+                     "parity_audit_required":  true,
+                     "steps":  [
+                                   {
+                                       "id":  1,
+                                       "name":  "Validate and normalize the invocation",
+                                       "writes":  [
+                                                      "normalized-request.json",
+                                                      "target-governance-manifest.json",
+                                                      "source-manifest.json",
+                                                      "pre-review-pushback.json when triggered",
+                                                      "parity-audit.json with not_applicable_pre_review_pushback when pre-review pushback is triggered"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  2,
+                                       "name":  "Freeze the bounded slice and stage the candidate",
+                                       "writes":  [
+                                                      "write-domain.json",
+                                                      "candidate-manifest.json",
+                                                      "candidate/"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  3,
+                                       "name":  "Produce or revise the candidate artifact",
+                                       "writes":  [
+                                                      "candidate/",
+                                                      "candidate-manifest.json"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  4,
+                                       "name":  "Run self-check and rules-compliance",
+                                       "writes":  [
+                                                      "self-check.json",
+                                                      "rounds/round-\u003cn\u003e/compliance-map.json"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  5,
+                                       "name":  "Execute the governed review round",
+                                       "writes":  [
+                                                      "rounds/round-\u003cn\u003e/fix-items-map.json when findings are being answered",
+                                                      "rounds/round-\u003cn\u003e/review.json",
+                                                      "rounds/round-\u003cn\u003e/learning.json",
+                                                      "rounds/round-\u003cn\u003e/diff-summary.json",
+                                                      "run-postmortem.json"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  6,
+                                       "name":  "Route review-cycle governance proposals and revise",
+                                       "writes":  [
+                                                      "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json",
+                                                      "candidate/",
+                                                      "candidate-manifest.json"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  7,
+                                       "name":  "Re-verify and run parity audit",
+                                       "writes":  [
+                                                      "parity-audit.json",
+                                                      "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json when parity findings require routing"
+                                                  ]
+                                   },
+                                   {
+                                       "id":  8,
+                                       "name":  "Resolve the terminal outcome and promote outputs",
+                                       "writes":  [
+                                                      "staged-final/ when a terminal candidate exists",
+                                                      "result.json",
+                                                      "cycle-postmortem.json",
+                                                      "conditions-manifest.json on frozen_with_conditions",
+                                                      "resume-package.json on resume_required",
+                                                      "implementation-engine-pushback.json on post-review pushback",
+                                                      "bug-report.json on blocked",
+                                                      "declared target output paths when terminal state and acceptance authority permit promotion"
+                                                  ]
+                                   }
+                               ]
+                 },
+    "outputs":  {
+                    "target_artifact_outputs":  [
+                                                    {
+                                                        "artifact":  "staged target candidate",
+                                                        "path":  "tools/implementation-engine/runs/\u003cjob-id\u003e/candidate/",
+                                                        "lifecycle":  "Create on the first draft; replace on each revision before terminal close."
+                                                    },
+                                                    {
+                                                        "artifact":  "candidate manifest",
+                                                        "path":  "tools/implementation-engine/runs/\u003cjob-id\u003e/candidate-manifest.json",
+                                                        "lifecycle":  "Create on the first draft; replace on each revision."
+                                                    },
+                                                    {
+                                                        "artifact":  "immutable staged-final snapshot",
+                                                        "path":  "tools/implementation-engine/runs/\u003cjob-id\u003e/staged-final/",
+                                                        "lifecycle":  "Create once when the run reaches a terminal candidate; required for frozen and frozen_with_conditions."
+                                                    },
+                                                    {
+                                                        "artifact":  "final target outputs",
+                                                        "path":  "\u003cpaths declared by the invocation package\u003e",
+                                                        "lifecycle":  "Promote on frozen; on frozen_with_conditions, promote only when conditional acceptance is delegated to the run; unchanged on pushback, resume_required, or blocked."
+                                                    }
+                                                ],
+                    "run_scoped_outputs":  [
+                                               "normalized-request.json",
+                                               "target-governance-manifest.json",
+                                               "source-manifest.json",
+                                               "write-domain.json",
+                                               "pre-review-pushback.json when triggered",
+                                               "self-check.json",
+                                               "rounds/round-\u003cn\u003e/compliance-map.json",
+                                               "rounds/round-\u003cn\u003e/fix-items-map.json when applicable",
+                                               "rounds/round-\u003cn\u003e/review.json",
+                                               "rounds/round-\u003cn\u003e/learning.json",
+                                               "rounds/round-\u003cn\u003e/governance-routing.json conforming to tools/implementation-engine/schemas/governance-routing-record.schema.json when applicable",
+                                               "rounds/round-\u003cn\u003e/diff-summary.json",
+                                               "parity-audit.json",
+                                               "run-postmortem.json",
+                                               "result.json",
+                                               "conditions-manifest.json on frozen_with_conditions",
+                                               "resume-package.json on resume_required",
+                                               "implementation-engine-pushback.json on post-review pushback",
+                                               "bug-report.json on blocked",
+                                               "cycle-postmortem.json"
+                                           ]
+                },
+    "completion":  {
+                       "terminal_order":  [
+                                              "blocked",
+                                              "resume_required",
+                                              "pushback",
+                                              "frozen_with_conditions",
+                                              "frozen"
+                                          ],
+                       "states":  {
+                                      "frozen":  {
+                                                     "predicate":  "reviewer_clear is true, parity_clear is true, no material_pushback remains, arbitration was not used, and no deferred minor items remain.",
+                                                     "required_artifacts":  [
+                                                                                "staged-final/",
+                                                                                "final target outputs on the declared promotion surface",
+                                                                                "self-check.json",
+                                                                                "run-postmortem.json",
+                                                                                "result.json",
+                                                                                "parity-audit.json",
+                                                                                "cycle-postmortem.json"
+                                                                            ]
+                                                 },
+                                      "frozen_with_conditions":  {
+                                                                     "predicate":  "reviewer_clear is true, parity_clear is true, no material_pushback remains, and either arbitration was used or deferred minor items remain accepted as conditions.",
+                                                                     "required_artifacts":  [
+                                                                                                "staged-final/",
+                                                                                                "self-check.json",
+                                                                                                "run-postmortem.json",
+                                                                                                "result.json",
+                                                                                                "parity-audit.json",
+                                                                                                "conditions-manifest.json",
+                                                                                                "cycle-postmortem.json"
+                                                                                            ],
+                                                                     "extra_requirement":  "result.json must record the conditional-acceptance authority and whether final target promotion occurred now or remains pending invoker acceptance."
+                                                                 },
+                                      "pushback":  {
+                                                       "predicate":  "No blocked or resume_required condition exists, and either pre-review pushback or post-review pushback remains.",
+                                                       "required_artifacts":  {
+                                                                                  "pre_review":  [
+                                                                                                     "pre-review-pushback.json",
+                                                                                                     "result.json",
+                                                                                                     "parity-audit.json",
+                                                                                                     "cycle-postmortem.json"
+                                                                                                 ],
+                                                                                  "post_review":  [
+                                                                                                      "latest round artifacts",
+                                                                                                      "self-check.json",
+                                                                                                      "run-postmortem.json",
+                                                                                                      "implementation-engine-pushback.json",
+                                                                                                      "result.json",
+                                                                                                      "parity-audit.json",
+                                                                                                      "cycle-postmortem.json"
+                                                                                                  ]
+                                                                              }
+                                                   },
+                                      "resume_required":  {
+                                                              "predicate":  "No blocked error exists, reviewer_clear or parity_clear is still false, and the remaining work cannot be closed within the current budget or resume gate.",
+                                                              "required_artifacts":  [
+                                                                                         "latest round artifacts",
+                                                                                         "self-check.json",
+                                                                                         "run-postmortem.json",
+                                                                                         "resume-package.json",
+                                                                                         "result.json",
+                                                                                         "parity-audit.json",
+                                                                                         "cycle-postmortem.json"
+                                                                                     ]
+                                                          },
+                                      "blocked":  {
+                                                      "predicate":  "An unrecoverable validation, authority, or execution error occurred and the error chain was written.",
+                                                      "required_artifacts":  [
+                                                                                 "result.json",
+                                                                                 "bug-report.json",
+                                                                                 "cycle-postmortem.json"
+                                                                             ],
+                                                      "conditional_artifacts":  [
+                                                                                    "self-check.json and run-postmortem.json when the run reached those stages",
+                                                                                    "parity-audit.json when the run reached an auditable state before blocking"
+                                                                                ]
+                                                  }
+                                  }
+                   },
+    "parity_requirements":  [
+                                "This contract and the role markdown must stay semantically aligned on authority, scope, inputs, guardrails, workflow, outputs, and completion.",
+                                "Declared artifact matrix and completion clauses must agree on what each terminal state writes and what it intentionally does not write.",
+                                "When target-governance declares preserved history artifacts, those artifacts must remain consistent with effective terminal status and result payload semantics."
+                            ]
 }
