@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "mode": "synthetic_sandbox_shadow",
+  "component": "implementation-engine",
+  "artifact_kind": "role-definition",
+  "note": "Sandbox-only companion summary extracted from the role draft because the governed implementation-engine contract package does not exist yet.",
+  "intent": "Produce, revise, and verify governed artifact packages over a bounded writable surface.",
+  "governance": {
+    "shared_engines": [
+      "shared/review-engine/",
+      "shared/self-learning-engine/",
+      "shared/rules-compliance-enforcer/"
+    ],
+    "component_local_governance_files": [
+      "rulebook.json",
+      "review-prompt.json",
+      "review-contract.json"
+    ]
+  },
+  "runtime": {
+    "required_round_modes": [
+      "full",
+      "delta",
+      "regression_sanity"
+    ],
+    "terminal_states": [
+      "frozen",
+      "frozen_with_conditions",
+      "resume_required",
+      "pushback",
+      "blocked"
+    ]
+  },
+  "package_files": [
+    "tools/implementation-engine/role/implementation-engine-role.md",
+    "tools/implementation-engine/role/implementation-engine-role-contract.json",
+    "tools/implementation-engine/role/implementation-engine-decision-log.md",
+    "tools/implementation-engine/role/implementation-engine-board-summary.md"
+  ]
+}

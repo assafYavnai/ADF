@@ -649,6 +649,30 @@ Current recommendation:
 - keep `per-rule-shrinking` as the quality-mode candidate
 - do not collapse to one permanent path yet; gather more evidence before freezing implementation
 
+Next sandbox expansion:
+
+- move off the weak run-01 fixture and onto the stronger `implementation-engine` role draft
+- run the next 4-scenario matrix in true parallel:
+  - `grouped-full-implementation`
+  - `grouped-shrinking-implementation`
+  - `grouped-targeted-shrinking-implementation`
+  - `per-rule-shrinking-implementation`
+- use the grouped-targeted variant to test whether the historically weak grouped rules can be pulled into focused per-rule review without giving back most of the runtime gain
+- keep learning out of this next group until the stronger artifact proves it is still needed
+
+Live result:
+
+- `grouped-shrinking-implementation` approved the stronger implementation-engine role draft in `17m 58.7s` over `3` cycles
+- `grouped-full-implementation` also approved, but slower at `27m 15.9s`
+- `grouped-targeted-shrinking-implementation` approved, but did not justify its extra complexity or time at `30m 29.9s`
+- `per-rule-shrinking-implementation` hit `cycle_cap` with `3` residual findings after `40m 54.7s`
+
+Current implication:
+
+- keep `grouped-shrinking` as the leading non-ARB production candidate
+- do not adopt the targeted hybrid yet
+- treat the missing governed companion contract package for `implementation-engine` as the next sandbox blocker before deciding any live ARB change
+
 ## Reviewer Policy To Freeze In Implementation
 
 These discussion decisions should be implemented as part of Step 1.

@@ -10,7 +10,7 @@ import type { RoleBuilderRequest } from "../../src/schemas/request.js";
 type Provider = "codex" | "claude" | "gemini";
 type Severity = "blocking" | "major" | "minor" | "suggestion" | "none";
 type RuleStatus = "compliant" | "non_compliant" | "not_applicable";
-type ReviewShape = "per-rule" | "grouped-by-relevance";
+type ReviewShape = "per-rule" | "grouped-by-relevance" | "grouped-with-targeted";
 
 interface ModelConfig {
   provider: Provider;
@@ -36,10 +36,18 @@ interface Config {
 
 interface ScenarioConfig {
   scenario_slug: string;
-  group: "group-a" | "group-b" | "group-c";
+  group: string;
   review_shape: ReviewShape;
   shrinking_active_set: boolean;
   learning_mode: "none" | "after-second-failed-review";
+  targeted_rule_ids?: string[];
+  fixture?: {
+    artifact_markdown_path?: string;
+    contract_summary_path?: string;
+    artifact_path_hint?: string;
+    component_name?: string;
+    source_authority_paths?: string[];
+  };
 }
 
 interface RuleRecord {
@@ -154,10 +162,9 @@ async function main(): Promise<void> {
   const reviewPrompt = await readJson<Record<string, unknown>>(join(root, "tools", "agent-role-builder", "review-prompt.json"));
   const rulebook = await readJson<Rulebook>(join(root, "tools", "agent-role-builder", "rulebook.json"));
   const groupManifest = await readJson<GroupManifest>(join(root, "tools", "agent-role-builder", "tests", "enforcer-parallel-review-shape", "grouped-by-relevance", "groups.json"));
-  const fixtureRoot = join(root, "tools", "agent-role-builder", "tests", "fixtures", "run01-role-artifact");
-  const fixtureMarkdown = await readFile(join(fixtureRoot, "agent-role-builder-role.md"), "utf-8");
+  const defaultFixtureRoot = join(root, "tools", "agent-role-builder", "tests", "fixtures", "run01-role-artifact");
   const baselineRequest = await readJson<RoleBuilderRequest>(join(root, "tools", "agent-role-builder", "runs", "agent-role-builder-self-role-001", "normalized-request.json"));
-  const contractSummary = buildContractSummary(
+  const defaultContractSummary = buildContractSummary(
     generateRoleContract(
       baselineRequest,
       `${baselineRequest.role_slug}-role.md`,
@@ -166,6 +173,19 @@ async function main(): Promise<void> {
       `${baselineRequest.role_slug}-board-summary.md`
     )
   );
+  const fixtureMarkdownPath = scenario.fixture?.artifact_markdown_path
+    ? resolve(root, scenario.fixture.artifact_markdown_path)
+    : join(defaultFixtureRoot, "agent-role-builder-role.md");
+  const fixtureMarkdown = await readFile(fixtureMarkdownPath, "utf-8");
+  const contractSummary = scenario.fixture?.contract_summary_path
+    ? await readFile(resolve(root, scenario.fixture.contract_summary_path), "utf-8")
+    : defaultContractSummary;
+  const artifactPathHint = scenario.fixture?.artifact_path_hint ?? join("tools", "agent-role-builder", "role", "agent-role-builder-role.md");
+  const componentName = scenario.fixture?.component_name ?? "agent-role-builder";
+  const sourceAuthorityPaths = (scenario.fixture?.source_authority_paths ?? [
+    join(root, "docs", "v0", "review-process-architecture.md"),
+    join(root, "docs", "v0", "architecture.md"),
+  ]).map((entry) => resolve(root, entry));
 
   await mkdir(resultDir, { recursive: true });
   await mkdir(cycleRoot, { recursive: true });
@@ -194,7 +214,12 @@ async function main(): Promise<void> {
     await mkdir(outputsDir, { recursive: true });
 
     const activeRuleIds = currentRulebook.filter((rule) => ruleState.get(rule.id)?.active !== false).map((rule) => rule.id);
-    const tasks = buildTasks(scenario.review_shape, currentRulebook.filter((rule) => activeRuleIds.includes(rule.id)), groupManifest);
+    const tasks = buildTasks(
+      scenario.review_shape,
+      currentRulebook.filter((rule) => activeRuleIds.includes(rule.id)),
+      groupManifest,
+      scenario.targeted_rule_ids ?? []
+    );
     await writeFile(join(cycleDir, "artifact-before-fix.md"), currentMarkdown, "utf-8");
     await writeFile(join(cycleDir, "active-rules.json"), JSON.stringify(activeRuleIds, null, 2), "utf-8");
     await log(progressLog, `cycle ${cycle}: ${tasks.length} review tasks`);
@@ -335,11 +360,11 @@ async function main(): Promise<void> {
     const fixStartedMs = Date.now();
     const fixResult = await runRulesComplianceEnforcer(
       {
-        component: "agent-role-builder",
+        component: componentName,
         mode: cycle === 1 ? "initial_rule_sweep" : "revision",
         round: cycle,
         artifactTag: "draft",
-        artifactPathHint: join("tools", "agent-role-builder", "role", "agent-role-builder-role.md"),
+        artifactPathHint,
         artifactText: currentMarkdown,
         requiredArtifactInstructions: [
           "Return the full updated role-definition markdown.",
@@ -361,10 +386,7 @@ async function main(): Promise<void> {
         bundleDir: join(cycleDir, "fixer"),
         reviewPromptPath: join(root, "tools", "agent-role-builder", "review-prompt.json"),
         reviewContractPath: join(root, "tools", "agent-role-builder", "review-contract.json"),
-        sourceAuthorityPaths: [
-          join(root, "docs", "v0", "review-process-architecture.md"),
-          join(root, "docs", "v0", "architecture.md"),
-        ],
+        sourceAuthorityPaths,
       },
       async (prompt: string, sourcePath: string) => {
         const invocation = await invokeWithResume(config.fixer_model, prompt, sourcePath, "fixer-main", sessionRegistry, sessionRegistryPath, config.execution.retry_once_on_failure, config.execution.retry_backoff_ms);
@@ -450,16 +472,32 @@ async function main(): Promise<void> {
   await log(progressLog, `completed ${scenario.scenario_slug}: approved=${approved}, run_status=${runStatus}`);
 }
 
-function buildTasks(reviewShape: ReviewShape, rules: RuleRecord[], groupManifest: GroupManifest): ReviewerTask[] {
+function buildTasks(reviewShape: ReviewShape, rules: RuleRecord[], groupManifest: GroupManifest, targetedRuleIds: string[]): ReviewerTask[] {
   if (reviewShape === "per-rule") {
     return rules.map((rule) => ({ taskId: `rule-${rule.id}`, scopeId: rule.id, rules: [rule] }));
   }
+  return buildGroupedTasks(reviewShape, rules, groupManifest, targetedRuleIds);
+}
+
+function buildGroupedTasks(reviewShape: Exclude<ReviewShape, "per-rule">, rules: RuleRecord[], groupManifest: GroupManifest, targetedRuleIds: string[]): ReviewerTask[] {
   const ruleMap = new Map(rules.map((rule) => [rule.id, rule]));
+  const targeted = new Set(reviewShape === "grouped-with-targeted" ? targetedRuleIds : []);
   const tasks: ReviewerTask[] = [];
   for (const group of groupManifest.groups) {
-    const groupedRules = group.rules.map((ruleId) => ruleMap.get(ruleId)).filter((rule): rule is RuleRecord => Boolean(rule));
+    const groupedRules = group.rules
+      .filter((ruleId) => !targeted.has(ruleId))
+      .map((ruleId) => ruleMap.get(ruleId))
+      .filter((rule): rule is RuleRecord => Boolean(rule));
     if (groupedRules.length > 0) {
       tasks.push({ taskId: `group-${group.id}`, scopeId: group.id, rules: groupedRules });
+    }
+  }
+  if (targeted.size > 0) {
+    for (const ruleId of targeted) {
+      const rule = ruleMap.get(ruleId);
+      if (rule) {
+        tasks.push({ taskId: `targeted-${rule.id}`, scopeId: `targeted-${rule.id}`, rules: [rule] });
+      }
     }
   }
   const assigned = new Set(tasks.flatMap((task) => task.rules.map((rule) => rule.id)));

@@ -73,6 +73,9 @@ Result:
 6. The fix stage remains the dominant wall-time sink.
    Review-shape optimization matters, but fix-stage latency is still the largest share of end-to-end time.
 
+7. The main remaining loop problem is fixer translation, not reviewer ignorance.
+   The grouped path already finds enough to expose the core package gaps. The longer tail comes from getting the fixer to rewrite scope, identity, artifact-matrix, and terminal semantics coherently in one pass.
+
 ## Current Recommendation
 
 For implementation direction today:
@@ -93,3 +96,4 @@ But the quality gap is small enough that the most pragmatic default is:
 2. treat `grouped-shrinking` as the leading candidate for production integration
 3. test a targeted residual sweep on top of `grouped-shrinking`
 4. continue attacking fix-stage latency, because that is still the biggest runtime cost
+5. move the next sandbox group onto the stronger `implementation-engine` role draft instead of repeating the weak run-01 fixture

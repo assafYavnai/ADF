@@ -230,3 +230,25 @@ Current interpretation:
 - default production candidate: `grouped-shrinking`
 - quality profile candidate: `per-rule-shrinking`
 - learning remains out of the default loop until later evidence changes that
+
+## Next Sandbox Expansion
+
+The next group must move off the weak run-01 fixture and onto the stronger `implementation-engine` role draft.
+
+Why:
+
+- the current open question is no longer whether grouped review is faster on a weak artifact
+- the real question is whether a stronger near-production candidate can converge in one to two cycles
+
+That expansion is tracked in:
+
+- `docs/v0/context/2026-03-31-implementation-engine-sandbox-loop-plan.md`
+
+The new matrix should test:
+
+- grouped full
+- grouped shrinking
+- grouped shrinking plus a targeted residual sweep
+- per-rule shrinking
+
+Learning stays out of the default next group until a stronger artifact still proves it necessary.
