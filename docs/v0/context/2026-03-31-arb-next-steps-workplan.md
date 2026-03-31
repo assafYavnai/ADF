@@ -398,6 +398,43 @@ Validation completed for this step:
 - `shared` TypeScript compile passed
 - `agent-role-builder` TypeScript compile passed
 
+#### Step 4B. Pre-replay legality and economic-truth delta
+
+Goal:
+
+- close the last correctness and KPI-truth blockers identified by the in-flight review and audit before trusting the run 01 replay
+
+Status:
+
+- open
+
+Frozen scope:
+
+1. make reviewer `error` explicitly approval-blocking for terminal legality:
+   - freeze must not be legal while any active reviewer slot remains `error`
+   - choose one explicit policy:
+     - short-circuit before leader synthesis
+     - or represent missing approval in legality so freeze fail-closes
+2. make repaired provider failures visible in the main LLM economics:
+   - failed primary attempt
+   - repaired retry attempt
+   - true provider/session cost
+   - true provider-failure count
+3. align cycle-postmortem `fallback_count` with the broader engine telemetry surface
+4. freeze the intended large-roster final-sanity behavior:
+   - either one designated prior approver
+   - or all prior approvers
+   and then implement/test exactly that policy
+5. add the missing tests that make the replay results trustworthy
+
+Acceptance:
+
+- `approved + error` or `conditional + error` can no longer terminate as `frozen` or `frozen_with_conditions`
+- repaired provider failures appear in the main economics instead of disappearing behind self-repair success
+- cycle postmortem fallback reporting matches the chosen telemetry surface
+- final-sanity behavior is mechanically defined for `2`, `4`, and `6` reviewer rosters
+- new tests cover the freeze-on-error and repaired-failure KPI paths
+
 ### Step 5. Replay run 01 baseline on current code under a new job id
 
 Goal:
@@ -414,6 +451,10 @@ Rules:
 Purpose:
 
 - compare quality, convergence, latency, cost, and resilience against older behavior
+
+Precondition:
+
+- Step 4B must be closed first, otherwise the replay may still be audit-interesting but not trustable as a correctness/economics baseline
 
 ### Step 6. Deep ARB validation run with higher budget
 
@@ -523,6 +564,11 @@ Before Step 5 starts, the lane should have:
 3. truthful KPI surfaces
 4. explicit `self-repair-engine` path
 5. bounded-run validation evidence from run 19 or 20
+6. Step 4B closed:
+   - reviewer `error` freeze legality fixed
+   - repaired provider-failure economics fixed
+   - fallback-count scope fixed or explicitly frozen
+   - final-sanity policy for larger rosters fixed and tested
 
 ## Close Condition
 

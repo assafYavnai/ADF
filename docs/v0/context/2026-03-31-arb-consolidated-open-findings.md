@@ -442,3 +442,154 @@ Status:
 Resolution:
 
 - board phase telemetry no longer writes `run_postmortem_path` before `run-postmortem.json` exists
+
+## In-Flight Review And Audit Delta
+
+These findings were accepted while the replay run and a fresh-eye review were in progress. They do not change the earlier completed steps, but they do reopen the pre-replay hardening list.
+
+### 21. Reviewer `error` can still freeze illegally
+
+Status:
+
+- open
+
+Problem:
+
+- reviewer transport/parse/runtime failures are converted into reviewer-local `error`
+- leader synthesis drops those failed reviewer verdicts
+- repair-state derivation still treats only explicit `reject` as approval-blocking
+- terminal legality can therefore still allow `frozen` or `frozen_with_conditions` when the live reviewer state is effectively:
+  - one reviewer `approved`
+  - one reviewer `error`
+
+Impact:
+
+- the lane can still freeze while a reviewer slot never produced a usable governed approval
+- this contradicts the frozen policy that freeze/handoff may happen only after reviewer approvals are in place
+
+Accepted evidence:
+
+- [board.ts](C:/ADF/tools/agent-role-builder/src/services/board.ts)
+- [engine.ts](C:/ADF/shared/governance-runtime/engine.ts)
+- [2026-03-31-arb-next-steps-workplan.md](C:/ADF/docs/v0/context/2026-03-31-arb-next-steps-workplan.md)
+
+### 22. Repaired provider failures still disappear from core LLM economics
+
+Status:
+
+- open
+
+Problem:
+
+- when a primary provider call fails and `self-repair-engine` succeeds with one cold-start retry, the returned invocation result reflects only the repaired success path
+- KPI aggregation still derives:
+  - `llm_call_count`
+  - `llm_failure_count`
+  - `provider_failures`
+  - token estimates
+  - estimated cost
+  - session spinup/resume economics
+  from emitted `llm` attempts only
+- that means the failed primary attempt can disappear from the main economics even though repair telemetry exists
+
+Impact:
+
+- replay analysis can still understate instability, retry cost, and real provider economics
+- this is a KPI-truth blocker, not just a nice-to-have metric improvement
+
+Accepted evidence:
+
+- [index.ts](C:/ADF/tools/self-repair-engine/src/index.ts)
+- [self-repair.ts](C:/ADF/tools/agent-role-builder/src/services/self-repair.ts)
+- [run-telemetry.ts](C:/ADF/tools/agent-role-builder/src/services/run-telemetry.ts)
+- [board.ts](C:/ADF/tools/agent-role-builder/src/services/board.ts)
+- [role-generator.ts](C:/ADF/tools/agent-role-builder/src/services/role-generator.ts)
+
+### 23. Cycle-postmortem `fallback_count` is still too narrow
+
+Status:
+
+- open
+
+Problem:
+
+- cycle postmortem still derives `fallback_count` only from board participant records
+- broader engine telemetry can already record fallback-aware LLM attempts for:
+  - `rules-compliance-enforcer`
+  - `self-learning-engine`
+  - future wrapped engines
+
+Impact:
+
+- postmortem fallback reporting can still understate the real amount of fallback behavior outside board participant records
+
+### 24. Final sanity fan-out still drifts for larger reviewer rosters
+
+Status:
+
+- open
+
+Problem:
+
+- current final sanity routing reruns all previously approving reviewers
+- the frozen discussion rule was narrower: rerun only the previously approving reviewer
+- the request schema still allows `4` or `6` reviewers
+
+Impact:
+
+- larger rosters can still cost more and behave differently than the currently frozen simple closeout rule
+
+### 25. Mixed source/dist loading remains an operational drift risk
+
+Status:
+
+- residual risk
+
+Problem:
+
+- `shared-module-loader.ts` is source-first and cwd-sensitive
+- `shared-imports.ts` and `resume-state.ts` still pin key imports to `shared/dist`
+
+Impact:
+
+- stale dist builds or cwd drift can still produce inconsistent runtime behavior without changing source
+
+### 26. Real provider CLI teardown on Windows is still not validated
+
+Status:
+
+- residual risk
+
+Problem:
+
+- managed timeout teardown is covered only by synthetic child-process tests
+- there is still no real Codex/Claude/Gemini CLI process-tree teardown validation on Windows
+
+Impact:
+
+- the replay still depends on synthetic confidence for this part of the runtime contract
+
+### 27. Codex still depends on `bash -c` on Windows
+
+Status:
+
+- residual risk
+
+Problem:
+
+- Codex invocation on Windows still depends on `bash -c`
+
+Impact:
+
+- the replay still assumes that shell dependency is present and operationally stable
+
+## Additional Test Gaps
+
+These gaps were confirmed by the latest review and audit and should remain visible until covered explicitly.
+
+1. No test asserts that reviewer `error` blocks `frozen` and `frozen_with_conditions`.
+2. No test covers `error -> approved/conditional` recovery and whether final sanity is required afterward.
+3. No test pins bare-`conditional` semantics.
+4. No test proves that repaired provider failures are counted in core LLM economics instead of disappearing behind the retry.
+5. No test proves that cycle-postmortem `fallback_count` covers non-board engines, or explicitly documents that it does not.
+6. No real provider CLI teardown test exists on Windows; current coverage is still the synthetic Node child-tree case.
