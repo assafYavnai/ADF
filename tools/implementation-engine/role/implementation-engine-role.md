@@ -32,6 +32,7 @@ Runtime-scoped governed inputs, governed by but not equal to the authority chain
 Reference evidence, not competing authority:
 - ADF Review Process Architecture
 - ADF Architecture
+- Prior ARB role artifacts and replay-vs-run analyses are migration references and lesson sources only; they are not operative compliance baselines for this engine unless the invocation package or target-governance package explicitly imports them as authority.
 
 Shared engines this role orchestrates, but does not govern:
 - `shared/review-engine/`
@@ -146,6 +147,8 @@ Optional:
   - review prompt
   - docs-only governance surfaces
 - Every governance proposal must record its target surface, requested action, owner, base version, and gatekeeper outcome.
+- Role markdown, role companion contract, declared artifact matrix, completion clauses, and terminal payload must stay semantically aligned.
+- When the target-governance package declares preserved history artifacts, those artifacts are governed outputs and must not contradict the effective terminal status or result payload.
 - `frozen` and `frozen_with_conditions` are forbidden unless reviewer-clear is true, no material pushback remains, and parity-clear is true.
 - Any active reviewer `reject`, even when only minor items remain, keeps reviewer-clear false and blocks both frozen states.
 - Split-verdict handling, budget exhaustion, and minor-only arbitration are inherited from the shared review process; local consequences are:

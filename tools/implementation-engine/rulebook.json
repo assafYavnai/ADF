@@ -1,5 +1,5 @@
-﻿{
-  "schema_version": "1.0",
+{
+  "schema_version": "1.1",
   "component": "implementation-engine",
   "last_updated": "2026-03-31",
   "rules": [
@@ -22,6 +22,18 @@
     {
       "id": "IMPL-005",
       "rule": "No frozen or ready claim is valid without adversarial verification and parity audit."
+    },
+    {
+      "id": "IMPL-006",
+      "rule": "Role markdown, role contract, artifact matrix, completion clauses, and terminal payload must stay semantically aligned."
+    },
+    {
+      "id": "IMPL-007",
+      "rule": "Declared governance history and audit artifacts are governed outputs and must not contradict effective terminal status or result payload semantics."
+    },
+    {
+      "id": "IMPL-008",
+      "rule": "Prior artifacts may inform a run only as reference evidence unless the active authority package explicitly imports them as authority."
     }
   ]
 }

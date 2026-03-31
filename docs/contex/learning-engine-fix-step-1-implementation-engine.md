@@ -65,10 +65,18 @@ It does not yet run the governed implementation/review/learning loop that `imple
 
 Bootstrap `implementation-engine` manually:
 
-1. create the role manually under ARB-style governance discipline
+1. create the role manually under strict governed artifact discipline informed by ARB lessons, but not constrained to mirror ARB markdown or contract wording
 2. create the contract manually
 3. seed the engine rulebook manually
 4. implement the first engine version using ARB core and governance patterns
+
+### Source-baseline decision
+
+`agent-role-builder` artifacts are reference sources and migration evidence for `implementation-engine`, not the compliance baseline.
+
+The new engine should inherit lessons from ARB and from the replay-vs-run-018 analysis, but it should not be forced to mirror ARB role markdown or contract wording when a stronger generic design is available and has been reviewed.
+
+Only the implementation-engine's own reviewed role, contract, rulebook, tool contract, and invocation-scoped target governance should act as its compliance baseline.
 
 ## High-Level Decisions Already Agreed
 
@@ -290,7 +298,7 @@ Because ARB is still expensive to run and `llm-tool-builder` is not mature enoug
 
 ### 1. Manual role creation
 
-Create a high-level governed role for `implementation-engine` manually, but under strict ARB-style artifact discipline and contract compliance.
+Create a high-level governed role for `implementation-engine` manually, but under strict governed artifact discipline informed by ARB lessons rather than literal ARB compliance.
 
 ### 2. Manual contract creation
 
@@ -321,12 +329,12 @@ Implement the engine by reusing ARB core and governance patterns rather than wai
 Before implementation begins, the manually created bootstrap artifacts must themselves go through a lightweight governed path:
 
 1. Freeze the boundary decisions in this document.
-2. Draft the engine role manually under strict ARB-style artifact discipline.
-3. Run an independent contextless review of the role draft.
-4. Draft the engine contract manually.
-5. Run an independent contextless review of the contract draft.
+2. Draft the engine role manually under strict governed artifact discipline informed by ARB lessons, not literal ARB compliance.
+3. Draft the role companion contract alongside the markdown role.
+4. Run an independent contextless review of the role markdown plus the role companion contract together.
+5. Draft and review any remaining engine-contract detail that is still outside the role companion contract surface.
 6. Draft the seed rulebook and review it the same way.
-7. Freeze the role, contract, seed rulebook, target-governance package, and terminal artifact matrix before code-level design starts.
+7. Freeze the role, role companion contract, seed rulebook, target-governance package, and terminal artifact matrix before code-level design starts.
 
 This is the bootstrap substitute for a full ARB-generated package.
 
@@ -390,17 +398,17 @@ The first bootstrap artifacts now exist in draft form under `tools/implementatio
 4. review-prompt draft
 5. seed rulebook draft
 6. invocation-request schema draft
-7. role companion contract placeholder draft
+7. role companion contract draft
 
 These artifacts are not frozen yet. They exist so the next independent review can test boundary clarity, artifact completeness, and operational usability instead of reviewing an empty placeholder surface.
 
-Important limitation: `tools/implementation-engine/role/implementation-engine-role-contract.json` currently exists only as a bootstrap placeholder. Markdown-to-contract parity is not established until that placeholder is replaced by the real governed role-contract draft.
+Important limitation: `tools/implementation-engine/role/implementation-engine-role-contract.json` is now a governed draft, but it remains unfrozen until an independent review confirms markdown-to-contract parity and package-level coherence.
 
 ## Immediate Next Review And Freeze Steps
 
-1. run another independent contextless review of the role plus companion governance artifacts
-2. tighten the role until the artifact matrix, authority chain, and terminal semantics are stable
-3. replace the placeholder role companion contract with the real governed contract draft and review it
+1. run another independent contextless review of the role, role contract, rulebook, and companion governance artifacts
+2. tighten any remaining markdown-to-contract, artifact-matrix, or history-parity gaps
+3. freeze the role markdown and role contract together only after parity review passes
 4. review and tighten the seed rulebook
 5. freeze the target-governance invocation package and bootstrap governance set before code-level design
 

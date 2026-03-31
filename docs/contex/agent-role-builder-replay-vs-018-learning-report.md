@@ -580,7 +580,7 @@ This is the first step because it creates the reusable place where replay-vs-018
 
 Detailed plan: `docs/contex/learning-engine-fix-step-1-implementation-engine.md`
 
-Current draft status: bootstrap `implementation-engine` role and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending another independent review. The role companion contract is still a bootstrap placeholder and must be replaced by the real governed contract draft before implementation starts.
+Current draft status: bootstrap `implementation-engine` role, role contract draft, and companion governance artifacts now exist under `tools/implementation-engine/`, but remain unfrozen pending another independent review. ARB artifacts remain lesson sources and migration evidence for `implementation-engine`; they are not its compliance baseline unless explicitly imported as authority.
 
 Step 1 must also freeze four boundaries before role and contract drafting:
 
