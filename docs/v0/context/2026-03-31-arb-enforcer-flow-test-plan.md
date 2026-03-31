@@ -61,6 +61,43 @@ Priority order:
 
 Token and cost still matter, but they are not the deciding KPI for this round.
 
+## Decision Matrix
+
+This experiment family must preserve three independent decision axes:
+
+1. time
+2. cost
+3. quality
+
+The framework must not collapse these into one winner too early.
+
+Current interpretation after `live-002`:
+
+- `speed` profile currently favors `grouped-by-relevance`
+- `cost` profile currently also favors `grouped-by-relevance`
+- `quality` profile currently favors `per-rule`
+
+This means the likely product direction is not "pick one permanent shape" yet.
+It is:
+
+- keep both review shapes available
+- gather more data
+- decide later whether the runtime should expose explicit optimization profiles such as:
+  - `speed`
+  - `cost`
+  - `quality`
+
+## Current Policy
+
+Do not collapse to one implementation path yet.
+
+Until more experiments run:
+
+- keep `per-rule` as the higher-coverage reference path
+- keep `grouped-by-relevance` as the current efficiency leader
+- use the same locked baseline and KPI schema for later experiments
+- compare future runs against this matrix instead of using only one KPI
+
 ## Common Controls
 
 Every scenario in this experiment must keep these fixed:
@@ -208,6 +245,14 @@ A scenario wins if it:
 
 If the fastest scenario loses important coverage, it is not the winner.
 
+At the current stage, "winner" may mean:
+
+- winner for speed
+- winner for cost
+- winner for quality
+
+It does not yet mean one permanent implementation choice.
+
 ## Follow-On Experiments
 
 If one of the two shapes wins, later experiments can test:
@@ -218,3 +263,8 @@ If one of the two shapes wins, later experiments can test:
 - moving `self-learning-engine` off the critical path
 - deciding whether post-fix work goes back through enforcer before board review
 
+Before choosing a permanent implementation path, run enough experiments to answer:
+
+- does grouped plus a tiny targeted second pass beat pure per-rule on quality-adjusted wall time?
+- does model selection separate `cost` from `speed`, or do they continue to share the same best shape?
+- can grouped review keep the blocking/major signal while closing the four currently missed rules?

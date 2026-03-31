@@ -543,6 +543,54 @@ Acceptance:
 
 - GC can improve rulebook hygiene without mutating active run snapshots or silently deleting rules
 
+### Step 9. Enforcer runtime-shape decision
+
+Goal:
+
+- decide the permanent `rules-compliance-enforcer` review shape from measured evidence, not theory
+
+Status:
+
+- in experiment
+
+Frozen policy:
+
+- keep both active experiment tracks for now:
+  - `per-rule`
+  - `grouped-by-relevance`
+- do not collapse to one path until more data exists
+- continue using the locked run 01 baseline fixture and the shared KPI model for comparable tests
+
+Current `live-002` interpretation:
+
+- time winner: `grouped-by-relevance`
+- cost winner: `grouped-by-relevance`
+- quality winner: `per-rule`
+
+Likely implementation direction to test next:
+
+- support explicit optimization profiles instead of one hardcoded path:
+  - `speed`
+  - `cost`
+  - `quality`
+
+Current provisional mapping:
+
+- `speed` -> `grouped-by-relevance`
+- `cost` -> `grouped-by-relevance`
+- `quality` -> `per-rule`
+
+Important note:
+
+- this mapping is provisional only
+- more experiments may later separate `cost` from `speed`
+
+Acceptance:
+
+- enough experiments exist to justify a stable implementation choice
+- grouped plus targeted second-pass coverage has been tested
+- the runtime optimization-profile design is either frozen or explicitly rejected
+
 ## Reviewer Policy To Freeze In Implementation
 
 These discussion decisions should be implemented as part of Step 1.

@@ -19,6 +19,12 @@ Both scenarios used the same:
 
 `grouped-by-relevance` won on runtime and cost, but it did not fully match `per-rule` coverage.
 
+Bottom line:
+
+- both scenarios delivered a dramatic performance improvement versus the current live enforcer path
+- neither scenario is the single permanent winner yet
+- the result supports a profile-based runtime direction more than a one-shape-only decision
+
 ## KPI Comparison
 
 ### `per-rule`
@@ -75,6 +81,29 @@ What this suggests:
 
 So the grouped approach is promising, but not ready to replace the per-rule shape without another tightening pass.
 
+## Decision Matrix
+
+Current decision matrix from `live-002`:
+
+- time winner: `grouped-by-relevance`
+- cost winner: `grouped-by-relevance`
+- quality/coverage winner: `per-rule`
+
+Recommended interpretation:
+
+- keep both tracks active for now
+- treat `grouped-by-relevance` as the current speed/cost leader
+- treat `per-rule` as the current quality reference path
+- gather more evidence before making the implementation permanent
+
+Possible runtime direction after more evidence:
+
+- `speed` optimization profile
+- `cost` optimization profile
+- `quality` optimization profile
+
+Today, `speed` and `cost` map to the same winner, but that should remain a measured conclusion, not a frozen permanent assumption.
+
 ## Recommended Next Experiment
 
 Keep `grouped-by-relevance` as the current speed leader, then test one refinement:
@@ -88,8 +117,13 @@ Keep `grouped-by-relevance` as the current speed leader, then test one refinemen
 
 If that preserves the grouped runtime advantage while restoring coverage, it is likely the best next enforcer design direction.
 
+Until that is proven:
+
+- do not delete the `per-rule` path
+- do not hardcode a single enforcer runtime shape
+- keep using the same baseline fixture and KPI model for follow-up experiments
+
 ## Artifact Paths
 
 - `tools/agent-role-builder/tests/enforcer-parallel-review-shape/per-rule/results/live-002/`
 - `tools/agent-role-builder/tests/enforcer-parallel-review-shape/grouped-by-relevance/results/live-002/`
-
