@@ -8,7 +8,6 @@ export const GovernanceFamily = z.enum([
   "setting",
   "finding",
   "open_loop",
-  "artifact_ref",
 ]);
 export type GovernanceFamily = z.infer<typeof GovernanceFamily>;
 

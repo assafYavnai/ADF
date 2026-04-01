@@ -61,7 +61,6 @@ test("assembleContext requests scoped reviewed governance memory before truncati
         "setting",
         "finding",
         "open_loop",
-        "artifact_ref",
       ],
       trustLevels: ["reviewed", "locked"],
       maxResults: 10,

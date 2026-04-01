@@ -1,4 +1,6 @@
+import { z } from "zod";
 import { pool } from "../db/connection.js";
+import { ProvenanceSchema } from "../provenance.js";
 
 interface NormalizedMetricEvent {
   provenance: {
@@ -20,10 +22,30 @@ interface NormalizedMetricEvent {
   metadata?: Record<string, unknown>;
 }
 
+const TelemetryCategorySchema = z.enum(["llm", "memory", "tool", "turn", "system"]);
+
+const TelemetryMetricInputSchema = z.object({
+  provenance: ProvenanceSchema,
+  category: TelemetryCategorySchema,
+  operation: z.string(),
+  latency_ms: z.number(),
+  success: z.boolean(),
+  tokens_in: z.number().nullable().optional(),
+  tokens_out: z.number().nullable().optional(),
+  estimated_cost_usd: z.number().nullable().optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+const TelemetryMetricsBatchInputSchema = z.object({
+  events: z.array(TelemetryMetricInputSchema).min(1),
+});
+
+type TelemetryMetricInput = z.infer<typeof TelemetryMetricInputSchema>;
+
 export async function handleEmitMetric(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const event = normalizeMetricEvent(args);
+  const event = normalizeMetricEvent(TelemetryMetricInputSchema.parse(args));
   await insertMetricEvents(pool, [event]);
   return { content: [{ type: "text", text: "ok" }] };
 }
@@ -31,17 +53,8 @@ export async function handleEmitMetric(
 export async function handleEmitMetricsBatch(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const rawEvents = Array.isArray(args.events) ? args.events : null;
-  if (!rawEvents || rawEvents.length === 0) {
-    throw new Error("emit_metrics_batch requires a non-empty events array");
-  }
-
-  const events = rawEvents.map((event, index) => {
-    if (!event || typeof event !== "object" || Array.isArray(event)) {
-      throw new Error(`emit_metrics_batch event ${index} must be an object`);
-    }
-    return normalizeMetricEvent(event as Record<string, unknown>);
-  });
+  const batch = TelemetryMetricsBatchInputSchema.parse(args);
+  const events = batch.events.map((event) => normalizeMetricEvent(event));
 
   await insertMetricEvents(pool, events);
   return { content: [{ type: "text", text: "ok" }] };
@@ -182,30 +195,25 @@ export async function insertMetricEvents(
   );
 }
 
-function normalizeMetricEvent(args: Record<string, unknown>): NormalizedMetricEvent {
-  const p = args.provenance as Record<string, unknown> | undefined;
-  if (!p || !p.invocation_id || !p.source_path) {
-    throw new Error("telemetry event requires provenance with at least invocation_id and source_path");
-  }
-
+function normalizeMetricEvent(args: TelemetryMetricInput): NormalizedMetricEvent {
   return {
     provenance: {
-      invocation_id: String(p.invocation_id),
-      provider: String(p.provider ?? "system"),
-      model: String(p.model ?? "none"),
-      reasoning: String(p.reasoning ?? "none"),
-      was_fallback: Boolean(p.was_fallback ?? false),
-      source_path: String(p.source_path),
-      timestamp: typeof p.timestamp === "string" ? p.timestamp : new Date().toISOString(),
+      invocation_id: args.provenance.invocation_id,
+      provider: args.provenance.provider,
+      model: args.provenance.model,
+      reasoning: args.provenance.reasoning,
+      was_fallback: args.provenance.was_fallback,
+      source_path: args.provenance.source_path,
+      timestamp: args.provenance.timestamp,
     },
-    category: String(args.category ?? "system"),
-    operation: String(args.operation ?? "unknown"),
-    latency_ms: Number(args.latency_ms ?? 0),
-    success: Boolean(args.success ?? true),
+    category: args.category,
+    operation: args.operation,
+    latency_ms: args.latency_ms,
+    success: args.success,
     tokens_in: toOptionalNumber(args.tokens_in),
     tokens_out: toOptionalNumber(args.tokens_out),
     estimated_cost_usd: toOptionalNumber(args.estimated_cost_usd),
-    metadata: (args.metadata as Record<string, unknown> | undefined) ?? {},
+    metadata: args.metadata ?? {},
   };
 }
 
@@ -224,7 +232,20 @@ export const TELEMETRY_TOOL_DEFINITIONS = [
     inputSchema: {
       type: "object" as const,
       properties: {
-        provenance: { type: "object", description: "Provenance object" },
+        provenance: {
+          type: "object",
+          description: "Full provenance object from caller",
+          properties: {
+            invocation_id: { type: "string", format: "uuid" },
+            provider: { type: "string", enum: ["codex", "claude", "gemini", "openai", "system"] },
+            model: { type: "string" },
+            reasoning: { type: "string" },
+            was_fallback: { type: "boolean" },
+            source_path: { type: "string" },
+            timestamp: { type: "string" },
+          },
+          required: ["invocation_id", "provider", "model", "reasoning", "was_fallback", "source_path", "timestamp"],
+        },
         category: { type: "string", enum: ["llm", "memory", "tool", "turn", "system"] },
         operation: { type: "string" },
         latency_ms: { type: "number" },
@@ -245,7 +266,33 @@ export const TELEMETRY_TOOL_DEFINITIONS = [
       properties: {
         events: {
           type: "array",
-          items: { type: "object" },
+          items: {
+            type: "object",
+            properties: {
+              provenance: {
+                type: "object",
+                properties: {
+                  invocation_id: { type: "string", format: "uuid" },
+                  provider: { type: "string", enum: ["codex", "claude", "gemini", "openai", "system"] },
+                  model: { type: "string" },
+                  reasoning: { type: "string" },
+                  was_fallback: { type: "boolean" },
+                  source_path: { type: "string" },
+                  timestamp: { type: "string" },
+                },
+                required: ["invocation_id", "provider", "model", "reasoning", "was_fallback", "source_path", "timestamp"],
+              },
+              category: { type: "string", enum: ["llm", "memory", "tool", "turn", "system"] },
+              operation: { type: "string" },
+              latency_ms: { type: "number" },
+              success: { type: "boolean" },
+              tokens_in: { type: "number" },
+              tokens_out: { type: "number" },
+              estimated_cost_usd: { type: "number" },
+              metadata: { type: "object" },
+            },
+            required: ["provenance", "category", "operation", "latency_ms", "success"],
+          },
           minItems: 1,
         },
       },

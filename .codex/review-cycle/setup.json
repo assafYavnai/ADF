@@ -1,0 +1,22 @@
+{
+  "project_root": "C:/ADF",
+  "preferred_execution_access_mode": "codex_cli_full_auto_bypass",
+  "preferred_auditor_access_mode": "codex_cli_full_auto_bypass",
+  "preferred_reviewer_access_mode": "codex_cli_full_auto_bypass",
+  "preferred_implementor_access_mode": "codex_cli_full_auto_bypass",
+  "fallback_execution_access_mode": "inherits_current_runtime_access",
+  "runtime_permission_model": "codex_cli_explicit_full_auto",
+  "execution_access_notes": "Native spawned agents inherit the current full-access runtime, but do not expose stronger explicit access controls. Codex CLI full-auto plus bypass is available and remains the strongest explicit non-interactive mode for spawned review-cycle executions.",
+  "requires_project_specific_permission_rules": false,
+  "project_specific_permission_rules": [],
+  "detected_runtime_capabilities": {
+    "native_agent_spawning_available": true,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": true,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "created_at": "2026-04-01T08:19:32.664Z",
+  "updated_at": "2026-04-01T08:19:32.665Z"
+}

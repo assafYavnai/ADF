@@ -165,15 +165,14 @@ async function loadKnowledge(
           "decision",
           "requirement",
           "convention",
-          "rule",
-          "role",
-          "setting",
-          "finding",
-          "open_loop",
-          "artifact_ref",
-        ],
-        trustLevels: ["reviewed", "locked"],
-        maxResults: maxItems,
+        "rule",
+        "role",
+        "setting",
+        "finding",
+        "open_loop",
+      ],
+      trustLevels: ["reviewed", "locked"],
+      maxResults: maxItems,
       }
     );
     const topResults = results
@@ -221,7 +220,6 @@ function isInjectableKnowledge(result: BrainSearchResult): boolean {
     "setting",
     "finding",
     "open_loop",
-    "artifact_ref",
   ].includes(result.content_type);
 }
 

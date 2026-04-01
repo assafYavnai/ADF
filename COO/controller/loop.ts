@@ -630,7 +630,6 @@ function inferExplicitSearchOptions(
         "setting",
         "finding",
         "open_loop",
-        "artifact_ref",
       ],
       maxResults: 10,
     };

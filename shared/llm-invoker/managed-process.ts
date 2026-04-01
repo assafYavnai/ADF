@@ -1,4 +1,5 @@
-import { extname } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, extname, resolve } from "node:path";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 
 export interface ManagedProcessParams {
@@ -32,6 +33,7 @@ export async function runManagedProcess(params: ManagedProcessParams): Promise<M
     cwd: params.cwd,
     env: params.env,
     shell: launch.shell,
+    windowsVerbatimArguments: launch.windowsVerbatimArguments ?? false,
     detached,
     windowsHide: true,
     stdio: ["pipe", "pipe", "pipe"],
@@ -105,6 +107,7 @@ function resolveLaunchCommand(params: ManagedProcessParams): {
   command: string;
   args: string[];
   shell: boolean;
+  windowsVerbatimArguments?: boolean;
 } {
   if (process.platform !== "win32" || params.shell) {
     return {
@@ -116,10 +119,16 @@ function resolveLaunchCommand(params: ManagedProcessParams): {
 
   const resolvedCommand = resolveWindowsCommand(params.command, params.env) ?? params.command;
   if (isBatchShim(resolvedCommand)) {
+    const parsedNodeShim = resolveNodeShimLaunch(resolvedCommand, params.args, params.env);
+    if (parsedNodeShim) {
+      return parsedNodeShim;
+    }
+
     return {
-      command: resolvedCommand,
-      args: params.args,
-      shell: true,
+      command: resolveWindowsCommand(process.env.ComSpec ?? "cmd.exe", params.env) ?? (process.env.ComSpec ?? "cmd.exe"),
+      args: ["/d", "/v:off", "/c", composeBatchShimCommandLine(resolvedCommand, params.args)],
+      shell: false,
+      windowsVerbatimArguments: true,
     };
   }
 
@@ -128,6 +137,71 @@ function resolveLaunchCommand(params: ManagedProcessParams): {
     args: params.args,
     shell: false,
   };
+}
+
+function resolveNodeShimLaunch(
+  command: string,
+  args: string[],
+  env?: NodeJS.ProcessEnv
+): { command: string; args: string[]; shell: boolean } | null {
+  const parsed = parseNodeBatchShim(command);
+  if (!parsed) {
+    return null;
+  }
+
+  const shimDir = dirname(command);
+  const localNode = resolve(shimDir, "node.exe");
+  const nodeCommand = existsSync(localNode)
+    ? localNode
+    : (resolveWindowsCommand("node", env) ?? process.execPath);
+
+  return {
+    command: nodeCommand,
+    args: [...parsed.nodeArgs, parsed.scriptPath, ...args],
+    shell: false,
+  };
+}
+
+function parseNodeBatchShim(command: string): { nodeArgs: string[]; scriptPath: string } | null {
+  let contents: string;
+  try {
+    contents = readFileSync(command, "utf-8");
+  } catch {
+    return null;
+  }
+
+  const shimDir = dirname(command);
+  const line = contents
+    .split(/\r?\n/)
+    .find((entry) => /"%_prog%"/i.test(entry) && /%dp0%\\.*node_modules.*\.js/i.test(entry) && /%\*/.test(entry));
+  if (!line) {
+    return null;
+  }
+
+  const match = line.match(/"%_prog%"\s*(?<prefix>.*?)"%dp0%\\(?<script>[^"]+?\.js)"\s+%\*/i);
+  if (!match?.groups?.script) {
+    return null;
+  }
+
+  return {
+    nodeArgs: tokenizeShimArgs(match.groups.prefix ?? ""),
+    scriptPath: resolve(shimDir, match.groups.script),
+  };
+}
+
+function tokenizeShimArgs(value: string): string[] {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const tokens: string[] = [];
+  const matcher = /"([^"]*)"|([^\s]+)/g;
+  let match: RegExpExecArray | null;
+  while ((match = matcher.exec(trimmed)) !== null) {
+    tokens.push(match[1] ?? match[2] ?? "");
+  }
+  return tokens;
 }
 
 function resolveWindowsCommand(command: string, env?: NodeJS.ProcessEnv): string | null {
@@ -162,6 +236,35 @@ function resolveWindowsCommand(command: string, env?: NodeJS.ProcessEnv): string
     .sort((left, right) => left.rank - right.rank);
 
   return ranked[0]?.candidate ?? null;
+}
+
+function composeBatchShimCommandLine(command: string, args: string[]): string {
+  const assignments = args
+    .map((arg, index) => `set "ADF_MANAGED_ARG_${index}=${escapeBatchShimValue(arg)}"`)
+    .join(" && ");
+  const argRefs = args
+    .map((_, index) => `"%ADF_MANAGED_ARG_${index}%"`)
+    .join(" ");
+  const commandPath = `"${command.replace(/"/g, "\"\"")}"`;
+
+  if (args.length === 0) {
+    return `setlocal DisableDelayedExpansion && call ${commandPath}`;
+  }
+
+  return `setlocal DisableDelayedExpansion && ${assignments} && call ${commandPath} ${argRefs}`;
+}
+
+function escapeBatchShimValue(value: string): string {
+  return value
+    .replace(/\^/g, "^^")
+    .replace(/&/g, "^&")
+    .replace(/\|/g, "^|")
+    .replace(/</g, "^<")
+    .replace(/>/g, "^>")
+    .replace(/\(/g, "^(")
+    .replace(/\)/g, "^)")
+    .replace(/%/g, "%%")
+    .replace(/"/g, "\"\"");
 }
 
 function isBatchShim(command: string): boolean {

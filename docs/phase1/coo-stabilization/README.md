@@ -17,9 +17,12 @@ Implementation slug: `coo-stabilization`
   - decision content provenance continuity and bounded telemetry shutdown
 - [cycle-05](./cycle-05/review-findings.md)
   - mutation provenance closure, legacy evidence partition, Windows provider launch proof, and sibling-route coverage
+- [cycle-06](./cycle-06/review-findings.md)
+  - telemetry provenance closure, byte-stable Windows shim transport, and artifact-ref surface cleanup
 
 Notes:
 
 - Cycles 01-03 are backfilled from the preserved chat thread and existing Phase 1 docs.
-- Cycle 04 is the current cycle completed in code and verified live.
-- Cycle 05 closes the remaining live mutation-provenance and provider-launch failure classes and adds route-level proof across the sibling surfaces.
+- Cycle 04 closed decision-content provenance continuity and bounded telemetry shutdown.
+- Cycle 05 closed the remaining live mutation-provenance failure classes and added route-level proof across the sibling surfaces.
+- Cycle 06 closes the remaining live telemetry-provenance and Windows shim transport defects without widening the COO stabilization scope.

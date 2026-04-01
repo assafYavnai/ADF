@@ -13,7 +13,7 @@ import { handleGovernance, GOVERNANCE_TOOL_DEFINITIONS } from "./tools/governanc
 import { MEMORY_TOOL_DEFINITIONS } from "./tools/memory-tools.js";
 import { handleEmitMetric, handleEmitMetricsBatch, handleQueryMetrics, handleGetCostSummary, insertMetricEvents, TELEMETRY_TOOL_DEFINITIONS } from "./tools/telemetry-tools.js";
 import { CaptureMemoryInput, SearchMemoryInput, MemoryManageInput, ContextSummaryInput, ListRecentInput } from "./schemas/memory-item.js";
-import { ProvenanceSchema, createSystemProvenance } from "./provenance.js";
+import { ProvenanceSchema, createSystemProvenance, type Provenance } from "./provenance.js";
 
 const server = new Server(
   { name: "ADF Memory Engine", version: "0.1.0" },
@@ -41,7 +41,7 @@ server.setRequestHandler(
   async (request) => {
     const { name, arguments: args = {} } = request.params;
     const toolStart = Date.now();
-    const prov = extractToolProvenance(args, `memory-engine/${name}`);
+    const callerProvenance = extractToolProvenance(args);
 
     try {
       let response:
@@ -87,7 +87,7 @@ server.setRequestHandler(
         }
         case "memory_manage": {
           const input = MemoryManageInput.parse(args);
-          const receipt = await executeMemoryManageRoute(input, prov);
+          const receipt = await executeMemoryManageRoute(input, input.provenance);
           response = { content: [{ type: "text", text: JSON.stringify(receipt, null, 2) }] };
           break;
         }
@@ -138,14 +138,14 @@ server.setRequestHandler(
         throw new Error(`Tool ${name} produced no response`);
       }
 
-      await emitToolRouteTelemetry(name, prov, Date.now() - toolStart, true, {
+      await emitToolRouteTelemetry(name, callerProvenance, Date.now() - toolStart, true, {
         scope: typeof args.scope === "string" ? args.scope : undefined,
         action: typeof args.action === "string" ? args.action : undefined,
       });
       return response;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      await emitToolRouteTelemetry(name, prov, Date.now() - toolStart, false, {
+      await emitToolRouteTelemetry(name, callerProvenance, Date.now() - toolStart, false, {
         scope: typeof args.scope === "string" ? args.scope : undefined,
         action: typeof args.action === "string" ? args.action : undefined,
         error: message,
@@ -193,14 +193,13 @@ main().catch((err) => {
 });
 
 function extractToolProvenance(
-  args: Record<string, unknown>,
-  fallbackSourcePath: string
-) {
+  args: Record<string, unknown>
+): Provenance | null {
   const parsed = ProvenanceSchema.safeParse(args.provenance);
   if (parsed.success) {
     return parsed.data;
   }
-  return createSystemProvenance(fallbackSourcePath);
+  return null;
 }
 
 function buildMemoryManageReceipt(
@@ -235,7 +234,7 @@ function actionResultStatus(action: "delete" | "archive" | "update_tags" | "upda
 
 async function recordMemoryManageTelemetry(
   db: { query: (text: string, params: unknown[]) => Promise<unknown> },
-  provenance: ReturnType<typeof extractToolProvenance>,
+  provenance: Provenance,
   action: "delete" | "archive" | "update_tags" | "update_trust_level",
   receipt: ReturnType<typeof buildMemoryManageReceipt>
 ): Promise<void> {
@@ -256,7 +255,7 @@ async function recordMemoryManageTelemetry(
 
 async function executeMemoryManageRoute(
   input: MemoryManageInput,
-  provenance: ReturnType<typeof extractToolProvenance>
+  provenance: Provenance
 ): Promise<ReturnType<typeof buildMemoryManageReceipt>> {
   const scope = await resolveScope(input.scope);
 
@@ -274,7 +273,7 @@ async function executeMemoryManageRoute(
 function buildScopedMutation(
   input: MemoryManageInput,
   scope: Awaited<ReturnType<typeof resolveScope>>,
-  provenance: ReturnType<typeof extractToolProvenance>
+  provenance: Provenance
 ): { sql: string; params: unknown[] } {
   const exactScopeFilter = exactScopeFilterSQL(scope);
 
@@ -361,7 +360,7 @@ function exactScopeFilterSQL(
 
 async function emitToolRouteTelemetry(
   toolName: string,
-  provenance: ReturnType<typeof extractToolProvenance>,
+  callerProvenance: Provenance | null,
   latencyMs: number,
   success: boolean,
   metadata: Record<string, unknown>
@@ -371,22 +370,43 @@ async function emitToolRouteTelemetry(
   }
 
   try {
+    const routeTelemetry = resolveToolRouteTelemetry(toolName, callerProvenance);
     await insertMetricEvents(pool, [
       {
         provenance: {
-          ...provenance,
+          ...routeTelemetry.provenance,
           timestamp: new Date().toISOString(),
         },
         category: "memory",
         operation: toolName,
         latency_ms: latencyMs,
         success,
-        metadata,
+        metadata: {
+          ...metadata,
+          telemetry_provenance_mode: routeTelemetry.mode,
+        },
       },
     ]);
   } catch (err) {
     logger.warn(`Telemetry write failed for ${toolName}:`, err);
   }
+}
+
+function resolveToolRouteTelemetry(
+  toolName: string,
+  callerProvenance: Provenance | null
+): { provenance: Provenance; mode: "caller" | "internal" } {
+  if (callerProvenance) {
+    return {
+      provenance: callerProvenance,
+      mode: "caller",
+    };
+  }
+
+  return {
+    provenance: createSystemProvenance(`memory-engine/internal/tool-route-telemetry/${toolName}`),
+    mode: "internal",
+  };
 }
 
 function shouldEmitToolRouteTelemetry(toolName: string): boolean {

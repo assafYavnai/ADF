@@ -72,7 +72,7 @@ test("runManagedProcess can launch Windows PATH batch shims through the managed 
       shimPath,
       [
         "@echo off",
-        "echo shim-%1",
+        "echo shim-%~1",
       ].join("\r\n"),
       "utf-8"
     );
@@ -91,6 +91,39 @@ test("runManagedProcess can launch Windows PATH batch shims through the managed 
     });
 
     assert.equal(result.stdout, "shim-ok");
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("runManagedProcess preserves metacharacter arguments when launching Windows batch shims", { skip: process.platform !== "win32" }, async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "adf-managed-process-shim-argv-"));
+  const shimPath = join(tempDir, "shim-tool.cmd");
+
+  try {
+    await writeFile(
+      shimPath,
+      [
+        "@echo off",
+        "echo ARG:%~1",
+      ].join("\r\n"),
+      "utf-8"
+    );
+
+    const env = {
+      ...process.env,
+      PATH: `${tempDir};${process.env.PATH ?? ""}`,
+    };
+
+    const result = await runManagedProcess({
+      command: "shim-tool",
+      args: ["safe&echo INJECTED"],
+      timeoutMs: 5_000,
+      label: "windows-shim-argv",
+      env,
+    });
+
+    assert.equal(result.stdout, "ARG:safe&echo INJECTED");
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

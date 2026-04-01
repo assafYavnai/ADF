@@ -1,4 +1,4 @@
-import { readFile, writeFile, unlink } from "node:fs/promises";
+import { readFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { runManagedProcess } from "./managed-process.js";
 import {
@@ -388,13 +388,8 @@ async function callCLI(params: InvocationParams, invocationId: string): Promise<
 
 async function callCodex(params: InvocationParams, invocationId: string): Promise<CLIResult> {
   const tmpFile = join(TEMP_DIR, `adf-codex-${invocationId}.txt`);
-  // Bug 1 fix: Codex stdin does NOT reliably deliver full prompts on Windows.
-  // Write the prompt to a temp file and pass it as a CLI argument via shell variable.
-  const promptFile = join(TEMP_DIR, `adf-codex-prompt-${invocationId}.txt`);
 
   try {
-    await writeFile(promptFile, params.prompt, "utf-8");
-
     const sessionRequest = params.session;
     const sessionHandle = selectCompatibleSessionHandle(sessionRequest?.handle, "codex", params.model);
     const attempts: InternalCLIAttempt[] = [];
@@ -403,7 +398,7 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
     if (sessionRequest?.persist && sessionHandle) {
       const resumedStart = Date.now();
       try {
-        codexResult = await runCodexWithSession(params, promptFile, tmpFile, "resumed", sessionHandle);
+        codexResult = await runCodexWithSession(params, tmpFile, "resumed", sessionHandle);
         attempts.push({
           latency_ms: Date.now() - resumedStart,
           success: true,
@@ -433,7 +428,7 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
           );
         }
         const replacedStart = Date.now();
-        codexResult = await runCodexWithSession(params, promptFile, tmpFile, "replaced");
+        codexResult = await runCodexWithSession(params, tmpFile, "replaced");
         attempts.push({
           latency_ms: Date.now() - replacedStart,
           success: true,
@@ -443,7 +438,7 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
       }
     } else if (sessionRequest?.persist) {
       const freshStart = Date.now();
-      codexResult = await runCodexWithSession(params, promptFile, tmpFile, "fresh");
+      codexResult = await runCodexWithSession(params, tmpFile, "fresh");
       attempts.push({
         latency_ms: Date.now() - freshStart,
         success: true,
@@ -452,7 +447,7 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
       });
     } else {
       const noSessionStart = Date.now();
-      codexResult = await runCodexWithoutSession(params, promptFile, tmpFile);
+      codexResult = await runCodexWithoutSession(params, tmpFile);
       attempts.push({
         latency_ms: Date.now() - noSessionStart,
         success: true,
@@ -468,7 +463,6 @@ async function callCodex(params: InvocationParams, invocationId: string): Promis
     };
   } finally {
     await unlink(tmpFile).catch(() => {});
-    await unlink(promptFile).catch(() => {});
   }
 }
 
@@ -606,12 +600,11 @@ async function callGemini(params: InvocationParams): Promise<CLIResult> {
 
 async function runCodexWithoutSession(
   params: InvocationParams,
-  promptFile: string,
   tmpFile: string
 ): Promise<CLIResult> {
   const args = buildCodexArgs(params, tmpFile, false);
 
-  await runCodexShellCommand(params, promptFile, args);
+  await runCodexCommand(params, args);
 
   const result = await readFile(tmpFile, "utf-8");
   return {
@@ -623,13 +616,12 @@ async function runCodexWithoutSession(
 
 async function runCodexWithSession(
   params: InvocationParams,
-  promptFile: string,
   tmpFile: string,
   mode: "fresh" | "resumed" | "replaced",
   handle?: InvocationSessionHandle
 ): Promise<CLIResult> {
   const args = buildCodexArgs(params, tmpFile, true, handle?.session_id);
-  const processResult = await runCodexShellCommand(params, promptFile, args);
+  const processResult = await runCodexCommand(params, args);
   const response = (await readFile(tmpFile, "utf-8")).trim();
   const threadId = extractCodexThreadIdFromJsonOutput(processResult.stdout);
   if (!threadId) {
@@ -651,27 +643,15 @@ async function runCodexWithSession(
   };
 }
 
-async function runCodexShellCommand(
-  params: InvocationParams,
-  promptFile: string,
-  args: string[]
-) {
-  await ensureCommandAvailable(
-    "bash",
-    "Codex on this machine requires `bash` on PATH because prompts are passed through a Bash wrapper."
-  );
+async function runCodexCommand(params: InvocationParams, args: string[]) {
   await ensureCommandAvailable(
     "codex",
     "Codex invocation requires the `codex` CLI on PATH before a COO turn can run."
   );
 
-  const escapedPromptPath = promptFile.replace(/\\/g, "/");
-  const codexArgs = args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`).join(" ");
-  const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
-
   return await runManagedProcess({
-    command: "bash",
-    args: ["-c", shellCmd],
+    command: "codex",
+    args: [...args, params.prompt],
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "codex",
     env: { ...process.env },
@@ -760,7 +740,6 @@ async function runClaudeWithSession(
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "claude",
     env: { ...process.env },
-    shell: true,
     stdinText: params.prompt,
   });
   const parsed = parseClaudePrintJson(result.stdout);

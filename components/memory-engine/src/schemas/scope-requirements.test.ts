@@ -60,6 +60,14 @@ test("governance actions no longer advertise update or transition", () => {
       provenance: sampleProvenance("tests/scope-requirements"),
     });
   });
+
+  assert.throws(() => {
+    GovernanceManageInput.parse({
+      family: "artifact_ref",
+      action: "list",
+      scope: "assafyavnai/shippingagent",
+    });
+  });
 });
 
 test("scoped read contracts fail at parse time when scope is missing", () => {
