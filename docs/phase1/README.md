@@ -11,6 +11,7 @@ Purpose: give a contextless agent the minimum Phase 1 framing needed to continue
 5. [adf-phase1-high-level-plan.md](./adf-phase1-high-level-plan.md)
 6. [adf-phase1-coo-completion-plan.md](./adf-phase1-coo-completion-plan.md)
 7. [coo-stabilization/README.md](./coo-stabilization/README.md)
+8. [adf-phase1-onion-parallel-build-plan.md](./adf-phase1-onion-parallel-build-plan.md)
 
 ## Why This Folder Exists
 
@@ -44,6 +45,7 @@ Current COO note:
   - historical provenance quality is still dominated by legacy sentinel rows
   - historical decision rows are now explicitly partitioned as `legacy_unknown`, but they still carry weaker trust than modern rows
 - onion implementation remains deferred until the evidence layer is strong enough for management use
+- a separate parallel-build plan now exists for onion work that must stay additive and unwired until stabilization is formally accepted
 
 ## Core Source Pointers
 
