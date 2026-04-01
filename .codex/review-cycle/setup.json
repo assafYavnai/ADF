@@ -6,17 +6,23 @@
   "preferred_implementor_access_mode": "codex_cli_full_auto_bypass",
   "fallback_execution_access_mode": "inherits_current_runtime_access",
   "runtime_permission_model": "codex_cli_explicit_full_auto",
-  "execution_access_notes": "Native spawned agents inherit the current full-access runtime, but do not expose stronger explicit access controls. Codex CLI full-auto plus bypass is available and remains the strongest explicit non-interactive mode for spawned review-cycle executions.",
+  "execution_access_notes": "Native agents can be reused and coordinated, while Codex CLI full-auto plus bypass remains the strongest explicit non-interactive access mode available here.",
+  "preferred_execution_runtime": "native_agent_tools",
+  "persistent_execution_strategy": "per_feature_agent_registry",
   "requires_project_specific_permission_rules": false,
   "project_specific_permission_rules": [],
   "detected_runtime_capabilities": {
     "native_agent_spawning_available": true,
     "native_agent_access_configurable": false,
     "native_agent_inherits_runtime_access": true,
+    "native_agent_resume_available": true,
+    "native_agent_send_input_available": true,
+    "native_agent_wait_available": true,
+    "native_parallel_wait_available": true,
     "codex_cli_available": true,
     "codex_cli_full_auto_supported": true,
     "codex_cli_bypass_supported": true
   },
   "created_at": "2026-04-01T08:19:32.664Z",
-  "updated_at": "2026-04-01T08:19:32.665Z"
+  "updated_at": "2026-04-01T11:06:11.673Z"
 }
