@@ -25,6 +25,10 @@ export function resolveContextPriority(
     contentType === "requirement" ||
     contentType === "convention" ||
     contentType === "open_loop" ||
+    contentType === "rule" ||
+    contentType === "role" ||
+    contentType === "setting" ||
+    contentType === "finding" ||
     normalizedTags.some((t) => HIGH_PRIORITY_TAGS.has(t))
   ) {
     return "p0";

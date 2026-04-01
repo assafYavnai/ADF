@@ -26,12 +26,19 @@ Do not start from the full target chain.
 
 Start with:
 
-1. the requirements-gathering onion lane
-2. a minimal implementation lane
-3. finalization
-4. postmortem
+1. the `ADF continuity foundation`
+2. the requirements-gathering onion lane
+3. requirement-list artifact creation
+4. a minimal implementation lane
+5. finalization
+6. postmortem
 
 Then expand the implementation lane into the richer target phases.
+
+Current COO gate:
+
+- the COO runtime is runnable, but still not management-trustworthy
+- before Phase 1A can move into the real onion lane, COO stabilization must close the remaining scope and memory-operation truthfulness gaps
 
 ## Final Target Chain
 
@@ -51,29 +58,39 @@ But that is the end-state shape, not the first delivery milestone.
 
 Recommended first operational slice:
 
-1. `CEO <-> COO onion lane`
+1. `ADF continuity foundation`
+   - complete the ADF-adapted 12-factor + memory continuity model
+   - make discussions, decisions, requirement fragments, open loops, and prompts restorable
+   - validate interruption and recovery
+
+2. `CEO <-> COO onion lane`
    - capture and refine feature scope
    - freeze the whole onion with the CEO
-   - emit `finalized requirement list`
+   - rely on the continuity foundation so the lane can recover naturally
 
-2. `requirements review/freeze`
+3. `requirement-list artifact creation`
+   - emit a draft requirement list
+   - revise it when needed
+   - reach a finalized requirement list
+
+4. `requirements review/freeze`
    - accept finalized requirements from COO
    - run requirement-list compliance + review
    - either:
      - freeze to `frozen requirement list`
      - or push back to COO
 
-3. `minimal implementation lane`
+5. `minimal implementation lane`
    - consume frozen requirements
    - implement the feature through a small governed delivery path
    - keep this lane minimal in the first build
 
-4. `finalization`
+6. `finalization`
    - confirm closeout state
    - verify required outputs and readiness
    - emit finalization artifacts
 
-5. `postmortem`
+7. `postmortem`
    - preserve evidence
    - summarize what happened
    - extract lessons
@@ -94,26 +111,49 @@ That produces the fuller target chain without requiring the first milestone to s
 
 ## Recommended Build Order
 
-### 1. Freeze the onion lane
+### 1. Build the ADF continuity foundation
+
+Build:
+
+- thread/event continuity
+- Brain-backed durable capture and recall
+- daily residue
+- prompt routing and context recovery
+- interruption/resume behavior
+- provenance on writes and recoverable state transitions
+
+Important framing:
+
+- this means the ADF-adapted continuity design from `docs/v0/memory_stack_strategy.md`
+- it does not mean copying every legacy memory-stack mechanism literally
+
+### 2. Freeze the onion lane
 
 Build:
 
 - COO onion workflow
-- finalized requirement-list artifact
 - whole-onion freeze behavior
 
 Primary source:
 
 - `docs/v0/context/requirements-gathering-onion-model.md`
 
-### 2. Freeze the first handoff
+### 3. Build the first requirement artifact
 
 Build:
 
+- draft requirement-list artifact
 - `finalized requirement list` artifact contract
+- revise/finalize behavior
+- recovery from interruption without loss
+
+### 4. Freeze the first handoff
+
+Build:
+
 - handoff package from COO to feature function
 
-### 3. Build requirements review/freeze
+### 5. Build requirements review/freeze
 
 Build:
 
@@ -121,14 +161,14 @@ Build:
 - pushback path back to COO
 - review/fix/freeze behavior for the first feature-function phase
 
-### 4. Build a minimal implementation lane
+### 6. Build a minimal implementation lane
 
 Build:
 
 - one small governed delivery path from frozen requirements to implemented feature
 - do not split it yet into all future sub-phases
 
-### 5. Build finalization and postmortem
+### 7. Build finalization and postmortem
 
 Build:
 
@@ -136,7 +176,7 @@ Build:
 - postmortem artifacts
 - route back to COO / next owner
 
-### 6. Add KPI / event capture
+### 8. Add KPI / event capture
 
 Track:
 
@@ -148,7 +188,7 @@ Track:
 - closeout status
 - end-to-end time from finalized requirements to postmortem
 
-### 7. Expand implementation into the fuller target chain
+### 9. Expand implementation into the fuller target chain
 
 Only after the vertical slice works:
 
@@ -202,11 +242,17 @@ Discussion recovery:
 
 Start implementation design from:
 
+- the `ADF continuity foundation`
+- then the `CEO <-> COO` onion lane
+
+The first milestone is complete when:
+
+1. nothing important is lost
+2. COO conversation feels natural enough
+3. a requirement-list artifact can be created
+
+Then continue into:
+
 - the `CEO <-> COO` onion lane
-
-Then immediately design the smallest downstream chain that can consume the finalized requirements and reach:
-
-- finalization
-- postmortem
-
-That is the highest-value Phase 1 starting point.
+- requirement-list finalization
+- the smallest downstream chain that can consume the finalized requirements and reach finalization and postmortem

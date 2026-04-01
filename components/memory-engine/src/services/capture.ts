@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { pool, withTransaction } from "../db/connection.js";
 import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
-import { resolveScope } from "./scope.js";
+import { resolveScope, scopeFilterSQL } from "./scope.js";
 import { resolveContextPriority, resolveCompressionPolicy, normalizeTags } from "./context-policy.js";
 import { withDBFallback } from "./lifecycle.js";
 import { LEGACY_PROVENANCE } from "../provenance.js";
@@ -24,16 +24,17 @@ export async function captureMemory(
 async function captureMemoryImpl(
   input: CaptureMemoryInput
 ): Promise<CaptureResult> {
+  if (!input.scope) {
+    throw new Error("capture_memory requires explicit scope");
+  }
+
   const content = normalizeContent(input.content);
   const text = extractText(content);
   const tags = normalizeTags(input.tags);
   const priority = resolveContextPriority(input.content_type, tags);
   const compression = resolveCompressionPolicy(input.content_type, tags);
 
-  let scope = null;
-  if (input.scope) {
-    scope = await resolveScope(input.scope);
-  }
+  const scope = await resolveScope(input.scope);
 
   if (!input.skip_dedup) {
     const exactDup = await findExactDuplicate(text, scope);
@@ -71,12 +72,12 @@ async function captureMemoryImpl(
         JSON.stringify(content),
         input.content_type,
         input.trust_level,
-        scope?.scope_level ?? "organization",
-        scope?.org_id,
-        scope?.project_id,
-        scope?.initiative_id,
-        scope?.phase_id,
-        scope?.thread_id,
+        scope.scope_level,
+        scope.org_id,
+        scope.project_id,
+        scope.initiative_id,
+        scope.phase_id,
+        scope.thread_id,
         tags,
         priority,
         compression,
@@ -93,10 +94,10 @@ async function captureMemoryImpl(
       const embedding = await generateEmbedding(text);
       await client.query(
         `INSERT INTO memory_embeddings (id, memory_item_id, model, version, embedding, is_active,
-           invocation_id, source_path)
-         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7)`,
+           invocation_id, provider, model_name, reasoning, was_fallback, source_path)
+         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7, $8, $9, $10, $11)`,
         [randomUUID(), id, "nomic-embed-text", "1", toVectorLiteral(embedding),
-         prov.invocation_id, prov.source_path]
+         prov.invocation_id, prov.provider, prov.model, prov.reasoning, prov.was_fallback, prov.source_path]
       );
     } catch (err) {
       logger.warn("Embedding generation failed, item saved without embedding:", err);
@@ -126,13 +127,9 @@ async function findExactDuplicate(
   scope: Awaited<ReturnType<typeof resolveScope>> | null
 ): Promise<string | null> {
   const content = JSON.stringify({ text });
-  let query = `SELECT id FROM memory_items WHERE content = $1::jsonb`;
-  const params: (string | null)[] = [content];
-
-  if (scope?.org_id) {
-    query += ` AND org_id = $${params.length + 1}`;
-    params.push(scope.org_id);
-  }
+  const scopeFilter = scope ? scopeFilterSQL(scope, "memory_items") : { clause: "TRUE", params: [] };
+  let query = `SELECT id FROM memory_items WHERE content = $1::jsonb AND ${scopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 1}`)}`;
+  const params: (string | null)[] = [content, ...scopeFilter.params];
 
   query += " LIMIT 1";
   const { rows } = await pool.query(query, params);
@@ -156,9 +153,10 @@ async function findSemanticDuplicate(
       WHERE e.is_active = TRUE`;
     const params: string[] = [vecLiteral];
 
-    if (scope?.org_id) {
-      query += ` AND m.org_id = $${params.length + 1}`;
-      params.push(scope.org_id);
+    if (scope) {
+      const scopeFilter = scopeFilterSQL(scope, "m");
+      query += ` AND ${scopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 1}`)}`;
+      params.push(...scopeFilter.params);
     }
 
     query += ` ORDER BY e.embedding <=> $1::vector LIMIT 1`;

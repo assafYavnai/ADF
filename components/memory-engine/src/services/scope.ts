@@ -18,6 +18,14 @@ const SCOPE_LEVELS: ScopeLevel[] = [
   "thread",
 ];
 
+export const SCOPE_PARENT_COLUMNS: Array<string | null> = [
+  null,
+  "org_id",
+  "project_id",
+  "initiative_id",
+  "phase_id",
+];
+
 export async function resolveScope(
   scopePath: string
 ): Promise<ResolvedScope> {
@@ -57,7 +65,7 @@ export async function resolveScope(
   for (let i = 0; i < segments.length; i++) {
     const slug = segments[i];
     const table = tables[i];
-    const parentCol = i === 0 ? null : `${tables[i - 1].slice(0, -1)}_id`;
+    const parentCol = SCOPE_PARENT_COLUMNS[i];
 
     let query: string;
     let params: string[];

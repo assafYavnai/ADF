@@ -1,37 +1,49 @@
 import { pool } from "../db/connection.js";
 
+interface NormalizedMetricEvent {
+  provenance: {
+    invocation_id: string;
+    provider: string;
+    model: string;
+    reasoning: string;
+    was_fallback: boolean;
+    source_path: string;
+    timestamp?: string;
+  };
+  category: string;
+  operation: string;
+  latency_ms: number;
+  success: boolean;
+  tokens_in?: number | null;
+  tokens_out?: number | null;
+  estimated_cost_usd?: number | null;
+  metadata?: Record<string, unknown>;
+}
+
 export async function handleEmitMetric(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
-  const p = args.provenance as Record<string, unknown> | undefined;
-  if (!p || !p.invocation_id || !p.source_path) {
-    throw new Error("emit_metric requires provenance with at least invocation_id and source_path");
+  const event = normalizeMetricEvent(args);
+  await insertMetricEvents(pool, [event]);
+  return { content: [{ type: "text", text: "ok" }] };
+}
+
+export async function handleEmitMetricsBatch(
+  args: Record<string, unknown>
+): Promise<{ content: Array<{ type: string; text: string }> }> {
+  const rawEvents = Array.isArray(args.events) ? args.events : null;
+  if (!rawEvents || rawEvents.length === 0) {
+    throw new Error("emit_metrics_batch requires a non-empty events array");
   }
 
-  await pool.query(
-    `INSERT INTO telemetry
-      (invocation_id, provider, model, reasoning, was_fallback,
-       source_path, category, operation, latency_ms, success,
-       tokens_in, tokens_out, estimated_cost_usd, metadata)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-    [
-      p?.invocation_id ?? "00000000-0000-0000-0000-000000000000",
-      p?.provider ?? "system",
-      p?.model ?? "none",
-      p?.reasoning ?? "none",
-      p?.was_fallback ?? false,
-      p?.source_path ?? "system/unknown",
-      args.category ?? "system",
-      args.operation ?? "unknown",
-      args.latency_ms ?? 0,
-      args.success ?? true,
-      args.tokens_in ?? null,
-      args.tokens_out ?? null,
-      args.estimated_cost_usd ?? null,
-      JSON.stringify(args.metadata ?? {}),
-    ]
-  );
+  const events = rawEvents.map((event, index) => {
+    if (!event || typeof event !== "object" || Array.isArray(event)) {
+      throw new Error(`emit_metrics_batch event ${index} must be an object`);
+    }
+    return normalizeMetricEvent(event as Record<string, unknown>);
+  });
 
+  await insertMetricEvents(pool, events);
   return { content: [{ type: "text", text: "ok" }] };
 }
 
@@ -126,6 +138,85 @@ export async function handleGetCostSummary(
   };
 }
 
+export async function insertMetricEvents(
+  db: { query: (text: string, params: unknown[]) => Promise<unknown> },
+  events: NormalizedMetricEvent[]
+): Promise<void> {
+  if (events.length === 0) return;
+
+  const values: unknown[] = [];
+  const placeholders: string[] = [];
+  let idx = 1;
+
+  for (const event of events) {
+    placeholders.push(
+      `(gen_random_uuid(), $${idx}, $${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}, $${idx + 5}, $${idx + 6}, $${idx + 7}, $${idx + 8}, $${idx + 9}, $${idx + 10}, $${idx + 11}, $${idx + 12}, $${idx + 13}, $${idx + 14})`
+    );
+    values.push(
+      event.provenance.invocation_id,
+      event.provenance.provider,
+      event.provenance.model,
+      event.provenance.reasoning,
+      event.provenance.was_fallback,
+      event.provenance.source_path,
+      event.category,
+      event.operation,
+      event.latency_ms,
+      event.success,
+      event.tokens_in ?? null,
+      event.tokens_out ?? null,
+      event.estimated_cost_usd ?? null,
+      JSON.stringify(event.metadata ?? {}),
+      event.provenance.timestamp ?? new Date().toISOString(),
+    );
+    idx += 15;
+  }
+
+  await db.query(
+    `INSERT INTO telemetry
+      (id, invocation_id, provider, model, reasoning, was_fallback,
+       source_path, category, operation, latency_ms, success,
+       tokens_in, tokens_out, estimated_cost_usd, metadata, created_at)
+     VALUES ${placeholders.join(", ")}`,
+    values
+  );
+}
+
+function normalizeMetricEvent(args: Record<string, unknown>): NormalizedMetricEvent {
+  const p = args.provenance as Record<string, unknown> | undefined;
+  if (!p || !p.invocation_id || !p.source_path) {
+    throw new Error("telemetry event requires provenance with at least invocation_id and source_path");
+  }
+
+  return {
+    provenance: {
+      invocation_id: String(p.invocation_id),
+      provider: String(p.provider ?? "system"),
+      model: String(p.model ?? "none"),
+      reasoning: String(p.reasoning ?? "none"),
+      was_fallback: Boolean(p.was_fallback ?? false),
+      source_path: String(p.source_path),
+      timestamp: typeof p.timestamp === "string" ? p.timestamp : new Date().toISOString(),
+    },
+    category: String(args.category ?? "system"),
+    operation: String(args.operation ?? "unknown"),
+    latency_ms: Number(args.latency_ms ?? 0),
+    success: Boolean(args.success ?? true),
+    tokens_in: toOptionalNumber(args.tokens_in),
+    tokens_out: toOptionalNumber(args.tokens_out),
+    estimated_cost_usd: toOptionalNumber(args.estimated_cost_usd),
+    metadata: (args.metadata as Record<string, unknown> | undefined) ?? {},
+  };
+}
+
+function toOptionalNumber(value: unknown): number | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 export const TELEMETRY_TOOL_DEFINITIONS = [
   {
     name: "emit_metric",
@@ -144,6 +235,21 @@ export const TELEMETRY_TOOL_DEFINITIONS = [
         metadata: { type: "object" },
       },
       required: ["provenance", "category", "operation", "latency_ms", "success"],
+    },
+  },
+  {
+    name: "emit_metrics_batch",
+    description: "Record a batch of telemetry metric events atomically",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        events: {
+          type: "array",
+          items: { type: "object" },
+          minItems: 1,
+        },
+      },
+      required: ["events"],
     },
   },
   {

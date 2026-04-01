@@ -18,18 +18,12 @@ export interface ContextItem {
 }
 
 export async function getContextSummary(
-  scope?: string,
+  scope: string,
   contentType?: string,
   limit: number = 50
 ): Promise<ContextSummary> {
-  let resolved = null;
-  if (scope) {
-    resolved = await resolveScope(scope);
-  }
-
-  const scopeFilter = resolved
-    ? scopeFilterSQL(resolved)
-    : { clause: "TRUE", params: [] };
+  const resolved = await resolveScope(scope);
+  const scopeFilter = scopeFilterSQL(resolved);
 
   let query = `
     SELECT
@@ -87,19 +81,13 @@ export async function getContextSummary(
 }
 
 export async function listRecent(
-  scope?: string,
+  scope: string,
   contentType?: string,
   limit: number = 20,
   offset: number = 0
 ): Promise<{ items: ContextItem[]; total: number; has_more: boolean }> {
-  let resolved = null;
-  if (scope) {
-    resolved = await resolveScope(scope);
-  }
-
-  const scopeFilter = resolved
-    ? scopeFilterSQL(resolved)
-    : { clause: "TRUE", params: [] };
+  const resolved = await resolveScope(scope);
+  const scopeFilter = scopeFilterSQL(resolved);
 
   let countQuery = `SELECT COUNT(*) FROM memory_items m WHERE ${scopeFilter.clause}`;
   const countParams = [...scopeFilter.params];

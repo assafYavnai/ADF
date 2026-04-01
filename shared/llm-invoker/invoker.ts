@@ -13,6 +13,8 @@ const TEMP_DIR = process.env.USERPROFILE
   ? `${process.env.USERPROFILE}\\AppData\\Local\\Temp`
   : process.env.TEMP ?? process.env.TMP ?? ".";
 import { randomUUID } from "node:crypto";
+import * as telemetry from "../telemetry/collector.js";
+import type { MetricEvent } from "../telemetry/types.js";
 import { createLLMProvenance } from "../provenance/types.js";
 import type {
   InvocationAttempt,
@@ -55,6 +57,8 @@ const MODEL_COST_ESTIMATES: Array<{
     basis: "configured_model_rate_v1",
   },
 ];
+
+const commandAvailabilityChecks = new Map<string, Promise<void>>();
 
 class InvocationFailureError extends Error {
   readonly attempts: InvocationAttempt[];
@@ -105,6 +109,8 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
       throw new Error("LLM invocation completed without any recorded attempt");
     }
 
+    emitInvocationTelemetry(attempts);
+
     return {
       provenance: finalAttempt.provenance,
       response: cliResult.response,
@@ -116,8 +122,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
   } catch (primaryErr) {
     const primaryAttempts = extractInvocationAttempts(primaryErr);
     if (!params.fallback) {
-      throw wrapInvocationFailure(
-        primaryErr,
+      const failureAttempts =
         primaryAttempts.length > 0
           ? primaryAttempts
           : [buildFailedInvocationAttempt({
@@ -127,10 +132,12 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
               reasoning: params.reasoning ?? params.effort ?? "default",
               wasFallback: false,
               sourcePath: params.source_path,
+              prompt: params.prompt,
               sessionStatus: inferRequestedSessionStatus(params),
               latencyMs: Date.now() - primaryStart,
-            }, primaryErr)],
-      );
+            }, primaryErr)];
+      emitInvocationTelemetry(failureAttempts);
+      throw wrapInvocationFailure(primaryErr, failureAttempts);
     }
 
     const fallbackId = randomUUID();
@@ -167,6 +174,8 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
         throw new Error("Fallback LLM invocation completed without any recorded attempt");
       }
 
+      emitInvocationTelemetry(attempts);
+
       return {
         provenance: finalAttempt.provenance,
         response: cliResult.response,
@@ -179,31 +188,34 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
       const primaryMsg = primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
       const fallbackMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
       const fallbackAttempts = extractInvocationAttempts(fallbackErr);
+      const failureAttempts = [
+        ...primaryAttempts,
+        ...(fallbackAttempts.length > 0
+          ? fallbackAttempts
+          : [buildFailedInvocationAttempt({
+              invocationId: fallbackId,
+              provider: params.fallback.cli,
+              model: params.fallback.model,
+              reasoning: params.fallback.reasoning ?? params.fallback.effort ?? "default",
+              wasFallback: true,
+              sourcePath: params.source_path,
+              prompt: params.prompt,
+              sessionStatus: inferRequestedSessionStatus({
+                ...params,
+                cli: params.fallback.cli,
+                model: params.fallback.model,
+                reasoning: params.fallback.reasoning,
+                effort: params.fallback.effort,
+                session: undefined,
+              }),
+              latencyMs: Date.now() - fallbackStart,
+            }, fallbackErr)]),
+      ];
+      emitInvocationTelemetry(failureAttempts);
       throw new InvocationFailureError(
         `Both primary (${params.cli}/${params.model}) and fallback (${params.fallback.cli}/${params.fallback.model}) failed.\n` +
           `Primary: ${primaryMsg}\nFallback: ${fallbackMsg}`,
-        [
-          ...primaryAttempts,
-          ...(fallbackAttempts.length > 0
-            ? fallbackAttempts
-            : [buildFailedInvocationAttempt({
-                invocationId: fallbackId,
-                provider: params.fallback.cli,
-                model: params.fallback.model,
-                reasoning: params.fallback.reasoning ?? params.fallback.effort ?? "default",
-                wasFallback: true,
-                sourcePath: params.source_path,
-                sessionStatus: inferRequestedSessionStatus({
-                  ...params,
-                  cli: params.fallback.cli,
-                  model: params.fallback.model,
-                  reasoning: params.fallback.reasoning,
-                  effort: params.fallback.effort,
-                  session: undefined,
-                }),
-                latencyMs: Date.now() - fallbackStart,
-              }, fallbackErr)]),
-        ]
+        failureAttempts
       );
     }
   }
@@ -226,6 +238,7 @@ function buildInvocationAttempt(params: {
   prompt: string;
   attempt: InternalCLIAttempt;
 }): InvocationAttempt {
+  const responseText = params.attempt.response_text ?? "";
   return {
     provenance: createLLMProvenance(
       params.invocationId,
@@ -239,9 +252,7 @@ function buildInvocationAttempt(params: {
     success: params.attempt.success,
     session_status: params.attempt.session_status,
     error_message: params.attempt.error_message,
-    usage: params.attempt.success && params.attempt.response_text !== undefined
-      ? estimateInvocationUsage(params.provider, params.model, params.prompt, params.attempt.response_text)
-      : undefined,
+    usage: estimateInvocationUsage(params.provider, params.model, params.prompt, responseText),
   };
 }
 
@@ -253,6 +264,7 @@ function buildFailedInvocationAttempt(
     reasoning: string;
     wasFallback: boolean;
     sourcePath: string;
+    prompt: string;
     sessionStatus: InvocationAttemptSessionStatus;
     latencyMs: number;
   },
@@ -271,6 +283,7 @@ function buildFailedInvocationAttempt(
     success: false,
     session_status: params.sessionStatus,
     error_message: error instanceof Error ? error.message : String(error),
+    usage: estimateInvocationUsage(params.provider, params.model, params.prompt, ""),
   };
 }
 
@@ -317,6 +330,39 @@ function estimateInvocationUsage(
     token_estimation_basis: "char_heuristic_v1",
     cost_estimation_basis: matchedRate?.basis,
   };
+}
+
+export function buildInvocationTelemetryEvent(
+  attempt: InvocationAttempt,
+  attemptIndex: number,
+  attemptCount: number
+): MetricEvent {
+  return {
+    provenance: attempt.provenance,
+    category: "llm",
+    operation: "invoke_attempt",
+    latency_ms: attempt.latency_ms,
+    success: attempt.success,
+    tokens_in: attempt.usage?.tokens_in_estimated,
+    tokens_out: attempt.usage?.tokens_out_estimated,
+    estimated_cost_usd: attempt.usage?.estimated_cost_usd,
+    metadata: {
+      attempt_index: attemptIndex,
+      attempt_count: attemptCount,
+      session_status: attempt.session_status,
+      error_message: attempt.error_message ?? null,
+      prompt_chars: attempt.usage?.prompt_chars ?? null,
+      response_chars: attempt.usage?.response_chars ?? null,
+      token_estimation_basis: attempt.usage?.token_estimation_basis ?? null,
+      cost_estimation_basis: attempt.usage?.cost_estimation_basis ?? null,
+    },
+  };
+}
+
+export function emitInvocationTelemetry(attempts: InvocationAttempt[]): void {
+  attempts.forEach((attempt, index) => {
+    telemetry.emit(buildInvocationTelemetryEvent(attempt, index + 1, attempts.length));
+  });
 }
 
 // --- CLI-specific dispatch ---
@@ -515,7 +561,6 @@ async function callClaude(params: InvocationParams, invocationId: string): Promi
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "claude",
     env: { ...process.env },
-    shell: true, // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
     stdinText: params.prompt,
   });
   return {
@@ -545,7 +590,6 @@ async function callGemini(params: InvocationParams): Promise<CLIResult> {
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "gemini",
     env: { ...process.env },
-    shell: true, // Required: Windows .cmd resolution (prompt piped via stdin, not in args)
     stdinText: params.prompt,
   });
   return {
@@ -612,6 +656,15 @@ async function runCodexShellCommand(
   promptFile: string,
   args: string[]
 ) {
+  await ensureCommandAvailable(
+    "bash",
+    "Codex on this machine requires `bash` on PATH because prompts are passed through a Bash wrapper."
+  );
+  await ensureCommandAvailable(
+    "codex",
+    "Codex invocation requires the `codex` CLI on PATH before a COO turn can run."
+  );
+
   const escapedPromptPath = promptFile.replace(/\\/g, "/");
   const codexArgs = args.map((arg) => `"${arg.replace(/"/g, '\\"')}"`).join(" ");
   const shellCmd = `PROMPT=$(cat "${escapedPromptPath}") && codex ${codexArgs} "$PROMPT"`;
@@ -623,6 +676,38 @@ async function runCodexShellCommand(
     label: "codex",
     env: { ...process.env },
   });
+}
+
+async function ensureCommandAvailable(commandName: string, guidance: string): Promise<void> {
+  const cacheKey = `${process.platform}:${commandName}`;
+  let check = commandAvailabilityChecks.get(cacheKey);
+  if (!check) {
+    check = verifyCommandAvailable(commandName, guidance)
+      .catch((error) => {
+        commandAvailabilityChecks.delete(cacheKey);
+        throw error;
+      });
+    commandAvailabilityChecks.set(cacheKey, check);
+  }
+
+  await check;
+}
+
+async function verifyCommandAvailable(commandName: string, guidance: string): Promise<void> {
+  const lookupCommand = process.platform === "win32" ? "where" : "which";
+
+  try {
+    await runManagedProcess({
+      command: lookupCommand,
+      args: [commandName],
+      timeoutMs: 5_000,
+      label: `${commandName}-preflight`,
+      env: { ...process.env },
+    });
+  } catch (error) {
+    const details = error instanceof Error ? error.message : String(error);
+    throw new Error(`${guidance} Preflight failed for '${commandName}': ${details}`);
+  }
 }
 
 function buildCodexArgs(
@@ -638,7 +723,7 @@ function buildCodexArgs(
   if (params.reasoning) {
     args.push("-c", `model_reasoning_effort="${params.reasoning}"`);
   }
-  if (params.sandbox) {
+  if (params.sandbox && !resumeSessionId) {
     args.push("-s", params.sandbox);
   }
   if (params.bypass) {

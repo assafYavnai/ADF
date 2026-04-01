@@ -1,6 +1,6 @@
 import { pool } from "../db/connection.js";
 import { GovernanceManageInput } from "../schemas/governance.js";
-import { resolveScope, scopeFilterSQL, type ResolvedScope } from "../services/scope.js";
+import { resolveScope, scopeFilterSQL } from "../services/scope.js";
 import { LEGACY_PROVENANCE, type Provenance } from "../provenance.js";
 
 function extractProvenance(args: Record<string, unknown>): Provenance {
@@ -16,16 +16,6 @@ function extractProvenance(args: Record<string, unknown>): Provenance {
     timestamp: (p.timestamp as string) ?? new Date().toISOString(),
   };
 }
-
-const FAMILY_TABLE: Record<string, string> = {
-  rule: "memory_items",
-  role: "memory_items",
-  requirement: "memory_items",
-  setting: "memory_items",
-  finding: "memory_items",
-  open_loop: "memory_items",
-  artifact_ref: "memory_items",
-};
 
 export async function handleGovernance(
   args: Record<string, unknown>
@@ -48,19 +38,17 @@ export async function handleGovernance(
 }
 
 async function listGovernance(input: GovernanceManageInput) {
+  if (!input.scope) throw new Error(`governance list for ${input.family} requires explicit scope`);
   let query = `
     SELECT id, content, content_type, trust_level, tags, created_at
     FROM memory_items
     WHERE content_type = $1
   `;
   const params: (string | string[])[] = [input.family];
-
-  if (input.scope) {
-    const scope = await resolveScope(input.scope);
-    const filter = scopeFilterSQL(scope, "memory_items");
-    query += ` AND ${filter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 1}`)}`;
-    params.push(...filter.params);
-  }
+  const scope = await resolveScope(input.scope);
+  const filter = scopeFilterSQL(scope, "memory_items");
+  query += ` AND ${filter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 1}`)}`;
+  params.push(...filter.params);
 
   query += " ORDER BY created_at DESC LIMIT 50";
   const { rows } = await pool.query(query, params);
@@ -69,17 +57,26 @@ async function listGovernance(input: GovernanceManageInput) {
 
 async function getGovernance(input: GovernanceManageInput) {
   if (!input.id) throw new Error("id required for get action");
-  const { rows } = await pool.query("SELECT * FROM memory_items WHERE id = $1", [input.id]);
+  if (!input.scope) throw new Error(`governance get for ${input.family} requires explicit scope`);
+  let query = "SELECT * FROM memory_items WHERE id = $1 AND content_type = $2";
+  const params: string[] = [input.id, input.family];
+  const scope = await resolveScope(input.scope);
+  const filter = scopeFilterSQL(scope, "memory_items");
+  query += ` AND ${filter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 2}`)}`;
+  params.push(...filter.params);
+
+  const { rows } = await pool.query(query, params);
   if (rows.length === 0) throw new Error(`Item ${input.id} not found`);
   return { content: [{ type: "text", text: JSON.stringify(rows[0], null, 2) }] };
 }
 
 async function createGovernance(input: GovernanceManageInput, prov: Provenance) {
   if (!input.title) throw new Error("title required for create");
+  if (!input.scope) throw new Error(`governance create for ${input.family} requires explicit scope`);
   const { randomUUID } = await import("node:crypto");
   const id = randomUUID();
   const content = { text: input.title, ...input.body };
-  const scope = input.scope ? await resolveScope(input.scope) : await getDefaultOrganizationScope();
+  const scope = await resolveScope(input.scope);
 
   await pool.query(
     `INSERT INTO memory_items (
@@ -112,35 +109,21 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
   return { content: [{ type: "text", text: JSON.stringify({ id, status: "created" }, null, 2) }] };
 }
 
-async function getDefaultOrganizationScope(): Promise<ResolvedScope> {
-  const { rows } = await pool.query(
-    "SELECT id FROM organizations ORDER BY created_at ASC LIMIT 1"
-  );
-
-  if (rows.length === 0) {
-    throw new Error("No organization scope available. Seed an organization or pass scope explicitly.");
-  }
-
-  return {
-    org_id: rows[0].id as string,
-    project_id: null,
-    initiative_id: null,
-    phase_id: null,
-    thread_id: null,
-    scope_level: "organization",
-  };
-}
-
 async function searchGovernance(input: GovernanceManageInput) {
   if (!input.query) throw new Error("query required for search");
-  const { rows } = await pool.query(
-    `SELECT id, content, content_type, trust_level, tags, created_at
+  if (!input.scope) throw new Error(`governance search for ${input.family} requires explicit scope`);
+  let query = `SELECT id, content, content_type, trust_level, tags, created_at
      FROM memory_items
      WHERE content_type = $1
-       AND to_tsvector('english', COALESCE(content->>'text', '')) @@ plainto_tsquery('english', $2)
-     ORDER BY created_at DESC LIMIT 20`,
-    [input.family, input.query]
-  );
+       AND to_tsvector('english', COALESCE(content->>'text', '')) @@ plainto_tsquery('english', $2)`;
+  const params: string[] = [input.family, input.query];
+  const scope = await resolveScope(input.scope);
+  const filter = scopeFilterSQL(scope, "memory_items");
+  query += ` AND ${filter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 2}`)}`;
+  params.push(...filter.params);
+
+  query += " ORDER BY created_at DESC LIMIT 20";
+  const { rows } = await pool.query(query, params);
   return { content: [{ type: "text", text: JSON.stringify(rows, null, 2) }] };
 }
 
@@ -181,7 +164,7 @@ function governanceSchema(family: string) {
   return {
     type: "object" as const,
     properties: {
-      action: { type: "string", enum: ["list", "get", "create", "update", "transition", "search"] },
+      action: { type: "string", enum: ["list", "get", "create", "search"] },
       id: { type: "string", format: "uuid" },
       scope: { type: "string" },
       title: { type: "string" },
@@ -191,6 +174,6 @@ function governanceSchema(family: string) {
       tags: { type: "array", items: { type: "string" } },
       provenance: { type: "object", description: "Provenance object from caller" },
     },
-    required: ["action"],
+    required: ["action", "scope"],
   };
 }

@@ -12,6 +12,10 @@ export const ContentType = z.enum([
   "note",
   "open_loop",
   "artifact_ref",
+  "rule",
+  "role",
+  "setting",
+  "finding",
 ]);
 export type ContentType = z.infer<typeof ContentType>;
 
@@ -57,7 +61,7 @@ export type MemoryItem = z.infer<typeof MemoryItemSchema>;
 export const CaptureMemoryInput = z.object({
   content: z.union([z.string(), z.record(z.unknown())]),
   content_type: ContentType.default("text"),
-  scope: z.string().optional(),
+  scope: z.string(),
   tags: z.array(z.string()).default([]),
   trust_level: TrustLevel.default("working"),
   skip_dedup: z.boolean().default(false),
@@ -67,17 +71,37 @@ export type CaptureMemoryInput = z.infer<typeof CaptureMemoryInput>;
 
 export const SearchMemoryInput = z.object({
   query: z.string(),
-  scope: z.string().optional(),
+  scope: z.string(),
   content_type: ContentType.optional(),
+  content_types: z.array(ContentType).min(1).optional(),
+  trust_levels: z.array(TrustLevel).min(1).optional(),
   semantic_weight: z.number().min(0).max(1).default(0.7),
   max_results: z.number().min(1).max(100).default(10),
   provenance: ProvenanceSchema.optional(),
 });
 export type SearchMemoryInput = z.infer<typeof SearchMemoryInput>;
 
+export const ContextSummaryInput = z.object({
+  scope: z.string(),
+  content_type: ContentType.optional(),
+  limit: z.number().min(1).max(200).default(50),
+  provenance: ProvenanceSchema.optional(),
+});
+export type ContextSummaryInput = z.infer<typeof ContextSummaryInput>;
+
+export const ListRecentInput = z.object({
+  scope: z.string(),
+  content_type: ContentType.optional(),
+  limit: z.number().min(1).max(200).default(20),
+  offset: z.number().min(0).default(0),
+  provenance: ProvenanceSchema.optional(),
+});
+export type ListRecentInput = z.infer<typeof ListRecentInput>;
+
 export const MemoryManageInput = z.object({
   action: z.enum(["delete", "archive", "update_tags", "update_trust_level"]),
   memory_id: z.string().uuid(),
+  scope: z.string(),
   tags: z.array(z.string()).optional(),
   trust_level: TrustLevel.optional(),
   reason: z.string().optional(),

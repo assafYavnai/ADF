@@ -8,7 +8,7 @@ import { randomUUID } from "node:crypto";
  * commits, tool artifacts. No exceptions.
  */
 
-export const Provider = z.enum(["codex", "claude", "gemini", "system"]);
+export const Provider = z.enum(["codex", "claude", "gemini", "openai", "system"]);
 export type Provider = z.infer<typeof Provider>;
 
 export const ProvenanceSchema = z.object({

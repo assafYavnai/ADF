@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { ProvenanceSchema, createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
+import type { InvocationSessionHandle } from "../../shared/llm-invoker/types.js";
 
 // --- Base event fields (shared by all events) ---
 
@@ -11,6 +12,20 @@ const BaseEvent = z.object({
   id: z.string().uuid(),
   provenance: ProvenanceSchema,
 });
+
+const InvocationSessionHandleSchema = z.object({
+  provider: z.enum(["codex", "claude", "gemini"]),
+  model: z.string().optional(),
+  session_id: z.string(),
+  source: z.enum(["provider_returned", "caller_assigned", "manual_recovery"]),
+});
+
+export type ThreadSessionHandle = InvocationSessionHandle;
+
+export interface ThreadSessionHandles {
+  classifier?: ThreadSessionHandle | null;
+  intelligence?: ThreadSessionHandle | null;
+}
 
 // --- Event Types ---
 
@@ -28,32 +43,11 @@ export const ClassifierResultEvent = BaseEvent.extend({
     confidence: z.number().min(0).max(1),
     workflow: z.enum([
       "direct_coo_response",
-      "tool_path",
-      "specialist_path",
       "clarification",
       "pushback",
       "memory_operation",
     ]),
     reasoning: z.string().optional(),
-  }),
-});
-
-export const ToolCallEvent = BaseEvent.extend({
-  type: z.literal("tool_call"),
-  data: z.object({
-    tool: z.string(),
-    parameters: z.record(z.unknown()),
-    requiresApproval: z.boolean().default(false),
-  }),
-});
-
-export const ToolResultEvent = BaseEvent.extend({
-  type: z.literal("tool_result"),
-  data: z.object({
-    tool: z.string(),
-    result: z.unknown(),
-    success: z.boolean(),
-    durationMs: z.number().optional(),
   }),
 });
 
@@ -93,6 +87,12 @@ export const StateCommitEvent = BaseEvent.extend({
     summary: z.string(),
     openLoops: z.array(z.string()).default([]),
     decisions: z.array(z.string()).default([]),
+    sessionHandles: z
+      .object({
+        classifier: InvocationSessionHandleSchema.nullish(),
+        intelligence: InvocationSessionHandleSchema.nullish(),
+      })
+      .optional(),
   }),
 });
 
@@ -100,6 +100,7 @@ export const MemoryOperationEvent = BaseEvent.extend({
   type: z.literal("memory_operation"),
   data: z.object({
     operation: z.enum(["capture", "search", "log_decision", "make_rule", "load_context", "archive"]),
+    operationId: z.string().uuid().optional(),
     input: z.record(z.unknown()),
     result: z.unknown().optional(),
     success: z.boolean().optional(),
@@ -111,8 +112,6 @@ export const MemoryOperationEvent = BaseEvent.extend({
 export const ThreadEvent = z.discriminatedUnion("type", [
   UserInputEvent,
   ClassifierResultEvent,
-  ToolCallEvent,
-  ToolResultEvent,
   CooResponseEvent,
   ErrorEvent,
   HumanRequestEvent,
@@ -123,8 +122,6 @@ export const ThreadEvent = z.discriminatedUnion("type", [
 export type ThreadEvent = z.infer<typeof ThreadEvent>;
 export type UserInputEvent = z.infer<typeof UserInputEvent>;
 export type ClassifierResultEvent = z.infer<typeof ClassifierResultEvent>;
-export type ToolCallEvent = z.infer<typeof ToolCallEvent>;
-export type ToolResultEvent = z.infer<typeof ToolResultEvent>;
 export type CooResponseEvent = z.infer<typeof CooResponseEvent>;
 export type ErrorEvent = z.infer<typeof ErrorEvent>;
 export type HumanRequestEvent = z.infer<typeof HumanRequestEvent>;
@@ -139,6 +136,7 @@ export const ThreadSchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   status: z.enum(["active", "paused", "completed"]).default("active"),
+  scopePath: z.string().nullable().optional().default(null),
 });
 
 export type Thread = z.infer<typeof ThreadSchema>;
@@ -161,7 +159,7 @@ export function createEvent<T extends ThreadEvent["type"]>(
 
 // --- Thread Factory ---
 
-export function createThread(): Thread {
+export function createThread(scopePath: string | null = null): Thread {
   const now = new Date().toISOString();
   return {
     id: randomUUID(),
@@ -169,6 +167,7 @@ export function createThread(): Thread {
     createdAt: now,
     updatedAt: now,
     status: "active",
+    scopePath,
   };
 }
 
@@ -176,14 +175,22 @@ export function createThread(): Thread {
 
 export function serializeForLLM(thread: Thread): string {
   const parts: string[] = [];
+  const lastCommitIndex = findLastStateCommitIndex(thread);
 
-  for (const event of thread.events) {
-    const data =
-      typeof event.data === "string"
-        ? event.data
-        : JSON.stringify(event.data, null, 2);
+  if (lastCommitIndex >= 0) {
+    const commit = thread.events[lastCommitIndex];
+    parts.push(`<thread_checkpoint>\n${serializeEvent(commit)}\n</thread_checkpoint>`);
+  }
 
-    parts.push(`<${event.type}>\n${data}\n</${event.type}>`);
+  const recentStart = Math.max(lastCommitIndex + 1, thread.events.length - 12);
+  const recentEvents = thread.events.slice(recentStart);
+  if (recentEvents.length > 0) {
+    const recentPayload = recentEvents.map((event) => serializeEvent(event)).join("\n\n");
+    parts.push(`<recent_events>\n${recentPayload}\n</recent_events>`);
+  }
+
+  if (parts.length === 0) {
+    return "";
   }
 
   return parts.join("\n\n");
@@ -195,14 +202,24 @@ export function lastEvent(thread: Thread): ThreadEvent | undefined {
   return thread.events[thread.events.length - 1];
 }
 
+export function getLatestStateCommit(thread: Thread): StateCommitEvent | undefined {
+  for (let i = thread.events.length - 1; i >= 0; i--) {
+    const event = thread.events[i];
+    if (event.type === "state_commit") {
+      return event;
+    }
+  }
+  return undefined;
+}
+
+export function getLatestSessionHandles(thread: Thread): ThreadSessionHandles {
+  const commit = getLatestStateCommit(thread);
+  return commit?.data.sessionHandles ?? {};
+}
+
 export function isAwaitingHuman(thread: Thread): boolean {
   const last = lastEvent(thread);
   return last?.type === "human_request";
-}
-
-export function isAwaitingApproval(thread: Thread): boolean {
-  const last = lastEvent(thread);
-  return last?.type === "tool_call" && last.data.requiresApproval === true;
 }
 
 export function consecutiveErrors(thread: Thread): number {
@@ -217,10 +234,28 @@ export function consecutiveErrors(thread: Thread): number {
   return count;
 }
 
+function findLastStateCommitIndex(thread: Thread): number {
+  for (let i = thread.events.length - 1; i >= 0; i--) {
+    if (thread.events[i].type === "state_commit") {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function serializeEvent(event: ThreadEvent): string {
+  const data =
+    typeof event.data === "string"
+      ? event.data
+      : JSON.stringify(event.data, null, 2);
+
+  return `<${event.type}>\n${data}\n</${event.type}>`;
+}
+
 // --- File System Thread Store ---
 
 export interface ThreadStore {
-  create(): Promise<Thread>;
+  create(scopePath?: string | null): Promise<Thread>;
   get(id: string): Promise<Thread>;
   update(thread: Thread): Promise<void>;
   list(): Promise<string[]>;
@@ -229,9 +264,9 @@ export interface ThreadStore {
 export class FileSystemThreadStore implements ThreadStore {
   constructor(private threadsDir: string) {}
 
-  async create(): Promise<Thread> {
+  async create(scopePath: string | null = null): Promise<Thread> {
     await mkdir(this.threadsDir, { recursive: true });
-    const thread = createThread();
+    const thread = createThread(scopePath);
     await this.update(thread);
     return thread;
   }

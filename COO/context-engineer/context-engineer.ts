@@ -14,6 +14,7 @@ import { createSystemProvenance, type Provenance } from "../../shared/provenance
 
 export interface AssembledContext {
   systemPrompt: string;
+  scopeContext: string;
   threadContext: string;
   knowledgeContext: string;
   dailyResidue: string;
@@ -24,13 +25,25 @@ export interface ContextEngineerConfig {
   projectRoot: string;
   promptsDir: string;
   memoryDir: string;
-  brainSearch?: (query: string, provenance: Provenance) => Promise<BrainSearchResult[]>;
+  brainSearch?: (
+    query: string,
+    scopePath: string,
+    provenance: Provenance,
+    options?: {
+      contentType?: string;
+      contentTypes?: string[];
+      trustLevels?: string[];
+      maxResults?: number;
+    }
+  ) => Promise<BrainSearchResult[]>;
   maxKnowledgeItems?: number;
+  scopePath?: string | null;
 }
 
 export interface BrainSearchResult {
   id: string;
   content_type: string;
+  trust_level: string;
   preview: string;
   context_priority: string;
   score: number;
@@ -57,13 +70,15 @@ export async function assembleContext(
       loadDailyResidue(config),
       loadKnowledge(userMessage, config),
     ]);
+  const scopeContext = buildScopeContext(thread, config);
 
   const totalEstimatedTokens = estimateTokens(
-    systemPrompt + threadContext + dailyResidue + knowledgeContext
+    systemPrompt + scopeContext + threadContext + dailyResidue + knowledgeContext
   );
 
   return {
     systemPrompt,
+    scopeContext,
     threadContext,
     knowledgeContext,
     dailyResidue,
@@ -79,6 +94,10 @@ export function buildPrompt(ctx: AssembledContext): string {
 
   if (ctx.systemPrompt) {
     parts.push(`<system_prompt>\n${ctx.systemPrompt}\n</system_prompt>`);
+  }
+
+  if (ctx.scopeContext) {
+    parts.push(`<active_scope>\n${ctx.scopeContext}\n</active_scope>`);
   }
 
   if (ctx.knowledgeContext) {
@@ -116,7 +135,7 @@ async function loadDailyResidue(
   config: ContextEngineerConfig
 ): Promise<string> {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = getLocalDateStamp(new Date());
     const residuePath = join(config.memoryDir, `${today}.md`);
     return await readFile(residuePath, "utf-8");
   } catch {
@@ -131,25 +150,47 @@ async function loadKnowledge(
   config: ContextEngineerConfig
 ): Promise<string> {
   if (!config.brainSearch) return "";
+  if (!config.scopePath) {
+    return `<memory_retrieval_warning>Scoped COO memory is disabled because this conversation has no scope.</memory_retrieval_warning>`;
+  }
 
   try {
     const maxItems = config.maxKnowledgeItems ?? 10;
     const results = await config.brainSearch(
       query,
-      createSystemProvenance("COO/context-engineer/load-knowledge")
+      config.scopePath,
+      createSystemProvenance("COO/context-engineer/load-knowledge"),
+      {
+        contentTypes: [
+          "decision",
+          "requirement",
+          "convention",
+          "rule",
+          "role",
+          "setting",
+          "finding",
+          "open_loop",
+          "artifact_ref",
+        ],
+        trustLevels: ["reviewed", "locked"],
+        maxResults: maxItems,
+      }
     );
-    const topResults = results.slice(0, maxItems);
+    const topResults = results
+      .filter((result) => isInjectableKnowledge(result))
+      .slice(0, maxItems);
 
     if (topResults.length === 0) return "";
 
     return topResults
       .map(
         (r) =>
-          `<memory_item type="${r.content_type}" priority="${r.context_priority}">\n${r.preview}\n</memory_item>`
+          `<memory_item type="${r.content_type}" trust="${r.trust_level}" priority="${r.context_priority}">\n${r.preview}\n</memory_item>`
       )
       .join("\n\n");
-  } catch {
-    return "";
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return `<memory_retrieval_warning>Brain search failed: ${message}</memory_retrieval_warning>`;
   }
 }
 
@@ -157,6 +198,44 @@ async function loadKnowledge(
 
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
+}
+
+function getLocalDateStamp(now: Date): string {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function isInjectableKnowledge(result: BrainSearchResult): boolean {
+  if (result.trust_level !== "reviewed" && result.trust_level !== "locked") {
+    return false;
+  }
+
+  return [
+    "decision",
+    "requirement",
+    "convention",
+    "rule",
+    "role",
+    "setting",
+    "finding",
+    "open_loop",
+    "artifact_ref",
+  ].includes(result.content_type);
+}
+
+function buildScopeContext(thread: Thread, config: ContextEngineerConfig): string {
+  const effectiveScope = thread.scopePath ?? config.scopePath ?? null;
+  if (!effectiveScope) {
+    return "No Brain scope path has been set for this thread yet. Durable memory operations must fail closed until a scope is provided.";
+  }
+
+  return [
+    `Brain scope path for this thread: ${effectiveScope}`,
+    `Workspace root: ${config.projectRoot}`,
+    "If the CEO asks about operational scope, answer with the Brain scope path above unless they explicitly ask about filesystem/workspace location.",
+  ].join("\n");
 }
 
 function getDefaultSystemPrompt(): string {

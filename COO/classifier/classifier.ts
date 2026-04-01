@@ -11,8 +11,6 @@ export const ClassifierOutput = z.object({
   intent: z.string(),
   workflow: z.enum([
     "direct_coo_response",
-    "tool_path",
-    "specialist_path",
     "clarification",
     "pushback",
     "memory_operation",
@@ -38,8 +36,8 @@ Respond ONLY with valid JSON matching this schema:
 
 {
   "intent": "short description of what the user wants",
-  "workflow": one of: "direct_coo_response" | "tool_path" | "memory_operation" | "clarification" | "pushback",
-  "tool": if workflow is "memory_operation" or "tool_path", which tool: "memory_capture" | "memory_search" | "decision_log" | "rule_create" | "context_load",
+  "workflow": one of: "direct_coo_response" | "memory_operation" | "clarification" | "pushback",
+  "tool": if workflow is "memory_operation", which tool: "memory_capture" | "memory_search" | "decision_log" | "rule_create" | "context_load",
   "confidence": 0.0 to 1.0,
   "reasoning": "brief explanation"
 }
@@ -52,7 +50,7 @@ Classification rules:
 - Questions about the project, status, plans → direct_coo_response
 - Unclear or ambiguous requests → clarification
 - Requests that conflict with known rules → pushback
-- Tool-specific requests → tool_path
+- Tool-specific requests that do not fit the current COO surface → clarification
 
 Recent context:
 ${recentContext}
