@@ -21,6 +21,8 @@ Implementation slug: `coo-stabilization`
   - telemetry provenance closure, byte-stable Windows shim transport, and artifact-ref surface cleanup
 - [cycle-07](./cycle-07/review-findings.md)
   - no new live route defect; cycle closes as a no-code closeout with historical evidence debt isolated as the remaining bounded item
+- [cycle-08](./cycle-08/review-findings.md)
+  - no new live route defect; cycle closes as a second no-code closeout while carrying forward the same bounded historical evidence-lifecycle debt
 
 Notes:
 
@@ -29,3 +31,4 @@ Notes:
 - Cycle 05 closed the remaining live mutation-provenance failure classes and added route-level proof across the sibling surfaces.
 - Cycle 06 closes the remaining live telemetry-provenance and Windows shim transport defects without widening the COO stabilization scope.
 - Cycle 07 confirms the supported stabilization lane remains live-route clean and records historical evidence lifecycle debt as the next narrow slice.
+- Cycle 08 confirms the supported stabilization lane remains live-route clean again and carries forward the historical evidence-lifecycle slice without widening into unrelated changes.
