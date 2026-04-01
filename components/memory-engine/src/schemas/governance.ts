@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ProvenanceSchema } from "../provenance.js";
 
 export const GovernanceFamily = z.enum([
   "rule",
@@ -21,6 +22,8 @@ export const GovernanceManageInput = z.object({
   status: z.string().optional(),
   query: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  include_legacy: z.boolean().default(false),
+  provenance: ProvenanceSchema.optional(),
 }).superRefine((value, ctx) => {
   if (!value.scope) {
     ctx.addIssue({
@@ -43,6 +46,14 @@ export const GovernanceManageInput = z.object({
       code: z.ZodIssueCode.custom,
       path: ["title"],
       message: "title is required for governance create",
+    });
+  }
+
+  if (value.action === "create" && !value.provenance) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["provenance"],
+      message: "provenance is required for governance create",
     });
   }
 

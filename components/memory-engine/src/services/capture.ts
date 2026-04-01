@@ -4,7 +4,6 @@ import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
 import { resolveScope, scopeFilterSQL } from "./scope.js";
 import { resolveContextPriority, resolveCompressionPolicy, normalizeTags } from "./context-policy.js";
 import { withDBFallback } from "./lifecycle.js";
-import { LEGACY_PROVENANCE } from "../provenance.js";
 import { logger } from "../logger.js";
 import type { CaptureMemoryInput } from "../schemas/memory-item.js";
 import type pg from "pg";
@@ -59,7 +58,7 @@ async function captureMemoryImpl(
   const id = randomUUID();
 
   return withTransaction(async (client: pg.PoolClient) => {
-    const prov = input.provenance ?? LEGACY_PROVENANCE;
+    const prov = input.provenance;
     await client.query(
       `INSERT INTO memory_items
         (id, content, content_type, trust_level, scope_level,

@@ -82,7 +82,8 @@ test("collector requeues a failed batch and drain eventually clears it", async (
   await flush();
   assert.equal(getBufferedMetricCount(), 1);
 
-  await drain();
+  const result = await drain();
+  assert.equal(result.status, "drained");
   assert.equal(getBufferedMetricCount(), 0);
   assert.equal(attempts, 2);
 
@@ -131,6 +132,36 @@ test("collector close bounds shutdown by spooling pending metrics and replays th
     const replayedCount = await replayPersistedMetrics();
     assert.equal(replayedCount, 1);
     assert.deepEqual(replayedOperations, ["spooled_event"]);
+  } finally {
+    resetForTests();
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test("collector drain shares bounded shutdown semantics when the sink never recovers", async () => {
+  resetForTests();
+  const tempRoot = await mkdtemp(join(tmpdir(), "adf-telemetry-drain-test-"));
+  const outboxPath = join(tempRoot, "telemetry-outbox.json");
+
+  try {
+    configureSink(
+      async () => {
+        throw new Error("sink permanently unavailable");
+      },
+      {
+        outboxPath,
+        shutdownTimeoutMs: 50,
+      }
+    );
+
+    emit({ ...SAMPLE_EVENT, operation: "drain_spooled_event" });
+    const result = await drain();
+
+    assert.equal(result.status, "spooled");
+    assert.equal(getBufferedMetricCount(), 0);
+    const persisted = JSON.parse(await readFile(outboxPath, "utf-8")) as MetricEvent[];
+    assert.equal(persisted.length, 1);
+    assert.equal(persisted[0].operation, "drain_spooled_event");
   } finally {
     resetForTests();
     await rm(tempRoot, { recursive: true, force: true });

@@ -60,6 +60,7 @@ export class MemoryEngineClient {
       content_types?: string[];
       trust_levels?: string[];
       max_results?: number;
+      include_legacy?: boolean;
     }
   ): Promise<Array<Record<string, unknown>>> {
     return this.callJsonTool("search_memory", {
@@ -69,6 +70,7 @@ export class MemoryEngineClient {
       content_types: options?.content_types,
       trust_levels: options?.trust_levels,
       max_results: options?.max_results ?? 10,
+      include_legacy: options?.include_legacy ?? false,
       provenance,
     });
   }

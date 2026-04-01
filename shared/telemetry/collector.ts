@@ -79,17 +79,8 @@ export async function flush(): Promise<void> {
   });
 }
 
-export async function drain(): Promise<void> {
-  ensureExitFlushHandler();
-  void flush();
-
-  while (!isIdle()) {
-    if (activeFlush) {
-      await Promise.race([activeFlush, delay(25)]);
-      continue;
-    }
-    await delay(25);
-  }
+export async function drain(options: { timeoutMs?: number } = {}): Promise<TelemetryCloseResult> {
+  return close(options);
 }
 
 export async function close(options: { timeoutMs?: number } = {}): Promise<TelemetryCloseResult> {

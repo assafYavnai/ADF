@@ -13,7 +13,7 @@ import { handleGovernance, GOVERNANCE_TOOL_DEFINITIONS } from "./tools/governanc
 import { MEMORY_TOOL_DEFINITIONS } from "./tools/memory-tools.js";
 import { handleEmitMetric, handleEmitMetricsBatch, handleQueryMetrics, handleGetCostSummary, insertMetricEvents, TELEMETRY_TOOL_DEFINITIONS } from "./tools/telemetry-tools.js";
 import { CaptureMemoryInput, SearchMemoryInput, MemoryManageInput, ContextSummaryInput, ListRecentInput } from "./schemas/memory-item.js";
-import { LEGACY_PROVENANCE } from "./provenance.js";
+import { ProvenanceSchema, createSystemProvenance } from "./provenance.js";
 
 const server = new Server(
   { name: "ADF Memory Engine", version: "0.1.0" },
@@ -67,7 +67,8 @@ server.setRequestHandler(
           const result = await getContextSummary(
             input.scope,
             input.content_type,
-            input.limit
+            input.limit,
+            input.include_legacy
           );
           response = { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
           break;
@@ -78,7 +79,8 @@ server.setRequestHandler(
             input.scope,
             input.content_type,
             input.limit,
-            input.offset
+            input.offset,
+            input.include_legacy
           );
           response = { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
           break;
@@ -194,15 +196,11 @@ function extractToolProvenance(
   args: Record<string, unknown>,
   fallbackSourcePath: string
 ) {
-  const p = args.provenance as Record<string, unknown> | undefined;
-  return {
-    invocation_id: (p?.invocation_id as string) ?? LEGACY_PROVENANCE.invocation_id,
-    provider: (p?.provider as string) ?? "system",
-    model: (p?.model as string) ?? "none",
-    reasoning: (p?.reasoning as string) ?? "none",
-    was_fallback: (p?.was_fallback as boolean) ?? false,
-    source_path: (p?.source_path as string) ?? fallbackSourcePath,
-  };
+  const parsed = ProvenanceSchema.safeParse(args.provenance);
+  if (parsed.success) {
+    return parsed.data;
+  }
+  return createSystemProvenance(fallbackSourcePath);
 }
 
 function buildMemoryManageReceipt(

@@ -4,6 +4,7 @@ import { resolveScope, type ResolvedScope } from "./scope.js";
 import { withDBFallback } from "./lifecycle.js";
 import { logger } from "../logger.js";
 import type { ContentType, SearchMemoryInput, TrustLevel } from "../schemas/memory-item.js";
+import { modernMemoryEvidenceClause } from "../evidence-policy.js";
 
 const MIN_SEMANTIC_SIMILARITY = 0.25;
 const CONTENT_TYPE_BONUS = 0.15;
@@ -75,7 +76,7 @@ async function hybridSearch(
   const vecLiteral = toVectorLiteral(embedding);
   const params: unknown[] = [input.semantic_weight, vecLiteral, input.query];
   const preferredContentTypes = inferPreferredContentTypes(input);
-  const rankedConditions = buildRankedConditions(scope, input, params);
+  const rankedConditions = buildRankedConditions(scope, input, params, "m", "d");
 
   let contentTypeBonusSql = "0";
   if (preferredContentTypes.length > 0) {
@@ -105,6 +106,7 @@ async function hybridSearch(
         ) AS keyword_similarity,
         ${contentTypeBonusSql} AS content_type_bonus
       FROM memory_items m
+      LEFT JOIN decisions d ON d.memory_item_id = m.id
       LEFT JOIN memory_embeddings e ON e.memory_item_id = m.id AND e.is_active = TRUE
       WHERE ${rankedConditions.join(" AND ")}
     )
@@ -138,7 +140,7 @@ async function keywordSearch(
 ): Promise<SearchResult[]> {
   const params: unknown[] = [input.query];
   const preferredContentTypes = inferPreferredContentTypes(input);
-  const conditions = buildRankedConditions(scope, input, params);
+  const conditions = buildRankedConditions(scope, input, params, "m", "d");
 
   let contentTypeBonusSql = "0";
   if (preferredContentTypes.length > 0) {
@@ -165,6 +167,7 @@ async function keywordSearch(
         ) + ${contentTypeBonusSql}
       ) AS score
     FROM memory_items m
+    LEFT JOIN decisions d ON d.memory_item_id = m.id
     WHERE ${conditions.join(" AND ")}
       AND to_tsvector('english', COALESCE(m.content->>'search_text', m.content->>'text', '')) @@ plainto_tsquery('english', $1)
     ORDER BY score DESC, created_at DESC
@@ -178,10 +181,15 @@ async function keywordSearch(
 function buildRankedConditions(
   scope: ResolvedScope,
   input: SearchMemoryInput & { content_types?: ContentType[]; trust_levels?: TrustLevel[] },
-  params: unknown[]
+  params: unknown[],
+  memoryAlias: string,
+  decisionAlias: string
 ): string[] {
-  const conditions = buildScopeConditions(scope, "m", params);
-  appendSearchFilters(input, "m", conditions, params);
+  const conditions = buildScopeConditions(scope, memoryAlias, params);
+  appendSearchFilters(input, memoryAlias, conditions, params);
+  if (!input.include_legacy) {
+    conditions.push(modernMemoryEvidenceClause(memoryAlias, decisionAlias));
+  }
   return conditions;
 }
 

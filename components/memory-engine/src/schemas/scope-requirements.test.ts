@@ -4,11 +4,24 @@ import { CaptureMemoryInput, MemoryManageInput, SearchMemoryInput } from "./memo
 import { DecisionSchema, LogDecisionInput } from "./decision.js";
 import { GovernanceManageInput } from "./governance.js";
 
+function sampleProvenance(sourcePath: string) {
+  return {
+    invocation_id: "11111111-1111-1111-1111-111111111111",
+    provider: "system" as const,
+    model: "none",
+    reasoning: "test",
+    was_fallback: false,
+    source_path: sourcePath,
+    timestamp: new Date().toISOString(),
+  };
+}
+
 test("capture and decision writes require explicit scope", () => {
   assert.throws(() => {
     CaptureMemoryInput.parse({
       content: "remember this",
       content_type: "text",
+      provenance: sampleProvenance("tests/scope-requirements"),
     });
   });
 
@@ -16,6 +29,7 @@ test("capture and decision writes require explicit scope", () => {
     LogDecisionInput.parse({
       title: "Choose X",
       reasoning: "Because",
+      provenance: sampleProvenance("tests/scope-requirements"),
     });
   });
 
@@ -24,6 +38,7 @@ test("capture and decision writes require explicit scope", () => {
       content: "remember this",
       content_type: "text",
       scope: undefined,
+      provenance: sampleProvenance("tests/scope-requirements"),
     });
   });
 });
@@ -42,6 +57,7 @@ test("governance actions no longer advertise update or transition", () => {
       action: "create",
       scope: "assafyavnai/shippingagent",
       title: "Freeze requirements before implementation",
+      provenance: sampleProvenance("tests/scope-requirements"),
     });
   });
 });
@@ -72,6 +88,42 @@ test("scoped read contracts fail at parse time when scope is missing", () => {
     MemoryManageInput.parse({
       action: "delete",
       memory_id: "11111111-1111-1111-1111-111111111111",
+      provenance: sampleProvenance("tests/scope-requirements"),
+    });
+  });
+});
+
+test("mutation contracts require provenance at parse time", () => {
+  assert.throws(() => {
+    CaptureMemoryInput.parse({
+      content: "remember this",
+      content_type: "text",
+      scope: "assafyavnai/shippingagent",
+    });
+  });
+
+  assert.throws(() => {
+    LogDecisionInput.parse({
+      title: "Choose X",
+      reasoning: "Because",
+      scope: "assafyavnai/shippingagent",
+    });
+  });
+
+  assert.throws(() => {
+    GovernanceManageInput.parse({
+      family: "rule",
+      action: "create",
+      scope: "assafyavnai/shippingagent",
+      title: "Freeze requirements",
+    });
+  });
+
+  assert.throws(() => {
+    MemoryManageInput.parse({
+      action: "archive",
+      memory_id: "11111111-1111-1111-1111-111111111111",
+      scope: "assafyavnai/shippingagent",
     });
   });
 });

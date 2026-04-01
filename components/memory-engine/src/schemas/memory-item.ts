@@ -65,7 +65,7 @@ export const CaptureMemoryInput = z.object({
   tags: z.array(z.string()).default([]),
   trust_level: TrustLevel.default("working"),
   skip_dedup: z.boolean().default(false),
-  provenance: ProvenanceSchema.optional(),
+  provenance: ProvenanceSchema,
 });
 export type CaptureMemoryInput = z.infer<typeof CaptureMemoryInput>;
 
@@ -77,6 +77,7 @@ export const SearchMemoryInput = z.object({
   trust_levels: z.array(TrustLevel).min(1).optional(),
   semantic_weight: z.number().min(0).max(1).default(0.7),
   max_results: z.number().min(1).max(100).default(10),
+  include_legacy: z.boolean().default(false),
   provenance: ProvenanceSchema.optional(),
 });
 export type SearchMemoryInput = z.infer<typeof SearchMemoryInput>;
@@ -85,6 +86,7 @@ export const ContextSummaryInput = z.object({
   scope: z.string(),
   content_type: ContentType.optional(),
   limit: z.number().min(1).max(200).default(50),
+  include_legacy: z.boolean().default(false),
   provenance: ProvenanceSchema.optional(),
 });
 export type ContextSummaryInput = z.infer<typeof ContextSummaryInput>;
@@ -94,6 +96,7 @@ export const ListRecentInput = z.object({
   content_type: ContentType.optional(),
   limit: z.number().min(1).max(200).default(20),
   offset: z.number().min(0).default(0),
+  include_legacy: z.boolean().default(false),
   provenance: ProvenanceSchema.optional(),
 });
 export type ListRecentInput = z.infer<typeof ListRecentInput>;
@@ -105,6 +108,6 @@ export const MemoryManageInput = z.object({
   tags: z.array(z.string()).optional(),
   trust_level: TrustLevel.optional(),
   reason: z.string().optional(),
-  provenance: ProvenanceSchema.optional(),
+  provenance: ProvenanceSchema,
 });
 export type MemoryManageInput = z.infer<typeof MemoryManageInput>;

@@ -1,5 +1,6 @@
 import { pool } from "../db/connection.js";
 import { resolveScope, scopeFilterSQL } from "./scope.js";
+import { modernMemoryEvidenceClause } from "../evidence-policy.js";
 
 export interface ContextSummary {
   items: ContextItem[];
@@ -20,7 +21,8 @@ export interface ContextItem {
 export async function getContextSummary(
   scope: string,
   contentType?: string,
-  limit: number = 50
+  limit: number = 50,
+  includeLegacy: boolean = false
 ): Promise<ContextSummary> {
   const resolved = await resolveScope(scope);
   const scopeFilter = scopeFilterSQL(resolved);
@@ -35,6 +37,7 @@ export async function getContextSummary(
       m.tags,
       m.created_at
     FROM memory_items m
+    LEFT JOIN decisions d ON d.memory_item_id = m.id
     WHERE ${scopeFilter.clause}
   `;
   const params: (string | number)[] = [...scopeFilter.params];
@@ -42,6 +45,9 @@ export async function getContextSummary(
   if (contentType) {
     query += ` AND m.content_type = $${params.length + 1}`;
     params.push(contentType);
+  }
+  if (!includeLegacy) {
+    query += ` AND ${modernMemoryEvidenceClause("m", "d")}`;
   }
 
   query += ` ORDER BY
@@ -84,17 +90,21 @@ export async function listRecent(
   scope: string,
   contentType?: string,
   limit: number = 20,
-  offset: number = 0
+  offset: number = 0,
+  includeLegacy: boolean = false
 ): Promise<{ items: ContextItem[]; total: number; has_more: boolean }> {
   const resolved = await resolveScope(scope);
   const scopeFilter = scopeFilterSQL(resolved);
 
-  let countQuery = `SELECT COUNT(*) FROM memory_items m WHERE ${scopeFilter.clause}`;
+  let countQuery = `SELECT COUNT(*) FROM memory_items m LEFT JOIN decisions d ON d.memory_item_id = m.id WHERE ${scopeFilter.clause}`;
   const countParams = [...scopeFilter.params];
 
   if (contentType) {
     countQuery += ` AND m.content_type = $${countParams.length + 1}`;
     countParams.push(contentType);
+  }
+  if (!includeLegacy) {
+    countQuery += ` AND ${modernMemoryEvidenceClause("m", "d")}`;
   }
 
   const { rows: countRows } = await pool.query(countQuery, countParams);
@@ -104,6 +114,7 @@ export async function listRecent(
     SELECT m.id, m.content, m.content_type, m.trust_level,
            m.context_priority, m.tags, m.created_at
     FROM memory_items m
+    LEFT JOIN decisions d ON d.memory_item_id = m.id
     WHERE ${scopeFilter.clause}
   `;
   const params: (string | number)[] = [...scopeFilter.params];
@@ -111,6 +122,9 @@ export async function listRecent(
   if (contentType) {
     query += ` AND m.content_type = $${params.length + 1}`;
     params.push(contentType);
+  }
+  if (!includeLegacy) {
+    query += ` AND ${modernMemoryEvidenceClause("m", "d")}`;
   }
 
   query += ` ORDER BY m.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;

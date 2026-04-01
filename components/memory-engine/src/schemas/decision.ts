@@ -24,7 +24,7 @@ export const LogDecisionInput = z.object({
   scope: z.string(),
   tags: z.array(z.string()).default([]),
   decided_by: z.string().optional(),
-  provenance: ProvenanceSchema.optional(),
+  provenance: ProvenanceSchema,
   content_provenance: ProvenanceSchema.optional(),
 });
 export type LogDecisionInput = z.infer<typeof LogDecisionInput>;

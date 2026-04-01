@@ -1,3 +1,4 @@
+import { extname } from "node:path";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 
 export interface ManagedProcessParams {
@@ -26,10 +27,11 @@ export async function runManagedProcess(params: ManagedProcessParams): Promise<M
   ensureCleanupHandlers();
 
   const detached = process.platform !== "win32";
-  const proc = spawn(params.command, params.args, {
+  const launch = resolveLaunchCommand(params);
+  const proc = spawn(launch.command, launch.args, {
     cwd: params.cwd,
     env: params.env,
-    shell: params.shell ?? false,
+    shell: launch.shell,
     detached,
     windowsHide: true,
     stdio: ["pipe", "pipe", "pipe"],
@@ -97,6 +99,88 @@ export async function runManagedProcess(params: ManagedProcessParams): Promise<M
     }
     proc.stdin?.end();
   });
+}
+
+function resolveLaunchCommand(params: ManagedProcessParams): {
+  command: string;
+  args: string[];
+  shell: boolean;
+} {
+  if (process.platform !== "win32" || params.shell) {
+    return {
+      command: params.command,
+      args: params.args,
+      shell: params.shell ?? false,
+    };
+  }
+
+  const resolvedCommand = resolveWindowsCommand(params.command, params.env) ?? params.command;
+  if (isBatchShim(resolvedCommand)) {
+    return {
+      command: resolvedCommand,
+      args: params.args,
+      shell: true,
+    };
+  }
+
+  return {
+    command: resolvedCommand,
+    args: params.args,
+    shell: false,
+  };
+}
+
+function resolveWindowsCommand(command: string, env?: NodeJS.ProcessEnv): string | null {
+  if (/[\\/]/.test(command)) {
+    return command;
+  }
+
+  const lookup = spawnSync("where", [command], {
+    env,
+    encoding: "utf-8",
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+  if (lookup.status !== 0 || !lookup.stdout) {
+    return null;
+  }
+
+  const matches = lookup.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const ranked = matches
+    .map((candidate) => ({
+      candidate,
+      rank: windowsCommandRank(candidate),
+    }))
+    .sort((left, right) => left.rank - right.rank);
+
+  return ranked[0]?.candidate ?? null;
+}
+
+function isBatchShim(command: string): boolean {
+  const extension = extname(command).toLowerCase();
+  return extension === ".cmd" || extension === ".bat";
+}
+
+function windowsCommandRank(command: string): number {
+  const extension = extname(command).toLowerCase();
+  switch (extension) {
+    case ".exe":
+      return 0;
+    case ".cmd":
+      return 1;
+    case ".bat":
+      return 2;
+    default:
+      return 3;
+  }
 }
 
 function ensureCleanupHandlers(): void {

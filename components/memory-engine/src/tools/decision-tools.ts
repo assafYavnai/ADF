@@ -4,48 +4,17 @@ import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
 import { resolveScope } from "../services/scope.js";
 import { normalizeTags, resolveContextPriority, resolveCompressionPolicy } from "../services/context-policy.js";
 import { LogDecisionInput } from "../schemas/decision.js";
-import { LEGACY_PROVENANCE, type Provenance } from "../provenance.js";
+import type { Provenance } from "../provenance.js";
 import { logger } from "../logger.js";
 import type pg from "pg";
-
-function extractProvenance(args: Record<string, unknown>): Provenance {
-  const p = args.provenance as Record<string, unknown> | undefined;
-  if (!p) return { ...LEGACY_PROVENANCE, source_path: "memory-engine/decision/log" };
-  return {
-    invocation_id: (p.invocation_id as string) ?? LEGACY_PROVENANCE.invocation_id,
-    provider: (p.provider as Provenance["provider"]) ?? "system",
-    model: (p.model as string) ?? "none",
-    reasoning: (p.reasoning as string) ?? "none",
-    was_fallback: (p.was_fallback as boolean) ?? false,
-    source_path: (p.source_path as string) ?? "memory-engine/decision/log",
-    timestamp: (p.timestamp as string) ?? new Date().toISOString(),
-  };
-}
-
-function extractContentProvenance(
-  args: Record<string, unknown>,
-  fallback: Provenance
-): Provenance {
-  const p = args.content_provenance as Record<string, unknown> | undefined;
-  if (!p) return fallback;
-  return {
-    invocation_id: (p.invocation_id as string) ?? fallback.invocation_id,
-    provider: (p.provider as Provenance["provider"]) ?? fallback.provider,
-    model: (p.model as string) ?? fallback.model,
-    reasoning: (p.reasoning as string) ?? fallback.reasoning,
-    was_fallback: (p.was_fallback as boolean) ?? fallback.was_fallback,
-    source_path: (p.source_path as string) ?? fallback.source_path,
-    timestamp: (p.timestamp as string) ?? fallback.timestamp,
-  };
-}
 
 export async function logDecision(
   args: Record<string, unknown>
 ): Promise<{ content: Array<{ type: string; text: string }> }> {
   const input = LogDecisionInput.parse(args);
-  const prov = extractProvenance(args);
-  const contentProv = extractContentProvenance(args, prov);
-  const derivationMode = args.content_provenance ? "llm_extracted" : "direct_input";
+  const prov = input.provenance;
+  const contentProv = input.content_provenance ?? prov;
+  const derivationMode = input.content_provenance ? "llm_extracted" : "direct_input";
   const tags = normalizeTags([...input.tags, "decision"]);
   const priority = resolveContextPriority("decision", tags);
   const compression = resolveCompressionPolicy("decision", tags);
@@ -193,7 +162,7 @@ export const DECISION_TOOL_DEFINITIONS = [
           description: "Optional provenance for the source that produced the structured decision content, such as an LLM extractor invocation",
         },
       },
-      required: ["title", "reasoning", "scope"],
+      required: ["title", "reasoning", "scope", "provenance"],
     },
   },
 ];
