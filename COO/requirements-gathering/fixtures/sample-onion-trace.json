@@ -1,0 +1,204 @@
+{
+  "trace_id": "execution-monitor-sample",
+  "traces": [
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-001",
+      "current_layer": "expected_result",
+      "workflow_step": "clarification",
+      "decision_reason": "Outer-shell field \"expected_result\" is still missing.",
+      "selected_next_question": "When this work is done, what should exist?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "Outer-shell field \"expected_result\" is still missing.",
+        "Outer-shell field \"success_view\" is still missing.",
+        "Major parts are still missing.",
+        "The scope still needs an explicit UI/experience relevance decision.",
+        "Boundaries, non-goals, or constraints are still missing."
+      ],
+      "open_decisions_snapshot": [],
+      "artifact_change_summary": [
+        "Updated topic.",
+        "Updated goal."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-002",
+      "current_layer": "success_view",
+      "workflow_step": "clarification",
+      "decision_reason": "Outer-shell field \"success_view\" is still missing.",
+      "selected_next_question": "How will you recognize that this works from your point of view?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "Outer-shell field \"success_view\" is still missing.",
+        "Major parts are still missing.",
+        "The scope still needs an explicit UI/experience relevance decision.",
+        "Boundaries, non-goals, or constraints are still missing."
+      ],
+      "open_decisions_snapshot": [],
+      "artifact_change_summary": [
+        "Updated expected result."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-003",
+      "current_layer": "major_parts",
+      "workflow_step": "clarification",
+      "decision_reason": "Major parts are still missing.",
+      "selected_next_question": "What are the main parts of this feature?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "Major parts are still missing.",
+        "The scope still needs an explicit UI/experience relevance decision.",
+        "Boundaries, non-goals, or constraints are still missing."
+      ],
+      "open_decisions_snapshot": [],
+      "artifact_change_summary": [
+        "Updated success view."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-004",
+      "current_layer": "part_clarification",
+      "workflow_step": "clarification",
+      "decision_reason": "Major part \"Queue view\" still needs clarification.",
+      "selected_next_question": "For \"Queue view\", what does this part mean in business terms?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "Major part \"Queue view\" still needs clarification.",
+        "Major part \"Flow view\" still needs clarification.",
+        "Major part \"Node details\" still needs clarification.",
+        "Major part \"Audit trail\" still needs clarification.",
+        "Major part \"Metrics\" still needs clarification.",
+        "The scope still needs an explicit UI/experience relevance decision.",
+        "Boundaries, non-goals, or constraints are still missing."
+      ],
+      "open_decisions_snapshot": [],
+      "artifact_change_summary": [
+        "Replaced major parts with 5 item(s)."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-005",
+      "current_layer": "part_clarification",
+      "workflow_step": "clarification",
+      "decision_reason": "Major part \"Node details\" still needs clarification.",
+      "selected_next_question": "For \"Node details\", what does this part mean in business terms?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "Major part \"Node details\" still needs clarification.",
+        "Major part \"Audit trail\" still needs clarification.",
+        "Major part \"Metrics\" still needs clarification.",
+        "The scope still needs an explicit UI/experience relevance decision.",
+        "Boundaries, non-goals, or constraints are still missing."
+      ],
+      "open_decisions_snapshot": [],
+      "artifact_change_summary": [
+        "Clarified part \"queue_view\".",
+        "Clarified part \"flow_view\"."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-006",
+      "current_layer": "experience_ui",
+      "workflow_step": "clarification",
+      "decision_reason": "UI meaning matters, but the preview/mockup loop is not approved yet.",
+      "selected_next_question": "Should we treat the current preview or mockup direction as the alignment target before freeze?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "UI meaning matters, but the preview/mockup loop is not approved yet.",
+        "Boundaries, non-goals, or constraints are still missing."
+      ],
+      "open_decisions_snapshot": [],
+      "artifact_change_summary": [
+        "Clarified part \"node_details\".",
+        "Clarified part \"audit_trail\".",
+        "Clarified part \"metrics\".",
+        "Updated experience/UI alignment."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-007",
+      "current_layer": "open_decisions",
+      "workflow_step": "clarification",
+      "decision_reason": "Open business decision \"live-update-model\" is unresolved: Should live updates use polling or push for the first release?",
+      "selected_next_question": "Should live updates use polling or push for the first release?",
+      "no_question_reason": null,
+      "freeze_blockers": [
+        "Open business decision \"live-update-model\" is unresolved: Should live updates use polling or push for the first release?"
+      ],
+      "open_decisions_snapshot": [
+        {
+          "id": "live-update-model",
+          "question": "Should live updates use polling or push for the first release?",
+          "impact": "This changes the product promise and testing expectations.",
+          "status": "open"
+        }
+      ],
+      "artifact_change_summary": [
+        "Updated experience/UI alignment.",
+        "Replaced boundaries with 2 item(s).",
+        "Replaced open decisions with 1 item(s)."
+      ],
+      "result_status": "clarification_needed"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-008",
+      "current_layer": "whole_onion_freeze",
+      "workflow_step": "freeze_ready",
+      "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
+      "selected_next_question": null,
+      "no_question_reason": "Clarification is complete. The next step is an explicit whole-onion freeze request.",
+      "freeze_blockers": [],
+      "open_decisions_snapshot": [
+        {
+          "id": "live-update-model",
+          "question": "Should live updates use polling or push for the first release?",
+          "impact": "This changes the product promise and testing expectations.",
+          "status": "resolved",
+          "resolution": "Use timed polling every 10 seconds for the first release."
+        }
+      ],
+      "artifact_change_summary": [
+        "Resolved open decision \"live-update-model\"."
+      ],
+      "result_status": "awaiting_freeze_approval"
+    },
+    {
+      "trace_id": "execution-monitor-sample",
+      "turn_id": "turn-009",
+      "current_layer": "approved",
+      "workflow_step": "handoff_ready",
+      "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
+      "selected_next_question": null,
+      "no_question_reason": "The onion is already frozen and approved.",
+      "freeze_blockers": [],
+      "open_decisions_snapshot": [
+        {
+          "id": "live-update-model",
+          "question": "Should live updates use polling or push for the first release?",
+          "impact": "This changes the product promise and testing expectations.",
+          "status": "resolved",
+          "resolution": "Use timed polling every 10 seconds for the first release."
+        }
+      ],
+      "artifact_change_summary": [
+        "Recorded explicit whole-onion freeze approval."
+      ],
+      "result_status": "ready_for_handoff"
+    }
+  ]
+}

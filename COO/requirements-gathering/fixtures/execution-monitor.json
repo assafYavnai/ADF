@@ -1,0 +1,199 @@
+{
+  "trace_id": "execution-monitor-sample",
+  "description": "Execution-monitor scenario with expectations for the dormant onion lane.",
+  "turns": [
+    {
+      "turn_id": "turn-001",
+      "timestamp": "2026-04-01T10:00:00.000Z",
+      "actor": "ceo",
+      "summary": "Define the feature topic and goal.",
+      "update": {
+        "topic": "Execution monitor for ADF",
+        "goal": "See what the system is currently doing, starting with the implementation queue."
+      }
+    },
+    {
+      "turn_id": "turn-002",
+      "timestamp": "2026-04-01T10:01:00.000Z",
+      "actor": "ceo",
+      "summary": "Define the expected result.",
+      "update": {
+        "expected_result": "A local URL that shows the current system status with live updates."
+      }
+    },
+    {
+      "turn_id": "turn-003",
+      "timestamp": "2026-04-01T10:02:00.000Z",
+      "actor": "ceo",
+      "summary": "Define the CEO success view.",
+      "update": {
+        "success_view": "I can open the page, see the queue, and drill into current execution details."
+      }
+    },
+    {
+      "turn_id": "turn-004",
+      "timestamp": "2026-04-01T10:03:00.000Z",
+      "actor": "ceo",
+      "summary": "List the major parts.",
+      "update": {
+        "major_parts": [
+          {
+            "id": "queue_view",
+            "label": "Queue view"
+          },
+          {
+            "id": "flow_view",
+            "label": "Flow view"
+          },
+          {
+            "id": "node_details",
+            "label": "Node details"
+          },
+          {
+            "id": "audit_trail",
+            "label": "Audit trail"
+          },
+          {
+            "id": "metrics",
+            "label": "Metrics"
+          }
+        ]
+      }
+    },
+    {
+      "turn_id": "turn-005",
+      "timestamp": "2026-04-01T10:04:00.000Z",
+      "actor": "ceo",
+      "summary": "Clarify the first major parts.",
+      "update": {
+        "part_clarifications": [
+          {
+            "part_id": "queue_view",
+            "detail": "Show active features, current status, owner, and any blocking reason.",
+            "questions_answered": [
+              "What belongs in the queue view?"
+            ]
+          },
+          {
+            "part_id": "flow_view",
+            "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+            "questions_answered": [
+              "What belongs in the flow view?"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "turn_id": "turn-006",
+      "timestamp": "2026-04-01T10:05:00.000Z",
+      "actor": "ceo",
+      "summary": "Clarify the remaining parts and set the initial UI direction.",
+      "update": {
+        "part_clarifications": [
+          {
+            "part_id": "node_details",
+            "detail": "Opening a node should show agent output, substeps, and the timing for that node.",
+            "questions_answered": [
+              "What should node details show?"
+            ]
+          },
+          {
+            "part_id": "audit_trail",
+            "detail": "Show completed steps with who did them, when they finished, and why they changed state.",
+            "questions_answered": [
+              "What belongs in the audit trail?"
+            ]
+          },
+          {
+            "part_id": "metrics",
+            "detail": "Show token usage plus total and per-step timing.",
+            "questions_answered": [
+              "What belongs in metrics?"
+            ]
+          }
+        ],
+        "experience_ui": {
+          "relevant": true,
+          "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+          "preview_status": "preview_proposed",
+          "preview_artifact": "mockup://execution-monitor-v1"
+        }
+      }
+    },
+    {
+      "turn_id": "turn-007",
+      "timestamp": "2026-04-01T10:06:00.000Z",
+      "actor": "ceo",
+      "summary": "Approve the preview direction and define boundaries and the remaining business decision.",
+      "update": {
+        "experience_ui": {
+          "preview_status": "preview_approved",
+          "approval_notes": "The queue plus flow plus detail drawer layout is the right direction."
+        },
+        "boundaries": [
+          {
+            "id": "phase1-queue-first",
+            "kind": "constraint",
+            "statement": "Phase 1 focuses on the implementation queue first."
+          },
+          {
+            "id": "no-historic-analytics",
+            "kind": "non_goal",
+            "statement": "This is not a full historical analytics suite."
+          }
+        ],
+        "open_decisions": [
+          {
+            "id": "live-update-model",
+            "question": "Should live updates use polling or push for the first release?",
+            "impact": "This changes the product promise and testing expectations.",
+            "status": "open"
+          }
+        ]
+      }
+    },
+    {
+      "turn_id": "turn-008",
+      "timestamp": "2026-04-01T10:07:00.000Z",
+      "actor": "ceo",
+      "summary": "Resolve the remaining business decision.",
+      "update": {
+        "resolve_open_decisions": [
+          {
+            "id": "live-update-model",
+            "resolution": "Use timed polling every 10 seconds for the first release."
+          }
+        ]
+      }
+    },
+    {
+      "turn_id": "turn-009",
+      "timestamp": "2026-04-01T10:08:00.000Z",
+      "actor": "ceo",
+      "summary": "Approve the whole onion for freeze.",
+      "update": {
+        "freeze_response": {
+          "action": "approve",
+          "note": "The human-facing scope is right. Freeze it."
+        }
+      }
+    }
+  ],
+  "expected": {
+    "final_freeze_status": "approved",
+    "final_artifact_status": "ready",
+    "final_readiness_status": "ready",
+    "expected_next_targets": [
+      "expected_result",
+      "success_view",
+      "major_parts",
+      "part_clarification",
+      "part_clarification",
+      "experience_ui_preview",
+      "open_decision",
+      null,
+      null
+    ]
+  }
+}
