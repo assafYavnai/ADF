@@ -63,3 +63,105 @@ test("createThread preserves explicit scope path", () => {
   const thread = createThread("assafyavnai/shippingagent/phase1-baseline");
   assert.equal(thread.scopePath, "assafyavnai/shippingagent/phase1-baseline");
 });
+
+test("serializeForLLM includes active onion workflow state and latest onion turn result summary", () => {
+  const thread = createThread("assafyavnai/shippingagent/phase1-onion");
+  const onionState = {
+    trace_id: "onion::thread-test",
+    last_turn_id: "turn-001",
+    lifecycle_status: "active" as const,
+    current_layer: "goal" as const,
+    selected_next_question: "Why do you want this feature?",
+    no_question_reason: null,
+    state: {
+      topic: "Execution monitor for ADF",
+      goal: "",
+      expected_result: "",
+      success_view: "",
+      major_parts: [],
+      part_clarifications: {},
+      experience_ui: {
+        relevant: null,
+        preview_status: "not_needed" as const,
+      },
+      boundaries: [],
+      open_decisions: [],
+      freeze_status: {
+        status: "draft" as const,
+        blockers: [],
+      },
+      approved_snapshot: null,
+    },
+    working_artifact: {
+      schema_version: "1.0" as const,
+      artifact_kind: "working_scope" as const,
+      topic: "Execution monitor for ADF",
+      goal: "",
+      expected_result: "",
+      success_view: "",
+      major_parts: [],
+      part_clarifications: {},
+      experience_ui: {
+        relevant: null,
+        preview_status: "not_needed" as const,
+      },
+      boundaries: [],
+      open_decisions: [],
+      freeze_status: {
+        status: "draft" as const,
+        blockers: [],
+      },
+      approved_snapshot: null,
+      scope_summary: [
+        "Topic: Execution monitor for ADF",
+        "Goal: missing",
+      ],
+    },
+    requirement_artifact: null,
+    finalized_requirement_memory_id: null,
+    latest_audit_trace: {
+      trace_id: "onion::thread-test",
+      turn_id: "turn-001",
+      current_layer: "goal" as const,
+      workflow_step: "clarification",
+      decision_reason: "The business goal is still missing.",
+      selected_next_question: "Why do you want this feature?",
+      no_question_reason: null,
+      freeze_blockers: ["Outer-shell field \"goal\" is still missing."],
+      open_decisions_snapshot: [],
+      artifact_change_summary: ["Updated topic."],
+      result_status: "clarification_needed",
+    },
+    latest_llm_calls: [],
+    latest_persistence_receipts: [],
+  };
+  thread.workflowState = {
+    active_workflow: "requirements_gathering_onion",
+    onion: onionState,
+  };
+  thread.events.push(
+    createEvent("onion_turn_result", {
+      trace_id: "onion::thread-test",
+      turn_id: "turn-001",
+      lifecycle_status: "active",
+      current_layer: "goal",
+      state: onionState.state,
+      working_artifact: onionState.working_artifact,
+      requirement_artifact: null,
+      finalized_requirement_memory_id: null,
+      workflow_trace: onionState.latest_audit_trace,
+      operation_records: [],
+      llm_calls: [],
+      persistence_receipts: [],
+      state_commit_summary: "Requirements-gathering onion advanced without silently freezing.",
+      open_loops: ["Why do you want this feature?"],
+    })
+  );
+
+  const serialized = serializeForLLM(thread);
+
+  assert.match(serialized, /<workflow_state>/);
+  assert.match(serialized, /Active workflow: requirements_gathering_onion/);
+  assert.match(serialized, /Next question: Why do you want this feature\?/);
+  assert.match(serialized, /<onion_turn_result>/);
+});

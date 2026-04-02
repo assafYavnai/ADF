@@ -12,6 +12,7 @@ let shuttingDown = false;
 async function main() {
   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
   const args = parseCliArgs(process.argv.slice(2));
+  const onionEnabled = resolveOnionGate(args);
   const config: ControllerConfig = {
     projectRoot,
     threadsDir: resolve(projectRoot, "threads"),
@@ -19,6 +20,7 @@ async function main() {
     memoryDir: resolve(projectRoot, "memory"),
     classifierParams: DEFAULT_CLASSIFIER_PARAMS,
     intelligenceParams: DEFAULT_INTELLIGENCE_PARAMS,
+    enableRequirementsGatheringOnion: onionEnabled,
   };
 
   let brainClient: MemoryEngineClient | null = null;
@@ -47,6 +49,10 @@ async function main() {
       brainClient!.logDecision(title, reasoning, alternatives, scopePath, provenance, contentProvenance);
     config.brainCreateRule = (title, body, tags, scopePath, provenance) =>
       brainClient!.createRule(title, body, tags, scopePath, provenance);
+    config.brainCreateRequirement = (title, body, tags, scopePath, provenance) =>
+      brainClient!.createRequirement(title, body, tags, scopePath, provenance);
+    config.brainManageMemory = (action, memoryId, scopePath, provenance, options) =>
+      brainClient!.manageMemory(action, memoryId, scopePath, provenance, options);
     configureSink(async (events) => {
       if (!brainClient) return;
       await brainClient.emitMetricsBatch(events);
@@ -76,6 +82,7 @@ async function main() {
   } else {
     console.log("Scope: not set (durable memory operations will fail closed)");
   }
+  console.log(`Requirements-gathering onion: ${onionEnabled ? "enabled (feature gate)" : "disabled"}`);
 
   if (!process.stdin.isTTY) {
     await runScriptedSession(config, brainClient, threadId, configuredScope);
@@ -118,10 +125,11 @@ async function main() {
   });
 }
 
-function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean; scopePath?: string } {
+function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean; scopePath?: string; enableOnion?: boolean } {
   let threadId: string | undefined;
   let resumeLast = false;
   let scopePath: string | undefined;
+  let enableOnion: boolean | undefined;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -133,6 +141,10 @@ function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean;
     } else if (arg === "--scope") {
       scopePath = argv[i + 1];
       i++;
+    } else if (arg === "--enable-onion") {
+      enableOnion = true;
+    } else if (arg === "--disable-onion") {
+      enableOnion = false;
     }
   }
 
@@ -140,7 +152,17 @@ function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean;
     threadId,
     resumeLast,
     scopePath,
+    enableOnion,
   };
+}
+
+function resolveOnionGate(args: { enableOnion?: boolean }): boolean {
+  if (args.enableOnion !== undefined) {
+    return args.enableOnion;
+  }
+
+  const raw = process.env.ADF_ENABLE_REQUIREMENTS_GATHERING_ONION?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
 }
 
 async function findLatestThreadId(threadsDir: string): Promise<string | null> {

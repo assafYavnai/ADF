@@ -1,0 +1,1049 @@
+# Phase 1 Feature Flow and Executive Briefing Draft
+
+Status: draft discussion record
+Last updated: 2026-03-29
+Purpose: capture the current high-level Phase 1 decisions discussed with the user so a contextless agent can resume without reconstructing the conversation.
+
+---
+
+## Why This Draft Exists
+
+This document captures the current agreed direction for:
+
+- what Phase 1 company scope is
+- what the first supported company function is
+- what the high-level feature lifecycle is
+- how queue ownership should work between CEO, COO, and CTO
+- how pushback and CEO alerts should behave
+- how the CEO-facing executive briefing should work
+
+This is not yet a final governed spec.
+
+All decisions here should be treated as **draft high-level decisions** until the actual workflows, contracts, and governance surfaces are implemented and revised against runtime reality.
+
+---
+
+## Governed Authority Format
+
+Current strong direction:
+
+- governed lane authority must be **JSON contracts**
+- governed LLM roles must be **structured tagged Markdown**
+- rulebooks remain **JSON**
+- the CEO is not part of the machine contract surface
+- the COO may translate governed state into CEO-facing language when needed
+
+This means:
+
+- requirements, design, planning, setup-analysis, implementation, finalization, and postmortem should be governed by JSON lane authority surfaces
+- lane closeout and handoff should be contract-driven, not markdown-driven
+- LLM-facing role definitions should remain structured Markdown prompt surfaces using the established tag model
+- every governed role should be paired with a JSON contract and JSON rulebook
+- CEO-facing summaries are outputs derived from governed state, not governing artifacts themselves
+
+---
+
+## Phase 1 Terminology
+
+Current frozen terminology:
+
+- **Company Function**
+  - examples: `feature`, `bugfix`, `task`, `research`
+- **Lifecycle**
+  - the full end-to-end flow for one company function
+- **Phase**
+  - a major stage inside a lifecycle
+- **Step**
+  - a bounded unit inside a phase
+- **Lane**
+  - a parallel path inside a phase when needed
+
+Cross-cutting terms:
+
+- **Gate**
+  - a blocking checkpoint at any level
+- **Handoff**
+  - a transfer and closeout package at any level
+
+Clarifications:
+
+- `review` is not its own taxonomy level
+- review may appear inside a phase as a step, a gate, or an invoked shared mechanism
+- the CEO-facing layer should talk in terms of company functions and lifecycle progress, not internal execution taxonomy unless the CEO drills down
+
+---
+
+## Function Definition Direction
+
+Current draft direction:
+
+- company functions should be represented by a canonical function-blueprint JSON
+- that blueprint should be defined top-down from the CEO/COO view of the function
+- it should stay structural, explicit, and easy to read
+- it should focus on:
+  - lifecycle
+  - phases
+  - steps
+  - sequences
+  - handoffs
+  - known tool / engine / component bindings where already decided
+- it is **not** the final execution map
+- a later function-builder should use it to:
+  - walk the lifecycle path
+  - identify shared building blocks
+  - connect existing tools / engines / components
+  - detect missing pieces
+  - build missing pieces
+- unresolved ids are acceptable in the draft blueprint because they signal builder work, not blueprint failure
+
+Current intended build order:
+
+1. define the function blueprint JSON
+2. build lower-level builders bottom-up
+3. build a function-builder that orchestrates those builders
+4. build the company function from the blueprint
+5. wire the company function into the COO
+
+Current builder assumptions:
+
+- lower-level builders should include at least a `phase-builder` and a `step-builder`
+- gate and handoff generation should be reusable across functions and phases
+- builders should turn the blueprint into a detailed execution map instead of inventing the lifecycle path
+- once the function blueprint is stable, independent phases and independent steps should be buildable in parallel
+
+Current generic phase form:
+
+1. compliance gate
+2. create artifact
+3. review cycle
+4. finalization
+5. postmortem
+6. handoff
+
+Important rule:
+
+- `create artifact` may be skipped when the phase receives its governing artifact from upstream
+- the review cycle includes learning, hardening, self-healing, and fixing
+
+---
+
+## Phase 1 Company Scope
+
+### Agreed direction
+
+Phase 1 is focused on **implementation**.
+
+The first and most important supported company function is **feature delivery**.
+
+This is intentionally close to the ProjectBrain flow, but with stronger governance in ADF.
+
+The goal of Phase 1 is:
+
+- turn vague feature ideas into high-quality production implementation
+- do it through governed phase boundaries
+- add learning loops at every step
+- preserve company state so the CEO does not have to hold it all manually
+
+### Not the goal of Phase 1
+
+Phase 1 is not trying to become the full virtual company yet.
+
+Later capabilities such as finance, broader staffing, marketing, lighter effort modes, bugfix-first flows, task flows, and research flows are understood as **later master-plan versions** or later sub-phases, not the current foundation.
+
+---
+
+## Feature Lifecycle Golden Path
+
+Important boundary clarification:
+
+- requirements gathering is owned by the COO
+- it is a pre-function shaping activity
+- the COO starts with a draft requirement list and ends with a finalized requirement list
+- the finalized requirement list is the COO handoff artifact
+- in the fuller company model, the COO passes that artifact to the CTO
+- the CTO decides when the feature enters the company queue and reaches its true starting point
+- for the current scope, that CTO queue/admission layer is intentionally skipped
+- the feature function therefore begins directly from the finalized requirement-list handoff
+- the first feature-function target is not another finalized state
+- the first feature-function target is the frozen requirement-list state
+
+So the current intended Phase 1 feature-function lifecycle is:
+
+`requirement-list review -> design -> review -> planning -> review -> setup analysis -> review -> implementation -> review -> finalization -> postmortem`
+
+### Important note
+
+This order is still **draft high-level direction**.
+
+However, one best-practice decision has now been chosen:
+
+- `finalization -> postmortem` is intentional
+
+Reasoning:
+
+- finalization should close the operational delivery and handoff path
+- postmortem should happen after the full outcome is known
+- learning should be based on the actual completed run, not a partial pre-close snapshot
+
+### CEO completion view
+
+From the CEO's point of view, a feature is not truly complete after finalization alone.
+
+The feature should be treated as truly complete only **after postmortem**.
+
+That CEO-facing completion closeout should include:
+
+- result
+- short implementation-run summary
+- improvements and learnings
+
+The current intended CEO-facing postmortem closeout should cover:
+
+#### 1. Result
+
+Clear business outcome such as:
+
+- done
+- failed
+- partial
+- completed with errors
+
+#### 2. Run summary
+
+A short business-level summary of the run, for example:
+
+- time
+- tokens / cost / effort
+- blockers
+- major friction points
+
+#### 3. Improvements
+
+What the company learned from the run, for example:
+
+- what improved compared with prior runs
+- what degraded
+- what needs watching
+- where the company became more efficient
+
+Example direction from discussion:
+
+- a previous implementation needed 7 review cycles
+- this run needed 4
+- therefore the company improved
+
+For now, the important thing is:
+
+- COO-owned requirements gathering happens before the feature function starts
+- the COO hands the feature function a finalized requirement list
+- in the fuller company model, that finalized requirement list would first go through CTO queue/admission
+- in the current Phase 1 scope, CTO queue/admission is intentionally skipped
+- the first feature-function phase tries to freeze that requirement list or pushes back to the COO
+- every meaningful phase has its own workflow
+- every meaningful phase has a review gate
+- learning can be captured from both phase work and phase review failure
+- the feature should not be treated as truly complete until postmortem is captured
+
+---
+
+## How Feature Intake Starts
+
+### CEO starting point
+
+The user starts high level by default.
+
+The CEO is not expected to provide technical details unless they want to.
+
+The COO should guide the CEO through questions, reflection, and clarification to understand what the CEO actually wants.
+
+### COO must clarify the outer shell first
+
+For a feature, the COO must first clarify:
+
+#### A. Topic and goal
+
+Example:
+
+- build an execution monitor for ADF
+
+#### B. Expected result
+
+Example:
+
+- a URL the CEO can open locally
+- live updates that show current company state
+
+#### C. Success view from the CEO point of view
+
+Example:
+
+- the CEO can open the page and understand what the system is doing now
+- the CEO can click into a feature and inspect its progress and audit trail
+
+Only after those outer-shell items are clear should the COO peel inward.
+
+### Once the outer shell is clear, peel into feature parts
+
+After topic, goal, expected result, and success view are clear enough, the COO then clarifies the high-level feature parts.
+
+#### Example feature-parts list
+
+Example:
+
+- list of tickets and their status
+- ticket history
+- actions such as open new, close, clarification needed
+- audit trail including who opened the ticket, why, and when
+
+#### C. Expected results
+
+Example:
+
+- a URL to test implementation
+- all features implemented and testable through the UI
+
+### UI handling rule
+
+If the feature involves UI, whether new UI or changes to existing UI, the COO should create a mockup.
+
+That mockup may be:
+
+- static
+- interactive
+
+The choice depends on the feature.
+
+The COO should provide something the CEO can run or review locally and then iterate with the CEO until the COO and the CEO are clearly aligned.
+
+The intent is:
+
+- use the mockup to reduce ambiguity early
+- freeze UI understanding before later stages harden
+
+---
+
+## Requirements Gathering Uses An Onion Model
+
+The requirements-gathering discussion should be treated as an **onion**, not as a flat checklist.
+
+The COO starts with the outer shell and only peels inward when the current layer is clear enough.
+
+The COO should not jump to technical detail too early.
+
+The onion is complete only when the full human-facing feature scope is clear enough that the COO can show the whole onion back to the CEO for approval.
+
+### Suggested human-facing onion layers
+
+1. `Topic`
+   - what this thing is
+2. `Goal`
+   - why the CEO wants it
+3. `Expected result`
+   - what should exist when the work is done
+4. `Success view`
+   - how the CEO expects to test it or recognize success
+5. `Major parts`
+   - the main feature items or building blocks
+6. `Part clarification`
+   - what each part actually means
+7. `Experience / UI`
+   - what the user should see and do when UI meaning matters
+8. `Boundaries`
+   - non-goals, constraints, and out-of-scope edges
+9. `Open decisions`
+   - anything still missing before freeze
+10. `Whole-onion freeze`
+   - the COO shows the complete picture back to the CEO for approval
+
+For the dedicated discussion model and a concrete example, see:
+
+- [requirements-gathering-onion-model.md](C:/ADF/docs/v0/context/requirements-gathering-onion-model.md)
+
+---
+
+## Combined Requirements-Gathering Flow
+
+Important boundary note:
+
+- this combined requirements-gathering flow is COO-owned pre-function work
+- it produces the finalized requirement list handoff artifact
+- the feature function starts only after that handoff
+- the first feature-function phase then tries to reach a frozen requirement-list state or pushes back to the COO
+
+This is the current best combined flow when the ProjectBrain workflow, the seed requirement artifact, the referenced Claude/Codex discussions, and the current ADF discussion are read together.
+
+### High-level flow
+
+#### 1. High-level definition
+
+The CEO starts with a vague or high-level feature request.
+
+The COO should:
+
+- understand the topic and goal of the request
+- check prior sources before asking broad questions
+- get the expected result from the CEO point of view
+- get how the CEO expects to test it or recognize success
+
+This completes the outer shell.
+
+#### 2. Feature frame / scope
+
+Once the outer shell is clear, the COO peels inward and clarifies the feature parts.
+
+The COO should:
+
+- gather the major feature items or capabilities
+- clarify what each part means
+- suggest a mockup first when UI is involved
+- run a mockup approval loop when needed
+
+The end state of this stage is:
+
+- the human-facing feature scope is clear enough to describe as one coherent onion
+
+#### 3. Readiness check
+
+The COO should then check whether the scope is complete enough to write the formal requirement package.
+
+That means:
+
+- check the current scope against prior sources and the component rulebook
+- identify missing business decisions
+- ask only the missing questions
+
+#### 4. Feature scope freeze
+
+When the COO believes the onion is complete enough, the COO should:
+
+- show the whole onion back to the CEO
+- state that the feature appears ready to freeze
+- ask for approval instead of freezing silently
+
+Outcomes:
+
+- approved -> move forward
+- rejected or corrected -> return to feature scope clarification
+
+The end state of this step is:
+
+- the feature scope is frozen
+
+#### 5. Requirement package and CTO handoff
+
+After freeze, the COO writes the detailed requirement package while preserving the approved human meaning.
+
+If writing the requirement package exposes a missing business decision, the COO should float that gap back to the CEO rather than guessing.
+
+When the requirement package is ready:
+
+- send it to the CTO for technical review, queueing, and downstream movement
+- update the CEO that the feature is now with the company
+- suggest the next agenda item when appropriate
+
+#### 6. Pushback / CEO alert
+
+If the CTO or any later phase pushes back and a CEO decision is needed:
+
+- the COO must alert the CEO immediately
+- no silent stall is allowed
+
+### Critical combined rules
+
+- requirements freeze is explicit, not silent
+- the COO should peel from the outer shell inward, not jump to deep details too early
+- the CEO must be shown the whole onion before freeze
+- if UI is relevant, UI alignment belongs inside requirements shaping
+- the detailed requirement artifact must preserve approved meaning, not reinterpret it silently
+- the next lane should not have to guess core intent
+- review and learning are part of the requirements lane, not only later phases
+
+---
+
+## Requirements Acceptance Model
+
+### High-level acceptance loop
+
+When the COO believes the feature onion is complete enough, the COO should present the gathered scope back to the CEO.
+
+At minimum, that approval view should include:
+
+- topic and goal
+- expected result
+- success view
+- major feature parts
+- approved UI direction when UI is part of the feature
+- important boundaries, constraints, or open decisions if they still matter to the freeze decision
+
+If the CEO pushes back, the requirement-gathering process repeats until acceptance is reached.
+
+### Freeze approval model
+
+The strongest current answer from the legacy sources is:
+
+- requirements freeze should not be silent
+- the COO should explicitly show the current whole-onion view
+- the COO should explicitly check whether the CEO has more to add
+- the COO should get approval to freeze, or an equivalent continue signal, before freezing
+- the COO should verify it has enough information to pass the artifact to review; if not, it should keep clarifying
+
+So the current draft recommendation is:
+
+- the COO should not auto-freeze scope just because the conversation feels complete
+- the COO should explicitly close the clarification round and get a freeze signal
+- once that signal exists, the COO can proceed autonomously without further approval-to-proceed behavior for ordinary downstream work
+
+### Source basis for this recommendation
+
+ProjectBrain requirement workflow evidence:
+
+- the workflow requires an explicit closing question before freeze
+- the Requirement Freeze Gate requires that the user agreed the Requirement List is ready to freeze or gave an equivalent continue signal
+- the workflow then separately requires a readiness review before the artifact can govern the next stage
+
+Claude thread evidence (`fe414e1e-ec03-430b-ad0c-05662a3f4fda`):
+
+- "the requirements are open" meant:
+  - check whether the user has more to add
+  - get user approval to freeze the requirements
+  - verify enough information exists to pass to review
+  - otherwise ask clarification questions
+
+Codex thread evidence (`019cdbb4-e909-7491-b583-efaa955ea5c1`) as preserved in later requirement artifacts:
+
+- the intended feature-mode flow is:
+  - user starts high-level
+  - the COO guides clarification
+  - the COO reflects the high-level summary for approval
+  - only then does the COO derive the detailed low-level contract-compatible requirement list
+
+### Detailed requirement artifact
+
+After high-level acceptance, the COO creates a more detailed requirements artifact that includes:
+
+- high-level requirements
+- low-level requirements compatible with ADF contracts and later phases
+
+That requirement artifact then passes through governed review before it moves downstream.
+
+Current discussion direction:
+
+- the requirement list passes through 2 agents' reviews before being passed to the designer process
+
+This specific review shape should still be treated as **draft until implemented**.
+
+---
+
+## Learning Loops
+
+Learning is not only a final postmortem concern.
+
+The current agreed direction is:
+
+- both requirement gathering and review should identify root causes of failure
+- phases should ask why a review failed or why an artifact was not good enough
+- the COO and the company should improve future behavior from those lessons
+
+The intent is:
+
+- repeated pitfalls become explicit rules, checks, or guidance
+- agents should self-check against those learned rules before passing artifacts forward
+
+### KPI ownership
+
+The COO should think about which KPIs the company needs in order to show:
+
+- improvement
+- degradation
+- cost
+- effort
+- recurring friction
+
+Current draft ownership model:
+
+- the COO defines the initial `v1` KPI set
+- the CTO may add CTO-side KPIs for implementation management
+- the CEO sees the reporting and may add, remove, or reshape KPIs based on preference
+
+### Important governance note
+
+The exact promotion path for rules is still open.
+
+Later implementation must still freeze:
+
+- whether rules are auto-applied
+- whether they are proposed first
+- whether they mature from lesson -> convention -> rule
+
+For now, only the **high-level intent** is agreed:
+
+- ADF must learn from failure at each stage
+
+---
+
+## CTO Role In Phase 1
+
+### Agreed direction
+
+The CTO's main high-level job in this part of Phase 1 is to manage the path from accepted feature to actual implementation execution.
+
+That includes:
+
+- queue awareness
+- ordering recommendation
+- later parallel execution management
+
+The CTO should help decide whether one feature should move before another, even if it entered later.
+
+### Planned maturity path
+
+Current intended maturity order:
+
+1. `FIFO`
+2. `priority review`, approved by the CEO
+3. `parallel feature implementation`, including priority review when needed
+
+This is intentionally staged so the full company chain works end-to-end before optimization gets more sophisticated.
+
+---
+
+## Queue Entry And Ownership
+
+### Important terminology correction from discussion
+
+There was a term mismatch during discussion.
+
+The user's intent is:
+
+- from the **CEO perspective**, a feature enters the company's implementation ownership as soon as requirements are accepted and frozen
+- from the **technical/internal perspective**, actual coding should still wait until the appropriate downstream technical stages are complete
+
+### Draft decision
+
+#### CEO-facing meaning
+
+After requirements acceptance / freeze:
+
+- the feature is off the CEO's head
+- the company now owns it
+- the COO tracks it
+- the CTO receives it for downstream progression
+
+From the CEO's point of view, the feature is now "under implementation" in the broad business sense.
+
+#### Internal meaning
+
+The company should still preserve a separate internal distinction between:
+
+- broad implementation ownership
+- actual build / coding readiness
+
+The exact internal state machine is not yet frozen here because the discussion shifted toward the CEO-facing executive model.
+
+### Draft high-level queue decision
+
+For now, the safest wording is:
+
+- **feature enters company ownership after requirements freeze**
+- **CTO then manages downstream movement through design, planning, setup-analysis, and later actual build execution**
+
+This should be treated as the current **draft high-level queue decision**.
+
+---
+
+## Pushback And CEO Alerts
+
+### Why this matters
+
+The user explicitly pointed out a key human reality:
+
+- once the CEO hands something off, they mentally unload it
+- if the company silently stalls or rejects it, the CEO may incorrectly assume it is moving or done
+
+Because of that, a rejected or blocked feature must not silently disappear inside the company.
+
+### Draft decision
+
+If a feature becomes blocked by missing CEO decision, rejection, or unresolved pushback:
+
+- it becomes an **urgent CEO alert by default**
+
+This applies to failure or pushback from any phase.
+
+### Ownership model
+
+Current draft direction:
+
+- the workflow writes durable state
+- the COO owns surfacing the issue to the CEO
+
+### Timing model
+
+Current draft direction:
+
+- if the issue appears during an active session, surface it immediately
+- if it appears in the background, surface it at the next CEO interaction before normal business
+
+### No silent stall rule
+
+This principle is effectively agreed:
+
+**No silent feature stall.**
+
+If a handed-off feature cannot continue, the CEO must be informed promptly and explicitly.
+
+### CEO response options
+
+Current draft decision:
+
+When alerted, the CEO can:
+
+- address the issue now
+- defer it
+
+More detailed response options can be added later if needed.
+
+### Alert persistence
+
+Current draft decision:
+
+- alerts should persist until explicitly resolved or deferred
+
+Because the CEO is notified immediately, the system should not silently drop them after one mention.
+
+### Resume after pushback
+
+Current draft direction:
+
+- resume behavior should be based on the ProjectBrain model and the referenced Claude discussion (`fe414e1e-ec03-430b-ad0c-05662a3f4fda`)
+
+This needs to be re-frozen later when the real implementation and workflow contracts are written.
+
+---
+
+## CEO-Facing Model: Not A State Machine
+
+One important correction emerged during discussion:
+
+The CEO-facing layer should **not** be modeled as a workflow state machine.
+
+The CEO does not care how the CTO runs the internal team unless there is a problem.
+
+The CEO does not want operational noise by default.
+
+The CEO mainly cares about:
+
+1. fixing problems in the company
+2. driving the company forward
+
+Everything else is background unless asked.
+
+---
+
+## Executive Briefing Model
+
+The agreed direction is that the CEO-facing layer is an **executive attention model**.
+
+Example interaction:
+
+- CEO comes in the morning and says: `Talk to me.`
+- COO gives a compact current snapshot
+- CEO decides what needs focus, what the priorities are, and how the day should look
+
+The CEO may also implicitly mean:
+
+- how my day is likely to look
+- what needs my focus
+- what is next
+
+### Draft executive briefing sections
+
+#### 1. Issues That Need Your Attention
+
+This section contains:
+
+- urgent decisions
+- blocked features
+- missing clarifications
+- any feature stall that requires CEO attention
+
+This is the highest-priority section.
+
+Important communication rule:
+
+- issue descriptions must be concrete and executive-usable
+- avoid internal shorthand or vague labels that force the CEO to decode the problem
+
+Bad example:
+
+- `The boiling eggs crisis`
+
+Good example:
+
+- `Boiling eggs is blocked. Throughput is too low. I need you to decide its priority and how many resources you want dedicated to it. Current allocation is XXXX.`
+
+#### 2. On The Table
+
+This section contains:
+
+- items currently being shaped or discussed
+- important open items
+- summary of backlog volume rather than a raw dump
+
+The CEO can ask for more detail if desired, but default behavior should be compression.
+
+#### 3. In Motion
+
+This is the current best high-level replacement for terms like "under construction."
+
+This section contains:
+
+- what the company is actively working on now
+
+It should stay business-level and concise.
+
+#### 4. What's Next
+
+The COO should also provide a very short forward frame.
+
+Current draft direction:
+
+- 1 to 2 items maximum
+- focus frame only
+- not a long roadmap
+
+The intent is to support the CEO's short attention span and let the COO help set today's direction without overwhelming the CEO.
+
+### Behavioral rule
+
+By default:
+
+- compress
+- do not enumerate everything
+- reveal detail only when asked or when a problem requires it
+- keep the forward-looking frame to 1-2 items maximum
+
+### Brief style adaptation
+
+The COO should not stay a fixed reporting robot.
+
+Current draft direction:
+
+- executive briefs and CEO responses should be saved in the memory engine
+- periodically, for example every 5 briefs, a background process should analyze the COO brief and the CEO response
+- the goal is to learn the CEO's briefing preferences and adapt over time
+
+This is considered critical to the COO role.
+
+### Future feature: brief level
+
+Current requested future capability:
+
+- `focused`
+- `balanced`
+- `detailed`
+
+This should become a user-settable briefing style later.
+
+For now, the default expected style is closest to:
+
+- `focused`
+
+---
+
+## What Is Agreed Enough To Derive Other Docs
+
+The current discussion is strong enough to support:
+
+- long-range vision wording
+- Phase 1 vision wording
+- Phase 1 master-plan wording
+- high-level COO/CTO company model
+- Phase 1 feature-flow framing
+- executive briefing framing
+
+It is **not yet enough** to safely derive all workflow contracts and governance specs in detail.
+
+Those still require later freezing against implementation reality.
+
+---
+
+## Git Delivery Policy
+
+The current high-level Git delivery policy is now frozen enough for Phase 1 direction.
+
+### Development workspace
+
+Each implementation run should get its own local development folder.
+
+Current direction:
+
+- use a stable path under `dev/`
+- example shape: `dev/<feature-key>/`
+- if later needed, this can expand to `dev/<feature-key>/<run-id>/`
+
+Current implementation recommendation:
+
+- prefer a **git worktree** over a full clone by default
+
+Reasoning:
+
+- isolated working folder per feature/run
+- lower setup and disk cost than full clone
+- still supports full audit trail and branch isolation
+
+### Audit trail rule
+
+Every edit must be committed.
+
+The purpose is:
+
+- full audit trail
+- no hidden or accidental work left outside version control
+
+### Mandatory clean handoff rule
+
+Every phase or component must hand over a **clean tree** to the next phase or component.
+
+This is not a preference.
+It is a required contract.
+
+If the tree is not clean, governance must push back for repair.
+
+The pushback should include at minimum:
+
+- acceptance failure reason
+- list of uncommitted files
+
+### Finalization role
+
+Finalization is the safeguard, not the normal cleanup owner.
+
+The expected operating model is:
+
+- each prior phase/component should already hand over a clean tree
+- finalization checks that this really happened
+
+If finalization finds a rogue component or dirty handoff, it should:
+
+1. log a warning-level finding
+2. call the fix engine / self-healing path to repair the rogue prompt, code, or governance behavior so the failure is less likely to recur
+3. log the fix result
+4. commit required non-volatile files or delete true temp files
+5. end with a clean tree
+
+### Temp vs non-volatile files
+
+By finalization:
+
+- temp files must be deleted
+- required audit, evidence, and postmortem files are **not** temp files
+- those durable files must remain as non-volatile project truth
+
+### Merge
+
+Merge does not happen at finalization.
+
+Current frozen direction:
+
+- merge happens only **after postmortem**
+- merge will be performed by a future `merger-engine`
+- `merger-engine` is expected to be created through the tool-builder path
+- after successful merge, the local development branch is deleted
+
+---
+
+## Effort Settings
+
+The current high-level direction is to use a settings JSON to control effort.
+
+Current precedence model:
+
+1. project default
+2. feature override
+3. run or test override
+
+Reasoning:
+
+- the company needs a stable default operating mode
+- a specific feature may require stronger or lighter governance
+- a one-off run or test may need a temporary override without changing the feature or project default
+
+This is the current direction for future effort modes such as:
+
+- production
+- ad-hoc
+- or later briefing/governance intensity variations
+
+---
+
+## Still Open Or Only Partially Frozen
+
+These points remain open or draft-only:
+
+- exact per-phase workflow contracts
+- exact review depth and board shape per phase
+- exact rule-promotion authority path
+- exact internal operational state model beneath the CEO-facing brief
+- exact resume semantics after pushback across all phases
+- exact CEO approval boundaries between phases
+
+---
+
+## Practical Working Summary
+
+If a contextless agent needs the current practical understanding in one block, use this:
+
+- Phase 1 is an implementation-focused startup.
+- Features are the first supported company function.
+- The COO owns requirements gathering before the feature function starts.
+- The feature function starts from the finalized requirement-list handoff.
+- The first feature-function phase is requirement-list review, which either freezes the requirement list or pushes back to the COO.
+- The feature path is governed phase-by-phase, with review between meaningful stages.
+- The COO starts from vague user intent and must extract goal, high-level requirements, expected results, and UI direction when relevant.
+- If UI is involved, mockups are part of alignment before later phases harden.
+- Requirements acceptance is a real company handoff point.
+- After requirements freeze, the feature is off the CEO's head and owned by the company.
+- The CTO then manages downstream progression and later actual implementation readiness.
+- Any rejected or blocked feature is an urgent CEO alert by default.
+- No silent feature stall is allowed.
+- The CEO-facing interface is not a state dump; it is an executive brief.
+- The executive brief should center on:
+- Issues That Need Your Attention
+- On The Table
+- In Motion
+- What's Next
+- Issue descriptions must be concrete and tell the CEO what failed and what decision or attention is needed.
+- The forward-looking frame should be capped at 1-2 items.
+- Briefs should eventually be learned and personalized from memory-engine analysis of repeated COO-CEO briefing interactions.
+- A feature is truly complete for the CEO only after postmortem.
+- That completion closeout should include result, run summary, and improvements.
+- The COO defines the initial `v1` KPI set, the CTO may add delivery KPIs, and the CEO may reshape the KPI view by preference.
+- Each implementation run should use its own local development folder under `dev/`.
+- Every edit must be committed for full audit trail.
+- Every phase/component must hand over a clean tree to the next one.
+- If a handoff is dirty, governance must push back with the failure reason and the list of uncommitted files.
+- Finalization is the safeguard that catches rogue components, logs warning-level findings, invokes self-healing/fix behavior, and ends with a clean tree.
+- Merge happens only after postmortem through a future `merger-engine`.
+- After successful merge, the local development branch is deleted.
+- Effort settings should use JSON-based precedence: project default, then feature override, then run/test override.
+
+---
+
+## Draft Authority Note
+
+This document records current discussion truth only.
+
+It should be treated as:
+
+- detailed enough for context recovery
+- not yet a final governed authority document
+- expected to be revised when the actual implementation contracts are designed
+
+---
+
+## Research Source Pack
+
+For the current saved Phase 1 source set and the future question-asking protocol, see:
+
+- [phase1-definition-source-pack.md](C:/ADF/docs/v0/context/phase1-definition-source-pack.md)

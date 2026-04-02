@@ -1,0 +1,26 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "This finding is the same pattern ARB-016 already covers: one authoritative artifact matrix with exact write lifecycle per step and terminal state, declared once and used consistently across <context-gathering>, <steps>, <outputs>, and <completion>. The self-check credibility concern is a downstream symptom of that same missing authoritative matrix, with ARB-005 as supporting coverage rather than a separate new rule."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "ARB-011 already states that unresolved findings carried across rounds must be addressed by ID rather than silently grouped or rephrased. The review's stricter guidance about using finding_id as the canonical carry-forward key is an implementation and contract alignment detail already reflected in the shared review contract's identity_preference=finding_id, so this should be handled as an update/alignment of existing rule and contract usage, not a new rule."
+    },
+    {
+      "finding_group_id": "group-3",
+      "covered_by_rule_id": "ARB-006",
+      "explanation": "This is a direct instance of ARB-006: exclusion lists must be deduplicated and aligned to one canonical source to avoid contradictory or drifting restatements across sections. The review feedback does not introduce a new principle beyond that existing deduplication rule."
+    },
+    {
+      "finding_group_id": "group-4",
+      "covered_by_rule_id": "ARB-002",
+      "explanation": "This is already covered by ARB-002 because the problem is two competing canonical definitions for the same artifact-write timing. The suggested fix is exactly what ARB-002 requires: define one authoritative write point and reference it consistently everywhere else."
+    }
+  ],
+  "no_rule_needed": []
+}

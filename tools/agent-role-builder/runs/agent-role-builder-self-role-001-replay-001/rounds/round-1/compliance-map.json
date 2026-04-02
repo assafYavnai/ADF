@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "delta",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/agent-role-builder-role.md",
+  "round": 1,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Operative authority is a numbered precedence chain, while runtime-scoped inputs and reference evidence are separated into distinct non-authority headings."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 3, <steps> Step 5, <completion>",
+      "evidence_summary": "The draft defines `material pushback`, `reviewer-clear`, and `round leader` once in <guardrails> and reuses those terms consistently in self-check, terminal resolution, and completion logic."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <steps> Step 5, <completion>",
+      "evidence_summary": "Canonical promoted artifacts and run-scoped evidence artifacts are separated into explicit groups with full paths and terminal-state lifecycle behavior."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<completion>, <steps> Step 5",
+      "evidence_summary": "All terminal states are defined as ordered, mutually exclusive predicates tied to run evidence such as errors, budget exhaustion, reviewer-clear status, material pushback, and arbitration/deferred-minor conditions."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "The self-check claims only checks it explicitly enumerates, including semantic scope matching, artifact-matrix validation, and semantic reviewer-status legality rather than literal-only matching."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>, <steps> Step 2",
+      "evidence_summary": "The not-in-scope list is deduplicated, and Step 2 requires the paired role contract to carry the same exclusions and canonical paths."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4, <completion>",
+      "evidence_summary": "Arbitration has a defined actor (`round leader`), trigger condition (only minor/suggestion disagreements after reviewer-clear), evidence requirements in `result.json`, and a fixed terminal effect (`frozen_with_conditions`)."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Every declared artifact uses a full tool-relative path; no basename-only or slug-template references remain in the output matrix."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion is specified separately for `frozen`, `frozen_with_conditions`, `pushback`, `resume_required`, and `blocked`, with distinct required artifacts and evidence expectations."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Context gathering is explicitly labeled as preconditions before Step 1, and numbered execution begins with Step 1."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4, <outputs>",
+      "evidence_summary": "Carried-forward findings must be referenced by finding or conceptual-group ID, and the fix-items map lifecycle explicitly requires ID-based carry-forward handling."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 5, <outputs>",
+      "evidence_summary": "Decision history preservation is mechanical: the decision log is append-only, and the board summary is replaced only on canonical promotion while prior run evidence remains in the run directory."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<steps>",
+      "evidence_summary": "Each numbered step is explicitly labeled as the current governed workflow requirement, so the artifact does not blur current behavior with target-state intent."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <outputs>",
+      "evidence_summary": "Per-round artifacts that must always exist, including `learning.json` and `diff-summary.json`, are declared as every-round outputs and are not gated behind revision-only conditions."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <completion>",
+      "evidence_summary": "The draft provides one authoritative artifact matrix covering canonical and run-scoped artifacts with artifact class, full path, and exact lifecycle behavior across terminal states."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>",
+      "evidence_summary": "Local authority order is derived from the controller, shared/component review contracts, and rulebook, while review mechanics are framed as inherited shared policy with only component-local consequences restated."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "The role identity states a standing mission for governed role-package creation, update, and repair without embedding transient run-state or recovery context."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>, <outputs>",
+      "evidence_summary": "The governed write boundary is explicit and rooted in the active review contract surface, naming each canonical writable path and the run-directory root precisely."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Only operative governance sources appear in the authority chain; runtime-scoped settings and reference documents are classified separately rather than promoted into durable authority."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, <steps>",
+      "evidence_summary": "The draft includes only governance mechanics explicitly inherited from the active contracts and source authority documents, and it avoids inventing unsourced local review policy."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "In-scope statements appear only under `Use when` and `Owns`, while `Not in scope` contains exclusions only."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <outputs>",
+      "evidence_summary": "The review round is defined as an ordered sub-sequence with explicit writes for compliance mapping, fix-items mapping, review verdicts, learning output, diff summary, and run post-mortem."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>, <context-gathering>, <inputs>",
+      "evidence_summary": "The role explicitly declares the component-local governance files it depends on and the inherited runtime obligations it must enforce before and during execution."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>, <context-gathering>",
+      "evidence_summary": "Required inputs cover the validated request, source refs, governing contracts, governance files, reviewer roster, round mode, job/run paths, and runtime settings needed to reach a terminal decision."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-31T08:07:19.809Z"
+}

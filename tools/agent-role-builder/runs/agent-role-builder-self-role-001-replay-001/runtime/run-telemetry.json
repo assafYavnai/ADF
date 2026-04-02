@@ -1,0 +1,297 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-001-replay-001",
+  "role_slug": "agent-role-builder",
+  "execution_mode": "live-roster-v1",
+  "commit_sha": "d8267576ccd0ffa0ace46e8b409a6086d8e5db01",
+  "started_at": "2026-03-31T07:01:37.919Z",
+  "last_updated_at": "2026-03-31T08:23:30.182Z",
+  "current_phase": "terminal",
+  "terminal_status": "frozen",
+  "stop_reason": "All reviewers approved and no remaining repair work was found after learning and rule checks.",
+  "duration_ms": 4912263,
+  "rounds_attempted": 4,
+  "rounds_completed": 4,
+  "reviewer_success_count": 6,
+  "reviewer_error_count": 0,
+  "llm_call_count": 15,
+  "llm_failure_count": 0,
+  "total_llm_latency_ms": 4912034,
+  "total_tokens_in_estimated": 31401,
+  "total_tokens_out_estimated": 27247,
+  "total_estimated_cost_usd": 0.553116,
+  "provider_failures": [],
+  "session_status_counts": {
+    "none": 5,
+    "fresh": 3,
+    "resumed": 7,
+    "replaced": 0
+  },
+  "session_latency_ms": {
+    "none": 3744641,
+    "fresh": 579012,
+    "resumed": 588381,
+    "replaced": 0
+  },
+  "engine_metrics": [
+    {
+      "engine": "board-review",
+      "llm_call_count": 10,
+      "llm_failure_count": 0,
+      "tool_event_count": 10,
+      "tool_failure_count": 0,
+      "total_latency_ms": 1167424,
+      "llm_latency_ms": 1167393,
+      "tool_latency_ms": 1167424,
+      "tokens_in_estimated": 23774,
+      "tokens_out_estimated": 7530,
+      "estimated_cost_usd": 0.219226,
+      "session_status_counts": {
+        "none": 0,
+        "fresh": 3,
+        "resumed": 7,
+        "replaced": 0
+      },
+      "review_finding_count": 0,
+      "new_rule_count": 0,
+      "rules_checked": 0,
+      "non_compliant_rule_count": 0,
+      "fix_item_count": 0,
+      "changed_artifact_count": 0
+    },
+    {
+      "engine": "rules-compliance-enforcer",
+      "llm_call_count": 3,
+      "llm_failure_count": 0,
+      "tool_event_count": 3,
+      "tool_failure_count": 0,
+      "total_latency_ms": 3566681,
+      "llm_latency_ms": 3566634,
+      "tool_latency_ms": 3566681,
+      "tokens_in_estimated": 865,
+      "tokens_out_estimated": 19245,
+      "estimated_cost_usd": 0.293,
+      "session_status_counts": {
+        "none": 3,
+        "fresh": 0,
+        "resumed": 0,
+        "replaced": 0
+      },
+      "review_finding_count": 0,
+      "new_rule_count": 0,
+      "rules_checked": 72,
+      "non_compliant_rule_count": 0,
+      "fix_item_count": 5,
+      "changed_artifact_count": 3
+    },
+    {
+      "engine": "self-learning-engine",
+      "llm_call_count": 2,
+      "llm_failure_count": 0,
+      "tool_event_count": 4,
+      "tool_failure_count": 0,
+      "total_latency_ms": 178014,
+      "llm_latency_ms": 178007,
+      "tool_latency_ms": 178014,
+      "tokens_in_estimated": 6762,
+      "tokens_out_estimated": 472,
+      "estimated_cost_usd": 0.04089,
+      "session_status_counts": {
+        "none": 2,
+        "fresh": 0,
+        "resumed": 0,
+        "replaced": 0
+      },
+      "review_finding_count": 4,
+      "new_rule_count": 0,
+      "rules_checked": 0,
+      "non_compliant_rule_count": 0,
+      "fix_item_count": 0,
+      "changed_artifact_count": 0
+    }
+  ],
+  "rule_metrics": {
+    "checked_total": 72,
+    "non_compliant_total": 0,
+    "new_rule_proposal_total": 0,
+    "rule_usage": [
+      {
+        "rule_id": "ARB-001",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-002",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 1,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-003",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-004",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-005",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-006",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 1,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-007",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-008",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-009",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-010",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-011",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 1,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-013",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-014",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-015",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-016",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-017",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 1,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-018",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-019",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-020",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-021",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-022",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-023",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-024",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      },
+      {
+        "rule_id": "ARB-025",
+        "checked_count": 3,
+        "non_compliant_count": 0,
+        "learning_cover_count": 0,
+        "proposal_count": 0
+      }
+    ]
+  },
+  "major_bottleneck_engine": "rules-compliance-enforcer",
+  "fallback_used": false,
+  "learning_artifact_written": true,
+  "latest_learning_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/learning.json",
+  "governance_snapshot_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json",
+  "run_postmortem_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/run-postmortem.json",
+  "cycle_postmortem_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/cycle-postmortem.json",
+  "result_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/result.json"
+}

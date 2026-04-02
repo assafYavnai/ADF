@@ -1,0 +1,249 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Pushback remains because both reviewers are still at `reject` and the material issues are substantiated by the artifact itself. The terminal-state model is still not mechanically sound: `<completion>` lets `frozen` remain true even when arbitration was used, so it overlaps with `frozen_with_conditions`, and Step 5 under-specifies closeout artifacts for `frozen_with_conditions` and `blocked` compared with `<outputs>`/`<completion>`. The cross-round negotiation model is also still too coarse: carried-forward handling is keyed only by `conceptual_group ID`, while the source authority requires per-reviewer-finding accept/reject tracking in the fix-items map and reviewer response flow. With active major defects and live reject verdicts, freeze is not allowed.",
+  "unresolved": [
+    "group-1: The draft still has internal sequencing and terminal-artifact contradictions, so its claimed semantic consistency and self-check coverage are not credible.",
+    "group-2: Cross-round finding tracking is too coarse to satisfy the per-finding negotiation model required by the review architecture."
+  ],
+  "deferredItems": [
+    "group-3: The exclusion boundary is duplicated across sections, creating avoidable drift risk.",
+    "group-2: Artifact lifecycle for the blocked terminal state is internally inconsistent between <outputs> and <completion>",
+    "group-3: Reviewer roster verification is absent from context-gathering preconditions despite the guardrail mandating a hard gate before Step 1",
+    "group-4: normalized-request.json and source-manifest.json have conflicting write points across context-gathering and Step 1"
+  ],
+  "improvementsApplied": [
+    "Authority is now expressed as a strict operative precedence chain, with source authority docs correctly demoted to reference evidence rather than operative control.",
+    "Canonical package artifacts and run-scoped working/evidence artifacts are separated with explicit tool-relative paths and write lifecycles.",
+    "Arbitration is constrained to post-approval `minor`/`suggestion` disagreements and is tied to `frozen_with_conditions` rather than a clean freeze.",
+    "Context gathering is framed as preconditions before Step 1, and step headings are labeled as current governed vs inherited behavior."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "The draft still has internal sequencing and terminal-artifact contradictions, so its claimed semantic consistency and self-check coverage are not credible.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "Precondition evidence timing is contradictory: the draft says `normalized-request.json` and `source-manifest.json` must be materialized before Step 1, but Step 1 is also defined as the step that writes them.",
+              "source_section": "Artifact: <context-gathering>, Step 1, <outputs>"
+            },
+            {
+              "id": "f2",
+              "description": "The `blocked` terminal path is not mechanically consistent. The outputs matrix says the run closeout log and board summary are created on every terminal state, but the blocked terminal definition and completion criteria omit them.",
+              "source_section": "Artifact: Step 5, <outputs>, <completion>"
+            },
+            {
+              "id": "f3",
+              "description": "Because those contradictions remain, the self-check claim is overstated. The self-check says it verifies internal consistency of terminal-state predicates and artifact lifecycle claims, but the document still contains unresolved conflicts in those exact areas.",
+              "source_section": "Artifact: Step 3, Step 5, <outputs>, <completion>; Authority: Review Process (Per Round)"
+            }
+          ],
+          "redesign_guidance": "Pick one authoritative timing model for precondition artifacts and one authoritative artifact set for each terminal state, then align <context-gathering>, Step 1, Step 5, <outputs>, and <completion> to that single model. After that, narrow the self-check so it tests the same semantics the document actually declares."
+        },
+        {
+          "id": "group-2",
+          "summary": "Cross-round finding tracking is too coarse to satisfy the per-finding negotiation model required by the review architecture.",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "The draft requires carry-forward by `conceptual_group` ID only, but the authority model defines fix handling and reviewer responses per reviewer finding. Group-only tracking loses auditability when one conceptual group contains multiple findings with different dispositions.",
+              "source_section": "Artifact: <guardrails>, Step 4; Authority: Review Process (Per Round) / Step 3 and Step 4"
+            }
+          ],
+          "redesign_guidance": "Make finding IDs the canonical carry-forward key in `fix-items-map.json`, with conceptual-group IDs retained only as grouping context. The next-round fix map and reviewer fix decisions should be able to address each finding independently."
+        },
+        {
+          "id": "group-3",
+          "summary": "The exclusion boundary is duplicated across sections, creating avoidable drift risk.",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "The same exclusion concepts are repeated in both `<authority>` (`Does not own`) and `<scope>` (`Not in scope`). The lists are currently aligned, but duplication weakens the single-canonical-definition goal.",
+              "source_section": "Artifact: <authority>, <scope>"
+            }
+          ],
+          "redesign_guidance": "Keep one canonical exclusion list and let the other section reference it or restate only what is unique to that section's purpose."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "If the duplicated exclusion lists remain, later edits can reintroduce scope drift even after the major issues are fixed."
+      ],
+      "strengths": [
+        "The operative authority chain is explicit and correctly separates operative layers from reference evidence.",
+        "Canonical and run-scoped artifacts are clearly separated with concrete paths and promotion behavior.",
+        "Arbitration is constrained to post-approval minor or suggestion disagreements and correctly maps to `frozen_with_conditions` rather than a clean freeze.",
+        "Reviewer-roster validity is treated as a gate before governed execution proceeds."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "frozen completion predicate is missing the arbitration-absence condition, creating terminal state ambiguity between frozen and frozen_with_conditions",
+          "severity": "major",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The <completion> criteria for frozen does not include 'no minor-item arbitration was invoked' as a testable predicate. frozen_with_conditions inherits the frozen artifact set as a subset ('the frozen artifact set exists'), so any run satisfying frozen_with_conditions also satisfies the frozen artifact requirements. An executor reading <completion> alone cannot distinguish the two states without inspecting result.json content for arbitration records — but frozen's completion block does not instruct that check. The differentiating predicate 'no minor-item arbitration was used' appears in <steps> Step 5 for frozen but is absent from <completion>, leaving the two sections inconsistent and making frozen completion non-self-sufficient as a testable gate.",
+              "source_section": "<completion> frozen block; <steps> Step 5 frozen definition"
+            }
+          ],
+          "redesign_guidance": "Add an explicit testable predicate to the <completion> frozen block: 'AND result.json does not record any minor-item arbitration.' This brings <completion> into alignment with the Step 5 predicate and makes the frozen vs frozen_with_conditions distinction evaluable from either section independently. The full frozen predicate set should mirror Step 5: all required reviewer verdicts approved or true conditional, no material pushback remains, AND no arbitration was invoked."
+        },
+        {
+          "id": "group-2",
+          "summary": "Artifact lifecycle for the blocked terminal state is internally inconsistent between <outputs> and <completion>",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f2",
+              "description": "The <outputs> table declares run closeout log (agent-role-builder-decision-log.md) and run closeout summary (agent-role-builder-board-summary.md) with lifecycle 'Create on every terminal state.' blocked is a terminal state, so the table mandates writing these files. However, the <completion> block for blocked does not list them as required artifacts. An executor using <completion> as the authoritative completion checklist would not write these artifacts for blocked; an executor following <outputs> lifecycle would. The two sections give contradictory instructions for the same state.",
+              "source_section": "<outputs> run closeout log and run closeout summary rows; <completion> blocked block"
+            },
+            {
+              "id": "f3",
+              "description": "The <completion> block for blocked requires self-check.json to exist. However, blocked can fire in Step 1 on a precondition failure — missing roster, missing governance files, or invalid request structure — which is before Step 3 where self-check.json is written. A Step-1 blocked run cannot satisfy the <completion> predicate 'self-check.json exists.' The completion criterion is not testable against the full range of blocked scenarios the guardrails define.",
+              "source_section": "<completion> blocked block; <steps> Step 1 and Step 3; <guardrails> 'missing or invalid roster input is blocked' and 'missing required component governance files is blocked'"
+            }
+          ],
+          "redesign_guidance": "For f2: add run closeout markdown files to the <completion> blocked required artifact list, or update the <outputs> lifecycle column to 'Create on every terminal state where execution reached Step 2 or later; absent on early precondition-failure blocked.' For f3: qualify the <completion> blocked predicate for self-check.json with 'if the run reached Step 3 or later' so the criterion remains testable for early-blocked runs. Align both sections so an executor can use either as an authoritative reference."
+        },
+        {
+          "id": "group-3",
+          "summary": "Reviewer roster verification is absent from context-gathering preconditions despite the guardrail mandating a hard gate before Step 1",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f4",
+              "description": "<guardrails> states 'The active reviewer roster must satisfy the inherited shared review contract before Step 1; missing or invalid roster input is blocked.' The <context-gathering> section is explicitly labeled 'Preconditions before Step 1' and enumerates six items — none of which loads or verifies the reviewer roster. The roster appears in <inputs> Required but its verification is deferred to Step 1 ('Fail closed if required governance files, source refs, or reviewer roster inputs are missing or invalid'). This contradicts the guardrail's 'before Step 1' language and breaks the hard-gate timing ARB-012 requires.",
+              "source_section": "<guardrails> roster validity clause; <context-gathering>; <steps> Step 1 validation item; <inputs> Required"
+            }
+          ],
+          "redesign_guidance": "Add an explicit precondition item to <context-gathering>: 'Load and verify the active reviewer roster satisfies the inherited shared review contract. If the roster is absent or invalid, exit blocked before Step 1 begins.' Remove or qualify the roster check in Step 1 to note that it re-confirms rather than performs the first check. This aligns the guardrail's stated timing with the actual execution sequence and makes the gate unambiguous."
+        },
+        {
+          "id": "group-4",
+          "summary": "normalized-request.json and source-manifest.json have conflicting write points across context-gathering and Step 1",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "f5",
+              "description": "<context-gathering> item 6 says 'Materialize normalized-request.json and source-manifest.json before Step 1 begins.' <steps> Step 1 also lists both as outputs and says 'Write normalized-request.json' and 'Write source-manifest.json.' The verb 'Materialize' in context-gathering is ambiguous — it could mean create the files (write) or prepare the inputs needed to create them. If it means write, then Step 1 duplicates the write. The <outputs> table says these are created 'before Step 1 on every run,' which aligns with context-gathering but contradicts the Step 1 outputs list.",
+              "source_section": "<context-gathering> item 6; <steps> Step 1 outputs; <outputs> precondition evidence rows"
+            }
+          ],
+          "redesign_guidance": "Resolve to one canonical write point. Option A: change context-gathering item 6 to 'Confirm that all inputs required to generate normalized-request.json and source-manifest.json are present; the files are written in Step 1.' Remove the <outputs> row description saying 'before Step 1' and change to 'written in Step 1.' Option B: keep context-gathering item 6 as the authoritative write point, update <outputs> lifecycle to 'written during preconditions,' and remove both files from the Step 1 output list. Either option eliminates the ambiguous dual-write signal."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "The result.json schema is not defined or referenced in this artifact. The arbitration-absence check required to fix group-1 depends on a schema inherited from the active review contract. If that schema changes upstream without a local reference, the frozen completion predicate could silently break.",
+        "Tier 3 (jobs post-mortem) is defined in both source authority files as a required component-level post-mortem triggered every N cycles. This role does not mention it in steps or completion criteria, relying entirely on inheritance. If the invoking system omits the wiring, there is no local guard in this role to surface the gap.",
+        "The regression_sanity reviewer re-run is described in Step 4 item 7 but is not represented as a distinct artifact class in the artifact matrix. It is unclear whether regression_sanity writes to a new round-<n> directory or modifies an existing round directory, which could affect audit trail completeness under the permanent audit trail rule in source authorities."
+      ],
+      "strengths": [
+        "Authority model is clean: strict 3-layer operative precedence chain with COO controller at apex, active runtime contract in the middle, and validated request at base. Reference evidence is explicitly classified as non-operative, preventing elevation to authority status.",
+        "Material pushback is defined exactly once in <guardrails> with precise severity thresholds (blocking or major) and is applied verbatim across freeze logic, terminal-state predicates, and completion criteria — no semantic drift across sections.",
+        "The artifact matrix in <outputs> is comprehensive: every artifact has class, full canonical path, and write lifecycle explicitly stated per terminal state for both canonical and run-scoped artifacts, satisfying ARB-003 and ARB-008.",
+        "Arbitration mechanics are fully specified with mechanical trigger (after all reviewer approvals or true conditionals), actor (leader), evidence location (result.json at the run-scoped path), severity restriction (minor or suggestion only), override prohibition (never resolves material pushback, never overrides reject), and outcome distinction (frozen_with_conditions, not frozen).",
+        "Context-gathering is correctly separated as labeled preconditions before Step 1, with all six items addressing loading and verification tasks rather than production work. Numbered execution steps begin at Step 1.",
+        "Cross-round finding tracking by conceptual_group ID is explicit in both <guardrails> and Step 4 sub-step 3, satisfying ARB-011.",
+        "All five terminal states have distinct predicates and artifact consequences defined in both Step 5 and <completion>. The happy-path states are non-overlapping for the predicate set that matters (material pushback absence, arbitration presence, budget state).",
+        "All step headings carry explicit current governed behavior or current inherited behavior labels, satisfying ARB-014 throughout."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-019",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 547936,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 172668,
+        "fallback_used": false,
+        "invocation_id": "17c992b6-1c89-4692-bd81-a8ff923ba5e7"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 287007,
+        "fallback_used": false,
+        "invocation_id": "5ebd168a-a70a-4387-adb5-35acdd86f7b1"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 88261,
+        "fallback_used": false,
+        "invocation_id": "012f1304-b4fd-4b2b-b4f1-82f66ca840c6"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 172668,
+      "invocation_id": "17c992b6-1c89-4692-bd81-a8ff923ba5e7",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 287007,
+      "invocation_id": "5ebd168a-a70a-4387-adb5-35acdd86f7b1",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 88261,
+      "invocation_id": "012f1304-b4fd-4b2b-b4f1-82f66ca840c6",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "822e7b5c-09b9-4f3d-a6ea-d0c317444879",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/governance-snapshot.json"
+  }
+}

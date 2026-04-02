@@ -1,8 +1,13 @@
 # Requirements Gathering Onion Model
 
 Status: draft high-level model
-Last updated: 2026-03-29
+Last updated: 2026-04-01
 Purpose: define the human-facing CEO <-> COO discussion model for Phase 1 requirements gathering before the COO moves into technical requirement writing.
+
+Update: 2026-04-01
+
+The COO runtime now supports this onion lane live behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`.
+The business model below remains the source truth; the live runtime persists thread-owned onion state, requires explicit freeze approval, and derives the finalized requirement artifact only from the approved human snapshot.
 
 ---
 

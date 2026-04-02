@@ -1,0 +1,184 @@
+{
+  "round": 0,
+  "reviewMode": "full",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Repair work is still required. The draft's terminal-state logic freezes on \"no material pushback\" alone, but the governing review architecture requires freeze only after all active reviewers are approved or true conditional. As written, a non-material active reject could still bypass the freeze gate. Reviewer-0 remains reject on that blocking issue, and reviewer-1 also remains reject on a minor actor-labeling ambiguity, so neither frozen state is available.",
+  "unresolved": [
+    "group-1: Freeze and terminal-state logic can bypass an active reviewer reject because the draft keys terminal outcomes only off \"material pushback\"."
+  ],
+  "deferredItems": [
+    "group-1: Role Not-in-scope item 5 has no counterpart in the role contract out_of_scope list, violating the role's own concept-for-concept alignment guardrail; the self-check incorrectly certifies ARB-006 compliance as a consequence."
+  ],
+  "improvementsApplied": [
+    "Authority is expressed as a strict operative precedence chain, separated from runtime-scoped inputs and reference evidence.",
+    "Material pushback is defined once and reused across guardrails and completion logic.",
+    "Canonical role content, canonical governance history, and run-scoped evidence are separated with explicit full paths and lifecycle rules.",
+    "Context gathering is framed as preconditions before Step 1 rather than a numbered workflow step.",
+    "Cross-round carry-forward by finding or conceptual-group ID and append-only decision-history preservation are specified mechanically."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Freeze and terminal-state logic can bypass an active reviewer reject because the draft keys terminal outcomes only off \"material pushback\".",
+          "severity": "blocking",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "The `<guardrails>` definition of \"material pushback\" excludes an active `reject` verdict unless that reject depends on a `blocking` or `major` finding. In the source authority, freeze is allowed only after all reviewers are `approved` or `conditional`, and minor-item arbitration is allowed only after that point, so this definition is too weak as the sole freeze gate.",
+              "source_section": "<guardrails>"
+            },
+            {
+              "id": "f2",
+              "description": "The `<completion>` predicates for `frozen`, `frozen_with_conditions`, `pushback`, and `resume_required` are driven by whether material pushback remains, not by whether any reviewer is still `reject`. That leaves a real state from the source architecture unresolved: a reviewer can still reject over a minor item, yet the draft can treat the run as freezable because no material pushback remains.",
+              "source_section": "<completion>"
+            },
+            {
+              "id": "f3",
+              "description": "Step 3's self-check claims credibility for terminal-state validation by checking mutual exclusivity against the single material-pushback definition, but that check misses the reject-without-blocking/major case and therefore over-claims compliance.",
+              "source_section": "<steps> Step 3"
+            }
+          ],
+          "redesign_guidance": "Keep the blocking/major concept separate if needed, but add an explicit reviewer-status gate: `frozen` and `frozen_with_conditions` must require all active reviewers to be `approved` or `conditional` after any required `regression_sanity` pass. Then update `pushback` and `resume_required` so unresolved minor-only rejects still land in a non-frozen terminal state, and update the self-check to validate reviewer-status legality semantically rather than only reusing the material-pushback definition."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "Canonical package-path synchronization still depends on the basename-only package file summary staying aligned with the full promoted paths used in the draft.",
+        "Budget-exhaustion handling is referenced from inherited architecture more than locally spelled out, so future edits could drift unless the terminal-state gate is tightened."
+      ],
+      "strengths": [
+        "Authority is presented as an ordered operative chain and cleanly separated from runtime-scoped inputs and reference evidence.",
+        "Canonical artifacts, canonical history, and run-scoped evidence are separated clearly with explicit lifecycle statements.",
+        "Context gathering is correctly positioned as a precondition rather than a numbered workflow step.",
+        "Carry-forward handling by finding or conceptual-group ID is explicit and mechanically stated.",
+        "Decision-history preservation for `update` and `fix` is defined as append-only with prior history retained."
+      ]
+    },
+    "reviewer-1-claude-r0": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Role Not-in-scope item 5 has no counterpart in the role contract out_of_scope list, violating the role's own concept-for-concept alignment guardrail; the self-check incorrectly certifies ARB-006 compliance as a consequence.",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "Role Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') is not present in the role contract's out_of_scope list. The role's <guardrails> section explicitly requires the Not-in-scope list to be 'aligned concept-for-concept with the role contract.' Adding a concept with no contract counterpart breaks that alignment. The constraint itself is already operationally enforced in <authority> (operative chain definition) and in <guardrails> ('Never let reference documents outrank the live COO/controller plus active review contracts'; 'Never write outside the governed surface') — placing it in Not-in-scope misclassifies a behavioral guardrail as a scope exclusion. Additionally, contract out_of_scope items 4 and 5 ('Workflow creation' and 'Runtime orchestration') are merged into a single role item; while the merged item covers both concepts semantically, the resulting count asymmetry (5 contract items → 4 covered by role items 1–4 plus 1 orphan role item 5) makes the misalignment harder to audit against the contract.",
+              "source_section": "<scope> Not in scope item 5; <guardrails> ARB-006 alignment requirement"
+            },
+            {
+              "id": "f2",
+              "description": "The pre-submitted self-check compliance map records ARB-006 as compliant with the rationale 'Scope exclusions are deduplicated, polarity-pure, and required to align concept-for-concept with the role contract.' This claim is false given finding f1: item 5 lacks a contract counterpart and the merger of contract items 4+5 is not called out. The self-check procedure (Step 3) requires recording keywords checked per exclusion and whether they matched; it does not surface the orphan item, making the ARB-005 credibility requirement unmet for this specific check.",
+              "source_section": "Self-check compliance map ARB-006 and ARB-005 entries; <steps> Step 3"
+            }
+          ],
+          "redesign_guidance": "Remove Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') from the <scope> section — the constraint is fully covered by <authority> and <guardrails> and does not belong in scope exclusions. If this concept is intended as a formal scope boundary, add the corresponding entry to the role contract's out_of_scope list first, then reflect it in the Not-in-scope list to restore concept-for-concept alignment. After the fix, update the self-check's ARB-006 and ARB-005 compliance entries to accurately reflect the corrected state, including the keyword record for the merger of contract items 4 and 5 into role item 4."
+        }
+      ],
+      "fix_decisions": [],
+      "residual_risks": [
+        "Step 4 substep 5 names 'the self-learning engine' as the actor that confirms or updates the component rulebook, while Step 4 substep 9 describes a rule re-walk that architecturally belongs to the rules-compliance-enforcer (shared/rules-compliance-enforcer/). The role does not name the rules-compliance-enforcer anywhere. An implementor reading only the role may conflate the two shared engines or assign both functions to the self-learning engine. This is bounded by the inherited component governance files and shared review contracts, but the gap could cause silent mis-assignment during implementation."
+      ],
+      "strengths": [
+        "Authority model: strict ordered precedence chain with clean classification of operative authority (numbered 1–4), runtime-scoped inputs, and reference evidence — no flat lists, fully compliant with ARB-001.",
+        "Material pushback: single canonical definition in <guardrails> reused verbatim in terminal predicates — zero semantic drift across sections, fully compliant with ARB-002.",
+        "Artifact lifecycle: three-class separation (canonical role content / canonical governance history / run-scoped evidence) with full tool-relative paths and explicit per-terminal-state lifecycle rules for all five terminal states — clean ARB-003 and ARB-008 compliance.",
+        "Terminal predicates: ordered evaluation sequence makes mutual exclusivity mechanical and testable; required artifact lists are complete for all five terminal states — strong ARB-004 and ARB-009 compliance.",
+        "Context-gathering: explicitly scoped as a named precondition section with a 'Preconditions before Step 1' label and not mixed into the numbered execution steps — correct ARB-010 compliance.",
+        "Arbitration mechanics: mechanical trigger (all active reviewers at approved/conditional, minor/suggestion severity only), named actor (leader), evidence path (result.json fields: arbitration_used, affected finding IDs, rationale), and outcome effect (frozen_with_conditions, not clean frozen) are all explicitly specified — complete ARB-007 compliance.",
+        "Self-check procedure: Step 3 mandates semantic concept matching with keyword recording per exclusion, distinguishing semantic from literal coverage — correct ARB-005 procedural design (the gap is in the pre-submitted self-check output, not the procedure definition).",
+        "Step labels: all numbered steps carry the '(current governed workflow requirement)' label, clearly marking target-state requirements per ARB-014.",
+        "Reviewer pair composition: hard gate enforced in three independent places (context-gathering precondition 6, required inputs list, guardrails), ensuring the Codex+Claude pair requirement is a checked precondition before Step 1 — strong ARB-012 compliance.",
+        "Decision history preservation: append-only mechanism for the decision log is specified in guardrails, outputs lifecycle, and Step 5 — no mechanism for silent deletion, strong ARB-013 compliance.",
+        "Cross-round carry-forward: finding/conceptual-group ID requirement appears in both guardrails and Step 4 substep 3, covering both the obligation and the implementation — correct ARB-011 compliance."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-001-replay-001",
+    "round": 0,
+    "review_mode": "full",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 579022,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/compliance-map.json",
+      "fix_items_map": null,
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 189599,
+        "fallback_used": false,
+        "invocation_id": "bf60df9a-05e8-4eed-a923-d0cb838e59cf"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r0",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 265224,
+        "fallback_used": false,
+        "invocation_id": "8ad614be-c856-448f-936a-fddf6a790a17"
+      },
+      {
+        "participant_id": "leader-codex-r0",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 124199,
+        "fallback_used": false,
+        "invocation_id": "a2bb1770-4fa8-4c9c-9f1e-904e95a84805"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 189599,
+      "invocation_id": "bf60df9a-05e8-4eed-a923-d0cb838e59cf",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r0",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 0,
+      "latency_ms": 265224,
+      "invocation_id": "8ad614be-c856-448f-936a-fddf6a790a17",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r0",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 0,
+      "latency_ms": 124199,
+      "invocation_id": "a2bb1770-4fa8-4c9c-9f1e-904e95a84805",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "d4a8a31e-da56-44c3-9134-d0359c98f415",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json"
+  }
+}

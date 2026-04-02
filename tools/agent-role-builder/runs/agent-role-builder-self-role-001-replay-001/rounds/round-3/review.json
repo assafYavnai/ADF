@@ -1,0 +1,110 @@
+{
+  "round": 3,
+  "reviewMode": "regression_sanity",
+  "leaderVerdict": "frozen",
+  "leaderRationale": "Reviewer-1 approved in r2 and reviewer-0 has now approved the required `regression_sanity` pass in r3 after the earlier split verdict. No reviewer is rejecting, no conditional or deferred items remain, and no blocking or major findings remain. Under the artifact's `reviewer-clear` and `material pushback` gates, the package now qualifies for a clean freeze.",
+  "unresolved": [],
+  "deferredItems": [],
+  "improvementsApplied": [
+    "Removed the extra `Not in scope` exclusion so the scope exclusions now align concept-for-concept with the role contract.",
+    "Standardized `latest required review evidence` across `material pushback`, `reviewer-clear`, and `result.json` evidence language.",
+    "Closed the carried-forward `f1` scope-alignment issue directly in `<scope>` without regressing the reviewer-clear freeze gate.",
+    "Preserved the canonical authority chain, artifact lifecycle matrix, and mutually exclusive terminal predicates through the final `regression_sanity` pass."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r3": {
+      "verdict": "approved",
+      "conceptual_groups": [],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "The unmatched Not in scope exclusion was removed, so the scope exclusions now realign with the contract-aligned exclusion set without reintroducing the earlier reviewer-clear or terminal-state defect."
+        },
+        {
+          "finding_group_id": "group-2",
+          "decision": "accept_fix",
+          "reason": "The qualifier is now standardized to 'latest required review evidence' across material-pushback, reviewer-clear, and result-evidence language, which removes the prior semantic drift rather than creating a new one."
+        },
+        {
+          "finding_id": "f1",
+          "decision": "accept_fix",
+          "reason": "The carried-forward scope-alignment issue is addressed directly in `<scope>` by removing the extra exclusion, and the prior reviewer-clear fix remains intact and mechanically consistent."
+        }
+      ],
+      "residual_risks": [],
+      "strengths": [
+        "The authority chain remains ordered and cleanly separated from runtime-scoped inputs and reference evidence.",
+        "Scope exclusions are now polarity-pure and contract-aligned without duplicate or stray exclusions.",
+        "Reviewer-clear, material pushback, and round leader remain canonically defined once and reused consistently across self-check, review flow, outputs, and completion.",
+        "The terminal predicates remain mutually exclusive and still protect against freezing while any active reviewer reject remains.",
+        "Canonical artifacts, run-scoped evidence, cross-round ID carry-forward, and append-only decision-history behavior remain mechanically explicit."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-001-replay-001",
+    "round": 3,
+    "review_mode": "regression_sanity",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 59961,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r3",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 25205,
+        "fallback_used": false,
+        "invocation_id": "dc49071a-eec9-408a-a1aa-f04ec9116015"
+      },
+      {
+        "participant_id": "leader-codex-r3",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 34756,
+        "fallback_used": false,
+        "invocation_id": "0482ac39-32c0-4393-a961-59e26fc8df78"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r3",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 3,
+      "latency_ms": 25205,
+      "invocation_id": "dc49071a-eec9-408a-a1aa-f04ec9116015",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r3",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 3,
+      "latency_ms": 34756,
+      "invocation_id": "0482ac39-32c0-4393-a961-59e26fc8df78",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "d4a8a31e-da56-44c3-9134-d0359c98f415",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json"
+  }
+}

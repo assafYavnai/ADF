@@ -41,11 +41,17 @@ Current COO note:
   - drain if possible
   - spool to a local outbox if the sink stays unavailable
   - replay on the next supported startup
-- the main remaining blocker has shifted further toward evidence quality debt:
-  - historical provenance quality is still dominated by legacy sentinel rows
-  - historical decision rows are now explicitly partitioned as `legacy_unknown`, but they still carry weaker trust than modern rows
-- onion implementation remains deferred until the evidence layer is strong enough for management use
-- a separate parallel-build plan now exists for onion work that must stay additive and unwired until stabilization is formally accepted
+- the historical evidence layer is now explicitly upgraded in place:
+  - `memory_items`, `decisions`, and `memory_embeddings` all carry `evidence_format_version = 2`
+  - legacy rows are marked at rest as `legacy_archived`
+  - the stable legacy marker is `ADF_LEGACY_SENTINEL_V1`
+  - explicit legacy reads now surface those markers directly
+- the main remaining blocker has shifted further toward evidence policy debt:
+  - the old corpus is now explicitly labeled, not heuristically inferred
+  - the remaining decision is whether to keep it in place behind the explicit boundary or move it into a separate archive path
+- the requirements-gathering onion lane is now integrated into the supported COO runtime behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`
+- live proof now exists under `tests/integration/artifacts/onion-route-proof/`
+- the older parallel-build plan remains as historical context for the dormant build slice, not as the current live-state description
 
 ## Core Source Pointers
 
@@ -68,7 +74,7 @@ Use the supporting context as evidence about review-cost tradeoffs, not as the m
 - Phase 1 should be treated as 2 primary lanes:
   - `CEO <-> COO requirements gathering`
   - `implementation lane` from finalized requirements to completed feature
-- before the onion lane is treated as real, the `ADF continuity foundation` should be strong enough that discussions, decisions, requirement fragments, prompts, and open loops are restorable
+- the `ADF continuity foundation` is now strong enough for the live onion lane to run behind its explicit feature gate with durable thread state, governed requirement persistence, and telemetry/audit evidence
 - requirements gathering is still a COO-owned pre-function activity
 - the feature function starts from the finalized requirement-list handoff
 - the final target chain is broader, but the first build should stay small and fast

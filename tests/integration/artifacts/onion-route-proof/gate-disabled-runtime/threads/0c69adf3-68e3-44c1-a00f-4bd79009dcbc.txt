@@ -1,0 +1,40 @@
+<workflow_state>
+Active workflow: requirements_gathering_onion
+Lifecycle status: active
+Current layer: expected_result
+Topic: Execution monitor for ADF
+Goal: See what the system is currently doing, starting with the implementation queue.
+Expected result: missing
+Success view: missing
+Major parts: missing
+Experience/UI: not yet decided
+Boundaries: missing
+Open decisions: none
+Next question: When this work is done, what should exist?
+</workflow_state>
+
+<thread_checkpoint>
+<state_commit>
+{
+  "summary": "Blocked turn because the active onion workflow gate is disabled.",
+  "openLoops": [
+    "This thread is already in requirements-gathering onion mode, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully."
+  ],
+  "decisions": [],
+  "sessionHandles": {
+    "classifier": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "session_id": "stub-session-1",
+      "source": "provider_returned"
+    },
+    "intelligence": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "stub-session-2",
+      "source": "provider_returned"
+    }
+  }
+}
+</state_commit>
+</thread_checkpoint>

@@ -4,7 +4,7 @@ import { generateEmbedding, toVectorLiteral } from "../embeddings.js";
 import { resolveScope } from "../services/scope.js";
 import { normalizeTags, resolveContextPriority, resolveCompressionPolicy } from "../services/context-policy.js";
 import { LogDecisionInput } from "../schemas/decision.js";
-import type { Provenance } from "../provenance.js";
+import { CURRENT_EVIDENCE_FORMAT_VERSION, type Provenance } from "../provenance.js";
 import { logger } from "../logger.js";
 import type pg from "pg";
 
@@ -35,9 +35,10 @@ export async function logDecision(
         (id, content, content_type, trust_level, scope_level,
          org_id, project_id, initiative_id, phase_id, thread_id,
          tags, context_priority, compression_policy,
-         invocation_id, provider, model, reasoning, was_fallback, source_path)
+         invocation_id, provider, model, reasoning, was_fallback, source_path,
+         evidence_format_version, evidence_lifecycle_status, legacy_marker)
        VALUES ($1, $2, 'decision', 'working', $3, $4, $5, $6, $7, $8, $9, $10, $11,
-               $12, $13, $14, $15, $16, $17)`,
+               $12, $13, $14, $15, $16, $17, $18, 'current', NULL)`,
       [
         memoryId, JSON.stringify(content),
         scope.scope_level,
@@ -46,23 +47,26 @@ export async function logDecision(
         tags, priority, compression,
         prov.invocation_id, prov.provider, prov.model,
         prov.reasoning, prov.was_fallback, prov.source_path,
+        CURRENT_EVIDENCE_FORMAT_VERSION,
       ]
     );
 
     await client.query(
       `INSERT INTO decisions
         (id, memory_item_id, title, reasoning, provenance_reasoning, derivation_mode,
-         content_invocation_id, content_provider, content_model, content_reasoning,
-         content_was_fallback, content_source_path,
-         alternatives_considered, decided_by, status,
-         invocation_id, provider, model, was_fallback, source_path, reasoning_state)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'active', $15, $16, $17, $18, $19, 'current')`,
+        content_invocation_id, content_provider, content_model, content_reasoning,
+        content_was_fallback, content_source_path,
+        alternatives_considered, decided_by, status,
+         invocation_id, provider, model, was_fallback, source_path, reasoning_state,
+         evidence_format_version, evidence_lifecycle_status, legacy_marker)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 'active', $15, $16, $17, $18, $19, 'current', $20, 'current', NULL)`,
       [
         decisionId, memoryId, input.title, input.reasoning, prov.reasoning, derivationMode,
         contentProv.invocation_id, contentProv.provider, contentProv.model, contentProv.reasoning,
         contentProv.was_fallback, contentProv.source_path,
         JSON.stringify(input.alternatives_considered), decidedById,
         prov.invocation_id, prov.provider, prov.model, prov.was_fallback, prov.source_path,
+        CURRENT_EVIDENCE_FORMAT_VERSION,
       ]
     );
 
@@ -70,10 +74,12 @@ export async function logDecision(
       const embedding = await generateEmbedding(content.search_text);
       await client.query(
         `INSERT INTO memory_embeddings (id, memory_item_id, model, version, embedding, is_active,
-           invocation_id, provider, model_name, reasoning, was_fallback, source_path)
-         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7, $8, $9, $10, $11)`,
+           invocation_id, provider, model_name, reasoning, was_fallback, source_path,
+           evidence_format_version, evidence_lifecycle_status, legacy_marker)
+         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7, $8, $9, $10, $11, $12, 'current', NULL)`,
         [randomUUID(), memoryId, "nomic-embed-text", "1", toVectorLiteral(embedding),
-         prov.invocation_id, prov.provider, prov.model, prov.reasoning, prov.was_fallback, prov.source_path]
+         prov.invocation_id, prov.provider, prov.model, prov.reasoning, prov.was_fallback, prov.source_path,
+         CURRENT_EVIDENCE_FORMAT_VERSION]
       );
     } catch (err) {
       logger.warn("Decision embedding failed:", err);

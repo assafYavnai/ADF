@@ -1,0 +1,15 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "blocking",
+      "summary": "Freeze and terminal-state logic can bypass an active reviewer reject because the draft keys terminal outcomes only off \"material pushback\".",
+      "redesignGuidance": "Keep the blocking/major concept separate if needed, but add an explicit reviewer-status gate: `frozen` and `frozen_with_conditions` must require all active reviewers to be `approved` or `conditional` after any required `regression_sanity` pass. Then update `pushback` and `resume_required` so unresolved minor-only rejects still land in a non-frozen terminal state, and update the self-check to validate reviewer-status legality semantically rather than only reusing the material-pushback definition.",
+      "findingCount": 3
+    }
+  ],
+  "unresolved": [
+    "group-1: Freeze and terminal-state logic can bypass an active reviewer reject because the draft keys terminal outcomes only off \"material pushback\"."
+  ],
+  "leader_rationale": "Repair work is still required. The draft's terminal-state logic freezes on \"no material pushback\" alone, but the governing review architecture requires freeze only after all active reviewers are approved or true conditional. As written, a non-material active reject could still bypass the freeze gate. Reviewer-0 remains reject on that blocking issue, and reviewer-1 also remains reject on a minor actor-labeling ambiguity, so neither frozen state is available.\nConvergence trend: 1 -> 1 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

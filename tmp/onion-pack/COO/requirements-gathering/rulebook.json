@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "component": "requirements-gathering",
+  "last_updated": "2026-03-29",
+  "rules": [
+    {
+      "id": "RQG-001",
+      "rule": "Peel the feature from the outer shell inward instead of jumping directly into deep detail.",
+      "applies_to": ["CEO/COO intake dialogue", "scope summary", "freeze proposal"],
+      "do": "Start by clarifying topic, goal, expected result, and success view before asking for deeper feature items. Example: first confirm 'we are building an execution monitor for ADF' and 'the expected result is a local URL with live updates' before discussing node details.",
+      "dont": "Do not start with implementation-shaped detail before the outer shell is stable. Example: asking about refresh intervals, node payloads, or internal schemas before confirming what the feature is and why it exists. This causes premature detail and hides whether the core intent is even agreed.",
+      "source": "Seed baseline from ProjectBrain requirements workflow, Claude fe414e1e-ec03-430b-ad0c-05662a3f4fda, Codex 019cdbb4-e909-7491-b583-efaa955ea5c1, and the 2026-03-29 ADF CEO/COO onion-model discussion.",
+      "version": 1,
+      "severity": "critical"
+    },
+    {
+      "id": "RQG-002",
+      "rule": "Ask one business-level clarification question at a time.",
+      "applies_to": ["CEO/COO intake dialogue", "clarification rounds"],
+      "do": "Ask the smallest next question that resolves the next missing business decision. Example: ask 'What do you expect to get when this is complete?' before moving to 'What should the monitor display?'",
+      "dont": "Do not send a blob of unrelated questions in one turn. Example: mixing goal, UI, technical behavior, and backlog questions together. This overloads the CEO and makes it unclear which answer is actually being locked.",
+      "source": "Seed baseline from ProjectBrain requirements workflow and repeated 2026-03-29 CEO guidance on focused COO communication.",
+      "version": 1,
+      "severity": "important"
+    },
+    {
+      "id": "RQG-003",
+      "rule": "Keep goal, expected result, and success view as separate scope facts.",
+      "applies_to": ["scope summary", "freeze proposal", "requirement package draft"],
+      "do": "State each separately. Example: goal = 'see what the system is currently doing'; expected result = 'a local URL with live updates'; success view = 'the CEO can open it, inspect queue state, and drill into execution details'.",
+      "dont": "Do not collapse these ideas into one vague sentence. Example: 'build a dashboard to monitor ADF' without stating what result should exist or how the CEO will know it works. This leaves later phases guessing what success actually means.",
+      "source": "Seed baseline from the LangGraph seed requirements artifact, Claude fe414e1e-ec03-430b-ad0c-05662a3f4fda, and the 2026-03-29 execution-monitor example.",
+      "version": 1,
+      "severity": "critical"
+    },
+    {
+      "id": "RQG-004",
+      "rule": "Define the major feature parts before drilling into per-part clarification.",
+      "applies_to": ["feature scope", "clarification rounds", "mockup planning"],
+      "do": "Collect the main capability list first, then clarify each item one by one. Example: first gather queue view, flow view, node details, audit trail, and metrics before asking how live updates should behave.",
+      "dont": "Do not fully design one subpart before the rest of the feature frame is visible. Example: spending several rounds on node-detail behavior before confirming the rest of the monitor scope. This causes tunnel vision and hides missing parts until too late.",
+      "source": "Seed baseline from Claude fe414e1e-ec03-430b-ad0c-05662a3f4fda and the 2026-03-29 dashboard/execution-monitor discussion.",
+      "version": 1,
+      "severity": "important"
+    },
+    {
+      "id": "RQG-005",
+      "rule": "Use a mockup or preview loop when UI meaning is part of scope alignment.",
+      "applies_to": ["UI features", "scope alignment", "freeze readiness"],
+      "do": "Suggest a static or interactive mockup when the CEO needs to see the experience to judge whether the scope is right. Example: build an interactive execution-monitor preview with sensible synthetic or current-run data before freeze.",
+      "dont": "Do not rely on prose alone when the UI meaning is still ambiguous. Example: freezing a dashboard scope without showing what the queue, flow chart, and node drill-down actually look like. This produces false agreement and later redesign churn.",
+      "source": "Seed baseline from ProjectBrain requirements workflow and the 2026-03-29 CEO/COO discussion on UI approval inside requirements shaping.",
+      "version": 1,
+      "severity": "important"
+    },
+    {
+      "id": "RQG-006",
+      "rule": "Capture the evolving scope in a working artifact instead of leaving the truth only in conversation.",
+      "applies_to": ["working scope artifact", "freeze proposal", "requirement package draft"],
+      "do": "Maintain a live scope summary that the COO can reflect back during clarification and freeze. Example: keep the current onion layers written down as topic, goal, expected result, major parts, UI direction, and open decisions.",
+      "dont": "Do not rely on chat memory alone. Example: reconstructing the feature from scattered messages only when freeze time arrives. This loses decisions, weakens traceability, and makes approval fragile.",
+      "source": "Seed baseline from ProjectBrain requirements workflow and current ADF Phase 1 synthesis that truth should not be trapped in chat.",
+      "version": 1,
+      "severity": "important"
+    },
+    {
+      "id": "RQG-007",
+      "rule": "Make boundaries, constraints, and open business decisions explicit before freeze.",
+      "applies_to": ["scope summary", "readiness check", "freeze proposal"],
+      "do": "List what is out of scope, what constraints matter, and what decisions are still open. Example: 'Phase 1 focuses on the implementation queue first; historic analytics are out of scope; live updates still need a product decision.'",
+      "dont": "Do not freeze a feature while silent assumptions still carry major business meaning. Example: assuming real-time streaming or historic audit depth without confirming it. This creates downstream pushback and scope drift.",
+      "source": "Seed baseline from the LangGraph seed requirements artifact and the 2026-03-29 clarification of non-goals, constraints, and missing decisions.",
+      "version": 1,
+      "severity": "critical"
+    },
+    {
+      "id": "RQG-008",
+      "rule": "Freeze scope explicitly by showing the whole onion back to the CEO for approval.",
+      "applies_to": ["freeze proposal", "approval checkpoint", "handoff summary"],
+      "do": "Present the complete human-facing scope and ask whether anything is missing or wrong before freezing. Example: summarize the execution monitor's goal, expected result, major parts, UI direction, and boundaries, then ask if the feature should now be frozen.",
+      "dont": "Do not freeze silently because the conversation feels complete. Example: moving to requirement writing without an explicit approval moment. This breaks trust and leaves the CEO unsure what was actually accepted.",
+      "source": "Seed baseline from ProjectBrain requirement freeze gate, Claude fe414e1e-ec03-430b-ad0c-05662a3f4fda, and the 2026-03-29 onion-model agreement.",
+      "version": 1,
+      "severity": "critical"
+    },
+    {
+      "id": "RQG-009",
+      "rule": "Preserve the approved human meaning when converting frozen scope into the technical requirement package.",
+      "applies_to": ["requirement package draft", "CTO handoff", "post-freeze clarification"],
+      "do": "Translate the frozen onion into the technical contract without changing intent. If a missing business decision appears during writing, float it back to the CEO. Example: ask whether 'live updates' means polling or push if that choice materially changes the product promise.",
+      "dont": "Do not invent missing business choices during technical writing. Example: silently picking one update model or dropping a visible audit requirement because it is easier to specify. This breaks scope fidelity and causes hidden drift.",
+      "source": "Seed baseline from the LangGraph seed requirements artifact, Codex 019cdbb4-e909-7491-b583-efaa955ea5c1, and the 2026-03-29 execution-monitor discussion.",
+      "version": 1,
+      "severity": "critical"
+    },
+    {
+      "id": "RQG-010",
+      "rule": "Run a readiness self-check against the rulebook before handing the requirement package to the CTO.",
+      "applies_to": ["readiness check", "requirement package draft", "CTO handoff"],
+      "do": "Check that the frozen scope is complete, concrete, and reviewable before handoff. Example: confirm the package includes the approved onion, the major parts, the success view, the important constraints, and any remaining CEO decisions are either resolved or explicitly flagged.",
+      "dont": "Do not hand off a package that still depends on unstated assumptions. Example: sending a requirement list to the CTO while key product choices remain implied in the chat. This forces downstream roles to redesign the feature instead of executing it.",
+      "source": "Seed baseline from ProjectBrain readiness review, Claude fe414e1e-ec03-430b-ad0c-05662a3f4fda, and current ADF Phase 1 learning-loop direction.",
+      "version": 1,
+      "severity": "important"
+    }
+  ]
+}

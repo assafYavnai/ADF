@@ -68,6 +68,9 @@ test("decision logging route persists a scoped decision through the MCP client",
     assert.equal(decision.provider, provenance.provider);
     assert.equal(decision.model, provenance.model);
     assert.equal(decision.invocation_id, provenance.invocation_id);
+    assert.equal(decision.evidence_format_version, 2);
+    assert.equal(decision.evidence_lifecycle_status, "current");
+    assert.equal(decision.legacy_marker, null);
     assert.equal(rows[0].scope_level, "project");
   } finally {
     if (memoryId) {
@@ -236,6 +239,9 @@ test("decision logging persists separate content provenance when the structured 
     assert.equal(decision.content_reasoning, contentProvenance.reasoning);
     assert.equal(decision.content_was_fallback, contentProvenance.was_fallback);
     assert.equal(decision.content_source_path, contentProvenance.source_path);
+    assert.equal(decision.evidence_format_version, 2);
+    assert.equal(decision.evidence_lifecycle_status, "current");
+    assert.equal(decision.legacy_marker, null);
   } finally {
     if (memoryId) {
       await pool.query("DELETE FROM memory_items WHERE id = $1", [memoryId]);

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 1,
+  "items": [
+    {
+      "finding_id": "group-1",
+      "finding_group_id": "group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Removed the sequencing and terminal-artifact contradictions by making normalized-request/source-manifest write once in Step 1, narrowing Step 3 to verify that single write point and declared consistency checks, and aligning Step 5, <outputs>, and <completion> to one terminal artifact model with arbitration_used-based exclusivity.",
+      "evidence_location": "<context-gathering>, <guardrails>, Step 1, Step 3, Step 5, <outputs>, <completion>"
+    },
+    {
+      "finding_id": "group-2",
+      "finding_group_id": "group-2",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Changed cross-round negotiation from conceptual-group keyed carry-forward to finding-ID keyed carry-forward, while keeping conceptual_group ID only as grouping context in fix-items evidence.",
+      "evidence_location": "<inputs>, <guardrails>, Step 4, <outputs>"
+    },
+    {
+      "finding_id": "group-3",
+      "finding_group_id": "group-3",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Made <scope> the single canonical exclusion boundary and replaced the duplicated authority exclusion list with a reference back to that canonical scope list.",
+      "evidence_location": "<authority>, <scope>"
+    },
+    {
+      "finding_id": "group-4",
+      "finding_group_id": "group-4",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Resolved the normalized-request/source-manifest timing conflict by treating preconditions as validation only and Step 1 as the sole write point everywhere the artifacts are declared.",
+      "evidence_location": "<context-gathering>, <guardrails>, Step 1, Step 3, <outputs>"
+    }
+  ],
+  "generated_at": "2026-03-31T05:57:47.539Z"
+}

@@ -1,7 +1,7 @@
 # ADF Folder Structure
 
 Status: approved direction
-Last updated: 2026-03-29
+Last updated: 2026-04-01
 
 ---
 
@@ -15,7 +15,11 @@ ADF/
       thread.ts
       cli.ts
       memory-engine-client.ts
-    requirements-gathering/         # CEO-facing feature shaping (emerging governance-first lane)
+    requirements-gathering/         # CEO-facing feature shaping lane (live behind feature gate)
+      contracts/                    # serializable onion state/artifact/observability contracts
+      engine/                       # pure onion reducer, freeze, derivation, readiness, audit logic
+      live/                         # thin controller integration adapter for the supported COO route
+      fixtures/                     # deterministic sample turns/traces for route-free proof
       rulebook.json                 # seed rules for onion-based intake and freeze
       review-prompt.json            # review focus for scope-freeze quality
     classifier/                     # intent classification - fast LLM
@@ -106,7 +110,7 @@ ADF/
 ## Key Conventions
 
 - **COO/** - the core deterministic orchestrator and reasoning layer. Organized by layers such as controller/, requirements-gathering/, classifier/, intelligence/, context-engineer/, shared/.
-- **Emerging COO lanes** may start governance-first. A lane can first appear as boxed review artifacts (`rulebook.json`, `review-prompt.json`) before its runtime role/prompt/code is fully implemented.
+- **COO lanes** may start governance-first, then grow into live feature-gated runtime paths. The requirements-gathering lane now includes contracts, pure engine logic, a live controller adapter, and route-proof artifacts under the same folder.
 - **Each LLM-powered layer** has its own `role/`, `rulebook.json`, `review-prompt.json`, and `prompt.md` in its directory (boxed hierarchy).
 - **shared/** (root) - project-wide utilities callable by any component: provenance, llm-invoker, telemetry, learning-engine.
 - **tools/** - governance tools (agent-role-builder, llm-tool-builder). Each has its own `role/`, `rulebook.json`, `review-prompt.json`, and `runs/` for permanent audit trails.

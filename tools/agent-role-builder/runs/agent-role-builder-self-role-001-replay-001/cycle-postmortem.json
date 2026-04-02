@@ -1,0 +1,476 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-001-replay-001",
+  "role_slug": "agent-role-builder",
+  "final_status": "frozen",
+  "final_status_reason": "All reviewers approved and no remaining repair work was found after learning and rule checks.",
+  "generated_at": "2026-03-31T08:23:30.179Z",
+  "questions_ref": "shared/self-learning-engine/postmortem-questions.json",
+  "kpi_summary": {
+    "total_duration_ms": 4912261,
+    "rounds_executed": 4,
+    "participant_invocations": 10,
+    "reviewer_invocations": 6,
+    "skipped_reviewer_invocations": 2,
+    "fallback_count": 0,
+    "llm_call_count": 15,
+    "llm_failures": 0,
+    "tool_events": 17,
+    "total_llm_latency_ms": 4912034,
+    "total_tokens_in": 31401,
+    "total_tokens_out": 27247,
+    "total_estimated_cost_usd": 0.553116,
+    "provider_failures": [],
+    "session_status_counts": {
+      "none": 5,
+      "fresh": 3,
+      "resumed": 7,
+      "replaced": 0
+    },
+    "session_latency_ms": {
+      "none": 3744641,
+      "fresh": 579012,
+      "resumed": 588381,
+      "replaced": 0
+    },
+    "engine_metrics": [
+      {
+        "engine": "board-review",
+        "llm_call_count": 10,
+        "llm_failure_count": 0,
+        "tool_event_count": 10,
+        "tool_failure_count": 0,
+        "total_latency_ms": 1167424,
+        "llm_latency_ms": 1167393,
+        "tool_latency_ms": 1167424,
+        "tokens_in_estimated": 23774,
+        "tokens_out_estimated": 7530,
+        "estimated_cost_usd": 0.219226,
+        "session_status_counts": {
+          "none": 0,
+          "fresh": 3,
+          "resumed": 7,
+          "replaced": 0
+        },
+        "review_finding_count": 0,
+        "new_rule_count": 0,
+        "rules_checked": 0,
+        "non_compliant_rule_count": 0,
+        "fix_item_count": 0,
+        "changed_artifact_count": 0
+      },
+      {
+        "engine": "rules-compliance-enforcer",
+        "llm_call_count": 3,
+        "llm_failure_count": 0,
+        "tool_event_count": 3,
+        "tool_failure_count": 0,
+        "total_latency_ms": 3566681,
+        "llm_latency_ms": 3566634,
+        "tool_latency_ms": 3566681,
+        "tokens_in_estimated": 865,
+        "tokens_out_estimated": 19245,
+        "estimated_cost_usd": 0.293,
+        "session_status_counts": {
+          "none": 3,
+          "fresh": 0,
+          "resumed": 0,
+          "replaced": 0
+        },
+        "review_finding_count": 0,
+        "new_rule_count": 0,
+        "rules_checked": 72,
+        "non_compliant_rule_count": 0,
+        "fix_item_count": 5,
+        "changed_artifact_count": 3
+      },
+      {
+        "engine": "self-learning-engine",
+        "llm_call_count": 2,
+        "llm_failure_count": 0,
+        "tool_event_count": 4,
+        "tool_failure_count": 0,
+        "total_latency_ms": 178014,
+        "llm_latency_ms": 178007,
+        "tool_latency_ms": 178014,
+        "tokens_in_estimated": 6762,
+        "tokens_out_estimated": 472,
+        "estimated_cost_usd": 0.04089,
+        "session_status_counts": {
+          "none": 2,
+          "fresh": 0,
+          "resumed": 0,
+          "replaced": 0
+        },
+        "review_finding_count": 4,
+        "new_rule_count": 0,
+        "rules_checked": 0,
+        "non_compliant_rule_count": 0,
+        "fix_item_count": 0,
+        "changed_artifact_count": 0
+      }
+    ],
+    "rule_metrics": {
+      "checked_total": 72,
+      "non_compliant_total": 0,
+      "new_rule_proposal_total": 0,
+      "rule_usage": [
+        {
+          "rule_id": "ARB-001",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-002",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 1,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-003",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-004",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-005",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-006",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 1,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-007",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-008",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-009",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-010",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-011",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 1,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-013",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-014",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-015",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-016",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-017",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 1,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-018",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-019",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-020",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-021",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-022",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-023",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-024",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        },
+        {
+          "rule_id": "ARB-025",
+          "checked_count": 3,
+          "non_compliant_count": 0,
+          "learning_cover_count": 0,
+          "proposal_count": 0
+        }
+      ]
+    },
+    "phase_durations_ms": [
+      {
+        "phase": "initial-rule-sweep-started",
+        "duration_ms": 2805417
+      },
+      {
+        "phase": "round-0-started",
+        "duration_ms": 1136406
+      },
+      {
+        "phase": "round-1-started",
+        "duration_ms": 782435
+      },
+      {
+        "phase": "round-2-started",
+        "duration_ms": 127949
+      },
+      {
+        "phase": "round-3-started",
+        "duration_ms": 59971
+      },
+      {
+        "phase": "startup",
+        "duration_ms": 38
+      },
+      {
+        "phase": "governance-ready",
+        "duration_ms": 11
+      },
+      {
+        "phase": "board-terminal-frozen",
+        "duration_ms": 11
+      },
+      {
+        "phase": "initial-rule-sweep-complete",
+        "duration_ms": 2
+      },
+      {
+        "phase": "round-0-complete",
+        "duration_ms": 2
+      },
+      {
+        "phase": "round-1-complete",
+        "duration_ms": 2
+      },
+      {
+        "phase": "round-2-complete",
+        "duration_ms": 2
+      }
+    ],
+    "major_bottleneck_engine": "rules-compliance-enforcer",
+    "unresolved_trend": [
+      1,
+      1,
+      0,
+      0
+    ]
+  },
+  "artifacts": {
+    "result_json": true,
+    "run_postmortem": true,
+    "cycle_postmortem": true,
+    "normalized_request": true,
+    "session_registry": true
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-001-replay-001",
+    "round": 3,
+    "review_mode": "none",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 1167424,
+    "fallback_used": false,
+    "artifact_refs": {
+      "result_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/result.json",
+      "run_postmortem": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/run-postmortem.json",
+      "cycle_postmortem": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/cycle-postmortem.json",
+      "normalized_request": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/normalized-request.json",
+      "session_registry": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/runtime/session-registry.json",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/self-check.json"
+    }
+  },
+  "question_outputs": {
+    "PM-002": {
+      "rounds": 4,
+      "duration_ms": 4912261,
+      "llm_call_count": 15,
+      "fallback_count": 0,
+      "reviewer_reuse_savings": 2,
+      "total_tokens_in": 31401,
+      "total_tokens_out": 27247,
+      "total_estimated_cost_usd": 0.553116,
+      "session_status_counts": {
+        "none": 5,
+        "fresh": 3,
+        "resumed": 7,
+        "replaced": 0
+      },
+      "major_bottleneck_engine": "rules-compliance-enforcer",
+      "phase_durations_ms": [
+        {
+          "phase": "initial-rule-sweep-started",
+          "duration_ms": 2805417
+        },
+        {
+          "phase": "round-0-started",
+          "duration_ms": 1136406
+        },
+        {
+          "phase": "round-1-started",
+          "duration_ms": 782435
+        },
+        {
+          "phase": "round-2-started",
+          "duration_ms": 127949
+        },
+        {
+          "phase": "round-3-started",
+          "duration_ms": 59971
+        },
+        {
+          "phase": "startup",
+          "duration_ms": 38
+        },
+        {
+          "phase": "governance-ready",
+          "duration_ms": 11
+        },
+        {
+          "phase": "board-terminal-frozen",
+          "duration_ms": 11
+        },
+        {
+          "phase": "initial-rule-sweep-complete",
+          "duration_ms": 2
+        },
+        {
+          "phase": "round-0-complete",
+          "duration_ms": 2
+        },
+        {
+          "phase": "round-1-complete",
+          "duration_ms": 2
+        },
+        {
+          "phase": "round-2-complete",
+          "duration_ms": 2
+        }
+      ]
+    },
+    "PM-003": {
+      "validation_issue_count": 0,
+      "self_check_issue_count": 0,
+      "review_issue_count": 4,
+      "total_issue_count": 4
+    },
+    "PM-007": {
+      "unresolved_trend": [
+        1,
+        1,
+        0,
+        0
+      ],
+      "converged": true
+    }
+  },
+  "value_summary": {
+    "artifact_quality": {
+      "score": 84,
+      "band": "high",
+      "method": "status-and-issue-weighting-v1",
+      "basis": {
+        "terminal_status": "frozen",
+        "validation_issue_count": 0,
+        "self_check_issue_count": 0,
+        "review_issue_count": 4,
+        "unresolved_count": 0
+      }
+    },
+    "cost_per_quality_point_usd": 0.006585,
+    "latency_per_quality_point_ms": 58479
+  },
+  "governance_binding": {
+    "snapshot_id": "d4a8a31e-da56-44c3-9134-d0359c98f415",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json"
+  }
+}

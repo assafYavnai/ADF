@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 1,
+  "items": [
+    {
+      "finding_id": "group-1",
+      "finding_group_id": "group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Added the canonical `reviewer-clear` definition, made both frozen states require reviewer-clear plus no material pushback, kept `pushback` and `resume_required` available whenever any active reviewer verdict remains `reject`, and extended Step 3 to validate reviewer-status legality semantically.",
+      "evidence_location": "<guardrails>, <steps> Step 3, <steps> Step 4, <steps> Step 5, <outputs>, <completion>"
+    },
+    {
+      "finding_id": "leader-rationale-actor-labeling",
+      "finding_group_id": "leader-rationale",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Defined `round leader` once in <guardrails> and reused that term in arbitration and terminal-resolution logic so the acting authority label stays consistent.",
+      "evidence_location": "<guardrails>, <steps> Step 4, <steps> Step 5"
+    }
+  ],
+  "generated_at": "2026-03-31T08:07:19.810Z"
+}

@@ -32,3 +32,7 @@ Notes:
 - Cycle 06 closes the remaining live telemetry-provenance and Windows shim transport defects without widening the COO stabilization scope.
 - Cycle 07 confirms the supported stabilization lane remains live-route clean and records historical evidence lifecycle debt as the next narrow slice.
 - Cycle 08 confirms the supported stabilization lane remains live-route clean again and carries forward the historical evidence-lifecycle slice without widening into unrelated changes.
+- Post-cycle working update:
+  - historical evidence rows now use explicit at-rest lifecycle metadata instead of heuristic sentinel detection alone
+  - upgraded legacy rows are marked as `legacy_archived` with `legacy_marker = ADF_LEGACY_SENTINEL_V1`
+  - the remaining question is archival/retention policy for that explicit legacy partition, not how to detect it on the live route

@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 2,
+  "items": [
+    {
+      "finding_id": "group-1",
+      "finding_group_id": "group-1",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Aligned blocked-path semantics so self-check.json is required only when the run reached Step 3; precondition-failure blocked runs now end without that artifact.",
+      "evidence_location": "<guardrails>, <steps> Step 5, <outputs>, <completion>"
+    },
+    {
+      "finding_id": "f3",
+      "finding_group_id": "f3",
+      "severity": "major",
+      "action": "accepted",
+      "summary": "Resolved the remaining self-check credibility gap by making the blocked terminal contract mechanically consistent with execution order and the Step 3 write point.",
+      "evidence_location": "<guardrails>, <steps> Step 5, <outputs>, <completion>"
+    },
+    {
+      "finding_id": "group-2",
+      "finding_group_id": "group-2",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Applied the same Step-3-reached predicate in both the self-check lifecycle row and the blocked completion criteria to remove unconditional blocked-path self-check claims.",
+      "evidence_location": "<outputs>, <completion>"
+    }
+  ],
+  "generated_at": "2026-03-31T06:10:15.572Z"
+}

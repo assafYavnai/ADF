@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProvenanceSchema } from "../provenance.js";
+import { EvidenceLifecycleStatus, ProvenanceSchema } from "../provenance.js";
 import { Provider } from "../provenance.js";
 
 export const DecisionAlternative = z.object({
@@ -58,6 +58,9 @@ export const DecisionSchema = z.object({
   was_fallback: z.boolean(),
   source_path: z.string(),
   reasoning_state: DecisionReasoningState,
+  evidence_format_version: z.number().int(),
+  evidence_lifecycle_status: EvidenceLifecycleStatus,
+  legacy_marker: z.string().nullable(),
   created_at: z.coerce.date(),
 });
 export type Decision = z.infer<typeof DecisionSchema>;

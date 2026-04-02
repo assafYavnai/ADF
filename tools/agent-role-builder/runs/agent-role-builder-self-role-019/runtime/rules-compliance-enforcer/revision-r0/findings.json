@@ -1,0 +1,37 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "major",
+      "summary": "The draft still has internal sequencing and terminal-artifact contradictions, so its claimed semantic consistency and self-check coverage are not credible.",
+      "redesignGuidance": "Pick one authoritative timing model for precondition artifacts and one authoritative artifact set for each terminal state, then align <context-gathering>, Step 1, Step 5, <outputs>, and <completion> to that single model. After that, narrow the self-check so it tests the same semantics the document actually declares.",
+      "findingCount": 3
+    },
+    {
+      "groupId": "group-2",
+      "severity": "major",
+      "summary": "Cross-round finding tracking is too coarse to satisfy the per-finding negotiation model required by the review architecture.",
+      "redesignGuidance": "Make finding IDs the canonical carry-forward key in `fix-items-map.json`, with conceptual-group IDs retained only as grouping context. The next-round fix map and reviewer fix decisions should be able to address each finding independently.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-3",
+      "severity": "minor",
+      "summary": "The exclusion boundary is duplicated across sections, creating avoidable drift risk.",
+      "redesignGuidance": "Keep one canonical exclusion list and let the other section reference it or restate only what is unique to that section's purpose.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-4",
+      "severity": "suggestion",
+      "summary": "normalized-request.json and source-manifest.json have conflicting write points across context-gathering and Step 1",
+      "redesignGuidance": "Resolve to one canonical write point. Option A: change context-gathering item 6 to 'Confirm that all inputs required to generate normalized-request.json and source-manifest.json are present; the files are written in Step 1.' Remove the <outputs> row description saying 'before Step 1' and change to 'written in Step 1.' Option B: keep context-gathering item 6 as the authoritative write point, update <outputs> lifecycle to 'written during preconditions,' and remove both files from the Step 1 output list. Either option eliminates the ambiguous dual-write signal.",
+      "findingCount": 1
+    }
+  ],
+  "unresolved": [
+    "group-1: The draft still has internal sequencing and terminal-artifact contradictions, so its claimed semantic consistency and self-check coverage are not credible.",
+    "group-2: Cross-round finding tracking is too coarse to satisfy the per-finding negotiation model required by the review architecture."
+  ],
+  "leader_rationale": "Pushback remains because both reviewers are still at `reject` and the material issues are substantiated by the artifact itself. The terminal-state model is still not mechanically sound: `<completion>` lets `frozen` remain true even when arbitration was used, so it overlaps with `frozen_with_conditions`, and Step 5 under-specifies closeout artifacts for `frozen_with_conditions` and `blocked` compared with `<outputs>`/`<completion>`. The cross-round negotiation model is also still too coarse: carried-forward handling is keyed only by `conceptual_group ID`, while the source authority requires per-reviewer-finding accept/reject tracking in the fix-items map and reviewer response flow. With active major defects and live reject verdicts, freeze is not allowed.\nConvergence trend: 2 -> 4 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

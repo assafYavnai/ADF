@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "full",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/agent-role-builder-role.md",
+  "round": 0,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority is a strict operative chain and separates reference evidence from binding authority."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 5, <completion>",
+      "evidence_summary": "'Material pushback' is defined once in guardrails and reused verbatim for freeze and terminal predicates."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>, <steps> Step 5, <completion>",
+      "evidence_summary": "Canonical role content, canonical governance history, and run-scoped evidence are separated with explicit lifecycle rules."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Terminal states are defined as ordered, mutually exclusive, testable predicates."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 3",
+      "evidence_summary": "The self-check states executed checks only and uses semantic concept matching with recorded keywords for scope coverage."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>, <guardrails>, <steps> Step 2, <steps> Step 3",
+      "evidence_summary": "Scope exclusions are deduplicated, polarity-pure, and required to align concept-for-concept with the role contract."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>",
+      "evidence_summary": "Arbitration has a defined trigger, actor, evidence in result.json, and effect on terminal status."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Every required canonical output is listed with its full tool-relative path; no basename-only references remain."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion criteria are specified separately for frozen, frozen_with_conditions, pushback, resume_required, and blocked."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Context gathering is explicitly labeled as preconditions before Step 1 and is not mixed into the numbered execution steps."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 4",
+      "evidence_summary": "Carried-forward findings must be addressed by finding or conceptual-group ID in the next round's fix-items map and revision notes."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, <steps> Step 5, <outputs>",
+      "evidence_summary": "Decision-log preservation is mechanical: append dated sections and never delete prior history."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<steps>",
+      "evidence_summary": "The steps section explicitly labels the numbered steps as current governed workflow requirements."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <outputs>",
+      "evidence_summary": "Universal round artifacts such as learning.json, diff-summary.json, review.json, and run-postmortem.json are defined for every applicable round, including final clean rounds."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "The outputs section provides one authoritative artifact matrix with class, full path, and lifecycle by operation and terminal state."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, <completion>",
+      "evidence_summary": "Local authority and review consequences are derived from the COO plus shared/component review contracts, while shared policy is referenced rather than reinvented."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "The role mission is enduring and package-level, with no transient run-state language in the identity statement."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "The governed write boundary is explicit and rooted in the operative contracts, listing canonical targets and the run root."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Only operative sources appear in the authority chain; runtime inputs and reference evidence are classified separately."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, <steps>",
+      "evidence_summary": "Governance mechanics included in the role are tied to inherited contracts and architecture-defined review behavior, with local consequences only."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Use-when, owns, and not-in-scope statements are polarity-pure, with exclusions only in the exclusion list."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "<steps> Step 4, <outputs>",
+      "evidence_summary": "The review round is an ordered sub-sequence with bound per-round artifacts for compliance, fix mapping, review, learning, diff, and postmortem."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>, <context-gathering>, <inputs>",
+      "evidence_summary": "The role names the component-local governance files it depends on and the inherited runtime obligations it must enforce."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>",
+      "evidence_summary": "Required inputs enumerate every external prerequisite needed for authority validation, workflow execution, and terminal decisions."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-31T07:48:23.402Z"
+}

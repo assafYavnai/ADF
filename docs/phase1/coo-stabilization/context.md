@@ -15,8 +15,12 @@
 
 - `cycle-08` is a no-code review closeout on top of the cycle-07 review-verified route.
 - The supported CLI -> COO -> Brain -> thread -> telemetry route is materially healthy.
-- Historical evidence debt still exists in the live DB, but default decision-grade retrieval paths now partition legacy sentinel-backed rows out of normal results.
-- The remaining in-scope gap is historical evidence-lifecycle closure, not a reopened live-route defect.
+- Historical evidence rows in `memory_items`, `decisions`, and `memory_embeddings` now use an explicit at-rest contract:
+  - `evidence_format_version = 2`
+  - `evidence_lifecycle_status = current | legacy_archived`
+  - `legacy_marker = ADF_LEGACY_SENTINEL_V1` for the upgraded legacy corpus
+- Default decision-grade retrieval paths still exclude legacy evidence, and explicit legacy reads now return the lifecycle markers instead of relying on sentinel heuristics alone.
+- The remaining in-scope gap is narrower now: archival/retention policy for the legacy corpus, not legacy detection on the live route.
 - The review-cycle setup for this stream now resolves to `codex_cli_full_auto_bypass` for spawned executions, with native persistent-agent reuse available for orchestration.
 
 ## Inputs To Carry Into The Next Cycle

@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "tool_name": "implementation-engine",
+  "request_job_id": "implementation-engine-bootstrap-smoke-001",
+  "stage": "step_3_not_wired",
+  "issue": "Live shared-engine execution hooks are not wired yet.",
+  "why_it_blocks": "Bootstrap runtime core is implemented through governed staging. Live implementation, compliance, review, learning, revision, and parity-audit execution are not wired yet, so the run fails closed after Step 2.",
+  "evidence": {
+    "completed_steps": [
+      1,
+      2
+    ],
+    "missing_runtime_phases": [
+      "implement_or_revise",
+      "self_check",
+      "rules_compliance",
+      "review",
+      "learning",
+      "parity_audit",
+      "terminal_promotion"
+    ],
+    "candidate_manifest_path": "C:/ADF/tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/candidate-manifest.json",
+    "source_manifest_path": "C:/ADF/tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/source-manifest.json",
+    "target_governance_manifest_path": "C:/ADF/tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/target-governance-manifest.json",
+    "write_domain_path": "C:/ADF/tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/write-domain.json"
+  },
+  "generated_at_utc": "2026-03-31T17:40:29.065Z",
+  "governance_binding": {
+    "snapshot_id": "2779532e-5031-4d21-bb54-f08fd4f0e2b0",
+    "snapshot_manifest_path": "C:/ADF/tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/governance-snapshot.json"
+  }
+}

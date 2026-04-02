@@ -7,6 +7,7 @@ import { withDBFallback } from "./lifecycle.js";
 import { logger } from "../logger.js";
 import type { CaptureMemoryInput } from "../schemas/memory-item.js";
 import type pg from "pg";
+import { CURRENT_EVIDENCE_FORMAT_VERSION } from "../provenance.js";
 
 interface CaptureResult {
   id: string;
@@ -64,8 +65,9 @@ async function captureMemoryImpl(
         (id, content, content_type, trust_level, scope_level,
          org_id, project_id, initiative_id, phase_id, thread_id,
          tags, context_priority, compression_policy,
-         invocation_id, provider, model, reasoning, was_fallback, source_path)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+         invocation_id, provider, model, reasoning, was_fallback, source_path,
+         evidence_format_version, evidence_lifecycle_status, legacy_marker)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, 'current', NULL)`,
       [
         id,
         JSON.stringify(content),
@@ -86,6 +88,7 @@ async function captureMemoryImpl(
         prov.reasoning,
         prov.was_fallback,
         prov.source_path,
+        CURRENT_EVIDENCE_FORMAT_VERSION,
       ]
     );
 
@@ -93,10 +96,12 @@ async function captureMemoryImpl(
       const embedding = await generateEmbedding(text);
       await client.query(
         `INSERT INTO memory_embeddings (id, memory_item_id, model, version, embedding, is_active,
-           invocation_id, provider, model_name, reasoning, was_fallback, source_path)
-         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7, $8, $9, $10, $11)`,
+           invocation_id, provider, model_name, reasoning, was_fallback, source_path,
+           evidence_format_version, evidence_lifecycle_status, legacy_marker)
+         VALUES ($1, $2, $3, $4, $5::vector, TRUE, $6, $7, $8, $9, $10, $11, $12, 'current', NULL)`,
         [randomUUID(), id, "nomic-embed-text", "1", toVectorLiteral(embedding),
-         prov.invocation_id, prov.provider, prov.model, prov.reasoning, prov.was_fallback, prov.source_path]
+         prov.invocation_id, prov.provider, prov.model, prov.reasoning, prov.was_fallback, prov.source_path,
+         CURRENT_EVIDENCE_FORMAT_VERSION]
       );
     } catch (err) {
       logger.warn("Embedding generation failed, item saved without embedding:", err);

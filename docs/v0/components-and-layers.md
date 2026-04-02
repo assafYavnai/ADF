@@ -1,7 +1,7 @@
 # ADF Components and Layers
 
 Status: active
-Last updated: 2026-03-29
+Last updated: 2026-04-01
 
 ---
 
@@ -35,7 +35,7 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 
 | Layer | Directory | LLM? | Purpose |
 |---|---|---|---|
-| **Requirements Gathering** | `COO/requirements-gathering/` | Yes (planned) | CEO-facing feature shaping lane. Peels scope from the outer shell inward, freezes the approved human-facing onion, then hands the feature to the technical requirement package and CTO flow. Governance artifacts land before full runtime implementation. |
+| **Requirements Gathering** | `COO/requirements-gathering/` | Yes (live behind feature gate) | CEO-facing feature shaping lane. Peels scope from the outer shell inward, freezes the approved human-facing onion, persists thread-owned working state, derives the governed requirement artifact from the approved snapshot, and writes the finalized requirement artifact through the supported COO runtime. |
 
 ### Layer Rules
 

@@ -1,0 +1,29 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "minor",
+      "summary": "Carry-forward from r0: Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') remains unchanged and still has no counterpart in the role contract's out_of_scope list, leaving the role's own concept-for-concept alignment guardrail violated. The implementer's fix-map entry for [group-1] describes adding the reviewer-clear definition — a genuine improvement but one that addresses a different, unrelated issue — so the actual r0 group-1 finding was neither fixed nor explicitly acknowledged.",
+      "redesignGuidance": "Delete Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') from the <scope> section. The constraint is already enforced in <authority> (operative chain definition) and <guardrails> (the 'Never let reference documents outrank...' and 'Never write outside the governed surface' rules). Removing it restores concept-for-concept alignment with the role contract. In the next fix-items map, reference r0 finding IDs f1 and f2 explicitly with the corrected disposition.",
+      "findingCount": 2
+    },
+    {
+      "groupId": "group-2",
+      "severity": "suggestion",
+      "summary": "Minor ARB-002 suggestion: the material pushback definition uses 'latest active review evidence' while the reviewer-clear definition and result.json lifecycle both use 'latest required review evidence.' Two different qualifiers for what is the same underlying artifact corpus.",
+      "redesignGuidance": "Standardize the qualifier: replace 'active' with 'required' in the material pushback definition to match the reviewer-clear definition and result.json lifecycle. 'Required' is the more precise and source-anchored term since the review process architecture defines review.json as the mandatory per-round evidence artifact.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "f1",
+      "severity": "blocking",
+      "summary": "Added the canonical `reviewer-clear` definition, made both frozen states require reviewer-clear plus no material pushback, kept `pushback` and `resume_required` available whenever any active reviewer verdict remains `reject`, and extended Step 3 to validate reviewer-status legality semantically.",
+      "redesignGuidance": "The implementer's [group-1] fix — adding the reviewer-clear canonical definition and updating frozen-state predicates — is a valid and correct improvement, but it addresses a different pre-existing gap, not the r0 group-1 finding. Not-in-scope item 5 is unchanged in r1 and still lacks a role-contract counterpart. The concept-for-concept alignment guardrail remains violated. The fix does not resolve f1 or f2.",
+      "findingCount": 1
+    }
+  ],
+  "unresolved": [
+    "f1: Added the canonical `reviewer-clear` definition, made both frozen states require reviewer-clear plus no material pushback, kept `pushback` and `resume_required` available whenever any active reviewer verdict remains `reject`, and extended Step 3 to validate reviewer-status legality semantically."
+  ],
+  "leader_rationale": "Repair work is still required. r1 closes the prior freeze-gate defect and reviewer-0 is now approved, but reviewer-1 remains `reject` on a minor scope-alignment issue, so the board is not reviewer-clear and neither frozen state is legal. No blocking or major findings remain, but this is still a split verdict; if reviewer-1 clears in a later round, reviewer-0 must still complete the required `regression_sanity` review before any freeze.\nConvergence trend: 1 -> 1 -> 3 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

@@ -1,0 +1,21 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-006",
+      "explanation": "This is already covered by the scope-alignment rule: the markdown `Not-in-scope` list and the contract `out_of_scope` set must align concept-for-concept, with no extra exclusions added in one surface only. The reported item 5 is exactly that violation."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-002",
+      "explanation": "This is a direct semantic-consistency issue. `latest active review evidence` and `latest required review evidence` are two phrasings for the same concept, and ARB-002 already requires one canonical definition and consistent reuse across sections."
+    },
+    {
+      "finding_group_id": "f1",
+      "covered_by_rule_id": "ARB-011",
+      "explanation": "This is already covered by the carry-forward rule. The prior finding remained unresolved, but the next-round fix narrative pointed to a different improvement instead of explicitly carrying the original finding forward by ID with the correct disposition. That is the exact convergence failure ARB-011 exists to prevent."
+    }
+  ],
+  "no_rule_needed": []
+}

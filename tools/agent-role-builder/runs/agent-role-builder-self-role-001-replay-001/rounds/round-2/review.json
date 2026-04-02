@@ -1,0 +1,114 @@
+{
+  "round": 2,
+  "reviewMode": "delta",
+  "leaderVerdict": "frozen",
+  "leaderRationale": "All cited content findings are cleared and reviewer-1 is now approved, but this run came through a split verdict in r1. Under the stated rule and the draft's own `reviewer-clear` definition, freeze must wait for a final `regression_sanity` approval from reviewer-0, the previously approving reviewer. That evidence is not present in this delta round, so reviewer-clear is not yet established and neither frozen state is available.\nGovernance override: Leader returned pushback even though no repair work remained. Safe effective status is frozen.\nFreeze deferred pending one final regression sanity review from the previously approving reviewer after split-verdict convergence.",
+  "unresolved": [],
+  "deferredItems": [],
+  "improvementsApplied": [
+    "Removed the unmatched `Not in scope` exclusion so the scope exclusions now align concept-for-concept with the role contract.",
+    "Standardized the canonical qualifier to `latest required review evidence` across `material pushback`, `reviewer-clear`, and `result.json` evidence language.",
+    "Closed the carried-forward scope-alignment defect directly as `f1` instead of treating the earlier reviewer-clear changes as its fix.",
+    "Preserved the dual-gate freeze model and full artifact-lifecycle matrix while resolving the remaining delta issues."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-1-claude-r2": {
+      "verdict": "approved",
+      "conceptual_groups": [],
+      "fix_decisions": [
+        {
+          "finding_id": "f1",
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') has been removed. The scope exclusion list now contains exactly four items that cover all five role-contract concepts (contract items 4 and 5 remain correctly merged into role item 4). The concept-for-concept alignment guardrail is satisfied: every contract concept has a role counterpart, and no role item lacks a contract counterpart. The behavioral constraint formerly expressed as item 5 remains fully operative through the <authority> section and the 'Never invent' and 'Never write outside the governed surface' guardrails. The r0 group-1 finding is closed."
+        },
+        {
+          "finding_id": "f3",
+          "finding_group_id": "group-2",
+          "decision": "accept_fix",
+          "reason": "The material pushback definition now reads 'the latest required review evidence' (guardrails line 92), matching the qualifier used in the reviewer-clear definition (line 93) and the result.json lifecycle note (outputs line 208). All three canonical terms — material pushback, reviewer-clear, and round leader — now use consistent phrasing and a single qualifier throughout the artifact. The r1 ARB-002 terminology inconsistency is closed."
+        }
+      ],
+      "residual_risks": [
+        "Step 4 substep 5 names 'the self-learning engine' as the actor that confirms or updates the component rulebook, while Step 4 substep 10 describes a full rule re-walk that architecturally belongs to the rules-compliance-enforcer (shared/rules-compliance-enforcer/). The role still does not name the rules-compliance-enforcer, retaining the risk that implementors conflate the two shared engines. This risk is bounded by the inherited component governance files and does not impair the role's correctness."
+      ],
+      "strengths": [
+        "Scope alignment fully restored: the four-item Not-in-scope list now covers all five role-contract concepts with no extra items and no gaps, satisfying both the letter and spirit of the concept-for-concept alignment guardrail.",
+        "ARB-002 terminology now fully consistent: 'latest required review evidence' is the single qualifier used across the material pushback definition, reviewer-clear definition, and result.json lifecycle — zero semantic drift across sections.",
+        "All prior-round findings resolved: r0 group-1 (scope misalignment), r0/r1 group-1 f2 (self-check credibility on ARB-006), and r1 group-2 f3 (qualifier inconsistency) are all closed without introducing regressions in any unchanged section.",
+        "Dual-gate freeze model is clean and complete: reviewer-clear gates on verdict status (any active reject blocks freezing regardless of severity) and material pushback gates on finding severity (blocking/major unresolved findings block freezing), with no overlap between the two gates.",
+        "Authority precedence chain remains strict: operative sources are numbered 1–4, runtime-scoped inputs and reference evidence are classified in separate headings, and no flat lists appear.",
+        "Artifact lifecycle matrix is authoritative and complete: three-class separation (canonical role content / canonical governance history / run-scoped evidence) with full tool-relative paths and per-terminal-state lifecycle rules for all five terminal states.",
+        "Terminal predicates remain ordered and mutually exclusive: each predicate adds exactly one condition to the prior negation, making the evaluation sequence mechanically testable.",
+        "Context-gathering correctly scoped as a precondition section: labeled 'Preconditions before Step 1' with six numbered preconditions that are not mixed into the numbered execution steps.",
+        "Arbitration mechanics remain fully specified: mechanical trigger (reviewer-clear already true, minor/suggestion severity only), named actor (round leader), evidence path (result.json with arbitration_used, affected finding IDs, rationale), and forced terminal effect (frozen_with_conditions).",
+        "Step labels consistent: all five numbered steps carry the '(current governed workflow requirement)' label per ARB-014."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-001-replay-001",
+    "round": 2,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 127941,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-1-claude-r2",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 80033,
+        "fallback_used": false,
+        "invocation_id": "061c337e-c4ca-4353-8df3-f148c8ecc6d5"
+      },
+      {
+        "participant_id": "leader-codex-r2",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 47908,
+        "fallback_used": false,
+        "invocation_id": "ff275fae-5a83-49e0-955b-9d741a9f8112"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-1-claude-r2",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 2,
+      "latency_ms": 80033,
+      "invocation_id": "061c337e-c4ca-4353-8df3-f148c8ecc6d5",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r2",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 2,
+      "latency_ms": 47908,
+      "invocation_id": "ff275fae-5a83-49e0-955b-9d741a9f8112",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "d4a8a31e-da56-44c3-9134-d0359c98f415",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json"
+  }
+}

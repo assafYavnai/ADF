@@ -1,0 +1,480 @@
+{
+  "generated_at": "2026-04-01T14:02:24.288Z",
+  "live_route": "CLI -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+  "success": {
+    "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime",
+    "checkpoint_thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\2c18a878-ec4c-4b1b-9543-5b00870a962a.json",
+    "checkpoint_thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\2c18a878-ec4c-4b1b-9543-5b00870a962a.txt",
+    "final_thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\2c18a878-ec4c-4b1b-9543-5b00870a962a.json",
+    "final_thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\2c18a878-ec4c-4b1b-9543-5b00870a962a.txt",
+    "thread_id": "2c18a878-ec4c-4b1b-9543-5b00870a962a",
+    "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+    "checkpoint_layer": "experience_ui",
+    "checkpoint_next_question": "Does UI or user-experience meaning matter to this scope before freeze?",
+    "final_lifecycle_status": "handoff_ready",
+    "final_freeze_status": "approved",
+    "finalized_requirement_memory_id": "2545e7eb-34c6-404e-b879-3fbf94586cbf",
+    "latest_persistence_receipts": [
+      {
+        "kind": "finalized_requirement_create",
+        "target": "memory_engine",
+        "status": "created",
+        "artifact_kind": "requirement_list",
+        "action": "create",
+        "scope_path": "assafyavnai/shippingagent",
+        "record_id": "2545e7eb-34c6-404e-b879-3fbf94586cbf",
+        "success": true,
+        "message": "Persisted the finalized requirement artifact through the governed requirements surface."
+      },
+      {
+        "kind": "finalized_requirement_lock",
+        "target": "memory_engine",
+        "status": "locked",
+        "artifact_kind": "requirement_list",
+        "action": "update_trust_level",
+        "scope_path": "assafyavnai/shippingagent",
+        "record_id": "2545e7eb-34c6-404e-b879-3fbf94586cbf",
+        "success": true,
+        "message": "Locked the finalized requirement artifact after approved freeze."
+      },
+      {
+        "kind": "thread_workflow_state",
+        "target": "thread",
+        "status": "stored",
+        "artifact_kind": "working_scope",
+        "action": "persist",
+        "scope_path": "assafyavnai/shippingagent",
+        "record_id": null,
+        "success": true,
+        "message": "Thread workflow state persisted for the live onion turn."
+      }
+    ],
+    "latest_operation_record_count": 6,
+    "latest_llm_call_count": 1,
+    "requirement_row": {
+      "id": "2545e7eb-34c6-404e-b879-3fbf94586cbf",
+      "content_type": "requirement",
+      "trust_level": "locked",
+      "tags": [
+        "requirements-gathering",
+        "onion",
+        "finalized-requirement-list",
+        "coo-owned"
+      ],
+      "source_path": "COO/requirements-gathering/live/finalized-requirement-lock/onion::2c18a878-ec4c-4b1b-9543-5b00870a962a/2ac02255-58e5-40b4-9e48-8c4b5eef35b6",
+      "content": {
+        "text": "Finalized requirements: Execution monitor for ADF",
+        "artifact": {
+          "blockers": [],
+          "artifact_id": "onion-requirements::onion::2c18a878-ec4c-4b1b-9543-5b00870a962a::2ac02255-58e5-40b4-9e48-8c4b5eef35b6",
+          "human_scope": {
+            "goal": "See what the system is currently doing, starting with the implementation queue.",
+            "topic": "Execution monitor for ADF",
+            "boundaries": [
+              {
+                "id": "phase1_queue_first",
+                "kind": "constraint",
+                "statement": "Phase 1 focuses on the implementation queue first."
+              },
+              {
+                "id": "no_historic_analytics",
+                "kind": "non_goal",
+                "statement": "This is not a full historical analytics suite."
+              }
+            ],
+            "approved_at": "2026-04-01T14:02:15.313Z",
+            "major_parts": [
+              {
+                "id": "queue_view",
+                "label": "Queue view",
+                "order": 0
+              },
+              {
+                "id": "flow_view",
+                "label": "Flow view",
+                "order": 1
+              },
+              {
+                "id": "node_details",
+                "label": "Node details",
+                "order": 2
+              },
+              {
+                "id": "audit_trail",
+                "label": "Audit trail",
+                "order": 3
+              },
+              {
+                "id": "metrics",
+                "label": "Metrics",
+                "order": 4
+              }
+            ],
+            "success_view": "I can open the page, see the queue, and drill into current execution details.",
+            "experience_ui": {
+              "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+              "relevant": true,
+              "approval_notes": "Approved as the Phase 1 alignment target.",
+              "preview_status": "preview_approved",
+              "preview_artifact": "mockup://execution-monitor-v1"
+            },
+            "open_decisions": [
+              {
+                "id": "live_update_model",
+                "impact": "This changes the product promise and testing expectations.",
+                "status": "resolved",
+                "question": "Should live updates use polling or push for the first release?",
+                "resolution": "Use timed polling every 10 seconds for the first release."
+              }
+            ],
+            "expected_result": "A local URL that shows the current system status with live updates.",
+            "approved_turn_id": "2ac02255-58e5-40b4-9e48-8c4b5eef35b6",
+            "part_clarifications": {
+              "metrics": {
+                "detail": "Show token usage plus total and per-step timing.",
+                "status": "clarified",
+                "part_id": "metrics",
+                "questions_answered": [
+                  "What belongs in metrics?"
+                ]
+              },
+              "flow_view": {
+                "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+                "status": "clarified",
+                "part_id": "flow_view",
+                "questions_answered": [
+                  "What belongs in the flow view?"
+                ]
+              },
+              "queue_view": {
+                "detail": "Show active features, current status, owner, and any blocking reason.",
+                "status": "clarified",
+                "part_id": "queue_view",
+                "questions_answered": [
+                  "What belongs in the queue view?"
+                ]
+              },
+              "audit_trail": {
+                "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+                "status": "clarified",
+                "part_id": "audit_trail",
+                "questions_answered": [
+                  "What belongs in the audit trail?"
+                ]
+              },
+              "node_details": {
+                "detail": "Show agent output, substeps, and timing.",
+                "status": "clarified",
+                "part_id": "node_details",
+                "questions_answered": [
+                  "What should node details show?"
+                ]
+              }
+            }
+          },
+          "artifact_kind": "requirement_list",
+          "schema_version": "1.0",
+          "derivation_notes": [
+            "Derived only from the approved onion snapshot.",
+            "No LLM expansion or silent business guessing was used."
+          ],
+          "derivation_status": "ready",
+          "requirement_items": [
+            {
+              "id": "scope-anchor",
+              "title": "Feature outcome",
+              "detail": "Goal: See what the system is currently doing, starting with the implementation queue.\nExpected result: A local URL that shows the current system status with live updates.\nSuccess view: I can open the page, see the queue, and drill into current execution details.",
+              "source_refs": [
+                "goal",
+                "expected_result",
+                "success_view"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:queue_view",
+              "title": "Queue view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "source_refs": [
+                "major_parts.queue_view",
+                "part_clarifications.queue_view"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:flow_view",
+              "title": "Flow view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "source_refs": [
+                "major_parts.flow_view",
+                "part_clarifications.flow_view"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:node_details",
+              "title": "Node details",
+              "detail": "Show agent output, substeps, and timing.",
+              "source_refs": [
+                "major_parts.node_details",
+                "part_clarifications.node_details"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:audit_trail",
+              "title": "Audit trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "source_refs": [
+                "major_parts.audit_trail",
+                "part_clarifications.audit_trail"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:metrics",
+              "title": "Metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "source_refs": [
+                "major_parts.metrics",
+                "part_clarifications.metrics"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "experience-ui",
+              "title": "Experience / UI alignment",
+              "detail": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+              "source_refs": [
+                "experience_ui.summary",
+                "experience_ui.preview_artifact"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            }
+          ],
+          "explicit_boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_business_decisions": [],
+          "source_approval_turn_id": "2ac02255-58e5-40b4-9e48-8c4b5eef35b6"
+        },
+        "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+        "artifact_kind": "requirement_list",
+        "source_approval_turn_id": "2ac02255-58e5-40b4-9e48-8c4b5eef35b6"
+      }
+    },
+    "llm_telemetry_rows": 16,
+    "sample_llm_telemetry_rows": [
+      {
+        "source_path": "COO/classifier/classify/2c18a878-ec4c-4b1b-9543-5b00870a962a",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "latency_ms": 11,
+        "tokens_in": 592,
+        "tokens_out": 74
+      },
+      {
+        "source_path": "COO/requirements-gathering/live/turn-parser/onion::2c18a878-ec4c-4b1b-9543-5b00870a962a/1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 23,
+        "tokens_in": 541,
+        "tokens_out": 32
+      },
+      {
+        "source_path": "COO/classifier/classify/2c18a878-ec4c-4b1b-9543-5b00870a962a",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "latency_ms": 11,
+        "tokens_in": 837,
+        "tokens_out": 68
+      },
+      {
+        "source_path": "COO/requirements-gathering/live/turn-parser/onion::2c18a878-ec4c-4b1b-9543-5b00870a962a/a779378e-2b5f-4330-8d56-87901deb566c",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 23,
+        "tokens_in": 563,
+        "tokens_out": 23
+      }
+    ],
+    "onion_operation_rows": 48,
+    "sample_onion_operation_rows": [
+      {
+        "operation": "onion_reducer",
+        "latency_ms": 0,
+        "metadata": {
+          "turn_id": "1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+          "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+          "error_code": null,
+          "route_stage": "requirements_gathering_onion",
+          "error_message": null,
+          "input_summary": {
+            "actor": "ceo",
+            "summary": "We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue.",
+            "had_previous_approval": false
+          },
+          "output_summary": {
+            "change_count": 2,
+            "freeze_status": "draft",
+            "major_part_count": 0
+          }
+        }
+      },
+      {
+        "operation": "clarification_policy",
+        "latency_ms": 0,
+        "metadata": {
+          "turn_id": "1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+          "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+          "error_code": null,
+          "route_stage": "requirements_gathering_onion",
+          "error_message": null,
+          "input_summary": {
+            "current_layer": "expected_result",
+            "major_part_count": 0,
+            "open_decision_count": 0
+          },
+          "output_summary": {
+            "next_target": "expected_result",
+            "has_question": true,
+            "current_layer": "expected_result"
+          }
+        }
+      },
+      {
+        "operation": "freeze_check",
+        "latency_ms": 0,
+        "metadata": {
+          "turn_id": "1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+          "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+          "error_code": null,
+          "route_stage": "requirements_gathering_onion",
+          "error_message": null,
+          "input_summary": {
+            "freeze_status": "draft",
+            "open_decision_count": 0
+          },
+          "output_summary": {
+            "status": "blocked",
+            "blocker_count": 5,
+            "has_freeze_request": false
+          }
+        }
+      },
+      {
+        "operation": "artifact_deriver",
+        "latency_ms": 0,
+        "metadata": {
+          "turn_id": "1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+          "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+          "error_code": null,
+          "route_stage": "requirements_gathering_onion",
+          "error_message": null,
+          "input_summary": {
+            "freeze_status": "draft",
+            "approved_snapshot_present": false
+          },
+          "output_summary": {
+            "status": "blocked",
+            "blocker_count": 1,
+            "requirement_item_count": 0
+          }
+        }
+      },
+      {
+        "operation": "readiness_check",
+        "latency_ms": 0,
+        "metadata": {
+          "turn_id": "1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+          "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+          "error_code": null,
+          "route_stage": "requirements_gathering_onion",
+          "error_message": null,
+          "input_summary": {
+            "freeze_status": "draft",
+            "derivation_status": "blocked"
+          },
+          "output_summary": {
+            "status": "blocked",
+            "blocker_count": 6,
+            "checklist_count": 8
+          }
+        }
+      },
+      {
+        "operation": "audit_trace_build",
+        "latency_ms": 0,
+        "metadata": {
+          "turn_id": "1733dc55-1fe3-4699-bb2a-969e48ed7f3a",
+          "trace_id": "onion::2c18a878-ec4c-4b1b-9543-5b00870a962a",
+          "error_code": null,
+          "route_stage": "requirements_gathering_onion",
+          "error_message": null,
+          "input_summary": {
+            "change_count": 2,
+            "current_layer": "expected_result",
+            "freeze_status": "draft"
+          },
+          "output_summary": {
+            "result_status": "clarification_needed",
+            "workflow_step": "clarification",
+            "has_next_question": true
+          }
+        }
+      }
+    ],
+    "handle_turn_rows": 8,
+    "final_response": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 2545e7eb-34c6-404e-b879-3fbf94586cbf\nThe COO handoff is ready for downstream review."
+  },
+  "gate_disabled": {
+    "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime",
+    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime\\threads\\0c69adf3-68e3-44c1-a00f-4bd79009dcbc.json",
+    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime\\threads\\0c69adf3-68e3-44c1-a00f-4bd79009dcbc.txt",
+    "thread_id": "0c69adf3-68e3-44c1-a00f-4bd79009dcbc",
+    "response": "This thread is already in requirements-gathering onion mode, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.",
+    "active_workflow_after": "requirements_gathering_onion",
+    "preserved_topic": "Execution monitor for ADF",
+    "gate_turn_telemetry": {
+      "metadata": {
+        "workflow": "requirements_gathering_onion",
+        "thread_id": "0c69adf3-68e3-44c1-a00f-4bd79009dcbc",
+        "scope_path": "assafyavnai/shippingagent",
+        "gate_status": "disabled"
+      },
+      "success": false
+    }
+  },
+  "no_scope": {
+    "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime",
+    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime\\threads\\8fbbaf4c-b736-4525-97da-4b1a7a8539b6.json",
+    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime\\threads\\8fbbaf4c-b736-4525-97da-4b1a7a8539b6.txt",
+    "thread_id": "8fbbaf4c-b736-4525-97da-4b1a7a8539b6",
+    "response": "I froze the human-facing scope, but I could not complete the durable handoff truthfully.\n- Cannot persist the finalized requirement artifact without an explicit scope.",
+    "lifecycle_status": "blocked",
+    "freeze_status": "approved",
+    "finalized_requirement_memory_id": null,
+    "failed_persistence_receipts": [
+      {
+        "kind": "finalized_requirement_create",
+        "target": "memory_engine",
+        "status": "failed",
+        "artifact_kind": "requirement_list",
+        "action": "create",
+        "scope_path": null,
+        "record_id": null,
+        "success": false,
+        "message": "Cannot persist the finalized requirement artifact without an explicit scope."
+      }
+    ]
+  }
+}

@@ -29,7 +29,11 @@ test("governance create/list/get/search work end to end through the MCP route", 
       action: "list",
       scope: "assafyavnai/shippingagent",
     }) as Array<Record<string, unknown>>;
-    assert.ok(listed.some((row) => row.id === ruleId), "list should include the created rule");
+    const listedRule = listed.find((row) => row.id === ruleId);
+    assert.ok(listedRule, "list should include the created rule");
+    assert.equal(listedRule.evidence_format_version, 2);
+    assert.equal(listedRule.evidence_lifecycle_status, "current");
+    assert.equal(listedRule.legacy_marker, null);
 
     const got = await callJsonTool("rules_manage", {
       action: "get",
@@ -37,6 +41,9 @@ test("governance create/list/get/search work end to end through the MCP route", 
       scope: "assafyavnai/shippingagent",
     }) as Record<string, unknown>;
     assert.equal(got.id, ruleId);
+    assert.equal(got.evidence_format_version, 2);
+    assert.equal(got.evidence_lifecycle_status, "current");
+    assert.equal(got.legacy_marker, null);
 
     const searched = await callJsonTool("rules_manage", {
       action: "search",

@@ -1,0 +1,19 @@
+{
+  "what_failed": "Leader emitted invalid pushback verdict",
+  "error_message": "Leader returned pushback even though no repair work remained. Safe effective status is frozen.",
+  "where": "Round 2, leader terminal-state validation",
+  "context": {
+    "round": 2,
+    "material_repair_items": [],
+    "unresolved": [],
+    "effective_leader_verdict": "frozen"
+  },
+  "input_that_caused_failure": "{\n  \"leader_verdict\": \"pushback\",\n  \"leader_rationale\": \"All cited content findings are cleared and reviewer-1 is now approved, but this run came through a split verdict in r1. Under the stated rule and the draft's own `reviewer-clear` definition, freeze must wait for a final `regression_sanity` approval from reviewer-0, the previously approving reviewer. That evidence is not present in this delta round, so reviewer-clear is not yet established and neither frozen state is available.\",\n  \"material_repair_items\": [],\n  \"any_repair_items\": []\n}",
+  "expected_format": "A leader verdict that matches the live repair state after review, learning, self-check evaluation, and final sanity requirements.",
+  "component": "tools/agent-role-builder/board/leader-contract-validation",
+  "provenance": {
+    "provider": "codex",
+    "model": "gpt-5.4"
+  },
+  "timestamp": "2026-03-31T08:22:30.190Z"
+}

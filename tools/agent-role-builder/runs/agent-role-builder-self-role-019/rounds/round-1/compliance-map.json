@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "scope": "delta",
+  "artifact_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/agent-role-builder-role.md",
+  "round": 1,
+  "entries": [
+    {
+      "rule_id": "ARB-001",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Authority is expressed as a strict two-layer operative precedence chain, while request/runtime knobs are separated as execution inputs and reference docs are explicitly non-operative."
+    },
+    {
+      "rule_id": "ARB-002",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, Step 5, <completion>",
+      "evidence_summary": "Material pushback, carried-forward finding, and minor-only arbitration are each defined once in <guardrails> and then reused consistently by name elsewhere."
+    },
+    {
+      "rule_id": "ARB-003",
+      "status": "compliant",
+      "evidence_location": "<outputs>, Step 5, <completion>",
+      "evidence_summary": "Canonical promoted artifacts are separated from run-scoped working/evidence artifacts, and the same lifecycle model is referenced in terminal handling and completion."
+    },
+    {
+      "rule_id": "ARB-004",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, Step 5, <completion>",
+      "evidence_summary": "Each terminal state has a mechanically distinct predicate: frozen vs frozen_with_conditions are separated by arbitration_used, pushback is semantic insufficiency after structural validation, blocked is structural failure or unrecoverable execution error, and resume_required is budget exhaustion on a repair path."
+    },
+    {
+      "rule_id": "ARB-005",
+      "status": "compliant",
+      "evidence_location": "Step 3",
+      "evidence_summary": "The self-check claims only concrete checks it can validate: tag presence, semantic concept coverage, canonical path matching, Step 1 write-point consistency, and cross-section consistency checks."
+    },
+    {
+      "rule_id": "ARB-006",
+      "status": "compliant",
+      "evidence_location": "<scope>, <authority>",
+      "evidence_summary": "The exclusion list is canonicalized in <scope> under Not in scope, and <authority> references that list instead of duplicating or varying it."
+    },
+    {
+      "rule_id": "ARB-007",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, Step 5, <completion>",
+      "evidence_summary": "Minor-only arbitration names the actor, evidence field, admissible severities, and outcome effect, and it cannot overlap with clean frozen."
+    },
+    {
+      "rule_id": "ARB-008",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "Every declared package artifact appears with its full tool-relative canonical path; no basename-only package references remain."
+    },
+    {
+      "rule_id": "ARB-009",
+      "status": "compliant",
+      "evidence_location": "<completion>",
+      "evidence_summary": "Completion is defined separately for frozen, frozen_with_conditions, pushback, blocked, and resume_required, each with its own required artifact set."
+    },
+    {
+      "rule_id": "ARB-010",
+      "status": "compliant",
+      "evidence_location": "<context-gathering>, <steps>",
+      "evidence_summary": "Context gathering is explicitly a precondition phase before Step 1, and numbered execution begins only in <steps>."
+    },
+    {
+      "rule_id": "ARB-011",
+      "status": "compliant",
+      "evidence_location": "<inputs>, <guardrails>, Step 4, <outputs>",
+      "evidence_summary": "Carried-forward review items are keyed by finding ID across rounds, while conceptual_group ID is retained only as grouping context in fix-items evidence."
+    },
+    {
+      "rule_id": "ARB-013",
+      "status": "compliant",
+      "evidence_location": "<guardrails>, Step 5, <outputs>",
+      "evidence_summary": "Update/fix preservation is explicit: the canonical decision log is appended with a dated section, the canonical board summary is replaced only on freeze outcomes, and run copies are retained."
+    },
+    {
+      "rule_id": "ARB-014",
+      "status": "compliant",
+      "evidence_location": "<steps>",
+      "evidence_summary": "Each step is labeled as current governed behavior or current inherited behavior, avoiding target-state claims presented as implemented behavior."
+    },
+    {
+      "rule_id": "ARB-015",
+      "status": "compliant",
+      "evidence_location": "Step 4, <outputs>",
+      "evidence_summary": "learning.json and diff-summary.json are declared for every round, including the final clean round, instead of being gated behind revision-only conditions."
+    },
+    {
+      "rule_id": "ARB-016",
+      "status": "compliant",
+      "evidence_location": "<outputs>",
+      "evidence_summary": "A single artifact matrix declares each artifact once with class, full path, and exact lifecycle across create/update/fix and terminal outcomes."
+    },
+    {
+      "rule_id": "ARB-017",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>",
+      "evidence_summary": "Authority order and governance semantics are derived from the COO controller, active runtime contract, and declared source authorities; local text limits itself to component consequences and inherited behavior."
+    },
+    {
+      "rule_id": "ARB-018",
+      "status": "compliant",
+      "evidence_location": "<role>",
+      "evidence_summary": "The mission statement is durable and role-centric rather than describing a transient run, bootstrap condition, or recovery state."
+    },
+    {
+      "rule_id": "ARB-019",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "The writable governed surface explicitly enumerates canonical package targets and the run-scoped writable files/directories for the active run."
+    },
+    {
+      "rule_id": "ARB-020",
+      "status": "compliant",
+      "evidence_location": "<authority>",
+      "evidence_summary": "Only operative governance sources appear in the precedence chain; request and runtime settings are classified separately as execution inputs, and reference documents are non-operative evidence."
+    },
+    {
+      "rule_id": "ARB-021",
+      "status": "compliant",
+      "evidence_location": "<authority>, <guardrails>, Step 5",
+      "evidence_summary": "Shared governance behaviors such as split-verdict handling, regression sanity, budget exhaustion, and error escalation are inherited by reference instead of being reinvented as local policy."
+    },
+    {
+      "rule_id": "ARB-022",
+      "status": "compliant",
+      "evidence_location": "<scope>",
+      "evidence_summary": "Use when contains only inclusion triggers, and Not in scope contains only exclusions with no mixed-polarity items."
+    },
+    {
+      "rule_id": "ARB-023",
+      "status": "compliant",
+      "evidence_location": "Step 4, <outputs>",
+      "evidence_summary": "The multi-round review loop is enumerated in order and each sub-step names the required round artifact it writes."
+    },
+    {
+      "rule_id": "ARB-024",
+      "status": "compliant",
+      "evidence_location": "<authority>, <context-gathering>, <guardrails>",
+      "evidence_summary": "The role names its active component governance files and states that runtime review mechanics are inherited from the active review contract and source authorities."
+    },
+    {
+      "rule_id": "ARB-025",
+      "status": "compliant",
+      "evidence_location": "<inputs>",
+      "evidence_summary": "Required and conditionally required inputs enumerate the request, authorities, reviewer roster, governance config, runtime config, baseline package, resume package, and prior finding IDs needed to execute and reach terminal decisions."
+    }
+  ],
+  "unchecked_rules": [],
+  "generated_at": "2026-03-31T05:57:47.538Z"
+}

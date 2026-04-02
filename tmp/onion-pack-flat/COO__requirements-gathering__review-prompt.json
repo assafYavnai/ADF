@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "domain": "design",
+  "domain_description": "CEO-facing requirements-gathering design -- the COO peels feature scope from the outside in, freezes the approved human-facing onion, and only then derives the technical requirement package.",
+  "focus_areas": [
+    "Outside-in scope shaping: topic, goal, expected result, and success view are clarified before deep detail (RQG-001, RQG-003)",
+    "Question discipline: one business-level clarification question at a time (RQG-002)",
+    "Feature structure: major parts are defined before per-part clarification (RQG-004)",
+    "UI alignment: mockup or preview loop is used when UI meaning matters (RQG-005)",
+    "Working truth: scope is captured in an artifact, not left only in chat (RQG-006)",
+    "Boundary clarity: constraints, non-goals, and open business decisions are explicit before freeze (RQG-007)",
+    "Freeze gate: the whole onion is shown back to the CEO for explicit approval (RQG-008)",
+    "Meaning preservation: the technical requirement package preserves the approved human scope without inventing business decisions (RQG-009)",
+    "Readiness handoff: the package is self-checked against the rulebook before CTO handoff (RQG-010)"
+  ],
+  "severity_definitions": {
+    "blocking": "Prevents safe scope freeze or creates a high risk that later phases will guess core product meaning. Must be fixed before freeze.",
+    "major": "Significant scope-shaping gap that will cause downstream pushback, redesign, or misaligned implementation. Must be fixed before freeze.",
+    "minor": "Small clarity or framing issue. Can be frozen with conditions if the business meaning is still intact.",
+    "suggestion": "Nice-to-have improvement. Does not affect freeze decision."
+  },
+  "compliance_map_required": true,
+  "fix_items_map_required_from_round": 1,
+  "learning_engine_between_rounds": true,
+  "full_sweep_rounds": "first and last (when no pushbacks found)"
+}

@@ -4,9 +4,50 @@ Date: 2026-03-31
 Status: working replacement plan
 Purpose: preserve the current recommended path for turning the COO into a solid, mature Phase 1 component without depending on the chat thread.
 
+Update: 2026-04-01 (live onion integration)
+
+The COO now supports the requirements-gathering onion lane on the supported runtime behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`.
+
+Closed in this slice:
+
+- classifier, controller, thread, and onion contracts now agree on the live `requirements_gathering_onion` workflow
+- live CEO turns can enter the onion lane through the supported COO route
+- onion workflow state, working scope, freeze status, approved snapshot, and audit trace are durably persisted in thread truth
+- the finalized requirement artifact is created through the governed `requirements_manage` route and locked through `memory_manage`
+- real route proof now exists under `tests/integration/artifacts/onion-route-proof/`
+
+Current remaining gaps after live onion integration:
+
+- downstream consumers still need to use the finalized requirement artifact directly
+- management trust still depends on broader real-conversation evidence beyond the current proof set
+- historical evidence policy remains a separate concern from current live onion correctness
+
 Update: 2026-04-01
 
 Independent post-stabilization code review and audit confirmed that the COO is now runnable, but still not management-trustworthy.
+
+Update: 2026-04-01 (historical evidence format closure)
+
+The bounded historical evidence slice has now been narrowed further.
+
+Implemented in this slice:
+
+- historical rows in `memory_items`, `decisions`, and `memory_embeddings` are now upgraded into one explicit at-rest format contract
+- the durable marker contract is:
+  - `evidence_format_version = 2`
+  - `evidence_lifecycle_status = current | legacy_archived`
+  - `legacy_marker = ADF_LEGACY_SENTINEL_V1` for the upgraded legacy corpus
+- fresh writes still land as `current`
+- default decision-grade reads still exclude legacy rows
+- explicit legacy reads now return the lifecycle metadata directly instead of relying on sentinel provenance heuristics alone
+
+Current status after this slice:
+
+- live COO route correctness remains strong
+- historical evidence is now explicitly identifiable and partitioned at rest
+- the remaining decision is narrower:
+  - whether the explicitly labeled legacy corpus should stay in place behind that boundary
+  - or move into a separate archive / retirement path for management reporting
 
 Current critical path:
 
@@ -17,12 +58,8 @@ Current critical path:
 Current decision:
 
 - do not restart architecture
-- do not move to onion implementation yet
-- complete one more focused COO stabilization slice:
-  - scope propagation
-  - truthful write-result capture
-  - scoped retrieval
-  - governance surface honesty
+- the stabilization slice is complete enough to support the live onion lane behind an explicit feature gate
+- continue from here into downstream finalized-requirement consumption and broader management evidence
 
 Update: 2026-04-01 (later)
 
@@ -137,10 +174,11 @@ Therefore:
 
 - do **not** start over
 - do **not** continue the old COO plan mechanically
-- do **not** move to onion implementation yet
-- first run a focused **COO stabilization** slice
+- keep the stabilized COO route
+- operate the onion lane behind its explicit feature gate
+- move next into downstream requirement-artifact consumption and broader route proof
 
-Only after that stabilization slice passes should the COO move into the onion requirements lane and requirement-artifact flow.
+The stabilization slice has passed for the current COO route. The onion requirements lane and requirement-artifact flow are now part of the supported runtime behind the explicit gate.
 
 ## Why The Plan Changed
 
@@ -180,7 +218,7 @@ These are still the right core surfaces unless a later fix round proves otherwis
 
 ### Fix
 
-Fix before onion work:
+Fix before broader downstream lane work:
 
 - broken decision logging path
 - broken governance/rule creation path
@@ -459,7 +497,7 @@ The stabilization slice should be treated as complete only when:
 4. telemetry and provenance are honest enough for management use
 5. the live COO capability surface is explicit and truthful
 
-Only then should onion implementation begin.
+The next step is not onion activation. The next step is broader downstream use of the finalized requirement artifact.
 
 ## What We Are Explicitly Not Doing Yet
 
@@ -476,8 +514,8 @@ Defer for now:
 
 - do not start over
 - do not finish the old plan as written
-- do not build onion behavior on top of a weak runtime
-- stabilize first, then complete the real COO lane
+- keep onion live behind the explicit feature gate
+- use the stabilized runtime and finalized requirement artifact as the base for downstream expansion
 
 ## Execution Order
 
@@ -486,6 +524,6 @@ Defer for now:
 3. repair recovery and continuity
 4. repair memory and observability truth
 5. freeze the continuity foundation
-6. build the onion lane
-7. build the requirement artifact
-8. build requirement freeze and handoff
+6. operate the onion lane on the supported route behind the explicit feature gate
+7. use the finalized requirement artifact for downstream handoff
+8. build requirement freeze and broader downstream consumption

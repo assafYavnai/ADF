@@ -1,0 +1,25 @@
+1. Findings
+
+Focused route tests passed for `shared/llm-invoker/managed-process.test.ts`, `tests/integration/telemetry-route.integration.test.ts`, `tests/integration/governance-route.integration.test.ts`, `tests/integration/retrieval-route.integration.test.ts`, `COO/context-engineer/context-engineer.test.ts`, and `components/memory-engine/src/schemas/scope-requirements.test.ts`. Managed-route smoke also passed for `claude --version`, `gemini --version`, and `codex --version`. No live defect or regression was reproduced in the cycle-06 closure set. The current audit leaves one in-scope finding: historical evidence-lifecycle debt.
+
+1. Failure class: historical evidence-lifecycle debt  
+Broken route invariant in one sentence: decision-grade evidence must be modern or explicitly retired at rest, not merely filtered out of default reads after legacy sentinel rows have already landed in live tables.  
+Exact route: historical sentinel backfills -> `memory_items` / `decisions` / `memory_embeddings` -> shared evidence policy -> `search_memory` / `get_context_summary` / `list_recent` / governance reads  
+Exact file/line references: [evidence-policy.ts](/C:/ADF/components/memory-engine/src/evidence-policy.ts#L6), [search.ts](/C:/ADF/components/memory-engine/src/services/search.ts#L190), [context.ts](/C:/ADF/components/memory-engine/src/services/context.ts#L49), [governance-tools.ts](/C:/ADF/components/memory-engine/src/tools/governance-tools.ts#L38), [context.md](/C:/ADF/docs/phase1/coo-stabilization/context.md#L18)  
+Concrete operational impact: the live DB still contains legacy sentinel-backed evidence (`memory_items=3167`, `decisions=254`, `memory_embeddings=1585` from the current audit query), so default routes are decision-safe only because read-time policy partitions that corpus out; any audit, export, migration, or explicit `include_legacy` route still traverses evidence that is not reconstructible to the modern provenance standard.  
+Sweep scope: all explicit `include_legacy` read surfaces, any reporting/export path that bypasses the default evidence filter, DB maintenance/backfill jobs, and any downstream route that assumes live tables are fully modern once fresh writes are fixed.  
+Closure proof: DB-backed retirement or quarantine proof must show legacy sentinel rows are removed from live decision-grade tables or moved behind an explicit archival boundary; focused route tests must still prove default reads exclude legacy evidence unless `include_legacy` is requested; one live verification query must prove the remaining live corpus is fully modern or explicitly archived.  
+Status: historical debt
+
+2. Conceptual Root Cause
+
+- Missing contract: evidence lifecycle completion. The system now enforces “no fresh sentinel provenance” and “default reads exclude legacy evidence,” but it still lacks a storage-level contract that retires, backfills, or archives preexisting sentinel-backed rows. The missing route-level invariant was that evidence becomes decision-grade only when it is modern at rest or explicitly archived out of the live corpus.
+- Missing contract: shared closure across storage and retrieval. The retrieval, context, and governance routes now share one containment policy through `modernMemoryEvidenceClause(...)`, but the underlying tables still hold legacy rows. That means read-time policy is carrying lifecycle debt that should be closed at the data layer instead of every future consumer inheriting it.
+
+3. High-Level View Of System Routes That Still Need Work
+
+1. Route: historical sentinel-backed corpus -> live DB tables -> audit/reporting or explicit legacy reads  
+Why endpoint-only fixes will fail: adding more filters to one endpoint leaves the same at-rest debt in sibling retrieval, governance, export, and maintenance routes because the unresolved problem is the live corpus itself, not one reader.  
+The minimal layers that must change to close the route: a DB retirement/backfill/quarantine path for `memory_items`, `decisions`, and `memory_embeddings`; the shared evidence-policy contract and docs that define when legacy data is considered archived versus live; and verification queries/tests that prove both default exclusion and explicit legacy access still behave intentionally.  
+Explicit non-goals, so scope does not widen into general refactoring: no broad provenance-schema redesign, no search-ranking refactor, no telemetry rewrite, and no unrelated governance-model changes.  
+What done looks like operationally: live decision-grade tables contain only modern evidence or explicitly archived legacy rows, default reads remain clean without relying on silent assumptions, and any deliberate legacy access is narrow, opt-in, and auditable.

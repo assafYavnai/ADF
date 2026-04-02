@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "round": 3,
+  "items": [
+    {
+      "finding_id": "group-1",
+      "finding_group_id": "group-1",
+      "severity": "minor",
+      "action": "accepted",
+      "summary": "Removed the extra Not in scope exclusion 'Expanding authority beyond the validated request and governing contracts' so the scope exclusions realign concept-for-concept with the role contract."
+    },
+    {
+      "finding_id": "group-2",
+      "finding_group_id": "group-2",
+      "severity": "suggestion",
+      "action": "accepted",
+      "summary": "Standardized the canonical qualifier in the material pushback definition from 'latest active review evidence' to 'latest required review evidence' to match reviewer-clear and result-evidence language.",
+      "evidence_location": "<guardrails>"
+    },
+    {
+      "finding_id": "f1",
+      "finding_group_id": "group-1",
+      "severity": "blocking",
+      "action": "accepted",
+      "summary": "Addressed the actual carried-forward scope-alignment defect directly by removing the unmatched scope exclusion in <scope>; the existing reviewer-clear improvements remain valid but are no longer treated as the fix for this item.",
+      "evidence_location": "<scope>"
+    }
+  ],
+  "generated_at": "2026-03-31T08:22:30.199Z"
+}

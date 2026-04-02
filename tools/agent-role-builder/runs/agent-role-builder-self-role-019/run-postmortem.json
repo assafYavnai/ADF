@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-019",
+  "questions_ref": "shared/self-learning-engine/postmortem-questions.json",
+  "updated_at": "2026-03-31T06:15:25.659Z",
+  "terminal_status": "blocked",
+  "rounds_completed": 2,
+  "round_snapshots": [
+    {
+      "round": 0,
+      "review_mode": "full",
+      "reviewer_invocations": 2,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 0,
+      "participant_count": 3,
+      "leader_verdict": "pushback",
+      "unresolved_count": 2,
+      "unresolved_items": [
+        "group-1: The draft still has internal sequencing and terminal-artifact contradictions, so its claimed semantic consistency and self-check coverage are not credible.",
+        "group-2: Cross-round finding tracking is too coarse to satisfy the per-finding negotiation model required by the review architecture."
+      ],
+      "improvements_applied_count": 4,
+      "reviewer_verdict_breakdown": {
+        "approved": 0,
+        "conditional": 0,
+        "reject": 2,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 3,
+        "minor": 3,
+        "suggestion": 1
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 547936,
+        "max": 287007,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r0",
+            "latency_ms": 172668,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "reviewer-1-claude-r0",
+            "latency_ms": 287007,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r0",
+            "latency_ms": 88261,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": false
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/compliance-map.json",
+        "fix_items_map": null,
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-0/self-check.json"
+      }
+    },
+    {
+      "round": 1,
+      "review_mode": "delta",
+      "reviewer_invocations": 2,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 0,
+      "participant_count": 3,
+      "leader_verdict": "pushback",
+      "unresolved_count": 2,
+      "unresolved_items": [
+        "group-1: The revised draft fixes the prior timing, carry-forward, and scope-duplication issues, but one blocked-path consistency gap remains: the artifact still requires a self-check output in cases where the run can terminate before the self-check step is reachable.",
+        "f3: Removed the sequencing and terminal-artifact contradictions by making normalized-request/source-manifest write once in Step 1, narrowing Step 3 to verify that single write point and declared consistency checks, and aligning Step 5, <outputs>, and <completion> to one terminal artifact model with arbitration_used-based exclusivity."
+      ],
+      "improvements_applied_count": 5,
+      "reviewer_verdict_breakdown": {
+        "approved": 0,
+        "conditional": 0,
+        "reject": 2,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 1,
+        "minor": 2,
+        "suggestion": 0
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 382247,
+        "max": 266456,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r1",
+            "latency_ms": 79254,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "reviewer-1-claude-r1",
+            "latency_ms": 266456,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r1",
+            "latency_ms": 36537,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": true
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/compliance-map.json",
+        "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/fix-items-map.json",
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/self-check.json"
+      }
+    }
+  ],
+  "kpi_summary": {
+    "unresolved_trend": [
+      2,
+      2
+    ],
+    "convergence_delta": 0,
+    "total_fallbacks": 0,
+    "total_participant_invocations": 6,
+    "skipped_reviewer_invocations": 0
+  },
+  "question_outputs": {
+    "PM-002": {
+      "rounds": 2,
+      "participant_invocations": 6,
+      "total_latency_ms": 930183,
+      "reviewer_reuse_savings": 0
+    },
+    "PM-003": {
+      "validation_issue_count": 0,
+      "self_check_issue_count": 0,
+      "review_issue_count": 10,
+      "total_issue_count": 10
+    },
+    "PM-007": {
+      "unresolved_trend": [
+        2,
+        2
+      ],
+      "latest_unresolved_count": 2,
+      "convergence_observed": true
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-019",
+    "round": 1,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 382247,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/rounds/round-1/self-check.json"
+    }
+  },
+  "governance_binding": {
+    "snapshot_id": "822e7b5c-09b9-4f3d-a6ea-d0c317444879",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-019/governance-snapshot.json"
+  }
+}

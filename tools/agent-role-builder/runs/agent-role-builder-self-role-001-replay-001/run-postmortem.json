@@ -1,0 +1,304 @@
+{
+  "schema_version": "1.0",
+  "component": "agent-role-builder",
+  "request_job_id": "agent-role-builder-self-role-001-replay-001",
+  "questions_ref": "shared/self-learning-engine/postmortem-questions.json",
+  "updated_at": "2026-03-31T08:23:30.167Z",
+  "terminal_status": "frozen",
+  "rounds_completed": 4,
+  "round_snapshots": [
+    {
+      "round": 0,
+      "review_mode": "full",
+      "reviewer_invocations": 2,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 0,
+      "participant_count": 3,
+      "leader_verdict": "pushback",
+      "unresolved_count": 1,
+      "unresolved_items": [
+        "group-1: Freeze and terminal-state logic can bypass an active reviewer reject because the draft keys terminal outcomes only off \"material pushback\"."
+      ],
+      "improvements_applied_count": 5,
+      "reviewer_verdict_breakdown": {
+        "approved": 0,
+        "conditional": 0,
+        "reject": 2,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 1,
+        "major": 0,
+        "minor": 1,
+        "suggestion": 0
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 579022,
+        "max": 265224,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r0",
+            "latency_ms": 189599,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "reviewer-1-claude-r0",
+            "latency_ms": 265224,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r0",
+            "latency_ms": 124199,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": false
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/compliance-map.json",
+        "fix_items_map": null,
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-0/self-check.json"
+      }
+    },
+    {
+      "round": 1,
+      "review_mode": "delta",
+      "reviewer_invocations": 2,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 0,
+      "participant_count": 3,
+      "leader_verdict": "pushback",
+      "unresolved_count": 1,
+      "unresolved_items": [
+        "f1: Added the canonical `reviewer-clear` definition, made both frozen states require reviewer-clear plus no material pushback, kept `pushback` and `resume_required` available whenever any active reviewer verdict remains `reject`, and extended Step 3 to validate reviewer-status legality semantically."
+      ],
+      "improvements_applied_count": 5,
+      "reviewer_verdict_breakdown": {
+        "approved": 1,
+        "conditional": 0,
+        "reject": 1,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 0,
+        "minor": 1,
+        "suggestion": 1
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 400500,
+        "max": 278650,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r1",
+            "latency_ms": 57852,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "reviewer-1-claude-r1",
+            "latency_ms": 278650,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r1",
+            "latency_ms": 63998,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": true
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/compliance-map.json",
+        "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/fix-items-map.json",
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/self-check.json"
+      }
+    },
+    {
+      "round": 2,
+      "review_mode": "delta",
+      "reviewer_invocations": 1,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 1,
+      "participant_count": 2,
+      "leader_verdict": "frozen",
+      "unresolved_count": 0,
+      "unresolved_items": [],
+      "improvements_applied_count": 4,
+      "reviewer_verdict_breakdown": {
+        "approved": 1,
+        "conditional": 0,
+        "reject": 0,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 0,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 127941,
+        "max": 80033,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-1-claude-r2",
+            "latency_ms": 80033,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r2",
+            "latency_ms": 47908,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": true
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/compliance-map.json",
+        "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/fix-items-map.json",
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-2/self-check.json"
+      }
+    },
+    {
+      "round": 3,
+      "review_mode": "regression_sanity",
+      "reviewer_invocations": 1,
+      "reviewer_slots_total": 2,
+      "reviewer_slots_skipped": 1,
+      "participant_count": 2,
+      "leader_verdict": "frozen",
+      "unresolved_count": 0,
+      "unresolved_items": [],
+      "improvements_applied_count": 4,
+      "reviewer_verdict_breakdown": {
+        "approved": 1,
+        "conditional": 0,
+        "reject": 0,
+        "error": 0
+      },
+      "severity_counts": {
+        "blocking": 0,
+        "major": 0,
+        "minor": 0,
+        "suggestion": 0
+      },
+      "fallback_count": 0,
+      "latency_ms": {
+        "total": 59961,
+        "max": 34756,
+        "by_participant": [
+          {
+            "participant_id": "reviewer-0-codex-r3",
+            "latency_ms": 25205,
+            "was_fallback": false
+          },
+          {
+            "participant_id": "leader-codex-r3",
+            "latency_ms": 34756,
+            "was_fallback": false
+          }
+        ]
+      },
+      "artifacts": {
+        "review_json": true,
+        "compliance_map": true,
+        "fix_items_map": true
+      },
+      "artifact_refs": {
+        "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/review.json",
+        "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/compliance-map.json",
+        "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/fix-items-map.json",
+        "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/learning.json",
+        "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/diff-summary.json",
+        "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/agent-role-builder-role.md",
+        "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/self-check.json"
+      }
+    }
+  ],
+  "kpi_summary": {
+    "unresolved_trend": [
+      1,
+      1,
+      0,
+      0
+    ],
+    "convergence_delta": 1,
+    "total_fallbacks": 0,
+    "total_participant_invocations": 10,
+    "skipped_reviewer_invocations": 2
+  },
+  "question_outputs": {
+    "PM-002": {
+      "rounds": 4,
+      "participant_invocations": 10,
+      "total_latency_ms": 1167424,
+      "reviewer_reuse_savings": 2
+    },
+    "PM-003": {
+      "validation_issue_count": 0,
+      "self_check_issue_count": 0,
+      "review_issue_count": 4,
+      "total_issue_count": 4
+    },
+    "PM-007": {
+      "unresolved_trend": [
+        1,
+        1,
+        0,
+        0
+      ],
+      "latest_unresolved_count": 0,
+      "convergence_observed": true
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-001-replay-001",
+    "round": 3,
+    "review_mode": "regression_sanity",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 59961,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-3/self-check.json"
+    }
+  },
+  "governance_binding": {
+    "snapshot_id": "d4a8a31e-da56-44c3-9134-d0359c98f415",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json"
+  }
+}

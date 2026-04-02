@@ -1,0 +1,21 @@
+{
+  "new_rules": [],
+  "existing_rules_covering": [
+    {
+      "finding_group_id": "group-1",
+      "covered_by_rule_id": "ARB-009",
+      "explanation": "This is already the terminal-state completion rule. The finding says blocked completion requires `self-check.json` on a path where Step 3 is unreachable, which means the blocked-state completion predicate is not defined separately and testably for that terminal state. ARB-009 already requires completion criteria to be testable against every terminal state, not just the happy path."
+    },
+    {
+      "finding_group_id": "f3",
+      "covered_by_rule_id": "ARB-005",
+      "explanation": "This is already the self-check credibility rule. The finding is that the artifact claims blocked completion includes `self-check.json` even when the self-check step never ran, so the role is asserting validation evidence that actual behavior cannot produce. ARB-005 already requires self-check claims to match what truly executed."
+    },
+    {
+      "finding_group_id": "group-2",
+      "covered_by_rule_id": "ARB-016",
+      "explanation": "This is already the authoritative artifact-lifecycle rule. The finding asks to qualify `self-check.json` differently for blocked runs depending on whether Step 3 was reached, which is exactly an artifact matrix and lifecycle-by-terminal-state issue. ARB-016 already requires every required artifact to declare its exact write lifecycle per operation and terminal state."
+    }
+  ],
+  "no_rule_needed": []
+}

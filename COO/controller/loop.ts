@@ -4,6 +4,7 @@ import {
   consecutiveErrors,
   getLatestSessionHandles,
   type Thread,
+  type ThreadEvent,
 } from "./thread.js";
 import {
   assembleContext,
@@ -20,6 +21,7 @@ import { invoke } from "../../shared/llm-invoker/invoker.js";
 import { createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
 import { emit, hasConfiguredSink } from "../../shared/telemetry/collector.js";
 import type { InvocationParams, InvocationResult } from "../../shared/llm-invoker/types.js";
+import { handleRequirementsGatheringOnion } from "../requirements-gathering/live/onion-live.js";
 
 /**
  * COO Controller Loop — the stateless reducer.
@@ -53,6 +55,26 @@ export interface ControllerConfig {
     contentProvenance?: Provenance
   ) => Promise<Record<string, unknown>>;
   brainCreateRule?: (title: string, body: string, tags: string[], scopePath: string, provenance: Provenance) => Promise<Record<string, unknown>>;
+  brainCreateRequirement?: (
+    title: string,
+    body: Record<string, unknown>,
+    tags: string[],
+    scopePath: string,
+    provenance: Provenance
+  ) => Promise<Record<string, unknown>>;
+  brainManageMemory?: (
+    action: "delete" | "archive" | "update_tags" | "update_trust_level",
+    memoryId: string,
+    scopePath: string,
+    provenance: Provenance,
+    options?: {
+      tags?: string[];
+      trust_level?: "working" | "reviewed" | "locked";
+      reason?: string;
+    }
+  ) => Promise<Record<string, unknown>>;
+  enableRequirementsGatheringOnion?: boolean;
+  invokeLLM?: (params: InvocationParams) => Promise<InvocationResult>;
   maxConsecutiveErrors?: number;
 }
 
@@ -116,6 +138,44 @@ export async function handleTurn(
   thread.status = "active";
   await store.update(thread);
 
+  if (
+    thread.workflowState.active_workflow === "requirements_gathering_onion"
+    && !config.enableRequirementsGatheringOnion
+  ) {
+    const response =
+      "This thread is already in requirements-gathering onion mode, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.";
+    thread.events.push(createEvent("error", {
+      source: "controller",
+      message: response,
+      recoverable: true,
+      attemptNumber: 1,
+    }, controllerProv));
+    thread.events.push(createEvent("coo_response", { message: response }, controllerProv));
+    thread.events.push(createEvent("state_commit", {
+      summary: "Blocked turn because the active onion workflow gate is disabled.",
+      openLoops: [response],
+      decisions: collectDecisionSummaries(thread),
+      sessionHandles: getLatestSessionHandles(thread),
+    }, controllerProv));
+    await store.update(thread);
+
+    emit({
+      provenance: controllerProv,
+      category: "turn",
+      operation: "handle_turn",
+      latency_ms: Date.now() - turnStart,
+      success: false,
+      metadata: {
+        workflow: "requirements_gathering_onion",
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        gate_status: "disabled",
+      },
+    });
+
+    return { threadId: thread.id, response, thread };
+  }
+
   let classifierMs = 0;
   let intelligenceMs = 0;
 
@@ -124,15 +184,21 @@ export async function handleTurn(
 
     // Step 1: Classify intent
     const recentEvents = thread.events.slice(-5);
-    const recentContext = recentEvents
-      .map((e) => `[${e.type}] ${JSON.stringify(e.data).slice(0, 200)}`)
+    const recentContext = [
+      summarizeWorkflowRoutingContext(thread),
+      ...recentEvents.map((event) => summarizeEventForClassifier(event)),
+    ]
+      .filter((value): value is string => Boolean(value))
       .join("\n");
 
-    const classifierPrompt = buildClassifierPrompt(userMessage, recentContext);
-    const classifierResult = await invoke({
+    const classifierPrompt = buildClassifierPrompt(userMessage, recentContext, {
+      onionEnabled: config.enableRequirementsGatheringOnion,
+      currentWorkflow: thread.workflowState.active_workflow,
+    });
+    const classifierResult = await callLlm(config, {
       ...config.classifierParams,
       prompt: classifierPrompt,
-      source_path: "COO/classifier/classify",
+      source_path: `COO/classifier/classify/${thread.id}`,
       session: {
         persist: true,
         handle: compatibleSessionHandle(
@@ -160,6 +226,8 @@ export async function handleTurn(
     let response: string;
     let intelligenceProv: Provenance = controllerProv;
     let intelligenceSession = sessionHandles.intelligence ?? null;
+    let stateCommitSummary: string | null = null;
+    let openLoops: string[] | null = null;
 
     switch (classification.workflow) {
       case "memory_operation": {
@@ -186,6 +254,36 @@ export async function handleTurn(
         response = await handleClarification(classification, thread, controllerProv);
         break;
 
+      case "requirements_gathering_onion": {
+        if (!config.enableRequirementsGatheringOnion) {
+          response =
+            "Requirements-gathering onion is disabled for this runtime. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 before entering the live onion lane.";
+          intelligenceProv = controllerProv;
+          openLoops = [response];
+          stateCommitSummary = "Rejected onion routing because the feature gate is disabled.";
+          break;
+        }
+
+        const onionResult = await handleRequirementsGatheringOnion({
+          userMessage,
+          thread,
+          store,
+          config,
+          sessionHandle: compatibleSessionHandle(
+            sessionHandles.intelligence,
+            config.intelligenceParams.cli,
+            config.intelligenceParams.model
+          ),
+        });
+        response = onionResult.response;
+        intelligenceProv = onionResult.provenance;
+        intelligenceMs = onionResult.latency_ms;
+        intelligenceSession = onionResult.session?.handle ?? intelligenceSession;
+        stateCommitSummary = onionResult.state_commit_summary;
+        openLoops = onionResult.open_loops;
+        break;
+      }
+
       case "direct_coo_response":
       case "pushback":
       default: {
@@ -211,8 +309,8 @@ export async function handleTurn(
     // Step 3: Append response and commit
     thread.events.push(createEvent("coo_response", { message: response }, intelligenceProv));
     thread.events.push(createEvent("state_commit", {
-      summary: buildStateCommitSummary(classification.workflow, response),
-      openLoops: buildOpenLoops(classification.workflow, response),
+      summary: stateCommitSummary ?? buildStateCommitSummary(classification.workflow, response),
+      openLoops: openLoops ?? buildOpenLoops(classification.workflow, response),
       decisions: collectDecisionSummaries(thread),
       sessionHandles: {
         classifier: classifierResult.session?.handle ?? sessionHandles.classifier ?? null,
@@ -232,6 +330,12 @@ export async function handleTurn(
       intelligence_ms: intelligenceMs,
       context_ms: 0,
       total_events: thread.events.length,
+      metadata: {
+        workflow: classification.workflow,
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        active_workflow: thread.workflowState.active_workflow,
+      },
     });
 
     return { threadId: thread.id, response, thread };
@@ -253,6 +357,11 @@ export async function handleTurn(
       operation: "handle_turn",
       latency_ms: Date.now() - turnStart,
       success: false,
+      metadata: {
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        active_workflow: thread.workflowState.active_workflow,
+      },
     });
 
     return { threadId: thread.id, response: `An error occurred: ${errorMessage}`, thread };
@@ -310,7 +419,7 @@ async function handleMemoryOperation(
         return handleMissingScope(thread, store, operation, operationId, { content: userMessage }, operationProv);
       }
 
-      const extractResult = await invoke({
+      const extractResult = await callLlm(config, {
         ...config.intelligenceParams,
         prompt: `Extract a structured decision from this message. Return JSON with: title, reasoning, alternatives (array of {option, pros, cons, rejected_reason}).\n\nMessage: ${userMessage}\n\nJSON:`,
         source_path: "COO/intelligence/extract-decision",
@@ -489,7 +598,7 @@ async function handleCooResponse(
   const ctx = await assembleContext(thread, userMessage, contextConfig);
   const prompt = buildPrompt(ctx) + `\n\n<user_message>\n${userMessage}\n</user_message>`;
 
-  return invoke({
+  return callLlm(config, {
     ...config.intelligenceParams,
     prompt,
     source_path: "COO/intelligence/respond",
@@ -669,6 +778,35 @@ function collectDecisionSummaries(thread: Thread): string[] {
   return decisions.slice(-5);
 }
 
+function summarizeWorkflowRoutingContext(thread: Thread): string | null {
+  const onion = thread.workflowState.onion;
+  if (thread.workflowState.active_workflow !== "requirements_gathering_onion" || !onion) {
+    return null;
+  }
+
+  return [
+    "[workflow]",
+    "active_workflow=requirements_gathering_onion",
+    `lifecycle_status=${onion.lifecycle_status}`,
+    `current_layer=${onion.current_layer}`,
+    `selected_next_question=${onion.selected_next_question ?? "none"}`,
+  ].join(" ");
+}
+
+function summarizeEventForClassifier(event: ThreadEvent): string {
+  if (event.type === "onion_turn_result") {
+    return [
+      `[${event.type}]`,
+      `lifecycle_status=${event.data.lifecycle_status}`,
+      `current_layer=${event.data.current_layer}`,
+      `selected_next_question=${event.data.workflow_trace.selected_next_question ?? "none"}`,
+      `result_status=${event.data.workflow_trace.result_status}`,
+    ].join(" ");
+  }
+
+  return `[${event.type}] ${JSON.stringify(event.data).slice(0, 200)}`;
+}
+
 function compatibleSessionHandle(
   handle: import("../../shared/llm-invoker/types.js").InvocationSessionHandle | null | undefined,
   provider: import("../../shared/llm-invoker/types.js").InvocationSessionHandle["provider"],
@@ -684,4 +822,11 @@ function compatibleSessionHandle(
     return undefined;
   }
   return handle;
+}
+
+function callLlm(
+  config: ControllerConfig,
+  params: InvocationParams
+): Promise<InvocationResult> {
+  return (config.invokeLLM ?? invoke)(params);
 }

@@ -13,6 +13,9 @@ export interface ContextItem {
   content_type: string;
   trust_level: string;
   context_priority: string;
+  evidence_format_version: number;
+  evidence_lifecycle_status: string;
+  legacy_marker: string | null;
   preview: string;
   tags: string[];
   created_at: string;
@@ -34,6 +37,9 @@ export async function getContextSummary(
       m.content_type,
       m.trust_level,
       m.context_priority,
+      m.evidence_format_version,
+      m.evidence_lifecycle_status,
+      m.legacy_marker,
       m.tags,
       m.created_at
     FROM memory_items m
@@ -76,6 +82,9 @@ export async function getContextSummary(
         content_type: row.content_type,
         trust_level: row.trust_level,
         context_priority: row.context_priority,
+        evidence_format_version: Number(row.evidence_format_version ?? 0),
+        evidence_lifecycle_status: row.evidence_lifecycle_status,
+        legacy_marker: row.legacy_marker ?? null,
         preview: text.length > 300 ? text.slice(0, 300) + "..." : text,
         tags: row.tags,
         created_at: row.created_at,
@@ -112,7 +121,8 @@ export async function listRecent(
 
   let query = `
     SELECT m.id, m.content, m.content_type, m.trust_level,
-           m.context_priority, m.tags, m.created_at
+           m.context_priority, m.evidence_format_version, m.evidence_lifecycle_status, m.legacy_marker,
+           m.tags, m.created_at
     FROM memory_items m
     LEFT JOIN decisions d ON d.memory_item_id = m.id
     WHERE ${scopeFilter.clause}
@@ -144,6 +154,9 @@ export async function listRecent(
         content_type: row.content_type,
         trust_level: row.trust_level,
         context_priority: row.context_priority,
+        evidence_format_version: Number(row.evidence_format_version ?? 0),
+        evidence_lifecycle_status: row.evidence_lifecycle_status,
+        legacy_marker: row.legacy_marker ?? null,
         preview: text.length > 500 ? text.slice(0, 500) + "..." : text,
         tags: row.tags,
         created_at: row.created_at,

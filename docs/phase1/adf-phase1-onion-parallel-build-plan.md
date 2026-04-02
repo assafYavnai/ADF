@@ -4,6 +4,12 @@ Status: active handoff plan
 Last updated: 2026-04-01  
 Purpose: let a contextless agent start building the Phase 1 requirements-gathering onion lane in parallel with ongoing COO stabilization, without creating conflicts with the current live COO route.
 
+Update: 2026-04-01
+
+This document is now historical context for the dormant parallel-build slice.
+The dormant onion engine described here was implemented and has since been integrated into the live COO runtime behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`.
+Use this file as build-history/reference material, not as the current live-state description.
+
 ## Audience
 
 This document is for a contextless implementation agent that has already read:

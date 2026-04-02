@@ -126,6 +126,23 @@ export class MemoryEngineClient {
     });
   }
 
+  async createRequirement(
+    title: string,
+    body: Record<string, unknown>,
+    tags: string[],
+    scope: string,
+    provenance: Provenance
+  ): Promise<Record<string, unknown>> {
+    return this.callJsonTool("requirements_manage", {
+      action: "create",
+      title,
+      body,
+      scope,
+      tags,
+      provenance,
+    });
+  }
+
   async manageOpenLoops(
     action: "list" | "get" | "create" | "search",
     args: Record<string, unknown>,

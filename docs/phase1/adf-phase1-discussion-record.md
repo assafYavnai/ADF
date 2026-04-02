@@ -4,6 +4,19 @@ Date: 2026-03-31
 Status: working discussion record for context recovery
 Purpose: capture the current Phase 1 direction discussed with the user, including what should be treated as working direction versus informative but non-binding viewpoints.
 
+## Update: 2026-04-01
+
+The previously deferred `requirements-gathering onion` lane is now integrated into the supported COO runtime behind an explicit feature gate.
+
+Live route proof now includes:
+
+- persisted workflow-state threads under `tests/integration/artifacts/onion-route-proof/`
+- a governed finalized requirement artifact in Brain
+- durable telemetry and workflow audit evidence
+- truthful fail-closed behavior when the gate is disabled or scope is missing
+
+The discussion points below remain useful as design history, but any statements that the onion lane is still deferred are now historical rather than current runtime truth.
+
 ## What Phase 1 Is Trying To Do
 
 The immediate goal is:
@@ -50,7 +63,7 @@ The remaining critical path is now narrower and clearer:
 3. keep hidden COO memory retrieval scoped and trust-aware
 4. reduce any remaining runtime surface that overstates what is actually live
 
-So the onion lane remains deferred until this stabilization slice is finished.
+That blocker is now closed. The onion lane is live behind an explicit feature gate on top of the stabilized COO route.
 
 ## Two Main Lanes
 
@@ -109,8 +122,8 @@ The first milestone should prove:
 
 The current refinement is:
 
-- before the onion lane is considered real, the continuity foundation underneath it must be strong enough that discussions, decisions, requirement fragments, and open loops can be recovered without manual archaeology
-- after that, the next milestone is the onion lane plus requirement artifact creation, not the full downstream chain all at once
+- the continuity foundation underneath the onion lane is now strong enough that discussions, decisions, requirement fragments, and open loops can be recovered without manual archaeology
+- the onion lane plus requirement artifact creation are now live behind the COO feature gate; the next milestone is broader downstream consumption of the finalized requirement artifact
 
 ## Why The Earlier Direction Looked Wrong
 
@@ -228,6 +241,7 @@ The following points are strong enough to use for ongoing design:
 - that foundation should implement the ADF-adapted 12-factor + memory design, not the legacy memory-stack literally
 - Phase 1 starts from the finalized requirement-list handoff
 - requirements gathering is owned by the COO and uses the onion model
+- the supported COO route now includes the live onion lane behind an explicit feature gate
 - the final target chain includes:
   - requirements
   - design

@@ -1,0 +1,194 @@
+{
+  "round": 1,
+  "reviewMode": "delta",
+  "leaderVerdict": "pushback",
+  "leaderRationale": "Repair work is still required. r1 closes the prior freeze-gate defect and reviewer-0 is now approved, but reviewer-1 remains `reject` on a minor scope-alignment issue, so the board is not reviewer-clear and neither frozen state is legal. No blocking or major findings remain, but this is still a split verdict; if reviewer-1 clears in a later round, reviewer-0 must still complete the required `regression_sanity` review before any freeze.",
+  "unresolved": [
+    "f1: Added the canonical `reviewer-clear` definition, made both frozen states require reviewer-clear plus no material pushback, kept `pushback` and `resume_required` available whenever any active reviewer verdict remains `reject`, and extended Step 3 to validate reviewer-status legality semantically."
+  ],
+  "deferredItems": [
+    "group-1: Carry-forward from r0: Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') remains unchanged and still has no counterpart in the role contract's out_of_scope list, leaving the role's own concept-for-concept alignment guardrail violated. The implementer's fix-map entry for [group-1] describes adding the reviewer-clear definition — a genuine improvement but one that addresses a different, unrelated issue — so the actual r0 group-1 finding was neither fixed nor explicitly acknowledged.",
+    "group-2: Minor ARB-002 suggestion: the material pushback definition uses 'latest active review evidence' while the reviewer-clear definition and result.json lifecycle both use 'latest required review evidence.' Two different qualifiers for what is the same underlying artifact corpus."
+  ],
+  "improvementsApplied": [
+    "Added a canonical `reviewer-clear` definition and made both frozen states require reviewer-clear plus no material pushback.",
+    "Kept `pushback` and `resume_required` reachable whenever any active reviewer verdict remains `reject`, including minor-only rejects.",
+    "Extended Step 3 so the self-check validates reviewer-status legality semantically rather than relying on the weaker prior gate.",
+    "Defined `round leader` once and reused it consistently across arbitration and terminal-resolution logic.",
+    "Extended `result.json` expectations so the reviewer verdict summary establishing reviewer-clear true or false is auditable from the terminal artifact."
+  ],
+  "arbitrationUsed": false,
+  "arbitrationRationale": null,
+  "reviewerVerdicts": {
+    "reviewer-0-codex-r1": {
+      "verdict": "approved",
+      "conceptual_groups": [],
+      "fix_decisions": [
+        {
+          "finding_group_id": "group-1",
+          "decision": "accept_fix",
+          "reason": "The draft now defines `reviewer-clear` canonically in `<guardrails>`, makes both frozen states require reviewer-clear plus no material pushback, keeps `pushback` and `resume_required` reachable whenever reviewer-clear is false, and updates Step 3 to validate reviewer-status legality semantically. That closes the prior freeze-gate defect."
+        },
+        {
+          "finding_group_id": "leader-rationale-actor-labeling",
+          "decision": "accept_fix",
+          "reason": "The artifact now defines `round leader` once and reuses that label consistently in arbitration and terminal-resolution logic, so the acting authority is mechanically clear across sections."
+        }
+      ],
+      "residual_risks": [],
+      "strengths": [
+        "The authority model remains a strict operative chain with runtime-scoped inputs and reference evidence clearly separated.",
+        "Terminal predicates are now mechanically testable because reviewer-clear and material pushback are defined once and reused consistently.",
+        "The self-check now matches the actual terminal-state behavior instead of over-claiming compliance from a weaker definition.",
+        "Canonical artifacts, canonical history, and run-scoped evidence remain cleanly separated with explicit full-path lifecycle rules.",
+        "Carry-forward handling, reviewer-pair gating, and append-only decision-history preservation are all still explicit and mechanically stated."
+      ]
+    },
+    "reviewer-1-claude-r1": {
+      "verdict": "reject",
+      "conceptual_groups": [
+        {
+          "id": "group-1",
+          "summary": "Carry-forward from r0: Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') remains unchanged and still has no counterpart in the role contract's out_of_scope list, leaving the role's own concept-for-concept alignment guardrail violated. The implementer's fix-map entry for [group-1] describes adding the reviewer-clear definition — a genuine improvement but one that addresses a different, unrelated issue — so the actual r0 group-1 finding was neither fixed nor explicitly acknowledged.",
+          "severity": "minor",
+          "findings": [
+            {
+              "id": "f1",
+              "description": "Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') is identical to r0. The role contract out_of_scope list has five concepts; the role Not-in-scope list covers all five (with contract items 4+5 merged into role item 4) but adds a sixth concept with no contract counterpart. The role's own guardrail at line 99 requires the Not-in-scope list to be 'aligned concept-for-concept with the role contract.' Item 5 is a behavioral guardrail constraint that is already fully enforced in <authority> and <guardrails> and does not belong as a scope exclusion.",
+              "source_section": "<scope> Not in scope item 5; <guardrails> line 99 (concept-for-concept alignment requirement)"
+            },
+            {
+              "id": "f2",
+              "description": "The implementer's fix map claims [group-1] was accepted and describes reviewer-clear additions as the fix. The actual r0 group-1 finding was the ARB-006 scope alignment issue described in f1 above. Because the fix map consumed the group-1 ID with a mismatched description, the actual finding is neither addressed nor explicitly carried forward, violating the ARB-011 requirement that carried-forward findings be referenced by finding or conceptual-group ID with an accurate disposition.",
+              "source_section": "Fix items map [group-1] acceptance entry; r0 review group-1 findings f1 and f2"
+            }
+          ],
+          "redesign_guidance": "Delete Not-in-scope item 5 ('Expanding authority beyond the validated request and governing contracts') from the <scope> section. The constraint is already enforced in <authority> (operative chain definition) and <guardrails> (the 'Never let reference documents outrank...' and 'Never write outside the governed surface' rules). Removing it restores concept-for-concept alignment with the role contract. In the next fix-items map, reference r0 finding IDs f1 and f2 explicitly with the corrected disposition."
+        },
+        {
+          "id": "group-2",
+          "summary": "Minor ARB-002 suggestion: the material pushback definition uses 'latest active review evidence' while the reviewer-clear definition and result.json lifecycle both use 'latest required review evidence.' Two different qualifiers for what is the same underlying artifact corpus.",
+          "severity": "suggestion",
+          "findings": [
+            {
+              "id": "f3",
+              "description": "Material pushback is defined as applying to 'the latest active review evidence' (guardrails line 93), while reviewer-clear is defined against 'the latest required review evidence' (guardrails line 94), and result.json lifecycle repeats 'the latest required review evidence is the source of truth for reviewer-clear' (outputs line 213). Both 'active' and 'required' refer to the same corpus of mandatory review artifacts, but the divergent qualifiers could introduce edge-case ambiguity about whether supplementary or optional review artifacts count for one gate but not the other.",
+              "source_section": "<guardrails> lines 93–94; <outputs> Terminal result lifecycle line 213"
+            }
+          ],
+          "redesign_guidance": "Standardize the qualifier: replace 'active' with 'required' in the material pushback definition to match the reviewer-clear definition and result.json lifecycle. 'Required' is the more precise and source-anchored term since the review process architecture defines review.json as the mandatory per-round evidence artifact."
+        }
+      ],
+      "fix_decisions": [
+        {
+          "finding_id": "f1",
+          "finding_group_id": "group-1",
+          "decision": "reject_fix",
+          "reason": "The implementer's [group-1] fix — adding the reviewer-clear canonical definition and updating frozen-state predicates — is a valid and correct improvement, but it addresses a different pre-existing gap, not the r0 group-1 finding. Not-in-scope item 5 is unchanged in r1 and still lacks a role-contract counterpart. The concept-for-concept alignment guardrail remains violated. The fix does not resolve f1 or f2."
+        },
+        {
+          "finding_id": "leader-rationale-actor-labeling",
+          "finding_group_id": null,
+          "decision": "accept_fix",
+          "reason": "Defining 'round leader' once in guardrails and reusing that term consistently in Step 4 substep 9 and Step 5 eliminates actor-label ambiguity in arbitration and terminal-resolution logic. The fix is correct, consistent with source authority, and satisfies ARB-002 for the round-leader concept. Accepted as a valid improvement. Note: this finding ID did not originate from the r0 review; the acceptance is based on independent verification of the change against source authority."
+        }
+      ],
+      "residual_risks": [
+        "Step 4 substep 5 names 'the self-learning engine' as the actor that confirms or updates the component rulebook, while Step 4 substep 10 describes a full rule re-walk that architecturally belongs to the rules-compliance-enforcer (shared/rules-compliance-enforcer/). The role still does not name the rules-compliance-enforcer, retaining the r0 residual risk that implementors conflate the two shared engines.",
+        "Material pushback uses 'latest active review evidence' while reviewer-clear and result.json lifecycle use 'latest required review evidence' — minor terminology drift that could introduce ambiguity about which review artifacts are authoritative for each gate under edge-case conditions."
+      ],
+      "strengths": [
+        "Reviewer-clear definition: cleanly separates the verdict-status gate (any active reject, including minor-only, blocks both frozen states) from the finding-severity gate (material pushback), closing the r0 gap where a minor-only reject without blocking/major findings could have been misconstrued as not triggering material pushback.",
+        "Round leader canonical definition: single definition in guardrails reused correctly in Step 4.9 and Step 5, eliminating the actor-label ambiguity that existed in r0.",
+        "Material pushback redefinition: correctly simplified to finding-severity only now that reviewer-clear absorbs the verdict-status responsibility; the dual-gate design is clean, non-overlapping, and consistent with source authority.",
+        "Step 3 reviewer-status legality check: explicitly validates that frozen states require reviewer-clear and that pushback and resume_required remain reachable on any active reject including minor-only; closes the self-check gap flagged in r0-f2.",
+        "Step 4 substep 8 regression_sanity tie: explicitly requires the regression_sanity pass before reviewer-clear can become true, making split-verdict convergence operationally testable rather than implied.",
+        "Step 5 non-promotion guard: 'Never promote canonical role content while reviewer-clear is false or while material pushback remains' uses both defined terms as explicit gates rather than prose descriptions.",
+        "result.json lifecycle extended: now requires the reviewer verdict summary that establishes reviewer-clear as true or false, making the freeze-authorization evidence auditable from a single artifact.",
+        "Completion explanatory note (lines 226–227): accurately restates the implication of reviewer-clear for reject verdicts without introducing new governance semantics, aiding implementor comprehension.",
+        "All r0 structural strengths preserved: operative authority precedence chain, three-class artifact lifecycle separation, ordered mutually exclusive terminal predicates, context-gathering as precondition, complete arbitration mechanics, and ARB-014 step labeling remain intact and correct."
+      ]
+    }
+  },
+  "audit": {
+    "component": "agent-role-builder",
+    "job_id": "agent-role-builder-self-role-001-replay-001",
+    "round": 1,
+    "review_mode": "delta",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "latency_ms": 400500,
+    "fallback_used": false,
+    "artifact_refs": {
+      "review_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/review.json",
+      "compliance_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/compliance-map.json",
+      "fix_items_map": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/fix-items-map.json",
+      "learning_json": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/learning.json",
+      "diff_summary": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/diff-summary.json",
+      "artifact_markdown": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/agent-role-builder-role.md",
+      "self_check": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/rounds/round-1/self-check.json"
+    },
+    "participants": [
+      {
+        "participant_id": "reviewer-0-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 57852,
+        "fallback_used": false,
+        "invocation_id": "2f9b6d54-60f5-4e93-b715-524fc42f95cc"
+      },
+      {
+        "participant_id": "reviewer-1-claude-r1",
+        "provider": "claude",
+        "model": "sonnet",
+        "latency_ms": 278650,
+        "fallback_used": false,
+        "invocation_id": "76971f9d-76c5-43fd-8207-6519135a5d5e"
+      },
+      {
+        "participant_id": "leader-codex-r1",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "latency_ms": 63998,
+        "fallback_used": false,
+        "invocation_id": "abe16890-3482-4926-9ae4-a21b515aa7f7"
+      }
+    ]
+  },
+  "participants": [
+    {
+      "participant_id": "reviewer-0-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "reviewer",
+      "round": 1,
+      "latency_ms": 57852,
+      "invocation_id": "2f9b6d54-60f5-4e93-b715-524fc42f95cc",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "reviewer-1-claude-r1",
+      "provider": "claude",
+      "model": "sonnet",
+      "role": "reviewer",
+      "round": 1,
+      "latency_ms": 278650,
+      "invocation_id": "76971f9d-76c5-43fd-8207-6519135a5d5e",
+      "was_fallback": false
+    },
+    {
+      "participant_id": "leader-codex-r1",
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "role": "leader",
+      "round": 1,
+      "latency_ms": 63998,
+      "invocation_id": "abe16890-3482-4926-9ae4-a21b515aa7f7",
+      "was_fallback": false
+    }
+  ],
+  "governance_binding": {
+    "snapshot_id": "d4a8a31e-da56-44c3-9134-d0359c98f415",
+    "snapshot_manifest_path": "tools/agent-role-builder/runs/agent-role-builder-self-role-001-replay-001/governance-snapshot.json"
+  }
+}

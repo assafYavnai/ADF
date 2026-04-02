@@ -1,0 +1,30 @@
+{
+  "findings": [
+    {
+      "groupId": "group-1",
+      "severity": "major",
+      "summary": "The revised draft fixes the prior timing, carry-forward, and scope-duplication issues, but one blocked-path consistency gap remains: the artifact still requires a self-check output in cases where the run can terminate before the self-check step is reachable.",
+      "redesignGuidance": "Align the blocked terminal contract with the actual execution order. Either make `self-check.json` required only when the run reached Step 3, or define an explicit pre-draft blocked-path artifact/check that can exist when Step 1 fails closed. Keep one mechanically testable rule across guardrails, steps, outputs, and completion.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "f3",
+      "severity": "major",
+      "summary": "Removed the sequencing and terminal-artifact contradictions by making normalized-request/source-manifest write once in Step 1, narrowing Step 3 to verify that single write point and declared consistency checks, and aligning Step 5, <outputs>, and <completion> to one terminal artifact model with arbitration_used-based exclusivity.",
+      "redesignGuidance": "The self-check claim is improved, but it is still not fully credible because blocked completion requires `self-check.json` even when the run can terminate before Step 3, where self-check is defined.",
+      "findingCount": 1
+    },
+    {
+      "groupId": "group-2",
+      "severity": "minor",
+      "summary": "self-check.json required unconditionally for blocked in <completion> and <outputs>, but blocked fires on precondition failure before Step 3 writes it",
+      "redesignGuidance": "Qualify self-check.json in two places. In <completion> for blocked: 'self-check.json exists if the run reached Step 3 or later; absent for precondition-failure blocked runs.' In the <outputs> lifecycle for self-check.json: replace 'retained for every terminal state' with 'retained for every terminal state where Step 3 was reached; absent for precondition-failure blocked runs.' Both qualifications use the same Step-3-reached condition so the predicate is testable from execution state.",
+      "findingCount": 1
+    }
+  ],
+  "unresolved": [
+    "group-1: The revised draft fixes the prior timing, carry-forward, and scope-duplication issues, but one blocked-path consistency gap remains: the artifact still requires a self-check output in cases where the run can terminate before the self-check step is reachable.",
+    "f3: Removed the sequencing and terminal-artifact contradictions by making normalized-request/source-manifest write once in Step 1, narrowing Step 3 to verify that single write point and declared consistency checks, and aligning Step 5, <outputs>, and <completion> to one terminal artifact model with arbitration_used-based exclusivity."
+  ],
+  "leader_rationale": "Pushback remains. One reviewer still has a major unresolved issue, and the board is not yet in an all-approved/true-conditional state because both reviewers are still reporting `reject`. The remaining material defect is real: `blocked` can be reached before Step 3, but `<completion>` still requires `tools/agent-role-builder/runs/<job-id>/self-check.json` for every blocked outcome, which makes the blocked predicate and artifact set internally inconsistent. That prevents freeze, and arbitration is unavailable because reviewer approvals/conditionals are not yet in place.\nConvergence trend: 2 -> 2 -> 3 issues. NOT CONVERGING - apply all fixes precisely this round."
+}

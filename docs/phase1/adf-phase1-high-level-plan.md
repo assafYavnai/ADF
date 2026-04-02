@@ -37,8 +37,9 @@ Then expand the implementation lane into the richer target phases.
 
 Current COO gate:
 
-- the COO runtime is runnable, but still not management-trustworthy
-- before Phase 1A can move into the real onion lane, COO stabilization must close the remaining scope and memory-operation truthfulness gaps
+- the COO runtime now supports the real onion lane behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`
+- the live route persists thread-owned onion state, explicit freeze approval, governed finalized requirement artifacts, and durable telemetry/audit evidence
+- the remaining expansion work is downstream of onion integration, not pre-onion runtime closure
 
 ## Final Target Chain
 
@@ -127,12 +128,13 @@ Important framing:
 - this means the ADF-adapted continuity design from `docs/v0/memory_stack_strategy.md`
 - it does not mean copying every legacy memory-stack mechanism literally
 
-### 2. Freeze the onion lane
+### 2. Operate the onion lane
 
 Build:
 
 - COO onion workflow
 - whole-onion freeze behavior
+- live controller routing, persistence, telemetry, and recovery behavior behind the explicit feature gate
 
 Primary source:
 
@@ -243,7 +245,7 @@ Discussion recovery:
 Start implementation design from:
 
 - the `ADF continuity foundation`
-- then the `CEO <-> COO` onion lane
+- then the live `CEO <-> COO` onion lane and its governed requirement artifact flow
 
 The first milestone is complete when:
 
@@ -253,6 +255,6 @@ The first milestone is complete when:
 
 Then continue into:
 
-- the `CEO <-> COO` onion lane
+- broader downstream consumption of the finalized requirement artifact
 - requirement-list finalization
 - the smallest downstream chain that can consume the finalized requirements and reach finalization and postmortem

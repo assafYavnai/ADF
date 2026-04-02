@@ -26,6 +26,9 @@ export interface SearchResult {
   trust_level: string;
   tags: string[];
   context_priority: string;
+  evidence_format_version: number;
+  evidence_lifecycle_status: string;
+  legacy_marker: string | null;
   score: number;
   created_at: string;
   preview: string;
@@ -98,6 +101,9 @@ async function hybridSearch(
         m.trust_level,
         m.tags,
         m.context_priority,
+        m.evidence_format_version,
+        m.evidence_lifecycle_status,
+        m.legacy_marker,
         m.created_at,
         COALESCE(GREATEST(0, 1 - (e.embedding <=> $2::vector)), 0) AS semantic_similarity,
         ts_rank_cd(
@@ -117,6 +123,9 @@ async function hybridSearch(
       trust_level,
       tags,
       context_priority,
+      evidence_format_version,
+      evidence_lifecycle_status,
+      legacy_marker,
       created_at,
       (
         $1::float * COALESCE(semantic_similarity, 0) +
@@ -159,6 +168,9 @@ async function keywordSearch(
       m.trust_level,
       m.tags,
       m.context_priority,
+      m.evidence_format_version,
+      m.evidence_lifecycle_status,
+      m.legacy_marker,
       m.created_at,
       (
         ts_rank_cd(
@@ -288,6 +300,9 @@ function formatResult(row: Record<string, unknown>): SearchResult {
     trust_level: row.trust_level as string,
     tags: row.tags as string[],
     context_priority: row.context_priority as string,
+    evidence_format_version: Number(row.evidence_format_version ?? 0),
+    evidence_lifecycle_status: row.evidence_lifecycle_status as string,
+    legacy_marker: (row.legacy_marker as string | null) ?? null,
     score: parseFloat(String(row.score ?? 0)),
     created_at: row.created_at as string,
     preview: text.length > 500 ? text.slice(0, 500) + "..." : text,

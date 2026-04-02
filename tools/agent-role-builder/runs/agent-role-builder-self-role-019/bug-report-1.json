@@ -1,0 +1,16 @@
+{
+  "what_failed": "Leader response JSON parse",
+  "error_message": "Leader output frozen_with_conditions requires arbitration evidence.",
+  "where": "Round 2, leader response parsing",
+  "context": {
+    "round": 2,
+    "raw_length": 1017
+  },
+  "input_that_caused_failure": "{\"status\":\"frozen_with_conditions\",\"rationale\":\"No reviewer is rejecting and no blocking or major issues remain. Reviewer-0 is `approved`; reviewer-1 is `conditional` with only minor residual risks, so the run meets the conditioned-freeze rule rather than clean `frozen`. The prior round was not a split-verdict approval/reject state, so the extra regression-sanity gate is not triggered here. Arbitration was not used; the conditioned result comes from the reviewer state, not a leader override.\",\"unresolved\":[],\"improvements_applied\":[\"Aligned early-blocked semantics so `self-check.json` is required only when the run actually reached Step 3.\",\"Applied the same Step-3-reached predicate consistently across guardrails, blocked handling, the self-check lifecycle row, and blocked completion criteria.\",\"Removed the remaining self-check credibility gap by making the blocked terminal artifact contract match the actual execution order and Step 3 write point.\"],\"arbitration_used\":false,\"arbitration_rationale\":null}",
+  "expected_format": "{\"status\":\"frozen|frozen_with_conditions|pushback|blocked|resume_required\",\"rationale\":\"...\",\"unresolved\":[...],\"improvements_applied\":[...],\"arbitration_used\":false,\"arbitration_rationale\":null}",
+  "component": "tools/agent-role-builder/board/parseLeaderResponse",
+  "provenance": {
+    "participant_id": "leader-codex-r2"
+  },
+  "timestamp": "2026-03-31T06:15:18.090Z"
+}

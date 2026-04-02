@@ -1,7 +1,7 @@
 import { pool } from "../db/connection.js";
 import { GovernanceManageInput } from "../schemas/governance.js";
 import { resolveScope, scopeFilterSQL } from "../services/scope.js";
-import type { Provenance } from "../provenance.js";
+import { CURRENT_EVIDENCE_FORMAT_VERSION, type Provenance } from "../provenance.js";
 import { modernMemoryEvidenceClause } from "../evidence-policy.js";
 
 export async function handleGovernance(
@@ -26,7 +26,8 @@ export async function handleGovernance(
 async function listGovernance(input: GovernanceManageInput) {
   if (!input.scope) throw new Error(`governance list for ${input.family} requires explicit scope`);
   let query = `
-    SELECT m.id, m.content, m.content_type, m.trust_level, m.tags, m.created_at
+    SELECT m.id, m.content, m.content_type, m.trust_level, m.tags, m.created_at,
+           m.evidence_format_version, m.evidence_lifecycle_status, m.legacy_marker
     FROM memory_items m
     WHERE m.content_type = $1
   `;
@@ -75,13 +76,15 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
        id, content, content_type, trust_level, scope_level,
        org_id, project_id, initiative_id, phase_id, thread_id,
        tags, context_priority, compression_policy,
-       invocation_id, provider, model, reasoning, was_fallback, source_path
+       invocation_id, provider, model, reasoning, was_fallback, source_path,
+       evidence_format_version, evidence_lifecycle_status, legacy_marker
      )
      VALUES (
        $1, $2, $3, 'working', $4,
        $5, $6, $7, $8, $9,
        $10, 'p0', 'full',
-       $11, $12, $13, $14, $15, $16
+       $11, $12, $13, $14, $15, $16,
+       $17, 'current', NULL
      )`,
     [
      id,
@@ -95,7 +98,8 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
      scope.thread_id,
      input.tags ?? [],
      prov.invocation_id, prov.provider, prov.model, prov.reasoning,
-     prov.was_fallback, prov.source_path]
+     prov.was_fallback, prov.source_path,
+     CURRENT_EVIDENCE_FORMAT_VERSION]
   );
 
   return { content: [{ type: "text", text: JSON.stringify({ id, status: "created" }, null, 2) }] };
@@ -104,7 +108,8 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
 async function searchGovernance(input: GovernanceManageInput) {
   if (!input.query) throw new Error("query required for search");
   if (!input.scope) throw new Error(`governance search for ${input.family} requires explicit scope`);
-  let query = `SELECT m.id, m.content, m.content_type, m.trust_level, m.tags, m.created_at
+  let query = `SELECT m.id, m.content, m.content_type, m.trust_level, m.tags, m.created_at,
+       m.evidence_format_version, m.evidence_lifecycle_status, m.legacy_marker
      FROM memory_items m
      WHERE m.content_type = $1
        AND to_tsvector('english', COALESCE(m.content->>'text', '')) @@ plainto_tsquery('english', $2)`;

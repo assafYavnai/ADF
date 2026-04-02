@@ -4,6 +4,11 @@ import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { ProvenanceSchema, createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
 import type { InvocationSessionHandle } from "../../shared/llm-invoker/types.js";
+import { WorkflowName } from "./workflow-contract.js";
+import {
+  OnionTurnResultRecord,
+  OnionWorkflowThreadState,
+} from "../requirements-gathering/contracts/onion-live.js";
 
 // --- Base event fields (shared by all events) ---
 
@@ -41,12 +46,7 @@ export const ClassifierResultEvent = BaseEvent.extend({
   data: z.object({
     intent: z.string(),
     confidence: z.number().min(0).max(1),
-    workflow: z.enum([
-      "direct_coo_response",
-      "clarification",
-      "pushback",
-      "memory_operation",
-    ]),
+    workflow: WorkflowName,
     reasoning: z.string().optional(),
   }),
 });
@@ -107,6 +107,11 @@ export const MemoryOperationEvent = BaseEvent.extend({
   }),
 });
 
+export const OnionTurnResultEvent = BaseEvent.extend({
+  type: z.literal("onion_turn_result"),
+  data: OnionTurnResultRecord,
+});
+
 // --- Union Event Type ---
 
 export const ThreadEvent = z.discriminatedUnion("type", [
@@ -117,6 +122,7 @@ export const ThreadEvent = z.discriminatedUnion("type", [
   HumanRequestEvent,
   StateCommitEvent,
   MemoryOperationEvent,
+  OnionTurnResultEvent,
 ]);
 
 export type ThreadEvent = z.infer<typeof ThreadEvent>;
@@ -127,8 +133,15 @@ export type ErrorEvent = z.infer<typeof ErrorEvent>;
 export type HumanRequestEvent = z.infer<typeof HumanRequestEvent>;
 export type StateCommitEvent = z.infer<typeof StateCommitEvent>;
 export type MemoryOperationEvent = z.infer<typeof MemoryOperationEvent>;
+export type OnionTurnResultEvent = z.infer<typeof OnionTurnResultEvent>;
 
 // --- Thread ---
+
+export const ThreadWorkflowStateSchema = z.object({
+  active_workflow: WorkflowName.nullable().default(null),
+  onion: OnionWorkflowThreadState.nullable().default(null),
+});
+export type ThreadWorkflowState = z.infer<typeof ThreadWorkflowStateSchema>;
 
 export const ThreadSchema = z.object({
   id: z.string().uuid(),
@@ -137,6 +150,10 @@ export const ThreadSchema = z.object({
   updatedAt: z.string().datetime(),
   status: z.enum(["active", "paused", "completed"]).default("active"),
   scopePath: z.string().nullable().optional().default(null),
+  workflowState: ThreadWorkflowStateSchema.default({
+    active_workflow: null,
+    onion: null,
+  }),
 });
 
 export type Thread = z.infer<typeof ThreadSchema>;
@@ -168,6 +185,10 @@ export function createThread(scopePath: string | null = null): Thread {
     updatedAt: now,
     status: "active",
     scopePath,
+    workflowState: {
+      active_workflow: null,
+      onion: null,
+    },
   };
 }
 
@@ -176,6 +197,11 @@ export function createThread(scopePath: string | null = null): Thread {
 export function serializeForLLM(thread: Thread): string {
   const parts: string[] = [];
   const lastCommitIndex = findLastStateCommitIndex(thread);
+  const workflowSummary = serializeWorkflowState(thread);
+
+  if (workflowSummary) {
+    parts.push(`<workflow_state>\n${workflowSummary}\n</workflow_state>`);
+  }
 
   if (lastCommitIndex >= 0) {
     const commit = thread.events[lastCommitIndex];
@@ -244,12 +270,64 @@ function findLastStateCommitIndex(thread: Thread): number {
 }
 
 function serializeEvent(event: ThreadEvent): string {
+  if (event.type === "onion_turn_result") {
+    return serializeOnionTurnResult(event);
+  }
+
   const data =
     typeof event.data === "string"
       ? event.data
       : JSON.stringify(event.data, null, 2);
 
   return `<${event.type}>\n${data}\n</${event.type}>`;
+}
+
+function serializeWorkflowState(thread: Thread): string {
+  const onion = thread.workflowState.onion;
+  if (thread.workflowState.active_workflow !== "requirements_gathering_onion" || !onion) {
+    return "";
+  }
+
+  const lines = [
+    `Active workflow: requirements_gathering_onion`,
+    `Lifecycle status: ${onion.lifecycle_status}`,
+    `Current layer: ${onion.current_layer}`,
+    ...onion.working_artifact.scope_summary,
+  ];
+
+  if (onion.selected_next_question) {
+    lines.push(`Next question: ${onion.selected_next_question}`);
+  } else if (onion.no_question_reason) {
+    lines.push(`No next question: ${onion.no_question_reason}`);
+  }
+
+  if (onion.finalized_requirement_memory_id) {
+    lines.push(`Finalized requirement memory id: ${onion.finalized_requirement_memory_id}`);
+  }
+
+  return lines.join("\n");
+}
+
+function serializeOnionTurnResult(event: OnionTurnResultEvent): string {
+  const lines = [
+    `trace_id: ${event.data.trace_id}`,
+    `turn_id: ${event.data.turn_id}`,
+    `lifecycle_status: ${event.data.lifecycle_status}`,
+    `current_layer: ${event.data.current_layer}`,
+    `state_commit_summary: ${event.data.state_commit_summary}`,
+  ];
+
+  if (event.data.workflow_trace.selected_next_question) {
+    lines.push(`selected_next_question: ${event.data.workflow_trace.selected_next_question}`);
+  } else if (event.data.workflow_trace.no_question_reason) {
+    lines.push(`no_question_reason: ${event.data.workflow_trace.no_question_reason}`);
+  }
+
+  if (event.data.finalized_requirement_memory_id) {
+    lines.push(`finalized_requirement_memory_id: ${event.data.finalized_requirement_memory_id}`);
+  }
+
+  return `<onion_turn_result>\n${lines.join("\n")}\n</onion_turn_result>`;
 }
 
 // --- File System Thread Store ---

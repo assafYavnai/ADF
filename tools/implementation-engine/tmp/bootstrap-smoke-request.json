@@ -1,0 +1,77 @@
+{
+  "job_id": "implementation-engine-bootstrap-smoke-001",
+  "operation": "create",
+  "source_refs": [
+    {
+      "path": "docs/contex/learning-engine-fix-step-1-implementation-engine.md",
+      "purpose": "bootstrap plan reference",
+      "required": true,
+      "content_type": "markdown"
+    }
+  ],
+  "target_governance": {
+    "artifact_kind": "implementation-engine-runtime",
+    "writable_surface": [
+      "tools/implementation-engine/src",
+      "tools/implementation-engine/package.json",
+      "tools/implementation-engine/tsconfig.json"
+    ],
+    "writable_surface_base_version": "bootstrap-unversioned",
+    "target_contract": {
+      "path": "tools/implementation-engine/tool-contract.json",
+      "kind": "contract",
+      "must_exist": true
+    },
+    "target_rulebook": {
+      "path": "tools/implementation-engine/rulebook.json",
+      "kind": "rulebook",
+      "must_exist": true
+    },
+    "target_review_prompt": {
+      "path": "tools/implementation-engine/review-prompt.json",
+      "kind": "prompt",
+      "must_exist": true
+    },
+    "authority_documents": [
+      {
+        "path": "docs/v0/review-process-architecture.md",
+        "purpose": "canonical review architecture",
+        "required": true,
+        "content_type": "markdown"
+      }
+    ],
+    "runtime_review_configuration": {
+      "review_modes": {
+        "first_round": "full",
+        "middle_rounds": "delta",
+        "regression_sanity": "regression_sanity"
+      },
+      "max_rounds": 2,
+      "split_verdict_handling": "rejecting_path_only_then_regression_sanity",
+      "regression_sanity_required": true
+    },
+    "output_declarations": {
+      "run_root": "tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001",
+      "candidate_root": "tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/candidate",
+      "staged_final_root": "tools/implementation-engine/runs/implementation-engine-bootstrap-smoke-001/staged-final",
+      "target_outputs": [
+        {
+          "path": "tools/implementation-engine/src/index.ts",
+          "artifact_class": "source_code",
+          "promotion_strategy": "staged_only"
+        }
+      ]
+    },
+    "stop_conditions": {
+      "budget_exhaustion_outcome": "resume_required",
+      "missing_authority_outcome": "pushback",
+      "failed_parity_outcome": "pushback",
+      "blocked_execution_outcome": "blocked"
+    },
+    "conditional_acceptance_authority": {
+      "owner_type": "invoker",
+      "owner_ref": "bootstrap-smoke",
+      "delegated_to_run": false
+    }
+  }
+}

@@ -1,0 +1,373 @@
+Build a new global Codex skill family for governed feature implementation planning and execution.
+
+Goal
+Create a reusable, cross-project, thread-safe skill family that is compatible with the existing review-cycle family and feature artifact layout, but focused on implementation planning integrity and implementation execution.
+
+Primary skill family names
+- implement-plan
+- implement-plan-setup
+
+High-level purpose
+The skill must:
+1. gather and normalize all required context for a feature implementation slice
+2. verify plan integrity first against the saved contract and supporting artifacts
+3. push back to the invoker when the plan is weak, incomplete, ambiguous, or unsafe
+4. only when the plan is solid, create a strong product-slice implementor brief
+5. spawn or reuse a strong implementation worker under the strongest truthful autonomous worker mode available
+6. persist all state and artifacts under the same feature-root conventions used by review-cycle
+7. commit and push all feature artifacts to origin when the implementation slice is successfully completed
+
+Compatibility goal
+The new skill family must follow the same core artifact model and per-feature continuity model as the existing review-cycle family so both skills can operate against the same feature stream safely.
+
+Current review-cycle compatibility rules to preserve
+- feature root pattern: <repo_root>/docs/phase<phase_number>/<feature_slug>/
+- project-level setup artifact: <repo_root>/.codex/<skill-name>/setup.json
+- project-level persistent execution registry: <repo_root>/.codex/<skill-name>/agent-registry.json
+- per-feature persistent state file under the feature root
+- stable per-feature registry key safe for parallel feature work
+- strong setup validation before worker execution
+- worker runtime and control-plane runtime must stay distinct
+- strongest truthful autonomous worker access mode must be selected conservatively
+- invalid setup must be refreshed automatically by the main skill as an internal verification step, not as a user-visible separate manual step
+- the main skill must own the full loop and must not delegate orchestration responsibility to the worker
+- the feature stream must remain resumable across invocations
+- completion must be truthful and conservative
+
+Important change from review-cycle UX
+For implement-plan, setup must be transparent to the invoker.
+That means:
+- the main skill internally validates setup first
+- if setup is missing, stale, unparsable, or inconsistent, the main skill internally calls the setup functionality and continues
+- this should not require a separate user-visible setup invocation in normal use
+- a separate implement-plan-setup skill or shared setup helper may still exist internally for modularity, but the main skill must auto-run it when needed
+
+Feature lifecycle expectations
+The skill must support feature streams as first-class objects.
+Each feature stream must have explicit status tracking with at least:
+- active
+- blocked
+- completed
+- closed
+
+Rules:
+- active and blocked features are shown in “open features” output
+- completed or closed features must not be shown as active/open features
+- attempting to invoke implement-plan on a completed/closed feature must fail with a clear error explaining the feature is no longer active
+- provide a deterministic command/helper path to mark a feature as completed
+- completion must update both feature-local state and any project-level index or registry needed for active-feature discovery
+
+Help and discoverability requirements
+The skill must support self-describing invocation so the invoker does not need to scan SKILL.md files manually.
+
+Required behavior:
+- calling $implement-plan with no variables/inputs must return a concise help message
+- that help message must include:
+  - what the skill does
+  - required inputs
+  - optional inputs
+  - supported modes/actions
+  - current settings summary
+  - current active/open features summary
+  - how to mark a feature complete
+  - what happens if the feature is already closed/completed
+- provide an explicit help flag/mode as well, for example help=true or action=help
+- provide a get-settings mode/action that returns the resolved current settings used by the skill
+- provide a list-features mode/action that returns active/open/completed features in a compact structured way
+
+Cross-project and global-skill requirements
+This must be a global skill, not hardcoded to ADF only.
+
+Rules:
+- no hardcoded project-root assumptions beyond safe defaults
+- all important paths must be parameterized and resolved from variables/config
+- introduce path variables clearly, for example:
+  - project_root
+  - phase_number
+  - feature_slug
+  - feature_root
+  - skill_state_root
+  - setup_path
+  - registry_path
+  - templates_root
+  - references_root
+- use safe path normalization and slug validation
+- reject unsafe feature_slug or path traversal
+- keep the skill globally installable while allowing project-specific defaults
+
+Context/setup phase requirements
+The setup phase must collect all relevant information needed for integrity checking and implementation.
+It must feel in the implementation context from the existing artifact trail.
+
+For the current expected layout, feature implementation docs, audits, and related artifacts will typically live under:
+- <project_root>/docs/phase<phase_number>/<feature_slug>/
+
+The setup/context collection phase must be able to ingest, when present:
+- feature README/context docs
+- saved implementation contract docs
+- current plan docs
+- audit docs
+- review docs
+- fix-plan/fix-report docs
+- relevant architecture/context/spec docs
+- settings/preferences docs when present
+- existing per-feature state
+
+The main skill must build a normalized implementation-input pack from those artifacts.
+
+Integrity verification requirements
+Before spawning the implementor, the skill must verify whether the plan is truly ready.
+This is the key gate.
+
+The integrity verification must check at minimum:
+- required implementation contract exists or a valid equivalent source is available
+- the plan is explicit, non-ambiguous, and internally coherent
+- required deliverables are stated clearly
+- allowed edits and forbidden edits are stated clearly
+- acceptance gates are stated clearly
+- observability/audit expectations are stated clearly if required by the contract
+- dependencies/non-goals/constraints are explicit enough
+- upstream context is sufficient to implement without business guessing
+- the feature is still active/open
+- the target slice is bounded and product-shaped, not broad speculative refactoring
+
+If integrity fails:
+- do not spawn the implementor
+- create a pushback artifact for the feature stream
+- surface a concise pushback message to the invoker
+- state exactly what is missing or inconsistent
+- preserve resumable state so the next invocation can continue
+
+If integrity passes:
+- create a strong implementation brief artifact for the implementor
+- spawn or resume the implementation worker
+- provide the worker only the bounded, contract-driven slice
+
+Implementor worker requirements
+When integrity passes, the main skill must spawn or reuse a strong implementation worker.
+
+Worker policy:
+- use the strongest truthful autonomous worker access mode available under the current runtime
+- if native worker access is weaker than CLI full-auto bypass, prefer CLI worker mode and record why
+- keep worker runtime distinct from control-plane runtime
+- default implementor model target: GPT-5.4 with xhigh reasoning or the strongest equivalent available in the current runtime
+- the main skill must persist which worker runtime/access mode/model were actually used
+
+Implementation brief requirements
+The skill must generate a strong product-slice implementor brief, not just forward raw docs.
+That brief must include:
+- implementation objective
+- exact slice scope
+- inputs/authorities read
+- required deliverables
+- forbidden edits
+- integrity-verified assumptions only
+- explicit non-goals
+- proof/verification expectations
+- required artifact updates
+- closeout rules
+
+Artifact layout requirements
+Follow the review-cycle style closely so the two skills are compatible.
+
+Feature artifact layout should include at least:
+<project_root>/docs/phase<phase_number>/<feature_slug>/
+  README.md
+  context.md
+  implement-plan-state.json
+  implement-plan-contract.md            # if generated or normalized by the skill
+  implement-plan-pushback.md            # when integrity fails
+  implement-plan-brief.md               # when integrity passes
+  implementation-run/                   # optional implementation-run artifacts if needed
+  completion-summary.md                 # when successfully completed
+
+Project-level artifacts:
+<project_root>/.codex/implement-plan/
+  setup.json
+  agent-registry.json
+  features-index.json                   # or equivalent project-level feature registry
+
+You may refine the exact filenames if needed, but keep the structure parallel to review-cycle and make the contract explicit.
+
+State and registry requirements
+Persist deterministic state and registry objects similar in spirit to review-cycle.
+
+Need at least:
+- setup.json
+- agent-registry.json
+- feature index / active-feature registry
+- per-feature implement-plan-state.json
+
+The state must record at minimum:
+- phase_number
+- feature_slug
+- project_root
+- feature_registry_key
+- feature_status
+- implementor_execution_id
+- implementor_execution_access_mode
+- resolved_runtime_permission_model
+- resolved_runtime_capabilities
+- current_branch
+- last_completed_step
+- last_commit_sha
+- active_run_status
+- created_at
+- updated_at
+
+The feature index must allow:
+- listing active/open features quickly
+- excluding completed/closed features from active lists
+- preventing main-skill execution on closed/completed features
+
+Transparent setup requirements
+Implement transparent setup verification inside implement-plan.
+
+Rules:
+- main skill must first load and validate setup.json
+- if setup is missing or invalid, main skill must internally refresh it before continuing
+- this must behave as an internal verification step, not a separate manual prerequisite
+- still keep modular setup logic reusable through implement-plan-setup or a shared setup helper
+- setup must support get-settings output for the invoker
+
+Shared-functionality requirement
+Reuse existing functionality where safe to reduce maintenance burden.
+
+Strong preference:
+- extract shared helper logic between review-cycle and implement-plan rather than duplicating it
+- candidate shared areas:
+  - safe feature slug validation
+  - path normalization and feature-root resolution
+  - setup validation patterns
+  - runtime capability detection
+  - worker/control-plane access resolution
+  - state read/repair/write helpers
+  - feature registry/index management
+  - help/get-settings/list-features rendering helpers
+  - atomic JSON file persistence
+
+If shared extraction is done:
+- keep the boundary clean and low-risk
+- do not break current review-cycle behavior
+- prefer additive shared modules with thin adapters
+
+Thread safety and parallel use requirements
+The skills may be invoked concurrently by different agents.
+
+Therefore:
+- all state mutations must be thread-safe/concurrency-safe
+- use per-feature isolation so different feature streams do not collide
+- use atomic writes for JSON state artifacts
+- avoid whole-project locks when per-feature locks are sufficient
+- if a lock mechanism is used, it must be narrow, stale-lock-safe, and deterministic
+- never allow one feature invocation to corrupt another feature’s state
+- project-level feature index/registry updates must also be safe under concurrent access
+
+Main skill interface expectations
+The skill must support a small action model, for example:
+- action=help
+- action=get-settings
+- action=list-features
+- action=prepare
+- action=run
+- action=mark-complete
+
+Expected UX:
+- no inputs -> show help + settings summary + open features
+- action=get-settings -> show resolved settings and runtime/access summary
+- action=list-features -> show active/open/completed features
+- action=mark-complete -> mark the target feature complete, persist state, and remove it from active/open features
+- action=run -> do the normal integrity-check -> pushback-or-implement flow
+
+Closed/completed feature protection
+Implement these rules explicitly:
+- if feature_status is completed or closed, implement-plan action=run must fail clearly
+- the failure must explain that the feature is no longer active and must be reopened or cloned to continue
+- list-features must keep completed/closed features out of the active/open section
+
+Git closeout requirement
+When an implementation slice is successfully completed, the skill must push all feature artifacts to origin.
+This is mandatory.
+
+Rules:
+- completion is not final until code changes and all feature artifacts are committed and pushed
+- feature artifacts include at minimum:
+  - feature state
+  - pushback/brief/completion artifacts
+  - updated docs/specs/contracts
+  - any changed setup artifacts if applicable
+- if commit or push fails, preserve artifacts and surface the exact failure
+- do not mark the implementation slice fully completed in state until push succeeds, unless you persist a clearly pending-closeout status
+- include the feature artifact paths in the completion summary
+
+Prompt-template requirements
+Like review-cycle, use explicit prompt-template files instead of hiding the operational contract only in the SKILL.md.
+Create references such as:
+- references/workflow-contract.md
+- references/setup-contract.md
+- references/prompt-templates.md
+
+The prompt templates should include at least:
+- integrity checker / pushback template
+- implementor worker template
+- completion summary template
+- help/get-settings/list-features output contract if useful
+
+Help output requirements
+The skill help output should be concise but concrete.
+It must include:
+- skill purpose
+- actions
+- required inputs for run mode
+- optional inputs
+- setup behavior summary
+- current resolved settings summary
+- active/open features summary
+- note that completed/closed features cannot be run
+
+Suggested implementation artifacts to produce
+Build the skill family with:
+- implement-plan.SKILL.md
+- implement-plan-setup.SKILL.md
+- implement-plan.agents.openai.yaml
+- implement-plan-setup.agents.openai.yaml
+- references/workflow-contract.md
+- references/setup-contract.md
+- references/prompt-templates.md
+- scripts/implement-plan-helper.mjs
+- scripts/implement-plan-setup-helper.mjs
+- any shared helper modules extracted safely
+
+Behavioral contract for implement-plan
+Main flow should be:
+1. resolve inputs or show help if none provided
+2. load and validate setup internally
+3. refresh setup internally if invalid
+4. resolve feature root and feature status
+5. fail if feature is completed/closed
+6. build context/input pack
+7. verify implementation-plan integrity
+8. if weak -> write pushback artifact and return pushback
+9. if solid -> write implementation brief
+10. spawn/resume implementor under strongest truthful access mode
+11. wait for completion / verify outputs
+12. write completion summary
+13. commit and push all feature artifacts to origin
+14. mark feature completed when appropriate
+15. return final summary
+
+Required output from the skill-creator agent
+Return the actual skill implementation package content, not just advice.
+At minimum provide:
+1. architecture summary
+2. exact file tree
+3. full contents of each new/changed file
+4. state/registry JSON contracts
+5. explanation of shared code extraction choices
+6. explanation of thread-safety strategy
+7. explanation of help/get-settings/list-features behavior
+8. explanation of closed-feature protection
+9. explanation of push-to-origin closeout behavior
+
+Do not keep this at design-only level.
+Produce implementation-ready skill assets.

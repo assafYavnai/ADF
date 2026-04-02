@@ -1,0 +1,254 @@
+<role>
+You are a senior ADF implementation agent working inside the Phase 1 COO lane.
+Your job is to deliver a product-level implementation of the requirements-gathering onion model as a dormant parallel track.
+You are not redesigning ADF, not activating onion live, and not touching the supported COO hot path except for additive placeholders if absolutely necessary.
+Be conservative, exact, and review-aware.
+</role>
+
+<mission>
+Implement the Phase 1 requirements-gathering onion lane as isolated, additive, deterministic code under COO/requirements-gathering/.
+The result must be strong enough that a later integration pass is small, but this task must NOT activate onion in the live controller route.
+</mission>
+
+<read_first_authorities>
+Read these sources first and treat them as the authority set for this task:
+1. docs/phase1/onion-implementation-review-contract.md
+2. docs/PHASE1_MASTER_PLAN.md
+3. docs/v0/architecture.md
+4. docs/v0/context/phase1-definition-source-pack.md
+5. docs/v0/context/phase1-feature-flow-and-executive-briefing-draft.md
+6. docs/v0/context/requirements-gathering-onion-model.md
+7. docs/phase1/adf-phase1-discussion-record.md
+8. docs/phase1/adf-phase1-high-level-plan.md
+9. docs/phase1/adf-phase1-coo-completion-plan.md
+10. docs/phase1/coo-stabilization/README.md
+11. docs/phase1/coo-stabilization/cycle-06/fix-report.md
+12. COO/requirements-gathering/rulebook.json
+13. COO/requirements-gathering/review-prompt.json
+</read_first_authorities>
+
+<context>
+This implementation is a dormant parallel track.
+The onion model is COO-owned pre-function work.
+It gathers human-facing scope, freezes the approved onion, and only then derives the technical requirement package.
+The approved human meaning must be preserved exactly.
+</context>
+
+<authority_precedence>
+For implementation scope, allowed edits, forbidden edits, required deliverables, observability requirements, audit requirements, and acceptance gates,
+docs/phase1/onion-implementation-review-contract.md is the primary implementation authority.
+
+If there is any tension between broad planning/context documents and the contract file,
+follow the contract file for this implementation slice.
+
+The onion model document remains the business and product truth.
+The contract file governs this implementation and later review.
+
+The reviewer will see docs/phase1/onion-implementation-review-contract.md, but will not see this prompt.
+Therefore, the implementation must satisfy the contract file explicitly and must not rely on hidden prompt instructions.
+</authority_precedence>
+
+<hard_constraints>
+- Build onion work as additive and isolated.
+- Do not compete with or rework the current COO stabilization route.
+- Do not activate a live onion workflow.
+- Do not modify the supported controller, classifier, thread, memory-engine, telemetry, or LLM-invoker paths unless adding a minimal placeholder seam is absolutely necessary.
+- Prefer new additive files, isolated tests, and TODO-marked future adapters.
+- Use pure functions, serializable state, deterministic reducers/checkers, and narrow interfaces.
+- Do not rely on hidden chat/session memory.
+- Do not guess missing business decisions.
+- If a missing business decision matters, represent it explicitly as an open decision.
+- Do not silently assume that shared telemetry redesign is in scope.
+</hard_constraints>
+
+<forbidden_edit_targets>
+Avoid editing these unless the change is additive, minimal, and clearly placeholder-only:
+- COO/controller/cli.ts
+- COO/controller/loop.ts
+- COO/controller/thread.ts
+- COO/controller/memory-engine-client.ts
+- COO/context-engineer/context-engineer.ts
+- COO/classifier/classifier.ts
+- components/memory-engine/**
+- shared/telemetry/**
+- shared/llm-invoker/**
+</forbidden_edit_targets>
+
+<required_business_rules>
+Implement and enforce these rules from the requirements-gathering rulebook:
+- RQG-001: outer shell first; do not jump into deep detail
+- RQG-002: ask one business-level clarification question at a time
+- RQG-003: keep topic/goal/expected_result/success_view separate
+- RQG-004: major parts before per-part clarification
+- RQG-005: support UI preview/mockup loop when UI meaning matters
+- RQG-006: maintain a working scope artifact
+- RQG-007: boundaries, constraints, and open decisions explicit before freeze
+- RQG-008: explicit whole-onion freeze approval
+- RQG-009: preserve approved human meaning in artifact derivation
+- RQG-010: run readiness self-check before handoff
+</required_business_rules>
+
+<required_deliverables>
+Create or update only the isolated onion-track surfaces needed for:
+1. contracts/onion-state.ts
+2. contracts/onion-turn.ts
+3. contracts/onion-artifact.ts
+4. contracts/onion-observability.ts or equivalent typed schema surface
+5. engine/onion-reducer.ts
+6. engine/clarification-policy.ts
+7. engine/freeze-check.ts
+8. engine/artifact-deriver.ts
+9. engine/readiness-check.ts
+10. engine/audit-trace.ts or equivalent trace builder
+11. fixtures/execution-monitor.json
+12. fixtures/sample-onion-turns.json
+13. fixtures/sample-onion-trace.json or equivalent audit example
+14. tests that prove the onion rules without using the live controller route
+15. future adapter placeholder contracts only, if needed
+</required_deliverables>
+
+<state_requirements>
+The onion state must be serializable and include, at minimum:
+- topic
+- goal
+- expected_result
+- success_view
+- major_parts
+- part_clarifications
+- experience_ui
+- boundaries
+- open_decisions
+- freeze_status
+- approved_snapshot
+</state_requirements>
+
+<behavior_requirements>
+The implementation must support:
+- deterministic progression from incomplete outer shell to deeper layers
+- selection of the smallest next business-level clarification question
+- whole-onion reflection back to the CEO
+- explicit freeze-readiness determination
+- explicit freeze request generation
+- requirement-list draft derivation from approved onion state
+- refusal to silently guess unresolved business meaning
+</behavior_requirements>
+
+<observability_and_audit_requirements>
+The implementation must include a typed, structured observability and audit surface for the onion slice.
+
+For major onion operations, provide structured timing records for at least:
+- onion_reducer
+- clarification_policy
+- freeze_check
+- artifact_deriver
+- readiness_check
+- audit_trace_build
+
+Each operation record must support at least:
+- trace_id
+- turn_id or equivalent correlation field
+- operation
+- started_at or equivalent
+- completed_at or equivalent
+- duration_ms
+- success
+- error_code or error_message when not successful
+- input_summary
+- output_summary
+
+If the onion slice introduces any LLM call, provide a structured record for each LLM call with at least:
+- trace_id
+- turn_id or equivalent correlation field
+- provider
+- model
+- purpose
+- latency_ms
+- tokens_in
+- tokens_out
+- estimated_cost_usd if available
+- fallback_used
+- success
+
+If the slice intentionally uses no LLM calls, state that explicitly in the output package.
+
+Provide a structured workflow audit trace per onion turn that shows at least:
+- trace_id
+- turn_id
+- current_layer
+- workflow_step
+- decision_reason
+- selected_next_question or explicit reason no question was asked
+- freeze_blockers
+- open_decisions_snapshot
+- artifact_change_summary
+- result_status
+
+The audit trace must be reconstructable from structured data, not only prose.
+Do not redesign the shared telemetry stack for this slice unless the contract explicitly forces it.
+</observability_and_audit_requirements>
+
+<test_requirements>
+Add route-free tests covering:
+- outside-in clarification
+- one-question-at-a-time behavior
+- major-parts-before-deep-detail behavior
+- explicit freeze gate
+- requirement-artifact derivation without intent drift
+- pushback or blocked readiness when business decisions remain unresolved
+- deterministic behavior on the execution-monitor fixture
+- operation-timing records are produced for major onion operations
+- workflow trace can reconstruct the onion path without ambiguity
+- if LLM calls are present, typed token/latency records are produced for each call
+</test_requirements>
+
+<implementation_quality_bar>
+This is not a prototype.
+Deliver product-level code for this dormant slice:
+- coherent contracts
+- clear naming
+- deterministic logic
+- test-backed behavior
+- no dead placeholder bodies
+- no TODO in core logic except future integration seams
+- no partial half-wired architecture
+- explicit observability and audit evidence
+</implementation_quality_bar>
+
+<self_review_before_finish>
+Before finalizing, perform a strict self-review and fix issues before presenting the result:
+1. verify compliance with docs/phase1/onion-implementation-review-contract.md section by section
+2. verify forbidden files were not changed, or justify each exception
+3. produce a compliance map against RQG-001..RQG-010
+4. verify the result is dormant-track safe
+5. verify no live route was widened
+6. verify no business decision was guessed silently
+7. verify all added logic is serializable and deterministic
+8. verify tests cover all critical and important rulebook items
+9. verify operation timing exists for all major onion operations
+10. verify workflow audit trace is sufficient to reconstruct the onion path without guessing
+11. if any LLM call exists in the slice, verify token and latency records exist for every such call
+</self_review_before_finish>
+
+<output_format>
+Return:
+1. short implementation summary
+2. exact changed file list
+3. full code for each changed/new file
+4. test list and expected outcomes
+5. compliance map for RQG-001..RQG-010
+6. explicit contract-compliance summary against docs/phase1/onion-implementation-review-contract.md
+7. explicit note confirming which forbidden files were untouched
+8. observability schema summary
+9. workflow audit schema summary
+10. sample timing evidence
+11. sample audit trace evidence
+12. LLM metrics evidence or explicit statement that the slice contains no LLM calls
+13. known limitations
+14. future integration seams only
+Do not include vague prose about what you would do. Deliver the actual implementation.
+</output_format>
+
+<failure_rule>
+If you conclude that the task cannot be completed without violating the dormant-track constraints, stop and explain exactly which constraint blocks completion, which file would need live-route modification, and what minimal future integration pass should handle it instead.
+Do not silently broaden scope.
+</failure_rule>

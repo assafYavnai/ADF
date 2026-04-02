@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.2",
+  "component": "implementation-engine",
+  "last_updated": "2026-03-31",
+  "rules": [
+    {
+      "id": "IMPL-001",
+      "rule": "Freeze one bounded writable slice before implementation starts.",
+      "applies_to": ["invocation intake", "write-domain freeze", "candidate staging"],
+      "do": "Freeze the writable surface, writable-surface base version, target outputs, and stop conditions before any candidate write happens.",
+      "dont": "Do not widen the writable surface mid-run or let implementation spill outside the frozen slice.",
+      "source": "Codex run-discipline findings distilled for implementation-engine bootstrap.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-002",
+      "rule": "No concept lands without an owner, consumer, lifecycle, and proof surface.",
+      "applies_to": ["candidate artifact", "self-check", "review findings"],
+      "do": "Require every new governed concept to name who owns it, who consumes it, how it changes over time, and which artifact proves it exists.",
+      "dont": "Do not introduce statuses, artifacts, or proposal types that are declared but not wired to a consumer and evidence path.",
+      "source": "Replay-vs-run implementation-discipline synthesis.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-003",
+      "rule": "Do not answer review criticism by expanding architecture outside the frozen slice.",
+      "applies_to": ["revision loop", "review response", "governance proposals"],
+      "do": "Fix the bounded problem with the narrowest compliant change that satisfies the active findings and target governance.",
+      "dont": "Do not add new orchestration layers, concepts, or files that are outside the current writable slice just to answer one review finding.",
+      "source": "Codex session audit: scope expansion created later defects.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-004",
+      "rule": "Keep execution status, artifact status, review outcome, and terminal reason semantically distinct.",
+      "applies_to": ["result payload", "terminal semantics", "postmortems"],
+      "do": "Represent run execution, review verdicts, artifact promotion, and terminal closeout as separate fields with distinct meanings.",
+      "dont": "Do not overload one status field to mean both artifact quality and process termination.",
+      "source": "Replay-vs-run terminal-state analysis.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-005",
+      "rule": "No frozen or ready claim is valid without adversarial verification and parity audit.",
+      "applies_to": ["completion", "parity audit", "terminal closeout"],
+      "do": "Require reviewer-clear, rules-compliance evidence, and parity-audit evidence before any frozen state can close.",
+      "dont": "Do not treat staged artifacts as ready merely because generation completed without checking declared surfaces and emitted evidence.",
+      "source": "Replay-vs-run parity and freeze-legality findings.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-006",
+      "rule": "Role markdown, role contract, artifact matrix, completion clauses, and terminal payload must stay semantically aligned.",
+      "applies_to": ["role package", "tool contract", "run result"],
+      "do": "Keep markdown, contracts, schemas, and emitted result artifacts in machine-checkable parity.",
+      "dont": "Do not let one surface declare behavior or artifacts that the other governed surfaces omit or contradict.",
+      "source": "Cross-surface drift findings from ARB replay and implementation-engine drafting.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-007",
+      "rule": "Declared governance history and audit artifacts are governed outputs and must not contradict effective terminal status or result payload semantics.",
+      "applies_to": ["preserved history outputs", "cycle postmortem", "run evidence"],
+      "do": "Keep decision history, summaries, postmortems, and result payloads consistent with the actual terminal state and acceptance model.",
+      "dont": "Do not emit history artifacts that imply freeze, approval, or success when the effective terminal status says otherwise.",
+      "source": "Governance-history contradiction reviews on ARB and implementation-engine bootstrap artifacts.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-008",
+      "rule": "Prior artifacts may inform a run only as reference evidence unless the active authority package explicitly imports them as authority.",
+      "applies_to": ["source refs", "migration references", "authority model"],
+      "do": "Use prior ARB artifacts and historical runs as migration evidence unless the invocation or target-governance package explicitly upgrades them into authority.",
+      "dont": "Do not silently treat old artifacts or prior runs as operative governance for the current run.",
+      "source": "Source-baseline decision for implementation-engine bootstrap.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-009",
+      "rule": "Invocation source refs may add run-scoped authority or baseline evidence, but canonical target semantics come from target-governance authority documents; conflicts fail closed.",
+      "applies_to": ["source manifest", "target-governance manifest", "pre-review validation"],
+      "do": "Treat invocation source refs as run-scoped evidence and fail closed when they conflict with canonical target authority documents.",
+      "dont": "Do not silently let invocation refs override target-governance semantics or guess which source should win.",
+      "source": "Authority-input split frozen during implementation-engine planning.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-010",
+      "rule": "Every mutable target surface must be bound to a declared writable-surface base version, and stale target mutations must fail closed.",
+      "applies_to": ["write-domain freeze", "candidate staging", "promotion"],
+      "do": "Require a writable-surface base version before mutation and stop the run if the live target surface no longer matches that base.",
+      "dont": "Do not mutate target outputs when the base version is absent, ambiguous, or stale.",
+      "source": "Parallel-safety and gatekeeper-race-condition findings.",
+      "version": 1
+    },
+    {
+      "id": "IMPL-011",
+      "rule": "Governance-routing records must be machine-readable and auditable, including affected paths and gatekeeper decision metadata for resolved proposals.",
+      "applies_to": ["governance routing", "gatekeeper proposals", "round evidence"],
+      "do": "Write routing records with target surface, requested action, affected paths, base version, owner, outcome, and decision metadata required by the routing schema.",
+      "dont": "Do not route governance mutations through prose-only notes or omit the paths and decision metadata needed for audit.",
+      "source": "Implementation-engine routing-schema review rounds.",
+      "version": 1
+    }
+  ]
+}

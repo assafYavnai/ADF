@@ -21,6 +21,12 @@ export const ProvenanceSchema = z.object({
 
 export type Provenance = z.infer<typeof ProvenanceSchema>;
 
+export const CURRENT_EVIDENCE_FORMAT_VERSION = 2;
+export const LEGACY_EVIDENCE_MARKER = "ADF_LEGACY_SENTINEL_V1";
+
+export const EvidenceLifecycleStatus = z.enum(["current", "legacy_archived"]);
+export type EvidenceLifecycleStatus = z.infer<typeof EvidenceLifecycleStatus>;
+
 export const LEGACY_PROVENANCE: Provenance = {
   invocation_id: "00000000-0000-0000-0000-000000000000",
   provider: "system",

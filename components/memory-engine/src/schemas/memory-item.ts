@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProvenanceSchema } from "../provenance.js";
+import { EvidenceLifecycleStatus, ProvenanceSchema } from "../provenance.js";
 
 export const ContentType = z.enum([
   "text",
@@ -53,6 +53,9 @@ export const MemoryItemSchema = z.object({
   context_priority: ContextPriority,
   compression_policy: CompressionPolicy,
   workflow_metadata: z.record(z.unknown()).nullable(),
+  evidence_format_version: z.number().int(),
+  evidence_lifecycle_status: EvidenceLifecycleStatus,
+  legacy_marker: z.string().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 });
