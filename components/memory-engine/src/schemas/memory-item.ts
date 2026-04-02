@@ -105,7 +105,7 @@ export const ListRecentInput = z.object({
 export type ListRecentInput = z.infer<typeof ListRecentInput>;
 
 export const MemoryManageInput = z.object({
-  action: z.enum(["delete", "archive", "update_tags", "update_trust_level"]),
+  action: z.enum(["delete", "archive", "supersede", "update_tags", "update_trust_level"]),
   memory_id: z.string().uuid(),
   scope: z.string(),
   tags: z.array(z.string()).optional(),

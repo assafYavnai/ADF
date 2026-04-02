@@ -1,17 +1,17 @@
 {
-  "id": "71d57a95-e09f-4c59-8551-9520d1273d55",
+  "id": "0550eff3-be49-4576-a72b-626251883067",
   "events": [
     {
-      "timestamp": "2026-04-02T19:10:25.743Z",
-      "id": "e1371d62-49bd-4867-bb71-08443793b864",
+      "timestamp": "2026-04-02T19:41:34.661Z",
+      "id": "22766370-2c08-4878-b91e-728c935e2efc",
       "provenance": {
-        "invocation_id": "a8514750-f218-4493-ade9-4e5710d2e41f",
+        "invocation_id": "7de8604d-4e19-474b-b89f-e22339541102",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.742Z"
+        "timestamp": "2026-04-02T19:41:34.659Z"
       },
       "type": "user_input",
       "data": {
@@ -19,16 +19,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.744Z",
-      "id": "8bb990e9-4ae1-4b38-9196-f75c9bf31d79",
+      "timestamp": "2026-04-02T19:41:34.662Z",
+      "id": "4b091ef2-e96b-41a7-aa9c-9c80d9dab384",
       "provenance": {
-        "invocation_id": "bee0b878-6439-4db2-a188-4f11f62b2317",
+        "invocation_id": "dfff359a-ab5f-4c6d-ba81-18e85bc9ae22",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.744Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:34.662Z"
       },
       "type": "classifier_result",
       "data": {
@@ -39,21 +39,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.745Z",
-      "id": "f7273866-927a-4bd3-9624-53e59a1e4a25",
+      "timestamp": "2026-04-02T19:41:34.667Z",
+      "id": "efa19c98-4913-4bae-8c03-6ca87a4dff20",
       "provenance": {
-        "invocation_id": "8943659d-218c-4d80-ab42-8e51c01b156b",
+        "invocation_id": "6a821f6b-03b3-4b55-b7a4-ea0c4a60208d",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.744Z"
+        "timestamp": "2026-04-02T19:41:34.663Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
         "lifecycle_status": "active",
         "current_layer": "expected_result",
         "state": {
@@ -121,8 +121,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
           "current_layer": "expected_result",
           "workflow_step": "clarification",
           "decision_reason": "Outer-shell field \"expected_result\" is still missing.",
@@ -144,12 +144,12 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.744Z",
-            "completed_at": "2026-04-02T19:10:25.744Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-02T19:41:34.664Z",
+            "completed_at": "2026-04-02T19:41:34.665Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "actor": "ceo",
@@ -163,11 +163,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.744Z",
-            "completed_at": "2026-04-02T19:10:25.744Z",
+            "started_at": "2026-04-02T19:41:34.665Z",
+            "completed_at": "2026-04-02T19:41:34.665Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -182,11 +182,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.744Z",
-            "completed_at": "2026-04-02T19:10:25.744Z",
+            "started_at": "2026-04-02T19:41:34.665Z",
+            "completed_at": "2026-04-02T19:41:34.665Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -200,12 +200,12 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.744Z",
-            "completed_at": "2026-04-02T19:10:25.744Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-02T19:41:34.665Z",
+            "completed_at": "2026-04-02T19:41:34.666Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -218,11 +218,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.744Z",
-            "completed_at": "2026-04-02T19:10:25.744Z",
+            "started_at": "2026-04-02T19:41:34.666Z",
+            "completed_at": "2026-04-02T19:41:34.666Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -236,11 +236,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.744Z",
-            "completed_at": "2026-04-02T19:10:25.744Z",
+            "started_at": "2026-04-02T19:41:34.666Z",
+            "completed_at": "2026-04-02T19:41:34.666Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -257,8 +257,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "e1371d62-49bd-4867-bb71-08443793b864",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -290,16 +290,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.745Z",
-      "id": "c4d49326-db30-4d45-a7f6-f74ab99f440c",
+      "timestamp": "2026-04-02T19:41:34.668Z",
+      "id": "933f2712-1801-4228-a965-b94d201e0891",
       "provenance": {
-        "invocation_id": "8943659d-218c-4d80-ab42-8e51c01b156b",
+        "invocation_id": "6a821f6b-03b3-4b55-b7a4-ea0c4a60208d",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.744Z"
+        "timestamp": "2026-04-02T19:41:34.663Z"
       },
       "type": "coo_response",
       "data": {
@@ -307,16 +307,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.745Z",
-      "id": "361aa1f9-b29e-4229-aec6-0269d7faa382",
+      "timestamp": "2026-04-02T19:41:34.668Z",
+      "id": "a36ae0ec-fca2-41c8-b955-9249c347a3b7",
       "provenance": {
-        "invocation_id": "a8514750-f218-4493-ade9-4e5710d2e41f",
+        "invocation_id": "7de8604d-4e19-474b-b89f-e22339541102",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.742Z"
+        "timestamp": "2026-04-02T19:41:34.659Z"
       },
       "type": "state_commit",
       "data": {
@@ -342,16 +342,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.746Z",
-      "id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+      "timestamp": "2026-04-02T19:41:34.670Z",
+      "id": "27f60018-319c-43a7-bc81-0635fd7a2728",
       "provenance": {
-        "invocation_id": "8984f52e-e2fd-4b5e-a8bf-e0c60485d2eb",
+        "invocation_id": "e615bea3-91b7-42ff-99e7-5e1ed9cf718a",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.746Z"
+        "timestamp": "2026-04-02T19:41:34.669Z"
       },
       "type": "user_input",
       "data": {
@@ -359,16 +359,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.747Z",
-      "id": "cecbdb5e-d59c-4668-894c-4468e2a6f24a",
+      "timestamp": "2026-04-02T19:41:34.671Z",
+      "id": "12f26245-70b3-4cf3-ab6c-3119cbe1c075",
       "provenance": {
-        "invocation_id": "d9b88ddd-219c-41be-9a3f-67a2136a2153",
+        "invocation_id": "4d849f61-33ca-4181-984b-59d9699f9ab7",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.747Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:34.671Z"
       },
       "type": "classifier_result",
       "data": {
@@ -379,21 +379,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.748Z",
-      "id": "a688c619-7c4d-4c5f-a3c8-036bc80eedff",
+      "timestamp": "2026-04-02T19:41:34.673Z",
+      "id": "c05227db-ef83-40af-8b02-532cdfca811d",
       "provenance": {
-        "invocation_id": "1b1d38a5-6e91-43e9-8b94-3ebe34a773f1",
+        "invocation_id": "d8aecb62-40ef-4db9-baf9-563a1494cdae",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.747Z"
+        "timestamp": "2026-04-02T19:41:34.671Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
         "lifecycle_status": "active",
         "current_layer": "success_view",
         "state": {
@@ -459,8 +459,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
           "current_layer": "success_view",
           "workflow_step": "clarification",
           "decision_reason": "Outer-shell field \"success_view\" is still missing.",
@@ -480,11 +480,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.747Z",
-            "completed_at": "2026-04-02T19:10:25.747Z",
+            "started_at": "2026-04-02T19:41:34.672Z",
+            "completed_at": "2026-04-02T19:41:34.672Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -499,11 +499,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.747Z",
-            "completed_at": "2026-04-02T19:10:25.747Z",
+            "started_at": "2026-04-02T19:41:34.672Z",
+            "completed_at": "2026-04-02T19:41:34.672Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -518,11 +518,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.747Z",
-            "completed_at": "2026-04-02T19:10:25.747Z",
+            "started_at": "2026-04-02T19:41:34.672Z",
+            "completed_at": "2026-04-02T19:41:34.672Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -536,12 +536,12 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.747Z",
-            "completed_at": "2026-04-02T19:10:25.748Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-02T19:41:34.672Z",
+            "completed_at": "2026-04-02T19:41:34.672Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -554,11 +554,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.748Z",
-            "completed_at": "2026-04-02T19:10:25.748Z",
+            "started_at": "2026-04-02T19:41:34.672Z",
+            "completed_at": "2026-04-02T19:41:34.672Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -572,11 +572,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.748Z",
-            "completed_at": "2026-04-02T19:10:25.748Z",
+            "started_at": "2026-04-02T19:41:34.672Z",
+            "completed_at": "2026-04-02T19:41:34.672Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -593,8 +593,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "3801b360-7e48-443c-ae40-8232dd62bc52",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "27f60018-319c-43a7-bc81-0635fd7a2728",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -626,16 +626,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.748Z",
-      "id": "034a6a6c-363e-4931-ab88-08f7c0469223",
+      "timestamp": "2026-04-02T19:41:34.673Z",
+      "id": "c5ff9d54-eefe-42ce-b2dd-70e6f5c7e71c",
       "provenance": {
-        "invocation_id": "1b1d38a5-6e91-43e9-8b94-3ebe34a773f1",
+        "invocation_id": "d8aecb62-40ef-4db9-baf9-563a1494cdae",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.747Z"
+        "timestamp": "2026-04-02T19:41:34.671Z"
       },
       "type": "coo_response",
       "data": {
@@ -643,16 +643,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.748Z",
-      "id": "3836048b-fc9f-431f-a37f-dc3507e9a797",
+      "timestamp": "2026-04-02T19:41:34.673Z",
+      "id": "3c53c49b-ad87-4403-aec9-594f4effa506",
       "provenance": {
-        "invocation_id": "8984f52e-e2fd-4b5e-a8bf-e0c60485d2eb",
+        "invocation_id": "e615bea3-91b7-42ff-99e7-5e1ed9cf718a",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.746Z"
+        "timestamp": "2026-04-02T19:41:34.669Z"
       },
       "type": "state_commit",
       "data": {
@@ -678,16 +678,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.749Z",
-      "id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+      "timestamp": "2026-04-02T19:41:34.675Z",
+      "id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
       "provenance": {
-        "invocation_id": "01465884-5246-4e60-a964-fd59b01dff5f",
+        "invocation_id": "4fe836bf-18db-4aeb-b7c8-bb934ba9ffc4",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.749Z"
+        "timestamp": "2026-04-02T19:41:34.674Z"
       },
       "type": "user_input",
       "data": {
@@ -695,16 +695,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.750Z",
-      "id": "c7be5e6e-4992-4fc7-b265-7c0059237ef6",
+      "timestamp": "2026-04-02T19:41:34.676Z",
+      "id": "102176b5-7890-45c9-8a95-e59d17899177",
       "provenance": {
-        "invocation_id": "314cbd2a-b16a-40f9-926a-41ec8e5de333",
+        "invocation_id": "2f2262b7-fa6e-47aa-8d29-426c9b09e48e",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.750Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:34.676Z"
       },
       "type": "classifier_result",
       "data": {
@@ -715,21 +715,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.752Z",
-      "id": "6266da2d-d993-40a1-87cf-464421b7900a",
+      "timestamp": "2026-04-02T19:41:34.677Z",
+      "id": "0a1e16c1-6c51-4dea-9413-9306d690cfa9",
       "provenance": {
-        "invocation_id": "9d552ad4-d3c9-4be0-abf2-f2bb5b7cb70d",
+        "invocation_id": "e70c0cad-21c0-4d87-b426-24acbeaee0e9",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.751Z"
+        "timestamp": "2026-04-02T19:41:34.676Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
         "lifecycle_status": "active",
         "current_layer": "major_parts",
         "state": {
@@ -793,8 +793,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
           "current_layer": "major_parts",
           "workflow_step": "clarification",
           "decision_reason": "Major parts are still missing.",
@@ -813,11 +813,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.751Z",
-            "completed_at": "2026-04-02T19:10:25.752Z",
+            "started_at": "2026-04-02T19:41:34.676Z",
+            "completed_at": "2026-04-02T19:41:34.677Z",
             "duration_ms": 1,
             "success": true,
             "input_summary": {
@@ -832,11 +832,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.752Z",
-            "completed_at": "2026-04-02T19:10:25.752Z",
+            "started_at": "2026-04-02T19:41:34.677Z",
+            "completed_at": "2026-04-02T19:41:34.677Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -851,11 +851,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.752Z",
-            "completed_at": "2026-04-02T19:10:25.752Z",
+            "started_at": "2026-04-02T19:41:34.677Z",
+            "completed_at": "2026-04-02T19:41:34.677Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -869,11 +869,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.752Z",
-            "completed_at": "2026-04-02T19:10:25.752Z",
+            "started_at": "2026-04-02T19:41:34.677Z",
+            "completed_at": "2026-04-02T19:41:34.677Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -887,11 +887,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.752Z",
-            "completed_at": "2026-04-02T19:10:25.752Z",
+            "started_at": "2026-04-02T19:41:34.677Z",
+            "completed_at": "2026-04-02T19:41:34.677Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -905,11 +905,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.752Z",
-            "completed_at": "2026-04-02T19:10:25.752Z",
+            "started_at": "2026-04-02T19:41:34.677Z",
+            "completed_at": "2026-04-02T19:41:34.677Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -926,8 +926,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "62b1e46b-be19-46f9-b3ae-118655a01224",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "b98be91b-2e7b-452f-a650-84fbbf2881dc",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -959,16 +959,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.752Z",
-      "id": "881539f9-4cf2-44ba-93d0-425de2d68c11",
+      "timestamp": "2026-04-02T19:41:34.678Z",
+      "id": "b9be0b78-952a-4a1a-afb5-f49b79e4c336",
       "provenance": {
-        "invocation_id": "9d552ad4-d3c9-4be0-abf2-f2bb5b7cb70d",
+        "invocation_id": "e70c0cad-21c0-4d87-b426-24acbeaee0e9",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.751Z"
+        "timestamp": "2026-04-02T19:41:34.676Z"
       },
       "type": "coo_response",
       "data": {
@@ -976,16 +976,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.753Z",
-      "id": "2ca414ec-2a4d-47ea-b53c-4c24907137ce",
+      "timestamp": "2026-04-02T19:41:34.678Z",
+      "id": "30c8bc77-ea0e-4f6e-866e-eb61b839952d",
       "provenance": {
-        "invocation_id": "01465884-5246-4e60-a964-fd59b01dff5f",
+        "invocation_id": "4fe836bf-18db-4aeb-b7c8-bb934ba9ffc4",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.749Z"
+        "timestamp": "2026-04-02T19:41:34.674Z"
       },
       "type": "state_commit",
       "data": {
@@ -1011,16 +1011,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.754Z",
-      "id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+      "timestamp": "2026-04-02T19:41:34.679Z",
+      "id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
       "provenance": {
-        "invocation_id": "c84fd988-f0e4-4388-9f08-41b93f43912c",
+        "invocation_id": "eb2c24a9-c0bc-416c-b3b6-de3a7e4cdb53",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.753Z"
+        "timestamp": "2026-04-02T19:41:34.678Z"
       },
       "type": "user_input",
       "data": {
@@ -1028,16 +1028,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.755Z",
-      "id": "85461719-3dc1-419d-88a3-94dda57ddbb8",
+      "timestamp": "2026-04-02T19:41:34.680Z",
+      "id": "ca8fb7f0-4122-4fcc-8402-b6e83cc9e0e8",
       "provenance": {
-        "invocation_id": "4cfc9068-b2e1-44ef-a405-14b881e785f9",
+        "invocation_id": "bbde4c18-554f-47da-b3bc-1110b37ba58b",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.755Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:34.680Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1048,21 +1048,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.756Z",
-      "id": "eec9c1c7-e80b-43a4-955c-f9a9b57f1335",
+      "timestamp": "2026-04-02T19:41:34.682Z",
+      "id": "bf135f0d-8cd9-41be-83b9-7560ea1752db",
       "provenance": {
-        "invocation_id": "d3f071fc-217f-4a52-931b-433607b5d6e9",
+        "invocation_id": "d40b78cc-a4df-47f2-b8a5-328fad9b3a0c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.755Z"
+        "timestamp": "2026-04-02T19:41:34.680Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
         "lifecycle_status": "active",
         "current_layer": "part_clarification",
         "state": {
@@ -1186,8 +1186,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
           "current_layer": "part_clarification",
           "workflow_step": "clarification",
           "decision_reason": "Major part \"Queue view\" still needs clarification.",
@@ -1210,11 +1210,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.756Z",
-            "completed_at": "2026-04-02T19:10:25.756Z",
+            "started_at": "2026-04-02T19:41:34.681Z",
+            "completed_at": "2026-04-02T19:41:34.681Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1229,11 +1229,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.756Z",
-            "completed_at": "2026-04-02T19:10:25.756Z",
+            "started_at": "2026-04-02T19:41:34.681Z",
+            "completed_at": "2026-04-02T19:41:34.681Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1248,11 +1248,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.756Z",
-            "completed_at": "2026-04-02T19:10:25.756Z",
+            "started_at": "2026-04-02T19:41:34.681Z",
+            "completed_at": "2026-04-02T19:41:34.681Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1266,11 +1266,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.756Z",
-            "completed_at": "2026-04-02T19:10:25.756Z",
+            "started_at": "2026-04-02T19:41:34.681Z",
+            "completed_at": "2026-04-02T19:41:34.681Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1284,11 +1284,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.756Z",
-            "completed_at": "2026-04-02T19:10:25.756Z",
+            "started_at": "2026-04-02T19:41:34.681Z",
+            "completed_at": "2026-04-02T19:41:34.681Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1302,11 +1302,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.756Z",
-            "completed_at": "2026-04-02T19:10:25.756Z",
+            "started_at": "2026-04-02T19:41:34.681Z",
+            "completed_at": "2026-04-02T19:41:34.681Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1323,8 +1323,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "903c8497-f540-4c70-be97-fd761ed2cc06",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "0fabb24c-8d13-415b-84dd-a6b1141af576",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1356,16 +1356,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.758Z",
-      "id": "04264dd1-bed4-413b-8bfe-63b43c9f594a",
+      "timestamp": "2026-04-02T19:41:34.682Z",
+      "id": "c21b36c7-0902-45c6-ae8a-28b6c42e0c9d",
       "provenance": {
-        "invocation_id": "d3f071fc-217f-4a52-931b-433607b5d6e9",
+        "invocation_id": "d40b78cc-a4df-47f2-b8a5-328fad9b3a0c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.755Z"
+        "timestamp": "2026-04-02T19:41:34.680Z"
       },
       "type": "coo_response",
       "data": {
@@ -1373,16 +1373,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.758Z",
-      "id": "2ecb49d5-d3fa-4eb8-8e02-88c03a83c047",
+      "timestamp": "2026-04-02T19:41:34.682Z",
+      "id": "0c5c93c0-2503-40ad-a6ed-e9d6b1d7b2e2",
       "provenance": {
-        "invocation_id": "c84fd988-f0e4-4388-9f08-41b93f43912c",
+        "invocation_id": "eb2c24a9-c0bc-416c-b3b6-de3a7e4cdb53",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.753Z"
+        "timestamp": "2026-04-02T19:41:34.678Z"
       },
       "type": "state_commit",
       "data": {
@@ -1408,16 +1408,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.759Z",
-      "id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+      "timestamp": "2026-04-02T19:41:34.685Z",
+      "id": "051827fe-b053-4866-800b-6129d92ced76",
       "provenance": {
-        "invocation_id": "819e2707-7ef2-44a1-856a-c23e134ab447",
+        "invocation_id": "d8a44bfc-d255-4ed4-a48a-0403b91e4463",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.759Z"
+        "timestamp": "2026-04-02T19:41:34.683Z"
       },
       "type": "user_input",
       "data": {
@@ -1425,16 +1425,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.760Z",
-      "id": "e614fc51-c4c4-4a6c-8af5-4f1358eab24e",
+      "timestamp": "2026-04-02T19:41:34.686Z",
+      "id": "099ba5f5-ced9-4c73-b5cd-118e59717535",
       "provenance": {
-        "invocation_id": "8583c9b0-2e99-465f-aab9-75cd72f5fe18",
+        "invocation_id": "930bed98-2633-4e91-a538-2e3032c59845",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.760Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:34.686Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1445,21 +1445,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.762Z",
-      "id": "12ac4c17-9d5c-4230-88bc-209344a490c5",
+      "timestamp": "2026-04-02T19:41:34.689Z",
+      "id": "ba2d6658-269f-4657-b9ae-d269f50f900c",
       "provenance": {
-        "invocation_id": "bba4c934-d0a3-4858-bdb0-40f2e71ee34c",
+        "invocation_id": "aa736773-f249-4144-ae55-e058b6c59e10",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.761Z"
+        "timestamp": "2026-04-02T19:41:34.687Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
         "lifecycle_status": "active",
         "current_layer": "experience_ui",
         "state": {
@@ -1655,8 +1655,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
           "current_layer": "experience_ui",
           "workflow_step": "clarification",
           "decision_reason": "The scope still needs an explicit UI/experience relevance decision.",
@@ -1678,11 +1678,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.761Z",
-            "completed_at": "2026-04-02T19:10:25.761Z",
+            "started_at": "2026-04-02T19:41:34.688Z",
+            "completed_at": "2026-04-02T19:41:34.688Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1697,11 +1697,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.761Z",
-            "completed_at": "2026-04-02T19:10:25.761Z",
+            "started_at": "2026-04-02T19:41:34.688Z",
+            "completed_at": "2026-04-02T19:41:34.688Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1716,11 +1716,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.762Z",
-            "completed_at": "2026-04-02T19:10:25.762Z",
+            "started_at": "2026-04-02T19:41:34.688Z",
+            "completed_at": "2026-04-02T19:41:34.688Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1734,11 +1734,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.762Z",
-            "completed_at": "2026-04-02T19:10:25.762Z",
+            "started_at": "2026-04-02T19:41:34.689Z",
+            "completed_at": "2026-04-02T19:41:34.689Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1752,11 +1752,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.762Z",
-            "completed_at": "2026-04-02T19:10:25.762Z",
+            "started_at": "2026-04-02T19:41:34.689Z",
+            "completed_at": "2026-04-02T19:41:34.689Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1770,11 +1770,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.762Z",
-            "completed_at": "2026-04-02T19:10:25.762Z",
+            "started_at": "2026-04-02T19:41:34.689Z",
+            "completed_at": "2026-04-02T19:41:34.689Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1791,8 +1791,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "acc40c41-8540-40bc-93af-aea3b941b59b",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "051827fe-b053-4866-800b-6129d92ced76",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1824,16 +1824,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.763Z",
-      "id": "60f33def-154c-4b09-ad6d-8d864280a063",
+      "timestamp": "2026-04-02T19:41:34.690Z",
+      "id": "e34429c4-e48f-47cc-ab47-d7e8ddfac8fc",
       "provenance": {
-        "invocation_id": "bba4c934-d0a3-4858-bdb0-40f2e71ee34c",
+        "invocation_id": "aa736773-f249-4144-ae55-e058b6c59e10",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.761Z"
+        "timestamp": "2026-04-02T19:41:34.687Z"
       },
       "type": "coo_response",
       "data": {
@@ -1841,16 +1841,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.763Z",
-      "id": "57dbb4bd-2434-48dc-b1f9-390e0a2923a2",
+      "timestamp": "2026-04-02T19:41:34.690Z",
+      "id": "47f8ca5e-77a3-4634-83fc-d11b9d655e10",
       "provenance": {
-        "invocation_id": "819e2707-7ef2-44a1-856a-c23e134ab447",
+        "invocation_id": "d8a44bfc-d255-4ed4-a48a-0403b91e4463",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.759Z"
+        "timestamp": "2026-04-02T19:41:34.683Z"
       },
       "type": "state_commit",
       "data": {
@@ -1876,16 +1876,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.764Z",
-      "id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+      "timestamp": "2026-04-02T19:41:36.951Z",
+      "id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
       "provenance": {
-        "invocation_id": "df5ac85a-53e9-447f-a19f-52e0434415ee",
+        "invocation_id": "45e5ae15-004b-48d1-9d0f-9cac80a9170d",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.763Z"
+        "timestamp": "2026-04-02T19:41:36.950Z"
       },
       "type": "user_input",
       "data": {
@@ -1893,16 +1893,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.765Z",
-      "id": "bb631a0f-bffb-4cdf-9fe1-d2e02511aac9",
+      "timestamp": "2026-04-02T19:41:36.953Z",
+      "id": "5044d0dd-2ef1-4047-9a67-d6f05a246dd1",
       "provenance": {
-        "invocation_id": "c5dcd01d-fc08-4366-9973-3ef1deaf86a6",
+        "invocation_id": "8ddd7a6d-61b5-4ac1-9aec-f57255506df5",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.765Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:36.953Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1913,21 +1913,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.767Z",
-      "id": "3c2b2489-2504-495a-ac0d-7c00e6782c18",
+      "timestamp": "2026-04-02T19:41:36.956Z",
+      "id": "434fe6e6-2ea5-4b30-9636-f8974dceef14",
       "provenance": {
-        "invocation_id": "7582e054-bc59-41e3-9001-15ade7869ac8",
+        "invocation_id": "0859b036-7b6c-41b8-8398-4baec1e4f0aa",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.766Z"
+        "timestamp": "2026-04-02T19:41:36.954Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
         "lifecycle_status": "active",
         "current_layer": "open_decisions",
         "state": {
@@ -2163,8 +2163,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
           "current_layer": "open_decisions",
           "workflow_step": "clarification",
           "decision_reason": "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?",
@@ -2190,11 +2190,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.766Z",
-            "completed_at": "2026-04-02T19:10:25.766Z",
+            "started_at": "2026-04-02T19:41:36.955Z",
+            "completed_at": "2026-04-02T19:41:36.955Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2209,11 +2209,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.766Z",
-            "completed_at": "2026-04-02T19:10:25.766Z",
+            "started_at": "2026-04-02T19:41:36.955Z",
+            "completed_at": "2026-04-02T19:41:36.955Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2228,12 +2228,12 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.766Z",
-            "completed_at": "2026-04-02T19:10:25.767Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-02T19:41:36.955Z",
+            "completed_at": "2026-04-02T19:41:36.955Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -2246,11 +2246,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.767Z",
-            "completed_at": "2026-04-02T19:10:25.767Z",
+            "started_at": "2026-04-02T19:41:36.955Z",
+            "completed_at": "2026-04-02T19:41:36.955Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2264,12 +2264,12 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.767Z",
-            "completed_at": "2026-04-02T19:10:25.767Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-02T19:41:36.955Z",
+            "completed_at": "2026-04-02T19:41:36.956Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -2282,11 +2282,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.767Z",
-            "completed_at": "2026-04-02T19:10:25.767Z",
+            "started_at": "2026-04-02T19:41:36.956Z",
+            "completed_at": "2026-04-02T19:41:36.956Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2303,8 +2303,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "d0ee5fbf-7186-4c73-9e3c-977cff86ee68",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "6f19023b-2b0c-4175-9dfa-22fc6c0e2b76",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -2336,16 +2336,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.768Z",
-      "id": "c72736e6-38fd-48a8-9072-b2d9d61e2b5e",
+      "timestamp": "2026-04-02T19:41:36.957Z",
+      "id": "97c9d222-0b1c-48c6-837f-54e4290bd07d",
       "provenance": {
-        "invocation_id": "7582e054-bc59-41e3-9001-15ade7869ac8",
+        "invocation_id": "0859b036-7b6c-41b8-8398-4baec1e4f0aa",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.766Z"
+        "timestamp": "2026-04-02T19:41:36.954Z"
       },
       "type": "coo_response",
       "data": {
@@ -2353,16 +2353,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.768Z",
-      "id": "107e52a3-90e1-4ad0-a2a4-02f7d8f9b982",
+      "timestamp": "2026-04-02T19:41:36.957Z",
+      "id": "20a7a946-3565-429c-8432-4a822068da62",
       "provenance": {
-        "invocation_id": "df5ac85a-53e9-447f-a19f-52e0434415ee",
+        "invocation_id": "45e5ae15-004b-48d1-9d0f-9cac80a9170d",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.763Z"
+        "timestamp": "2026-04-02T19:41:36.950Z"
       },
       "type": "state_commit",
       "data": {
@@ -2388,16 +2388,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.770Z",
-      "id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+      "timestamp": "2026-04-02T19:41:36.960Z",
+      "id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
       "provenance": {
-        "invocation_id": "0cf0b47c-7743-4385-9f40-e62b0d6a3d52",
+        "invocation_id": "d4d2cd07-d75a-49f2-998f-0d5be11cefe6",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.769Z"
+        "timestamp": "2026-04-02T19:41:36.958Z"
       },
       "type": "user_input",
       "data": {
@@ -2405,16 +2405,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.771Z",
-      "id": "bbf5a787-df3e-4697-8158-2def5e42ae64",
+      "timestamp": "2026-04-02T19:41:36.961Z",
+      "id": "84cf5cc9-e21b-4a60-9258-cd4c64b88152",
       "provenance": {
-        "invocation_id": "7cf43f88-8b2e-4d87-9328-edc32a5fb35b",
+        "invocation_id": "2d277896-58eb-40f0-a51f-e4b0f1aac103",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.771Z"
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:36.961Z"
       },
       "type": "classifier_result",
       "data": {
@@ -2425,21 +2425,21 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.772Z",
-      "id": "19e22717-4950-400c-b9c0-243bf62d1069",
+      "timestamp": "2026-04-02T19:41:36.963Z",
+      "id": "e2223d01-0681-471e-a0fe-83fa393afc56",
       "provenance": {
-        "invocation_id": "e06f0786-fb08-4628-96eb-6e344f17d904",
+        "invocation_id": "d4580540-4990-4aa6-9d7f-cc807af130ec",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.771Z"
+        "timestamp": "2026-04-02T19:41:36.962Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
         "lifecycle_status": "awaiting_freeze_approval",
         "current_layer": "whole_onion_freeze",
         "state": {
@@ -2547,7 +2547,7 @@
           "freeze_status": {
             "status": "ready_to_request",
             "blockers": [],
-            "ready_since_turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd"
+            "ready_since_turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c"
           },
           "approved_snapshot": null
         },
@@ -2658,7 +2658,7 @@
           "freeze_status": {
             "status": "ready_to_request",
             "blockers": [],
-            "ready_since_turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd"
+            "ready_since_turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c"
           },
           "approved_snapshot": null,
           "scope_summary": [
@@ -2675,8 +2675,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
           "current_layer": "whole_onion_freeze",
           "workflow_step": "freeze_ready",
           "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
@@ -2699,11 +2699,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.772Z",
-            "completed_at": "2026-04-02T19:10:25.772Z",
+            "started_at": "2026-04-02T19:41:36.962Z",
+            "completed_at": "2026-04-02T19:41:36.962Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2718,12 +2718,12 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.772Z",
-            "completed_at": "2026-04-02T19:10:25.772Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-02T19:41:36.962Z",
+            "completed_at": "2026-04-02T19:41:36.963Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "current_layer": "whole_onion_freeze",
@@ -2737,11 +2737,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.772Z",
-            "completed_at": "2026-04-02T19:10:25.772Z",
+            "started_at": "2026-04-02T19:41:36.963Z",
+            "completed_at": "2026-04-02T19:41:36.963Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2755,11 +2755,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.772Z",
-            "completed_at": "2026-04-02T19:10:25.772Z",
+            "started_at": "2026-04-02T19:41:36.963Z",
+            "completed_at": "2026-04-02T19:41:36.963Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2773,11 +2773,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.772Z",
-            "completed_at": "2026-04-02T19:10:25.772Z",
+            "started_at": "2026-04-02T19:41:36.963Z",
+            "completed_at": "2026-04-02T19:41:36.963Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2791,11 +2791,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.772Z",
-            "completed_at": "2026-04-02T19:10:25.772Z",
+            "started_at": "2026-04-02T19:41:36.963Z",
+            "completed_at": "2026-04-02T19:41:36.963Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2812,8 +2812,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -2845,16 +2845,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.774Z",
-      "id": "5e600a0d-1662-45e0-866b-4249d0bf1362",
+      "timestamp": "2026-04-02T19:41:36.965Z",
+      "id": "140e3823-5fb4-447d-9aa5-9a2208ade7fa",
       "provenance": {
-        "invocation_id": "e06f0786-fb08-4628-96eb-6e344f17d904",
+        "invocation_id": "d4580540-4990-4aa6-9d7f-cc807af130ec",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.771Z"
+        "timestamp": "2026-04-02T19:41:36.962Z"
       },
       "type": "coo_response",
       "data": {
@@ -2862,16 +2862,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.774Z",
-      "id": "af487908-9ef6-478d-a526-9fce5a9f5cd2",
+      "timestamp": "2026-04-02T19:41:36.965Z",
+      "id": "a36a94e1-21ba-43e8-a6ab-848713c1d43d",
       "provenance": {
-        "invocation_id": "0cf0b47c-7743-4385-9f40-e62b0d6a3d52",
+        "invocation_id": "d4d2cd07-d75a-49f2-998f-0d5be11cefe6",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.769Z"
+        "timestamp": "2026-04-02T19:41:36.958Z"
       },
       "type": "state_commit",
       "data": {
@@ -2897,58 +2897,47 @@
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.777Z",
-      "id": "44714845-e2fb-4756-adb3-551699315f22",
+      "type": "user_input",
+      "data": {
+        "message": "Freeze it."
+      },
+      "timestamp": "2026-04-02T19:41:36.967Z",
+      "id": "c5e74e26-d40e-445b-975d-d524710ef632",
       "provenance": {
-        "invocation_id": "eeb448df-eba1-4bf9-a53e-0a7ced89f6e3",
+        "invocation_id": "a6931170-b900-4b26-8aef-b8cbdfcafeec",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.776Z"
-      },
-      "type": "user_input",
-      "data": {
-        "message": "Freeze it."
+        "timestamp": "2026-04-02T19:41:36.966Z"
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.778Z",
-      "id": "ecda5682-9d5e-4304-8293-ad1bd7475942",
-      "provenance": {
-        "invocation_id": "e79d0502-d5d6-4551-86c8-d997ccfddc76",
-        "provider": "codex",
-        "model": "gpt-5.3-codex-spark",
-        "reasoning": "medium",
-        "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.778Z"
-      },
       "type": "classifier_result",
       "data": {
         "intent": "continue requirements gathering",
         "confidence": 0.99,
         "workflow": "requirements_gathering_onion",
         "reasoning": "Route \"Freeze it.\" into the live requirements onion lane."
+      },
+      "timestamp": "2026-04-02T19:41:36.968Z",
+      "id": "b1e13acd-a81e-48ed-8718-84bb36437e48",
+      "provenance": {
+        "invocation_id": "ad875f1f-45a6-469a-9eb3-e2f5245f2cb6",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
+        "timestamp": "2026-04-02T19:41:36.968Z"
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.802Z",
-      "id": "e2a18bd5-418f-43ad-97e5-c480c9d39b98",
-      "provenance": {
-        "invocation_id": "6c55159c-2da3-40de-a514-8f515e95a8e3",
-        "provider": "system",
-        "model": "none",
-        "reasoning": "none",
-        "was_fallback": false,
-        "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.779Z"
-      },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
         "lifecycle_status": "handoff_ready",
         "current_layer": "approved",
         "state": {
@@ -3056,13 +3045,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
-            "approved_turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "ready_since_turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
+            "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "44714845-e2fb-4756-adb3-551699315f22",
-            "approved_at": "2026-04-02T19:10:25.777Z",
+            "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+            "approved_at": "2026-04-02T19:41:36.967Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3273,13 +3262,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "2eebae2e-ec20-40da-900e-64f6ebdcabdd",
-            "approved_turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "ready_since_turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
+            "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "44714845-e2fb-4756-adb3-551699315f22",
-            "approved_at": "2026-04-02T19:10:25.777Z",
+            "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+            "approved_at": "2026-04-02T19:41:36.967Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3396,11 +3385,11 @@
         "requirement_artifact": {
           "schema_version": "1.0",
           "artifact_kind": "requirement_list",
-          "artifact_id": "onion-requirements::onion::71d57a95-e09f-4c59-8551-9520d1273d55::44714845-e2fb-4756-adb3-551699315f22",
-          "source_approval_turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+          "artifact_id": "onion-requirements::onion::0550eff3-be49-4576-a72b-626251883067::c5e74e26-d40e-445b-975d-d524710ef632",
+          "source_approval_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
           "human_scope": {
-            "approved_turn_id": "44714845-e2fb-4756-adb3-551699315f22",
-            "approved_at": "2026-04-02T19:10:25.777Z",
+            "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+            "approved_at": "2026-04-02T19:41:36.967Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3596,10 +3585,10 @@
             "No LLM expansion or silent business guessing was used."
           ]
         },
-        "finalized_requirement_memory_id": "0737537d-1232-487a-9ccc-7509f65d584a",
+        "finalized_requirement_memory_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
         "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
           "current_layer": "approved",
           "workflow_step": "handoff_ready",
           "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
@@ -3622,11 +3611,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.779Z",
-            "completed_at": "2026-04-02T19:10:25.779Z",
+            "started_at": "2026-04-02T19:41:36.970Z",
+            "completed_at": "2026-04-02T19:41:36.970Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3641,11 +3630,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.780Z",
-            "completed_at": "2026-04-02T19:10:25.780Z",
+            "started_at": "2026-04-02T19:41:36.970Z",
+            "completed_at": "2026-04-02T19:41:36.970Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3660,11 +3649,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.780Z",
-            "completed_at": "2026-04-02T19:10:25.780Z",
+            "started_at": "2026-04-02T19:41:36.971Z",
+            "completed_at": "2026-04-02T19:41:36.971Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3678,11 +3667,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.780Z",
-            "completed_at": "2026-04-02T19:10:25.780Z",
+            "started_at": "2026-04-02T19:41:36.971Z",
+            "completed_at": "2026-04-02T19:41:36.971Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3696,11 +3685,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.780Z",
-            "completed_at": "2026-04-02T19:10:25.780Z",
+            "started_at": "2026-04-02T19:41:36.971Z",
+            "completed_at": "2026-04-02T19:41:36.971Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3714,11 +3703,11 @@
             }
           },
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.780Z",
-            "completed_at": "2026-04-02T19:10:25.780Z",
+            "started_at": "2026-04-02T19:41:36.971Z",
+            "completed_at": "2026-04-02T19:41:36.971Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3735,8 +3724,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "44714845-e2fb-4756-adb3-551699315f22",
+            "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+            "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -3756,7 +3745,7 @@
             "artifact_kind": "requirement_list",
             "action": "create",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "0737537d-1232-487a-9ccc-7509f65d584a",
+            "record_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
             "success": true,
             "message": "Persisted the finalized requirement artifact through the governed requirements surface."
           },
@@ -3767,7 +3756,7 @@
             "artifact_kind": "requirement_list",
             "action": "update_trust_level",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "0737537d-1232-487a-9ccc-7509f65d584a",
+            "record_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
             "success": true,
             "message": "Locked the finalized requirement artifact after approved freeze."
           },
@@ -3783,42 +3772,42 @@
             "message": "Thread workflow state persisted for the live onion turn."
           }
         ],
-        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 0737537d-1232-487a-9ccc-7509f65d584a.",
+        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 09bbd483-f66f-491a-8469-41583f2d4bc9.",
         "open_loops": []
-      }
-    },
-    {
-      "timestamp": "2026-04-02T19:10:25.803Z",
-      "id": "07b749ed-eecc-40b6-9c9b-8516796aaa71",
+      },
+      "timestamp": "2026-04-02T19:41:37.005Z",
+      "id": "889982dd-46fe-447c-9f15-ffc79e5a027a",
       "provenance": {
-        "invocation_id": "6c55159c-2da3-40de-a514-8f515e95a8e3",
+        "invocation_id": "940dd73d-ad73-4e5c-bc1b-89b500f433c6",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.779Z"
-      },
-      "type": "coo_response",
-      "data": {
-        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 0737537d-1232-487a-9ccc-7509f65d584a\nThe COO handoff is ready for downstream review."
+        "timestamp": "2026-04-02T19:41:36.969Z"
       }
     },
     {
-      "timestamp": "2026-04-02T19:10:25.803Z",
-      "id": "6b95e164-859d-434c-bbf1-7c4f5e9c2a6e",
+      "type": "coo_response",
+      "data": {
+        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 09bbd483-f66f-491a-8469-41583f2d4bc9\nThe COO handoff is ready for downstream review."
+      },
+      "timestamp": "2026-04-02T19:41:37.007Z",
+      "id": "8747454c-2577-42a4-99ae-f99be9a3ef88",
       "provenance": {
-        "invocation_id": "eeb448df-eba1-4bf9-a53e-0a7ced89f6e3",
+        "invocation_id": "940dd73d-ad73-4e5c-bc1b-89b500f433c6",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
-        "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.776Z"
-      },
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T19:41:36.969Z"
+      }
+    },
+    {
       "type": "state_commit",
       "data": {
-        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 0737537d-1232-487a-9ccc-7509f65d584a.",
+        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 09bbd483-f66f-491a-8469-41583f2d4bc9.",
         "openLoops": [],
         "decisions": [],
         "sessionHandles": {
@@ -3835,542 +3824,33 @@
             "source": "provider_returned"
           }
         }
-      }
-    },
-    {
-      "type": "user_input",
-      "data": {
-        "message": "Do not keep it frozen. Reopen the scope so I can correct it before we freeze again."
       },
-      "timestamp": "2026-04-02T19:10:25.808Z",
-      "id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
+      "timestamp": "2026-04-02T19:41:37.007Z",
+      "id": "38f511c8-b87b-4a1c-81ca-c6329b0c8cc5",
       "provenance": {
-        "invocation_id": "122cad93-cb54-4cfa-9a86-fa8e7b7ec9df",
+        "invocation_id": "a6931170-b900-4b26-8aef-b8cbdfcafeec",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.806Z"
-      }
-    },
-    {
-      "type": "classifier_result",
-      "data": {
-        "intent": "continue requirements gathering",
-        "confidence": 0.99,
-        "workflow": "requirements_gathering_onion",
-        "reasoning": "Route \"Do not keep it frozen. Reopen the scope so I can correct it before we freeze again.\" into the live requirements onion lane."
-      },
-      "timestamp": "2026-04-02T19:10:25.810Z",
-      "id": "cec2ea77-56fd-4ce2-93f5-379377531b31",
-      "provenance": {
-        "invocation_id": "7effe598-7e56-43a9-a785-4c7c45ab8acd",
-        "provider": "codex",
-        "model": "gpt-5.3-codex-spark",
-        "reasoning": "medium",
-        "was_fallback": false,
-        "source_path": "COO/classifier/classify/71d57a95-e09f-4c59-8551-9520d1273d55",
-        "timestamp": "2026-04-02T19:10:25.810Z"
-      }
-    },
-    {
-      "type": "onion_turn_result",
-      "data": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-        "lifecycle_status": "blocked",
-        "current_layer": "whole_onion_freeze",
-        "state": {
-          "topic": "Execution monitor for ADF",
-          "goal": "See what the system is currently doing, starting with the implementation queue.",
-          "expected_result": "A local URL that shows the current system status with live updates.",
-          "success_view": "I can open the page, see the queue, and drill into current execution details.",
-          "major_parts": [
-            {
-              "id": "queue_view",
-              "label": "Queue view",
-              "order": 0
-            },
-            {
-              "id": "flow_view",
-              "label": "Flow view",
-              "order": 1
-            },
-            {
-              "id": "node_details",
-              "label": "Node details",
-              "order": 2
-            },
-            {
-              "id": "audit_trail",
-              "label": "Audit trail",
-              "order": 3
-            },
-            {
-              "id": "metrics",
-              "label": "Metrics",
-              "order": 4
-            }
-          ],
-          "part_clarifications": {
-            "queue_view": {
-              "part_id": "queue_view",
-              "detail": "Show active features, current status, owner, and any blocking reason.",
-              "questions_answered": [
-                "What belongs in the queue view?"
-              ],
-              "status": "clarified"
-            },
-            "flow_view": {
-              "part_id": "flow_view",
-              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
-              "questions_answered": [
-                "What belongs in the flow view?"
-              ],
-              "status": "clarified"
-            },
-            "node_details": {
-              "part_id": "node_details",
-              "detail": "Show agent output, substeps, and timing.",
-              "questions_answered": [
-                "What should node details show?"
-              ],
-              "status": "clarified"
-            },
-            "audit_trail": {
-              "part_id": "audit_trail",
-              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
-              "questions_answered": [
-                "What belongs in the audit trail?"
-              ],
-              "status": "clarified"
-            },
-            "metrics": {
-              "part_id": "metrics",
-              "detail": "Show token usage plus total and per-step timing.",
-              "questions_answered": [
-                "What belongs in metrics?"
-              ],
-              "status": "clarified"
-            }
-          },
-          "experience_ui": {
-            "relevant": true,
-            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
-            "preview_status": "preview_approved",
-            "preview_artifact": "mockup://execution-monitor-v1",
-            "approval_notes": "Approved as the Phase 1 alignment target."
-          },
-          "boundaries": [
-            {
-              "id": "phase1_queue_first",
-              "kind": "constraint",
-              "statement": "Phase 1 focuses on the implementation queue first."
-            },
-            {
-              "id": "no_historic_analytics",
-              "kind": "non_goal",
-              "statement": "This is not a full historical analytics suite."
-            }
-          ],
-          "open_decisions": [
-            {
-              "id": "live_update_model",
-              "question": "Should live updates use polling or push for the first release?",
-              "impact": "This changes the product promise and testing expectations.",
-              "status": "resolved",
-              "resolution": "Use timed polling every 10 seconds for the first release."
-            }
-          ],
-          "freeze_status": {
-            "status": "draft",
-            "blockers": [],
-            "approval_note": "Reopening the frozen scope for corrections."
-          },
-          "approved_snapshot": null
-        },
-        "working_artifact": {
-          "schema_version": "1.0",
-          "artifact_kind": "working_scope",
-          "topic": "Execution monitor for ADF",
-          "goal": "See what the system is currently doing, starting with the implementation queue.",
-          "expected_result": "A local URL that shows the current system status with live updates.",
-          "success_view": "I can open the page, see the queue, and drill into current execution details.",
-          "major_parts": [
-            {
-              "id": "queue_view",
-              "label": "Queue view",
-              "order": 0
-            },
-            {
-              "id": "flow_view",
-              "label": "Flow view",
-              "order": 1
-            },
-            {
-              "id": "node_details",
-              "label": "Node details",
-              "order": 2
-            },
-            {
-              "id": "audit_trail",
-              "label": "Audit trail",
-              "order": 3
-            },
-            {
-              "id": "metrics",
-              "label": "Metrics",
-              "order": 4
-            }
-          ],
-          "part_clarifications": {
-            "queue_view": {
-              "part_id": "queue_view",
-              "detail": "Show active features, current status, owner, and any blocking reason.",
-              "questions_answered": [
-                "What belongs in the queue view?"
-              ],
-              "status": "clarified"
-            },
-            "flow_view": {
-              "part_id": "flow_view",
-              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
-              "questions_answered": [
-                "What belongs in the flow view?"
-              ],
-              "status": "clarified"
-            },
-            "node_details": {
-              "part_id": "node_details",
-              "detail": "Show agent output, substeps, and timing.",
-              "questions_answered": [
-                "What should node details show?"
-              ],
-              "status": "clarified"
-            },
-            "audit_trail": {
-              "part_id": "audit_trail",
-              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
-              "questions_answered": [
-                "What belongs in the audit trail?"
-              ],
-              "status": "clarified"
-            },
-            "metrics": {
-              "part_id": "metrics",
-              "detail": "Show token usage plus total and per-step timing.",
-              "questions_answered": [
-                "What belongs in metrics?"
-              ],
-              "status": "clarified"
-            }
-          },
-          "experience_ui": {
-            "relevant": true,
-            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
-            "preview_status": "preview_approved",
-            "preview_artifact": "mockup://execution-monitor-v1",
-            "approval_notes": "Approved as the Phase 1 alignment target."
-          },
-          "boundaries": [
-            {
-              "id": "phase1_queue_first",
-              "kind": "constraint",
-              "statement": "Phase 1 focuses on the implementation queue first."
-            },
-            {
-              "id": "no_historic_analytics",
-              "kind": "non_goal",
-              "statement": "This is not a full historical analytics suite."
-            }
-          ],
-          "open_decisions": [
-            {
-              "id": "live_update_model",
-              "question": "Should live updates use polling or push for the first release?",
-              "impact": "This changes the product promise and testing expectations.",
-              "status": "resolved",
-              "resolution": "Use timed polling every 10 seconds for the first release."
-            }
-          ],
-          "freeze_status": {
-            "status": "draft",
-            "blockers": [],
-            "approval_note": "Reopening the frozen scope for corrections."
-          },
-          "approved_snapshot": null,
-          "scope_summary": [
-            "Topic: Execution monitor for ADF",
-            "Goal: See what the system is currently doing, starting with the implementation queue.",
-            "Expected result: A local URL that shows the current system status with live updates.",
-            "Success view: I can open the page, see the queue, and drill into current execution details.",
-            "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
-            "Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
-            "Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.",
-            "Open decisions: none"
-          ]
-        },
-        "requirement_artifact": null,
-        "finalized_requirement_memory_id": null,
-        "workflow_trace": {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-          "current_layer": "whole_onion_freeze",
-          "workflow_step": "freeze_ready",
-          "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
-          "selected_next_question": null,
-          "no_question_reason": "Clarification is complete. The next step is an explicit whole-onion freeze request.",
-          "freeze_blockers": [],
-          "open_decisions_snapshot": [
-            {
-              "id": "live_update_model",
-              "question": "Should live updates use polling or push for the first release?",
-              "impact": "This changes the product promise and testing expectations.",
-              "status": "resolved",
-              "resolution": "Use timed polling every 10 seconds for the first release."
-            }
-          ],
-          "artifact_change_summary": [
-            "Recorded explicit freeze rejection."
-          ],
-          "result_status": "awaiting_freeze_approval"
-        },
-        "operation_records": [
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "operation": "onion_reducer",
-            "started_at": "2026-04-02T19:10:25.812Z",
-            "completed_at": "2026-04-02T19:10:25.812Z",
-            "duration_ms": 0,
-            "success": true,
-            "input_summary": {
-              "actor": "ceo",
-              "summary": "Do not keep it frozen. Reopen the scope so I can correct it before we freeze again.",
-              "had_previous_approval": true
-            },
-            "output_summary": {
-              "freeze_status": "draft",
-              "major_part_count": 5,
-              "change_count": 1
-            }
-          },
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "operation": "clarification_policy",
-            "started_at": "2026-04-02T19:10:25.812Z",
-            "completed_at": "2026-04-02T19:10:25.812Z",
-            "duration_ms": 0,
-            "success": true,
-            "input_summary": {
-              "current_layer": "whole_onion_freeze",
-              "major_part_count": 5,
-              "open_decision_count": 0
-            },
-            "output_summary": {
-              "current_layer": "whole_onion_freeze",
-              "has_question": false,
-              "next_target": "none"
-            }
-          },
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "operation": "freeze_check",
-            "started_at": "2026-04-02T19:10:25.812Z",
-            "completed_at": "2026-04-02T19:10:25.812Z",
-            "duration_ms": 0,
-            "success": true,
-            "input_summary": {
-              "freeze_status": "draft",
-              "open_decision_count": 0
-            },
-            "output_summary": {
-              "status": "ready_to_request",
-              "blocker_count": 0,
-              "has_freeze_request": true
-            }
-          },
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "operation": "artifact_deriver",
-            "started_at": "2026-04-02T19:10:25.812Z",
-            "completed_at": "2026-04-02T19:10:25.812Z",
-            "duration_ms": 0,
-            "success": true,
-            "input_summary": {
-              "freeze_status": "draft",
-              "approved_snapshot_present": false
-            },
-            "output_summary": {
-              "status": "blocked",
-              "blocker_count": 1,
-              "requirement_item_count": 0
-            }
-          },
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "operation": "readiness_check",
-            "started_at": "2026-04-02T19:10:25.812Z",
-            "completed_at": "2026-04-02T19:10:25.812Z",
-            "duration_ms": 0,
-            "success": true,
-            "input_summary": {
-              "freeze_status": "draft",
-              "derivation_status": "blocked"
-            },
-            "output_summary": {
-              "status": "blocked",
-              "blocker_count": 3,
-              "checklist_count": 8
-            }
-          },
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "operation": "audit_trace_build",
-            "started_at": "2026-04-02T19:10:25.812Z",
-            "completed_at": "2026-04-02T19:10:25.812Z",
-            "duration_ms": 0,
-            "success": true,
-            "input_summary": {
-              "current_layer": "whole_onion_freeze",
-              "change_count": 1,
-              "freeze_status": "draft"
-            },
-            "output_summary": {
-              "workflow_step": "freeze_ready",
-              "result_status": "awaiting_freeze_approval",
-              "has_next_question": false
-            }
-          }
-        ],
-        "llm_calls": [
-          {
-            "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-            "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-            "provider": "codex",
-            "model": "gpt-5.4",
-            "purpose": "onion_turn_parse",
-            "latency_ms": 23,
-            "tokens_in": 681,
-            "tokens_out": 23,
-            "estimated_cost_usd": 0.003519,
-            "fallback_used": false,
-            "success": true
-          }
-        ],
-        "persistence_receipts": [
-          {
-            "kind": "superseded_requirement_archive",
-            "target": "memory_engine",
-            "status": "failed",
-            "artifact_kind": "requirement_list",
-            "action": "archive",
-            "scope_path": "assafyavnai/shippingagent",
-            "record_id": "0737537d-1232-487a-9ccc-7509f65d584a",
-            "success": false,
-            "message": "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
-          },
-          {
-            "kind": "thread_workflow_state",
-            "target": "thread",
-            "status": "stored",
-            "artifact_kind": "working_scope",
-            "action": "persist",
-            "scope_path": "assafyavnai/shippingagent",
-            "record_id": null,
-            "success": true,
-            "message": "Thread workflow state persisted for the live onion turn."
-          }
-        ],
-        "state_commit_summary": "Requirements-gathering onion froze the human scope, but durable artifact persistence is blocked and handoff is not truthful yet.",
-        "open_loops": [
-          "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
-        ]
-      },
-      "timestamp": "2026-04-02T19:10:25.817Z",
-      "id": "27cbfdfc-b538-4377-8af0-4e6a9df1932f",
-      "provenance": {
-        "invocation_id": "39537e4a-41a0-41bf-bbfa-55379283290b",
-        "provider": "system",
-        "model": "none",
-        "reasoning": "none",
-        "was_fallback": false,
-        "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.811Z"
-      }
-    },
-    {
-      "type": "coo_response",
-      "data": {
-        "message": "I froze the human-facing scope, but I could not complete the durable handoff truthfully.\n- Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
-      },
-      "timestamp": "2026-04-02T19:10:25.819Z",
-      "id": "f8d96f9e-fd8b-4272-9b22-0046fdb6e63b",
-      "provenance": {
-        "invocation_id": "39537e4a-41a0-41bf-bbfa-55379283290b",
-        "provider": "system",
-        "model": "none",
-        "reasoning": "none",
-        "was_fallback": false,
-        "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T19:10:25.811Z"
-      }
-    },
-    {
-      "type": "state_commit",
-      "data": {
-        "summary": "Requirements-gathering onion froze the human scope, but durable artifact persistence is blocked and handoff is not truthful yet.",
-        "openLoops": [
-          "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
-        ],
-        "decisions": [],
-        "sessionHandles": {
-          "classifier": {
-            "provider": "codex",
-            "model": "gpt-5.3-codex-spark",
-            "session_id": "stub-session-1",
-            "source": "provider_returned"
-          },
-          "intelligence": {
-            "provider": "codex",
-            "model": "gpt-5.4",
-            "session_id": "stub-session-2",
-            "source": "provider_returned"
-          }
-        }
-      },
-      "timestamp": "2026-04-02T19:10:25.819Z",
-      "id": "8dbbdf2b-27d6-4300-9fc3-85ba0efea9d8",
-      "provenance": {
-        "invocation_id": "122cad93-cb54-4cfa-9a86-fa8e7b7ec9df",
-        "provider": "system",
-        "model": "none",
-        "reasoning": "none",
-        "was_fallback": false,
-        "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T19:10:25.806Z"
+        "timestamp": "2026-04-02T19:41:36.966Z"
       }
     }
   ],
-  "createdAt": "2026-04-02T19:10:25.742Z",
-  "updatedAt": "2026-04-02T19:10:25.819Z",
+  "createdAt": "2026-04-02T19:41:34.660Z",
+  "updatedAt": "2026-04-02T19:41:37.007Z",
   "status": "active",
   "scopePath": "assafyavnai/shippingagent",
   "workflowState": {
-    "active_workflow": "requirements_gathering_onion",
+    "active_workflow": null,
     "onion": {
-      "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-      "last_turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-      "lifecycle_status": "blocked",
-      "current_layer": "whole_onion_freeze",
+      "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+      "last_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+      "lifecycle_status": "handoff_ready",
+      "current_layer": "approved",
       "selected_next_question": null,
-      "no_question_reason": "Clarification is complete. The next step is an explicit whole-onion freeze request.",
+      "no_question_reason": "The onion is already frozen and approved.",
       "state": {
         "topic": "Execution monitor for ADF",
         "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -4474,11 +3954,117 @@
           }
         ],
         "freeze_status": {
-          "status": "draft",
+          "status": "approved",
           "blockers": [],
-          "approval_note": "Reopening the frozen scope for corrections."
+          "ready_since_turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
+          "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+          "approval_note": "The human-facing scope is right. Freeze it."
         },
-        "approved_snapshot": null
+        "approved_snapshot": {
+          "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+          "approved_at": "2026-04-02T19:41:36.967Z",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ]
+        }
       },
       "working_artifact": {
         "schema_version": "1.0",
@@ -4585,11 +4171,117 @@
           }
         ],
         "freeze_status": {
-          "status": "draft",
+          "status": "approved",
           "blockers": [],
-          "approval_note": "Reopening the frozen scope for corrections."
+          "ready_since_turn_id": "a15aa9ed-5afb-4cb4-a4d1-4893bfd6f88c",
+          "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+          "approval_note": "The human-facing scope is right. Freeze it."
         },
-        "approved_snapshot": null,
+        "approved_snapshot": {
+          "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+          "approved_at": "2026-04-02T19:41:36.967Z",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ]
+        },
         "scope_summary": [
           "Topic: Execution monitor for ADF",
           "Goal: See what the system is currently doing, starting with the implementation queue.",
@@ -4601,16 +4293,218 @@
           "Open decisions: none"
         ]
       },
-      "requirement_artifact": null,
-      "finalized_requirement_memory_id": null,
+      "requirement_artifact": {
+        "schema_version": "1.0",
+        "artifact_kind": "requirement_list",
+        "artifact_id": "onion-requirements::onion::0550eff3-be49-4576-a72b-626251883067::c5e74e26-d40e-445b-975d-d524710ef632",
+        "source_approval_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+        "human_scope": {
+          "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+          "approved_at": "2026-04-02T19:41:36.967Z",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ]
+        },
+        "requirement_items": [
+          {
+            "id": "scope-anchor",
+            "title": "Feature outcome",
+            "detail": "Goal: See what the system is currently doing, starting with the implementation queue.\nExpected result: A local URL that shows the current system status with live updates.\nSuccess view: I can open the page, see the queue, and drill into current execution details.",
+            "source_refs": [
+              "goal",
+              "expected_result",
+              "success_view"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:queue_view",
+            "title": "Queue view",
+            "detail": "Show active features, current status, owner, and any blocking reason.",
+            "source_refs": [
+              "major_parts.queue_view",
+              "part_clarifications.queue_view"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:flow_view",
+            "title": "Flow view",
+            "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+            "source_refs": [
+              "major_parts.flow_view",
+              "part_clarifications.flow_view"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:node_details",
+            "title": "Node details",
+            "detail": "Show agent output, substeps, and timing.",
+            "source_refs": [
+              "major_parts.node_details",
+              "part_clarifications.node_details"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:audit_trail",
+            "title": "Audit trail",
+            "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+            "source_refs": [
+              "major_parts.audit_trail",
+              "part_clarifications.audit_trail"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:metrics",
+            "title": "Metrics",
+            "detail": "Show token usage plus total and per-step timing.",
+            "source_refs": [
+              "major_parts.metrics",
+              "part_clarifications.metrics"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "experience-ui",
+            "title": "Experience / UI alignment",
+            "detail": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "source_refs": [
+              "experience_ui.summary",
+              "experience_ui.preview_artifact"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          }
+        ],
+        "explicit_boundaries": [
+          {
+            "id": "phase1_queue_first",
+            "kind": "constraint",
+            "statement": "Phase 1 focuses on the implementation queue first."
+          },
+          {
+            "id": "no_historic_analytics",
+            "kind": "non_goal",
+            "statement": "This is not a full historical analytics suite."
+          }
+        ],
+        "open_business_decisions": [],
+        "derivation_status": "ready",
+        "blockers": [],
+        "derivation_notes": [
+          "Derived only from the approved onion snapshot.",
+          "No LLM expansion or silent business guessing was used."
+        ]
+      },
+      "finalized_requirement_memory_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
       "latest_audit_trace": {
-        "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-        "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
-        "current_layer": "whole_onion_freeze",
-        "workflow_step": "freeze_ready",
-        "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+        "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
+        "current_layer": "approved",
+        "workflow_step": "handoff_ready",
+        "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
         "selected_next_question": null,
-        "no_question_reason": "Clarification is complete. The next step is an explicit whole-onion freeze request.",
+        "no_question_reason": "The onion is already frozen and approved.",
         "freeze_blockers": [],
         "open_decisions_snapshot": [
           {
@@ -4622,36 +4516,47 @@
           }
         ],
         "artifact_change_summary": [
-          "Recorded explicit freeze rejection."
+          "Recorded explicit whole-onion freeze approval."
         ],
-        "result_status": "awaiting_freeze_approval"
+        "result_status": "ready_for_handoff"
       },
       "latest_llm_calls": [
         {
-          "trace_id": "onion::71d57a95-e09f-4c59-8551-9520d1273d55",
-          "turn_id": "57c70cab-9797-457d-b8df-bd602eb53cb8",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
+          "turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
           "provider": "codex",
           "model": "gpt-5.4",
           "purpose": "onion_turn_parse",
           "latency_ms": 23,
-          "tokens_in": 681,
-          "tokens_out": 23,
-          "estimated_cost_usd": 0.003519,
+          "tokens_in": 665,
+          "tokens_out": 24,
+          "estimated_cost_usd": 0.003441,
           "fallback_used": false,
           "success": true
         }
       ],
       "latest_persistence_receipts": [
         {
-          "kind": "superseded_requirement_archive",
+          "kind": "finalized_requirement_create",
           "target": "memory_engine",
-          "status": "failed",
+          "status": "created",
           "artifact_kind": "requirement_list",
-          "action": "archive",
+          "action": "create",
           "scope_path": "assafyavnai/shippingagent",
-          "record_id": "0737537d-1232-487a-9ccc-7509f65d584a",
-          "success": false,
-          "message": "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
+          "record_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
+          "success": true,
+          "message": "Persisted the finalized requirement artifact through the governed requirements surface."
+        },
+        {
+          "kind": "finalized_requirement_lock",
+          "target": "memory_engine",
+          "status": "locked",
+          "artifact_kind": "requirement_list",
+          "action": "update_trust_level",
+          "scope_path": "assafyavnai/shippingagent",
+          "record_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
+          "success": true,
+          "message": "Locked the finalized requirement artifact after approved freeze."
         },
         {
           "kind": "thread_workflow_state",

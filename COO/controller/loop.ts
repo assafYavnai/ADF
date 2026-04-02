@@ -63,7 +63,7 @@ export interface ControllerConfig {
     provenance: Provenance
   ) => Promise<Record<string, unknown>>;
   brainManageMemory?: (
-    action: "delete" | "archive" | "update_tags" | "update_trust_level",
+    action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
     memoryId: string,
     scopePath: string,
     provenance: Provenance,

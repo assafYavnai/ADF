@@ -1,0 +1,806 @@
+{
+  "id": "e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+  "events": [
+    {
+      "timestamp": "2026-04-02T19:41:32.160Z",
+      "id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+      "provenance": {
+        "invocation_id": "d5610d9e-1674-4c11-b593-820ea92aaccd",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T19:41:32.157Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T19:41:32.161Z",
+      "id": "31b508ec-0f63-479a-9a5f-c781c674f18e",
+      "provenance": {
+        "invocation_id": "33bc68f5-9f9e-4f7a-a4dc-a02fbf0c0512",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+        "timestamp": "2026-04-02T19:41:32.161Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T19:41:32.167Z",
+      "id": "db44a155-46d0-418c-82f4-3fbee833d59b",
+      "provenance": {
+        "invocation_id": "c1859458-af6e-49d1-82b9-2be9a1dee719",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T19:41:32.162Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+        "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+        "lifecycle_status": "active",
+        "current_layer": "expected_result",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"expected_result\" is still missing.",
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"expected_result\" is still missing.",
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: missing",
+            "Success view: missing",
+            "Major parts: missing",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+          "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+          "current_layer": "expected_result",
+          "workflow_step": "clarification",
+          "decision_reason": "Outer-shell field \"expected_result\" is still missing.",
+          "selected_next_question": "When this work is done, what should exist?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Outer-shell field \"expected_result\" is still missing.",
+            "Outer-shell field \"success_view\" is still missing.",
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Updated topic.",
+            "Updated goal."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T19:41:32.164Z",
+            "completed_at": "2026-04-02T19:41:32.165Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 0,
+              "change_count": 2
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T19:41:32.165Z",
+            "completed_at": "2026-04-02T19:41:32.165Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "expected_result",
+              "major_part_count": 0,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "expected_result",
+              "has_question": true,
+              "next_target": "expected_result"
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T19:41:32.165Z",
+            "completed_at": "2026-04-02T19:41:32.165Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 5,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T19:41:32.165Z",
+            "completed_at": "2026-04-02T19:41:32.166Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T19:41:32.166Z",
+            "completed_at": "2026-04-02T19:41:32.166Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 6,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T19:41:32.166Z",
+            "completed_at": "2026-04-02T19:41:32.166Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "expected_result",
+              "change_count": 2,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "a744c6da-7052-452b-bad9-88b32c65dbe5",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 541,
+            "tokens_out": 32,
+            "estimated_cost_usd": 0.002859,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "When this work is done, what should exist?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T19:41:32.168Z",
+      "id": "ae36d9e7-b6c6-4a18-8ba4-5ed21067dddf",
+      "provenance": {
+        "invocation_id": "c1859458-af6e-49d1-82b9-2be9a1dee719",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T19:41:32.162Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Open decisions: none\nWhen this work is done, what should exist?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T19:41:32.168Z",
+      "id": "2d9277ae-bcf8-48e2-9df0-d51d77f29724",
+      "provenance": {
+        "invocation_id": "d5610d9e-1674-4c11-b593-820ea92aaccd",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T19:41:32.157Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "When this work is done, what should exist?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "cli-proof-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "cli-proof-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "type": "user_input",
+      "data": {
+        "message": "When this is done there should be a local URL that shows the current system status with live updates."
+      },
+      "timestamp": "2026-04-02T19:41:32.170Z",
+      "id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+      "provenance": {
+        "invocation_id": "681c5228-5fb3-4674-83d8-8d9ce4e6d8f9",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T19:41:32.169Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"When this is done there should be a local URL that shows the current system status with live updates.\" into the live requirements onion lane."
+      },
+      "timestamp": "2026-04-02T19:41:32.171Z",
+      "id": "eaec5c85-02a6-4aa0-8605-8c736f66ccd4",
+      "provenance": {
+        "invocation_id": "abd2e8f8-846f-4d0c-864f-c2313f27b21b",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+        "timestamp": "2026-04-02T19:41:32.171Z"
+      }
+    },
+    {
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+        "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+        "lifecycle_status": "active",
+        "current_layer": "success_view",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: missing",
+            "Major parts: missing",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+          "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+          "current_layer": "success_view",
+          "workflow_step": "clarification",
+          "decision_reason": "Outer-shell field \"success_view\" is still missing.",
+          "selected_next_question": "How will you recognize that this works from your point of view?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Outer-shell field \"success_view\" is still missing.",
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Updated expected result."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T19:41:32.173Z",
+            "completed_at": "2026-04-02T19:41:32.173Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "When this is done there should be a local URL that shows the current system status with live updates.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 0,
+              "change_count": 1
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T19:41:32.173Z",
+            "completed_at": "2026-04-02T19:41:32.173Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "success_view",
+              "major_part_count": 0,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "success_view",
+              "has_question": true,
+              "next_target": "success_view"
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T19:41:32.173Z",
+            "completed_at": "2026-04-02T19:41:32.173Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 4,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T19:41:32.173Z",
+            "completed_at": "2026-04-02T19:41:32.173Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T19:41:32.173Z",
+            "completed_at": "2026-04-02T19:41:32.173Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 6,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T19:41:32.173Z",
+            "completed_at": "2026-04-02T19:41:32.173Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "success_view",
+              "change_count": 1,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+            "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 563,
+            "tokens_out": 23,
+            "estimated_cost_usd": 0.002925,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "How will you recognize that this works from your point of view?"
+        ]
+      },
+      "timestamp": "2026-04-02T19:41:32.173Z",
+      "id": "1dc954b8-c153-4155-b7b4-68ac68d08673",
+      "provenance": {
+        "invocation_id": "da2dc22b-0b60-4714-b131-049c996817ab",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T19:41:32.172Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Open decisions: none\nHow will you recognize that this works from your point of view?"
+      },
+      "timestamp": "2026-04-02T19:41:32.174Z",
+      "id": "d59d8d5b-7b62-4eea-9b9f-4f81b0ce81c0",
+      "provenance": {
+        "invocation_id": "da2dc22b-0b60-4714-b131-049c996817ab",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T19:41:32.172Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "How will you recognize that this works from your point of view?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "cli-proof-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "cli-proof-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-02T19:41:32.174Z",
+      "id": "98f367c6-e955-48c1-9f9a-256ed4bfc3b8",
+      "provenance": {
+        "invocation_id": "681c5228-5fb3-4674-83d8-8d9ce4e6d8f9",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T19:41:32.169Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-02T19:41:32.158Z",
+  "updatedAt": "2026-04-02T19:41:32.174Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": "requirements_gathering_onion",
+    "onion": {
+      "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+      "last_turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+      "lifecycle_status": "active",
+      "current_layer": "success_view",
+      "selected_next_question": "How will you recognize that this works from your point of view?",
+      "no_question_reason": null,
+      "state": {
+        "topic": "Execution monitor for ADF",
+        "goal": "See what the system is currently doing, starting with the implementation queue.",
+        "expected_result": "A local URL that shows the current system status with live updates.",
+        "success_view": "",
+        "major_parts": [],
+        "part_clarifications": {},
+        "experience_ui": {
+          "relevant": null,
+          "preview_status": "not_needed"
+        },
+        "boundaries": [],
+        "open_decisions": [],
+        "freeze_status": {
+          "status": "draft",
+          "blockers": [
+            "Outer-shell field \"success_view\" is still missing.",
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ]
+        },
+        "approved_snapshot": null
+      },
+      "working_artifact": {
+        "schema_version": "1.0",
+        "artifact_kind": "working_scope",
+        "topic": "Execution monitor for ADF",
+        "goal": "See what the system is currently doing, starting with the implementation queue.",
+        "expected_result": "A local URL that shows the current system status with live updates.",
+        "success_view": "",
+        "major_parts": [],
+        "part_clarifications": {},
+        "experience_ui": {
+          "relevant": null,
+          "preview_status": "not_needed"
+        },
+        "boundaries": [],
+        "open_decisions": [],
+        "freeze_status": {
+          "status": "draft",
+          "blockers": [
+            "Outer-shell field \"success_view\" is still missing.",
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ]
+        },
+        "approved_snapshot": null,
+        "scope_summary": [
+          "Topic: Execution monitor for ADF",
+          "Goal: See what the system is currently doing, starting with the implementation queue.",
+          "Expected result: A local URL that shows the current system status with live updates.",
+          "Success view: missing",
+          "Major parts: missing",
+          "Experience/UI: not yet decided",
+          "Boundaries: missing",
+          "Open decisions: none"
+        ]
+      },
+      "requirement_artifact": null,
+      "finalized_requirement_memory_id": null,
+      "latest_audit_trace": {
+        "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+        "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+        "current_layer": "success_view",
+        "workflow_step": "clarification",
+        "decision_reason": "Outer-shell field \"success_view\" is still missing.",
+        "selected_next_question": "How will you recognize that this works from your point of view?",
+        "no_question_reason": null,
+        "freeze_blockers": [
+          "Outer-shell field \"success_view\" is still missing.",
+          "Major parts are still missing.",
+          "The scope still needs an explicit UI/experience relevance decision.",
+          "Boundaries, non-goals, or constraints are still missing."
+        ],
+        "open_decisions_snapshot": [],
+        "artifact_change_summary": [
+          "Updated expected result."
+        ],
+        "result_status": "clarification_needed"
+      },
+      "latest_llm_calls": [
+        {
+          "trace_id": "onion::e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+          "turn_id": "c08db467-fe0b-433b-b40f-d6afeb64994d",
+          "provider": "codex",
+          "model": "gpt-5.4",
+          "purpose": "onion_turn_parse",
+          "latency_ms": 23,
+          "tokens_in": 563,
+          "tokens_out": 23,
+          "estimated_cost_usd": 0.002925,
+          "fallback_used": false,
+          "success": true
+        }
+      ],
+      "latest_persistence_receipts": [
+        {
+          "kind": "thread_workflow_state",
+          "target": "thread",
+          "status": "stored",
+          "artifact_kind": "working_scope",
+          "action": "persist",
+          "scope_path": "assafyavnai/shippingagent",
+          "record_id": null,
+          "success": true,
+          "message": "Thread workflow state persisted for the live onion turn."
+        }
+      ]
+    }
+  }
+}

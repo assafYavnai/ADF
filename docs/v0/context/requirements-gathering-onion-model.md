@@ -1,15 +1,16 @@
 # Requirements Gathering Onion Model
 
 Status: draft high-level model
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 Purpose: define the human-facing CEO <-> COO discussion model for Phase 1 requirements gathering before the COO moves into technical requirement writing.
 
-Update: 2026-04-01
+Update: 2026-04-02
 
 The COO runtime now supports this onion lane live behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`.
 The business model below remains the source truth; the live runtime persists thread-owned onion state, requires explicit freeze approval, and derives the finalized requirement artifact only from the approved human snapshot.
 Persisted onion ownership remains active for route-gating even after `handoff_ready` clears `active_workflow`, so frozen-thread follow-up turns fail closed when the gate is disabled.
-Current reopen supersession behavior is fail-closed when locked finalized artifacts cannot be archived by the existing memory-manage mutation path.
+The live route is now proved through the real CLI bootstrap, including telemetry replay and shutdown.
+If a frozen scope reopens, the prior locked finalized artifact is retired through an explicit governed `supersede` path, and default readers no longer treat the superseded row as current truth.
 
 ---
 

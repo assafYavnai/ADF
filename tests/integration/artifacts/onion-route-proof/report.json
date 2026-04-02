@@ -1,19 +1,31 @@
 {
-  "generated_at": "2026-04-02T19:10:30.169Z",
-  "live_route_under_proof": "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+  "generated_at": "2026-04-02T19:41:48.425Z",
+  "live_route_under_proof": "CLI -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+  "cli_entry": {
+    "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\cli-runtime",
+    "stdout_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\cli-runtime\\cli-stdout.txt",
+    "stderr_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\cli-runtime\\cli-stderr.txt",
+    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\cli-runtime\\threads\\e7e2e92a-10b6-43f5-b4b0-d049dc47bc78.json",
+    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\cli-runtime\\threads\\e7e2e92a-10b6-43f5-b4b0-d049dc47bc78.txt",
+    "thread_id": "e7e2e92a-10b6-43f5-b4b0-d049dc47bc78",
+    "replayed_invocation_id": "c65db4c9-458a-46e9-9241-98d8c4818d0d",
+    "handle_turn_rows": 2,
+    "latest_lifecycle_status": "active"
+  },
+  "controller_detail_route_under_proof": "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
   "success": {
     "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime",
-    "checkpoint_thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\fdc48dca-3668-4f25-998c-0a2587fa7412.json",
-    "checkpoint_thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\fdc48dca-3668-4f25-998c-0a2587fa7412.txt",
-    "final_thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\fdc48dca-3668-4f25-998c-0a2587fa7412.json",
-    "final_thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\fdc48dca-3668-4f25-998c-0a2587fa7412.txt",
-    "thread_id": "fdc48dca-3668-4f25-998c-0a2587fa7412",
-    "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+    "checkpoint_thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\0550eff3-be49-4576-a72b-626251883067.json",
+    "checkpoint_thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\0550eff3-be49-4576-a72b-626251883067.txt",
+    "final_thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\0550eff3-be49-4576-a72b-626251883067.json",
+    "final_thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\success-runtime\\threads\\0550eff3-be49-4576-a72b-626251883067.txt",
+    "thread_id": "0550eff3-be49-4576-a72b-626251883067",
+    "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
     "checkpoint_layer": "experience_ui",
     "checkpoint_next_question": "Does UI or user-experience meaning matter to this scope before freeze?",
     "final_lifecycle_status": "handoff_ready",
     "final_freeze_status": "approved",
-    "finalized_requirement_memory_id": "abd94e3a-0ef5-49f2-89d6-bf89ee2591b5",
+    "finalized_requirement_memory_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
     "latest_persistence_receipts": [
       {
         "kind": "finalized_requirement_create",
@@ -22,7 +34,7 @@
         "artifact_kind": "requirement_list",
         "action": "create",
         "scope_path": "assafyavnai/shippingagent",
-        "record_id": "abd94e3a-0ef5-49f2-89d6-bf89ee2591b5",
+        "record_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
         "success": true,
         "message": "Persisted the finalized requirement artifact through the governed requirements surface."
       },
@@ -33,7 +45,7 @@
         "artifact_kind": "requirement_list",
         "action": "update_trust_level",
         "scope_path": "assafyavnai/shippingagent",
-        "record_id": "abd94e3a-0ef5-49f2-89d6-bf89ee2591b5",
+        "record_id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
         "success": true,
         "message": "Locked the finalized requirement artifact after approved freeze."
       },
@@ -52,7 +64,7 @@
     "latest_operation_record_count": 6,
     "latest_llm_call_count": 1,
     "requirement_row": {
-      "id": "abd94e3a-0ef5-49f2-89d6-bf89ee2591b5",
+      "id": "09bbd483-f66f-491a-8469-41583f2d4bc9",
       "content_type": "requirement",
       "trust_level": "locked",
       "tags": [
@@ -61,12 +73,12 @@
         "finalized-requirement-list",
         "coo-owned"
       ],
-      "source_path": "COO/requirements-gathering/live/finalized-requirement-lock/onion::fdc48dca-3668-4f25-998c-0a2587fa7412/2221aef1-52da-4fd7-b012-1fa51f694884",
+      "source_path": "COO/requirements-gathering/live/finalized-requirement-lock/onion::0550eff3-be49-4576-a72b-626251883067/c5e74e26-d40e-445b-975d-d524710ef632",
       "content": {
         "text": "Finalized requirements: Execution monitor for ADF",
         "artifact": {
           "blockers": [],
-          "artifact_id": "onion-requirements::onion::fdc48dca-3668-4f25-998c-0a2587fa7412::2221aef1-52da-4fd7-b012-1fa51f694884",
+          "artifact_id": "onion-requirements::onion::0550eff3-be49-4576-a72b-626251883067::c5e74e26-d40e-445b-975d-d524710ef632",
           "human_scope": {
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "topic": "Execution monitor for ADF",
@@ -82,7 +94,7 @@
                 "statement": "This is not a full historical analytics suite."
               }
             ],
-            "approved_at": "2026-04-02T19:10:18.704Z",
+            "approved_at": "2026-04-02T19:41:36.967Z",
             "major_parts": [
               {
                 "id": "queue_view",
@@ -128,7 +140,7 @@
               }
             ],
             "expected_result": "A local URL that shows the current system status with live updates.",
-            "approved_turn_id": "2221aef1-52da-4fd7-b012-1fa51f694884",
+            "approved_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632",
             "part_clarifications": {
               "metrics": {
                 "detail": "Show token usage plus total and per-step timing.",
@@ -265,17 +277,17 @@
             }
           ],
           "open_business_decisions": [],
-          "source_approval_turn_id": "2221aef1-52da-4fd7-b012-1fa51f694884"
+          "source_approval_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632"
         },
-        "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+        "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
         "artifact_kind": "requirement_list",
-        "source_approval_turn_id": "2221aef1-52da-4fd7-b012-1fa51f694884"
+        "source_approval_turn_id": "c5e74e26-d40e-445b-975d-d524710ef632"
       }
     },
     "llm_telemetry_rows": 16,
     "sample_llm_telemetry_rows": [
       {
-        "source_path": "COO/classifier/classify/fdc48dca-3668-4f25-998c-0a2587fa7412",
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "latency_ms": 11,
@@ -283,7 +295,7 @@
         "tokens_out": 74
       },
       {
-        "source_path": "COO/requirements-gathering/live/turn-parser/onion::fdc48dca-3668-4f25-998c-0a2587fa7412/d7ada45f-8871-4dee-82e6-b9683b33861d",
+        "source_path": "COO/requirements-gathering/live/turn-parser/onion::0550eff3-be49-4576-a72b-626251883067/22766370-2c08-4878-b91e-728c935e2efc",
         "provider": "codex",
         "model": "gpt-5.4",
         "latency_ms": 23,
@@ -291,7 +303,7 @@
         "tokens_out": 32
       },
       {
-        "source_path": "COO/classifier/classify/fdc48dca-3668-4f25-998c-0a2587fa7412",
+        "source_path": "COO/classifier/classify/0550eff3-be49-4576-a72b-626251883067",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "latency_ms": 11,
@@ -299,7 +311,7 @@
         "tokens_out": 68
       },
       {
-        "source_path": "COO/requirements-gathering/live/turn-parser/onion::fdc48dca-3668-4f25-998c-0a2587fa7412/dbc40f14-42e1-415a-8a37-0ac7f3c07049",
+        "source_path": "COO/requirements-gathering/live/turn-parser/onion::0550eff3-be49-4576-a72b-626251883067/27f60018-319c-43a7-bc81-0635fd7a2728",
         "provider": "codex",
         "model": "gpt-5.4",
         "latency_ms": 23,
@@ -313,8 +325,8 @@
         "operation": "onion_reducer",
         "latency_ms": 1,
         "metadata": {
-          "turn_id": "d7ada45f-8871-4dee-82e6-b9683b33861d",
-          "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
           "error_code": null,
           "route_stage": "requirements_gathering_onion",
           "error_message": null,
@@ -334,8 +346,8 @@
         "operation": "clarification_policy",
         "latency_ms": 0,
         "metadata": {
-          "turn_id": "d7ada45f-8871-4dee-82e6-b9683b33861d",
-          "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
           "error_code": null,
           "route_stage": "requirements_gathering_onion",
           "error_message": null,
@@ -355,8 +367,8 @@
         "operation": "freeze_check",
         "latency_ms": 0,
         "metadata": {
-          "turn_id": "d7ada45f-8871-4dee-82e6-b9683b33861d",
-          "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
           "error_code": null,
           "route_stage": "requirements_gathering_onion",
           "error_message": null,
@@ -375,8 +387,8 @@
         "operation": "artifact_deriver",
         "latency_ms": 1,
         "metadata": {
-          "turn_id": "d7ada45f-8871-4dee-82e6-b9683b33861d",
-          "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
           "error_code": null,
           "route_stage": "requirements_gathering_onion",
           "error_message": null,
@@ -395,8 +407,8 @@
         "operation": "readiness_check",
         "latency_ms": 0,
         "metadata": {
-          "turn_id": "d7ada45f-8871-4dee-82e6-b9683b33861d",
-          "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
           "error_code": null,
           "route_stage": "requirements_gathering_onion",
           "error_message": null,
@@ -415,8 +427,8 @@
         "operation": "audit_trace_build",
         "latency_ms": 0,
         "metadata": {
-          "turn_id": "d7ada45f-8871-4dee-82e6-b9683b33861d",
-          "trace_id": "onion::fdc48dca-3668-4f25-998c-0a2587fa7412",
+          "turn_id": "22766370-2c08-4878-b91e-728c935e2efc",
+          "trace_id": "onion::0550eff3-be49-4576-a72b-626251883067",
           "error_code": null,
           "route_stage": "requirements_gathering_onion",
           "error_message": null,
@@ -434,13 +446,13 @@
       }
     ],
     "handle_turn_rows": 8,
-    "final_response": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: abd94e3a-0ef5-49f2-89d6-bf89ee2591b5\nThe COO handoff is ready for downstream review."
+    "final_response": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 09bbd483-f66f-491a-8469-41583f2d4bc9\nThe COO handoff is ready for downstream review."
   },
   "gate_disabled": {
     "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime",
-    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime\\threads\\b8f107bf-db88-4588-8be9-8758428a5f59.json",
-    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime\\threads\\b8f107bf-db88-4588-8be9-8758428a5f59.txt",
-    "thread_id": "b8f107bf-db88-4588-8be9-8758428a5f59",
+    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime\\threads\\6d4134b1-2d90-4e43-be1a-93749cb3bb77.json",
+    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\gate-disabled-runtime\\threads\\6d4134b1-2d90-4e43-be1a-93749cb3bb77.txt",
+    "thread_id": "6d4134b1-2d90-4e43-be1a-93749cb3bb77",
     "response": "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.",
     "active_workflow_after": null,
     "lifecycle_status_after": "handoff_ready",
@@ -448,7 +460,7 @@
     "gate_turn_telemetry": {
       "metadata": {
         "workflow": "requirements_gathering_onion",
-        "thread_id": "b8f107bf-db88-4588-8be9-8758428a5f59",
+        "thread_id": "6d4134b1-2d90-4e43-be1a-93749cb3bb77",
         "scope_path": "assafyavnai/shippingagent",
         "gate_status": "disabled"
       },
@@ -457,42 +469,61 @@
   },
   "supersession": {
     "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\supersession-runtime",
-    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\supersession-runtime\\threads\\71d57a95-e09f-4c59-8551-9520d1273d55.json",
-    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\supersession-runtime\\threads\\71d57a95-e09f-4c59-8551-9520d1273d55.txt",
-    "thread_id": "71d57a95-e09f-4c59-8551-9520d1273d55",
-    "response": "I froze the human-facing scope, but I could not complete the durable handoff truthfully.\n- Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified",
-    "previous_finalized_requirement_memory_id": "0737537d-1232-487a-9ccc-7509f65d584a",
-    "lifecycle_status_after_reopen": "blocked",
-    "freeze_status_after_reopen": "draft",
-    "active_workflow_after_reopen": "requirements_gathering_onion",
-    "finalized_requirement_memory_id_after_reopen": null,
-    "superseded_archive_receipt": {
-      "kind": "superseded_requirement_archive",
+    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\supersession-runtime\\threads\\0f154aba-4db4-4eed-a2b5-c1601e48ffa4.json",
+    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\supersession-runtime\\threads\\0f154aba-4db4-4eed-a2b5-c1601e48ffa4.txt",
+    "thread_id": "0f154aba-4db4-4eed-a2b5-c1601e48ffa4",
+    "reopen_response": "Here is the full human-facing scope I have gathered:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Success view: I can open the page, see the queue, and drill into current execution details.\n- Major parts: Queue view, Flow view, Node details, Audit trail, Metrics\n- Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.\n- Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.\n- Open decisions: none\nThis is the full human-facing onion. Is anything missing or wrong, and should I freeze it now?",
+    "replacement_response": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: c2f93922-4839-4bb1-85b4-2889415c31f7\nThe COO handoff is ready for downstream review.",
+    "previous_finalized_requirement_memory_id": "fef85ee7-51d1-4677-b332-64feb069c7cb",
+    "replacement_finalized_requirement_memory_id": "c2f93922-4839-4bb1-85b4-2889415c31f7",
+    "lifecycle_status_after_reopen": "active",
+    "lifecycle_status_after_reapproval": "handoff_ready",
+    "freeze_status_after_reapproval": "approved",
+    "active_workflow_after_reapproval": null,
+    "superseded_retire_receipt": {
+      "kind": "superseded_requirement_retire",
       "target": "memory_engine",
-      "status": "failed",
+      "status": "superseded",
       "artifact_kind": "requirement_list",
-      "action": "archive",
+      "action": "supersede",
       "scope_path": "assafyavnai/shippingagent",
-      "record_id": "0737537d-1232-487a-9ccc-7509f65d584a",
-      "success": false,
-      "message": "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
+      "record_id": "fef85ee7-51d1-4677-b332-64feb069c7cb",
+      "success": true,
+      "message": "Retired the previously finalized requirement artifact because the scope reopened."
     },
-    "locked_requirement_row_after_reopen": {
-      "id": "0737537d-1232-487a-9ccc-7509f65d584a",
+    "retired_requirement_row": {
+      "id": "fef85ee7-51d1-4677-b332-64feb069c7cb",
+      "tags": [
+        "superseded",
+        "onion",
+        "requirements-gathering",
+        "finalized-requirement-list",
+        "coo-owned"
+      ],
+      "trust_level": "locked",
+      "workflow_metadata": {
+        "status": "superseded",
+        "retired_at": "2026-04-02 22:41:43.925842+03",
+        "retired_reason": "Superseded by a reopened requirements onion scope."
+      }
+    },
+    "replacement_requirement_row": {
+      "id": "c2f93922-4839-4bb1-85b4-2889415c31f7",
       "tags": [
         "requirements-gathering",
         "onion",
         "finalized-requirement-list",
         "coo-owned"
       ],
-      "trust_level": "locked"
+      "trust_level": "locked",
+      "workflow_metadata": {}
     }
   },
   "no_scope": {
     "runtime_root": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime",
-    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime\\threads\\56248f5e-dc42-401f-a625-b4bb4e2d606c.json",
-    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime\\threads\\56248f5e-dc42-401f-a625-b4bb4e2d606c.txt",
-    "thread_id": "56248f5e-dc42-401f-a625-b4bb4e2d606c",
+    "thread_json_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime\\threads\\ec85f21b-6217-41f6-a6ad-122ebdfea385.json",
+    "thread_txt_path": "C:\\ADF\\tests\\integration\\artifacts\\onion-route-proof\\no-scope-runtime\\threads\\ec85f21b-6217-41f6-a6ad-122ebdfea385.txt",
+    "thread_id": "ec85f21b-6217-41f6-a6ad-122ebdfea385",
     "response": "I froze the human-facing scope, but I could not complete the durable handoff truthfully.\n- Cannot persist the finalized requirement artifact without an explicit scope.",
     "lifecycle_status": "blocked",
     "freeze_status": "approved",

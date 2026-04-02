@@ -407,45 +407,49 @@ async function persistOnionArtifacts(input: {
   ) {
     if (!input.scopePath || !input.config.brainManageMemory) {
       receipts.push(OnionPersistenceReceipt.parse({
-        kind: "superseded_requirement_archive",
+        kind: "superseded_requirement_retire",
         target: "memory_engine",
         status: "failed",
         artifact_kind: "requirement_list",
-        action: "archive",
+        action: "supersede",
         scope_path: input.scopePath ?? null,
         record_id: input.previousWorkflowState.finalized_requirement_memory_id,
         success: false,
-        message: "Could not archive the previously finalized requirement artifact after the scope reopened.",
+        message: "Could not retire the previously finalized requirement artifact after the scope reopened.",
       }));
       finalizedRequirementMemoryId = null;
     } else {
       try {
-        await input.config.brainManageMemory(
-          "archive",
+        const retireReceipt = await input.config.brainManageMemory(
+          "supersede",
           input.previousWorkflowState.finalized_requirement_memory_id,
           input.scopePath,
-          createSystemProvenance(`COO/requirements-gathering/live/archive-superseded/${input.traceId}/${input.turnId}`),
+          createSystemProvenance(`COO/requirements-gathering/live/supersede-finalized-requirement/${input.traceId}/${input.turnId}`),
           { reason: "Superseded by a reopened requirements onion scope." },
         );
+        assertSuccessfulMemoryManageMutation(
+          retireReceipt,
+          "Could not retire the previously finalized requirement artifact after the scope reopened.",
+        );
         receipts.push(OnionPersistenceReceipt.parse({
-          kind: "superseded_requirement_archive",
+          kind: "superseded_requirement_retire",
           target: "memory_engine",
-          status: "archived",
+          status: "superseded",
           artifact_kind: "requirement_list",
-          action: "archive",
+          action: "supersede",
           scope_path: input.scopePath,
           record_id: input.previousWorkflowState.finalized_requirement_memory_id,
           success: true,
-          message: "Archived the previously finalized requirement artifact because the scope reopened.",
+          message: "Retired the previously finalized requirement artifact because the scope reopened.",
         }));
         finalizedRequirementMemoryId = null;
       } catch (error) {
         receipts.push(OnionPersistenceReceipt.parse({
-          kind: "superseded_requirement_archive",
+          kind: "superseded_requirement_retire",
           target: "memory_engine",
           status: "failed",
           artifact_kind: "requirement_list",
-          action: "archive",
+          action: "supersede",
           scope_path: input.scopePath,
           record_id: input.previousWorkflowState.finalized_requirement_memory_id,
           success: false,
@@ -571,7 +575,7 @@ async function persistOnionArtifacts(input: {
   }
 
   try {
-    await input.config.brainManageMemory(
+    const lockReceipt = await input.config.brainManageMemory(
       "update_trust_level",
       finalizedRequirementMemoryId,
       input.scopePath,
@@ -580,6 +584,10 @@ async function persistOnionArtifacts(input: {
         trust_level: "locked",
         reason: "Approved requirements artifact must become durable COO-owned truth for downstream use.",
       },
+    );
+    assertSuccessfulMemoryManageMutation(
+      lockReceipt,
+      "The memory-manage route did not lock the finalized requirement artifact.",
     );
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_lock",
@@ -610,6 +618,27 @@ async function persistOnionArtifacts(input: {
     finalizedRequirementMemoryId,
     receipts,
   };
+}
+
+function assertSuccessfulMemoryManageMutation(
+  receipt: Record<string, unknown>,
+  failurePrefix: string,
+): void {
+  const success = receipt.success === true;
+  const status = typeof receipt.status === "string" ? receipt.status : "unknown";
+  const affectedRows = typeof receipt.affected_rows === "number" ? receipt.affected_rows : 0;
+  if (success && affectedRows > 0) {
+    return;
+  }
+
+  const reason = typeof receipt.reason === "string" && receipt.reason.trim().length > 0
+    ? receipt.reason.trim()
+    : null;
+  const detail = [`status=${status}`, `affected_rows=${affectedRows}`];
+  if (reason) {
+    detail.push(`reason=${reason}`);
+  }
+  throw new Error(`${failurePrefix} (${detail.join(", ")})`);
 }
 
 function buildOnionTurn(userEvent: UserInputEvent, userMessage: string, update: z.infer<typeof OnionTurnUpdate>): OnionTurn {

@@ -1,15 +1,17 @@
 <workflow_state>
 Workflow owner: requirements_gathering_onion (active)
 Lifecycle status: blocked
-Current layer: whole_onion_freeze
-Freeze status: draft
+Current layer: approved
+Freeze status: approved
 Topic: Execution monitor for ADF
 Goal: See what the system is currently doing, starting with the implementation queue.
 Expected result: A local URL that shows the current system status with live updates.
 Success view: I can open the page, see the queue, and drill into current execution details.
 Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
 Open decisions remaining: 0
-No next question: Clarification is complete. The next step is an explicit whole-onion freeze request.
+No next question: The onion is already frozen and approved.
+Approved snapshot turn id: f4e3599c-8a2c-4ebb-b506-b5dfa1810720
+Approved snapshot time: 2026-04-02T19:41:46.390Z
 Topic: Execution monitor for ADF
 Goal: See what the system is currently doing, starting with the implementation queue.
 Expected result: A local URL that shows the current system status with live updates.
@@ -25,7 +27,7 @@ Open decisions: none
 {
   "summary": "Requirements-gathering onion froze the human scope, but durable artifact persistence is blocked and handoff is not truthful yet.",
   "openLoops": [
-    "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
+    "Cannot persist the finalized requirement artifact without an explicit scope."
   ],
   "decisions": [],
   "sessionHandles": {

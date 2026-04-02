@@ -13,11 +13,15 @@ export function currentEvidenceClause(alias: string): string {
   return `(${alias}.evidence_format_version = ${CURRENT_EVIDENCE_FORMAT_VERSION} AND COALESCE(${alias}.evidence_lifecycle_status, '${CURRENT_EVIDENCE_STATUS}') = '${CURRENT_EVIDENCE_STATUS}' AND ${alias}.legacy_marker IS NULL)`;
 }
 
+export function currentWorkflowTruthClause(alias: string): string {
+  return `(COALESCE(${alias}.workflow_metadata->>'status', 'current') NOT IN ('archived', 'superseded'))`;
+}
+
 export function modernMemoryEvidenceClause(
   memoryAlias: string,
   decisionAlias?: string
 ): string {
-  const memoryModern = currentEvidenceClause(memoryAlias);
+  const memoryModern = `(${currentEvidenceClause(memoryAlias)} AND ${currentWorkflowTruthClause(memoryAlias)})`;
   if (!decisionAlias) {
     return memoryModern;
   }

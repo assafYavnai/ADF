@@ -169,3 +169,102 @@ test("memory_manage update_trust_level updates trust through the scoped route", 
     await client.close();
   }
 });
+
+test("memory_manage supersede retires locked COO-owned finalized requirements and hides them from default readers", async () => {
+  const client = await MemoryEngineClient.connect(process.cwd());
+  let memoryId: string | null = null;
+
+  try {
+    const created = await client.createRequirement(
+      "Finalized requirements: integration supersede",
+      {
+        artifact_kind: "requirement_list",
+        trace_id: "integration-test",
+        artifact: {
+          artifact_kind: "requirement_list",
+          human_scope: {
+            topic: "Integration supersede proof",
+            goal: "Verify governed retirement of a locked finalized requirement.",
+            expected_result: "Old finalized requirement no longer appears as current truth.",
+            success_view: "The replacement path can continue after retirement.",
+          },
+          major_parts: [],
+          boundaries: [],
+          open_decisions: [],
+          source_approval_turn_id: "approval-turn",
+        },
+      },
+      ["requirements-gathering", "onion", "finalized-requirement-list", "coo-owned"],
+      "assafyavnai/shippingagent",
+      createSystemProvenance("tests/integration/memory-manage:supersede-create"),
+    );
+
+    memoryId = typeof created.id === "string" ? created.id : null;
+    assert.ok(memoryId, "createRequirement should return memory id");
+
+    const lockReceipt = await client.manageMemory(
+      "update_trust_level",
+      memoryId,
+      "assafyavnai/shippingagent",
+      createSystemProvenance("tests/integration/memory-manage:supersede-lock"),
+      { trust_level: "locked", reason: "Prepare finalized requirement for retirement." },
+    );
+    assert.equal(lockReceipt.status, "trust_level_updated");
+    assert.equal(lockReceipt.success, true);
+
+    const supersedeReceipt = await client.manageMemory(
+      "supersede",
+      memoryId,
+      "assafyavnai/shippingagent",
+      createSystemProvenance("tests/integration/memory-manage:supersede"),
+      { reason: "Reopened onion scope superseded the old finalized requirement." },
+    );
+
+    assert.equal(supersedeReceipt.status, "superseded");
+    assert.equal(supersedeReceipt.success, true);
+    assert.equal(supersedeReceipt.affected_rows, 1);
+
+    const row = await pool.query(
+      "SELECT trust_level, tags, workflow_metadata FROM memory_items WHERE id = $1",
+      [memoryId],
+    );
+    assert.equal(row.rows.length, 1);
+    assert.equal(row.rows[0].trust_level, "locked");
+    assert.ok((row.rows[0].tags as string[]).includes("superseded"));
+    assert.equal(row.rows[0].workflow_metadata?.status, "superseded");
+
+    const searchResults = await client.searchMemory(
+      "Finalized requirements",
+      "assafyavnai/shippingagent",
+      createSystemProvenance("tests/integration/memory-manage:supersede-search"),
+      {
+        content_types: ["requirement"],
+        trust_levels: ["locked"],
+        max_results: 20,
+      },
+    );
+    assert.ok(!searchResults.some((result) => result.id === memoryId));
+
+    const requirementsList = await (client as any).callJsonTool("requirements_manage", {
+      action: "list",
+      scope: "assafyavnai/shippingagent",
+    }) as Array<Record<string, unknown>>;
+    assert.ok(!requirementsList.some((result) => result.id === memoryId));
+  } finally {
+    if (memoryId) {
+      const dbClient = await pool.connect();
+      try {
+        await dbClient.query("BEGIN");
+        await dbClient.query(`SELECT set_config('project_brain.bypass_lock', 'on', true)`);
+        await dbClient.query("DELETE FROM memory_items WHERE id = $1", [memoryId]);
+        await dbClient.query("COMMIT");
+      } catch (error) {
+        await dbClient.query("ROLLBACK").catch(() => {});
+        throw error;
+      } finally {
+        dbClient.release();
+      }
+    }
+    await client.close();
+  }
+});

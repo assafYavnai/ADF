@@ -156,7 +156,7 @@ export class MemoryEngineClient {
   }
 
   async manageMemory(
-    action: "delete" | "archive" | "update_tags" | "update_trust_level",
+    action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
     memoryId: string,
     scope: string,
     provenance: Provenance,

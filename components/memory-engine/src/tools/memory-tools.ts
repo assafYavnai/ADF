@@ -143,11 +143,11 @@ export const MEMORY_TOOL_DEFINITIONS = [
   },
   {
     name: "memory_manage",
-    description: "Delete, archive, update tags, or change trust level of memory items",
+    description: "Delete, archive, supersede, update tags, or change trust level of memory items",
     inputSchema: {
       type: "object" as const,
       properties: {
-        action: { type: "string", enum: ["delete", "archive", "update_tags", "update_trust_level"] },
+        action: { type: "string", enum: ["delete", "archive", "supersede", "update_tags", "update_trust_level"] },
         memory_id: { type: "string", format: "uuid" },
         scope: { type: "string", description: "Scope path that must own the target memory item" },
         tags: { type: "array", items: { type: "string" } },

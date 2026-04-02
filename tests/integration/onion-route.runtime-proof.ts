@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -20,6 +21,7 @@ import {
   resetForTests as resetTelemetryForTests,
 } from "../../shared/telemetry/collector.js";
 import { pool } from "../../components/memory-engine/src/db/connection.js";
+import { createSystemProvenance } from "../../shared/provenance/types.js";
 
 const repoRoot = resolve(fileURLToPath(new URL("../../", import.meta.url)));
 const artifactRoot = resolve(repoRoot, "tests", "integration", "artifacts", "onion-route-proof");
@@ -709,50 +711,243 @@ async function runSupersessionProof(runtimeRoot: string) {
     const reopened = await runTurns(harness.config, scopedProjectPath, frozen.threadId, [
       scenarioMessages.reopenAfterFreeze,
     ]);
-    await closeTelemetry();
-
     const reopenedArtifacts = await readThreadArtifacts(runtimeRoot, reopened.threadId);
     const reopenedOnion = reopenedArtifacts.thread.workflowState.onion;
-    const latestOnionTurn = getLatestOnionTurnResultEvent(reopenedArtifacts.thread);
-    const archiveReceipt = latestOnionTurn.data.persistence_receipts.find(
-      (receipt) => receipt.kind === "superseded_requirement_archive",
+    const reopenedTurn = getLatestOnionTurnResultEvent(reopenedArtifacts.thread);
+    const retireReceipt = reopenedTurn.data.persistence_receipts.find(
+      (receipt) => receipt.kind === "superseded_requirement_retire",
     );
 
     assert.equal(reopenedArtifacts.thread.workflowState.active_workflow, "requirements_gathering_onion");
-    assert.equal(reopenedOnion?.lifecycle_status, "blocked");
+    assert.equal(reopenedOnion?.lifecycle_status, "active");
     assert.equal(reopenedOnion?.state.freeze_status.status, "draft");
+    assert.ok(retireReceipt?.success);
+    assert.equal(retireReceipt?.status, "superseded");
+    assert.equal(retireReceipt?.record_id, frozenRequirementId);
     assert.equal(reopenedOnion?.finalized_requirement_memory_id, null);
-    assert.equal(archiveReceipt?.success, false);
-    assert.equal(archiveReceipt?.record_id, frozenRequirementId);
-    assert.match(archiveReceipt?.message ?? "", /locked|cannot be modified/i);
 
-    const archivedRows = await pool.query(
-      `SELECT id, tags, trust_level
+    const retiredRows = await pool.query(
+      `SELECT id, tags, trust_level, workflow_metadata
          FROM memory_items
         WHERE id = $1`,
       [frozenRequirementId],
     );
-    assert.equal(archivedRows.rows.length, 1);
-    assert.ok(Array.isArray(archivedRows.rows[0]?.tags));
-    assert.ok(!archivedRows.rows[0]?.tags.includes("archived"));
-    assert.equal(archivedRows.rows[0]?.trust_level, "locked");
+    assert.equal(retiredRows.rows.length, 1);
+    assert.ok(Array.isArray(retiredRows.rows[0]?.tags));
+    assert.ok(retiredRows.rows[0]?.tags.includes("superseded"));
+    assert.equal(retiredRows.rows[0]?.trust_level, "locked");
+    assert.equal(retiredRows.rows[0]?.workflow_metadata?.status, "superseded");
+
+    const replacement = await runTurns(harness.config, scopedProjectPath, reopened.threadId, [
+      scenarioMessages.freezeApproval,
+    ]);
+    await closeTelemetry();
+
+    const replacementArtifacts = await readThreadArtifacts(runtimeRoot, replacement.threadId);
+    const replacementOnion = replacementArtifacts.thread.workflowState.onion;
+    const latestOnionTurn = getLatestOnionTurnResultEvent(replacementArtifacts.thread);
+    const replacementRequirementId = replacementOnion?.finalized_requirement_memory_id;
+
+    assert.equal(replacementArtifacts.thread.workflowState.active_workflow, null);
+    assert.equal(replacementOnion?.lifecycle_status, "handoff_ready");
+    assert.equal(replacementOnion?.state.freeze_status.status, "approved");
+    assert.ok(replacementRequirementId);
+    assert.notEqual(replacementRequirementId, frozenRequirementId);
+
+    const replacementRows = await pool.query(
+      `SELECT id, tags, trust_level, workflow_metadata
+         FROM memory_items
+        WHERE id = $1`,
+      [replacementRequirementId],
+    );
+    assert.equal(replacementRows.rows.length, 1);
+    assert.equal(replacementRows.rows[0]?.trust_level, "locked");
+    assert.ok(!replacementRows.rows[0]?.workflow_metadata?.status);
+    assert.ok(
+      latestOnionTurn.data.persistence_receipts.some(
+        (receipt) => receipt.kind === "finalized_requirement_create" && receipt.success,
+      ),
+    );
+    assert.ok(
+      latestOnionTurn.data.persistence_receipts.some(
+        (receipt) => receipt.kind === "finalized_requirement_lock" && receipt.success,
+      ),
+    );
+
+    const requirementsList = await (client as any).callJsonTool("requirements_manage", {
+      action: "list",
+      scope: scopedProjectPath,
+    }) as Array<Record<string, unknown>>;
+    assert.ok(!requirementsList.some((row) => row.id === frozenRequirementId));
+    assert.ok(requirementsList.some((row) => row.id === replacementRequirementId));
+
+    const searchResults = await client.searchMemory(
+      "Finalized requirements",
+      scopedProjectPath,
+      createSystemProvenance("tests/integration/onion-route:supersession-search"),
+      {
+        content_types: ["requirement"],
+        trust_levels: ["locked"],
+        max_results: 20,
+      },
+    );
+    assert.ok(!searchResults.some((row) => row.id === frozenRequirementId));
+    assert.ok(searchResults.some((row) => row.id === replacementRequirementId));
 
     return {
       runtime_root: runtimeRoot,
-      thread_json_path: reopenedArtifacts.jsonPath,
-      thread_txt_path: reopenedArtifacts.txtPath,
-      thread_id: reopened.threadId,
-      response: reopened.responses.at(-1) ?? "",
+      thread_json_path: replacementArtifacts.jsonPath,
+      thread_txt_path: replacementArtifacts.txtPath,
+      thread_id: replacement.threadId,
+      reopen_response: reopened.responses.at(-1) ?? "",
+      replacement_response: replacement.responses.at(-1) ?? "",
       previous_finalized_requirement_memory_id: frozenRequirementId,
+      replacement_finalized_requirement_memory_id: replacementRequirementId,
       lifecycle_status_after_reopen: reopenedOnion?.lifecycle_status,
-      freeze_status_after_reopen: reopenedOnion?.state.freeze_status.status,
-      active_workflow_after_reopen: reopenedArtifacts.thread.workflowState.active_workflow,
-      finalized_requirement_memory_id_after_reopen: reopenedOnion?.finalized_requirement_memory_id,
-      superseded_archive_receipt: archiveReceipt ?? null,
-      locked_requirement_row_after_reopen: archivedRows.rows[0],
+      lifecycle_status_after_reapproval: replacementOnion?.lifecycle_status,
+      freeze_status_after_reapproval: replacementOnion?.state.freeze_status.status,
+      active_workflow_after_reapproval: replacementArtifacts.thread.workflowState.active_workflow,
+      superseded_retire_receipt: retireReceipt ?? null,
+      retired_requirement_row: retiredRows.rows[0],
+      replacement_requirement_row: replacementRows.rows[0],
     };
   } finally {
     await closeRuntimeHarness(client);
+  }
+}
+
+async function runCliEntryProof(runtimeRoot: string) {
+  await mkdir(runtimeRoot, { recursive: true });
+  const threadsDir = join(runtimeRoot, "threads");
+  const memoryDir = join(runtimeRoot, "memory");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(memoryDir, { recursive: true });
+
+  const parserUpdatePath = join(runtimeRoot, "parser-updates.json");
+  await writeFile(parserUpdatePath, JSON.stringify(Object.fromEntries(parserUpdates), null, 2), "utf-8");
+
+  const replayedInvocationId = randomUUID();
+  const telemetryOutboxPath = join(memoryDir, "telemetry-outbox.json");
+  await writeFile(telemetryOutboxPath, JSON.stringify([
+    {
+      provenance: {
+        ...createSystemProvenance("tests/integration/onion-route:cli-replay"),
+        invocation_id: replayedInvocationId,
+      },
+      category: "system",
+      operation: "cli_replay_seed",
+      latency_ms: 1,
+      success: true,
+      metadata: {
+        source: "cli-entry-proof",
+      },
+    },
+  ], null, 2), "utf-8");
+
+  const cliPath = resolve(repoRoot, "COO", "controller", "cli.ts");
+  const tsxPath = resolve(repoRoot, "COO", "node_modules", ".bin", "tsx.cmd");
+  const child = spawn(process.env.ComSpec ?? "cmd.exe", [
+    "/d",
+    "/s",
+    "/c",
+    `${tsxPath} ${cliPath} --enable-onion --scope ${scopedProjectPath}`,
+  ], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      ADF_ENABLE_REQUIREMENTS_GATHERING_ONION: "0",
+      ADF_COO_TEST_PARSER_UPDATES_FILE: parserUpdatePath,
+      ADF_COO_THREADS_DIR: threadsDir,
+      ADF_COO_MEMORY_DIR: memoryDir,
+    },
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+
+  const stdoutChunks: Buffer[] = [];
+  const stderrChunks: Buffer[] = [];
+  child.stdout.on("data", (chunk) => {
+    stdoutChunks.push(Buffer.from(chunk));
+  });
+  child.stderr.on("data", (chunk) => {
+    stderrChunks.push(Buffer.from(chunk));
+  });
+
+  child.stdin.write(`${scenarioMessages.start}\n`);
+  child.stdin.write(`${scenarioMessages.expectedResult}\n`);
+  child.stdin.write("exit\n");
+  child.stdin.end();
+
+  const exitCode = await new Promise<number>((resolvePromise, rejectPromise) => {
+    child.on("error", rejectPromise);
+    child.on("close", (code) => {
+      resolvePromise(code ?? -1);
+    });
+  });
+
+  const stdout = Buffer.concat(stdoutChunks).toString("utf-8");
+  const stderr = Buffer.concat(stderrChunks).toString("utf-8");
+  const stdoutPath = join(runtimeRoot, "cli-stdout.txt");
+  const stderrPath = join(runtimeRoot, "cli-stderr.txt");
+  await writeFile(stdoutPath, stdout, "utf-8");
+  await writeFile(stderrPath, stderr, "utf-8");
+
+  assert.equal(exitCode, 0);
+  assert.equal(stderr.trim(), "");
+  assert.match(stdout, /Recovered 1 persisted telemetry event\(s\) from the local outbox\./);
+  assert.match(stdout, /Requirements-gathering onion: enabled \(feature gate\)/);
+  assert.match(stdout, /COO> Current scope so far:/);
+  assert.match(stdout, /Session ended\./);
+
+  const threadIdMatch = stdout.match(/\[thread: ([0-9a-f-]{36}), scope:/i);
+  assert.ok(threadIdMatch);
+  const threadId = threadIdMatch[1];
+  const threadArtifacts = await readThreadArtifacts(runtimeRoot, threadId);
+  assert.equal(threadArtifacts.thread.workflowState.active_workflow, "requirements_gathering_onion");
+  assert.equal(threadArtifacts.thread.workflowState.onion?.current_layer, "success_view");
+
+  const replayedTelemetryRows = await pool.query(
+    `SELECT operation
+       FROM telemetry
+      WHERE invocation_id = $1::uuid`,
+    [replayedInvocationId],
+  );
+  assert.ok(replayedTelemetryRows.rows.some((row) => row.operation === "cli_replay_seed"));
+
+  const cliTurnTelemetryRows = await pool.query(
+    `SELECT metadata, success
+       FROM telemetry
+      WHERE operation = 'handle_turn'
+        AND metadata->>'thread_id' = $1
+      ORDER BY created_at ASC`,
+    [threadId],
+  );
+  assert.ok(cliTurnTelemetryRows.rows.length >= 2);
+  assert.ok(cliTurnTelemetryRows.rows.every((row) => row.success === true));
+
+  const remainingOutbox = await readOptionalFile(telemetryOutboxPath);
+  assert.equal(remainingOutbox, null);
+
+  return {
+    runtime_root: runtimeRoot,
+    stdout_path: stdoutPath,
+    stderr_path: stderrPath,
+    thread_json_path: threadArtifacts.jsonPath,
+    thread_txt_path: threadArtifacts.txtPath,
+    thread_id: threadId,
+    replayed_invocation_id: replayedInvocationId,
+    handle_turn_rows: cliTurnTelemetryRows.rows.length,
+    latest_lifecycle_status: threadArtifacts.thread.workflowState.onion?.lifecycle_status,
+  };
+}
+
+async function readOptionalFile(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, "utf-8");
+  } catch (error) {
+    if (error instanceof Error && "code" in error && (error as NodeJS.ErrnoException).code === "ENOENT") {
+      return null;
+    }
+    throw error;
   }
 }
 
@@ -760,6 +955,7 @@ async function main() {
   await rm(artifactRoot, { recursive: true, force: true });
   await mkdir(artifactRoot, { recursive: true });
 
+  const cliEntry = await runCliEntryProof(join(artifactRoot, "cli-runtime"));
   const success = await runSuccessProof(join(artifactRoot, "success-runtime"));
   const gateDisabled = await runGateDisabledProof(join(artifactRoot, "gate-disabled-runtime"));
   const supersession = await runSupersessionProof(join(artifactRoot, "supersession-runtime"));
@@ -767,7 +963,9 @@ async function main() {
 
   const report = {
     generated_at: new Date().toISOString(),
-    live_route_under_proof: "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+    live_route_under_proof: "CLI -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+    cli_entry: cliEntry,
+    controller_detail_route_under_proof: "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
     success,
     gate_disabled: gateDisabled,
     supersession,

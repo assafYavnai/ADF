@@ -203,7 +203,7 @@ function extractToolProvenance(
 }
 
 function buildMemoryManageReceipt(
-  action: "delete" | "archive" | "update_tags" | "update_trust_level",
+  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
   memoryId: string,
   affectedRows: number,
   reason?: string
@@ -219,12 +219,14 @@ function buildMemoryManageReceipt(
   };
 }
 
-function actionResultStatus(action: "delete" | "archive" | "update_tags" | "update_trust_level"): string {
+function actionResultStatus(action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level"): string {
   switch (action) {
     case "delete":
       return "deleted";
     case "archive":
       return "archived";
+    case "supersede":
+      return "superseded";
     case "update_tags":
       return "tags_updated";
     case "update_trust_level":
@@ -235,7 +237,7 @@ function actionResultStatus(action: "delete" | "archive" | "update_tags" | "upda
 async function recordMemoryManageTelemetry(
   db: { query: (text: string, params: unknown[]) => Promise<unknown> },
   provenance: Provenance,
-  action: "delete" | "archive" | "update_tags" | "update_trust_level",
+  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
   receipt: ReturnType<typeof buildMemoryManageReceipt>
 ): Promise<void> {
   await insertMetricEvents(db, [
@@ -261,6 +263,9 @@ async function executeMemoryManageRoute(
 
   let receipt = buildMemoryManageReceipt(input.action, input.memory_id, 0, input.reason);
   await withTransaction(async (client) => {
+    if (input.action === "supersede") {
+      await client.query(`SELECT set_config('project_brain.bypass_lock', 'on', true)`);
+    }
     const scopedMutation = buildScopedMutation(input, scope, provenance);
     const result = await client.query(scopedMutation.sql, scopedMutation.params);
     receipt = buildMemoryManageReceipt(input.action, input.memory_id, result.rowCount ?? 0, input.reason);
@@ -285,9 +290,19 @@ function buildScopedMutation(
       };
     case "archive":
       return {
-        sql: `UPDATE memory_items SET tags = array_append(tags, 'archived'), updated_at = NOW(),
+        sql: `UPDATE memory_items
+                 SET tags = ARRAY(
+                       SELECT DISTINCT tag
+                       FROM unnest(array_cat(tags, ARRAY['archived']::text[])) AS tag
+                     ),
+                     workflow_metadata = COALESCE(workflow_metadata, '{}'::jsonb) || jsonb_build_object(
+                       'status', 'archived',
+                       'retired_reason', COALESCE($8::text, 'archived'),
+                       'retired_at', NOW()::text
+                     ),
+                     updated_at = NOW(),
                  invocation_id = $2, provider = $3, model = $4, reasoning = $5, was_fallback = $6, source_path = $7
-               WHERE id = $1 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 7}`)}
+               WHERE id = $1 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 8}`)}
                RETURNING id`,
         params: [
           input.memory_id,
@@ -297,6 +312,39 @@ function buildScopedMutation(
           provenance.reasoning,
           provenance.was_fallback,
           provenance.source_path,
+          input.reason ?? null,
+          ...exactScopeFilter.params,
+        ],
+      };
+    case "supersede":
+      return {
+        sql: `UPDATE memory_items
+                 SET tags = ARRAY(
+                       SELECT DISTINCT tag
+                       FROM unnest(array_cat(tags, ARRAY['superseded']::text[])) AS tag
+                     ),
+                     workflow_metadata = COALESCE(workflow_metadata, '{}'::jsonb) || jsonb_build_object(
+                       'status', 'superseded',
+                       'retired_reason', COALESCE($8::text, 'superseded'),
+                       'retired_at', NOW()::text
+                     ),
+                     updated_at = NOW(),
+                     invocation_id = $2, provider = $3, model = $4, reasoning = $5, was_fallback = $6, source_path = $7
+               WHERE id = $1
+                 AND content_type = 'requirement'
+                 AND trust_level = 'locked'
+                 AND tags @> ARRAY['requirements-gathering', 'finalized-requirement-list', 'coo-owned']::text[]
+                 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 8}`)}
+               RETURNING id`,
+        params: [
+          input.memory_id,
+          provenance.invocation_id,
+          provenance.provider,
+          provenance.model,
+          provenance.reasoning,
+          provenance.was_fallback,
+          provenance.source_path,
+          input.reason ?? null,
           ...exactScopeFilter.params,
         ],
       };

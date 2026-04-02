@@ -1,10 +1,14 @@
 import { createInterface } from "node:readline";
 import { resolve, join, dirname } from "node:path";
-import { readdir, stat, access } from "node:fs/promises";
+import { readdir, stat, access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { handleTurn, DEFAULT_CLASSIFIER_PARAMS, DEFAULT_INTELLIGENCE_PARAMS } from "./loop.js";
 import type { ControllerConfig } from "./loop.js";
+import { emitInvocationTelemetry } from "../../shared/llm-invoker/invoker.js";
 import { close as closeTelemetry, configureSink, replayPersistedMetrics } from "../../shared/telemetry/collector.js";
+import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationUsageEstimate } from "../../shared/llm-invoker/types.js";
+import { createLLMProvenance } from "../../shared/provenance/types.js";
 import { MemoryEngineClient } from "./memory-engine-client.js";
 
 let shuttingDown = false;
@@ -13,20 +17,27 @@ async function main() {
   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
   const args = parseCliArgs(process.argv.slice(2));
   const onionEnabled = resolveOnionGate(args);
+  const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
+  const promptsDir = resolveRuntimeDir(process.env.ADF_COO_PROMPTS_DIR, resolve(projectRoot, "COO/intelligence"));
+  const memoryDir = resolveRuntimeDir(process.env.ADF_COO_MEMORY_DIR, resolve(projectRoot, "memory"));
   const config: ControllerConfig = {
     projectRoot,
-    threadsDir: resolve(projectRoot, "threads"),
-    promptsDir: resolve(projectRoot, "COO/intelligence"),
-    memoryDir: resolve(projectRoot, "memory"),
+    threadsDir,
+    promptsDir,
+    memoryDir,
     classifierParams: DEFAULT_CLASSIFIER_PARAMS,
     intelligenceParams: DEFAULT_INTELLIGENCE_PARAMS,
     enableRequirementsGatheringOnion: onionEnabled,
   };
+  const testInvoker = await createTestProofInvokerFromEnv();
+  if (testInvoker) {
+    config.invokeLLM = testInvoker;
+  }
 
   let brainClient: MemoryEngineClient | null = null;
   try {
     brainClient = await MemoryEngineClient.connect(projectRoot);
-    const telemetryOutboxPath = resolve(projectRoot, "memory", "telemetry-outbox.json");
+    const telemetryOutboxPath = resolve(memoryDir, "telemetry-outbox.json");
     config.brainSearch = async (query, scopePath, provenance, options) => {
       const results = await brainClient!.searchMemory(query, scopePath, provenance, {
         content_type: options?.contentType,
@@ -123,6 +134,135 @@ async function main() {
   rl.on("close", () => {
     void shutdownCli(brainClient);
   });
+}
+
+function resolveRuntimeDir(overridePath: string | undefined, fallbackPath: string): string {
+  if (!overridePath) {
+    return fallbackPath;
+  }
+  return resolve(overridePath);
+}
+
+async function createTestProofInvokerFromEnv(): Promise<ControllerConfig["invokeLLM"] | undefined> {
+  const parserUpdatePath = process.env.ADF_COO_TEST_PARSER_UPDATES_FILE;
+  if (!parserUpdatePath) {
+    return undefined;
+  }
+
+  const raw = await readFile(resolve(parserUpdatePath), "utf-8");
+  const parserUpdates = new Map<string, Record<string, unknown>>(Object.entries(JSON.parse(raw) as Record<string, Record<string, unknown>>));
+  let sessionCounter = 0;
+
+  return async (params: InvocationParams): Promise<InvocationResult> => {
+    const response = buildTestProofResponse(params, parserUpdates);
+    const usage = estimateUsage(params.prompt, response);
+    const invocationId = randomUUID();
+    const latencyMs = params.source_path.startsWith("COO/classifier/classify/") ? 11 : 23;
+    const provenance = createLLMProvenance(
+      invocationId,
+      params.cli,
+      params.model,
+      params.reasoning ?? params.effort ?? "default",
+      false,
+      params.source_path,
+    );
+    const sessionPersisted = Boolean(params.session?.persist);
+    const attempt: InvocationAttempt = {
+      provenance,
+      latency_ms: latencyMs,
+      success: true,
+      session_status: sessionPersisted
+        ? (params.session?.handle ? "resumed" : "fresh")
+        : "none",
+      usage,
+    };
+    const session = sessionPersisted
+      ? {
+          handle: {
+            provider: params.cli,
+            model: params.model,
+            session_id: params.session?.handle?.session_id ?? `cli-proof-session-${++sessionCounter}`,
+            source: "provider_returned" as const,
+          },
+          status: params.session?.handle ? "resumed" as const : "fresh" as const,
+        }
+      : null;
+
+    emitInvocationTelemetry([attempt]);
+
+    return {
+      provenance,
+      response,
+      latency_ms: latencyMs,
+      session,
+      usage,
+      attempts: [attempt],
+    };
+  };
+}
+
+function buildTestProofResponse(
+  params: InvocationParams,
+  parserUpdates: Map<string, Record<string, unknown>>,
+): string {
+  if (params.source_path.startsWith("COO/classifier/classify/")) {
+    const userMessage = extractClassifierUserMessage(params.prompt);
+    const onionEnabled = params.prompt.includes("requirements_gathering_onion_enabled: true");
+    return JSON.stringify({
+      intent: onionEnabled
+        ? "continue requirements gathering"
+        : "respond without entering onion while the gate is disabled",
+      workflow: onionEnabled ? "requirements_gathering_onion" : "direct_coo_response",
+      confidence: 0.99,
+      reasoning: onionEnabled
+        ? `Route "${userMessage}" into the live requirements onion lane.`
+        : "The live requirements onion gate is disabled in this runtime.",
+    });
+  }
+
+  if (params.source_path.includes("COO/requirements-gathering/live/turn-parser/")) {
+    const userMessage = extractTagBlock(params.prompt, "ceo_message");
+    const update = parserUpdates.get(userMessage);
+    if (!update) {
+      throw new Error(`No CLI proof parser stub update exists for message: ${userMessage}`);
+    }
+    return JSON.stringify(update);
+  }
+
+  throw new Error(`Unexpected CLI proof invoke source path: ${params.source_path}`);
+}
+
+function extractClassifierUserMessage(prompt: string): string {
+  const marker = "User message:\n";
+  const start = prompt.lastIndexOf(marker);
+  if (start < 0) {
+    throw new Error("Classifier prompt did not contain a user message block.");
+  }
+  const after = prompt.slice(start + marker.length);
+  const end = after.indexOf("\n\nRespond with JSON only:");
+  return (end >= 0 ? after.slice(0, end) : after).trim();
+}
+
+function extractTagBlock(prompt: string, tag: string): string {
+  const match = new RegExp(`<${tag}>\\n([\\s\\S]*?)\\n<\\/${tag}>`).exec(prompt);
+  if (!match) {
+    throw new Error(`Prompt did not contain <${tag}>...</${tag}>.`);
+  }
+  return match[1].trim();
+}
+
+function estimateUsage(prompt: string, response: string): InvocationUsageEstimate {
+  const promptChars = prompt.length;
+  const responseChars = response.length;
+  return {
+    prompt_chars: promptChars,
+    response_chars: responseChars,
+    tokens_in_estimated: Math.max(1, Math.ceil(promptChars / 4)),
+    tokens_out_estimated: Math.max(1, Math.ceil(responseChars / 4)),
+    estimated_cost_usd: Number((((promptChars + responseChars) / 4) * 0.000005).toFixed(6)),
+    token_estimation_basis: "char_heuristic_v1",
+    cost_estimation_basis: "cli-proof-stub",
+  };
 }
 
 function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean; scopePath?: string; enableOnion?: boolean } {

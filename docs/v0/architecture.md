@@ -1,7 +1,7 @@
 # ADF Architecture
 
 Status: locked decisions
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 
 ---
 
@@ -126,6 +126,10 @@ Runtime capability route shape:
 
 Current integration-proof entry route:
 
+`CLI -> controller -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
+
+Controller-detail proof is also retained inside the generated report:
+
 `controller.handleTurn -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
 
 The live onion adapter is intentionally thin:
@@ -174,7 +178,9 @@ For the live onion lane this means:
 - freeze status and approved snapshot live in thread workflow state
 - finalized requirement artifacts are written through `requirements_manage`
 - the persisted finalized requirement is then locked through `memory_manage`
-- if a frozen scope reopens, the adapter attempts to archive the prior finalized artifact; if that archive mutation is rejected, lifecycle stays `blocked` with explicit failure receipts
+- if a frozen scope reopens, the adapter retires the prior finalized artifact through explicit `memory_manage supersede`
+- the retired artifact keeps its locked provenance, but `workflow_metadata.status='superseded'` removes it from default current-truth readers
+- if the supersession write does not succeed, lifecycle stays fail-closed with explicit failure receipts
 
 ## Operational Principles
 

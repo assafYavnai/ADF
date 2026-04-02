@@ -136,6 +136,18 @@ test("mutation contracts require provenance at parse time", () => {
   });
 });
 
+test("memory_manage accepts the governed supersede action with explicit scope and provenance", () => {
+  assert.doesNotThrow(() => {
+    MemoryManageInput.parse({
+      action: "supersede",
+      memory_id: "11111111-1111-1111-1111-111111111111",
+      scope: "assafyavnai/shippingagent",
+      reason: "Reopened onion scope superseded the locked finalized artifact.",
+      provenance: sampleProvenance("tests/scope-requirements:supersede"),
+    });
+  });
+});
+
 test("decision schema allows nullable decided_by to match runtime and DB", () => {
   assert.doesNotThrow(() => {
     DecisionSchema.parse({
@@ -160,6 +172,9 @@ test("decision schema allows nullable decided_by to match runtime and DB", () =>
       was_fallback: false,
       source_path: "tests/scope-requirements",
       reasoning_state: "current",
+      evidence_format_version: 2,
+      evidence_lifecycle_status: "current",
+      legacy_marker: null,
       created_at: new Date().toISOString(),
     });
   });
