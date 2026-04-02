@@ -35,7 +35,7 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 
 | Layer | Directory | LLM? | Purpose |
 |---|---|---|---|
-| **Requirements Gathering** | `COO/requirements-gathering/` | Yes (live behind feature gate) | CEO-facing feature shaping lane. Peels scope from the outer shell inward, freezes the approved human-facing onion, persists thread-owned working state, derives the governed requirement artifact from the approved snapshot, and writes the finalized requirement artifact through the supported COO runtime. |
+| **Requirements Gathering** | `COO/requirements-gathering/` | Yes (live behind feature gate) | CEO-facing feature shaping lane. Peels scope from the outer shell inward, freezes the approved human-facing onion, persists thread-owned working state (including frozen post-handoff context), derives the governed requirement artifact from the approved snapshot, and writes the finalized requirement artifact through the supported COO runtime. Reopen supersession currently fails closed if locked-artifact archive mutation is rejected. |
 
 ### Layer Rules
 

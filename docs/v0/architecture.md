@@ -120,9 +120,13 @@ It is enabled only when `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` or `--enable-o
 
 The onion lane is now part of the supported COO runtime behind the explicit feature gate.
 
-Live route shape:
+Runtime capability route shape:
 
 `CLI -> controller -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
+
+Current integration-proof entry route:
+
+`controller.handleTurn -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
 
 The live onion adapter is intentionally thin:
 
@@ -170,6 +174,7 @@ For the live onion lane this means:
 - freeze status and approved snapshot live in thread workflow state
 - finalized requirement artifacts are written through `requirements_manage`
 - the persisted finalized requirement is then locked through `memory_manage`
+- if a frozen scope reopens, the adapter attempts to archive the prior finalized artifact; if that archive mutation is rejected, lifecycle stays `blocked` with explicit failure receipts
 
 ## Operational Principles
 

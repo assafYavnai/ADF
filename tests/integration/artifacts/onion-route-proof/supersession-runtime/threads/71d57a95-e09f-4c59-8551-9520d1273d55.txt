@@ -1,0 +1,47 @@
+<workflow_state>
+Workflow owner: requirements_gathering_onion (active)
+Lifecycle status: blocked
+Current layer: whole_onion_freeze
+Freeze status: draft
+Topic: Execution monitor for ADF
+Goal: See what the system is currently doing, starting with the implementation queue.
+Expected result: A local URL that shows the current system status with live updates.
+Success view: I can open the page, see the queue, and drill into current execution details.
+Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
+Open decisions remaining: 0
+No next question: Clarification is complete. The next step is an explicit whole-onion freeze request.
+Topic: Execution monitor for ADF
+Goal: See what the system is currently doing, starting with the implementation queue.
+Expected result: A local URL that shows the current system status with live updates.
+Success view: I can open the page, see the queue, and drill into current execution details.
+Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
+Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.
+Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.
+Open decisions: none
+</workflow_state>
+
+<thread_checkpoint>
+<state_commit>
+{
+  "summary": "Requirements-gathering onion froze the human scope, but durable artifact persistence is blocked and handoff is not truthful yet.",
+  "openLoops": [
+    "Error: memory_items row 0737537d-1232-487a-9ccc-7509f65d584a is locked and cannot be modified"
+  ],
+  "decisions": [],
+  "sessionHandles": {
+    "classifier": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "session_id": "stub-session-1",
+      "source": "provider_returned"
+    },
+    "intelligence": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "stub-session-2",
+      "source": "provider_returned"
+    }
+  }
+}
+</state_commit>
+</thread_checkpoint>

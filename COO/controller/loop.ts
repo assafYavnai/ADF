@@ -138,12 +138,9 @@ export async function handleTurn(
   thread.status = "active";
   await store.update(thread);
 
-  if (
-    thread.workflowState.active_workflow === "requirements_gathering_onion"
-    && !config.enableRequirementsGatheringOnion
-  ) {
+  if (hasPersistedOnionWorkflow(thread) && !config.enableRequirementsGatheringOnion) {
     const response =
-      "This thread is already in requirements-gathering onion mode, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.";
+      "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.";
     thread.events.push(createEvent("error", {
       source: "controller",
       message: response,
@@ -152,7 +149,7 @@ export async function handleTurn(
     }, controllerProv));
     thread.events.push(createEvent("coo_response", { message: response }, controllerProv));
     thread.events.push(createEvent("state_commit", {
-      summary: "Blocked turn because the active onion workflow gate is disabled.",
+      summary: "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
       openLoops: [response],
       decisions: collectDecisionSummaries(thread),
       sessionHandles: getLatestSessionHandles(thread),
@@ -193,7 +190,9 @@ export async function handleTurn(
 
     const classifierPrompt = buildClassifierPrompt(userMessage, recentContext, {
       onionEnabled: config.enableRequirementsGatheringOnion,
-      currentWorkflow: thread.workflowState.active_workflow,
+      currentWorkflow: resolveClassifierWorkflow(thread),
+      persistedOnionState: hasPersistedOnionWorkflow(thread),
+      onionLifecycleStatus: thread.workflowState.onion?.lifecycle_status ?? null,
     });
     const classifierResult = await callLlm(config, {
       ...config.classifierParams,
@@ -780,16 +779,28 @@ function collectDecisionSummaries(thread: Thread): string[] {
 
 function summarizeWorkflowRoutingContext(thread: Thread): string | null {
   const onion = thread.workflowState.onion;
-  if (thread.workflowState.active_workflow !== "requirements_gathering_onion" || !onion) {
+  if (!onion) {
     return null;
   }
 
+  const ownership = thread.workflowState.active_workflow === "requirements_gathering_onion"
+    ? "active"
+    : "persisted";
+  const approvedScope = onion.state.approved_snapshot;
+  const scopeTopic = approvedScope?.topic || onion.state.topic || "missing";
+  const scopeGoal = approvedScope?.goal || onion.state.goal || "missing";
+
   return [
     "[workflow]",
-    "active_workflow=requirements_gathering_onion",
+    "workflow_owner=requirements_gathering_onion",
+    `workflow_owner_state=${ownership}`,
     `lifecycle_status=${onion.lifecycle_status}`,
     `current_layer=${onion.current_layer}`,
+    `approved_snapshot_present=${approvedScope ? "true" : "false"}`,
+    `scope_topic=${summarizeForRoutingContext(scopeTopic)}`,
+    `scope_goal=${summarizeForRoutingContext(scopeGoal)}`,
     `selected_next_question=${onion.selected_next_question ?? "none"}`,
+    `finalized_requirement_memory_id=${onion.finalized_requirement_memory_id ?? "none"}`,
   ].join(" ");
 }
 
@@ -822,6 +833,28 @@ function compatibleSessionHandle(
     return undefined;
   }
   return handle;
+}
+
+function hasPersistedOnionWorkflow(thread: Thread): boolean {
+  return thread.workflowState.onion !== null;
+}
+
+function resolveClassifierWorkflow(thread: Thread): Thread["workflowState"]["active_workflow"] {
+  if (thread.workflowState.active_workflow) {
+    return thread.workflowState.active_workflow;
+  }
+  if (hasPersistedOnionWorkflow(thread)) {
+    return "requirements_gathering_onion";
+  }
+  return null;
+}
+
+function summarizeForRoutingContext(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length <= 80) {
+    return trimmed.replace(/\s+/g, "_");
+  }
+  return `${trimmed.slice(0, 77).replace(/\s+/g, "_")}...`;
 }
 
 function callLlm(

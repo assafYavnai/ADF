@@ -284,15 +284,36 @@ function serializeEvent(event: ThreadEvent): string {
 
 function serializeWorkflowState(thread: Thread): string {
   const onion = thread.workflowState.onion;
-  if (thread.workflowState.active_workflow !== "requirements_gathering_onion" || !onion) {
+  if (!onion) {
     return "";
   }
 
+  const ownership = thread.workflowState.active_workflow === "requirements_gathering_onion"
+    ? "active"
+    : "persisted";
+  const approvedScope = onion.state.approved_snapshot;
+  const topic = firstMeaningfulText(approvedScope?.topic, onion.state.topic);
+  const goal = firstMeaningfulText(approvedScope?.goal, onion.state.goal);
+  const expectedResult = firstMeaningfulText(approvedScope?.expected_result, onion.state.expected_result);
+  const successView = firstMeaningfulText(approvedScope?.success_view, onion.state.success_view);
+  const majorParts = (approvedScope?.major_parts ?? onion.state.major_parts)
+    .map((part) => part.label)
+    .filter((label) => label.trim().length > 0);
+  const openDecisionCount = (approvedScope?.open_decisions ?? onion.state.open_decisions)
+    .filter((decision) => decision.status !== "resolved")
+    .length;
+
   const lines = [
-    `Active workflow: requirements_gathering_onion`,
+    `Workflow owner: requirements_gathering_onion (${ownership})`,
     `Lifecycle status: ${onion.lifecycle_status}`,
     `Current layer: ${onion.current_layer}`,
-    ...onion.working_artifact.scope_summary,
+    `Freeze status: ${onion.state.freeze_status.status}`,
+    `Topic: ${topic ?? "missing"}`,
+    `Goal: ${goal ?? "missing"}`,
+    `Expected result: ${expectedResult ?? "missing"}`,
+    `Success view: ${successView ?? "missing"}`,
+    `Major parts: ${majorParts.length > 0 ? majorParts.join(", ") : "missing"}`,
+    `Open decisions remaining: ${openDecisionCount}`,
   ];
 
   if (onion.selected_next_question) {
@@ -305,7 +326,27 @@ function serializeWorkflowState(thread: Thread): string {
     lines.push(`Finalized requirement memory id: ${onion.finalized_requirement_memory_id}`);
   }
 
+  if (approvedScope) {
+    lines.push(`Approved snapshot turn id: ${approvedScope.approved_turn_id}`);
+    lines.push(`Approved snapshot time: ${approvedScope.approved_at}`);
+  }
+
+  lines.push(...onion.working_artifact.scope_summary);
+
   return lines.join("\n");
+}
+
+function firstMeaningfulText(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  return null;
 }
 
 function serializeOnionTurnResult(event: OnionTurnResultEvent): string {

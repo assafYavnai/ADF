@@ -8,6 +8,8 @@ Update: 2026-04-01
 
 The COO runtime now supports this onion lane live behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`.
 The business model below remains the source truth; the live runtime persists thread-owned onion state, requires explicit freeze approval, and derives the finalized requirement artifact only from the approved human snapshot.
+Persisted onion ownership remains active for route-gating even after `handoff_ready` clears `active_workflow`, so frozen-thread follow-up turns fail closed when the gate is disabled.
+Current reopen supersession behavior is fail-closed when locked finalized artifacts cannot be archived by the existing memory-manage mutation path.
 
 ---
 

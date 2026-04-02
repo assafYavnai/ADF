@@ -34,6 +34,7 @@ const scenarioMessages = {
   uiAndBoundaries: "UI meaning matters. It should be a single-page dashboard with a queue list, a flow canvas, and a detail drawer. Treat mockup execution-monitor-v1 as approved. Boundaries: Phase 1 focuses on the implementation queue first. This is not a full historical analytics suite. Open decision: Should live updates use polling or push for the first release?",
   resolveDecision: "Use timed polling every 10 seconds for the first release.",
   freezeApproval: "Freeze it.",
+  reopenAfterFreeze: "Do not keep it frozen. Reopen the scope so I can correct it before we freeze again.",
 } as const;
 
 const parserUpdates = new Map<string, Record<string, unknown>>([
@@ -149,6 +150,15 @@ const parserUpdates = new Map<string, Record<string, unknown>>([
       freeze_response: {
         action: "approve",
         note: "The human-facing scope is right. Freeze it.",
+      },
+    },
+  ],
+  [
+    scenarioMessages.reopenAfterFreeze,
+    {
+      freeze_response: {
+        action: "reject",
+        note: "Reopening the frozen scope for corrections.",
       },
     },
   ],
@@ -432,6 +442,8 @@ async function runSuccessProof(runtimeRoot: string) {
     assert.equal(finalOnion?.state.freeze_status.status, "approved");
     assert.ok(finalOnion?.finalized_requirement_memory_id);
     assert.match(finalArtifacts.txt, /<thread_checkpoint>/);
+    assert.match(finalArtifacts.txt, /Workflow owner: requirements_gathering_onion \(persisted\)/);
+    assert.match(finalArtifacts.txt, /Approved snapshot turn id:/);
 
     const latestOnionTurn = getLatestOnionTurnResultEvent(finalArtifacts.thread);
     const finalizedRequirementId = latestOnionTurn.data.finalized_requirement_memory_id;
@@ -546,17 +558,27 @@ async function runGateDisabledProof(runtimeRoot: string) {
   try {
     const enabledHarness = await openRuntimeHarness(runtimeRoot, true, stubEnabled);
     clientEnabled = enabledHarness.client;
-    const firstTurn = await runTurns(enabledHarness.config, scopedProjectPath, null, [
+    const frozen = await runTurns(enabledHarness.config, scopedProjectPath, null, [
       scenarioMessages.start,
+      scenarioMessages.expectedResult,
+      scenarioMessages.successView,
+      scenarioMessages.majorParts,
+      scenarioMessages.partDetails,
+      scenarioMessages.uiAndBoundaries,
+      scenarioMessages.resolveDecision,
+      scenarioMessages.freezeApproval,
     ]);
+    const frozenArtifacts = await readThreadArtifacts(runtimeRoot, frozen.threadId);
+    assert.equal(frozenArtifacts.thread.workflowState.active_workflow, null);
+    assert.equal(frozenArtifacts.thread.workflowState.onion?.lifecycle_status, "handoff_ready");
     await closeRuntimeHarness(clientEnabled);
     clientEnabled = null;
 
     const disabledHarness = await openRuntimeHarness(runtimeRoot, false, createStubInvoker());
     clientDisabled = disabledHarness.client;
     const resumed = await handleTurn(
-      firstTurn.threadId,
-      scenarioMessages.expectedResult,
+      frozen.threadId,
+      scenarioMessages.reopenAfterFreeze,
       disabledHarness.config,
       scopedProjectPath,
     );
@@ -564,11 +586,12 @@ async function runGateDisabledProof(runtimeRoot: string) {
 
     assert.match(
       resumed.response,
-      /live onion feature gate is disabled|Re-run with --enable-onion/,
+      /persisted requirements-gathering onion state|Re-run with --enable-onion/,
     );
 
-    const artifacts = await readThreadArtifacts(runtimeRoot, firstTurn.threadId);
-    assert.equal(artifacts.thread.workflowState.active_workflow, "requirements_gathering_onion");
+    const artifacts = await readThreadArtifacts(runtimeRoot, frozen.threadId);
+    assert.equal(artifacts.thread.workflowState.active_workflow, null);
+    assert.equal(artifacts.thread.workflowState.onion?.lifecycle_status, "handoff_ready");
     assert.equal(artifacts.thread.workflowState.onion?.state.topic, "Execution monitor for ADF");
     assert.equal(artifacts.thread.events.at(-3)?.type, "error");
     assert.equal(artifacts.thread.events.at(-2)?.type, "coo_response");
@@ -581,7 +604,7 @@ async function runGateDisabledProof(runtimeRoot: string) {
           AND metadata->>'thread_id' = $1
         ORDER BY created_at DESC
         LIMIT 1`,
-      [firstTurn.threadId],
+      [frozen.threadId],
     );
     assert.equal(gateTelemetryRows.rows.length, 1);
     assert.equal(gateTelemetryRows.rows[0]?.success, false);
@@ -592,9 +615,10 @@ async function runGateDisabledProof(runtimeRoot: string) {
       runtime_root: runtimeRoot,
       thread_json_path: artifacts.jsonPath,
       thread_txt_path: artifacts.txtPath,
-      thread_id: firstTurn.threadId,
+      thread_id: frozen.threadId,
       response: resumed.response,
       active_workflow_after: artifacts.thread.workflowState.active_workflow,
+      lifecycle_status_after: artifacts.thread.workflowState.onion?.lifecycle_status,
       preserved_topic: artifacts.thread.workflowState.onion?.state.topic,
       gate_turn_telemetry: gateTelemetryRows.rows[0],
     };
@@ -659,19 +683,94 @@ async function runNoScopeProof(runtimeRoot: string) {
   }
 }
 
+async function runSupersessionProof(runtimeRoot: string) {
+  const stub = createStubInvoker();
+  let client: MemoryEngineClient | null = null;
+
+  try {
+    const harness = await openRuntimeHarness(runtimeRoot, true, stub);
+    client = harness.client;
+    const frozen = await runTurns(harness.config, scopedProjectPath, null, [
+      scenarioMessages.start,
+      scenarioMessages.expectedResult,
+      scenarioMessages.successView,
+      scenarioMessages.majorParts,
+      scenarioMessages.partDetails,
+      scenarioMessages.uiAndBoundaries,
+      scenarioMessages.resolveDecision,
+      scenarioMessages.freezeApproval,
+    ]);
+
+    const frozenArtifacts = await readThreadArtifacts(runtimeRoot, frozen.threadId);
+    const frozenRequirementId = frozenArtifacts.thread.workflowState.onion?.finalized_requirement_memory_id;
+    assert.ok(frozenRequirementId);
+    assert.equal(frozenArtifacts.thread.workflowState.onion?.lifecycle_status, "handoff_ready");
+
+    const reopened = await runTurns(harness.config, scopedProjectPath, frozen.threadId, [
+      scenarioMessages.reopenAfterFreeze,
+    ]);
+    await closeTelemetry();
+
+    const reopenedArtifacts = await readThreadArtifacts(runtimeRoot, reopened.threadId);
+    const reopenedOnion = reopenedArtifacts.thread.workflowState.onion;
+    const latestOnionTurn = getLatestOnionTurnResultEvent(reopenedArtifacts.thread);
+    const archiveReceipt = latestOnionTurn.data.persistence_receipts.find(
+      (receipt) => receipt.kind === "superseded_requirement_archive",
+    );
+
+    assert.equal(reopenedArtifacts.thread.workflowState.active_workflow, "requirements_gathering_onion");
+    assert.equal(reopenedOnion?.lifecycle_status, "blocked");
+    assert.equal(reopenedOnion?.state.freeze_status.status, "draft");
+    assert.equal(reopenedOnion?.finalized_requirement_memory_id, null);
+    assert.equal(archiveReceipt?.success, false);
+    assert.equal(archiveReceipt?.record_id, frozenRequirementId);
+    assert.match(archiveReceipt?.message ?? "", /locked|cannot be modified/i);
+
+    const archivedRows = await pool.query(
+      `SELECT id, tags, trust_level
+         FROM memory_items
+        WHERE id = $1`,
+      [frozenRequirementId],
+    );
+    assert.equal(archivedRows.rows.length, 1);
+    assert.ok(Array.isArray(archivedRows.rows[0]?.tags));
+    assert.ok(!archivedRows.rows[0]?.tags.includes("archived"));
+    assert.equal(archivedRows.rows[0]?.trust_level, "locked");
+
+    return {
+      runtime_root: runtimeRoot,
+      thread_json_path: reopenedArtifacts.jsonPath,
+      thread_txt_path: reopenedArtifacts.txtPath,
+      thread_id: reopened.threadId,
+      response: reopened.responses.at(-1) ?? "",
+      previous_finalized_requirement_memory_id: frozenRequirementId,
+      lifecycle_status_after_reopen: reopenedOnion?.lifecycle_status,
+      freeze_status_after_reopen: reopenedOnion?.state.freeze_status.status,
+      active_workflow_after_reopen: reopenedArtifacts.thread.workflowState.active_workflow,
+      finalized_requirement_memory_id_after_reopen: reopenedOnion?.finalized_requirement_memory_id,
+      superseded_archive_receipt: archiveReceipt ?? null,
+      locked_requirement_row_after_reopen: archivedRows.rows[0],
+    };
+  } finally {
+    await closeRuntimeHarness(client);
+  }
+}
+
 async function main() {
   await rm(artifactRoot, { recursive: true, force: true });
   await mkdir(artifactRoot, { recursive: true });
 
   const success = await runSuccessProof(join(artifactRoot, "success-runtime"));
   const gateDisabled = await runGateDisabledProof(join(artifactRoot, "gate-disabled-runtime"));
+  const supersession = await runSupersessionProof(join(artifactRoot, "supersession-runtime"));
   const noScope = await runNoScopeProof(join(artifactRoot, "no-scope-runtime"));
 
   const report = {
     generated_at: new Date().toISOString(),
-    live_route: "CLI -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+    live_route_under_proof: "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
     success,
     gate_disabled: gateDisabled,
+    supersession,
     no_scope: noScope,
   };
 

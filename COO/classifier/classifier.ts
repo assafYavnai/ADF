@@ -28,15 +28,20 @@ export function buildClassifierPrompt(
   options: {
     onionEnabled?: boolean;
     currentWorkflow?: string | null;
+    persistedOnionState?: boolean;
+    onionLifecycleStatus?: string | null;
   } = {}
 ): string {
   const onionEnabled = options.onionEnabled ?? false;
   const currentWorkflow = options.currentWorkflow ?? "none";
+  const persistedOnionState = options.persistedOnionState ?? false;
+  const onionLifecycleStatus = options.onionLifecycleStatus ?? "none";
   const workflowOptions = onionEnabled
     ? `"direct_coo_response" | "memory_operation" | "clarification" | "pushback" | "requirements_gathering_onion"`
     : `"direct_coo_response" | "memory_operation" | "clarification" | "pushback"`;
   const onionRules = onionEnabled
     ? `- If the thread is already in requirements_gathering_onion, keep routing continued scope-shaping answers, freeze approval/rejection, UI approval, boundaries, and open-decision answers to requirements_gathering_onion unless the user explicitly asked for a memory operation.
+- If persisted_onion_state is true, this thread still belongs to requirements_gathering_onion even when current_workflow is none (for example after handoff_ready). Route reopen/correction/freeze follow-up turns to requirements_gathering_onion unless the user explicitly asked for a memory operation.
 - If the user is starting or continuing feature requirements shaping, feature scope clarification, whole-onion freeze approval, or requirement freeze corrections, use requirements_gathering_onion.
 - If the user asks to freeze the gathered feature scope, approve/reject a freeze request, answer a current scope-shaping question, or clarify major parts, boundaries, UI direction, or open business decisions, use requirements_gathering_onion.`
     : `- The requirements_gathering_onion workflow is disabled for this runtime. Do not return requirements_gathering_onion.`;
@@ -67,6 +72,8 @@ ${onionRules}
 Active workflow state:
 - current_workflow: ${currentWorkflow}
 - requirements_gathering_onion_enabled: ${onionEnabled ? "true" : "false"}
+- persisted_onion_state: ${persistedOnionState ? "true" : "false"}
+- onion_lifecycle_status: ${onionLifecycleStatus}
 
 Recent context:
 ${recentContext}
