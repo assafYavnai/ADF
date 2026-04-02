@@ -143,17 +143,19 @@ export const MEMORY_TOOL_DEFINITIONS = [
   },
   {
     name: "memory_manage",
-    description: "Delete, archive, supersede, update tags, or change trust level of memory items",
+    description: "Delete, archive, supersede, update tags, change trust level, or publish a finalized requirement artifact",
     inputSchema: {
       type: "object" as const,
       properties: {
-        action: { type: "string", enum: ["delete", "archive", "supersede", "update_tags", "update_trust_level"] },
+        action: {
+          type: "string",
+          enum: ["delete", "archive", "supersede", "update_tags", "update_trust_level", "publish_finalized_requirement"],
+        },
         memory_id: { type: "string", format: "uuid" },
         scope: { type: "string", description: "Scope path that must own the target memory item" },
         tags: { type: "array", items: { type: "string" } },
         trust_level: { type: "string", enum: ["working", "reviewed", "locked"] },
         reason: { type: "string" },
-        workflow_status: { type: "string", enum: ["current", "pending_finalization", "archived", "superseded"] },
         provenance: PROVENANCE_SCHEMA,
       },
       required: ["action", "memory_id", "scope", "provenance"],

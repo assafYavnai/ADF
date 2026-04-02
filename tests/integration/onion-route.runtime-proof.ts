@@ -301,10 +301,14 @@ function createConfig(
     memoryDir: join(runtimeRoot, "memory"),
     classifierParams: DEFAULT_CLASSIFIER_PARAMS,
     intelligenceParams: DEFAULT_INTELLIGENCE_PARAMS,
-    brainCreateRequirement: (title, body, tags, scopePath, provenance, options) =>
-      client.createRequirement(title, body, tags, scopePath, provenance, options),
+    brainCreateRequirement: (title, body, tags, scopePath, provenance) =>
+      client.createRequirement(title, body, tags, scopePath, provenance),
+    brainCreateFinalizedRequirementCandidate: (title, body, tags, scopePath, provenance) =>
+      client.createFinalizedRequirementCandidate(title, body, tags, scopePath, provenance),
     brainManageMemory: (action, memoryId, scopePath, provenance, options) =>
       client.manageMemory(action, memoryId, scopePath, provenance, options),
+    brainPublishFinalizedRequirement: (memoryId, scopePath, provenance, options) =>
+      client.publishFinalizedRequirement(memoryId, scopePath, provenance, options),
     enableRequirementsGatheringOnion,
     invokeLLM,
   };
@@ -601,21 +605,18 @@ async function runLockFailureCleanupProof(runtimeRoot: string) {
   try {
     const harness = await openRuntimeHarness(runtimeRoot, true, stub);
     client = harness.client;
-    const originalManageMemory = harness.config.brainManageMemory;
-    assert.ok(originalManageMemory, "runtime proof requires memory_manage to be connected");
+    const originalPublishFinalizedRequirement = harness.config.brainPublishFinalizedRequirement;
+    assert.ok(originalPublishFinalizedRequirement, "runtime proof requires finalized publish to be connected");
 
-    harness.config.brainManageMemory = async (action, memoryId, scopePath, provenance, options) => {
-      if (action === "update_trust_level" && options?.trust_level === "locked") {
-        return {
-          action,
-          memory_id: memoryId,
-          affected_rows: 0,
-          status: "not_found",
-          success: false,
-          reason: "Forced lock failure for runtime proof.",
-        };
-      }
-      return originalManageMemory(action, memoryId, scopePath, provenance, options);
+    harness.config.brainPublishFinalizedRequirement = async (memoryId, scopePath, provenance, options) => {
+      return {
+        action: "publish_finalized_requirement",
+        memory_id: memoryId,
+        affected_rows: 0,
+        status: "not_found",
+        success: false,
+        reason: "Forced lock failure for runtime proof.",
+      };
     };
 
     const blocked = await runTurns(harness.config, scopedProjectPath, null, [
@@ -694,7 +695,7 @@ async function runLockFailureCleanupProof(runtimeRoot: string) {
       ),
     );
 
-    harness.config.brainManageMemory = originalManageMemory;
+    harness.config.brainPublishFinalizedRequirement = originalPublishFinalizedRequirement;
     const retry = await runTurns(harness.config, scopedProjectPath, blocked.threadId, [
       scenarioMessages.freezeApproval,
     ]);

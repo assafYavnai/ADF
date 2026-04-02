@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ProvenanceSchema } from "../provenance.js";
-import { WorkflowStatus } from "./memory-item.js";
 
 export const GovernanceFamily = z.enum([
   "rule",
@@ -14,7 +13,7 @@ export type GovernanceFamily = z.infer<typeof GovernanceFamily>;
 
 export const GovernanceManageInput = z.object({
   family: GovernanceFamily,
-  action: z.enum(["list", "get", "create", "search"]),
+  action: z.enum(["list", "get", "create", "search", "create_finalized_candidate"]),
   id: z.string().uuid().optional(),
   scope: z.string().optional(),
   title: z.string().optional(),
@@ -22,7 +21,6 @@ export const GovernanceManageInput = z.object({
   status: z.string().optional(),
   query: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  workflow_status: WorkflowStatus.optional(),
   include_legacy: z.boolean().default(false),
   provenance: ProvenanceSchema.optional(),
 }).superRefine((value, ctx) => {
@@ -42,7 +40,7 @@ export const GovernanceManageInput = z.object({
     });
   }
 
-  if (value.action === "create" && !value.title) {
+  if ((value.action === "create" || value.action === "create_finalized_candidate") && !value.title) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["title"],
@@ -50,11 +48,19 @@ export const GovernanceManageInput = z.object({
     });
   }
 
-  if (value.action === "create" && !value.provenance) {
+  if ((value.action === "create" || value.action === "create_finalized_candidate") && !value.provenance) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["provenance"],
       message: "provenance is required for governance create",
+    });
+  }
+
+  if (value.action === "create_finalized_candidate" && value.family !== "requirement") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["action"],
+      message: "create_finalized_candidate is only valid for requirements_manage",
     });
   }
 

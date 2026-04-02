@@ -148,6 +148,37 @@ test("memory_manage accepts the governed supersede action with explicit scope an
   });
 });
 
+test("finalized requirement lifecycle actions stay on dedicated requirement-only routes", () => {
+  assert.doesNotThrow(() => {
+    GovernanceManageInput.parse({
+      family: "requirement",
+      action: "create_finalized_candidate",
+      scope: "assafyavnai/shippingagent",
+      title: "Finalized requirements: sample",
+      provenance: sampleProvenance("tests/scope-requirements:create-finalized-candidate"),
+    });
+  });
+
+  assert.throws(() => {
+    GovernanceManageInput.parse({
+      family: "rule",
+      action: "create_finalized_candidate",
+      scope: "assafyavnai/shippingagent",
+      title: "Should fail outside requirements",
+      provenance: sampleProvenance("tests/scope-requirements:create-finalized-candidate-invalid"),
+    });
+  });
+
+  assert.doesNotThrow(() => {
+    MemoryManageInput.parse({
+      action: "publish_finalized_requirement",
+      memory_id: "11111111-1111-1111-1111-111111111111",
+      scope: "assafyavnai/shippingagent",
+      provenance: sampleProvenance("tests/scope-requirements:publish-finalized-requirement"),
+    });
+  });
+});
+
 test("decision schema allows nullable decided_by to match runtime and DB", () => {
   assert.doesNotThrow(() => {
     DecisionSchema.parse({

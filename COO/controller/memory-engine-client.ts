@@ -132,9 +132,6 @@ export class MemoryEngineClient {
     tags: string[],
     scope: string,
     provenance: Provenance,
-    options?: {
-      workflow_status?: "current" | "pending_finalization" | "archived" | "superseded";
-    }
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("requirements_manage", {
       action: "create",
@@ -142,7 +139,23 @@ export class MemoryEngineClient {
       body,
       scope,
       tags,
-      workflow_status: options?.workflow_status,
+      provenance,
+    });
+  }
+
+  async createFinalizedRequirementCandidate(
+    title: string,
+    body: Record<string, unknown>,
+    tags: string[],
+    scope: string,
+    provenance: Provenance,
+  ): Promise<Record<string, unknown>> {
+    return this.callJsonTool("requirements_manage", {
+      action: "create_finalized_candidate",
+      title,
+      body,
+      scope,
+      tags,
       provenance,
     });
   }
@@ -168,7 +181,6 @@ export class MemoryEngineClient {
       tags?: string[];
       trust_level?: "working" | "reviewed" | "locked";
       reason?: string;
-      workflow_status?: "current" | "pending_finalization" | "archived" | "superseded";
     }
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("memory_manage", {
@@ -178,7 +190,21 @@ export class MemoryEngineClient {
       tags: options?.tags,
       trust_level: options?.trust_level,
       reason: options?.reason,
-      workflow_status: options?.workflow_status,
+      provenance,
+    });
+  }
+
+  async publishFinalizedRequirement(
+    memoryId: string,
+    scope: string,
+    provenance: Provenance,
+    options?: { reason?: string },
+  ): Promise<Record<string, unknown>> {
+    return this.callJsonTool("memory_manage", {
+      action: "publish_finalized_requirement",
+      memory_id: memoryId,
+      scope,
+      reason: options?.reason,
       provenance,
     });
   }

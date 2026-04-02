@@ -16,6 +16,8 @@ export async function handleGovernance(
       return getGovernance(input);
     case "create":
       return createGovernance(input, input.provenance!);
+    case "create_finalized_candidate":
+      return createGovernance(input, input.provenance!, { provisional_finalization: true });
     case "search":
       return searchGovernance(input);
     default:
@@ -63,13 +65,18 @@ async function getGovernance(input: GovernanceManageInput) {
   return { content: [{ type: "text", text: JSON.stringify(rows[0], null, 2) }] };
 }
 
-async function createGovernance(input: GovernanceManageInput, prov: Provenance) {
+async function createGovernance(
+  input: GovernanceManageInput,
+  prov: Provenance,
+  options?: { provisional_finalization?: boolean },
+) {
   if (!input.title) throw new Error("title required for create");
   if (!input.scope) throw new Error(`governance create for ${input.family} requires explicit scope`);
   const { randomUUID } = await import("node:crypto");
   const id = randomUUID();
   const content = { text: input.title, ...input.body };
   const scope = await resolveScope(input.scope);
+  const workflowMetadata = buildWorkflowMetadata(input, options);
 
   await pool.query(
     `INSERT INTO memory_items (
@@ -97,7 +104,7 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
      scope.phase_id,
      scope.thread_id,
      input.tags ?? [],
-     input.workflow_status ? JSON.stringify({ status: input.workflow_status }) : null,
+     workflowMetadata,
      prov.invocation_id, prov.provider, prov.model, prov.reasoning,
      prov.was_fallback, prov.source_path,
      CURRENT_EVIDENCE_FORMAT_VERSION]
@@ -162,10 +169,13 @@ export const GOVERNANCE_TOOL_DEFINITIONS = [
 ];
 
 function governanceSchema(family: string) {
+  const actions = family === "requirement"
+    ? ["list", "get", "create", "search", "create_finalized_candidate"]
+    : ["list", "get", "create", "search"];
   return {
     type: "object" as const,
     properties: {
-      action: { type: "string", enum: ["list", "get", "create", "search"] },
+      action: { type: "string", enum: actions },
       id: { type: "string", format: "uuid" },
       scope: { type: "string" },
       title: { type: "string" },
@@ -173,7 +183,6 @@ function governanceSchema(family: string) {
       status: { type: "string" },
       query: { type: "string" },
       tags: { type: "array", items: { type: "string" } },
-      workflow_status: { type: "string", enum: ["current", "pending_finalization", "archived", "superseded"] },
       include_legacy: { type: "boolean", default: false },
       provenance: { type: "object", description: "Provenance object from caller" },
     },
@@ -182,7 +191,7 @@ function governanceSchema(family: string) {
       {
         if: {
           properties: {
-            action: { const: "create" },
+            action: { enum: ["create", "create_finalized_candidate"] },
           },
         },
         then: {
@@ -211,4 +220,30 @@ function governanceSchema(family: string) {
       },
     ],
   };
+}
+
+function buildWorkflowMetadata(
+  input: GovernanceManageInput,
+  options?: { provisional_finalization?: boolean },
+): string {
+  if (!options?.provisional_finalization) {
+    return JSON.stringify({});
+  }
+
+  if (input.family !== "requirement") {
+    throw new Error("Only requirements can be created through the finalized-candidate route.");
+  }
+
+  const requiredTags = ["requirements-gathering", "onion", "finalized-requirement-list", "coo-owned"];
+  const tags = input.tags ?? [];
+  if (!requiredTags.every((tag) => tags.includes(tag))) {
+    throw new Error("Finalized requirement candidates require COO-owned onion finalized tags.");
+  }
+
+  const artifactKind = input.body?.artifact_kind;
+  if (artifactKind !== "requirement_list") {
+    throw new Error("Finalized requirement candidates require artifact_kind=requirement_list.");
+  }
+
+  return JSON.stringify({ status: "pending_finalization" });
 }

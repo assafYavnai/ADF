@@ -203,7 +203,7 @@ function extractToolProvenance(
 }
 
 function buildMemoryManageReceipt(
-  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
+  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level" | "publish_finalized_requirement",
   memoryId: string,
   affectedRows: number,
   reason?: string
@@ -219,7 +219,9 @@ function buildMemoryManageReceipt(
   };
 }
 
-function actionResultStatus(action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level"): string {
+function actionResultStatus(
+  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level" | "publish_finalized_requirement",
+): string {
   switch (action) {
     case "delete":
       return "deleted";
@@ -231,13 +233,15 @@ function actionResultStatus(action: "delete" | "archive" | "supersede" | "update
       return "tags_updated";
     case "update_trust_level":
       return "trust_level_updated";
+    case "publish_finalized_requirement":
+      return "published";
   }
 }
 
 async function recordMemoryManageTelemetry(
   db: { query: (text: string, params: unknown[]) => Promise<unknown> },
   provenance: Provenance,
-  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
+  action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level" | "publish_finalized_requirement",
   receipt: ReturnType<typeof buildMemoryManageReceipt>
 ): Promise<void> {
   await insertMetricEvents(db, [
@@ -369,13 +373,8 @@ function buildScopedMutation(
     case "update_trust_level":
       return {
         sql: `UPDATE memory_items SET trust_level = $1, updated_at = NOW(),
-                 workflow_metadata = CASE
-                   WHEN $9::text IS NULL THEN workflow_metadata
-                   WHEN $9::text = 'current' THEN COALESCE(workflow_metadata, '{}'::jsonb) - 'status'
-                   ELSE COALESCE(workflow_metadata, '{}'::jsonb) || jsonb_build_object('status', $9::text)
-                 END,
                  invocation_id = $3, provider = $4, model = $5, reasoning = $6, was_fallback = $7, source_path = $8
-               WHERE id = $2 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 9}`)}
+               WHERE id = $2 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 8}`)}
                RETURNING id`,
         params: [
           input.trust_level,
@@ -386,7 +385,30 @@ function buildScopedMutation(
           provenance.reasoning,
           provenance.was_fallback,
           provenance.source_path,
-          input.workflow_status ?? null,
+          ...exactScopeFilter.params,
+        ],
+      };
+    case "publish_finalized_requirement":
+      return {
+        sql: `UPDATE memory_items
+                 SET trust_level = 'locked',
+                     workflow_metadata = COALESCE(workflow_metadata, '{}'::jsonb) - 'status',
+                     updated_at = NOW(),
+                     invocation_id = $2, provider = $3, model = $4, reasoning = $5, was_fallback = $6, source_path = $7
+               WHERE id = $1
+                 AND content_type = 'requirement'
+                 AND COALESCE(workflow_metadata->>'status', 'current') = 'pending_finalization'
+                 AND tags @> ARRAY['requirements-gathering', 'onion', 'finalized-requirement-list', 'coo-owned']::text[]
+                 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 7}`)}
+               RETURNING id`,
+        params: [
+          input.memory_id,
+          provenance.invocation_id,
+          provenance.provider,
+          provenance.model,
+          provenance.reasoning,
+          provenance.was_fallback,
+          provenance.source_path,
           ...exactScopeFilter.params,
         ],
       };

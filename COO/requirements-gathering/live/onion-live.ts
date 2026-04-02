@@ -59,8 +59,9 @@ export async function handleRequirementsGatheringOnion(input: {
     ControllerConfig,
     | "intelligenceParams"
     | "invokeLLM"
-    | "brainCreateRequirement"
+    | "brainCreateFinalizedRequirementCandidate"
     | "brainManageMemory"
+    | "brainPublishFinalizedRequirement"
   >;
   sessionHandle?: InvocationSessionHandle;
 }): Promise<RequirementsGatheringOnionResult> {
@@ -393,7 +394,10 @@ async function persistOnionArtifacts(input: {
   reducedState: OnionState;
   requirementArtifact: RequirementArtifact | null;
   readinessStatus: "ready" | "blocked";
-  config: Pick<ControllerConfig, "brainCreateRequirement" | "brainManageMemory">;
+  config: Pick<
+    ControllerConfig,
+    "brainCreateFinalizedRequirementCandidate" | "brainManageMemory" | "brainPublishFinalizedRequirement"
+  >;
 }): Promise<{
   finalizedRequirementMemoryId: string | null;
   receipts: OnionPersistenceReceiptType[];
@@ -488,7 +492,7 @@ async function persistOnionArtifacts(input: {
     };
   }
 
-  if (!input.config.brainCreateRequirement) {
+  if (!input.config.brainCreateFinalizedRequirementCandidate) {
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_create",
       target: "memory_engine",
@@ -505,7 +509,7 @@ async function persistOnionArtifacts(input: {
     };
   }
 
-  if (!input.config.brainManageMemory) {
+  if (!input.config.brainPublishFinalizedRequirement) {
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_create",
       target: "memory_engine",
@@ -522,9 +526,26 @@ async function persistOnionArtifacts(input: {
     };
   }
 
+  if (!input.config.brainManageMemory) {
+    receipts.push(OnionPersistenceReceipt.parse({
+      kind: "finalized_requirement_create",
+      target: "memory_engine",
+      status: "skipped",
+      artifact_kind: "requirement_list",
+      action: "create",
+      scope_path: input.scopePath,
+      success: false,
+      message: "Skipped finalized requirement creation because the memory-manage route is not connected, so failed publish cleanup would not be truthful.",
+    }));
+    return {
+      finalizedRequirementMemoryId: null,
+      receipts,
+    };
+  }
+
   let provisionalFinalizedRequirementMemoryId: string | null = null;
   try {
-    const createReceipt = await input.config.brainCreateRequirement(
+    const createReceipt = await input.config.brainCreateFinalizedRequirementCandidate(
       `Finalized requirements: ${input.requirementArtifact.human_scope.topic}`,
       {
         artifact_kind: input.requirementArtifact.artifact_kind,
@@ -535,9 +556,6 @@ async function persistOnionArtifacts(input: {
       ["requirements-gathering", "onion", "finalized-requirement-list", "coo-owned"],
       input.scopePath,
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-create/${input.traceId}/${input.turnId}`),
-      {
-        workflow_status: "pending_finalization",
-      },
     );
     provisionalFinalizedRequirementMemoryId = typeof createReceipt.id === "string" ? createReceipt.id : null;
     receipts.push(OnionPersistenceReceipt.parse({
@@ -578,15 +596,12 @@ async function persistOnionArtifacts(input: {
   }
 
   try {
-    const lockReceipt = await input.config.brainManageMemory(
-      "update_trust_level",
+    const lockReceipt = await input.config.brainPublishFinalizedRequirement(
       provisionalFinalizedRequirementMemoryId,
       input.scopePath,
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-lock/${input.traceId}/${input.turnId}`),
       {
-        trust_level: "locked",
         reason: "Approved requirements artifact must become durable COO-owned truth for downstream use.",
-        workflow_status: "current",
       },
     );
     assertSuccessfulMemoryManageMutation(
@@ -598,7 +613,7 @@ async function persistOnionArtifacts(input: {
       target: "memory_engine",
       status: "locked",
       artifact_kind: "requirement_list",
-      action: "update_trust_level",
+      action: "publish_finalized_requirement",
       scope_path: input.scopePath,
       record_id: provisionalFinalizedRequirementMemoryId,
       success: true,
@@ -611,7 +626,7 @@ async function persistOnionArtifacts(input: {
       target: "memory_engine",
       status: "failed",
       artifact_kind: "requirement_list",
-      action: "update_trust_level",
+      action: "publish_finalized_requirement",
       scope_path: input.scopePath,
       record_id: provisionalFinalizedRequirementMemoryId,
       success: false,
