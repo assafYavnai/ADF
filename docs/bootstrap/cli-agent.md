@@ -27,9 +27,19 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 
 ## Context Loading
 
-After reading this file, call `get_context_summary` with scope `assafyavnai/adf` and trust_level_min `reviewed` to load current governance context (conventions, decisions, requirements).
+The Brain MCP server (`project-brain`) is available as an MCP tool in your session.
+Do NOT import or require memory-engine TypeScript code. Use the MCP tools directly.
 
-For deeper context on a specific topic, use `search_memory` with scope `assafyavnai/adf`.
+After reading this file, call the MCP tool `mcp__project-brain__get_context_summary` with:
+```json
+{ "scope": "assafyavnai/adf", "trust_level_min": "reviewed" }
+```
+
+For deeper context on a specific topic, call `mcp__project-brain__search_memory` with:
+```json
+{ "query": "<your topic>", "scope": "assafyavnai/adf", "semantic_weight": 0 }
+```
+Use `semantic_weight: 0` (keyword-only) unless Ollama is running for embeddings.
 
 Do not ask the CEO to restate context that the Brain already holds.
 
@@ -39,16 +49,20 @@ The Brain is the company's durable memory. Capture knowledge as you work, withou
 
 ### When to capture
 
-1. **Decision made** — `log_decision` immediately after CEO approval
-2. **Convention or rule established** — `capture_memory` type=convention
-3. **Lesson learned** — `capture_memory` type=lesson
-4. **Discussion with substance** — `discussion_append` (structured summary, not transcript)
-5. **Requirements shaped or frozen** — `requirements_manage` action=create
+All captures use MCP tools (prefix `mcp__project-brain__`). Do NOT import code.
+
+1. **Decision made** — `mcp__project-brain__log_decision` immediately after CEO approval
+2. **Convention or rule established** — `mcp__project-brain__capture_memory` with content_type=convention
+3. **Lesson learned** — `mcp__project-brain__capture_memory` with content_type=lesson
+4. **Discussion with substance** — `mcp__project-brain__discussion_append` (structured summary, not transcript)
+5. **Requirements shaped or frozen** — `mcp__project-brain__requirements_manage` with action=create
+
+**Known issue:** The project-brain MCP wrapper has a provenance bug that blocks some write operations (discussion_append, discussion_import_from_text). If a write fails with "legacy sentinel provenance" error, log what you would have captured in a `docs/v0/context/` markdown file as a fallback, and flag the failure to the CEO.
 
 ### When NOT to capture
 
 - Ephemeral debugging (fix a typo, resolve a merge conflict)
-- Information already in the Brain (check first with `search_memory`)
+- Information already in the Brain (check first with `mcp__project-brain__search_memory`)
 - Raw conversation transcript
 - Implementation details derivable from code + git history
 
