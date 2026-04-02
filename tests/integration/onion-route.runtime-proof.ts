@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { handleTurn, DEFAULT_CLASSIFIER_PARAMS, DEFAULT_INTELLIGENCE_PARAMS, type ControllerConfig } from "../../COO/controller/loop.js";
@@ -816,7 +816,80 @@ async function runSupersessionProof(runtimeRoot: string) {
   }
 }
 
-async function runCliEntryProof(runtimeRoot: string) {
+async function runCliProductionIsolationProof(runtimeRoot: string) {
+  await mkdir(runtimeRoot, { recursive: true });
+  const threadsDir = join(runtimeRoot, "threads");
+  const memoryDir = join(runtimeRoot, "memory");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(memoryDir, { recursive: true });
+
+  const parserUpdatePath = join(runtimeRoot, "parser-updates.json");
+  await writeFile(parserUpdatePath, JSON.stringify(Object.fromEntries(parserUpdates), null, 2), "utf-8");
+
+  const cliPath = resolve(repoRoot, "COO", "controller", "cli.ts");
+  const tsxPath = resolve(repoRoot, "COO", "node_modules", ".bin", "tsx.cmd");
+  const child = spawn(process.env.ComSpec ?? "cmd.exe", [
+    "/d",
+    "/s",
+    "/c",
+    `${tsxPath} ${cliPath} --enable-onion --scope ${scopedProjectPath}`,
+  ], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      ADF_COO_TEST_PARSER_UPDATES_FILE: parserUpdatePath,
+      ADF_COO_THREADS_DIR: threadsDir,
+      ADF_COO_MEMORY_DIR: memoryDir,
+    },
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+
+  const stdoutChunks: Buffer[] = [];
+  const stderrChunks: Buffer[] = [];
+  child.stdout.on("data", (chunk) => {
+    stdoutChunks.push(Buffer.from(chunk));
+  });
+  child.stderr.on("data", (chunk) => {
+    stderrChunks.push(Buffer.from(chunk));
+  });
+  child.stdin.end();
+
+  const exitCode = await new Promise<number>((resolvePromise, rejectPromise) => {
+    child.on("error", rejectPromise);
+    child.on("close", (code) => {
+      resolvePromise(code ?? -1);
+    });
+  });
+
+  const stdout = Buffer.concat(stdoutChunks).toString("utf-8");
+  const stderr = Buffer.concat(stderrChunks).toString("utf-8");
+  const stdoutPath = join(runtimeRoot, "cli-stdout.txt");
+  const stderrPath = join(runtimeRoot, "cli-stderr.txt");
+  await writeFile(stdoutPath, stdout, "utf-8");
+  await writeFile(stderrPath, stderr, "utf-8");
+  await rm(parserUpdatePath, { force: true });
+
+  assert.equal(exitCode, 1);
+  assert.match(
+    stderr,
+    /ADF_COO_TEST_PARSER_UPDATES_FILE is test-only and requires --test-proof-mode/i,
+  );
+  assert.doesNotMatch(stdout, /ADF COO - Interactive CLI/);
+
+  const threadFiles = await readdir(threadsDir);
+  assert.deepEqual(threadFiles, []);
+
+  return {
+    runtime_root: runtimeRoot,
+    stdout_path: stdoutPath,
+    stderr_path: stderrPath,
+    exit_code: exitCode,
+    thread_file_count: threadFiles.length,
+    rejected_env_var: true,
+  };
+}
+
+async function runCliProofModeEntry(runtimeRoot: string) {
   await mkdir(runtimeRoot, { recursive: true });
   const threadsDir = join(runtimeRoot, "threads");
   const memoryDir = join(runtimeRoot, "memory");
@@ -850,7 +923,7 @@ async function runCliEntryProof(runtimeRoot: string) {
     "/d",
     "/s",
     "/c",
-    `${tsxPath} ${cliPath} --enable-onion --scope ${scopedProjectPath}`,
+    `${tsxPath} ${cliPath} --test-proof-mode --enable-onion --scope ${scopedProjectPath}`,
   ], {
     cwd: repoRoot,
     env: {
@@ -890,11 +963,13 @@ async function runCliEntryProof(runtimeRoot: string) {
   const stderrPath = join(runtimeRoot, "cli-stderr.txt");
   await writeFile(stdoutPath, stdout, "utf-8");
   await writeFile(stderrPath, stderr, "utf-8");
+  await rm(parserUpdatePath, { force: true });
 
   assert.equal(exitCode, 0);
   assert.equal(stderr.trim(), "");
   assert.match(stdout, /Recovered 1 persisted telemetry event\(s\) from the local outbox\./);
   assert.match(stdout, /Requirements-gathering onion: enabled \(feature gate\)/);
+  assert.match(stdout, /LLM invoker: test-proof-mode \(guarded\)/);
   assert.match(stdout, /COO> Current scope so far:/);
   assert.match(stdout, /Session ended\./);
 
@@ -934,6 +1009,7 @@ async function runCliEntryProof(runtimeRoot: string) {
     thread_json_path: threadArtifacts.jsonPath,
     thread_txt_path: threadArtifacts.txtPath,
     thread_id: threadId,
+    proof_mode: "guarded_test_only",
     replayed_invocation_id: replayedInvocationId,
     handle_turn_rows: cliTurnTelemetryRows.rows.length,
     latest_lifecycle_status: threadArtifacts.thread.workflowState.onion?.lifecycle_status,
@@ -955,7 +1031,8 @@ async function main() {
   await rm(artifactRoot, { recursive: true, force: true });
   await mkdir(artifactRoot, { recursive: true });
 
-  const cliEntry = await runCliEntryProof(join(artifactRoot, "cli-runtime"));
+  const productionCliIsolation = await runCliProductionIsolationProof(join(artifactRoot, "cli-production-isolation"));
+  const cliProofEntry = await runCliProofModeEntry(join(artifactRoot, "cli-runtime"));
   const success = await runSuccessProof(join(artifactRoot, "success-runtime"));
   const gateDisabled = await runGateDisabledProof(join(artifactRoot, "gate-disabled-runtime"));
   const supersession = await runSupersessionProof(join(artifactRoot, "supersession-runtime"));
@@ -963,8 +1040,10 @@ async function main() {
 
   const report = {
     generated_at: new Date().toISOString(),
-    live_route_under_proof: "CLI -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
-    cli_entry: cliEntry,
+    production_cli_route_contract: "CLI -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+    production_cli_env_isolation: productionCliIsolation,
+    cli_proof_route_under_proof: "CLI --test-proof-mode -> controller -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
+    cli_proof_entry: cliProofEntry,
     controller_detail_route_under_proof: "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
     success,
     gate_disabled: gateDisabled,

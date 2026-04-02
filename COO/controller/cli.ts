@@ -16,6 +16,7 @@ let shuttingDown = false;
 async function main() {
   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
   const args = parseCliArgs(process.argv.slice(2));
+  assertProofInvokerIsolation(args);
   const onionEnabled = resolveOnionGate(args);
   const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
   const promptsDir = resolveRuntimeDir(process.env.ADF_COO_PROMPTS_DIR, resolve(projectRoot, "COO/intelligence"));
@@ -29,7 +30,7 @@ async function main() {
     intelligenceParams: DEFAULT_INTELLIGENCE_PARAMS,
     enableRequirementsGatheringOnion: onionEnabled,
   };
-  const testInvoker = await createTestProofInvokerFromEnv();
+  const testInvoker = await createTestProofInvokerFromEnv(args);
   if (testInvoker) {
     config.invokeLLM = testInvoker;
   }
@@ -94,6 +95,7 @@ async function main() {
     console.log("Scope: not set (durable memory operations will fail closed)");
   }
   console.log(`Requirements-gathering onion: ${onionEnabled ? "enabled (feature gate)" : "disabled"}`);
+  console.log(`LLM invoker: ${args.testProofMode ? "test-proof-mode (guarded)" : "live"}`);
 
   if (!process.stdin.isTTY) {
     await runScriptedSession(config, brainClient, threadId, configuredScope);
@@ -143,10 +145,24 @@ function resolveRuntimeDir(overridePath: string | undefined, fallbackPath: strin
   return resolve(overridePath);
 }
 
-async function createTestProofInvokerFromEnv(): Promise<ControllerConfig["invokeLLM"] | undefined> {
-  const parserUpdatePath = process.env.ADF_COO_TEST_PARSER_UPDATES_FILE;
-  if (!parserUpdatePath) {
+function assertProofInvokerIsolation(args: { testProofMode?: boolean }): void {
+  const parserUpdatePath = process.env.ADF_COO_TEST_PARSER_UPDATES_FILE?.trim();
+  if (parserUpdatePath && !args.testProofMode) {
+    throw new Error(
+      "ADF_COO_TEST_PARSER_UPDATES_FILE is test-only and requires --test-proof-mode. The standard COO CLI bootstrap will not start with proof-only parser updates configured."
+    );
+  }
+}
+
+async function createTestProofInvokerFromEnv(
+  args: { testProofMode?: boolean }
+): Promise<ControllerConfig["invokeLLM"] | undefined> {
+  const parserUpdatePath = process.env.ADF_COO_TEST_PARSER_UPDATES_FILE?.trim();
+  if (!args.testProofMode) {
     return undefined;
+  }
+  if (!parserUpdatePath) {
+    throw new Error("--test-proof-mode requires ADF_COO_TEST_PARSER_UPDATES_FILE to point to deterministic parser updates.");
   }
 
   const raw = await readFile(resolve(parserUpdatePath), "utf-8");
@@ -265,11 +281,18 @@ function estimateUsage(prompt: string, response: string): InvocationUsageEstimat
   };
 }
 
-function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean; scopePath?: string; enableOnion?: boolean } {
+function parseCliArgs(argv: string[]): {
+  threadId?: string;
+  resumeLast: boolean;
+  scopePath?: string;
+  enableOnion?: boolean;
+  testProofMode?: boolean;
+} {
   let threadId: string | undefined;
   let resumeLast = false;
   let scopePath: string | undefined;
   let enableOnion: boolean | undefined;
+  let testProofMode: boolean | undefined;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -285,6 +308,8 @@ function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean;
       enableOnion = true;
     } else if (arg === "--disable-onion") {
       enableOnion = false;
+    } else if (arg === "--test-proof-mode") {
+      testProofMode = true;
     }
   }
 
@@ -293,6 +318,7 @@ function parseCliArgs(argv: string[]): { threadId?: string; resumeLast: boolean;
     resumeLast,
     scopePath,
     enableOnion,
+    testProofMode,
   };
 }
 

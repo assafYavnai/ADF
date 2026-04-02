@@ -39,6 +39,8 @@ A layer is an internal subdivision of a component. Each layer has its own direct
 
 ### Layer Rules
 
+- The ordinary COO CLI bootstrap uses the live invoker path; deterministic bootstrap proof mode is explicit test-only behavior (`--test-proof-mode`), not a silent env override.
+
 - Every LLM-powered layer has a **role** (`role/` subdirectory) with a role definition markdown and role contract JSON
 - Every role is created through the **Role Builder** tool — no exceptions, even for cheap models
 - Every LLM-powered layer has its own **rulebook** (`rulebook.json`) and **review prompt** (`review-prompt.json`) in its directory

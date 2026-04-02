@@ -126,11 +126,16 @@ Runtime capability route shape:
 
 Current integration-proof entry route:
 
-`CLI -> controller -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
+`CLI --test-proof-mode -> controller -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
 
 Controller-detail proof is also retained inside the generated report:
 
 `controller.handleTurn -> classifier -> requirements_gathering_onion adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
+
+Production bootstrap isolation rule:
+
+- the standard CEO-facing CLI rejects proof-only parser-update injection unless explicit `--test-proof-mode` is enabled
+- deterministic CLI proof remains available, but only through that guarded test-only entry
 
 The live onion adapter is intentionally thin:
 

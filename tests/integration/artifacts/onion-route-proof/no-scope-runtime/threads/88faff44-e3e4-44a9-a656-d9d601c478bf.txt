@@ -1,6 +1,6 @@
 <workflow_state>
-Workflow owner: requirements_gathering_onion (persisted)
-Lifecycle status: handoff_ready
+Workflow owner: requirements_gathering_onion (active)
+Lifecycle status: blocked
 Current layer: approved
 Freeze status: approved
 Topic: Execution monitor for ADF
@@ -10,9 +10,8 @@ Success view: I can open the page, see the queue, and drill into current executi
 Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
 Open decisions remaining: 0
 No next question: The onion is already frozen and approved.
-Finalized requirement memory id: c5139531-0049-4a90-9d68-72683c7455d8
-Approved snapshot turn id: 65916b26-c12f-4c75-8545-551b10007685
-Approved snapshot time: 2026-04-02T19:41:39.310Z
+Approved snapshot turn id: 151485ed-101b-4d39-b123-5f97d1c066f7
+Approved snapshot time: 2026-04-02T19:59:35.781Z
 Topic: Execution monitor for ADF
 Goal: See what the system is currently doing, starting with the implementation queue.
 Expected result: A local URL that shows the current system status with live updates.
@@ -26,9 +25,9 @@ Open decisions: none
 <thread_checkpoint>
 <state_commit>
 {
-  "summary": "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
+  "summary": "Requirements-gathering onion froze the human scope, but durable artifact persistence is blocked and handoff is not truthful yet.",
   "openLoops": [
-    "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully."
+    "Cannot persist the finalized requirement artifact without an explicit scope."
   ],
   "decisions": [],
   "sessionHandles": {
