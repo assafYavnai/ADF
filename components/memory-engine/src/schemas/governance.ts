@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ProvenanceSchema } from "../provenance.js";
+import { WorkflowStatus } from "./memory-item.js";
 
 export const GovernanceFamily = z.enum([
   "rule",
@@ -21,6 +22,7 @@ export const GovernanceManageInput = z.object({
   status: z.string().optional(),
   query: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  workflow_status: WorkflowStatus.optional(),
   include_legacy: z.boolean().default(false),
   provenance: ProvenanceSchema.optional(),
 }).superRefine((value, ctx) => {

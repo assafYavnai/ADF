@@ -30,19 +30,19 @@
   "current_branch": "main",
   "last_completed_cycle": 3,
   "last_commit_sha": "bb4255d",
-  "active_cycle_number": 3,
+  "active_cycle_number": 4,
   "cycle_runtime": {
-    "cycle_number": 3,
-    "cycle_name": "cycle-03",
-    "status": "completed",
-    "cycle_started_at": "2026-04-02T19:45:28.666Z",
-    "review_requested_at": "2026-04-02T19:45:58.933Z",
-    "auditor_finished_at": "2026-04-02T19:51:08.017Z",
-    "reviewer_finished_at": "2026-04-02T19:47:47.985Z",
-    "implementor_started_at": "2026-04-02T19:51:40.968Z",
-    "implementor_finished_at": "2026-04-02T19:59:15.381Z",
-    "verification_finished_at": "2026-04-02T20:00:38.272Z",
-    "cycle_finished_at": "2026-04-02T20:07:32.977Z",
+    "cycle_number": 4,
+    "cycle_name": "cycle-04",
+    "status": "fix_report_complete_commit_push_pending",
+    "cycle_started_at": "2026-04-02T20:25:59.661Z",
+    "review_requested_at": "2026-04-02T20:26:16.680Z",
+    "auditor_finished_at": "2026-04-02T20:31:37.923Z",
+    "reviewer_finished_at": "2026-04-02T20:27:37.485Z",
+    "implementor_started_at": "2026-04-02T20:33:32.838Z",
+    "implementor_finished_at": "2026-04-02T20:45:49.330Z",
+    "verification_finished_at": "2026-04-02T20:45:52.644Z",
+    "cycle_finished_at": null,
     "report_ready": {
       "auditor": true,
       "reviewer": true
@@ -55,13 +55,27 @@
       "reviewer",
       "auditor"
     ],
+    "lane_verdicts": {
+      "auditor": "reject",
+      "reviewer": "approve"
+    },
     "recreated_executions": {
       "auditor": false,
       "reviewer": false,
       "implementor": false
     },
-    "last_note": "Cycle 03 state was restored from on-disk artifacts after helper state corruption during closeout."
+    "last_note": "Cycle 04 implementation finished after local closeout completed the partially landed worker changes."
+  },
+  "split_review_continuity": {
+    "mode": "rejecting_lane_only",
+    "approving_lane": "reviewer",
+    "rejecting_lane": "auditor",
+    "final_sanity_lane": null,
+    "carried_from_cycle": 4,
+    "final_sanity_completed": false,
+    "updated_at": "2026-04-02T20:32:18.813Z",
+    "note": "Split verdict detected. Reuse the approving lane and rerun only the rejecting lane next cycle."
   },
   "created_at": "2026-04-02T18:49:15.697Z",
-  "updated_at": "2026-04-02T20:07:33.077Z"
+  "updated_at": "2026-04-02T20:45:55.883Z"
 }

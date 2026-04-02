@@ -369,8 +369,13 @@ function buildScopedMutation(
     case "update_trust_level":
       return {
         sql: `UPDATE memory_items SET trust_level = $1, updated_at = NOW(),
+                 workflow_metadata = CASE
+                   WHEN $9::text IS NULL THEN workflow_metadata
+                   WHEN $9::text = 'current' THEN COALESCE(workflow_metadata, '{}'::jsonb) - 'status'
+                   ELSE COALESCE(workflow_metadata, '{}'::jsonb) || jsonb_build_object('status', $9::text)
+                 END,
                  invocation_id = $3, provider = $4, model = $5, reasoning = $6, was_fallback = $7, source_path = $8
-               WHERE id = $2 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 8}`)}
+               WHERE id = $2 AND ${exactScopeFilter.clause.replace(/\$(\d+)/g, (_, n) => `$${parseInt(n) + 9}`)}
                RETURNING id`,
         params: [
           input.trust_level,
@@ -381,6 +386,7 @@ function buildScopedMutation(
           provenance.reasoning,
           provenance.was_fallback,
           provenance.source_path,
+          input.workflow_status ?? null,
           ...exactScopeFilter.params,
         ],
       };

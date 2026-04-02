@@ -14,7 +14,7 @@ export function currentEvidenceClause(alias: string): string {
 }
 
 export function currentWorkflowTruthClause(alias: string): string {
-  return `(COALESCE(${alias}.workflow_metadata->>'status', 'current') NOT IN ('archived', 'superseded'))`;
+  return `(COALESCE(${alias}.workflow_metadata->>'status', 'current') NOT IN ('pending_finalization', 'archived', 'superseded'))`;
 }
 
 export function modernMemoryEvidenceClause(

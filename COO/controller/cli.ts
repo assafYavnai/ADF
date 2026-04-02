@@ -61,8 +61,8 @@ async function main() {
       brainClient!.logDecision(title, reasoning, alternatives, scopePath, provenance, contentProvenance);
     config.brainCreateRule = (title, body, tags, scopePath, provenance) =>
       brainClient!.createRule(title, body, tags, scopePath, provenance);
-    config.brainCreateRequirement = (title, body, tags, scopePath, provenance) =>
-      brainClient!.createRequirement(title, body, tags, scopePath, provenance);
+    config.brainCreateRequirement = (title, body, tags, scopePath, provenance, options) =>
+      brainClient!.createRequirement(title, body, tags, scopePath, provenance, options);
     config.brainManageMemory = (action, memoryId, scopePath, provenance, options) =>
       brainClient!.manageMemory(action, memoryId, scopePath, provenance, options);
     configureSink(async (events) => {

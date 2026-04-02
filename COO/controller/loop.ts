@@ -60,7 +60,10 @@ export interface ControllerConfig {
     body: Record<string, unknown>,
     tags: string[],
     scopePath: string,
-    provenance: Provenance
+    provenance: Provenance,
+    options?: {
+      workflow_status?: "current" | "pending_finalization" | "archived" | "superseded";
+    }
   ) => Promise<Record<string, unknown>>;
   brainManageMemory?: (
     action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
@@ -71,6 +74,7 @@ export interface ControllerConfig {
       tags?: string[];
       trust_level?: "working" | "reviewed" | "locked";
       reason?: string;
+      workflow_status?: "current" | "pending_finalization" | "archived" | "superseded";
     }
   ) => Promise<Record<string, unknown>>;
   enableRequirementsGatheringOnion?: boolean;

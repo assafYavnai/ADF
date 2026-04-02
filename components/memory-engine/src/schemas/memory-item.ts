@@ -22,6 +22,14 @@ export type ContentType = z.infer<typeof ContentType>;
 export const TrustLevel = z.enum(["working", "reviewed", "locked"]);
 export type TrustLevel = z.infer<typeof TrustLevel>;
 
+export const WorkflowStatus = z.enum([
+  "current",
+  "pending_finalization",
+  "archived",
+  "superseded",
+]);
+export type WorkflowStatus = z.infer<typeof WorkflowStatus>;
+
 export const ContextPriority = z.enum(["p0", "p1", "p2", "p3"]);
 export type ContextPriority = z.infer<typeof ContextPriority>;
 
@@ -111,6 +119,7 @@ export const MemoryManageInput = z.object({
   tags: z.array(z.string()).optional(),
   trust_level: TrustLevel.optional(),
   reason: z.string().optional(),
+  workflow_status: WorkflowStatus.optional(),
   provenance: ProvenanceSchema,
 });
 export type MemoryManageInput = z.infer<typeof MemoryManageInput>;

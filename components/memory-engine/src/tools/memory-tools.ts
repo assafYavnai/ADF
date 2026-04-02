@@ -153,6 +153,7 @@ export const MEMORY_TOOL_DEFINITIONS = [
         tags: { type: "array", items: { type: "string" } },
         trust_level: { type: "string", enum: ["working", "reviewed", "locked"] },
         reason: { type: "string" },
+        workflow_status: { type: "string", enum: ["current", "pending_finalization", "archived", "superseded"] },
         provenance: PROVENANCE_SCHEMA,
       },
       required: ["action", "memory_id", "scope", "provenance"],

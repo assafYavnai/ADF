@@ -131,7 +131,10 @@ export class MemoryEngineClient {
     body: Record<string, unknown>,
     tags: string[],
     scope: string,
-    provenance: Provenance
+    provenance: Provenance,
+    options?: {
+      workflow_status?: "current" | "pending_finalization" | "archived" | "superseded";
+    }
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("requirements_manage", {
       action: "create",
@@ -139,6 +142,7 @@ export class MemoryEngineClient {
       body,
       scope,
       tags,
+      workflow_status: options?.workflow_status,
       provenance,
     });
   }
@@ -164,6 +168,7 @@ export class MemoryEngineClient {
       tags?: string[];
       trust_level?: "working" | "reviewed" | "locked";
       reason?: string;
+      workflow_status?: "current" | "pending_finalization" | "archived" | "superseded";
     }
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("memory_manage", {
@@ -173,6 +178,7 @@ export class MemoryEngineClient {
       tags: options?.tags,
       trust_level: options?.trust_level,
       reason: options?.reason,
+      workflow_status: options?.workflow_status,
       provenance,
     });
   }

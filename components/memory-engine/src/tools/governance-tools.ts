@@ -75,16 +75,16 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
     `INSERT INTO memory_items (
        id, content, content_type, trust_level, scope_level,
        org_id, project_id, initiative_id, phase_id, thread_id,
-       tags, context_priority, compression_policy,
+       tags, context_priority, compression_policy, workflow_metadata,
        invocation_id, provider, model, reasoning, was_fallback, source_path,
        evidence_format_version, evidence_lifecycle_status, legacy_marker
      )
      VALUES (
        $1, $2, $3, 'working', $4,
        $5, $6, $7, $8, $9,
-       $10, 'p0', 'full',
-       $11, $12, $13, $14, $15, $16,
-       $17, 'current', NULL
+       $10, 'p0', 'full', $11,
+       $12, $13, $14, $15, $16, $17,
+       $18, 'current', NULL
      )`,
     [
      id,
@@ -97,6 +97,7 @@ async function createGovernance(input: GovernanceManageInput, prov: Provenance) 
      scope.phase_id,
      scope.thread_id,
      input.tags ?? [],
+     input.workflow_status ? JSON.stringify({ status: input.workflow_status }) : null,
      prov.invocation_id, prov.provider, prov.model, prov.reasoning,
      prov.was_fallback, prov.source_path,
      CURRENT_EVIDENCE_FORMAT_VERSION]
@@ -172,6 +173,7 @@ function governanceSchema(family: string) {
       status: { type: "string" },
       query: { type: "string" },
       tags: { type: "array", items: { type: "string" } },
+      workflow_status: { type: "string", enum: ["current", "pending_finalization", "archived", "superseded"] },
       include_legacy: { type: "boolean", default: false },
       provenance: { type: "object", description: "Provenance object from caller" },
     },

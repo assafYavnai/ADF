@@ -301,8 +301,8 @@ function createConfig(
     memoryDir: join(runtimeRoot, "memory"),
     classifierParams: DEFAULT_CLASSIFIER_PARAMS,
     intelligenceParams: DEFAULT_INTELLIGENCE_PARAMS,
-    brainCreateRequirement: (title, body, tags, scopePath, provenance) =>
-      client.createRequirement(title, body, tags, scopePath, provenance),
+    brainCreateRequirement: (title, body, tags, scopePath, provenance, options) =>
+      client.createRequirement(title, body, tags, scopePath, provenance, options),
     brainManageMemory: (action, memoryId, scopePath, provenance, options) =>
       client.manageMemory(action, memoryId, scopePath, provenance, options),
     enableRequirementsGatheringOnion,
@@ -382,6 +382,48 @@ function getLatestOnionTurnResultEvent(thread: ReturnType<typeof ThreadSchema.pa
     }
   }
   throw new Error("Expected the thread to contain an onion_turn_result event.");
+}
+
+async function readDefaultRequirementReaders(client: MemoryEngineClient, query: string) {
+  const [requirementsList, searchResults, contextSummary] = await Promise.all([
+    (client as any).callJsonTool("requirements_manage", {
+      action: "list",
+      scope: scopedProjectPath,
+    }) as Promise<Array<Record<string, unknown>>>,
+    client.searchMemory(
+      query,
+      scopedProjectPath,
+      createSystemProvenance("tests/integration/onion-route:default-readers-search"),
+      {
+        content_types: ["requirement"],
+        max_results: 20,
+      },
+    ),
+    (client as any).callJsonTool("get_context_summary", {
+      scope: scopedProjectPath,
+      content_type: "requirement",
+      limit: 50,
+    }) as Promise<{ items?: Array<Record<string, unknown>> }>,
+  ]);
+
+  return {
+    requirementsList,
+    searchResults,
+    contextItems: contextSummary.items ?? [],
+  };
+}
+
+async function readFinalizedRequirementRows(traceId: string) {
+  const result = await pool.query(
+    `SELECT id, trust_level, tags, workflow_metadata, content
+       FROM memory_items
+      WHERE content_type = 'requirement'
+        AND content->>'trace_id' = $1
+        AND tags @> ARRAY['requirements-gathering', 'onion', 'finalized-requirement-list', 'coo-owned']::text[]
+      ORDER BY created_at ASC`,
+    [traceId],
+  );
+  return result.rows;
 }
 
 async function runSuccessProof(runtimeRoot: string) {
@@ -549,6 +591,166 @@ async function runSuccessProof(runtimeRoot: string) {
   } finally {
     await closeRuntimeHarness(clientA);
     await closeRuntimeHarness(clientB);
+  }
+}
+
+async function runLockFailureCleanupProof(runtimeRoot: string) {
+  const stub = createStubInvoker();
+  let client: MemoryEngineClient | null = null;
+
+  try {
+    const harness = await openRuntimeHarness(runtimeRoot, true, stub);
+    client = harness.client;
+    const originalManageMemory = harness.config.brainManageMemory;
+    assert.ok(originalManageMemory, "runtime proof requires memory_manage to be connected");
+
+    harness.config.brainManageMemory = async (action, memoryId, scopePath, provenance, options) => {
+      if (action === "update_trust_level" && options?.trust_level === "locked") {
+        return {
+          action,
+          memory_id: memoryId,
+          affected_rows: 0,
+          status: "not_found",
+          success: false,
+          reason: "Forced lock failure for runtime proof.",
+        };
+      }
+      return originalManageMemory(action, memoryId, scopePath, provenance, options);
+    };
+
+    const blocked = await runTurns(harness.config, scopedProjectPath, null, [
+      scenarioMessages.start,
+      scenarioMessages.expectedResult,
+      scenarioMessages.successView,
+      scenarioMessages.majorParts,
+      scenarioMessages.partDetails,
+      scenarioMessages.uiAndBoundaries,
+      scenarioMessages.resolveDecision,
+      scenarioMessages.freezeApproval,
+    ]);
+
+    assert.match(
+      blocked.responses.at(-1) ?? "",
+      /I froze the human-facing scope, but I could not complete the durable handoff truthfully/i,
+    );
+
+    const blockedArtifacts = await readThreadArtifacts(runtimeRoot, blocked.threadId);
+    const blockedOnion = blockedArtifacts.thread.workflowState.onion;
+    const blockedTurn = getLatestOnionTurnResultEvent(blockedArtifacts.thread);
+    const blockedTraceId = blockedOnion?.trace_id ?? `onion::${blocked.threadId}`;
+    const createReceipt = blockedTurn.data.persistence_receipts.find(
+      (receipt) => receipt.kind === "finalized_requirement_create",
+    );
+    const lockReceipt = blockedTurn.data.persistence_receipts.find(
+      (receipt) => receipt.kind === "finalized_requirement_lock",
+    );
+    const retireReceipt = blockedTurn.data.persistence_receipts.find(
+      (receipt) => receipt.kind === "provisional_finalized_requirement_retire",
+    );
+    const provisionalRequirementId = createReceipt?.record_id ?? null;
+
+    assert.equal(blockedArtifacts.thread.workflowState.active_workflow, "requirements_gathering_onion");
+    assert.equal(blockedOnion?.lifecycle_status, "blocked");
+    assert.equal(blockedOnion?.state.freeze_status.status, "approved");
+    assert.equal(blockedOnion?.finalized_requirement_memory_id, null);
+    assert.equal(blockedTurn.data.finalized_requirement_memory_id, null);
+    assert.ok(createReceipt?.success);
+    assert.ok(provisionalRequirementId);
+    assert.equal(lockReceipt?.success, false);
+    assert.match(lockReceipt?.message ?? "", /status=not_found, affected_rows=0, reason=Forced lock failure/i);
+    assert.equal(retireReceipt?.success, true);
+    assert.equal(retireReceipt?.status, "archived");
+    assert.equal(retireReceipt?.record_id, provisionalRequirementId);
+
+    const provisionalRowResult = await pool.query(
+      `SELECT trust_level, tags, workflow_metadata
+         FROM memory_items
+        WHERE id = $1`,
+      [provisionalRequirementId],
+    );
+    assert.equal(provisionalRowResult.rows.length, 1);
+    assert.equal(provisionalRowResult.rows[0]?.trust_level, "working");
+    assert.ok(provisionalRowResult.rows[0]?.tags.includes("archived"));
+    assert.equal(provisionalRowResult.rows[0]?.workflow_metadata?.status, "archived");
+
+    const blockedReaders = await readDefaultRequirementReaders(harness.client, "Execution monitor for ADF");
+    assert.ok(!blockedReaders.requirementsList.some((row) => row.id === provisionalRequirementId));
+    assert.ok(!blockedReaders.searchResults.some((row) => row.id === provisionalRequirementId));
+    assert.ok(!blockedReaders.contextItems.some((row) => row.id === provisionalRequirementId));
+
+    const blockedTelemetryRows = await pool.query(
+      `SELECT operation, success, metadata
+         FROM telemetry
+        WHERE operation = 'memory_manage:archive'
+          AND metadata->>'memory_id' = $1
+        ORDER BY created_at ASC`,
+      [provisionalRequirementId],
+    );
+    assert.ok(
+      blockedTelemetryRows.rows.some((row) =>
+        row.operation === "memory_manage:archive"
+        && row.success === true
+        && row.metadata?.status === "archived",
+      ),
+    );
+
+    harness.config.brainManageMemory = originalManageMemory;
+    const retry = await runTurns(harness.config, scopedProjectPath, blocked.threadId, [
+      scenarioMessages.freezeApproval,
+    ]);
+    await closeTelemetry();
+
+    assert.match(
+      retry.responses.at(-1) ?? "",
+      /I froze the requirements onion and stored the finalized requirement artifact/i,
+    );
+
+    const retryArtifacts = await readThreadArtifacts(runtimeRoot, retry.threadId);
+    const retryOnion = retryArtifacts.thread.workflowState.onion;
+    const retryTurn = getLatestOnionTurnResultEvent(retryArtifacts.thread);
+    const replacementRequirementId = retryOnion?.finalized_requirement_memory_id ?? null;
+
+    assert.equal(retryArtifacts.thread.workflowState.active_workflow, null);
+    assert.equal(retryOnion?.lifecycle_status, "handoff_ready");
+    assert.equal(retryOnion?.state.freeze_status.status, "approved");
+    assert.ok(replacementRequirementId);
+    assert.notEqual(replacementRequirementId, provisionalRequirementId);
+    assert.equal(retryTurn.data.finalized_requirement_memory_id, replacementRequirementId);
+
+    const retryReaders = await readDefaultRequirementReaders(harness.client, "Execution monitor for ADF");
+    assert.ok(!retryReaders.requirementsList.some((row) => row.id === provisionalRequirementId));
+    assert.ok(retryReaders.requirementsList.some((row) => row.id === replacementRequirementId));
+    assert.ok(!retryReaders.searchResults.some((row) => row.id === provisionalRequirementId));
+    assert.ok(retryReaders.searchResults.some((row) => row.id === replacementRequirementId));
+    assert.ok(!retryReaders.contextItems.some((row) => row.id === provisionalRequirementId));
+    assert.ok(retryReaders.contextItems.some((row) => row.id === replacementRequirementId));
+
+    const finalizedRows = await readFinalizedRequirementRows(blockedTraceId);
+    const currentLockedRows = finalizedRows.filter((row) =>
+      row.trust_level === "locked" && !row.workflow_metadata?.status
+    );
+    assert.equal(finalizedRows.length, 2);
+    assert.equal(currentLockedRows.length, 1);
+    assert.equal(currentLockedRows[0]?.id, replacementRequirementId);
+
+    return {
+      runtime_root: runtimeRoot,
+      thread_json_path: retryArtifacts.jsonPath,
+      thread_txt_path: retryArtifacts.txtPath,
+      thread_id: retry.threadId,
+      trace_id: blockedTraceId,
+      blocked_response: blocked.responses.at(-1) ?? "",
+      retry_response: retry.responses.at(-1) ?? "",
+      provisional_requirement_memory_id: provisionalRequirementId,
+      replacement_finalized_requirement_memory_id: replacementRequirementId,
+      blocked_lifecycle_status: blockedOnion?.lifecycle_status,
+      retry_lifecycle_status: retryOnion?.lifecycle_status,
+      blocked_persistence_receipts: blockedTurn.data.persistence_receipts,
+      blocked_memory_manage_telemetry: blockedTelemetryRows.rows,
+      finalized_requirement_rows_for_trace: finalizedRows,
+    };
+  } finally {
+    await closeRuntimeHarness(client);
   }
 }
 
@@ -1034,6 +1236,7 @@ async function main() {
   const productionCliIsolation = await runCliProductionIsolationProof(join(artifactRoot, "cli-production-isolation"));
   const cliProofEntry = await runCliProofModeEntry(join(artifactRoot, "cli-runtime"));
   const success = await runSuccessProof(join(artifactRoot, "success-runtime"));
+  const lockFailureCleanup = await runLockFailureCleanupProof(join(artifactRoot, "lock-failure-runtime"));
   const gateDisabled = await runGateDisabledProof(join(artifactRoot, "gate-disabled-runtime"));
   const supersession = await runSupersessionProof(join(artifactRoot, "supersession-runtime"));
   const noScope = await runNoScopeProof(join(artifactRoot, "no-scope-runtime"));
@@ -1046,6 +1249,7 @@ async function main() {
     cli_proof_entry: cliProofEntry,
     controller_detail_route_under_proof: "controller.handleTurn -> classifier -> requirements_gathering_onion live adapter -> thread workflow state + governed requirement persistence -> COO response -> telemetry",
     success,
+    lock_failure_cleanup: lockFailureCleanup,
     gate_disabled: gateDisabled,
     supersession,
     no_scope: noScope,

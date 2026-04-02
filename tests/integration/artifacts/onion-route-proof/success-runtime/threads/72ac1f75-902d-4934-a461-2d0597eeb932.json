@@ -1,0 +1,4575 @@
+{
+  "id": "72ac1f75-902d-4934-a461-2d0597eeb932",
+  "events": [
+    {
+      "timestamp": "2026-04-02T20:44:25.664Z",
+      "id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+      "provenance": {
+        "invocation_id": "79b64e15-22bc-4643-a178-e2d817e8bbc4",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.663Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.666Z",
+      "id": "25bb159b-00ba-44ea-8451-a0e081217ca0",
+      "provenance": {
+        "invocation_id": "57e1d9b9-473e-4530-9d42-aef96ae3a9c4",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:25.666Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.670Z",
+      "id": "ebc6e722-8614-4f1c-9d19-233c39cd3929",
+      "provenance": {
+        "invocation_id": "4ed72f9b-9736-4a83-9dea-98809af1f6d0",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.667Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+        "lifecycle_status": "active",
+        "current_layer": "expected_result",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"expected_result\" is still missing.",
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"expected_result\" is still missing.",
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: missing",
+            "Success view: missing",
+            "Major parts: missing",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+          "current_layer": "expected_result",
+          "workflow_step": "clarification",
+          "decision_reason": "Outer-shell field \"expected_result\" is still missing.",
+          "selected_next_question": "When this work is done, what should exist?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Outer-shell field \"expected_result\" is still missing.",
+            "Outer-shell field \"success_view\" is still missing.",
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Updated topic.",
+            "Updated goal."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:25.668Z",
+            "completed_at": "2026-04-02T20:44:25.669Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "We need an execution monitor for ADF so I can see what the system is currently doing, starting with the implementation queue.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 0,
+              "change_count": 2
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:25.669Z",
+            "completed_at": "2026-04-02T20:44:25.669Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "expected_result",
+              "major_part_count": 0,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "expected_result",
+              "has_question": true,
+              "next_target": "expected_result"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:25.669Z",
+            "completed_at": "2026-04-02T20:44:25.669Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 5,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:25.669Z",
+            "completed_at": "2026-04-02T20:44:25.669Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:25.669Z",
+            "completed_at": "2026-04-02T20:44:25.670Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 6,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:25.670Z",
+            "completed_at": "2026-04-02T20:44:25.670Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "expected_result",
+              "change_count": 2,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "322403cc-f62d-42d8-b20c-c6542bc337ac",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 541,
+            "tokens_out": 32,
+            "estimated_cost_usd": 0.002859,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "When this work is done, what should exist?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.671Z",
+      "id": "a656e6d5-dac3-4c81-970d-f866e6fd11b7",
+      "provenance": {
+        "invocation_id": "4ed72f9b-9736-4a83-9dea-98809af1f6d0",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.667Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Open decisions: none\nWhen this work is done, what should exist?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.671Z",
+      "id": "40a601eb-e45a-427c-bbd8-4498cc67bc92",
+      "provenance": {
+        "invocation_id": "79b64e15-22bc-4643-a178-e2d817e8bbc4",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.663Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "When this work is done, what should exist?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.673Z",
+      "id": "28976b55-789f-43b0-afb5-6eaea978640a",
+      "provenance": {
+        "invocation_id": "4e6d2208-0a82-4307-a35c-27e8a98c2ca8",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.672Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "When this is done there should be a local URL that shows the current system status with live updates."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.674Z",
+      "id": "bbe68d19-0be9-4a1c-9f01-29cb116f5909",
+      "provenance": {
+        "invocation_id": "0818b1e9-5cd5-49f6-9c10-aea6a229f05d",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:25.674Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"When this is done there should be a local URL that shows the current system status with live updates.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.676Z",
+      "id": "5987a6d1-2785-44a9-9672-6387e94ef211",
+      "provenance": {
+        "invocation_id": "c1baca1c-d2ba-44d8-9cd4-e88af10cf958",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.675Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+        "lifecycle_status": "active",
+        "current_layer": "success_view",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Outer-shell field \"success_view\" is still missing.",
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: missing",
+            "Major parts: missing",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+          "current_layer": "success_view",
+          "workflow_step": "clarification",
+          "decision_reason": "Outer-shell field \"success_view\" is still missing.",
+          "selected_next_question": "How will you recognize that this works from your point of view?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Outer-shell field \"success_view\" is still missing.",
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Updated expected result."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:25.675Z",
+            "completed_at": "2026-04-02T20:44:25.675Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "When this is done there should be a local URL that shows the current system status with live updates.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 0,
+              "change_count": 1
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:25.676Z",
+            "completed_at": "2026-04-02T20:44:25.676Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "success_view",
+              "major_part_count": 0,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "success_view",
+              "has_question": true,
+              "next_target": "success_view"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:25.676Z",
+            "completed_at": "2026-04-02T20:44:25.676Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 4,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:25.676Z",
+            "completed_at": "2026-04-02T20:44:25.676Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:25.676Z",
+            "completed_at": "2026-04-02T20:44:25.676Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 6,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:25.676Z",
+            "completed_at": "2026-04-02T20:44:25.676Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "success_view",
+              "change_count": 1,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "28976b55-789f-43b0-afb5-6eaea978640a",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 563,
+            "tokens_out": 23,
+            "estimated_cost_usd": 0.002925,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "How will you recognize that this works from your point of view?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.677Z",
+      "id": "071be93f-6f46-4ec3-9874-79a853e8c665",
+      "provenance": {
+        "invocation_id": "c1baca1c-d2ba-44d8-9cd4-e88af10cf958",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.675Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Open decisions: none\nHow will you recognize that this works from your point of view?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.677Z",
+      "id": "6da8d3c1-9661-4898-b3ca-c559c0f33d5c",
+      "provenance": {
+        "invocation_id": "4e6d2208-0a82-4307-a35c-27e8a98c2ca8",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.672Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "How will you recognize that this works from your point of view?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.678Z",
+      "id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+      "provenance": {
+        "invocation_id": "df51cb29-7b9c-4ca3-9bee-15e8a2af142b",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.678Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "Success means I can open the page, see the queue, and drill into current execution details."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.679Z",
+      "id": "9018c25c-6f6a-474a-963e-e84c4909a031",
+      "provenance": {
+        "invocation_id": "261ea842-b35f-4f72-b5ae-c6e351abbeb1",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:25.679Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"Success means I can open the page, see the queue, and drill into current execution details.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.680Z",
+      "id": "2e459c05-14d5-4ae1-b21e-20c2fe9dd0ac",
+      "provenance": {
+        "invocation_id": "061e765c-dec4-4c8e-8ec2-f74d17a19a29",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.680Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+        "lifecycle_status": "active",
+        "current_layer": "major_parts",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Major parts are still missing.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: I can open the page, see the queue, and drill into current execution details.",
+            "Major parts: missing",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+          "current_layer": "major_parts",
+          "workflow_step": "clarification",
+          "decision_reason": "Major parts are still missing.",
+          "selected_next_question": "What are the main parts of this feature?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Major parts are still missing.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Updated success view."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:25.680Z",
+            "completed_at": "2026-04-02T20:44:25.680Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "Success means I can open the page, see the queue, and drill into current execution details.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 0,
+              "change_count": 1
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:25.680Z",
+            "completed_at": "2026-04-02T20:44:25.680Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "major_parts",
+              "major_part_count": 0,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "major_parts",
+              "has_question": true,
+              "next_target": "major_parts"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:25.680Z",
+            "completed_at": "2026-04-02T20:44:25.680Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 3,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:25.680Z",
+            "completed_at": "2026-04-02T20:44:25.680Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:25.680Z",
+            "completed_at": "2026-04-02T20:44:25.680Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 5,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:25.680Z",
+            "completed_at": "2026-04-02T20:44:25.680Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "major_parts",
+              "change_count": 1,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "d24e2a34-b5e7-4666-a9ab-5bb6d251af87",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 580,
+            "tokens_out": 24,
+            "estimated_cost_usd": 0.003019,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "What are the main parts of this feature?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.681Z",
+      "id": "2f0b27f6-267c-40e9-8e19-75a046b4d87b",
+      "provenance": {
+        "invocation_id": "061e765c-dec4-4c8e-8ec2-f74d17a19a29",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.680Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Success view: I can open the page, see the queue, and drill into current execution details.\nWhat are the main parts of this feature?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.681Z",
+      "id": "022cb649-6c2c-4584-bafd-df90659f597f",
+      "provenance": {
+        "invocation_id": "df51cb29-7b9c-4ca3-9bee-15e8a2af142b",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.678Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "What are the main parts of this feature?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.683Z",
+      "id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+      "provenance": {
+        "invocation_id": "27107307-caea-4641-a31d-e085721ec0a6",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.682Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "The main parts are queue view, flow view, node details, audit trail, and metrics."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.684Z",
+      "id": "b3228764-e03c-45b8-9517-be97e1637eed",
+      "provenance": {
+        "invocation_id": "1536cbb2-ec33-435e-b602-2b8bc476324c",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:25.684Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"The main parts are queue view, flow view, node details, audit trail, and metrics.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.686Z",
+      "id": "f9e6f1fd-ab3a-4fa3-8290-9e13e73613e2",
+      "provenance": {
+        "invocation_id": "5a815868-2933-4fd3-815c-6b8fab7062ea",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.684Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+        "lifecycle_status": "active",
+        "current_layer": "part_clarification",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Major part \"Queue view\" still needs clarification.",
+              "Major part \"Flow view\" still needs clarification.",
+              "Major part \"Node details\" still needs clarification.",
+              "Major part \"Audit trail\" still needs clarification.",
+              "Major part \"Metrics\" still needs clarification.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {},
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Major part \"Queue view\" still needs clarification.",
+              "Major part \"Flow view\" still needs clarification.",
+              "Major part \"Node details\" still needs clarification.",
+              "Major part \"Audit trail\" still needs clarification.",
+              "Major part \"Metrics\" still needs clarification.",
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: I can open the page, see the queue, and drill into current execution details.",
+            "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+          "current_layer": "part_clarification",
+          "workflow_step": "clarification",
+          "decision_reason": "Major part \"Queue view\" still needs clarification.",
+          "selected_next_question": "For \"Queue view\", what does this part mean in business terms?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Major part \"Queue view\" still needs clarification.",
+            "Major part \"Flow view\" still needs clarification.",
+            "Major part \"Node details\" still needs clarification.",
+            "Major part \"Audit trail\" still needs clarification.",
+            "Major part \"Metrics\" still needs clarification.",
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Replaced major parts with 5 item(s)."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:25.685Z",
+            "completed_at": "2026-04-02T20:44:25.685Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "The main parts are queue view, flow view, node details, audit trail, and metrics.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 5,
+              "change_count": 1
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:25.685Z",
+            "completed_at": "2026-04-02T20:44:25.685Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "part_clarification",
+              "major_part_count": 5,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "part_clarification",
+              "has_question": true,
+              "next_target": "part_clarification"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:25.685Z",
+            "completed_at": "2026-04-02T20:44:25.685Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 7,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:25.685Z",
+            "completed_at": "2026-04-02T20:44:25.685Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:25.685Z",
+            "completed_at": "2026-04-02T20:44:25.685Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 6,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:25.685Z",
+            "completed_at": "2026-04-02T20:44:25.685Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "part_clarification",
+              "change_count": 1,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "f0a8b515-caf0-40c9-8053-675d72cd50c4",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 589,
+            "tokens_out": 55,
+            "estimated_cost_usd": 0.003219,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "For \"Queue view\", what does this part mean in business terms?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.686Z",
+      "id": "cacbec4c-d1ce-4085-b899-eb20564d1532",
+      "provenance": {
+        "invocation_id": "5a815868-2933-4fd3-815c-6b8fab7062ea",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.684Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Success view: I can open the page, see the queue, and drill into current execution details.\nFor \"Queue view\", what does this part mean in business terms?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.686Z",
+      "id": "93efb541-6597-4549-ac59-88abb9c9b3c3",
+      "provenance": {
+        "invocation_id": "27107307-caea-4641-a31d-e085721ec0a6",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.682Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "For \"Queue view\", what does this part mean in business terms?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.688Z",
+      "id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+      "provenance": {
+        "invocation_id": "a675b173-a7ba-4233-8a8c-a0514e161939",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.687Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "Queue view shows active features, current status, owner, and any blocking reason. Flow view shows the current step path, review rounds, and visible branching for parallel execution. Node details show agent output, substeps, and timing. Audit trail shows completed steps, who did them, when they finished, and why state changed. Metrics show token usage plus total and per-step timing."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.689Z",
+      "id": "21f0dd60-f51e-4de9-a0fb-eb59a0f09dfe",
+      "provenance": {
+        "invocation_id": "028cd810-7ba3-4339-96b4-053b8791201d",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:25.689Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"Queue view shows active features, current status, owner, and any blocking reason. Flow view shows the current step path, review rounds, and visible branching for parallel execution. Node details show agent output, substeps, and timing. Audit trail shows completed steps, who did them, when they finished, and why state changed. Metrics show token usage plus total and per-step timing.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.693Z",
+      "id": "34787aab-4280-4a90-9217-b25c6f79b6a2",
+      "provenance": {
+        "invocation_id": "313648b1-47b1-4513-a5da-401950d28304",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.690Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+        "lifecycle_status": "active",
+        "current_layer": "experience_ui",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": null,
+            "preview_status": "not_needed"
+          },
+          "boundaries": [],
+          "open_decisions": [],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "The scope still needs an explicit UI/experience relevance decision.",
+              "Boundaries, non-goals, or constraints are still missing."
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: I can open the page, see the queue, and drill into current execution details.",
+            "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
+            "Experience/UI: not yet decided",
+            "Boundaries: missing",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+          "current_layer": "experience_ui",
+          "workflow_step": "clarification",
+          "decision_reason": "The scope still needs an explicit UI/experience relevance decision.",
+          "selected_next_question": "Does UI or user-experience meaning matter to this scope before freeze?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "The scope still needs an explicit UI/experience relevance decision.",
+            "Boundaries, non-goals, or constraints are still missing."
+          ],
+          "open_decisions_snapshot": [],
+          "artifact_change_summary": [
+            "Clarified part \"queue_view\".",
+            "Clarified part \"flow_view\".",
+            "Clarified part \"node_details\".",
+            "Clarified part \"audit_trail\".",
+            "Clarified part \"metrics\"."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:25.691Z",
+            "completed_at": "2026-04-02T20:44:25.691Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "Queue view shows active features, current status, owner, and any blocking reason. Flow view shows the current step path, review rounds, and visible branching for parallel execut...",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 5,
+              "change_count": 5
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:25.691Z",
+            "completed_at": "2026-04-02T20:44:25.691Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "experience_ui",
+              "major_part_count": 5,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "experience_ui",
+              "has_question": true,
+              "next_target": "experience_ui"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:25.692Z",
+            "completed_at": "2026-04-02T20:44:25.692Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 2,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:25.692Z",
+            "completed_at": "2026-04-02T20:44:25.692Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:25.692Z",
+            "completed_at": "2026-04-02T20:44:25.692Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 5,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:25.692Z",
+            "completed_at": "2026-04-02T20:44:25.692Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "experience_ui",
+              "change_count": 5,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "9745cc5f-e1bc-49c2-a9a8-01999763f98d",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 712,
+            "tokens_out": 203,
+            "estimated_cost_usd": 0.004571,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "Does UI or user-experience meaning matter to this scope before freeze?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.695Z",
+      "id": "2538639b-68f1-4c1e-b458-87abcfe5562f",
+      "provenance": {
+        "invocation_id": "313648b1-47b1-4513-a5da-401950d28304",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:25.690Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Success view: I can open the page, see the queue, and drill into current execution details.\nDoes UI or user-experience meaning matter to this scope before freeze?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:25.695Z",
+      "id": "43663ad4-6fd2-462f-bc65-49471df79dea",
+      "provenance": {
+        "invocation_id": "a675b173-a7ba-4233-8a8c-a0514e161939",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:25.687Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "Does UI or user-experience meaning matter to this scope before freeze?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.960Z",
+      "id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+      "provenance": {
+        "invocation_id": "9a583752-1941-4551-ab49-d533bedfca55",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:27.959Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "UI meaning matters. It should be a single-page dashboard with a queue list, a flow canvas, and a detail drawer. Treat mockup execution-monitor-v1 as approved. Boundaries: Phase 1 focuses on the implementation queue first. This is not a full historical analytics suite. Open decision: Should live updates use polling or push for the first release?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.962Z",
+      "id": "1894b9f4-c2c8-4ded-b799-d0dc45ab5ac4",
+      "provenance": {
+        "invocation_id": "ebd26c95-060e-412f-8858-eb4a48ea6d4a",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:27.962Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"UI meaning matters. It should be a single-page dashboard with a queue list, a flow canvas, and a detail drawer. Treat mockup execution-monitor-v1 as approved. Boundaries: Phase 1 focuses on the implementation queue first. This is not a full historical analytics suite. Open decision: Should live updates use polling or push for the first release?\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.965Z",
+      "id": "a3898ce1-0bf4-4265-a7a9-b3d30cd46a15",
+      "provenance": {
+        "invocation_id": "4d9da800-737f-4d09-b87e-2cb76f1d05a0",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:27.963Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+        "lifecycle_status": "active",
+        "current_layer": "open_decisions",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "open"
+            }
+          ],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?"
+            ]
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "open"
+            }
+          ],
+          "freeze_status": {
+            "status": "draft",
+            "blockers": [
+              "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?"
+            ]
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: I can open the page, see the queue, and drill into current execution details.",
+            "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
+            "Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.",
+            "Open decisions: Should live updates use polling or push for the first release?"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+          "current_layer": "open_decisions",
+          "workflow_step": "clarification",
+          "decision_reason": "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?",
+          "selected_next_question": "Should live updates use polling or push for the first release?",
+          "no_question_reason": null,
+          "freeze_blockers": [
+            "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?"
+          ],
+          "open_decisions_snapshot": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "open"
+            }
+          ],
+          "artifact_change_summary": [
+            "Updated experience/UI alignment.",
+            "Replaced boundaries with 2 item(s).",
+            "Replaced open decisions with 1 item(s)."
+          ],
+          "result_status": "clarification_needed"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:27.963Z",
+            "completed_at": "2026-04-02T20:44:27.964Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "UI meaning matters. It should be a single-page dashboard with a queue list, a flow canvas, and a detail drawer. Treat mockup execution-monitor-v1 as approved. Boundaries: Phase ...",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "draft",
+              "major_part_count": 5,
+              "change_count": 3
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:27.964Z",
+            "completed_at": "2026-04-02T20:44:27.964Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "open_decisions",
+              "major_part_count": 5,
+              "open_decision_count": 1
+            },
+            "output_summary": {
+              "current_layer": "open_decisions",
+              "has_question": true,
+              "next_target": "open_decision"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:27.964Z",
+            "completed_at": "2026-04-02T20:44:27.964Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "open_decision_count": 1
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:27.964Z",
+            "completed_at": "2026-04-02T20:44:27.964Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:27.964Z",
+            "completed_at": "2026-04-02T20:44:27.964Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "draft",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 4,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:27.964Z",
+            "completed_at": "2026-04-02T20:44:27.964Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "open_decisions",
+              "change_count": 3,
+              "freeze_status": "draft"
+            },
+            "output_summary": {
+              "workflow_step": "clarification",
+              "result_status": "clarification_needed",
+              "has_next_question": true
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "a45a4242-7945-42da-bffb-899e0eb5a50c",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 704,
+            "tokens_out": 180,
+            "estimated_cost_usd": 0.004418,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion advanced without silently freezing.",
+        "open_loops": [
+          "Should live updates use polling or push for the first release?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.966Z",
+      "id": "1bad8508-54b5-4d6f-9aa9-79a10db5e05d",
+      "provenance": {
+        "invocation_id": "4d9da800-737f-4d09-b87e-2cb76f1d05a0",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:27.963Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Current scope so far:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Success view: I can open the page, see the queue, and drill into current execution details.\nShould live updates use polling or push for the first release?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.966Z",
+      "id": "2c7f21bd-a844-43e9-9adf-6357ceafd31a",
+      "provenance": {
+        "invocation_id": "9a583752-1941-4551-ab49-d533bedfca55",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:27.959Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion advanced without silently freezing.",
+        "openLoops": [
+          "Should live updates use polling or push for the first release?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.968Z",
+      "id": "b884b798-0a91-41d1-826b-16372eeca41b",
+      "provenance": {
+        "invocation_id": "a819355f-f0cd-4946-a50f-13f9540e904d",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:27.967Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "Use timed polling every 10 seconds for the first release."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.969Z",
+      "id": "77fbc79f-7234-4aae-96d0-28f97471d1e6",
+      "provenance": {
+        "invocation_id": "014bc170-d5de-423e-8b2a-a1305d99110d",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:27.969Z"
+      },
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"Use timed polling every 10 seconds for the first release.\" into the live requirements onion lane."
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.972Z",
+      "id": "8ec98064-caf0-46da-8c60-6259c9cbb39c",
+      "provenance": {
+        "invocation_id": "58f20345-f4cd-4e0e-a626-34850d035e2d",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:27.970Z"
+      },
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+        "lifecycle_status": "awaiting_freeze_approval",
+        "current_layer": "whole_onion_freeze",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ],
+          "freeze_status": {
+            "status": "ready_to_request",
+            "blockers": [],
+            "ready_since_turn_id": "b884b798-0a91-41d1-826b-16372eeca41b"
+          },
+          "approved_snapshot": null
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ],
+          "freeze_status": {
+            "status": "ready_to_request",
+            "blockers": [],
+            "ready_since_turn_id": "b884b798-0a91-41d1-826b-16372eeca41b"
+          },
+          "approved_snapshot": null,
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: I can open the page, see the queue, and drill into current execution details.",
+            "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
+            "Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": null,
+        "finalized_requirement_memory_id": null,
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+          "current_layer": "whole_onion_freeze",
+          "workflow_step": "freeze_ready",
+          "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
+          "selected_next_question": null,
+          "no_question_reason": "Clarification is complete. The next step is an explicit whole-onion freeze request.",
+          "freeze_blockers": [],
+          "open_decisions_snapshot": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ],
+          "artifact_change_summary": [
+            "Resolved open decision \"live_update_model\"."
+          ],
+          "result_status": "awaiting_freeze_approval"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:27.971Z",
+            "completed_at": "2026-04-02T20:44:27.971Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "Use timed polling every 10 seconds for the first release.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "ready_to_request",
+              "major_part_count": 5,
+              "change_count": 1
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:27.971Z",
+            "completed_at": "2026-04-02T20:44:27.971Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "whole_onion_freeze",
+              "major_part_count": 5,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "whole_onion_freeze",
+              "has_question": false,
+              "next_target": "none"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:27.971Z",
+            "completed_at": "2026-04-02T20:44:27.972Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "ready_to_request",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "ready_to_request",
+              "blocker_count": 0,
+              "has_freeze_request": true
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:27.972Z",
+            "completed_at": "2026-04-02T20:44:27.972Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "ready_to_request",
+              "approved_snapshot_present": false
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 1,
+              "requirement_item_count": 0
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:27.972Z",
+            "completed_at": "2026-04-02T20:44:27.972Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "ready_to_request",
+              "derivation_status": "blocked"
+            },
+            "output_summary": {
+              "status": "blocked",
+              "blocker_count": 3,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:27.972Z",
+            "completed_at": "2026-04-02T20:44:27.972Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "whole_onion_freeze",
+              "change_count": 1,
+              "freeze_status": "ready_to_request"
+            },
+            "output_summary": {
+              "workflow_step": "freeze_ready",
+              "result_status": "awaiting_freeze_approval",
+              "has_next_question": false
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 704,
+            "tokens_out": 32,
+            "estimated_cost_usd": 0.003679,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion is ready for explicit whole-onion freeze approval.",
+        "open_loops": [
+          "This is the full human-facing onion. Is anything missing or wrong, and should I freeze it now?"
+        ]
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.974Z",
+      "id": "71a99590-4b7f-4809-8607-23cdd7d75741",
+      "provenance": {
+        "invocation_id": "58f20345-f4cd-4e0e-a626-34850d035e2d",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:27.970Z"
+      },
+      "type": "coo_response",
+      "data": {
+        "message": "Here is the full human-facing scope I have gathered:\n- Topic: Execution monitor for ADF\n- Goal: See what the system is currently doing, starting with the implementation queue.\n- Expected result: A local URL that shows the current system status with live updates.\n- Success view: I can open the page, see the queue, and drill into current execution details.\n- Major parts: Queue view, Flow view, Node details, Audit trail, Metrics\n- Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.\n- Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.\n- Open decisions: none\nThis is the full human-facing onion. Is anything missing or wrong, and should I freeze it now?"
+      }
+    },
+    {
+      "timestamp": "2026-04-02T20:44:27.974Z",
+      "id": "c77354df-4ab3-410b-b1b9-e3dab150b709",
+      "provenance": {
+        "invocation_id": "a819355f-f0cd-4946-a50f-13f9540e904d",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:27.967Z"
+      },
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion is ready for explicit whole-onion freeze approval.",
+        "openLoops": [
+          "This is the full human-facing onion. Is anything missing or wrong, and should I freeze it now?"
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      }
+    },
+    {
+      "type": "user_input",
+      "data": {
+        "message": "Freeze it."
+      },
+      "timestamp": "2026-04-02T20:44:27.976Z",
+      "id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+      "provenance": {
+        "invocation_id": "29edc3dd-ee90-4912-9527-7c3664f3cb15",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:27.975Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "continue requirements gathering",
+        "confidence": 0.99,
+        "workflow": "requirements_gathering_onion",
+        "reasoning": "Route \"Freeze it.\" into the live requirements onion lane."
+      },
+      "timestamp": "2026-04-02T20:44:27.977Z",
+      "id": "8dde5a0b-c272-4f99-8bc3-5996481170fd",
+      "provenance": {
+        "invocation_id": "e3fb2b65-3d1b-4f1f-9980-38e8454d3b93",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/72ac1f75-902d-4934-a461-2d0597eeb932",
+        "timestamp": "2026-04-02T20:44:27.977Z"
+      }
+    },
+    {
+      "type": "onion_turn_result",
+      "data": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+        "lifecycle_status": "handoff_ready",
+        "current_layer": "approved",
+        "state": {
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ],
+          "freeze_status": {
+            "status": "approved",
+            "blockers": [],
+            "ready_since_turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "approval_note": "The human-facing scope is right. Freeze it."
+          },
+          "approved_snapshot": {
+            "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "approved_at": "2026-04-02T20:44:27.976Z",
+            "topic": "Execution monitor for ADF",
+            "goal": "See what the system is currently doing, starting with the implementation queue.",
+            "expected_result": "A local URL that shows the current system status with live updates.",
+            "success_view": "I can open the page, see the queue, and drill into current execution details.",
+            "major_parts": [
+              {
+                "id": "queue_view",
+                "label": "Queue view",
+                "order": 0
+              },
+              {
+                "id": "flow_view",
+                "label": "Flow view",
+                "order": 1
+              },
+              {
+                "id": "node_details",
+                "label": "Node details",
+                "order": 2
+              },
+              {
+                "id": "audit_trail",
+                "label": "Audit trail",
+                "order": 3
+              },
+              {
+                "id": "metrics",
+                "label": "Metrics",
+                "order": 4
+              }
+            ],
+            "part_clarifications": {
+              "queue_view": {
+                "part_id": "queue_view",
+                "detail": "Show active features, current status, owner, and any blocking reason.",
+                "questions_answered": [
+                  "What belongs in the queue view?"
+                ],
+                "status": "clarified"
+              },
+              "flow_view": {
+                "part_id": "flow_view",
+                "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+                "questions_answered": [
+                  "What belongs in the flow view?"
+                ],
+                "status": "clarified"
+              },
+              "node_details": {
+                "part_id": "node_details",
+                "detail": "Show agent output, substeps, and timing.",
+                "questions_answered": [
+                  "What should node details show?"
+                ],
+                "status": "clarified"
+              },
+              "audit_trail": {
+                "part_id": "audit_trail",
+                "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+                "questions_answered": [
+                  "What belongs in the audit trail?"
+                ],
+                "status": "clarified"
+              },
+              "metrics": {
+                "part_id": "metrics",
+                "detail": "Show token usage plus total and per-step timing.",
+                "questions_answered": [
+                  "What belongs in metrics?"
+                ],
+                "status": "clarified"
+              }
+            },
+            "experience_ui": {
+              "relevant": true,
+              "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+              "preview_status": "preview_approved",
+              "preview_artifact": "mockup://execution-monitor-v1",
+              "approval_notes": "Approved as the Phase 1 alignment target."
+            },
+            "boundaries": [
+              {
+                "id": "phase1_queue_first",
+                "kind": "constraint",
+                "statement": "Phase 1 focuses on the implementation queue first."
+              },
+              {
+                "id": "no_historic_analytics",
+                "kind": "non_goal",
+                "statement": "This is not a full historical analytics suite."
+              }
+            ],
+            "open_decisions": [
+              {
+                "id": "live_update_model",
+                "question": "Should live updates use polling or push for the first release?",
+                "impact": "This changes the product promise and testing expectations.",
+                "status": "resolved",
+                "resolution": "Use timed polling every 10 seconds for the first release."
+              }
+            ]
+          }
+        },
+        "working_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "working_scope",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ],
+          "freeze_status": {
+            "status": "approved",
+            "blockers": [],
+            "ready_since_turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+            "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "approval_note": "The human-facing scope is right. Freeze it."
+          },
+          "approved_snapshot": {
+            "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "approved_at": "2026-04-02T20:44:27.976Z",
+            "topic": "Execution monitor for ADF",
+            "goal": "See what the system is currently doing, starting with the implementation queue.",
+            "expected_result": "A local URL that shows the current system status with live updates.",
+            "success_view": "I can open the page, see the queue, and drill into current execution details.",
+            "major_parts": [
+              {
+                "id": "queue_view",
+                "label": "Queue view",
+                "order": 0
+              },
+              {
+                "id": "flow_view",
+                "label": "Flow view",
+                "order": 1
+              },
+              {
+                "id": "node_details",
+                "label": "Node details",
+                "order": 2
+              },
+              {
+                "id": "audit_trail",
+                "label": "Audit trail",
+                "order": 3
+              },
+              {
+                "id": "metrics",
+                "label": "Metrics",
+                "order": 4
+              }
+            ],
+            "part_clarifications": {
+              "queue_view": {
+                "part_id": "queue_view",
+                "detail": "Show active features, current status, owner, and any blocking reason.",
+                "questions_answered": [
+                  "What belongs in the queue view?"
+                ],
+                "status": "clarified"
+              },
+              "flow_view": {
+                "part_id": "flow_view",
+                "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+                "questions_answered": [
+                  "What belongs in the flow view?"
+                ],
+                "status": "clarified"
+              },
+              "node_details": {
+                "part_id": "node_details",
+                "detail": "Show agent output, substeps, and timing.",
+                "questions_answered": [
+                  "What should node details show?"
+                ],
+                "status": "clarified"
+              },
+              "audit_trail": {
+                "part_id": "audit_trail",
+                "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+                "questions_answered": [
+                  "What belongs in the audit trail?"
+                ],
+                "status": "clarified"
+              },
+              "metrics": {
+                "part_id": "metrics",
+                "detail": "Show token usage plus total and per-step timing.",
+                "questions_answered": [
+                  "What belongs in metrics?"
+                ],
+                "status": "clarified"
+              }
+            },
+            "experience_ui": {
+              "relevant": true,
+              "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+              "preview_status": "preview_approved",
+              "preview_artifact": "mockup://execution-monitor-v1",
+              "approval_notes": "Approved as the Phase 1 alignment target."
+            },
+            "boundaries": [
+              {
+                "id": "phase1_queue_first",
+                "kind": "constraint",
+                "statement": "Phase 1 focuses on the implementation queue first."
+              },
+              {
+                "id": "no_historic_analytics",
+                "kind": "non_goal",
+                "statement": "This is not a full historical analytics suite."
+              }
+            ],
+            "open_decisions": [
+              {
+                "id": "live_update_model",
+                "question": "Should live updates use polling or push for the first release?",
+                "impact": "This changes the product promise and testing expectations.",
+                "status": "resolved",
+                "resolution": "Use timed polling every 10 seconds for the first release."
+              }
+            ]
+          },
+          "scope_summary": [
+            "Topic: Execution monitor for ADF",
+            "Goal: See what the system is currently doing, starting with the implementation queue.",
+            "Expected result: A local URL that shows the current system status with live updates.",
+            "Success view: I can open the page, see the queue, and drill into current execution details.",
+            "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
+            "Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.",
+            "Open decisions: none"
+          ]
+        },
+        "requirement_artifact": {
+          "schema_version": "1.0",
+          "artifact_kind": "requirement_list",
+          "artifact_id": "onion-requirements::onion::72ac1f75-902d-4934-a461-2d0597eeb932::b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "source_approval_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "human_scope": {
+            "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "approved_at": "2026-04-02T20:44:27.976Z",
+            "topic": "Execution monitor for ADF",
+            "goal": "See what the system is currently doing, starting with the implementation queue.",
+            "expected_result": "A local URL that shows the current system status with live updates.",
+            "success_view": "I can open the page, see the queue, and drill into current execution details.",
+            "major_parts": [
+              {
+                "id": "queue_view",
+                "label": "Queue view",
+                "order": 0
+              },
+              {
+                "id": "flow_view",
+                "label": "Flow view",
+                "order": 1
+              },
+              {
+                "id": "node_details",
+                "label": "Node details",
+                "order": 2
+              },
+              {
+                "id": "audit_trail",
+                "label": "Audit trail",
+                "order": 3
+              },
+              {
+                "id": "metrics",
+                "label": "Metrics",
+                "order": 4
+              }
+            ],
+            "part_clarifications": {
+              "queue_view": {
+                "part_id": "queue_view",
+                "detail": "Show active features, current status, owner, and any blocking reason.",
+                "questions_answered": [
+                  "What belongs in the queue view?"
+                ],
+                "status": "clarified"
+              },
+              "flow_view": {
+                "part_id": "flow_view",
+                "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+                "questions_answered": [
+                  "What belongs in the flow view?"
+                ],
+                "status": "clarified"
+              },
+              "node_details": {
+                "part_id": "node_details",
+                "detail": "Show agent output, substeps, and timing.",
+                "questions_answered": [
+                  "What should node details show?"
+                ],
+                "status": "clarified"
+              },
+              "audit_trail": {
+                "part_id": "audit_trail",
+                "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+                "questions_answered": [
+                  "What belongs in the audit trail?"
+                ],
+                "status": "clarified"
+              },
+              "metrics": {
+                "part_id": "metrics",
+                "detail": "Show token usage plus total and per-step timing.",
+                "questions_answered": [
+                  "What belongs in metrics?"
+                ],
+                "status": "clarified"
+              }
+            },
+            "experience_ui": {
+              "relevant": true,
+              "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+              "preview_status": "preview_approved",
+              "preview_artifact": "mockup://execution-monitor-v1",
+              "approval_notes": "Approved as the Phase 1 alignment target."
+            },
+            "boundaries": [
+              {
+                "id": "phase1_queue_first",
+                "kind": "constraint",
+                "statement": "Phase 1 focuses on the implementation queue first."
+              },
+              {
+                "id": "no_historic_analytics",
+                "kind": "non_goal",
+                "statement": "This is not a full historical analytics suite."
+              }
+            ],
+            "open_decisions": [
+              {
+                "id": "live_update_model",
+                "question": "Should live updates use polling or push for the first release?",
+                "impact": "This changes the product promise and testing expectations.",
+                "status": "resolved",
+                "resolution": "Use timed polling every 10 seconds for the first release."
+              }
+            ]
+          },
+          "requirement_items": [
+            {
+              "id": "scope-anchor",
+              "title": "Feature outcome",
+              "detail": "Goal: See what the system is currently doing, starting with the implementation queue.\nExpected result: A local URL that shows the current system status with live updates.\nSuccess view: I can open the page, see the queue, and drill into current execution details.",
+              "source_refs": [
+                "goal",
+                "expected_result",
+                "success_view"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:queue_view",
+              "title": "Queue view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "source_refs": [
+                "major_parts.queue_view",
+                "part_clarifications.queue_view"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:flow_view",
+              "title": "Flow view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "source_refs": [
+                "major_parts.flow_view",
+                "part_clarifications.flow_view"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:node_details",
+              "title": "Node details",
+              "detail": "Show agent output, substeps, and timing.",
+              "source_refs": [
+                "major_parts.node_details",
+                "part_clarifications.node_details"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:audit_trail",
+              "title": "Audit trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "source_refs": [
+                "major_parts.audit_trail",
+                "part_clarifications.audit_trail"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "major-part:metrics",
+              "title": "Metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "source_refs": [
+                "major_parts.metrics",
+                "part_clarifications.metrics"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            },
+            {
+              "id": "experience-ui",
+              "title": "Experience / UI alignment",
+              "detail": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+              "source_refs": [
+                "experience_ui.summary",
+                "experience_ui.preview_artifact"
+              ],
+              "meaning_preservation": "verbatim_from_approved_snapshot"
+            }
+          ],
+          "explicit_boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_business_decisions": [],
+          "derivation_status": "ready",
+          "blockers": [],
+          "derivation_notes": [
+            "Derived only from the approved onion snapshot.",
+            "No LLM expansion or silent business guessing was used."
+          ]
+        },
+        "finalized_requirement_memory_id": "a38e473e-70c1-408e-9fa3-681aca801fd1",
+        "workflow_trace": {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "current_layer": "approved",
+          "workflow_step": "handoff_ready",
+          "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
+          "selected_next_question": null,
+          "no_question_reason": "The onion is already frozen and approved.",
+          "freeze_blockers": [],
+          "open_decisions_snapshot": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ],
+          "artifact_change_summary": [
+            "Recorded explicit whole-onion freeze approval."
+          ],
+          "result_status": "ready_for_handoff"
+        },
+        "operation_records": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "operation": "onion_reducer",
+            "started_at": "2026-04-02T20:44:27.979Z",
+            "completed_at": "2026-04-02T20:44:27.979Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "actor": "ceo",
+              "summary": "Freeze it.",
+              "had_previous_approval": false
+            },
+            "output_summary": {
+              "freeze_status": "approved",
+              "major_part_count": 5,
+              "change_count": 1
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "operation": "clarification_policy",
+            "started_at": "2026-04-02T20:44:27.979Z",
+            "completed_at": "2026-04-02T20:44:27.979Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "approved",
+              "major_part_count": 5,
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "current_layer": "approved",
+              "has_question": false,
+              "next_target": "none"
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "operation": "freeze_check",
+            "started_at": "2026-04-02T20:44:27.979Z",
+            "completed_at": "2026-04-02T20:44:27.979Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "approved",
+              "open_decision_count": 0
+            },
+            "output_summary": {
+              "status": "approved",
+              "blocker_count": 0,
+              "has_freeze_request": false
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "operation": "artifact_deriver",
+            "started_at": "2026-04-02T20:44:27.979Z",
+            "completed_at": "2026-04-02T20:44:27.980Z",
+            "duration_ms": 1,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "approved",
+              "approved_snapshot_present": true
+            },
+            "output_summary": {
+              "status": "ready",
+              "blocker_count": 0,
+              "requirement_item_count": 7
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "operation": "readiness_check",
+            "started_at": "2026-04-02T20:44:27.980Z",
+            "completed_at": "2026-04-02T20:44:27.980Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "freeze_status": "approved",
+              "derivation_status": "ready"
+            },
+            "output_summary": {
+              "status": "ready",
+              "blocker_count": 0,
+              "checklist_count": 8
+            }
+          },
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "operation": "audit_trace_build",
+            "started_at": "2026-04-02T20:44:27.980Z",
+            "completed_at": "2026-04-02T20:44:27.980Z",
+            "duration_ms": 0,
+            "success": true,
+            "input_summary": {
+              "current_layer": "approved",
+              "change_count": 1,
+              "freeze_status": "approved"
+            },
+            "output_summary": {
+              "workflow_step": "handoff_ready",
+              "result_status": "ready_for_handoff",
+              "has_next_question": false
+            }
+          }
+        ],
+        "llm_calls": [
+          {
+            "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+            "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "purpose": "onion_turn_parse",
+            "latency_ms": 23,
+            "tokens_in": 665,
+            "tokens_out": 24,
+            "estimated_cost_usd": 0.003441,
+            "fallback_used": false,
+            "success": true
+          }
+        ],
+        "persistence_receipts": [
+          {
+            "kind": "finalized_requirement_create",
+            "target": "memory_engine",
+            "status": "created",
+            "artifact_kind": "requirement_list",
+            "action": "create",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": "a38e473e-70c1-408e-9fa3-681aca801fd1",
+            "success": true,
+            "message": "Persisted the finalized requirement artifact through the governed requirements surface."
+          },
+          {
+            "kind": "finalized_requirement_lock",
+            "target": "memory_engine",
+            "status": "locked",
+            "artifact_kind": "requirement_list",
+            "action": "update_trust_level",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": "a38e473e-70c1-408e-9fa3-681aca801fd1",
+            "success": true,
+            "message": "Locked the finalized requirement artifact after approved freeze."
+          },
+          {
+            "kind": "thread_workflow_state",
+            "target": "thread",
+            "status": "stored",
+            "artifact_kind": "working_scope",
+            "action": "persist",
+            "scope_path": "assafyavnai/shippingagent",
+            "record_id": null,
+            "success": true,
+            "message": "Thread workflow state persisted for the live onion turn."
+          }
+        ],
+        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as a38e473e-70c1-408e-9fa3-681aca801fd1.",
+        "open_loops": []
+      },
+      "timestamp": "2026-04-02T20:44:28.002Z",
+      "id": "69230e1f-e016-4681-a7f5-9e32c9c861c1",
+      "provenance": {
+        "invocation_id": "d93f7c4e-04b9-409d-9c00-b8214261a65c",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:27.978Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: a38e473e-70c1-408e-9fa3-681aca801fd1\nThe COO handoff is ready for downstream review."
+      },
+      "timestamp": "2026-04-02T20:44:28.003Z",
+      "id": "a40053a7-4f63-4bfb-8ee4-2c37907faeb8",
+      "provenance": {
+        "invocation_id": "d93f7c4e-04b9-409d-9c00-b8214261a65c",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-02T20:44:27.978Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as a38e473e-70c1-408e-9fa3-681aca801fd1.",
+        "openLoops": [],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-02T20:44:28.003Z",
+      "id": "8430295f-99bd-4221-8667-e05cbe5a421a",
+      "provenance": {
+        "invocation_id": "29edc3dd-ee90-4912-9527-7c3664f3cb15",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T20:44:27.975Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-02T20:44:25.663Z",
+  "updatedAt": "2026-04-02T20:44:28.004Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": null,
+    "onion": {
+      "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+      "last_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+      "lifecycle_status": "handoff_ready",
+      "current_layer": "approved",
+      "selected_next_question": null,
+      "no_question_reason": "The onion is already frozen and approved.",
+      "state": {
+        "topic": "Execution monitor for ADF",
+        "goal": "See what the system is currently doing, starting with the implementation queue.",
+        "expected_result": "A local URL that shows the current system status with live updates.",
+        "success_view": "I can open the page, see the queue, and drill into current execution details.",
+        "major_parts": [
+          {
+            "id": "queue_view",
+            "label": "Queue view",
+            "order": 0
+          },
+          {
+            "id": "flow_view",
+            "label": "Flow view",
+            "order": 1
+          },
+          {
+            "id": "node_details",
+            "label": "Node details",
+            "order": 2
+          },
+          {
+            "id": "audit_trail",
+            "label": "Audit trail",
+            "order": 3
+          },
+          {
+            "id": "metrics",
+            "label": "Metrics",
+            "order": 4
+          }
+        ],
+        "part_clarifications": {
+          "queue_view": {
+            "part_id": "queue_view",
+            "detail": "Show active features, current status, owner, and any blocking reason.",
+            "questions_answered": [
+              "What belongs in the queue view?"
+            ],
+            "status": "clarified"
+          },
+          "flow_view": {
+            "part_id": "flow_view",
+            "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+            "questions_answered": [
+              "What belongs in the flow view?"
+            ],
+            "status": "clarified"
+          },
+          "node_details": {
+            "part_id": "node_details",
+            "detail": "Show agent output, substeps, and timing.",
+            "questions_answered": [
+              "What should node details show?"
+            ],
+            "status": "clarified"
+          },
+          "audit_trail": {
+            "part_id": "audit_trail",
+            "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+            "questions_answered": [
+              "What belongs in the audit trail?"
+            ],
+            "status": "clarified"
+          },
+          "metrics": {
+            "part_id": "metrics",
+            "detail": "Show token usage plus total and per-step timing.",
+            "questions_answered": [
+              "What belongs in metrics?"
+            ],
+            "status": "clarified"
+          }
+        },
+        "experience_ui": {
+          "relevant": true,
+          "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+          "preview_status": "preview_approved",
+          "preview_artifact": "mockup://execution-monitor-v1",
+          "approval_notes": "Approved as the Phase 1 alignment target."
+        },
+        "boundaries": [
+          {
+            "id": "phase1_queue_first",
+            "kind": "constraint",
+            "statement": "Phase 1 focuses on the implementation queue first."
+          },
+          {
+            "id": "no_historic_analytics",
+            "kind": "non_goal",
+            "statement": "This is not a full historical analytics suite."
+          }
+        ],
+        "open_decisions": [
+          {
+            "id": "live_update_model",
+            "question": "Should live updates use polling or push for the first release?",
+            "impact": "This changes the product promise and testing expectations.",
+            "status": "resolved",
+            "resolution": "Use timed polling every 10 seconds for the first release."
+          }
+        ],
+        "freeze_status": {
+          "status": "approved",
+          "blockers": [],
+          "ready_since_turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+          "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "approval_note": "The human-facing scope is right. Freeze it."
+        },
+        "approved_snapshot": {
+          "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "approved_at": "2026-04-02T20:44:27.976Z",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ]
+        }
+      },
+      "working_artifact": {
+        "schema_version": "1.0",
+        "artifact_kind": "working_scope",
+        "topic": "Execution monitor for ADF",
+        "goal": "See what the system is currently doing, starting with the implementation queue.",
+        "expected_result": "A local URL that shows the current system status with live updates.",
+        "success_view": "I can open the page, see the queue, and drill into current execution details.",
+        "major_parts": [
+          {
+            "id": "queue_view",
+            "label": "Queue view",
+            "order": 0
+          },
+          {
+            "id": "flow_view",
+            "label": "Flow view",
+            "order": 1
+          },
+          {
+            "id": "node_details",
+            "label": "Node details",
+            "order": 2
+          },
+          {
+            "id": "audit_trail",
+            "label": "Audit trail",
+            "order": 3
+          },
+          {
+            "id": "metrics",
+            "label": "Metrics",
+            "order": 4
+          }
+        ],
+        "part_clarifications": {
+          "queue_view": {
+            "part_id": "queue_view",
+            "detail": "Show active features, current status, owner, and any blocking reason.",
+            "questions_answered": [
+              "What belongs in the queue view?"
+            ],
+            "status": "clarified"
+          },
+          "flow_view": {
+            "part_id": "flow_view",
+            "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+            "questions_answered": [
+              "What belongs in the flow view?"
+            ],
+            "status": "clarified"
+          },
+          "node_details": {
+            "part_id": "node_details",
+            "detail": "Show agent output, substeps, and timing.",
+            "questions_answered": [
+              "What should node details show?"
+            ],
+            "status": "clarified"
+          },
+          "audit_trail": {
+            "part_id": "audit_trail",
+            "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+            "questions_answered": [
+              "What belongs in the audit trail?"
+            ],
+            "status": "clarified"
+          },
+          "metrics": {
+            "part_id": "metrics",
+            "detail": "Show token usage plus total and per-step timing.",
+            "questions_answered": [
+              "What belongs in metrics?"
+            ],
+            "status": "clarified"
+          }
+        },
+        "experience_ui": {
+          "relevant": true,
+          "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+          "preview_status": "preview_approved",
+          "preview_artifact": "mockup://execution-monitor-v1",
+          "approval_notes": "Approved as the Phase 1 alignment target."
+        },
+        "boundaries": [
+          {
+            "id": "phase1_queue_first",
+            "kind": "constraint",
+            "statement": "Phase 1 focuses on the implementation queue first."
+          },
+          {
+            "id": "no_historic_analytics",
+            "kind": "non_goal",
+            "statement": "This is not a full historical analytics suite."
+          }
+        ],
+        "open_decisions": [
+          {
+            "id": "live_update_model",
+            "question": "Should live updates use polling or push for the first release?",
+            "impact": "This changes the product promise and testing expectations.",
+            "status": "resolved",
+            "resolution": "Use timed polling every 10 seconds for the first release."
+          }
+        ],
+        "freeze_status": {
+          "status": "approved",
+          "blockers": [],
+          "ready_since_turn_id": "b884b798-0a91-41d1-826b-16372eeca41b",
+          "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "approval_note": "The human-facing scope is right. Freeze it."
+        },
+        "approved_snapshot": {
+          "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "approved_at": "2026-04-02T20:44:27.976Z",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ]
+        },
+        "scope_summary": [
+          "Topic: Execution monitor for ADF",
+          "Goal: See what the system is currently doing, starting with the implementation queue.",
+          "Expected result: A local URL that shows the current system status with live updates.",
+          "Success view: I can open the page, see the queue, and drill into current execution details.",
+          "Major parts: Queue view, Flow view, Node details, Audit trail, Metrics",
+          "Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+          "Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.",
+          "Open decisions: none"
+        ]
+      },
+      "requirement_artifact": {
+        "schema_version": "1.0",
+        "artifact_kind": "requirement_list",
+        "artifact_id": "onion-requirements::onion::72ac1f75-902d-4934-a461-2d0597eeb932::b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+        "source_approval_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+        "human_scope": {
+          "approved_turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "approved_at": "2026-04-02T20:44:27.976Z",
+          "topic": "Execution monitor for ADF",
+          "goal": "See what the system is currently doing, starting with the implementation queue.",
+          "expected_result": "A local URL that shows the current system status with live updates.",
+          "success_view": "I can open the page, see the queue, and drill into current execution details.",
+          "major_parts": [
+            {
+              "id": "queue_view",
+              "label": "Queue view",
+              "order": 0
+            },
+            {
+              "id": "flow_view",
+              "label": "Flow view",
+              "order": 1
+            },
+            {
+              "id": "node_details",
+              "label": "Node details",
+              "order": 2
+            },
+            {
+              "id": "audit_trail",
+              "label": "Audit trail",
+              "order": 3
+            },
+            {
+              "id": "metrics",
+              "label": "Metrics",
+              "order": 4
+            }
+          ],
+          "part_clarifications": {
+            "queue_view": {
+              "part_id": "queue_view",
+              "detail": "Show active features, current status, owner, and any blocking reason.",
+              "questions_answered": [
+                "What belongs in the queue view?"
+              ],
+              "status": "clarified"
+            },
+            "flow_view": {
+              "part_id": "flow_view",
+              "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+              "questions_answered": [
+                "What belongs in the flow view?"
+              ],
+              "status": "clarified"
+            },
+            "node_details": {
+              "part_id": "node_details",
+              "detail": "Show agent output, substeps, and timing.",
+              "questions_answered": [
+                "What should node details show?"
+              ],
+              "status": "clarified"
+            },
+            "audit_trail": {
+              "part_id": "audit_trail",
+              "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+              "questions_answered": [
+                "What belongs in the audit trail?"
+              ],
+              "status": "clarified"
+            },
+            "metrics": {
+              "part_id": "metrics",
+              "detail": "Show token usage plus total and per-step timing.",
+              "questions_answered": [
+                "What belongs in metrics?"
+              ],
+              "status": "clarified"
+            }
+          },
+          "experience_ui": {
+            "relevant": true,
+            "summary": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "preview_status": "preview_approved",
+            "preview_artifact": "mockup://execution-monitor-v1",
+            "approval_notes": "Approved as the Phase 1 alignment target."
+          },
+          "boundaries": [
+            {
+              "id": "phase1_queue_first",
+              "kind": "constraint",
+              "statement": "Phase 1 focuses on the implementation queue first."
+            },
+            {
+              "id": "no_historic_analytics",
+              "kind": "non_goal",
+              "statement": "This is not a full historical analytics suite."
+            }
+          ],
+          "open_decisions": [
+            {
+              "id": "live_update_model",
+              "question": "Should live updates use polling or push for the first release?",
+              "impact": "This changes the product promise and testing expectations.",
+              "status": "resolved",
+              "resolution": "Use timed polling every 10 seconds for the first release."
+            }
+          ]
+        },
+        "requirement_items": [
+          {
+            "id": "scope-anchor",
+            "title": "Feature outcome",
+            "detail": "Goal: See what the system is currently doing, starting with the implementation queue.\nExpected result: A local URL that shows the current system status with live updates.\nSuccess view: I can open the page, see the queue, and drill into current execution details.",
+            "source_refs": [
+              "goal",
+              "expected_result",
+              "success_view"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:queue_view",
+            "title": "Queue view",
+            "detail": "Show active features, current status, owner, and any blocking reason.",
+            "source_refs": [
+              "major_parts.queue_view",
+              "part_clarifications.queue_view"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:flow_view",
+            "title": "Flow view",
+            "detail": "Show the current step path, review rounds, and visible branching for parallel execution.",
+            "source_refs": [
+              "major_parts.flow_view",
+              "part_clarifications.flow_view"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:node_details",
+            "title": "Node details",
+            "detail": "Show agent output, substeps, and timing.",
+            "source_refs": [
+              "major_parts.node_details",
+              "part_clarifications.node_details"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:audit_trail",
+            "title": "Audit trail",
+            "detail": "Show completed steps, who did them, when they finished, and why state changed.",
+            "source_refs": [
+              "major_parts.audit_trail",
+              "part_clarifications.audit_trail"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "major-part:metrics",
+            "title": "Metrics",
+            "detail": "Show token usage plus total and per-step timing.",
+            "source_refs": [
+              "major_parts.metrics",
+              "part_clarifications.metrics"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          },
+          {
+            "id": "experience-ui",
+            "title": "Experience / UI alignment",
+            "detail": "A single-page dashboard with a queue list, a flow canvas, and a detail drawer.",
+            "source_refs": [
+              "experience_ui.summary",
+              "experience_ui.preview_artifact"
+            ],
+            "meaning_preservation": "verbatim_from_approved_snapshot"
+          }
+        ],
+        "explicit_boundaries": [
+          {
+            "id": "phase1_queue_first",
+            "kind": "constraint",
+            "statement": "Phase 1 focuses on the implementation queue first."
+          },
+          {
+            "id": "no_historic_analytics",
+            "kind": "non_goal",
+            "statement": "This is not a full historical analytics suite."
+          }
+        ],
+        "open_business_decisions": [],
+        "derivation_status": "ready",
+        "blockers": [],
+        "derivation_notes": [
+          "Derived only from the approved onion snapshot.",
+          "No LLM expansion or silent business guessing was used."
+        ]
+      },
+      "finalized_requirement_memory_id": "a38e473e-70c1-408e-9fa3-681aca801fd1",
+      "latest_audit_trace": {
+        "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+        "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+        "current_layer": "approved",
+        "workflow_step": "handoff_ready",
+        "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
+        "selected_next_question": null,
+        "no_question_reason": "The onion is already frozen and approved.",
+        "freeze_blockers": [],
+        "open_decisions_snapshot": [
+          {
+            "id": "live_update_model",
+            "question": "Should live updates use polling or push for the first release?",
+            "impact": "This changes the product promise and testing expectations.",
+            "status": "resolved",
+            "resolution": "Use timed polling every 10 seconds for the first release."
+          }
+        ],
+        "artifact_change_summary": [
+          "Recorded explicit whole-onion freeze approval."
+        ],
+        "result_status": "ready_for_handoff"
+      },
+      "latest_llm_calls": [
+        {
+          "trace_id": "onion::72ac1f75-902d-4934-a461-2d0597eeb932",
+          "turn_id": "b68a0496-b5fa-49da-bbaf-8bb49a870a2e",
+          "provider": "codex",
+          "model": "gpt-5.4",
+          "purpose": "onion_turn_parse",
+          "latency_ms": 23,
+          "tokens_in": 665,
+          "tokens_out": 24,
+          "estimated_cost_usd": 0.003441,
+          "fallback_used": false,
+          "success": true
+        }
+      ],
+      "latest_persistence_receipts": [
+        {
+          "kind": "finalized_requirement_create",
+          "target": "memory_engine",
+          "status": "created",
+          "artifact_kind": "requirement_list",
+          "action": "create",
+          "scope_path": "assafyavnai/shippingagent",
+          "record_id": "a38e473e-70c1-408e-9fa3-681aca801fd1",
+          "success": true,
+          "message": "Persisted the finalized requirement artifact through the governed requirements surface."
+        },
+        {
+          "kind": "finalized_requirement_lock",
+          "target": "memory_engine",
+          "status": "locked",
+          "artifact_kind": "requirement_list",
+          "action": "update_trust_level",
+          "scope_path": "assafyavnai/shippingagent",
+          "record_id": "a38e473e-70c1-408e-9fa3-681aca801fd1",
+          "success": true,
+          "message": "Locked the finalized requirement artifact after approved freeze."
+        },
+        {
+          "kind": "thread_workflow_state",
+          "target": "thread",
+          "status": "stored",
+          "artifact_kind": "working_scope",
+          "action": "persist",
+          "scope_path": "assafyavnai/shippingagent",
+          "record_id": null,
+          "success": true,
+          "message": "Thread workflow state persisted for the live onion turn."
+        }
+      ]
+    }
+  }
+}

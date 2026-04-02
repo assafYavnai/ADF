@@ -505,6 +505,24 @@ async function persistOnionArtifacts(input: {
     };
   }
 
+  if (!input.config.brainManageMemory) {
+    receipts.push(OnionPersistenceReceipt.parse({
+      kind: "finalized_requirement_create",
+      target: "memory_engine",
+      status: "skipped",
+      artifact_kind: "requirement_list",
+      action: "create",
+      scope_path: input.scopePath,
+      success: false,
+      message: "Skipped finalized requirement creation because the memory-manage route is not connected, so the artifact cannot be locked truthfully.",
+    }));
+    return {
+      finalizedRequirementMemoryId: null,
+      receipts,
+    };
+  }
+
+  let provisionalFinalizedRequirementMemoryId: string | null = null;
   try {
     const createReceipt = await input.config.brainCreateRequirement(
       `Finalized requirements: ${input.requirementArtifact.human_scope.topic}`,
@@ -517,18 +535,21 @@ async function persistOnionArtifacts(input: {
       ["requirements-gathering", "onion", "finalized-requirement-list", "coo-owned"],
       input.scopePath,
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-create/${input.traceId}/${input.turnId}`),
+      {
+        workflow_status: "pending_finalization",
+      },
     );
-    finalizedRequirementMemoryId = typeof createReceipt.id === "string" ? createReceipt.id : null;
+    provisionalFinalizedRequirementMemoryId = typeof createReceipt.id === "string" ? createReceipt.id : null;
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_create",
       target: "memory_engine",
-      status: finalizedRequirementMemoryId ? "created" : "failed",
+      status: provisionalFinalizedRequirementMemoryId ? "created" : "failed",
       artifact_kind: "requirement_list",
       action: "create",
       scope_path: input.scopePath,
-      record_id: finalizedRequirementMemoryId,
-      success: Boolean(finalizedRequirementMemoryId),
-      message: finalizedRequirementMemoryId
+      record_id: provisionalFinalizedRequirementMemoryId,
+      success: Boolean(provisionalFinalizedRequirementMemoryId),
+      message: provisionalFinalizedRequirementMemoryId
         ? "Persisted the finalized requirement artifact through the governed requirements surface."
         : "The governed requirements surface did not return an artifact id.",
     }));
@@ -549,27 +570,9 @@ async function persistOnionArtifacts(input: {
     };
   }
 
-  if (!finalizedRequirementMemoryId) {
+  if (!provisionalFinalizedRequirementMemoryId) {
     return {
       finalizedRequirementMemoryId: null,
-      receipts,
-    };
-  }
-
-  if (!input.config.brainManageMemory) {
-    receipts.push(OnionPersistenceReceipt.parse({
-      kind: "finalized_requirement_lock",
-      target: "memory_engine",
-      status: "failed",
-      artifact_kind: "requirement_list",
-      action: "update_trust_level",
-      scope_path: input.scopePath,
-      record_id: finalizedRequirementMemoryId,
-      success: false,
-      message: "The memory-manage route is not connected, so the finalized requirement artifact could not be locked.",
-    }));
-    return {
-      finalizedRequirementMemoryId,
       receipts,
     };
   }
@@ -577,12 +580,13 @@ async function persistOnionArtifacts(input: {
   try {
     const lockReceipt = await input.config.brainManageMemory(
       "update_trust_level",
-      finalizedRequirementMemoryId,
+      provisionalFinalizedRequirementMemoryId,
       input.scopePath,
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-lock/${input.traceId}/${input.turnId}`),
       {
         trust_level: "locked",
         reason: "Approved requirements artifact must become durable COO-owned truth for downstream use.",
+        workflow_status: "current",
       },
     );
     assertSuccessfulMemoryManageMutation(
@@ -596,10 +600,11 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "update_trust_level",
       scope_path: input.scopePath,
-      record_id: finalizedRequirementMemoryId,
+      record_id: provisionalFinalizedRequirementMemoryId,
       success: true,
       message: "Locked the finalized requirement artifact after approved freeze.",
     }));
+    finalizedRequirementMemoryId = provisionalFinalizedRequirementMemoryId;
   } catch (error) {
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_lock",
@@ -608,10 +613,18 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "update_trust_level",
       scope_path: input.scopePath,
-      record_id: finalizedRequirementMemoryId,
+      record_id: provisionalFinalizedRequirementMemoryId,
       success: false,
       message: error instanceof Error ? error.message : String(error),
     }));
+    receipts.push(await retireProvisionalFinalizedRequirement({
+      traceId: input.traceId,
+      turnId: input.turnId,
+      scopePath: input.scopePath,
+      memoryId: provisionalFinalizedRequirementMemoryId,
+      brainManageMemory: input.config.brainManageMemory,
+    }));
+    finalizedRequirementMemoryId = null;
   }
 
   return {
@@ -639,6 +652,51 @@ function assertSuccessfulMemoryManageMutation(
     detail.push(`reason=${reason}`);
   }
   throw new Error(`${failurePrefix} (${detail.join(", ")})`);
+}
+
+async function retireProvisionalFinalizedRequirement(input: {
+  traceId: string;
+  turnId: string;
+  scopePath: string;
+  memoryId: string;
+  brainManageMemory: NonNullable<ControllerConfig["brainManageMemory"]>;
+}): Promise<OnionPersistenceReceiptType> {
+  try {
+    const retireReceipt = await input.brainManageMemory(
+      "archive",
+      input.memoryId,
+      input.scopePath,
+      createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-retire/${input.traceId}/${input.turnId}`),
+      { reason: "Retire provisional finalized requirement after durable lock failure." },
+    );
+    assertSuccessfulMemoryManageMutation(
+      retireReceipt,
+      "Could not retire the provisional finalized requirement artifact after the durable lock step failed.",
+    );
+    return OnionPersistenceReceipt.parse({
+      kind: "provisional_finalized_requirement_retire",
+      target: "memory_engine",
+      status: "archived",
+      artifact_kind: "requirement_list",
+      action: "archive",
+      scope_path: input.scopePath,
+      record_id: input.memoryId,
+      success: true,
+      message: "Retired the provisional finalized requirement artifact after the durable lock step failed.",
+    });
+  } catch (error) {
+    return OnionPersistenceReceipt.parse({
+      kind: "provisional_finalized_requirement_retire",
+      target: "memory_engine",
+      status: "failed",
+      artifact_kind: "requirement_list",
+      action: "archive",
+      scope_path: input.scopePath,
+      record_id: input.memoryId,
+      success: false,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 function buildOnionTurn(userEvent: UserInputEvent, userMessage: string, update: z.infer<typeof OnionTurnUpdate>): OnionTurn {

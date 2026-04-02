@@ -1,0 +1,50 @@
+<workflow_state>
+Workflow owner: requirements_gathering_onion (persisted)
+Lifecycle status: handoff_ready
+Current layer: approved
+Freeze status: approved
+Topic: Execution monitor for ADF
+Goal: See what the system is currently doing, starting with the implementation queue.
+Expected result: A local URL that shows the current system status with live updates.
+Success view: I can open the page, see the queue, and drill into current execution details.
+Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
+Open decisions remaining: 0
+No next question: The onion is already frozen and approved.
+Finalized requirement memory id: c7ae14d9-5135-4234-b5cc-cea27f4ab38b
+Approved snapshot turn id: fba93869-18e1-4a42-879a-8f8b88867894
+Approved snapshot time: 2026-04-02T20:44:32.802Z
+Topic: Execution monitor for ADF
+Goal: See what the system is currently doing, starting with the implementation queue.
+Expected result: A local URL that shows the current system status with live updates.
+Success view: I can open the page, see the queue, and drill into current execution details.
+Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
+Experience/UI: A single-page dashboard with a queue list, a flow canvas, and a detail drawer.
+Boundaries: Phase 1 focuses on the implementation queue first. | This is not a full historical analytics suite.
+Open decisions: none
+</workflow_state>
+
+<thread_checkpoint>
+<state_commit>
+{
+  "summary": "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
+  "openLoops": [
+    "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully."
+  ],
+  "decisions": [],
+  "sessionHandles": {
+    "classifier": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "session_id": "stub-session-1",
+      "source": "provider_returned"
+    },
+    "intelligence": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "stub-session-2",
+      "source": "provider_returned"
+    }
+  }
+}
+</state_commit>
+</thread_checkpoint>

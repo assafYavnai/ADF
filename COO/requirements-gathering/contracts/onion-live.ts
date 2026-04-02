@@ -12,6 +12,7 @@ export const OnionPersistenceReceipt = z.object({
     "thread_workflow_state",
     "finalized_requirement_create",
     "finalized_requirement_lock",
+    "provisional_finalized_requirement_retire",
     "superseded_requirement_retire",
   ]),
   target: z.enum(["thread", "memory_engine"]),
