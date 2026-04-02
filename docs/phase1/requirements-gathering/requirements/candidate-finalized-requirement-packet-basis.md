@@ -1,0 +1,90 @@
+# Candidate Finalized Requirement Packet Basis
+
+Candidate shadow basis only. Derived from reviewed requirement-gathering artifacts. Not approved or frozen.
+
+## Feature
+
+- Feature slug: `requirements-gathering`
+- Feature name: `requirements-gathering`
+
+## Business Intent
+
+Review the requirements-gathering implementation end to end.
+
+## User-Facing Goal
+
+Review the requirements-gathering implementation end to end, with emphasis on the live COO onion integration route, persistence, telemetry, recovery, documentation, and proof.
+
+## Human Success View
+
+classifier, controller, thread, and live onion adapter stay contract-aligned; active onion threads fail closed when the gate is disabled; onion state and finalized artifacts persist truthfully and resume truthfully; approved human meaning is preserved in derived requirements with no silent guessing; route-level telemetry and workflow audit are durable, not only in memory; the runtime proof reflects real behavior rather than a mocked endpoint-only shortcut; sibling routes and persistence/telemetry surfaces were checked, not just the new adapter.
+
+## Human Testing View
+
+Committed evidence should cover CLI arg and env gate resolution, scripted stdin routing into the onion lane, durable thread and telemetry output, CLI shutdown or outbox replay behavior, truthful finalized-artifact create and lock, no-scope fail-closed behavior, frozen-thread recovery visibility after `handoff_ready`, governed supersession of prior locked artifacts on reopen, and updated proof, report, and doc artifacts that match the actual live-vs-proof bootstrap behavior.
+
+## Major Scope Items
+
+1. `scope-live-route` - The target live route is: `CLI -> controller -> classifier -> requirements_gathering_onion -> thread workflow state + governed requirement persistence -> COO response -> telemetry.`
+2. `scope-persistence` - Onion state and finalized artifacts must persist truthfully, fail closed when inputs are insufficient, and retire stale locked artifacts through the governed supersession path when scope reopens.
+3. `scope-telemetry` - Route-level telemetry and workflow audit must be durable, not only in memory.
+4. `scope-recovery` - Frozen-thread recovery must keep approved onion meaning visible in thread serialization and preserve persisted onion ownership for truthful follow-up turns.
+5. `scope-documentation` - Authoritative docs and proof artifacts must describe the actual route boundaries and the separated live-vs-proof bootstrap behavior accurately.
+6. `scope-proof` - The runtime proof must reflect real behavior rather than a mocked endpoint-only shortcut.
+
+## Boundaries
+
+- Use the task summary and current repo state to keep the fix route-level and tight.
+- Review the requirements-gathering implementation end to end, with emphasis on the live COO onion integration route, persistence, telemetry, recovery, documentation, and proof.
+
+## Non-Goals
+
+- Do not redesign the full controller architecture.
+- Do not widen into downstream CTO implementation workflows.
+- Do not redesign shared telemetry or the shared LLM invoker unless a real route defect forces it.
+- Do not rebuild the dormant onion engine from scratch unless a concrete integration defect requires a targeted correction.
+- No controller-loop redesign.
+- No onion workflow redesign.
+- No telemetry schema redesign.
+- No broad test-framework rewrite.
+
+## Constraints
+
+- The supported runtime route under review is `CLI -> controller -> classifier -> requirements_gathering_onion -> thread workflow state + governed requirement persistence -> COO response -> telemetry`.
+- Gate controls remain `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION`, `--enable-onion`, and `--disable-onion`.
+- The governed supersession route is intentionally narrow: only COO-owned locked finalized requirement artifacts can be retired this way.
+- The standard COO CLI bootstrap must always use the real invoker path in normal operation and must not accept proof-only deterministic parser updates unless an explicit test-only mode is enabled.
+
+## Acceptance Examples
+
+1. `ex-cli-bootstrap`
+   - Scenario: Run the requirements-gathering route through the real COO CLI bootstrap with the onion feature gate enabled.
+   - Expected outcome: The proof enters through CLI bootstrap, covers gate resolution, scripted stdin routing, persisted thread output, telemetry replay and shutdown behavior, and produces truthful CLI-entry artifacts.
+2. `ex-gate-disabled-followup`
+   - Scenario: Resume a `handoff_ready` onion thread while the live onion gate is disabled.
+   - Expected outcome: The turn fails closed as `requirements_gathering_onion`, preserves thread truth, and records `workflow=requirements_gathering_onion` with `gate_status=disabled`.
+3. `ex-frozen-thread-recovery`
+   - Scenario: Serialize and recover a `handoff_ready` onion thread for later COO/context use.
+   - Expected outcome: The recovery surface still exposes workflow ownership, freeze status, approved snapshot identity, and approved human scope after `handoff_ready`.
+4. `ex-finalized-create-lock`
+   - Scenario: Freeze an explicitly approved onion snapshot with explicit scope.
+   - Expected outcome: The route creates and locks the finalized requirement artifact through governed persistence and leaves truthful receipts.
+5. `ex-no-scope-fail-closed`
+   - Scenario: Freeze the human-facing scope when no explicit scope path exists for durable persistence.
+   - Expected outcome: The route blocks the durable handoff, does not persist a finalized requirement artifact, and reports the failure truthfully.
+6. `ex-reopen-supersession`
+   - Scenario: Reopen a frozen scope, retire the prior locked finalized requirement through governed supersession, and re-approve a replacement.
+   - Expected outcome: The prior locked artifact stops serving as current truth and re-approval creates and locks a replacement finalized requirement artifact.
+7. `ex-proof-isolation`
+   - Scenario: Run the standard CLI with a proof-only parser-update env var but without explicit proof mode, and run the guarded proof harness separately with explicit proof mode.
+   - Expected outcome: Normal CLI execution refuses or ignores proof-only invoker injection, while the guarded proof path still produces deterministic CLI route artifacts.
+
+## Open Decisions
+
+None.
+
+## Freeze State
+
+- Status: `blocked`
+- Approval source: No authoritative Phase 0 freeze approval artifact was found under `docs/phase1/requirements-gathering/requirements/` or the current review-cycle artifacts.
+- Approval notes: Candidate basis derived from reviewed requirement-gathering materials only. Phase 0 is still open: `cycle-03` is `implementation_running` and no explicit feature-stream freeze approval is present in the current source set.

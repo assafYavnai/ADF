@@ -1,0 +1,182 @@
+{
+  "artifact_type": "frozen_requirement_contract",
+  "artifact_state": "candidate_shadow",
+  "feature_slug": "requirements-gathering",
+  "feature_name": "requirements-gathering",
+  "source_packet_ref": "requirements/candidate-finalized-requirement-packet-basis.json",
+  "intent": {
+    "business_intent": "Review the requirements-gathering implementation end to end.",
+    "user_facing_goal": "Review the requirements-gathering implementation end to end, with emphasis on the live COO onion integration route, persistence, telemetry, recovery, documentation, and proof."
+  },
+  "functional_requirements": [
+    {
+      "id": "FR-001",
+      "statement": "The supported requirements-gathering route shall remain explicit and bounded as CLI -> controller -> classifier -> requirements_gathering_onion -> thread workflow state + governed requirement persistence -> COO response -> telemetry.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-live-route"
+      ]
+    },
+    {
+      "id": "FR-002",
+      "statement": "The standard COO CLI bootstrap shall always use the real invoker path in normal operation and shall not accept proof-only deterministic parser updates unless explicit proof mode is enabled.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-live-route",
+        "scope-proof"
+      ]
+    },
+    {
+      "id": "FR-003",
+      "statement": "A handoff_ready onion thread with persisted onion state shall remain onion-owned for follow-up gating and routing even when active_workflow is null.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-live-route",
+        "scope-recovery"
+      ]
+    },
+    {
+      "id": "FR-004",
+      "statement": "Frozen-thread serialization and recovery shall preserve workflow ownership, freeze status, approved snapshot identity, and approved human scope details after handoff_ready.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-recovery"
+      ]
+    },
+    {
+      "id": "FR-005",
+      "statement": "The route shall create and lock a finalized requirement artifact only from an explicitly approved onion snapshot with explicit scope and no blocking ambiguity.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-persistence"
+      ]
+    },
+    {
+      "id": "FR-006",
+      "statement": "If explicit scope is missing at handoff time, the route shall block the durable handoff and report the failure truthfully instead of persisting a finalized requirement artifact.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-persistence"
+      ]
+    },
+    {
+      "id": "FR-007",
+      "statement": "When a frozen scope reopens, the prior locked finalized requirement artifact shall be retired through the governed supersession path before a replacement handoff proceeds.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-persistence"
+      ]
+    },
+    {
+      "id": "FR-008",
+      "statement": "Route-level telemetry and workflow audit shall durably record the real route behavior, including handle_turn workflow metadata, onion operation records, LLM calls, replayed outbox events, and shutdown behavior.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-telemetry",
+        "scope-proof"
+      ]
+    },
+    {
+      "id": "FR-009",
+      "statement": "Proof artifacts shall cover the reviewed route claims through committed runtime evidence rather than endpoint-only shortcuts or mocked bootstrap behavior.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-proof"
+      ]
+    },
+    {
+      "id": "FR-010",
+      "statement": "Documentation and proof reports shall describe the actual proved route boundaries, supersession behavior, and live-vs-proof bootstrap behavior truthfully.",
+      "priority": "required",
+      "source_scope_item_ids": [
+        "scope-documentation",
+        "scope-proof"
+      ]
+    }
+  ],
+  "acceptance_checks": [
+    {
+      "id": "AC-001",
+      "statement": "A CLI-entry proof run with onion enabled proves gate resolution, scripted stdin routing, persisted thread output, telemetry replay and shutdown behavior, and truthful CLI-entry artifacts.",
+      "source_example_ids": [
+        "ex-cli-bootstrap"
+      ]
+    },
+    {
+      "id": "AC-002",
+      "statement": "Resuming a handoff_ready thread with onion disabled returns the explicit gate block, preserves thread truth, and records workflow=requirements_gathering_onion with gate_status=disabled.",
+      "source_example_ids": [
+        "ex-gate-disabled-followup"
+      ]
+    },
+    {
+      "id": "AC-003",
+      "statement": "A serialized handoff_ready thread still exposes persisted workflow ownership, freeze status, approved snapshot identity, and approved human scope details.",
+      "source_example_ids": [
+        "ex-frozen-thread-recovery"
+      ]
+    },
+    {
+      "id": "AC-004",
+      "statement": "Approved freeze with explicit scope creates and locks the finalized requirement artifact through governed persistence and leaves truthful receipts.",
+      "source_example_ids": [
+        "ex-finalized-create-lock"
+      ]
+    },
+    {
+      "id": "AC-005",
+      "statement": "Approved freeze without explicit scope blocks the durable handoff, does not persist a finalized requirement artifact, and reports the failure truthfully.",
+      "source_example_ids": [
+        "ex-no-scope-fail-closed"
+      ]
+    },
+    {
+      "id": "AC-006",
+      "statement": "Reopen -> governed supersession -> reapprove retires the old locked artifact from current truth and creates a locked replacement finalized requirement artifact.",
+      "source_example_ids": [
+        "ex-reopen-supersession"
+      ]
+    },
+    {
+      "id": "AC-007",
+      "statement": "Standard CLI execution refuses or ignores proof-only parser-update injection unless explicit proof mode is enabled, while guarded proof mode still produces deterministic CLI route artifacts.",
+      "source_example_ids": [
+        "ex-proof-isolation"
+      ]
+    },
+    {
+      "id": "AC-008",
+      "statement": "Updated docs and proof reports explicitly separate live production bootstrap behavior from proof-only bootstrap behavior and do not overclaim route closure.",
+      "source_example_ids": [
+        "ex-cli-bootstrap",
+        "ex-proof-isolation"
+      ]
+    }
+  ],
+  "boundaries": [
+    "Use the task summary and current repo state to keep the fix route-level and tight.",
+    "Review the requirements-gathering implementation end to end, with emphasis on the live COO onion integration route, persistence, telemetry, recovery, documentation, and proof."
+  ],
+  "non_goals": [
+    "Do not redesign the full controller architecture.",
+    "Do not widen into downstream CTO implementation workflows.",
+    "Do not redesign shared telemetry or the shared LLM invoker unless a real route defect forces it.",
+    "Do not rebuild the dormant onion engine from scratch unless a concrete integration defect requires a targeted correction.",
+    "No controller-loop redesign.",
+    "No onion workflow redesign.",
+    "No telemetry schema redesign.",
+    "No broad test-framework rewrite."
+  ],
+  "constraints": [
+    "The supported runtime route under review is CLI -> controller -> classifier -> requirements_gathering_onion -> thread workflow state + governed requirement persistence -> COO response -> telemetry.",
+    "Gate controls remain ADF_ENABLE_REQUIREMENTS_GATHERING_ONION, --enable-onion, and --disable-onion.",
+    "The governed supersession route is intentionally narrow: only COO-owned locked finalized requirement artifacts can be retired this way.",
+    "The standard COO CLI bootstrap must always use the real invoker path in normal operation and must not accept proof-only deterministic parser updates unless an explicit test-only mode is enabled."
+  ],
+  "assumptions": [],
+  "unresolved_business_decisions": [],
+  "freeze_state": {
+    "status": "blocked",
+    "reason": "Phase 0 for requirements-gathering is not authoritatively closed yet: no explicit feature-stream freeze approval or finalized-requirement-packet exists, and cycle-03 remains open on production-vs-proof CLI bootstrap isolation."
+  }
+}
