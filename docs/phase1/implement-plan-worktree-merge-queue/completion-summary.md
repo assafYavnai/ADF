@@ -39,7 +39,7 @@
 - Machine Verification: cycle-01 review hardening proved `merge-queue enqueue` now rejects state that only has `last_commit_sha`, and proved same-lane `process-next` blocking plus cross-lane independence under `C:/ADF/tmp/merge-queue-cycle-proof`.
 - Human Verification Requirement: Required: false.
 - Human Verification Status: not_required.
-- Review-Cycle Status: cycle-01 found and fixed approval-bypass and same-lane serialization defects; approval pass still pending.
+- Review-Cycle Status: cycle-02 approved after cycle-01 fixed approval-bypass and same-lane serialization defects.
 - Merge Status: feature mechanics implemented; this feature stream itself is not yet queued or merged in this turn.
 - Local Target Sync Status: not_started for this feature stream; the temp smoke recorded `skipped_dirty_checkout` truthfully for its own repo.
 
