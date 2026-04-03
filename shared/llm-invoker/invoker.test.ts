@@ -19,6 +19,10 @@ test("buildInvocationTelemetryEvent captures llm attempt metadata and usage", ()
     latency_ms: 123,
     success: true,
     session_status: "resumed",
+    telemetry_metadata: {
+      thread_id: "thread-123",
+      workflow: "direct_coo_response",
+    },
     usage: {
       prompt_chars: 100,
       response_chars: 40,
@@ -40,6 +44,8 @@ test("buildInvocationTelemetryEvent captures llm attempt metadata and usage", ()
   assert.equal((directEvent.metadata as Record<string, unknown>).attempt_index, 1);
   assert.equal((directEvent.metadata as Record<string, unknown>).attempt_count, 2);
   assert.equal((directEvent.metadata as Record<string, unknown>).session_status, "resumed");
+  assert.equal((directEvent.metadata as Record<string, unknown>).thread_id, "thread-123");
+  assert.equal((directEvent.metadata as Record<string, unknown>).workflow, "direct_coo_response");
 
   const failedAttempt = {
     provenance: createLLMProvenance(

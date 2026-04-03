@@ -1,7 +1,7 @@
 # ADF Architecture
 
 Status: locked decisions
-Last updated: 2026-04-02
+Last updated: 2026-04-03
 
 ---
 
@@ -40,6 +40,10 @@ User input -> Controller ingress -> Load thread truth -> Intent classification
 
 The memory engine is the durable source of truth for decisions, rules, requirements, settings, findings, and telemetry.
 The thread is the durable truth for the active session and live workflow progression.
+The system-wide KPI instrumentation rule is defined in `docs/v0/kpi-instrumentation-requirement.md`.
+No new live route, resource-consuming production path, or substantive production-affecting refactor is complete until that rule is satisfied with truthful proof.
+Raw KPI truth remains append-only in the PostgreSQL `telemetry` table; derived summaries must stay read-only and must be computed from raw telemetry rather than replacing it.
+Production-vs-proof telemetry isolation is mandatory. Rollups default to production and proof rows must remain explicitly partitioned.
 
 ## Full Detail
 

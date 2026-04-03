@@ -58,6 +58,10 @@ Respond ONLY with valid JSON matching this schema:
   "reasoning": "brief explanation"
 }
 
+Important JSON rule:
+- If workflow is NOT "memory_operation", omit the "tool" field completely.
+- Never return "tool": null.
+
 Classification rules:
 - "save this decision", "log decision", "record this decision" -> memory_operation + decision_log
 - "remember this", "save this", "note that" -> memory_operation + memory_capture
@@ -96,6 +100,16 @@ export function parseClassifierResponse(raw: string): ClassifierOutput {
     cleaned = cleaned.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
   }
 
-  const parsed = JSON.parse(cleaned);
+  const parsed = JSON.parse(cleaned) as Record<string, unknown>;
+
+  // Some providers return explicit null for optional fields.
+  // Normalize that into field omission so the contract stays strict.
+  if (parsed.tool === null) {
+    delete parsed.tool;
+  }
+  if (parsed.reasoning === null) {
+    delete parsed.reasoning;
+  }
+
   return ClassifierOutput.parse(parsed);
 }

@@ -11,7 +11,7 @@ import { resolveScope } from "./services/scope.js";
 import { logDecision, DECISION_TOOL_DEFINITIONS } from "./tools/decision-tools.js";
 import { handleGovernance, GOVERNANCE_TOOL_DEFINITIONS } from "./tools/governance-tools.js";
 import { MEMORY_TOOL_DEFINITIONS } from "./tools/memory-tools.js";
-import { handleEmitMetric, handleEmitMetricsBatch, handleQueryMetrics, handleGetCostSummary, insertMetricEvents, TELEMETRY_TOOL_DEFINITIONS } from "./tools/telemetry-tools.js";
+import { handleEmitMetric, handleEmitMetricsBatch, handleQueryMetrics, handleGetCostSummary, handleGetKpiSummary, insertMetricEvents, TELEMETRY_TOOL_DEFINITIONS } from "./tools/telemetry-tools.js";
 import { CaptureMemoryInput, SearchMemoryInput, MemoryManageInput, ContextSummaryInput, ListRecentInput } from "./schemas/memory-item.js";
 import { ProvenanceSchema, createSystemProvenance, type Provenance } from "./provenance.js";
 
@@ -42,6 +42,7 @@ server.setRequestHandler(
     const { name, arguments: args = {} } = request.params;
     const toolStart = Date.now();
     const callerProvenance = extractToolProvenance(args);
+    const telemetryContext = extractToolTelemetryContext(args);
 
     try {
       let response:
@@ -126,6 +127,8 @@ server.setRequestHandler(
           return handleQueryMetrics(args);
         case "get_cost_summary":
           return handleGetCostSummary(args);
+        case "get_kpi_summary":
+          return handleGetKpiSummary(args);
 
         default:
           return {
@@ -141,6 +144,8 @@ server.setRequestHandler(
       await emitToolRouteTelemetry(name, callerProvenance, Date.now() - toolStart, true, {
         scope: typeof args.scope === "string" ? args.scope : undefined,
         action: typeof args.action === "string" ? args.action : undefined,
+        ...telemetryContext,
+        ...summarizeToolResponse(name, response),
       });
       return response;
     } catch (err) {
@@ -148,6 +153,7 @@ server.setRequestHandler(
       await emitToolRouteTelemetry(name, callerProvenance, Date.now() - toolStart, false, {
         scope: typeof args.scope === "string" ? args.scope : undefined,
         action: typeof args.action === "string" ? args.action : undefined,
+        ...telemetryContext,
         error: message,
       });
       logger.error(`Tool ${name} failed:`, message);
@@ -202,6 +208,14 @@ function extractToolProvenance(
   return null;
 }
 
+function extractToolTelemetryContext(args: Record<string, unknown>): Record<string, unknown> {
+  const candidate = args.telemetry_context;
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+    return {};
+  }
+  return candidate as Record<string, unknown>;
+}
+
 function buildMemoryManageReceipt(
   action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level" | "publish_finalized_requirement",
   memoryId: string,
@@ -242,7 +256,8 @@ async function recordMemoryManageTelemetry(
   db: { query: (text: string, params: unknown[]) => Promise<unknown> },
   provenance: Provenance,
   action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level" | "publish_finalized_requirement",
-  receipt: ReturnType<typeof buildMemoryManageReceipt>
+  receipt: ReturnType<typeof buildMemoryManageReceipt>,
+  telemetryContext: Record<string, unknown>,
 ): Promise<void> {
   await insertMetricEvents(db, [
     {
@@ -254,7 +269,10 @@ async function recordMemoryManageTelemetry(
       operation: `memory_manage:${action}`,
       latency_ms: 0,
       success: receipt.success,
-      metadata: receipt,
+      metadata: {
+        ...receipt,
+        ...telemetryContext,
+      },
     },
   ]);
 }
@@ -273,7 +291,7 @@ async function executeMemoryManageRoute(
     const scopedMutation = buildScopedMutation(input, scope, provenance);
     const result = await client.query(scopedMutation.sql, scopedMutation.params);
     receipt = buildMemoryManageReceipt(input.action, input.memory_id, result.rowCount ?? 0, input.reason);
-    await recordMemoryManageTelemetry(client, provenance, input.action, receipt);
+    await recordMemoryManageTelemetry(client, provenance, input.action, receipt, input.telemetry_context ?? {});
   });
 
   return receipt;
@@ -491,6 +509,68 @@ function shouldEmitToolRouteTelemetry(toolName: string): boolean {
     "emit_metrics_batch",
     "query_metrics",
     "get_cost_summary",
+    "get_kpi_summary",
     "memory_manage",
   ].includes(toolName);
+}
+
+function summarizeToolResponse(
+  toolName: string,
+  response: { content: Array<{ type: string; text: string }>; isError?: boolean },
+): Record<string, unknown> {
+  const text = response.content.find((item) => item.type === "text" && typeof item.text === "string")?.text?.trim();
+  if (!text) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(text);
+    switch (toolName) {
+      case "search_memory":
+        return Array.isArray(parsed)
+          ? {
+              result_count: parsed.length,
+              result_ids: parsed.slice(0, 5).map((item) => item?.id ?? null),
+            }
+          : {};
+      case "get_context_summary":
+      case "list_recent":
+        return {
+          result_count: Array.isArray(parsed?.items) ? parsed.items.length : parsed?.total ?? 0,
+          total: parsed?.total ?? null,
+          has_more: parsed?.has_more ?? null,
+        };
+      case "memory_manage":
+        return {
+          receipt_status: parsed?.status ?? null,
+          affected_rows: parsed?.affected_rows ?? null,
+          memory_id: parsed?.memory_id ?? null,
+        };
+      case "log_decision":
+        return {
+          status: parsed?.status ?? null,
+          decision_id: parsed?.decision_id ?? null,
+          memory_id: parsed?.memory_id ?? null,
+        };
+      case "requirements_manage":
+      case "rules_manage":
+      case "roles_manage":
+      case "settings_manage":
+      case "findings_manage":
+      case "open_loops_manage":
+        return Array.isArray(parsed)
+          ? {
+              result_count: parsed.length,
+              result_ids: parsed.slice(0, 5).map((item) => item?.id ?? null),
+            }
+          : {
+              status: parsed?.status ?? null,
+              record_id: parsed?.id ?? null,
+            };
+      default:
+        return {};
+    }
+  } catch {
+    return {};
+  }
 }

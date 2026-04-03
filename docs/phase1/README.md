@@ -11,7 +11,9 @@ Purpose: give a contextless agent the minimum Phase 1 framing needed to continue
 5. [adf-phase1-high-level-plan.md](./adf-phase1-high-level-plan.md)
 6. [adf-phase1-coo-completion-plan.md](./adf-phase1-coo-completion-plan.md)
 7. [coo-stabilization/README.md](./coo-stabilization/README.md)
-8. [adf-phase1-onion-parallel-build-plan.md](./adf-phase1-onion-parallel-build-plan.md)
+8. [coo-kpi-route-contract.md](./coo-kpi-route-contract.md)
+9. [onion-live-integration-report.md](./onion-live-integration-report.md)
+10. [adf-phase1-onion-parallel-build-plan.md](./adf-phase1-onion-parallel-build-plan.md)
 
 ## Why This Folder Exists
 
@@ -51,6 +53,10 @@ Current COO note:
   - the remaining decision is whether to keep it in place behind the explicit boundary or move it into a separate archive path
 - the requirements-gathering onion lane is now integrated into the supported COO runtime behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`
 - live proof now exists under `tests/integration/artifacts/onion-route-proof/`
+- production-grade KPI coverage is now part of the supported COO contract:
+  - the governing system rule is `docs/v0/kpi-instrumentation-requirement.md`
+  - the live COO route contract is `docs/phase1/coo-kpi-route-contract.md`
+  - the current proof/report artifact is `tests/integration/artifacts/onion-route-proof/report.json`
 - the older parallel-build plan remains as historical context for the dormant build slice, not as the current live-state description
 
 ## Core Source Pointers

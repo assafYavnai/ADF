@@ -1,0 +1,145 @@
+{
+  "id": "019bea21-0b34-4544-9f91-1d7a944ede0a",
+  "events": [
+    {
+      "type": "user_input",
+      "data": {
+        "message": "Remember that queue telemetry must preserve blockers and owner visibility."
+      },
+      "timestamp": "2026-04-03T07:23:09.139Z",
+      "id": "410c90ea-2959-4844-9808-042e1ed221b2",
+      "provenance": {
+        "invocation_id": "b003bc49-ffef-4bbd-9f7f-c05a94bed16b",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:09.137Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "save a scoped telemetry convention note",
+        "confidence": 0.99,
+        "workflow": "memory_operation",
+        "reasoning": "Route \"Remember that queue telemetry must preserve blockers and owner visibility.\" into the memory_capture memory operation lane."
+      },
+      "timestamp": "2026-04-03T07:23:09.140Z",
+      "id": "fb4b38cb-30ce-4aad-af41-dcc01e8ae861",
+      "provenance": {
+        "invocation_id": "06fd6637-01b2-44b5-b329-46f19eb57fa3",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/019bea21-0b34-4544-9f91-1d7a944ede0a",
+        "timestamp": "2026-04-03T07:23:09.140Z"
+      }
+    },
+    {
+      "type": "memory_operation",
+      "data": {
+        "operation": "capture",
+        "operationId": "449b63c9-88aa-41d6-8137-1be768fd4d11",
+        "input": {
+          "content": "Remember that queue telemetry must preserve blockers and owner visibility.",
+          "scope": "assafyavnai/shippingagent"
+        }
+      },
+      "timestamp": "2026-04-03T07:23:09.141Z",
+      "id": "17bac6cf-30dd-4652-ac88-8b110597856b",
+      "provenance": {
+        "invocation_id": "109fb77d-629d-4238-b9a8-76ef221b8725",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/memory-operation/capture",
+        "timestamp": "2026-04-03T07:23:09.141Z"
+      }
+    },
+    {
+      "type": "memory_operation",
+      "data": {
+        "operation": "capture",
+        "operationId": "449b63c9-88aa-41d6-8137-1be768fd4d11",
+        "input": {
+          "content": "Remember that queue telemetry must preserve blockers and owner visibility.",
+          "scope": "assafyavnai/shippingagent"
+        },
+        "result": {
+          "id": "7eec3a3d-f4a6-4ee6-be18-0a36097be15c",
+          "status": "duplicate_exact",
+          "message": "Exact duplicate found — skipped."
+        },
+        "success": true
+      },
+      "timestamp": "2026-04-03T07:23:09.157Z",
+      "id": "074399cd-50d4-470b-bc41-77345ad589a2",
+      "provenance": {
+        "invocation_id": "109fb77d-629d-4238-b9a8-76ef221b8725",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/memory-operation/capture",
+        "timestamp": "2026-04-03T07:23:09.141Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "Already in memory as exact duplicate (7eec3a3d-f4a6-4ee6-be18-0a36097be15c)."
+      },
+      "timestamp": "2026-04-03T07:23:09.157Z",
+      "id": "2ba9a0d2-6f7b-418b-8e8d-8a7c6afd0165",
+      "provenance": {
+        "invocation_id": "b003bc49-ffef-4bbd-9f7f-c05a94bed16b",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:09.137Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Completed turn via memory_operation. Response: Already in memory as exact duplicate (7eec3a3d-f4a6-4ee6-be18-0a36097be15c).",
+        "openLoops": [],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": null
+        }
+      },
+      "timestamp": "2026-04-03T07:23:09.158Z",
+      "id": "ec705321-a71d-4e21-a485-90bb108c736c",
+      "provenance": {
+        "invocation_id": "b003bc49-ffef-4bbd-9f7f-c05a94bed16b",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:09.137Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-03T07:23:09.138Z",
+  "updatedAt": "2026-04-03T07:23:09.158Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": null,
+    "onion": null
+  }
+}

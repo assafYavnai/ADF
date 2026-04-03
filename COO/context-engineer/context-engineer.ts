@@ -19,6 +19,16 @@ export interface AssembledContext {
   knowledgeContext: string;
   dailyResidue: string;
   totalEstimatedTokens: number;
+  metrics: ContextAssemblyMetrics;
+}
+
+export interface ContextAssemblyMetrics {
+  assembly_latency_ms: number;
+  knowledge_retrieval_latency_ms: number;
+  knowledge_item_count: number;
+  scope_warning: string | null;
+  retrieval_warning: string | null;
+  knowledge_retrieval_failed: boolean;
 }
 
 export interface ContextEngineerConfig {
@@ -32,8 +42,9 @@ export interface ContextEngineerConfig {
     options?: {
       contentType?: string;
       contentTypes?: string[];
-      trustLevels?: string[];
+      trustLevels?: string[]; 
       maxResults?: number;
+      telemetryContext?: Record<string, unknown>;
     }
   ) => Promise<BrainSearchResult[]>;
   maxKnowledgeItems?: number;
@@ -49,6 +60,9 @@ export interface BrainSearchResult {
   score: number;
 }
 
+const CONTEXT_ENGINEER_BRAIN_ROUTE_STAGE = "context_engineer";
+const CONTEXT_ENGINEER_BRAIN_STEP_NAME = "load_knowledge";
+
 /**
  * Assemble the full LLM context for a turn.
  *
@@ -63,26 +77,35 @@ export async function assembleContext(
   userMessage: string,
   config: ContextEngineerConfig
 ): Promise<AssembledContext> {
-  const [systemPrompt, threadContext, dailyResidue, knowledgeContext] =
+  const startedAt = Date.now();
+  const [systemPrompt, threadContext, dailyResidue, knowledge] =
     await Promise.all([
       loadSystemPrompt(config),
       Promise.resolve(serializeForLLM(thread)),
       loadDailyResidue(config),
-      loadKnowledge(userMessage, config),
+      loadKnowledge(userMessage, config, thread),
     ]);
   const scopeContext = buildScopeContext(thread, config);
 
   const totalEstimatedTokens = estimateTokens(
-    systemPrompt + scopeContext + threadContext + dailyResidue + knowledgeContext
+    systemPrompt + scopeContext + threadContext + dailyResidue + knowledge.text
   );
 
   return {
     systemPrompt,
     scopeContext,
     threadContext,
-    knowledgeContext,
+    knowledgeContext: knowledge.text,
     dailyResidue,
     totalEstimatedTokens,
+    metrics: {
+      assembly_latency_ms: Date.now() - startedAt,
+      knowledge_retrieval_latency_ms: knowledge.latency_ms,
+      knowledge_item_count: knowledge.item_count,
+      scope_warning: knowledge.scope_warning,
+      retrieval_warning: knowledge.retrieval_warning,
+      knowledge_retrieval_failed: knowledge.failed,
+    },
   };
 }
 
@@ -147,19 +170,44 @@ async function loadDailyResidue(
 
 async function loadKnowledge(
   query: string,
-  config: ContextEngineerConfig
-): Promise<string> {
-  if (!config.brainSearch) return "";
+  config: ContextEngineerConfig,
+  thread: Thread,
+): Promise<{
+  text: string;
+  latency_ms: number;
+  item_count: number;
+  scope_warning: string | null;
+  retrieval_warning: string | null;
+  failed: boolean;
+}> {
+  if (!config.brainSearch) {
+    return {
+      text: "",
+      latency_ms: 0,
+      item_count: 0,
+      scope_warning: null,
+      retrieval_warning: "brain_search_unavailable",
+      failed: false,
+    };
+  }
   if (!config.scopePath) {
-    return `<memory_retrieval_warning>Scoped COO memory is disabled because this conversation has no scope.</memory_retrieval_warning>`;
+    return {
+      text: `<memory_retrieval_warning>Scoped COO memory is disabled because this conversation has no scope.</memory_retrieval_warning>`,
+      latency_ms: 0,
+      item_count: 0,
+      scope_warning: "missing_scope",
+      retrieval_warning: "missing_scope",
+      failed: false,
+    };
   }
 
+  const startedAt = Date.now();
   try {
     const maxItems = config.maxKnowledgeItems ?? 10;
     const results = await config.brainSearch(
       query,
       config.scopePath,
-      createSystemProvenance("COO/context-engineer/load-knowledge"),
+      createSystemProvenance(`COO/context-engineer/load-knowledge/${thread.id}`),
       {
         contentTypes: [
           "decision",
@@ -173,23 +221,54 @@ async function loadKnowledge(
       ],
       trustLevels: ["reviewed", "locked"],
       maxResults: maxItems,
+      telemetryContext: {
+        thread_id: thread.id,
+        scope_path: config.scopePath,
+        workflow: thread.workflowState.active_workflow ?? "direct_coo_response",
+        route_stage: CONTEXT_ENGINEER_BRAIN_ROUTE_STAGE,
+        step_name: CONTEXT_ENGINEER_BRAIN_STEP_NAME,
+      },
       }
     );
+    const latencyMs = Date.now() - startedAt;
     const topResults = results
       .filter((result) => isInjectableKnowledge(result))
       .slice(0, maxItems);
 
-    if (topResults.length === 0) return "";
+    if (topResults.length === 0) {
+      return {
+        text: "",
+        latency_ms: latencyMs,
+        item_count: 0,
+        scope_warning: null,
+        retrieval_warning: null,
+        failed: false,
+      };
+    }
 
-    return topResults
-      .map(
-        (r) =>
-          `<memory_item type="${r.content_type}" trust="${r.trust_level}" priority="${r.context_priority}">\n${r.preview}\n</memory_item>`
-      )
-      .join("\n\n");
+    return {
+      text: topResults
+        .map(
+          (r) =>
+            `<memory_item type="${r.content_type}" trust="${r.trust_level}" priority="${r.context_priority}">\n${r.preview}\n</memory_item>`
+        )
+        .join("\n\n"),
+      latency_ms: latencyMs,
+      item_count: topResults.length,
+      scope_warning: null,
+      retrieval_warning: null,
+      failed: false,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return `<memory_retrieval_warning>Brain search failed: ${message}</memory_retrieval_warning>`;
+    return {
+      text: `<memory_retrieval_warning>Brain search failed: ${message}</memory_retrieval_warning>`,
+      latency_ms: Date.now() - startedAt,
+      item_count: 0,
+      scope_warning: null,
+      retrieval_warning: message,
+      failed: true,
+    };
   }
 }
 

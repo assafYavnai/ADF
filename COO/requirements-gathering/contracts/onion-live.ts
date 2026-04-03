@@ -21,6 +21,7 @@ export const OnionPersistenceReceipt = z.object({
   action: z.string(),
   scope_path: z.string().nullable().default(null),
   record_id: z.string().nullable().default(null),
+  duration_ms: z.number().int().nonnegative().default(0),
   success: z.boolean(),
   message: z.string(),
 });
@@ -57,6 +58,24 @@ export const OnionTurnResultRecord = z.object({
   turn_id: z.string(),
   lifecycle_status: OnionWorkflowLifecycleStatus,
   current_layer: OnionLayer,
+  turn_latency_ms: z.number().int().nonnegative().default(0),
+  parser_latency_ms: z.number().int().nonnegative().default(0),
+  llm_totals: z.object({
+    tokens_in: z.number().int().nonnegative(),
+    tokens_out: z.number().int().nonnegative(),
+    estimated_cost_usd: z.number().nonnegative().nullable().default(null),
+  }).default({
+    tokens_in: 0,
+    tokens_out: 0,
+    estimated_cost_usd: null,
+  }),
+  layer_metrics: z.object({
+    turns_in_current_layer: z.number().int().nonnegative(),
+    time_in_current_layer_ms: z.number().int().nonnegative(),
+    clarification_turn_count_total: z.number().int().nonnegative(),
+    freeze_blocker_count: z.number().int().nonnegative(),
+    open_decision_count: z.number().int().nonnegative(),
+  }),
   state: OnionState,
   working_artifact: WorkingScopeArtifact,
   requirement_artifact: RequirementArtifact.nullable(),

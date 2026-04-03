@@ -29,9 +29,10 @@ test("assembleContext surfaces brain search failures explicitly", async () => {
 test("assembleContext requests scoped reviewed governance memory before truncation", async () => {
   const tempRoot = await mkdtemp(join(tmpdir(), "adf-context-engineer-test-"));
   let capturedOptions: Record<string, unknown> | undefined;
+  const thread = createThread("assafyavnai/shippingagent");
 
   try {
-    const context = await assembleContext(createThread("assafyavnai/shippingagent"), "what did we decide?", {
+    const context = await assembleContext(thread, "what did we decide?", {
       projectRoot: process.cwd(),
       promptsDir: tempRoot,
       memoryDir: tempRoot,
@@ -64,6 +65,13 @@ test("assembleContext requests scoped reviewed governance memory before truncati
       ],
       trustLevels: ["reviewed", "locked"],
       maxResults: 10,
+      telemetryContext: {
+        thread_id: thread.id,
+        scope_path: "assafyavnai/shippingagent",
+        workflow: "direct_coo_response",
+        route_stage: "context_engineer",
+        step_name: "load_knowledge",
+      },
     });
     assert.match(context.knowledgeContext, /trust="reviewed"/);
     assert.match(context.knowledgeContext, /Use governed requirement freeze/);

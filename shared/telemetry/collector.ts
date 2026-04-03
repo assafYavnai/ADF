@@ -2,6 +2,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { MetricEvent } from "./types.js";
 import { MetricEvent as MetricEventSchema } from "./types.js";
+import { materializeMetricEvent, type TelemetryMetadataDefaults } from "./metadata.js";
 
 type MetricSink = (events: MetricEvent[]) => Promise<void>;
 
@@ -25,27 +26,39 @@ let activeFlush: Promise<void> | null = null;
 let replayPromise: Promise<number> | null = null;
 let outboxPath: string | null = null;
 let shutdownTimeoutMs = 5_000;
+let metadataDefaults: TelemetryMetadataDefaults = {};
 
 const FLUSH_INTERVAL_MS = 1_000;
 const MAX_BUFFER_SIZE = 100;
 
 export function configureSink(s: MetricSink, options: TelemetrySinkOptions = {}): void {
   sink = s;
+  configurePersistence(options);
+  if (buffer.length > 0) {
+    void flush();
+  }
+}
+
+export function configurePersistence(options: TelemetrySinkOptions = {}): void {
   if (options.outboxPath !== undefined) {
     outboxPath = options.outboxPath;
   }
   if (options.shutdownTimeoutMs !== undefined) {
     shutdownTimeoutMs = options.shutdownTimeoutMs;
   }
-  ensureExitFlushHandler();
   if (buffer.length > 0) {
-    void flush();
+    ensureExitFlushHandler();
   }
+  ensureExitFlushHandler();
+}
+
+export function configureMetadataDefaults(defaults: TelemetryMetadataDefaults = {}): void {
+  metadataDefaults = { ...defaults };
 }
 
 export function emit(event: MetricEvent): void {
   ensureExitFlushHandler();
-  buffer.push(event);
+  buffer.push(materializeMetricEvent(event, metadataDefaults));
 
   if (buffer.length >= MAX_BUFFER_SIZE) {
     void flush();
@@ -137,7 +150,8 @@ export function createPgSink(pool: { query: (text: string, params: unknown[]) =>
     const placeholders: string[] = [];
     let idx = 1;
 
-    for (const event of events) {
+    for (const rawEvent of events) {
+      const event = materializeMetricEvent(rawEvent, metadataDefaults);
       const tokensIn = "tokens_in" in event ? event.tokens_in ?? null : null;
       const tokensOut = "tokens_out" in event ? event.tokens_out ?? null : null;
       const costUsd = "estimated_cost_usd" in event ? event.estimated_cost_usd ?? null : null;
@@ -188,6 +202,25 @@ export function resetForTests(): void {
   replayPromise = null;
   outboxPath = null;
   shutdownTimeoutMs = 5_000;
+  metadataDefaults = {};
+}
+
+export async function appendPersistedMetrics(events: MetricEvent[]): Promise<void> {
+  if (!outboxPath) {
+    throw new Error("Telemetry outbox path is not configured.");
+  }
+
+  if (events.length === 0) {
+    return;
+  }
+
+  await mkdir(dirname(outboxPath), { recursive: true });
+  const existing = await readOutbox();
+  const merged = [
+    ...existing,
+    ...events.map((event) => materializeMetricEvent(event, metadataDefaults)),
+  ];
+  await writeFile(outboxPath, JSON.stringify(merged, null, 2), "utf-8");
 }
 
 function ensureExitFlushHandler(): void {

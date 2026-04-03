@@ -1,0 +1,100 @@
+{
+  "id": "936b6b36-2eab-4a7d-ab9c-c192a68ad338",
+  "events": [
+    {
+      "type": "user_input",
+      "data": {
+        "message": "execution monitor telemetry owner blockers total latency token spend"
+      },
+      "timestamp": "2026-04-03T07:22:59.815Z",
+      "id": "3a3452f5-8fa8-41e7-824f-4c2c9a5a76f1",
+      "provenance": {
+        "invocation_id": "c69fd0ce-bdee-4038-80fc-952843ee8a38",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:22:59.814Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "summarize the scoped monitoring guidance",
+        "confidence": 0.99,
+        "workflow": "direct_coo_response",
+        "reasoning": "Route \"execution monitor telemetry owner blockers total latency token spend\" into a direct COO response lane."
+      },
+      "timestamp": "2026-04-03T07:22:59.817Z",
+      "id": "dbbe4ee2-a0d7-4cdb-8de2-275df210b4e8",
+      "provenance": {
+        "invocation_id": "f9e04219-dec6-4a0b-9c90-dd4a12fe8855",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/936b6b36-2eab-4a7d-ab9c-c192a68ad338",
+        "timestamp": "2026-04-03T07:22:59.817Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "Queue telemetry should show owner, current stage, blockers, total latency, and token spend in one place."
+      },
+      "timestamp": "2026-04-03T07:22:59.938Z",
+      "id": "c73ea978-b3ce-4ee1-a3a8-a02ae82e126e",
+      "provenance": {
+        "invocation_id": "9e60f343-6c3f-496e-949a-d750914f0c91",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "COO/intelligence/respond",
+        "timestamp": "2026-04-03T07:22:59.938Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Completed turn via direct_coo_response. Response: Queue telemetry should show owner, current stage, blockers, total latency, and token spend in one place.",
+        "openLoops": [],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-03T07:22:59.938Z",
+      "id": "6b8a5147-f949-4c56-b091-bd0544eb4354",
+      "provenance": {
+        "invocation_id": "c69fd0ce-bdee-4038-80fc-952843ee8a38",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:22:59.814Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-03T07:22:59.814Z",
+  "updatedAt": "2026-04-03T07:22:59.938Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": null,
+    "onion": null
+  }
+}

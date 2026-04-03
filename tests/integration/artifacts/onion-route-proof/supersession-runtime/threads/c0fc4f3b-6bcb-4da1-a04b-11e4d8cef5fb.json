@@ -1,17 +1,17 @@
 {
-  "id": "57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
+  "id": "c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
   "events": [
     {
-      "timestamp": "2026-04-02T21:56:49.913Z",
-      "id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+      "timestamp": "2026-04-03T07:23:23.196Z",
+      "id": "6563b006-61d7-4781-a02c-d2b966074392",
       "provenance": {
-        "invocation_id": "11ddf233-c762-4466-87e2-7dd4b5206250",
+        "invocation_id": "d50d54a8-aa85-43a1-8d69-cd83cc5b89c8",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.912Z"
+        "timestamp": "2026-04-03T07:23:23.195Z"
       },
       "type": "user_input",
       "data": {
@@ -19,16 +19,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.914Z",
-      "id": "387ef517-7dc7-4139-9cb5-f48e6504e2ea",
+      "timestamp": "2026-04-03T07:23:23.196Z",
+      "id": "b6a2e3ee-edb3-4119-a80e-8bf4e0b1b7bc",
       "provenance": {
-        "invocation_id": "0c33478f-5dc6-48f9-8067-9633c4bf9c61",
+        "invocation_id": "d103d895-8216-4922-aa82-c64bf3dc40be",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.914Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.196Z"
       },
       "type": "classifier_result",
       "data": {
@@ -39,23 +39,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.916Z",
-      "id": "03ae2266-4bbd-4cc7-8299-80f673191fa5",
+      "timestamp": "2026-04-03T07:23:23.197Z",
+      "id": "dbbd3710-674c-4cef-813c-1b245c6b0e5d",
       "provenance": {
-        "invocation_id": "50ab4e78-e43e-4eeb-b165-33d0ce0a2500",
+        "invocation_id": "e3fde516-aeb9-46a9-8579-2458b9808462",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.915Z"
+        "timestamp": "2026-04-03T07:23:23.197Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
         "lifecycle_status": "active",
         "current_layer": "expected_result",
+        "turn_latency_ms": 0,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 541,
+          "tokens_out": 32,
+          "estimated_cost_usd": 0.002859
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 0,
+          "clarification_turn_count_total": 1,
+          "freeze_blocker_count": 5,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -121,8 +135,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
           "current_layer": "expected_result",
           "workflow_step": "clarification",
           "decision_reason": "Outer-shell field \"expected_result\" is still missing.",
@@ -144,11 +158,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.916Z",
-            "completed_at": "2026-04-02T21:56:49.916Z",
+            "started_at": "2026-04-03T07:23:23.197Z",
+            "completed_at": "2026-04-03T07:23:23.197Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -163,11 +177,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.916Z",
-            "completed_at": "2026-04-02T21:56:49.916Z",
+            "started_at": "2026-04-03T07:23:23.197Z",
+            "completed_at": "2026-04-03T07:23:23.197Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -182,11 +196,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.916Z",
-            "completed_at": "2026-04-02T21:56:49.916Z",
+            "started_at": "2026-04-03T07:23:23.197Z",
+            "completed_at": "2026-04-03T07:23:23.197Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -200,11 +214,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.916Z",
-            "completed_at": "2026-04-02T21:56:49.916Z",
+            "started_at": "2026-04-03T07:23:23.197Z",
+            "completed_at": "2026-04-03T07:23:23.197Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -218,11 +232,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.916Z",
-            "completed_at": "2026-04-02T21:56:49.916Z",
+            "started_at": "2026-04-03T07:23:23.197Z",
+            "completed_at": "2026-04-03T07:23:23.197Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -236,11 +250,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.916Z",
-            "completed_at": "2026-04-02T21:56:49.916Z",
+            "started_at": "2026-04-03T07:23:23.197Z",
+            "completed_at": "2026-04-03T07:23:23.197Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -257,8 +271,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9b449cea-20da-4bda-84ab-9a77d4076480",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6563b006-61d7-4781-a02c-d2b966074392",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -279,6 +293,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -290,16 +305,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.918Z",
-      "id": "0e6fcb08-fc9c-438a-99fb-2da3fa4a8ba4",
+      "timestamp": "2026-04-03T07:23:23.198Z",
+      "id": "dee844c0-0443-42dc-a0bf-dc477bc512d8",
       "provenance": {
-        "invocation_id": "50ab4e78-e43e-4eeb-b165-33d0ce0a2500",
+        "invocation_id": "e3fde516-aeb9-46a9-8579-2458b9808462",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.915Z"
+        "timestamp": "2026-04-03T07:23:23.197Z"
       },
       "type": "coo_response",
       "data": {
@@ -307,16 +322,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.918Z",
-      "id": "e024cb70-30a6-42e8-a7e7-fb78360928de",
+      "timestamp": "2026-04-03T07:23:23.198Z",
+      "id": "cf6591cf-58de-4a70-aca6-e1ca4a8c4308",
       "provenance": {
-        "invocation_id": "11ddf233-c762-4466-87e2-7dd4b5206250",
+        "invocation_id": "d50d54a8-aa85-43a1-8d69-cd83cc5b89c8",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.912Z"
+        "timestamp": "2026-04-03T07:23:23.195Z"
       },
       "type": "state_commit",
       "data": {
@@ -342,16 +357,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.920Z",
-      "id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+      "timestamp": "2026-04-03T07:23:23.199Z",
+      "id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
       "provenance": {
-        "invocation_id": "91f0fc69-8335-48c7-bdfe-91bc3005f697",
+        "invocation_id": "3b0f78ba-df6e-4804-a686-fde8ef2202b9",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.919Z"
+        "timestamp": "2026-04-03T07:23:23.199Z"
       },
       "type": "user_input",
       "data": {
@@ -359,16 +374,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.921Z",
-      "id": "f6ca58f6-5a2f-4bd0-a23b-224a0ded1475",
+      "timestamp": "2026-04-03T07:23:23.200Z",
+      "id": "12723fe0-ba63-4796-9d19-ee48b2abdf8b",
       "provenance": {
-        "invocation_id": "7d61792f-fdf8-4480-a43c-8675a3739ac7",
+        "invocation_id": "a93c8b36-e67d-4dd3-92f7-40eb552d2c80",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.921Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.200Z"
       },
       "type": "classifier_result",
       "data": {
@@ -379,23 +394,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.923Z",
-      "id": "71b89f51-2640-4112-bb53-3e6613376591",
+      "timestamp": "2026-04-03T07:23:23.201Z",
+      "id": "083c3c4e-c8b4-4b3b-adc4-d309039d0b1a",
       "provenance": {
-        "invocation_id": "e13d1160-3c3b-4302-8d7b-0312afed63e4",
+        "invocation_id": "8e5d5f50-9cd9-49c0-bc82-b907a8fab631",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.923Z"
+        "timestamp": "2026-04-03T07:23:23.200Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
         "lifecycle_status": "active",
         "current_layer": "success_view",
+        "turn_latency_ms": 1,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 563,
+          "tokens_out": 23,
+          "estimated_cost_usd": 0.002925
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 1,
+          "clarification_turn_count_total": 2,
+          "freeze_blocker_count": 4,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -459,8 +488,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
           "current_layer": "success_view",
           "workflow_step": "clarification",
           "decision_reason": "Outer-shell field \"success_view\" is still missing.",
@@ -480,11 +509,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.923Z",
-            "completed_at": "2026-04-02T21:56:49.923Z",
+            "started_at": "2026-04-03T07:23:23.200Z",
+            "completed_at": "2026-04-03T07:23:23.200Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -499,11 +528,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.923Z",
-            "completed_at": "2026-04-02T21:56:49.923Z",
+            "started_at": "2026-04-03T07:23:23.200Z",
+            "completed_at": "2026-04-03T07:23:23.200Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -518,11 +547,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.923Z",
-            "completed_at": "2026-04-02T21:56:49.923Z",
+            "started_at": "2026-04-03T07:23:23.200Z",
+            "completed_at": "2026-04-03T07:23:23.200Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -536,12 +565,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.923Z",
-            "completed_at": "2026-04-02T21:56:49.923Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-03T07:23:23.200Z",
+            "completed_at": "2026-04-03T07:23:23.201Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -554,11 +583,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.923Z",
-            "completed_at": "2026-04-02T21:56:49.923Z",
+            "started_at": "2026-04-03T07:23:23.201Z",
+            "completed_at": "2026-04-03T07:23:23.201Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -572,11 +601,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.923Z",
-            "completed_at": "2026-04-02T21:56:49.923Z",
+            "started_at": "2026-04-03T07:23:23.201Z",
+            "completed_at": "2026-04-03T07:23:23.201Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -593,8 +622,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dae3a48b-33db-4f95-8d2c-e0c3a91c6078",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "e410fe3a-6d00-461d-9261-385cdfd481b9",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -615,6 +644,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -626,16 +656,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.925Z",
-      "id": "04f2e7bb-3133-4d3f-aca1-23e502ace2e4",
+      "timestamp": "2026-04-03T07:23:23.201Z",
+      "id": "38019ff6-53ae-4d61-953b-a5335be49563",
       "provenance": {
-        "invocation_id": "e13d1160-3c3b-4302-8d7b-0312afed63e4",
+        "invocation_id": "8e5d5f50-9cd9-49c0-bc82-b907a8fab631",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.923Z"
+        "timestamp": "2026-04-03T07:23:23.200Z"
       },
       "type": "coo_response",
       "data": {
@@ -643,16 +673,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.925Z",
-      "id": "5ee28fea-aa46-41d1-9753-3bda9d4b9b88",
+      "timestamp": "2026-04-03T07:23:23.201Z",
+      "id": "a0e07d35-cdf1-4028-bf62-8e4b5d8a921c",
       "provenance": {
-        "invocation_id": "91f0fc69-8335-48c7-bdfe-91bc3005f697",
+        "invocation_id": "3b0f78ba-df6e-4804-a686-fde8ef2202b9",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.919Z"
+        "timestamp": "2026-04-03T07:23:23.199Z"
       },
       "type": "state_commit",
       "data": {
@@ -678,16 +708,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.927Z",
-      "id": "67300858-126c-4bad-9391-7d468dd758f8",
+      "timestamp": "2026-04-03T07:23:23.202Z",
+      "id": "2af57e26-b858-434c-a78e-0670bb192562",
       "provenance": {
-        "invocation_id": "9e62e1be-c48e-41f0-a648-fbee7016ff7e",
+        "invocation_id": "bdce2582-9480-4f11-85c2-4bb032dd0d6a",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.926Z"
+        "timestamp": "2026-04-03T07:23:23.202Z"
       },
       "type": "user_input",
       "data": {
@@ -695,16 +725,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.929Z",
-      "id": "cfdd2f20-d675-4b66-af76-d8515dd45eab",
+      "timestamp": "2026-04-03T07:23:23.203Z",
+      "id": "b6c72e1b-fa11-427d-bb8e-090af8eaa781",
       "provenance": {
-        "invocation_id": "9e312a08-f24c-4e9d-bfe3-2646a51c4aa6",
+        "invocation_id": "9f0f036e-196a-49c4-b22c-58a5a4318c10",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.929Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.203Z"
       },
       "type": "classifier_result",
       "data": {
@@ -715,23 +745,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.931Z",
-      "id": "3ebccc42-f688-42ed-9b32-0da9f7da9a3a",
+      "timestamp": "2026-04-03T07:23:23.204Z",
+      "id": "ffa1bd94-0ac7-447f-bad1-ad780b2559c7",
       "provenance": {
-        "invocation_id": "65bb6eb3-f5b1-4e85-b3d2-767b13108cc7",
+        "invocation_id": "820c28b7-480d-4db7-9ed3-27da0d9053be",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.930Z"
+        "timestamp": "2026-04-03T07:23:23.203Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
         "lifecycle_status": "active",
         "current_layer": "major_parts",
+        "turn_latency_ms": 1,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 580,
+          "tokens_out": 24,
+          "estimated_cost_usd": 0.003019
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 1,
+          "clarification_turn_count_total": 3,
+          "freeze_blocker_count": 3,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -793,8 +837,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
           "current_layer": "major_parts",
           "workflow_step": "clarification",
           "decision_reason": "Major parts are still missing.",
@@ -813,11 +857,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.931Z",
-            "completed_at": "2026-04-02T21:56:49.931Z",
+            "started_at": "2026-04-03T07:23:23.203Z",
+            "completed_at": "2026-04-03T07:23:23.203Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -832,11 +876,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.931Z",
-            "completed_at": "2026-04-02T21:56:49.931Z",
+            "started_at": "2026-04-03T07:23:23.203Z",
+            "completed_at": "2026-04-03T07:23:23.203Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -851,11 +895,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.931Z",
-            "completed_at": "2026-04-02T21:56:49.931Z",
+            "started_at": "2026-04-03T07:23:23.204Z",
+            "completed_at": "2026-04-03T07:23:23.204Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -869,11 +913,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.931Z",
-            "completed_at": "2026-04-02T21:56:49.931Z",
+            "started_at": "2026-04-03T07:23:23.204Z",
+            "completed_at": "2026-04-03T07:23:23.204Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -887,11 +931,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.931Z",
-            "completed_at": "2026-04-02T21:56:49.931Z",
+            "started_at": "2026-04-03T07:23:23.204Z",
+            "completed_at": "2026-04-03T07:23:23.204Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -905,11 +949,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.931Z",
-            "completed_at": "2026-04-02T21:56:49.931Z",
+            "started_at": "2026-04-03T07:23:23.204Z",
+            "completed_at": "2026-04-03T07:23:23.204Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -926,8 +970,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "67300858-126c-4bad-9391-7d468dd758f8",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "2af57e26-b858-434c-a78e-0670bb192562",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -948,6 +992,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -959,16 +1004,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.932Z",
-      "id": "69a2a5dd-9eba-4980-8a14-1a1191661f8b",
+      "timestamp": "2026-04-03T07:23:23.205Z",
+      "id": "d41466e7-fe09-4706-b430-e55c56f87f52",
       "provenance": {
-        "invocation_id": "65bb6eb3-f5b1-4e85-b3d2-767b13108cc7",
+        "invocation_id": "820c28b7-480d-4db7-9ed3-27da0d9053be",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.930Z"
+        "timestamp": "2026-04-03T07:23:23.203Z"
       },
       "type": "coo_response",
       "data": {
@@ -976,16 +1021,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.932Z",
-      "id": "d08e83b2-b031-4cb2-8f1b-cd2a28496b29",
+      "timestamp": "2026-04-03T07:23:23.205Z",
+      "id": "ee8da1fc-2ee5-4e32-b672-3aa82ff87241",
       "provenance": {
-        "invocation_id": "9e62e1be-c48e-41f0-a648-fbee7016ff7e",
+        "invocation_id": "bdce2582-9480-4f11-85c2-4bb032dd0d6a",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.926Z"
+        "timestamp": "2026-04-03T07:23:23.202Z"
       },
       "type": "state_commit",
       "data": {
@@ -1011,16 +1056,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.934Z",
-      "id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+      "timestamp": "2026-04-03T07:23:23.206Z",
+      "id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
       "provenance": {
-        "invocation_id": "f7b7841f-6c7c-4f29-9692-d819d3e47cad",
+        "invocation_id": "95e51d62-fc98-4e50-8712-73d5c152a030",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.933Z"
+        "timestamp": "2026-04-03T07:23:23.206Z"
       },
       "type": "user_input",
       "data": {
@@ -1028,16 +1073,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.935Z",
-      "id": "7a45a87a-140d-46cd-91e9-3d649bcb7df3",
+      "timestamp": "2026-04-03T07:23:23.208Z",
+      "id": "05b0c7ba-7107-4d0d-b5ca-ba37950fec92",
       "provenance": {
-        "invocation_id": "e41dc32e-44f3-4987-b924-f8885f5fd302",
+        "invocation_id": "316eb224-bf5b-48a5-937a-699cf97dda75",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.935Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.207Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1048,23 +1093,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.937Z",
-      "id": "40664273-f369-4938-93fd-ba4be76fba1c",
+      "timestamp": "2026-04-03T07:23:23.209Z",
+      "id": "4aad38f4-e69e-4505-9cd2-4067fbd86bcd",
       "provenance": {
-        "invocation_id": "11366214-916d-4d04-bc4d-c338021e6dce",
+        "invocation_id": "06fc9ed2-c7be-4500-a55a-42802390361d",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.936Z"
+        "timestamp": "2026-04-03T07:23:23.208Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
         "lifecycle_status": "active",
         "current_layer": "part_clarification",
+        "turn_latency_ms": 1,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 589,
+          "tokens_out": 55,
+          "estimated_cost_usd": 0.003219
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 1,
+          "clarification_turn_count_total": 4,
+          "freeze_blocker_count": 7,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -1186,8 +1245,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
           "current_layer": "part_clarification",
           "workflow_step": "clarification",
           "decision_reason": "Major part \"Queue view\" still needs clarification.",
@@ -1210,11 +1269,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.936Z",
-            "completed_at": "2026-04-02T21:56:49.936Z",
+            "started_at": "2026-04-03T07:23:23.209Z",
+            "completed_at": "2026-04-03T07:23:23.209Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1229,11 +1288,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.936Z",
-            "completed_at": "2026-04-02T21:56:49.936Z",
+            "started_at": "2026-04-03T07:23:23.209Z",
+            "completed_at": "2026-04-03T07:23:23.209Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1248,11 +1307,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.937Z",
-            "completed_at": "2026-04-02T21:56:49.937Z",
+            "started_at": "2026-04-03T07:23:23.209Z",
+            "completed_at": "2026-04-03T07:23:23.209Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1266,11 +1325,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.937Z",
-            "completed_at": "2026-04-02T21:56:49.937Z",
+            "started_at": "2026-04-03T07:23:23.209Z",
+            "completed_at": "2026-04-03T07:23:23.209Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1284,11 +1343,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.937Z",
-            "completed_at": "2026-04-02T21:56:49.937Z",
+            "started_at": "2026-04-03T07:23:23.209Z",
+            "completed_at": "2026-04-03T07:23:23.209Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1302,11 +1361,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.937Z",
-            "completed_at": "2026-04-02T21:56:49.937Z",
+            "started_at": "2026-04-03T07:23:23.209Z",
+            "completed_at": "2026-04-03T07:23:23.209Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1323,8 +1382,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "25f3d0b5-5142-4ff6-bce6-88acb130ebfb",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "80f0fa3d-0ed4-4de6-aed4-ca32f6608ad4",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1345,6 +1404,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -1356,16 +1416,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.939Z",
-      "id": "5b3910c2-9129-4dea-8f80-a242e78961f3",
+      "timestamp": "2026-04-03T07:23:23.211Z",
+      "id": "45c3e187-d46e-4130-b481-44e383ccfdb1",
       "provenance": {
-        "invocation_id": "11366214-916d-4d04-bc4d-c338021e6dce",
+        "invocation_id": "06fc9ed2-c7be-4500-a55a-42802390361d",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.936Z"
+        "timestamp": "2026-04-03T07:23:23.208Z"
       },
       "type": "coo_response",
       "data": {
@@ -1373,16 +1433,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.939Z",
-      "id": "166818c6-c1b0-41e0-87f6-86a843ba62eb",
+      "timestamp": "2026-04-03T07:23:23.211Z",
+      "id": "db298727-1e33-4054-9be6-f9bd2f86671e",
       "provenance": {
-        "invocation_id": "f7b7841f-6c7c-4f29-9692-d819d3e47cad",
+        "invocation_id": "95e51d62-fc98-4e50-8712-73d5c152a030",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.933Z"
+        "timestamp": "2026-04-03T07:23:23.206Z"
       },
       "type": "state_commit",
       "data": {
@@ -1408,16 +1468,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.942Z",
-      "id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+      "timestamp": "2026-04-03T07:23:23.212Z",
+      "id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
       "provenance": {
-        "invocation_id": "211e222a-44fa-4e78-a361-e93f717bdbc5",
+        "invocation_id": "ae8f1b6a-278d-45e9-bc23-cbaba3c56b4e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.940Z"
+        "timestamp": "2026-04-03T07:23:23.211Z"
       },
       "type": "user_input",
       "data": {
@@ -1425,16 +1485,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.944Z",
-      "id": "ee3dde21-00ec-482d-9d84-63988f2f9acc",
+      "timestamp": "2026-04-03T07:23:23.213Z",
+      "id": "94c9303b-aacf-420f-8019-c97010c80fac",
       "provenance": {
-        "invocation_id": "da191244-e879-4874-b575-98852f6b0777",
+        "invocation_id": "49fbb032-5c24-4283-ba3e-c337d23fd40a",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.944Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.213Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1445,23 +1505,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.946Z",
-      "id": "6d8b140c-43ea-40f0-9e04-84d8df3ceb01",
+      "timestamp": "2026-04-03T07:23:23.215Z",
+      "id": "dc383b73-a843-437c-a956-bb2317f72f4e",
       "provenance": {
-        "invocation_id": "1a632f98-ecdd-4b65-b2d6-57c2e160fcdb",
+        "invocation_id": "2ad61387-21d5-4dcd-b6a8-2823eb4a4808",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.945Z"
+        "timestamp": "2026-04-03T07:23:23.214Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
         "lifecycle_status": "active",
         "current_layer": "experience_ui",
+        "turn_latency_ms": 1,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 712,
+          "tokens_out": 203,
+          "estimated_cost_usd": 0.004571
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 1,
+          "clarification_turn_count_total": 5,
+          "freeze_blocker_count": 2,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -1655,8 +1729,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
           "current_layer": "experience_ui",
           "workflow_step": "clarification",
           "decision_reason": "The scope still needs an explicit UI/experience relevance decision.",
@@ -1678,11 +1752,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.946Z",
-            "completed_at": "2026-04-02T21:56:49.946Z",
+            "started_at": "2026-04-03T07:23:23.214Z",
+            "completed_at": "2026-04-03T07:23:23.214Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1697,11 +1771,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.946Z",
-            "completed_at": "2026-04-02T21:56:49.946Z",
+            "started_at": "2026-04-03T07:23:23.214Z",
+            "completed_at": "2026-04-03T07:23:23.214Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1716,11 +1790,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.946Z",
-            "completed_at": "2026-04-02T21:56:49.946Z",
+            "started_at": "2026-04-03T07:23:23.214Z",
+            "completed_at": "2026-04-03T07:23:23.214Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1734,11 +1808,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.946Z",
-            "completed_at": "2026-04-02T21:56:49.946Z",
+            "started_at": "2026-04-03T07:23:23.214Z",
+            "completed_at": "2026-04-03T07:23:23.214Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1752,11 +1826,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.946Z",
-            "completed_at": "2026-04-02T21:56:49.946Z",
+            "started_at": "2026-04-03T07:23:23.214Z",
+            "completed_at": "2026-04-03T07:23:23.214Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1770,12 +1844,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.946Z",
-            "completed_at": "2026-04-02T21:56:49.946Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-03T07:23:23.214Z",
+            "completed_at": "2026-04-03T07:23:23.215Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "current_layer": "experience_ui",
@@ -1791,8 +1865,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "128d27cb-fac8-416f-86b6-6f388f1d23b7",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "91169a9f-3ae0-4cd5-8072-ecbe469e1cf3",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1813,6 +1887,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -1824,16 +1899,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.948Z",
-      "id": "c620f3d4-6350-4bfa-ad8b-7f8fa31605aa",
+      "timestamp": "2026-04-03T07:23:23.215Z",
+      "id": "9745c86e-434d-4650-8172-a5bd79a2516c",
       "provenance": {
-        "invocation_id": "1a632f98-ecdd-4b65-b2d6-57c2e160fcdb",
+        "invocation_id": "2ad61387-21d5-4dcd-b6a8-2823eb4a4808",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.945Z"
+        "timestamp": "2026-04-03T07:23:23.214Z"
       },
       "type": "coo_response",
       "data": {
@@ -1841,16 +1916,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.948Z",
-      "id": "f4f16232-91e0-458f-98d5-d52a74cb5102",
+      "timestamp": "2026-04-03T07:23:23.215Z",
+      "id": "084f0601-f8ac-4c41-b40a-5d216bef26a7",
       "provenance": {
-        "invocation_id": "211e222a-44fa-4e78-a361-e93f717bdbc5",
+        "invocation_id": "ae8f1b6a-278d-45e9-bc23-cbaba3c56b4e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.940Z"
+        "timestamp": "2026-04-03T07:23:23.211Z"
       },
       "type": "state_commit",
       "data": {
@@ -1876,16 +1951,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.949Z",
-      "id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+      "timestamp": "2026-04-03T07:23:23.217Z",
+      "id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
       "provenance": {
-        "invocation_id": "1f5360b2-2942-4a59-abd5-b4e0955460e5",
+        "invocation_id": "0f5647e9-7f5a-41a5-beed-c72d24be60fa",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.949Z"
+        "timestamp": "2026-04-03T07:23:23.216Z"
       },
       "type": "user_input",
       "data": {
@@ -1893,16 +1968,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.951Z",
-      "id": "536393be-ef21-4dd3-9e4f-9138c076a0c2",
+      "timestamp": "2026-04-03T07:23:23.218Z",
+      "id": "ea41d88c-e3a1-477e-87e2-98bf2b9db5da",
       "provenance": {
-        "invocation_id": "f4760030-4103-4316-ad19-5425b4357448",
+        "invocation_id": "6260067c-5c2c-40d9-b845-c838096de24c",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.951Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.218Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1913,23 +1988,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.953Z",
-      "id": "e1a956b6-ed66-4b8f-845e-c8e1e9bded84",
+      "timestamp": "2026-04-03T07:23:23.220Z",
+      "id": "9ec984aa-b7e8-4c46-91f5-b5bd916de9f5",
       "provenance": {
-        "invocation_id": "d3340423-cfeb-4368-a185-9d1690a23532",
+        "invocation_id": "b438f016-22e1-4e36-a563-a64548d8ff53",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.952Z"
+        "timestamp": "2026-04-03T07:23:23.219Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
         "lifecycle_status": "active",
         "current_layer": "open_decisions",
+        "turn_latency_ms": 1,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 704,
+          "tokens_out": 180,
+          "estimated_cost_usd": 0.004418
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 1,
+          "clarification_turn_count_total": 6,
+          "freeze_blocker_count": 1,
+          "open_decision_count": 1
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -2163,8 +2252,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
           "current_layer": "open_decisions",
           "workflow_step": "clarification",
           "decision_reason": "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?",
@@ -2190,11 +2279,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.952Z",
-            "completed_at": "2026-04-02T21:56:49.952Z",
+            "started_at": "2026-04-03T07:23:23.219Z",
+            "completed_at": "2026-04-03T07:23:23.219Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2209,11 +2298,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.952Z",
-            "completed_at": "2026-04-02T21:56:49.952Z",
+            "started_at": "2026-04-03T07:23:23.219Z",
+            "completed_at": "2026-04-03T07:23:23.219Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2228,12 +2317,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.952Z",
-            "completed_at": "2026-04-02T21:56:49.952Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-03T07:23:23.219Z",
+            "completed_at": "2026-04-03T07:23:23.220Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -2246,11 +2335,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.953Z",
-            "completed_at": "2026-04-02T21:56:49.953Z",
+            "started_at": "2026-04-03T07:23:23.220Z",
+            "completed_at": "2026-04-03T07:23:23.220Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2264,11 +2353,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.953Z",
-            "completed_at": "2026-04-02T21:56:49.953Z",
+            "started_at": "2026-04-03T07:23:23.220Z",
+            "completed_at": "2026-04-03T07:23:23.220Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2282,11 +2371,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.953Z",
-            "completed_at": "2026-04-02T21:56:49.953Z",
+            "started_at": "2026-04-03T07:23:23.220Z",
+            "completed_at": "2026-04-03T07:23:23.220Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2303,8 +2392,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "9619c574-67b4-46b5-bf5d-79ebecc7fcfe",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6a383cad-e874-405a-9a58-60e2c9ed09d6",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -2325,6 +2414,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -2336,16 +2426,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.954Z",
-      "id": "54b0bdda-e59e-4280-bc97-4c600dd9c40a",
+      "timestamp": "2026-04-03T07:23:23.221Z",
+      "id": "e1b0bec3-8943-4af8-832f-224f6c628413",
       "provenance": {
-        "invocation_id": "d3340423-cfeb-4368-a185-9d1690a23532",
+        "invocation_id": "b438f016-22e1-4e36-a563-a64548d8ff53",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.952Z"
+        "timestamp": "2026-04-03T07:23:23.219Z"
       },
       "type": "coo_response",
       "data": {
@@ -2353,16 +2443,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.955Z",
-      "id": "8d39b33e-f0c1-4599-850e-178e1bed44e4",
+      "timestamp": "2026-04-03T07:23:23.221Z",
+      "id": "c386d2dc-0793-4e75-ac32-ec552569d4c0",
       "provenance": {
-        "invocation_id": "1f5360b2-2942-4a59-abd5-b4e0955460e5",
+        "invocation_id": "0f5647e9-7f5a-41a5-beed-c72d24be60fa",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.949Z"
+        "timestamp": "2026-04-03T07:23:23.216Z"
       },
       "type": "state_commit",
       "data": {
@@ -2388,16 +2478,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.957Z",
-      "id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+      "timestamp": "2026-04-03T07:23:23.224Z",
+      "id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
       "provenance": {
-        "invocation_id": "8585920b-11d8-46c0-8b0d-8b4f05a85a53",
+        "invocation_id": "0d733ad6-4e6e-4570-89d6-21f1b77944f5",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.956Z"
+        "timestamp": "2026-04-03T07:23:23.222Z"
       },
       "type": "user_input",
       "data": {
@@ -2405,16 +2495,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.960Z",
-      "id": "757fde2e-26f2-4b68-871b-fe9939359d99",
+      "timestamp": "2026-04-03T07:23:23.225Z",
+      "id": "933626ab-860d-4636-936f-c81865af5af6",
       "provenance": {
-        "invocation_id": "72626758-c9e7-4ae3-af16-86f43bee5c64",
+        "invocation_id": "4c331262-0fbc-47d4-b0f6-14d0a6c32a9e",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.960Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.225Z"
       },
       "type": "classifier_result",
       "data": {
@@ -2425,23 +2515,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.963Z",
-      "id": "5b561630-36cd-4db5-a9e2-74127b3ab6f5",
+      "timestamp": "2026-04-03T07:23:23.227Z",
+      "id": "6c2005f8-7668-439f-8af8-b718c095103d",
       "provenance": {
-        "invocation_id": "4930db04-6d63-4b5d-bd40-7e46037fe7df",
+        "invocation_id": "9024d510-8943-46f6-97ce-0fa1153e64fd",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.962Z"
+        "timestamp": "2026-04-03T07:23:23.226Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
         "lifecycle_status": "awaiting_freeze_approval",
         "current_layer": "whole_onion_freeze",
+        "turn_latency_ms": 1,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 704,
+          "tokens_out": 32,
+          "estimated_cost_usd": 0.003679
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 1,
+          "clarification_turn_count_total": 6,
+          "freeze_blocker_count": 0,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -2547,7 +2651,7 @@
           "freeze_status": {
             "status": "ready_to_request",
             "blockers": [],
-            "ready_since_turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094"
+            "ready_since_turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4"
           },
           "approved_snapshot": null
         },
@@ -2658,7 +2762,7 @@
           "freeze_status": {
             "status": "ready_to_request",
             "blockers": [],
-            "ready_since_turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094"
+            "ready_since_turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4"
           },
           "approved_snapshot": null,
           "scope_summary": [
@@ -2675,8 +2779,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
           "current_layer": "whole_onion_freeze",
           "workflow_step": "freeze_ready",
           "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
@@ -2699,12 +2803,12 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.962Z",
-            "completed_at": "2026-04-02T21:56:49.963Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:23:23.226Z",
+            "completed_at": "2026-04-03T07:23:23.226Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "actor": "ceo",
@@ -2718,11 +2822,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.963Z",
-            "completed_at": "2026-04-02T21:56:49.963Z",
+            "started_at": "2026-04-03T07:23:23.226Z",
+            "completed_at": "2026-04-03T07:23:23.226Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2737,12 +2841,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.963Z",
-            "completed_at": "2026-04-02T21:56:49.963Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-03T07:23:23.226Z",
+            "completed_at": "2026-04-03T07:23:23.227Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "ready_to_request",
@@ -2755,11 +2859,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.963Z",
-            "completed_at": "2026-04-02T21:56:49.963Z",
+            "started_at": "2026-04-03T07:23:23.227Z",
+            "completed_at": "2026-04-03T07:23:23.227Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2773,11 +2877,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.963Z",
-            "completed_at": "2026-04-02T21:56:49.963Z",
+            "started_at": "2026-04-03T07:23:23.227Z",
+            "completed_at": "2026-04-03T07:23:23.227Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2791,11 +2895,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.963Z",
-            "completed_at": "2026-04-02T21:56:49.963Z",
+            "started_at": "2026-04-03T07:23:23.227Z",
+            "completed_at": "2026-04-03T07:23:23.227Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2812,8 +2916,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -2834,6 +2938,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -2845,16 +2950,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.964Z",
-      "id": "d753b788-8b18-4b09-9927-3348209e3c7b",
+      "timestamp": "2026-04-03T07:23:23.228Z",
+      "id": "e41aa169-bd47-4f67-a36c-392724e1bc5f",
       "provenance": {
-        "invocation_id": "4930db04-6d63-4b5d-bd40-7e46037fe7df",
+        "invocation_id": "9024d510-8943-46f6-97ce-0fa1153e64fd",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.962Z"
+        "timestamp": "2026-04-03T07:23:23.226Z"
       },
       "type": "coo_response",
       "data": {
@@ -2862,16 +2967,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.964Z",
-      "id": "d4e928a9-3eef-4d42-a8ce-e55990336d11",
+      "timestamp": "2026-04-03T07:23:23.228Z",
+      "id": "a6094e86-e5ae-42f7-9463-6fff16708079",
       "provenance": {
-        "invocation_id": "8585920b-11d8-46c0-8b0d-8b4f05a85a53",
+        "invocation_id": "0d733ad6-4e6e-4570-89d6-21f1b77944f5",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.956Z"
+        "timestamp": "2026-04-03T07:23:23.222Z"
       },
       "type": "state_commit",
       "data": {
@@ -2897,16 +3002,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.966Z",
-      "id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+      "timestamp": "2026-04-03T07:23:23.231Z",
+      "id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
       "provenance": {
-        "invocation_id": "fe9478f0-f0f2-4d70-aa57-48a1308f4fd8",
+        "invocation_id": "b74782e0-4980-4d24-986c-edfd72454378",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.965Z"
+        "timestamp": "2026-04-03T07:23:23.229Z"
       },
       "type": "user_input",
       "data": {
@@ -2914,16 +3019,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.968Z",
-      "id": "527418c0-265d-4679-a518-660fb9a17da9",
+      "timestamp": "2026-04-03T07:23:23.232Z",
+      "id": "e5661fc4-ec10-4112-9281-a01e59ad4ac7",
       "provenance": {
-        "invocation_id": "4d5db836-9bee-4ce2-9476-2183c03e49b1",
+        "invocation_id": "473f0ad5-58f5-4aff-9f74-5266bc1080b7",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:49.968Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.232Z"
       },
       "type": "classifier_result",
       "data": {
@@ -2934,23 +3039,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.997Z",
-      "id": "d13d018e-f5ea-43b7-9f72-6a0a24eff019",
+      "timestamp": "2026-04-03T07:23:23.272Z",
+      "id": "7212e4e2-6db8-4d24-ac63-5c30e3b4b420",
       "provenance": {
-        "invocation_id": "53bfa03b-9861-4bec-b1e0-51706b59248f",
+        "invocation_id": "61424ccb-0ad7-467c-95a4-45c06738cea3",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.969Z"
+        "timestamp": "2026-04-03T07:23:23.233Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
         "lifecycle_status": "handoff_ready",
         "current_layer": "approved",
+        "turn_latency_ms": 39,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 665,
+          "tokens_out": 24,
+          "estimated_cost_usd": 0.003441
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 1,
+          "time_in_current_layer_ms": 39,
+          "clarification_turn_count_total": 6,
+          "freeze_blocker_count": 0,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -3056,13 +3175,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
-            "approved_turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "ready_since_turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
+            "approved_turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
-            "approved_at": "2026-04-02T21:56:49.966Z",
+            "approved_turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
+            "approved_at": "2026-04-03T07:23:23.231Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3273,13 +3392,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "ddd1e55a-f55f-4502-9a46-53197eadd094",
-            "approved_turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "ready_since_turn_id": "4ca0d3b4-1384-418d-a393-1e52dd78ebd4",
+            "approved_turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
-            "approved_at": "2026-04-02T21:56:49.966Z",
+            "approved_turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
+            "approved_at": "2026-04-03T07:23:23.231Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3396,11 +3515,11 @@
         "requirement_artifact": {
           "schema_version": "1.0",
           "artifact_kind": "requirement_list",
-          "artifact_id": "onion-requirements::onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030::483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
-          "source_approval_turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+          "artifact_id": "onion-requirements::onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb::099db93f-2b5b-4df1-86a8-062898dd21d3",
+          "source_approval_turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
           "human_scope": {
-            "approved_turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
-            "approved_at": "2026-04-02T21:56:49.966Z",
+            "approved_turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
+            "approved_at": "2026-04-03T07:23:23.231Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3596,10 +3715,10 @@
             "No LLM expansion or silent business guessing was used."
           ]
         },
-        "finalized_requirement_memory_id": "eaa404f8-6ffb-4756-96fb-fd1f5ca18512",
+        "finalized_requirement_memory_id": "d54b0f3b-51d2-46a0-b4a2-a9539b051542",
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
           "current_layer": "approved",
           "workflow_step": "handoff_ready",
           "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
@@ -3622,11 +3741,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:49.969Z",
-            "completed_at": "2026-04-02T21:56:49.969Z",
+            "started_at": "2026-04-03T07:23:23.233Z",
+            "completed_at": "2026-04-03T07:23:23.233Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3641,11 +3760,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:49.969Z",
-            "completed_at": "2026-04-02T21:56:49.969Z",
+            "started_at": "2026-04-03T07:23:23.233Z",
+            "completed_at": "2026-04-03T07:23:23.233Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3660,11 +3779,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:49.970Z",
-            "completed_at": "2026-04-02T21:56:49.970Z",
+            "started_at": "2026-04-03T07:23:23.233Z",
+            "completed_at": "2026-04-03T07:23:23.233Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3678,11 +3797,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:49.970Z",
-            "completed_at": "2026-04-02T21:56:49.970Z",
+            "started_at": "2026-04-03T07:23:23.234Z",
+            "completed_at": "2026-04-03T07:23:23.234Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3696,11 +3815,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:49.970Z",
-            "completed_at": "2026-04-02T21:56:49.970Z",
+            "started_at": "2026-04-03T07:23:23.234Z",
+            "completed_at": "2026-04-03T07:23:23.234Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3714,11 +3833,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:49.970Z",
-            "completed_at": "2026-04-02T21:56:49.970Z",
+            "started_at": "2026-04-03T07:23:23.234Z",
+            "completed_at": "2026-04-03T07:23:23.234Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3735,8 +3854,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "483ecb3b-b0fc-4305-a1a9-fa8e91ae073e",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "099db93f-2b5b-4df1-86a8-062898dd21d3",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -3756,7 +3875,8 @@
             "artifact_kind": "requirement_list",
             "action": "create",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "eaa404f8-6ffb-4756-96fb-fd1f5ca18512",
+            "record_id": "d54b0f3b-51d2-46a0-b4a2-a9539b051542",
+            "duration_ms": 31,
             "success": true,
             "message": "Persisted the finalized requirement artifact through the governed requirements surface."
           },
@@ -3767,7 +3887,8 @@
             "artifact_kind": "requirement_list",
             "action": "publish_finalized_requirement",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "eaa404f8-6ffb-4756-96fb-fd1f5ca18512",
+            "record_id": "d54b0f3b-51d2-46a0-b4a2-a9539b051542",
+            "duration_ms": 7,
             "success": true,
             "message": "Locked the finalized requirement artifact after approved freeze."
           },
@@ -3779,46 +3900,47 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
         ],
-        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as eaa404f8-6ffb-4756-96fb-fd1f5ca18512.",
+        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as d54b0f3b-51d2-46a0-b4a2-a9539b051542.",
         "open_loops": []
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.999Z",
-      "id": "131d41b7-06cc-4d95-bb0e-d7daaad662da",
+      "timestamp": "2026-04-03T07:23:23.274Z",
+      "id": "46365a39-0d0f-45ce-84d7-937041fda79c",
       "provenance": {
-        "invocation_id": "53bfa03b-9861-4bec-b1e0-51706b59248f",
+        "invocation_id": "61424ccb-0ad7-467c-95a4-45c06738cea3",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:49.969Z"
+        "timestamp": "2026-04-03T07:23:23.233Z"
       },
       "type": "coo_response",
       "data": {
-        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: eaa404f8-6ffb-4756-96fb-fd1f5ca18512\nThe COO handoff is ready for downstream review."
+        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: d54b0f3b-51d2-46a0-b4a2-a9539b051542\nThe COO handoff is ready for downstream review."
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:49.999Z",
-      "id": "4c91aa33-334d-4cc6-ac60-fa8a079bfaf9",
+      "timestamp": "2026-04-03T07:23:23.274Z",
+      "id": "44cd6d74-0935-4c3e-bd97-0259673421a9",
       "provenance": {
-        "invocation_id": "fe9478f0-f0f2-4d70-aa57-48a1308f4fd8",
+        "invocation_id": "b74782e0-4980-4d24-986c-edfd72454378",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:49.965Z"
+        "timestamp": "2026-04-03T07:23:23.229Z"
       },
       "type": "state_commit",
       "data": {
-        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as eaa404f8-6ffb-4756-96fb-fd1f5ca18512.",
+        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as d54b0f3b-51d2-46a0-b4a2-a9539b051542.",
         "openLoops": [],
         "decisions": [],
         "sessionHandles": {
@@ -3838,16 +3960,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:50.004Z",
-      "id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+      "timestamp": "2026-04-03T07:23:23.278Z",
+      "id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
       "provenance": {
-        "invocation_id": "89e96fbf-8d41-473e-b3c9-139adb4fb894",
+        "invocation_id": "e7d5080b-6f0e-40f0-b8aa-4c2ae03882e8",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:50.003Z"
+        "timestamp": "2026-04-03T07:23:23.276Z"
       },
       "type": "user_input",
       "data": {
@@ -3855,16 +3977,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:50.006Z",
-      "id": "b9e9741a-8f7b-4f9c-963e-83f95caabcff",
+      "timestamp": "2026-04-03T07:23:23.280Z",
+      "id": "24d1a60c-bc35-43a8-905b-bb7b26534c72",
       "provenance": {
-        "invocation_id": "039eac9c-f279-40f6-b5d8-1d53117b88a5",
+        "invocation_id": "5c92440a-461b-417d-948b-ce5eb0463278",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:50.006Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.280Z"
       },
       "type": "classifier_result",
       "data": {
@@ -3875,23 +3997,37 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:50.014Z",
-      "id": "c573d557-7b42-4c03-9876-e85649f66f47",
+      "timestamp": "2026-04-03T07:23:23.285Z",
+      "id": "8aea42de-8a66-4633-a673-0f506e4a75f8",
       "provenance": {
-        "invocation_id": "d3060a4d-84b5-452c-9d9e-e5c275db0be8",
+        "invocation_id": "409efe36-73f9-4cdd-b5dd-601a1defabd0",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:50.007Z"
+        "timestamp": "2026-04-03T07:23:23.281Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
         "lifecycle_status": "active",
         "current_layer": "whole_onion_freeze",
+        "turn_latency_ms": 4,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 681,
+          "tokens_out": 23,
+          "estimated_cost_usd": 0.003519
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 2,
+          "time_in_current_layer_ms": 5,
+          "clarification_turn_count_total": 6,
+          "freeze_blocker_count": 0,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -4125,8 +4261,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
           "current_layer": "whole_onion_freeze",
           "workflow_step": "freeze_ready",
           "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
@@ -4149,11 +4285,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:50.008Z",
-            "completed_at": "2026-04-02T21:56:50.008Z",
+            "started_at": "2026-04-03T07:23:23.281Z",
+            "completed_at": "2026-04-03T07:23:23.281Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -4168,12 +4304,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:50.008Z",
-            "completed_at": "2026-04-02T21:56:50.009Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:23:23.281Z",
+            "completed_at": "2026-04-03T07:23:23.281Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "current_layer": "whole_onion_freeze",
@@ -4187,11 +4323,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:50.009Z",
-            "completed_at": "2026-04-02T21:56:50.009Z",
+            "started_at": "2026-04-03T07:23:23.281Z",
+            "completed_at": "2026-04-03T07:23:23.281Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -4205,11 +4341,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:50.009Z",
-            "completed_at": "2026-04-02T21:56:50.009Z",
+            "started_at": "2026-04-03T07:23:23.281Z",
+            "completed_at": "2026-04-03T07:23:23.281Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -4223,11 +4359,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:50.009Z",
-            "completed_at": "2026-04-02T21:56:50.009Z",
+            "started_at": "2026-04-03T07:23:23.281Z",
+            "completed_at": "2026-04-03T07:23:23.281Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -4241,11 +4377,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:50.010Z",
-            "completed_at": "2026-04-02T21:56:50.010Z",
+            "started_at": "2026-04-03T07:23:23.282Z",
+            "completed_at": "2026-04-03T07:23:23.282Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -4262,8 +4398,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "aecf08e0-9b13-4707-bf47-831da1a791a0",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "6f8b5750-4d2e-46e7-9c87-76d4bea137a3",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -4283,7 +4419,8 @@
             "artifact_kind": "requirement_list",
             "action": "supersede",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "eaa404f8-6ffb-4756-96fb-fd1f5ca18512",
+            "record_id": "d54b0f3b-51d2-46a0-b4a2-a9539b051542",
+            "duration_ms": 3,
             "success": true,
             "message": "Retired the previously finalized requirement artifact because the scope reopened."
           },
@@ -4295,6 +4432,7 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
@@ -4306,16 +4444,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:50.016Z",
-      "id": "2bec449e-1e82-4331-b211-6e1619666c9a",
+      "timestamp": "2026-04-03T07:23:23.286Z",
+      "id": "a7324759-3c36-4f64-ad3f-e10b665a2d70",
       "provenance": {
-        "invocation_id": "d3060a4d-84b5-452c-9d9e-e5c275db0be8",
+        "invocation_id": "409efe36-73f9-4cdd-b5dd-601a1defabd0",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:50.007Z"
+        "timestamp": "2026-04-03T07:23:23.281Z"
       },
       "type": "coo_response",
       "data": {
@@ -4323,16 +4461,16 @@
       }
     },
     {
-      "timestamp": "2026-04-02T21:56:50.016Z",
-      "id": "f500ef92-3759-46f4-8451-fe4238ab8e64",
+      "timestamp": "2026-04-03T07:23:23.286Z",
+      "id": "977e2ac7-53ad-4a62-811b-d843376fb07a",
       "provenance": {
-        "invocation_id": "89e96fbf-8d41-473e-b3c9-139adb4fb894",
+        "invocation_id": "e7d5080b-6f0e-40f0-b8aa-4c2ae03882e8",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:50.003Z"
+        "timestamp": "2026-04-03T07:23:23.276Z"
       },
       "type": "state_commit",
       "data": {
@@ -4362,16 +4500,16 @@
       "data": {
         "message": "Freeze it."
       },
-      "timestamp": "2026-04-02T21:56:50.022Z",
-      "id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+      "timestamp": "2026-04-03T07:23:23.295Z",
+      "id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
       "provenance": {
-        "invocation_id": "7e9c643a-5ebb-4362-9a1f-bb65285c7060",
+        "invocation_id": "39c7ce88-11e4-4c25-a3b3-b0666685ddee",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:50.021Z"
+        "timestamp": "2026-04-03T07:23:23.293Z"
       }
     },
     {
@@ -4382,25 +4520,39 @@
         "workflow": "requirements_gathering_onion",
         "reasoning": "Route \"Freeze it.\" into the live requirements onion lane."
       },
-      "timestamp": "2026-04-02T21:56:50.024Z",
-      "id": "3320b41b-9405-4400-aaf8-4018e4a845e3",
+      "timestamp": "2026-04-03T07:23:23.296Z",
+      "id": "be487df3-de63-46de-b54f-81634f9e95f6",
       "provenance": {
-        "invocation_id": "94ee9cde-af84-4447-af54-f31b93c2aa3b",
+        "invocation_id": "0857b278-e44a-45b6-958c-996f065c29f8",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "timestamp": "2026-04-02T21:56:50.024Z"
+        "source_path": "COO/classifier/classify/c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "timestamp": "2026-04-03T07:23:23.296Z"
       }
     },
     {
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
         "lifecycle_status": "handoff_ready",
         "current_layer": "approved",
+        "turn_latency_ms": 13,
+        "parser_latency_ms": 23,
+        "llm_totals": {
+          "tokens_in": 665,
+          "tokens_out": 24,
+          "estimated_cost_usd": 0.003441
+        },
+        "layer_metrics": {
+          "turns_in_current_layer": 2,
+          "time_in_current_layer_ms": 52,
+          "clarification_turn_count_total": 6,
+          "freeze_blocker_count": 0,
+          "open_decision_count": 0
+        },
         "state": {
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
@@ -4506,13 +4658,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-            "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "ready_since_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+            "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-            "approved_at": "2026-04-02T21:56:50.022Z",
+            "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+            "approved_at": "2026-04-03T07:23:23.295Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -4723,13 +4875,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-            "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "ready_since_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+            "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-            "approved_at": "2026-04-02T21:56:50.022Z",
+            "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+            "approved_at": "2026-04-03T07:23:23.295Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -4846,11 +4998,11 @@
         "requirement_artifact": {
           "schema_version": "1.0",
           "artifact_kind": "requirement_list",
-          "artifact_id": "onion-requirements::onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030::dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-          "source_approval_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+          "artifact_id": "onion-requirements::onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb::45d78141-80d5-4be3-8bc4-0df57dfeb643",
+          "source_approval_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
           "human_scope": {
-            "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-            "approved_at": "2026-04-02T21:56:50.022Z",
+            "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+            "approved_at": "2026-04-03T07:23:23.295Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -5046,10 +5198,10 @@
             "No LLM expansion or silent business guessing was used."
           ]
         },
-        "finalized_requirement_memory_id": "ca4c89ea-80cb-4ed1-bb6c-ee276982623a",
+        "finalized_requirement_memory_id": "561e7eee-878b-4a4c-99d5-7f09960ccb16",
         "workflow_trace": {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
           "current_layer": "approved",
           "workflow_step": "handoff_ready",
           "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
@@ -5072,12 +5224,12 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "operation": "onion_reducer",
-            "started_at": "2026-04-02T21:56:50.026Z",
-            "completed_at": "2026-04-02T21:56:50.027Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:23:23.298Z",
+            "completed_at": "2026-04-03T07:23:23.298Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "actor": "ceo",
@@ -5091,11 +5243,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "operation": "clarification_policy",
-            "started_at": "2026-04-02T21:56:50.027Z",
-            "completed_at": "2026-04-02T21:56:50.027Z",
+            "started_at": "2026-04-03T07:23:23.298Z",
+            "completed_at": "2026-04-03T07:23:23.298Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -5110,12 +5262,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "operation": "freeze_check",
-            "started_at": "2026-04-02T21:56:50.027Z",
-            "completed_at": "2026-04-02T21:56:50.027Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-03T07:23:23.298Z",
+            "completed_at": "2026-04-03T07:23:23.299Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "approved",
@@ -5128,11 +5280,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-02T21:56:50.027Z",
-            "completed_at": "2026-04-02T21:56:50.027Z",
+            "started_at": "2026-04-03T07:23:23.299Z",
+            "completed_at": "2026-04-03T07:23:23.299Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -5146,11 +5298,11 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "operation": "readiness_check",
-            "started_at": "2026-04-02T21:56:50.027Z",
-            "completed_at": "2026-04-02T21:56:50.027Z",
+            "started_at": "2026-04-03T07:23:23.299Z",
+            "completed_at": "2026-04-03T07:23:23.299Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -5164,12 +5316,12 @@
             }
           },
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-02T21:56:50.027Z",
-            "completed_at": "2026-04-02T21:56:50.028Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:23:23.299Z",
+            "completed_at": "2026-04-03T07:23:23.299Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "current_layer": "approved",
@@ -5185,8 +5337,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-            "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+            "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+            "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -5206,7 +5358,8 @@
             "artifact_kind": "requirement_list",
             "action": "create",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "ca4c89ea-80cb-4ed1-bb6c-ee276982623a",
+            "record_id": "561e7eee-878b-4a4c-99d5-7f09960ccb16",
+            "duration_ms": 9,
             "success": true,
             "message": "Persisted the finalized requirement artifact through the governed requirements surface."
           },
@@ -5217,7 +5370,8 @@
             "artifact_kind": "requirement_list",
             "action": "publish_finalized_requirement",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "ca4c89ea-80cb-4ed1-bb6c-ee276982623a",
+            "record_id": "561e7eee-878b-4a4c-99d5-7f09960ccb16",
+            "duration_ms": 3,
             "success": true,
             "message": "Locked the finalized requirement artifact after approved freeze."
           },
@@ -5229,46 +5383,47 @@
             "action": "persist",
             "scope_path": "assafyavnai/shippingagent",
             "record_id": null,
+            "duration_ms": 0,
             "success": true,
             "message": "Thread workflow state persisted for the live onion turn."
           }
         ],
-        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as ca4c89ea-80cb-4ed1-bb6c-ee276982623a.",
+        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 561e7eee-878b-4a4c-99d5-7f09960ccb16.",
         "open_loops": []
       },
-      "timestamp": "2026-04-02T21:56:50.034Z",
-      "id": "d9e4d1df-e13f-4338-b32a-92aab06feb13",
+      "timestamp": "2026-04-03T07:23:23.311Z",
+      "id": "36be4165-7e44-478e-a1f0-d564b07a059a",
       "provenance": {
-        "invocation_id": "756acef4-68a0-4f29-8157-0e0e1e445fea",
+        "invocation_id": "aaaf8206-9518-418a-a96c-bed8af99737e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:50.026Z"
+        "timestamp": "2026-04-03T07:23:23.298Z"
       }
     },
     {
       "type": "coo_response",
       "data": {
-        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: ca4c89ea-80cb-4ed1-bb6c-ee276982623a\nThe COO handoff is ready for downstream review."
+        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 561e7eee-878b-4a4c-99d5-7f09960ccb16\nThe COO handoff is ready for downstream review."
       },
-      "timestamp": "2026-04-02T21:56:50.036Z",
-      "id": "f77e64fc-2135-41bb-9610-227f45f909e9",
+      "timestamp": "2026-04-03T07:23:23.312Z",
+      "id": "7dbdbae4-05e9-42fc-80de-929cf31f3601",
       "provenance": {
-        "invocation_id": "756acef4-68a0-4f29-8157-0e0e1e445fea",
+        "invocation_id": "aaaf8206-9518-418a-a96c-bed8af99737e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-02T21:56:50.026Z"
+        "timestamp": "2026-04-03T07:23:23.298Z"
       }
     },
     {
       "type": "state_commit",
       "data": {
-        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as ca4c89ea-80cb-4ed1-bb6c-ee276982623a.",
+        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 561e7eee-878b-4a4c-99d5-7f09960ccb16.",
         "openLoops": [],
         "decisions": [],
         "sessionHandles": {
@@ -5286,28 +5441,28 @@
           }
         }
       },
-      "timestamp": "2026-04-02T21:56:50.036Z",
-      "id": "3ecb36f4-d285-4e0c-b0f7-bfee507a4540",
+      "timestamp": "2026-04-03T07:23:23.313Z",
+      "id": "3135fea0-3e8f-43d1-af68-3eccb5901caa",
       "provenance": {
-        "invocation_id": "7e9c643a-5ebb-4362-9a1f-bb65285c7060",
+        "invocation_id": "39c7ce88-11e4-4c25-a3b3-b0666685ddee",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-02T21:56:50.021Z"
+        "timestamp": "2026-04-03T07:23:23.293Z"
       }
     }
   ],
-  "createdAt": "2026-04-02T21:56:49.912Z",
-  "updatedAt": "2026-04-02T21:56:50.036Z",
+  "createdAt": "2026-04-03T07:23:23.195Z",
+  "updatedAt": "2026-04-03T07:23:23.313Z",
   "status": "active",
   "scopePath": "assafyavnai/shippingagent",
   "workflowState": {
     "active_workflow": null,
     "onion": {
-      "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-      "last_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+      "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+      "last_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
       "lifecycle_status": "handoff_ready",
       "current_layer": "approved",
       "selected_next_question": null,
@@ -5417,13 +5572,13 @@
         "freeze_status": {
           "status": "approved",
           "blockers": [],
-          "ready_since_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-          "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+          "ready_since_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+          "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
           "approval_note": "The human-facing scope is right. Freeze it."
         },
         "approved_snapshot": {
-          "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-          "approved_at": "2026-04-02T21:56:50.022Z",
+          "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+          "approved_at": "2026-04-03T07:23:23.295Z",
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
           "expected_result": "A local URL that shows the current system status with live updates.",
@@ -5634,13 +5789,13 @@
         "freeze_status": {
           "status": "approved",
           "blockers": [],
-          "ready_since_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-          "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+          "ready_since_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+          "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
           "approval_note": "The human-facing scope is right. Freeze it."
         },
         "approved_snapshot": {
-          "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-          "approved_at": "2026-04-02T21:56:50.022Z",
+          "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+          "approved_at": "2026-04-03T07:23:23.295Z",
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
           "expected_result": "A local URL that shows the current system status with live updates.",
@@ -5757,11 +5912,11 @@
       "requirement_artifact": {
         "schema_version": "1.0",
         "artifact_kind": "requirement_list",
-        "artifact_id": "onion-requirements::onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030::dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-        "source_approval_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+        "artifact_id": "onion-requirements::onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb::45d78141-80d5-4be3-8bc4-0df57dfeb643",
+        "source_approval_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
         "human_scope": {
-          "approved_turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
-          "approved_at": "2026-04-02T21:56:50.022Z",
+          "approved_turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
+          "approved_at": "2026-04-03T07:23:23.295Z",
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
           "expected_result": "A local URL that shows the current system status with live updates.",
@@ -5957,10 +6112,10 @@
           "No LLM expansion or silent business guessing was used."
         ]
       },
-      "finalized_requirement_memory_id": "ca4c89ea-80cb-4ed1-bb6c-ee276982623a",
+      "finalized_requirement_memory_id": "561e7eee-878b-4a4c-99d5-7f09960ccb16",
       "latest_audit_trace": {
-        "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-        "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+        "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+        "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
         "current_layer": "approved",
         "workflow_step": "handoff_ready",
         "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
@@ -5983,8 +6138,8 @@
       },
       "latest_llm_calls": [
         {
-          "trace_id": "onion::57c9e6c0-f24f-482f-b4bc-1f43cc7ff030",
-          "turn_id": "dacb16eb-b6fe-4ca9-a7b0-9263da278304",
+          "trace_id": "onion::c0fc4f3b-6bcb-4da1-a04b-11e4d8cef5fb",
+          "turn_id": "45d78141-80d5-4be3-8bc4-0df57dfeb643",
           "provider": "codex",
           "model": "gpt-5.4",
           "purpose": "onion_turn_parse",
@@ -6004,7 +6159,8 @@
           "artifact_kind": "requirement_list",
           "action": "create",
           "scope_path": "assafyavnai/shippingagent",
-          "record_id": "ca4c89ea-80cb-4ed1-bb6c-ee276982623a",
+          "record_id": "561e7eee-878b-4a4c-99d5-7f09960ccb16",
+          "duration_ms": 9,
           "success": true,
           "message": "Persisted the finalized requirement artifact through the governed requirements surface."
         },
@@ -6015,7 +6171,8 @@
           "artifact_kind": "requirement_list",
           "action": "publish_finalized_requirement",
           "scope_path": "assafyavnai/shippingagent",
-          "record_id": "ca4c89ea-80cb-4ed1-bb6c-ee276982623a",
+          "record_id": "561e7eee-878b-4a4c-99d5-7f09960ccb16",
+          "duration_ms": 3,
           "success": true,
           "message": "Locked the finalized requirement artifact after approved freeze."
         },
@@ -6027,6 +6184,7 @@
           "action": "persist",
           "scope_path": "assafyavnai/shippingagent",
           "record_id": null,
+          "duration_ms": 0,
           "success": true,
           "message": "Thread workflow state persisted for the live onion turn."
         }

@@ -17,10 +17,16 @@ export class MemoryEngineClient {
       callTool: (params: { name: string; arguments?: Record<string, unknown> }) => Promise<ToolResponse>;
       close?: () => Promise<void>;
     },
-    private readonly transport: { close?: () => Promise<void> }
+    private readonly transport: { close?: () => Promise<void> },
+    private readonly telemetryContext: Record<string, unknown> | null,
   ) {}
 
-  static async connect(projectRoot: string): Promise<MemoryEngineClient> {
+  static async connect(
+    projectRoot: string,
+    options?: {
+      telemetryContext?: Record<string, unknown>;
+    },
+  ): Promise<MemoryEngineClient> {
     const resolvedProjectRoot = await resolveWorkspaceRoot(projectRoot);
     const sdkBase = await resolveMcpSdkClientBase(resolvedProjectRoot);
     const serverEntrypoint = await resolveMemoryEngineServerEntrypoint(resolvedProjectRoot);
@@ -43,7 +49,7 @@ export class MemoryEngineClient {
     );
     await client.connect(transport);
 
-    return new MemoryEngineClient(client, transport);
+    return new MemoryEngineClient(client, transport, options?.telemetryContext ?? null);
   }
 
   async close(): Promise<void> {
@@ -61,6 +67,7 @@ export class MemoryEngineClient {
       trust_levels?: string[];
       max_results?: number;
       include_legacy?: boolean;
+      telemetry_context?: Record<string, unknown>;
     }
   ): Promise<Array<Record<string, unknown>>> {
     return this.callJsonTool("search_memory", {
@@ -72,7 +79,7 @@ export class MemoryEngineClient {
       max_results: options?.max_results ?? 10,
       include_legacy: options?.include_legacy ?? false,
       provenance,
-    });
+    }, options?.telemetry_context);
   }
 
   async captureMemory(
@@ -80,7 +87,8 @@ export class MemoryEngineClient {
     contentType: string,
     tags: string[],
     scope: string,
-    provenance: Provenance
+    provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("capture_memory", {
       content,
@@ -88,7 +96,7 @@ export class MemoryEngineClient {
       scope,
       tags,
       provenance,
-    });
+    }, telemetryContext);
   }
 
   async logDecision(
@@ -97,7 +105,8 @@ export class MemoryEngineClient {
     alternatives: unknown[],
     scope: string,
     provenance: Provenance,
-    contentProvenance?: Provenance
+    contentProvenance?: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("log_decision", {
       title,
@@ -106,7 +115,7 @@ export class MemoryEngineClient {
       scope,
       provenance,
       content_provenance: contentProvenance,
-    });
+    }, telemetryContext);
   }
 
   async createRule(
@@ -114,7 +123,8 @@ export class MemoryEngineClient {
     body: string,
     tags: string[],
     scope: string,
-    provenance: Provenance
+    provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("rules_manage", {
       action: "create",
@@ -123,7 +133,7 @@ export class MemoryEngineClient {
       scope,
       tags,
       provenance,
-    });
+    }, telemetryContext);
   }
 
   async createRequirement(
@@ -132,6 +142,7 @@ export class MemoryEngineClient {
     tags: string[],
     scope: string,
     provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("requirements_manage", {
       action: "create",
@@ -140,7 +151,7 @@ export class MemoryEngineClient {
       scope,
       tags,
       provenance,
-    });
+    }, telemetryContext);
   }
 
   async createFinalizedRequirementCandidate(
@@ -149,6 +160,7 @@ export class MemoryEngineClient {
     tags: string[],
     scope: string,
     provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("requirements_manage", {
       action: "create_finalized_candidate",
@@ -157,19 +169,20 @@ export class MemoryEngineClient {
       scope,
       tags,
       provenance,
-    });
+    }, telemetryContext);
   }
 
   async manageOpenLoops(
     action: "list" | "get" | "create" | "search",
     args: Record<string, unknown>,
-    provenance: Provenance
+    provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ): Promise<unknown> {
     return this.callJsonTool("open_loops_manage", {
       action,
       ...args,
       provenance,
-    });
+    }, telemetryContext);
   }
 
   async manageMemory(
@@ -181,7 +194,8 @@ export class MemoryEngineClient {
       tags?: string[];
       trust_level?: "working" | "reviewed" | "locked";
       reason?: string;
-    }
+      telemetry_context?: Record<string, unknown>;
+    },
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("memory_manage", {
       action,
@@ -191,14 +205,14 @@ export class MemoryEngineClient {
       trust_level: options?.trust_level,
       reason: options?.reason,
       provenance,
-    });
+    }, options?.telemetry_context);
   }
 
   async publishFinalizedRequirement(
     memoryId: string,
     scope: string,
     provenance: Provenance,
-    options?: { reason?: string },
+    options?: { reason?: string; telemetry_context?: Record<string, unknown> },
   ): Promise<Record<string, unknown>> {
     return this.callJsonTool("memory_manage", {
       action: "publish_finalized_requirement",
@@ -206,7 +220,7 @@ export class MemoryEngineClient {
       scope,
       reason: options?.reason,
       provenance,
-    });
+    }, options?.telemetry_context);
   }
 
   async emitMetric(event: MetricEvent): Promise<Record<string, unknown>> {
@@ -239,8 +253,26 @@ export class MemoryEngineClient {
     });
   }
 
-  private async callJsonTool(name: string, args: Record<string, unknown>): Promise<any> {
-    const result = await this.client.callTool({ name, arguments: args });
+  private async callJsonTool(
+    name: string,
+    args: Record<string, unknown>,
+    telemetryContext?: Record<string, unknown>,
+  ): Promise<any> {
+    const mergedTelemetryContext = this.telemetryContext || telemetryContext
+      ? {
+          ...(this.telemetryContext ?? {}),
+          ...(telemetryContext ?? {}),
+        }
+      : null;
+    const result = await this.client.callTool({
+      name,
+      arguments: mergedTelemetryContext
+        ? {
+            ...args,
+            telemetry_context: mergedTelemetryContext,
+          }
+        : args,
+    });
 
     if (result.isError) {
       throw new Error(this.extractText(result) ?? `MCP tool ${name} failed`);

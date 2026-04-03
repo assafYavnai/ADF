@@ -4,7 +4,10 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  appendPersistedMetrics,
   close,
+  configureMetadataDefaults,
+  configurePersistence,
   configureSink,
   drain,
   emit,
@@ -162,6 +165,72 @@ test("collector drain shares bounded shutdown semantics when the sink never reco
     const persisted = JSON.parse(await readFile(outboxPath, "utf-8")) as MetricEvent[];
     assert.equal(persisted.length, 1);
     assert.equal(persisted[0].operation, "drain_spooled_event");
+  } finally {
+    resetForTests();
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test("collector materializes metadata defaults and category-specific fields before persistence", async () => {
+  resetForTests();
+  const events: MetricEvent[] = [];
+
+  configurePersistence();
+  configureMetadataDefaults({
+    telemetry_partition: "proof",
+    runtime_entry_surface: "unit_test",
+  });
+  configureSink(async (batch) => {
+    events.push(...batch);
+  });
+
+  emit({
+    ...SAMPLE_EVENT,
+    category: "turn",
+    operation: "handle_turn",
+    classifier_ms: 12,
+    intelligence_ms: 34,
+    context_ms: 56,
+    total_events: 7,
+    metadata: {
+      thread_id: "thread-1",
+    },
+  });
+
+  await drain();
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].metadata?.telemetry_partition, "proof");
+  assert.equal(events[0].metadata?.runtime_entry_surface, "unit_test");
+  assert.equal(events[0].metadata?.thread_id, "thread-1");
+  assert.equal(events[0].metadata?.classifier_ms, 12);
+  assert.equal(events[0].metadata?.intelligence_ms, 34);
+  assert.equal(events[0].metadata?.context_ms, 56);
+  assert.equal(events[0].metadata?.total_events, 7);
+
+  resetForTests();
+});
+
+test("appendPersistedMetrics writes enriched telemetry into the configured outbox", async () => {
+  resetForTests();
+  const tempRoot = await mkdtemp(join(tmpdir(), "adf-telemetry-append-test-"));
+  const outboxPath = join(tempRoot, "telemetry-outbox.json");
+
+  try {
+    configurePersistence({ outboxPath });
+    configureMetadataDefaults({
+      telemetry_partition: "proof",
+    });
+
+    await appendPersistedMetrics([{
+      ...SAMPLE_EVENT,
+      operation: "manual_append",
+    }]);
+
+    const persisted = JSON.parse(await readFile(outboxPath, "utf-8")) as MetricEvent[];
+    assert.equal(persisted.length, 1);
+    assert.equal(persisted[0].operation, "manual_append");
+    assert.equal(persisted[0].metadata?.telemetry_partition, "proof");
   } finally {
     resetForTests();
     await rm(tempRoot, { recursive: true, force: true });

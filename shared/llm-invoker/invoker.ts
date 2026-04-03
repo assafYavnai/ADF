@@ -102,6 +102,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
         sourcePath: params.source_path,
         prompt: params.prompt,
         attempt,
+        telemetryMetadata: params.telemetry_metadata,
       })
     );
     const finalAttempt = attempts[attempts.length - 1];
@@ -135,6 +136,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
               prompt: params.prompt,
               sessionStatus: inferRequestedSessionStatus(params),
               latencyMs: Date.now() - primaryStart,
+              telemetryMetadata: params.telemetry_metadata,
             }, primaryErr)];
       emitInvocationTelemetry(failureAttempts);
       throw wrapInvocationFailure(primaryErr, failureAttempts);
@@ -166,6 +168,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
           sourcePath: params.source_path,
           prompt: params.prompt,
           attempt,
+          telemetryMetadata: params.telemetry_metadata,
         })
       );
       const attempts = [...primaryAttempts, ...fallbackAttempts];
@@ -209,6 +212,7 @@ export async function invoke(params: InvocationParams): Promise<InvocationResult
                 session: undefined,
               }),
               latencyMs: Date.now() - fallbackStart,
+              telemetryMetadata: params.telemetry_metadata,
             }, fallbackErr)]),
       ];
       emitInvocationTelemetry(failureAttempts);
@@ -237,6 +241,7 @@ function buildInvocationAttempt(params: {
   sourcePath: string;
   prompt: string;
   attempt: InternalCLIAttempt;
+  telemetryMetadata?: Record<string, unknown>;
 }): InvocationAttempt {
   const responseText = params.attempt.response_text ?? "";
   return {
@@ -253,6 +258,7 @@ function buildInvocationAttempt(params: {
     session_status: params.attempt.session_status,
     error_message: params.attempt.error_message,
     usage: estimateInvocationUsage(params.provider, params.model, params.prompt, responseText),
+    telemetry_metadata: params.telemetryMetadata,
   };
 }
 
@@ -267,6 +273,7 @@ function buildFailedInvocationAttempt(
     prompt: string;
     sessionStatus: InvocationAttemptSessionStatus;
     latencyMs: number;
+    telemetryMetadata?: Record<string, unknown>;
   },
   error: unknown
 ): InvocationAttempt {
@@ -284,6 +291,7 @@ function buildFailedInvocationAttempt(
     session_status: params.sessionStatus,
     error_message: error instanceof Error ? error.message : String(error),
     usage: estimateInvocationUsage(params.provider, params.model, params.prompt, ""),
+    telemetry_metadata: params.telemetryMetadata,
   };
 }
 
@@ -355,6 +363,7 @@ export function buildInvocationTelemetryEvent(
       response_chars: attempt.usage?.response_chars ?? null,
       token_estimation_basis: attempt.usage?.token_estimation_basis ?? null,
       cost_estimation_basis: attempt.usage?.cost_estimation_basis ?? null,
+      ...(attempt.telemetry_metadata ?? {}),
     },
   };
 }

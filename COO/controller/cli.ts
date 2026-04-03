@@ -1,4 +1,4 @@
-import { createInterface } from "node:readline";
+import { createInterface, emitKeypressEvents } from "node:readline";
 import { resolve, join, dirname } from "node:path";
 import { readdir, stat, access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
@@ -6,14 +6,24 @@ import { randomUUID } from "node:crypto";
 import { handleTurn, DEFAULT_CLASSIFIER_PARAMS, DEFAULT_INTELLIGENCE_PARAMS } from "./loop.js";
 import type { ControllerConfig } from "./loop.js";
 import { emitInvocationTelemetry } from "../../shared/llm-invoker/invoker.js";
-import { close as closeTelemetry, configureSink, replayPersistedMetrics } from "../../shared/telemetry/collector.js";
+import {
+  appendPersistedMetrics,
+  close as closeTelemetry,
+  configureMetadataDefaults,
+  configurePersistence,
+  configureSink,
+  emit,
+  replayPersistedMetrics,
+} from "../../shared/telemetry/collector.js";
 import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationUsageEstimate } from "../../shared/llm-invoker/types.js";
 import { createLLMProvenance } from "../../shared/provenance/types.js";
 import { MemoryEngineClient } from "./memory-engine-client.js";
+import { createSystemProvenance } from "../../shared/provenance/types.js";
 
 let shuttingDown = false;
 
 async function main() {
+  const startupStartedAt = Date.now();
   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
   const args = parseCliArgs(process.argv.slice(2));
   assertProofInvokerIsolation(args);
@@ -21,6 +31,25 @@ async function main() {
   const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
   const promptsDir = resolveRuntimeDir(process.env.ADF_COO_PROMPTS_DIR, resolve(projectRoot, "COO/intelligence"));
   const memoryDir = resolveRuntimeDir(process.env.ADF_COO_MEMORY_DIR, resolve(projectRoot, "memory"));
+  const telemetryOutboxPath = resolve(memoryDir, "telemetry-outbox.json");
+  const cliMode = process.stdin.isTTY ? "interactive" : "scripted";
+  const telemetryPartition = args.testProofMode ? "proof" : "production";
+  const runtimeTelemetryContext = {
+    telemetry_partition: telemetryPartition,
+    runtime_entry_surface: "coo_cli",
+    proof_mode: Boolean(args.testProofMode),
+    cli_mode: cliMode,
+    onion_enabled: onionEnabled,
+  };
+  configurePersistence({
+    outboxPath: telemetryOutboxPath,
+    shutdownTimeoutMs: 5_000,
+  });
+  configureMetadataDefaults({
+    ...runtimeTelemetryContext,
+    cli_mode: cliMode,
+    onion_enabled: onionEnabled,
+  });
   const config: ControllerConfig = {
     projectRoot,
     threadsDir,
@@ -37,14 +66,17 @@ async function main() {
 
   let brainClient: MemoryEngineClient | null = null;
   try {
-    brainClient = await MemoryEngineClient.connect(projectRoot);
-    const telemetryOutboxPath = resolve(memoryDir, "telemetry-outbox.json");
+    const brainConnectStartedAt = Date.now();
+    brainClient = await MemoryEngineClient.connect(projectRoot, {
+      telemetryContext: runtimeTelemetryContext,
+    });
     config.brainSearch = async (query, scopePath, provenance, options) => {
       const results = await brainClient!.searchMemory(query, scopePath, provenance, {
         content_type: options?.contentType,
         content_types: options?.contentTypes,
         trust_levels: options?.trustLevels,
         max_results: options?.maxResults,
+        telemetry_context: options?.telemetryContext,
       });
       return results.map((result) => ({
         id: String(result.id ?? ""),
@@ -55,16 +87,16 @@ async function main() {
         score: Number(result.score ?? 0),
       }));
     };
-    config.brainCapture = (content, contentType, tags, scopePath, provenance) =>
-      brainClient!.captureMemory(content, contentType, tags, scopePath, provenance);
-    config.brainLogDecision = (title, reasoning, alternatives, scopePath, provenance, contentProvenance) =>
-      brainClient!.logDecision(title, reasoning, alternatives, scopePath, provenance, contentProvenance);
-    config.brainCreateRule = (title, body, tags, scopePath, provenance) =>
-      brainClient!.createRule(title, body, tags, scopePath, provenance);
-    config.brainCreateRequirement = (title, body, tags, scopePath, provenance) =>
-      brainClient!.createRequirement(title, body, tags, scopePath, provenance);
-    config.brainCreateFinalizedRequirementCandidate = (title, body, tags, scopePath, provenance) =>
-      brainClient!.createFinalizedRequirementCandidate(title, body, tags, scopePath, provenance);
+    config.brainCapture = (content, contentType, tags, scopePath, provenance, telemetryContext) =>
+      brainClient!.captureMemory(content, contentType, tags, scopePath, provenance, telemetryContext);
+    config.brainLogDecision = (title, reasoning, alternatives, scopePath, provenance, contentProvenance, telemetryContext) =>
+      brainClient!.logDecision(title, reasoning, alternatives, scopePath, provenance, contentProvenance, telemetryContext);
+    config.brainCreateRule = (title, body, tags, scopePath, provenance, telemetryContext) =>
+      brainClient!.createRule(title, body, tags, scopePath, provenance, telemetryContext);
+    config.brainCreateRequirement = (title, body, tags, scopePath, provenance, telemetryContext) =>
+      brainClient!.createRequirement(title, body, tags, scopePath, provenance, telemetryContext);
+    config.brainCreateFinalizedRequirementCandidate = (title, body, tags, scopePath, provenance, telemetryContext) =>
+      brainClient!.createFinalizedRequirementCandidate(title, body, tags, scopePath, provenance, telemetryContext);
     config.brainManageMemory = (action, memoryId, scopePath, provenance, options) =>
       brainClient!.manageMemory(action, memoryId, scopePath, provenance, options);
     config.brainPublishFinalizedRequirement = (memoryId, scopePath, provenance, options) =>
@@ -76,12 +108,65 @@ async function main() {
       outboxPath: telemetryOutboxPath,
       shutdownTimeoutMs: 5_000,
     });
+    emit({
+      provenance: createSystemProvenance("COO/controller/cli/memory-engine-connect"),
+      category: "system",
+      operation: "memory_engine_connect",
+      latency_ms: Date.now() - brainConnectStartedAt,
+      success: true,
+      metadata: {
+        connection_result: "connected",
+      },
+    });
+    const replayStartedAt = Date.now();
     const replayedMetrics = await replayPersistedMetrics();
+    emit({
+      provenance: createSystemProvenance("COO/controller/cli/telemetry-replay"),
+      category: "system",
+      operation: "telemetry_replay",
+      latency_ms: Date.now() - replayStartedAt,
+      success: true,
+      metadata: {
+        replayed_events: replayedMetrics,
+        replay_status: replayedMetrics > 0 ? "replayed" : "empty",
+      },
+    });
     if (replayedMetrics > 0) {
       console.log(`Recovered ${replayedMetrics} persisted telemetry event(s) from the local outbox.`);
     }
+    emit({
+      provenance: createSystemProvenance("COO/controller/cli/bootstrap"),
+      category: "system",
+      operation: "cli_bootstrap",
+      latency_ms: Date.now() - startupStartedAt,
+      success: true,
+      metadata: {
+        memory_engine_connected: true,
+        replayed_events: replayedMetrics,
+        cli_mode: cliMode,
+        onion_enabled: onionEnabled,
+        proof_mode: Boolean(args.testProofMode),
+        configured_scope: args.scopePath ?? null,
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    emit({
+      provenance: createSystemProvenance("COO/controller/cli/memory-engine-connect"),
+      category: "system",
+      operation: "memory_engine_connect",
+      latency_ms: Date.now() - startupStartedAt,
+      success: false,
+      metadata: {
+        connection_result: "failed",
+        error_message: message,
+        cli_mode: cliMode,
+        onion_enabled: onionEnabled,
+        proof_mode: Boolean(args.testProofMode),
+        configured_scope: args.scopePath ?? null,
+      },
+    });
+    await closeTelemetry({ timeoutMs: 1 }).catch(() => {});
     console.error(`Memory engine MCP connection failed: ${message}`);
     throw err;
   }
@@ -91,7 +176,21 @@ async function main() {
   console.log("Type your message, press Enter. Type 'exit' to quit.\n");
 
   const configuredScope = args.scopePath ?? null;
+  const resumeLookupStartedAt = Date.now();
   let threadId = await resolveStartingThreadId(args, config.threadsDir);
+  emit({
+    provenance: createSystemProvenance("COO/controller/cli/thread-resume-lookup"),
+    category: "system",
+    operation: "thread_resume_lookup",
+    latency_ms: Date.now() - resumeLookupStartedAt,
+    success: true,
+    metadata: {
+      requested_thread_id: args.threadId ?? null,
+      resume_last_requested: args.resumeLast,
+      resolved_thread_id: threadId,
+      recovery_path: args.threadId ? "explicit_resume" : args.resumeLast ? (threadId ? "resume_latest" : "resume_latest_empty") : "new_thread",
+    },
+  });
 
   if (configuredScope) {
     console.log(`Scope: ${configuredScope}`);
@@ -100,9 +199,15 @@ async function main() {
   }
   console.log(`Requirements-gathering onion: ${onionEnabled ? "enabled (feature gate)" : "disabled"}`);
   console.log(`LLM invoker: ${args.testProofMode ? "test-proof-mode (guarded)" : "live"}`);
+  console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.\n");
 
   if (!process.stdin.isTTY) {
-    await runScriptedSession(config, brainClient, threadId, configuredScope);
+    await runScriptedSession(config, brainClient, threadId, configuredScope, {
+      ...runtimeTelemetryContext,
+      cli_mode: cliMode,
+      configured_scope: configuredScope,
+      proof_mode: Boolean(args.testProofMode),
+    });
     return;
   }
 
@@ -112,33 +217,137 @@ async function main() {
     prompt: "CEO> ",
   });
 
-  rl.prompt();
+  let isProcessing = false;
+  let multilineMode = false;
+  const multilineBuffer: string[] = [];
+  let spinner: NodeJS.Timeout | null = null;
+  let spinnerIndex = 0;
+  const spinnerFrames = ["|", "/", "-", "\\"];
 
-  rl.on("line", async (line: string) => {
-    const input = line.trim();
-    if (!input) {
-      rl.prompt();
+  const renderPrompt = (): void => {
+    rl.setPrompt(multilineMode ? "... " : "CEO> ");
+    rl.prompt();
+  };
+
+  const startThinkingIndicator = (): void => {
+    if (spinner) {
       return;
     }
+    spinnerIndex = 0;
+    process.stdout.write("\rCOO> Thinking... |");
+    spinner = setInterval(() => {
+      spinnerIndex = (spinnerIndex + 1) % spinnerFrames.length;
+      process.stdout.write(`\rCOO> Thinking... ${spinnerFrames[spinnerIndex]}`);
+    }, 120);
+  };
+
+  const stopThinkingIndicator = (): void => {
+    if (!spinner) {
+      return;
+    }
+    clearInterval(spinner);
+    spinner = null;
+    process.stdout.write("\r" + " ".repeat(40) + "\r");
+  };
+
+  const processInput = async (rawInput: string): Promise<void> => {
+    const input = rawInput.trim();
+    if (!input) {
+      return;
+    }
+
     if (input.toLowerCase() === "exit") {
       rl.close();
       return;
     }
 
+    if (input === "/multi") {
+      multilineMode = true;
+      multilineBuffer.length = 0;
+      console.log("\nMultiline mode enabled. Enter your text. Type /send on a new line to submit, or /cancel to discard.\n");
+      return;
+    }
+
+    if (multilineMode) {
+      if (input === "/cancel") {
+        multilineMode = false;
+        multilineBuffer.length = 0;
+        console.log("\nMultiline input discarded.\n");
+        return;
+      }
+      if (input === "/send") {
+        const message = multilineBuffer.join("\n").trim();
+        multilineMode = false;
+        multilineBuffer.length = 0;
+        if (!message) {
+          console.log("\nNo multiline content to send.\n");
+          return;
+        }
+        await runTurn(message);
+        return;
+      }
+
+      multilineBuffer.push(rawInput);
+      return;
+    }
+
+    await runTurn(rawInput);
+  };
+
+  const runTurn = async (message: string): Promise<void> => {
+    if (isProcessing) {
+      return;
+    }
+
+    isProcessing = true;
+    rl.pause();
+    startThinkingIndicator();
+
     try {
-      const result = await handleTurn(threadId, input, config, configuredScope);
+      const result = await handleTurn(threadId, message, config, configuredScope);
       threadId = result.threadId;
+      stopThinkingIndicator();
       console.log(`\nCOO> ${result.response}\n`);
       console.log(`[thread: ${threadId}, scope: ${result.thread.scopePath ?? "unset"}, events: ${result.thread.events.length}]\n`);
     } catch (err) {
+      stopThinkingIndicator();
       console.error("Error:", err);
+    } finally {
+      isProcessing = false;
+      rl.resume();
+    }
+  };
+
+  emitKeypressEvents(process.stdin);
+  if (process.stdin.isTTY && typeof process.stdin.setRawMode === "function") {
+    process.stdin.on("keypress", (_str, key) => {
+      if (!multilineMode || !key || !key.shift || key.name !== "return") {
+        return;
+      }
+      rl.write("\n");
+    });
+  }
+
+  renderPrompt();
+
+  rl.on("line", async (line: string) => {
+    if (isProcessing) {
+      return;
     }
 
-    rl.prompt();
+    await processInput(line);
+    renderPrompt();
   });
 
   rl.on("close", () => {
-    void shutdownCli(brainClient);
+    stopThinkingIndicator();
+    void shutdownCli(brainClient, {
+      ...runtimeTelemetryContext,
+      cli_mode: cliMode,
+      configured_scope: configuredScope,
+      proof_mode: Boolean(args.testProofMode),
+      shutdown_path: "interactive_close",
+    });
   });
 }
 
@@ -195,6 +404,7 @@ async function createTestProofInvokerFromEnv(
         ? (params.session?.handle ? "resumed" : "fresh")
         : "none",
       usage,
+      telemetry_metadata: params.telemetry_metadata,
     };
     const session = sessionPersisted
       ? {
@@ -376,7 +586,8 @@ async function runScriptedSession(
   config: ControllerConfig,
   brainClient: MemoryEngineClient | null,
   threadId: string | null,
-  configuredScope: string | null
+  configuredScope: string | null,
+  shutdownMetadata: Record<string, unknown>,
 ): Promise<void> {
   const rl = createInterface({
     input: process.stdin,
@@ -404,16 +615,23 @@ async function runScriptedSession(
     }
   } finally {
     rl.close();
-    await shutdownCli(brainClient);
+    await shutdownCli(brainClient, {
+      ...shutdownMetadata,
+      shutdown_path: "scripted_session_end",
+    });
   }
 }
 
-async function shutdownCli(brainClient: MemoryEngineClient | null): Promise<void> {
+async function shutdownCli(
+  brainClient: MemoryEngineClient | null,
+  metadata: Record<string, unknown> = {},
+): Promise<void> {
   if (shuttingDown) {
     return;
   }
 
   shuttingDown = true;
+  const shutdownStartedAt = Date.now();
 
   try {
     const telemetryClose = await closeTelemetry();
@@ -425,6 +643,28 @@ async function shutdownCli(brainClient: MemoryEngineClient | null): Promise<void
       console.warn(
         `Telemetry shutdown timed out with ${telemetryClose.pending_events} unsaved event(s).`
       );
+    }
+    const shutdownEvent = {
+      provenance: createSystemProvenance("COO/controller/cli/shutdown"),
+      category: "system" as const,
+      operation: "cli_shutdown",
+      latency_ms: Date.now() - shutdownStartedAt,
+      success: telemetryClose.status !== "timed_out",
+      metadata: {
+        ...metadata,
+        telemetry_close_status: telemetryClose.status,
+        pending_events: telemetryClose.pending_events,
+        outbox_path: telemetryClose.outbox_path,
+      },
+    };
+    if (telemetryClose.status === "drained") {
+      try {
+        await brainClient?.emitMetric(shutdownEvent);
+      } catch {
+        await appendPersistedMetrics([shutdownEvent]);
+      }
+    } else {
+      await appendPersistedMetrics([shutdownEvent]);
     }
     await brainClient?.close();
     console.log("\nSession ended.");

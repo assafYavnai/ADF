@@ -9,6 +9,7 @@ import {
 import {
   assembleContext,
   buildPrompt,
+  type ContextAssemblyMetrics,
   type ContextEngineerConfig,
   type BrainSearchResult,
 } from "../context-engineer/context-engineer.js";
@@ -43,24 +44,41 @@ export interface ControllerConfig {
       contentTypes?: string[];
       trustLevels?: string[];
       maxResults?: number;
+      telemetryContext?: Record<string, unknown>;
     }
   ) => Promise<BrainSearchResult[]>;
-  brainCapture?: (content: string, contentType: string, tags: string[], scopePath: string, provenance: Provenance) => Promise<Record<string, unknown>>;
+  brainCapture?: (
+    content: string,
+    contentType: string,
+    tags: string[],
+    scopePath: string,
+    provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>;
   brainLogDecision?: (
     title: string,
     reasoning: string,
     alternatives: unknown[],
     scopePath: string,
     provenance: Provenance,
-    contentProvenance?: Provenance
+    contentProvenance?: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ) => Promise<Record<string, unknown>>;
-  brainCreateRule?: (title: string, body: string, tags: string[], scopePath: string, provenance: Provenance) => Promise<Record<string, unknown>>;
+  brainCreateRule?: (
+    title: string,
+    body: string,
+    tags: string[],
+    scopePath: string,
+    provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>;
   brainCreateRequirement?: (
     title: string,
     body: Record<string, unknown>,
     tags: string[],
     scopePath: string,
     provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ) => Promise<Record<string, unknown>>;
   brainCreateFinalizedRequirementCandidate?: (
     title: string,
@@ -68,6 +86,7 @@ export interface ControllerConfig {
     tags: string[],
     scopePath: string,
     provenance: Provenance,
+    telemetryContext?: Record<string, unknown>,
   ) => Promise<Record<string, unknown>>;
   brainManageMemory?: (
     action: "delete" | "archive" | "supersede" | "update_tags" | "update_trust_level",
@@ -78,13 +97,14 @@ export interface ControllerConfig {
       tags?: string[];
       trust_level?: "working" | "reviewed" | "locked";
       reason?: string;
+      telemetry_context?: Record<string, unknown>;
     }
   ) => Promise<Record<string, unknown>>;
   brainPublishFinalizedRequirement?: (
     memoryId: string,
     scopePath: string,
     provenance: Provenance,
-    options?: { reason?: string }
+    options?: { reason?: string; telemetry_context?: Record<string, unknown> }
   ) => Promise<Record<string, unknown>>;
   enableRequirementsGatheringOnion?: boolean;
   invokeLLM?: (params: InvocationParams) => Promise<InvocationResult>;
@@ -109,6 +129,24 @@ export const DEFAULT_INTELLIGENCE_PARAMS: Omit<InvocationParams, "prompt" | "sou
   fallback: { cli: "claude", model: "opus", effort: "max", bypass: true },
 };
 
+const CONTROLLER_BRAIN_ROUTE_STAGES = {
+  contextEngineer: "context_engineer",
+  memoryOperation: "memory_operation",
+} as const;
+
+const CONTROLLER_BRAIN_STEP_NAMES = {
+  captureMemory: "capture_memory",
+  logDecision: "log_decision",
+  createRule: "create_rule",
+  searchMemory: "search_memory",
+  loadContext: "load_context",
+} as const;
+
+interface CooResponseResult {
+  invocation: InvocationResult;
+  contextMetrics: ContextAssemblyMetrics;
+}
+
 export async function handleTurn(
   threadId: string | null,
   userMessage: string,
@@ -122,53 +160,111 @@ export async function handleTurn(
   const turnStart = Date.now();
   const store = new FileSystemThreadStore(config.threadsDir);
   const controllerProv = createSystemProvenance("COO/controller/handle-turn");
+  const stepsPassed: string[] = [];
+  let failureStage = "thread_resolution";
+  let recoveryPath = threadId ? "resume_existing" : "create_new";
 
-  let thread: Thread;
-  if (threadId) {
-    thread = await store.get(threadId);
-    if (requestedScopePath && thread.scopePath && requestedScopePath !== thread.scopePath) {
-      throw new Error(`Thread scope mismatch: thread is scoped to "${thread.scopePath}", but "${requestedScopePath}" was requested.`);
+  emitTurnMetric(controllerProv, "turn_start", 0, true, {
+    requested_thread_id: threadId,
+    requested_scope_path: requestedScopePath,
+    recovery_path: recoveryPath,
+  });
+  stepsPassed.push("turn_start");
+
+  let thread: Thread | null = null;
+  try {
+    if (threadId) {
+      thread = await store.get(threadId);
+      stepsPassed.push("thread_load");
+      if (requestedScopePath && thread.scopePath && requestedScopePath !== thread.scopePath) {
+        throw new Error(`Thread scope mismatch: thread is scoped to "${thread.scopePath}", but "${requestedScopePath}" was requested.`);
+      }
+      if (!thread.scopePath && requestedScopePath) {
+        failureStage = "thread_scope_attach";
+        thread.scopePath = requestedScopePath;
+        await store.update(thread);
+        stepsPassed.push("thread_scope_attach");
+      }
+    } else {
+      thread = await store.create(requestedScopePath);
+      stepsPassed.push("thread_create");
     }
-    if (!thread.scopePath && requestedScopePath) {
-      thread.scopePath = requestedScopePath;
+
+    const maxErrors = config.maxConsecutiveErrors ?? 3;
+    const errorStreak = consecutiveErrors(thread);
+    if (errorStreak >= maxErrors) {
+      thread.events.push(createEvent("user_input", { message: userMessage }, controllerProv));
+      const escalation = `I've hit ${maxErrors} consecutive errors. Escalating to you for guidance.`;
+      thread.events.push(createEvent("coo_response", { message: escalation }, controllerProv));
+      failureStage = "error_streak_persist";
       await store.update(thread);
+      stepsPassed.push("error_streak_escalation");
+      stepsPassed.push("thread_state_commit");
+      emit({
+        provenance: controllerProv,
+        category: "turn",
+        operation: "handle_turn",
+        latency_ms: Date.now() - turnStart,
+        success: false,
+        metadata: {
+          workflow: "error_streak_escalation",
+          thread_id: thread.id,
+          scope_path: thread.scopePath,
+          active_workflow: thread.workflowState.active_workflow,
+          recovery_path: recoveryPath,
+          failure_stage: "error_streak_guard",
+          steps_passed: stepsPassed,
+        },
+      });
+      return { threadId: thread.id, response: escalation, thread };
     }
-  } else {
-    thread = await store.create(requestedScopePath);
-  }
 
-  const maxErrors = config.maxConsecutiveErrors ?? 3;
-  const errorStreak = consecutiveErrors(thread);
-  if (errorStreak >= maxErrors) {
     thread.events.push(createEvent("user_input", { message: userMessage }, controllerProv));
-    const escalation = `I've hit ${maxErrors} consecutive errors. Escalating to you for guidance.`;
-    thread.events.push(createEvent("coo_response", { message: escalation }, controllerProv));
+    thread.status = "active";
+    failureStage = "user_input_persist";
     await store.update(thread);
-    return { threadId: thread.id, response: escalation, thread };
-  }
+    stepsPassed.push("user_input_recorded");
 
-  thread.events.push(createEvent("user_input", { message: userMessage }, controllerProv));
-  thread.status = "active";
-  await store.update(thread);
+    if (hasPersistedOnionWorkflow(thread) && !config.enableRequirementsGatheringOnion) {
+      const response =
+        "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.";
+      thread.events.push(createEvent("error", {
+        source: "controller",
+        message: response,
+        recoverable: true,
+        attemptNumber: 1,
+      }, controllerProv));
+      thread.events.push(createEvent("coo_response", { message: response }, controllerProv));
+      thread.events.push(createEvent("state_commit", {
+        summary: "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
+        openLoops: [response],
+        decisions: collectDecisionSummaries(thread),
+        sessionHandles: getLatestSessionHandles(thread),
+      }, controllerProv));
+      failureStage = "persisted_onion_gate_persist";
+      await store.update(thread);
+      stepsPassed.push("persisted_onion_gate_block");
+      stepsPassed.push("thread_state_commit");
 
-  if (hasPersistedOnionWorkflow(thread) && !config.enableRequirementsGatheringOnion) {
-    const response =
-      "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.";
-    thread.events.push(createEvent("error", {
-      source: "controller",
-      message: response,
-      recoverable: true,
-      attemptNumber: 1,
-    }, controllerProv));
-    thread.events.push(createEvent("coo_response", { message: response }, controllerProv));
-    thread.events.push(createEvent("state_commit", {
-      summary: "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
-      openLoops: [response],
-      decisions: collectDecisionSummaries(thread),
-      sessionHandles: getLatestSessionHandles(thread),
-    }, controllerProv));
-    await store.update(thread);
+      emit({
+        provenance: controllerProv,
+        category: "turn",
+        operation: "handle_turn",
+        latency_ms: Date.now() - turnStart,
+        success: false,
+        metadata: {
+          workflow: "requirements_gathering_onion",
+          thread_id: thread.id,
+          scope_path: thread.scopePath,
+          gate_status: "disabled",
+          recovery_path: recoveryPath,
+          steps_passed: stepsPassed,
+        },
+      });
 
+      return { threadId: thread.id, response, thread };
+    }
+  } catch (err) {
     emit({
       provenance: controllerProv,
       category: "turn",
@@ -176,18 +272,28 @@ export async function handleTurn(
       latency_ms: Date.now() - turnStart,
       success: false,
       metadata: {
-        workflow: "requirements_gathering_onion",
-        thread_id: thread.id,
-        scope_path: thread.scopePath,
-        gate_status: "disabled",
+        requested_thread_id: threadId,
+        requested_scope_path: requestedScopePath,
+        thread_id: thread?.id ?? null,
+        scope_path: thread?.scopePath ?? requestedScopePath,
+        active_workflow: thread?.workflowState.active_workflow ?? null,
+        recovery_path: recoveryPath,
+        failure_stage: failureStage,
+        steps_passed: stepsPassed,
       },
     });
+    throw err;
+  }
 
-    return { threadId: thread.id, response, thread };
+  if (!thread) {
+    throw new Error("Thread resolution completed without a thread.");
   }
 
   let classifierMs = 0;
   let intelligenceMs = 0;
+  let turnContextMs = 0;
+  let classifierResult: InvocationResult | null = null;
+  let intelligenceSessionStatus = "none";
 
   try {
     const sessionHandles = getLatestSessionHandles(thread);
@@ -207,22 +313,56 @@ export async function handleTurn(
       persistedOnionState: hasPersistedOnionWorkflow(thread),
       onionLifecycleStatus: thread.workflowState.onion?.lifecycle_status ?? null,
     });
-    const classifierResult = await callLlm(config, {
-      ...config.classifierParams,
-      prompt: classifierPrompt,
-      source_path: `COO/classifier/classify/${thread.id}`,
-      session: {
-        persist: true,
-        handle: compatibleSessionHandle(
-          sessionHandles.classifier,
-          config.classifierParams.cli,
-          config.classifierParams.model
-        ),
-      },
-    });
-    classifierMs = classifierResult.latency_ms;
-
-    const classification = parseClassifierResponse(classifierResult.response);
+    failureStage = "classifier";
+    let classification: ClassifierOutput;
+    try {
+      classifierResult = await callLlm(config, {
+        ...config.classifierParams,
+        prompt: classifierPrompt,
+        source_path: `COO/classifier/classify/${thread.id}`,
+        session: {
+          persist: true,
+          handle: compatibleSessionHandle(
+            sessionHandles.classifier,
+            config.classifierParams.cli,
+            config.classifierParams.model
+          ),
+        },
+        telemetry_metadata: buildLlmTelemetryMetadata(thread, "classifier", {
+          workflow: resolveClassifierWorkflow(thread),
+          scope_path: thread.scopePath,
+        }),
+      });
+      classifierMs = classifierResult.latency_ms;
+      classification = parseClassifierResponse(classifierResult.response);
+      emitTurnMetric(classifierResult.provenance, "classifier_step", classifierMs, true, {
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        selected_workflow: classification.workflow,
+        selected_tool: classification.tool ?? null,
+        confidence: classification.confidence,
+        parse_status: "parsed",
+        provider: classifierResult.provenance.provider,
+        model: classifierResult.provenance.model,
+        tokens_in: classifierResult.usage?.tokens_in_estimated ?? null,
+        tokens_out: classifierResult.usage?.tokens_out_estimated ?? null,
+        estimated_cost_usd: classifierResult.usage?.estimated_cost_usd ?? null,
+        fallback_used: classifierResult.provenance.was_fallback,
+      });
+      stepsPassed.push("classifier_step");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      emitTurnMetric(classifierResult?.provenance ?? controllerProv, "classifier_step", classifierResult?.latency_ms ?? 0, false, {
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        parse_status: classifierResult ? "failed_to_parse" : "invoke_failed",
+        error_message: message,
+        provider: classifierResult?.provenance.provider ?? null,
+        model: classifierResult?.provenance.model ?? null,
+        fallback_used: classifierResult?.provenance.was_fallback ?? null,
+      });
+      throw error;
+    }
 
     thread.events.push(
       createEvent("classifier_result", {
@@ -240,6 +380,8 @@ export async function handleTurn(
     let intelligenceSession = sessionHandles.intelligence ?? null;
     let stateCommitSummary: string | null = null;
     let openLoops: string[] | null = null;
+    const workflowStartedAt = Date.now();
+    failureStage = "workflow_execution";
 
     switch (classification.workflow) {
       case "memory_operation": {
@@ -259,6 +401,7 @@ export async function handleTurn(
         );
         response = memoryResult.response;
         intelligenceSession = memoryResult.intelligenceSession ?? intelligenceSession;
+        intelligenceSessionStatus = memoryResult.intelligenceSession ? "present" : intelligenceSessionStatus;
         break;
       }
 
@@ -291,6 +434,7 @@ export async function handleTurn(
         intelligenceProv = onionResult.provenance;
         intelligenceMs = onionResult.latency_ms;
         intelligenceSession = onionResult.session?.handle ?? intelligenceSession;
+        intelligenceSessionStatus = onionResult.session?.status ?? intelligenceSessionStatus;
         stateCommitSummary = onionResult.state_commit_summary;
         openLoops = onionResult.open_loops;
         break;
@@ -310,13 +454,25 @@ export async function handleTurn(
           ),
           thread.scopePath
         );
-        response = cooResult.response;
-        intelligenceProv = cooResult.provenance;
-        intelligenceMs = cooResult.latency_ms;
-        intelligenceSession = cooResult.session?.handle ?? intelligenceSession;
+        response = cooResult.invocation.response;
+        intelligenceProv = cooResult.invocation.provenance;
+        intelligenceMs = cooResult.invocation.latency_ms;
+        intelligenceSession = cooResult.invocation.session?.handle ?? intelligenceSession;
+        intelligenceSessionStatus = cooResult.invocation.session?.status ?? intelligenceSessionStatus;
+        turnContextMs = cooResult.contextMetrics.assembly_latency_ms;
         break;
       }
     }
+    emitTurnMetric(intelligenceProv, "workflow_execute", Date.now() - workflowStartedAt, true, {
+      thread_id: thread.id,
+      scope_path: thread.scopePath,
+      workflow: classification.workflow,
+      selected_tool: classification.tool ?? null,
+      active_workflow_after: thread.workflowState.active_workflow,
+      open_loop_count: openLoops?.length ?? 0,
+      state_commit_summary_present: Boolean(stateCommitSummary),
+    });
+    stepsPassed.push("workflow_execute");
 
     // Step 3: Append response and commit
     thread.events.push(createEvent("coo_response", { message: response }, intelligenceProv));
@@ -330,6 +486,7 @@ export async function handleTurn(
       },
     }, controllerProv));
     await store.update(thread);
+    stepsPassed.push("thread_state_commit");
 
     // Emit turn telemetry
     emit({
@@ -340,13 +497,18 @@ export async function handleTurn(
       success: true,
       classifier_ms: classifierMs,
       intelligence_ms: intelligenceMs,
-      context_ms: 0,
+      context_ms: turnContextMs,
       total_events: thread.events.length,
       metadata: {
         workflow: classification.workflow,
         thread_id: thread.id,
         scope_path: thread.scopePath,
         active_workflow: thread.workflowState.active_workflow,
+        recovery_path: recoveryPath,
+        steps_passed: stepsPassed,
+        classifier_session_status: classifierResult.session?.status ?? "none",
+        intelligence_session_status: intelligenceSessionStatus,
+        selected_memory_tool: classification.tool ?? null,
       },
     });
 
@@ -362,6 +524,7 @@ export async function handleTurn(
       }, controllerProv)
     );
     await store.update(thread);
+    stepsPassed.push("error_recorded");
 
     emit({
       provenance: controllerProv,
@@ -373,6 +536,9 @@ export async function handleTurn(
         thread_id: thread.id,
         scope_path: thread.scopePath,
         active_workflow: thread.workflowState.active_workflow,
+        recovery_path: recoveryPath,
+        failure_stage: failureStage,
+        steps_passed: stepsPassed,
       },
     });
 
@@ -411,7 +577,18 @@ async function handleMemoryOperation(
       await store.update(thread);
 
       try {
-        const result = await config.brainCapture(userMessage, "text", [], scopePath, operationProv);
+        const result = await config.brainCapture(
+          userMessage,
+          "text",
+          [],
+          scopePath,
+          operationProv,
+          buildBrainTelemetryContext(thread, CONTROLLER_BRAIN_ROUTE_STAGES.memoryOperation, CONTROLLER_BRAIN_STEP_NAMES.captureMemory, {
+            workflow: "memory_operation",
+            memory_operation: "capture",
+            operation_id: operationId,
+          }),
+        );
         thread.events.push(createEvent("memory_operation", {
           operation: "capture",
           operationId,
@@ -439,6 +616,10 @@ async function handleMemoryOperation(
           persist: true,
           handle: sessionHandle,
         },
+        telemetry_metadata: buildLlmTelemetryMetadata(thread, "decision_extract", {
+          workflow: "memory_operation",
+          memory_operation: "log_decision",
+        }),
       });
 
       let decision: { title: string; reasoning: string; alternatives?: unknown[] };
@@ -470,7 +651,12 @@ async function handleMemoryOperation(
           decision.alternatives ?? [],
           scopePath,
           operationProv,
-          contentProvenance
+          contentProvenance,
+          buildBrainTelemetryContext(thread, CONTROLLER_BRAIN_ROUTE_STAGES.memoryOperation, CONTROLLER_BRAIN_STEP_NAMES.logDecision, {
+            workflow: "memory_operation",
+            memory_operation: "log_decision",
+            operation_id: operationId,
+          }),
         );
         thread.events.push(createEvent("memory_operation", {
           operation: "log_decision",
@@ -526,7 +712,18 @@ async function handleMemoryOperation(
       await store.update(thread);
 
       try {
-        const result = await config.brainCreateRule(userMessage, userMessage, ["rule"], scopePath, operationProv);
+        const result = await config.brainCreateRule(
+          userMessage,
+          userMessage,
+          ["rule"],
+          scopePath,
+          operationProv,
+          buildBrainTelemetryContext(thread, CONTROLLER_BRAIN_ROUTE_STAGES.memoryOperation, CONTROLLER_BRAIN_STEP_NAMES.createRule, {
+            workflow: "memory_operation",
+            memory_operation: "make_rule",
+            operation_id: operationId,
+          }),
+        );
         thread.events.push(createEvent("memory_operation", {
           operation: "make_rule",
           operationId,
@@ -559,7 +756,21 @@ async function handleMemoryOperation(
           userMessage,
           scopePath,
           operationProv,
-          inferExplicitSearchOptions(userMessage, classification.tool)
+          {
+            ...inferExplicitSearchOptions(userMessage, classification.tool),
+            telemetryContext: buildBrainTelemetryContext(
+              thread,
+              CONTROLLER_BRAIN_ROUTE_STAGES.memoryOperation,
+              classification.tool === "context_load"
+                ? CONTROLLER_BRAIN_STEP_NAMES.loadContext
+                : CONTROLLER_BRAIN_STEP_NAMES.searchMemory,
+              {
+              workflow: "memory_operation",
+              memory_operation: classification.tool === "context_load" ? "load_context" : "search",
+              operation_id: operationId,
+              },
+            ),
+          },
         );
         thread.events.push(createEvent("memory_operation", {
           operation: classification.tool === "context_load" ? "load_context" : "search",
@@ -598,7 +809,7 @@ async function handleCooResponse(
   config: ControllerConfig,
   sessionHandle?: import("../../shared/llm-invoker/types.js").InvocationSessionHandle,
   scopePath: string | null = null
-): Promise<InvocationResult> {
+): Promise<CooResponseResult> {
   const contextConfig: ContextEngineerConfig = {
     projectRoot: config.projectRoot,
     promptsDir: config.promptsDir,
@@ -608,9 +819,20 @@ async function handleCooResponse(
   };
 
   const ctx = await assembleContext(thread, userMessage, contextConfig);
+  emitTurnMetric(createSystemProvenance("COO/context-engineer/assemble-context"), "context_assemble", ctx.metrics.assembly_latency_ms, !ctx.metrics.knowledge_retrieval_failed, {
+    thread_id: thread.id,
+    scope_path: scopePath,
+    workflow: thread.workflowState.active_workflow ?? "direct_coo_response",
+    knowledge_latency_ms: ctx.metrics.knowledge_retrieval_latency_ms,
+    knowledge_item_count: ctx.metrics.knowledge_item_count,
+    scope_warning: ctx.metrics.scope_warning,
+    retrieval_warning: ctx.metrics.retrieval_warning,
+    retrieval_failure: ctx.metrics.knowledge_retrieval_failed,
+    estimated_prompt_tokens: ctx.totalEstimatedTokens,
+  });
   const prompt = buildPrompt(ctx) + `\n\n<user_message>\n${userMessage}\n</user_message>`;
 
-  return callLlm(config, {
+  const invocation = await callLlm(config, {
     ...config.intelligenceParams,
     prompt,
     source_path: "COO/intelligence/respond",
@@ -618,7 +840,15 @@ async function handleCooResponse(
       persist: true,
       handle: sessionHandle,
     },
+    telemetry_metadata: buildLlmTelemetryMetadata(thread, "coo_response", {
+      workflow: thread.workflowState.active_workflow ?? "direct_coo_response",
+    }),
   });
+
+  return {
+    invocation,
+    contextMetrics: ctx.metrics,
+  };
 }
 
 async function handleClarification(
@@ -875,4 +1105,51 @@ function callLlm(
   params: InvocationParams
 ): Promise<InvocationResult> {
   return (config.invokeLLM ?? invoke)(params);
+}
+
+function emitTurnMetric(
+  provenance: Provenance,
+  operation: string,
+  latencyMs: number,
+  success: boolean,
+  metadata: Record<string, unknown>,
+): void {
+  emit({
+    provenance,
+    category: "turn",
+    operation,
+    latency_ms: latencyMs,
+    success,
+    metadata,
+  });
+}
+
+function buildLlmTelemetryMetadata(
+  thread: Thread,
+  routeStage: string,
+  metadata: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    thread_id: thread.id,
+    scope_path: thread.scopePath,
+    active_workflow: thread.workflowState.active_workflow,
+    route_stage: routeStage,
+    ...metadata,
+  };
+}
+
+function buildBrainTelemetryContext(
+  thread: Thread,
+  routeStage: string,
+  stepName: string,
+  metadata: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return {
+    thread_id: thread.id,
+    scope_path: thread.scopePath,
+    workflow: thread.workflowState.active_workflow,
+    route_stage: routeStage,
+    step_name: stepName,
+    ...metadata,
+  };
 }

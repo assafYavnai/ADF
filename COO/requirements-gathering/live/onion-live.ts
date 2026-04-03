@@ -65,6 +65,7 @@ export async function handleRequirementsGatheringOnion(input: {
   >;
   sessionHandle?: InvocationSessionHandle;
 }): Promise<RequirementsGatheringOnionResult> {
+  const onionStartedAt = Date.now();
   const responseProvenance = createSystemProvenance("COO/requirements-gathering/live/respond");
   const latestUserEvent = getLatestUserEvent(input.thread);
   if (!latestUserEvent) {
@@ -102,6 +103,16 @@ export async function handleRequirementsGatheringOnion(input: {
         persist: true,
         handle: input.sessionHandle,
       },
+      telemetry_metadata: {
+        thread_id: input.thread.id,
+        scope_path: input.thread.scopePath,
+        workflow: "requirements_gathering_onion",
+        active_workflow: input.thread.workflowState.active_workflow,
+        route_stage: "onion_turn_parse",
+        trace_id: traceId,
+        turn_id: latestUserEvent.id,
+        current_layer: priorClarification.selection.current_layer,
+      },
     });
     parserLatencyMs = parserResult.latency_ms;
     parserSession = parserResult.session;
@@ -122,6 +133,7 @@ export async function handleRequirementsGatheringOnion(input: {
       ],
       responseProvenance,
       parserSession,
+      totalLatencyMs: Date.now() - onionStartedAt,
     });
   }
 
@@ -174,12 +186,23 @@ export async function handleRequirementsGatheringOnion(input: {
   const persistence = await persistOnionArtifacts({
     traceId,
     turnId: latestUserEvent.id,
+    threadId: input.thread.id,
     scopePath: input.thread.scopePath,
     previousWorkflowState,
     reducedState: reduced.state,
     requirementArtifact: derivation.artifact,
     readinessStatus: readiness.status,
     config: input.config,
+  });
+  const turnLatencyMs = Date.now() - onionStartedAt;
+  const llmTotals = summarizeLlmCalls(llmCalls);
+  const layerMetrics = summarizeLayerMetrics({
+    thread: input.thread,
+    currentLayer: audit.trace.current_layer,
+    currentTurnLatencyMs: turnLatencyMs,
+    clarificationQuestion: clarification.selection.next_question?.question ?? null,
+    freezeBlockerCount: audit.trace.freeze_blockers.length,
+    openDecisionCount: audit.trace.open_decisions_snapshot.filter((decision) => decision.status !== "resolved").length,
   });
 
   const lifecycleStatus = buildLifecycleStatus({
@@ -220,6 +243,7 @@ export async function handleRequirementsGatheringOnion(input: {
         artifact_kind: "working_scope",
         action: "persist",
         scope_path: input.thread.scopePath,
+        duration_ms: 0,
         success: true,
         message: "Thread workflow state persisted for the live onion turn.",
       }),
@@ -236,6 +260,10 @@ export async function handleRequirementsGatheringOnion(input: {
     turn_id: latestUserEvent.id,
     lifecycle_status: lifecycleStatus,
     current_layer: audit.trace.current_layer,
+    turn_latency_ms: turnLatencyMs,
+    parser_latency_ms: parserLatencyMs,
+    llm_totals: llmTotals,
+    layer_metrics: layerMetrics,
     state: reduced.state,
     working_artifact: reduced.working_artifact,
     requirement_artifact: derivation.artifact,
@@ -255,6 +283,25 @@ export async function handleRequirementsGatheringOnion(input: {
     open_loops: openLoops,
   }, responseProvenance));
   await input.store.update(input.thread);
+  emitOnionTurnTelemetry({
+    traceId,
+    threadId: input.thread.id,
+    turnId: latestUserEvent.id,
+    scopePath: input.thread.scopePath,
+    lifecycleStatus,
+    currentLayer: audit.trace.current_layer,
+    selectedNextQuestion: audit.trace.selected_next_question,
+    turnLatencyMs,
+    parserLatencyMs,
+    llmTotals,
+    layerMetrics,
+    freezeBlockerCount: layerMetrics.freeze_blocker_count,
+    openDecisionCount: layerMetrics.open_decision_count,
+    persistence,
+    clarificationQuestion: clarification.selection.next_question?.question ?? null,
+    freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
+    reopenedScope: Boolean(previousWorkflowState?.finalized_requirement_memory_id && reduced.state.freeze_status.status !== "approved"),
+  });
 
   return {
     response: buildCeoResponse({
@@ -267,7 +314,7 @@ export async function handleRequirementsGatheringOnion(input: {
       persistenceFailures: persistence.receipts.filter((receipt) => !receipt.success),
     }),
     provenance: responseProvenance,
-    latency_ms: parserLatencyMs,
+    latency_ms: turnLatencyMs,
     session: parserSession,
     state_commit_summary: stateCommitSummary,
     open_loops: openLoops,
@@ -284,6 +331,7 @@ async function handleParseFailure(input: {
   llmCalls: OnionLlmCallRecordType[];
   responseProvenance: Provenance;
   parserSession: InvocationResult["session"];
+  totalLatencyMs: number;
   input: {
     thread: Thread;
     store: FileSystemThreadStore;
@@ -319,10 +367,20 @@ async function handleParseFailure(input: {
       artifact_kind: "working_scope",
       action: "persist_no_change",
       scope_path: input.input.thread.scopePath,
+      duration_ms: 0,
       success: true,
       message: "Thread workflow state persisted without changing the onion state because turn parsing failed closed.",
     }),
   ];
+  const llmTotals = summarizeLlmCalls(input.llmCalls);
+  const layerMetrics = summarizeLayerMetrics({
+    thread: input.input.thread,
+    currentLayer: input.priorClarification.selection.current_layer,
+    currentTurnLatencyMs: input.totalLatencyMs,
+    clarificationQuestion: input.priorClarification.selection.next_question?.question ?? null,
+    freezeBlockerCount: audit.trace.freeze_blockers.length,
+    openDecisionCount: audit.trace.open_decisions_snapshot.filter((decision) => decision.status !== "resolved").length,
+  });
 
   input.input.thread.workflowState = {
     active_workflow: "requirements_gathering_onion",
@@ -347,6 +405,10 @@ async function handleParseFailure(input: {
     turn_id: input.latestUserEvent.id,
     lifecycle_status: "active",
     current_layer: input.priorClarification.selection.current_layer,
+    turn_latency_ms: input.totalLatencyMs,
+    parser_latency_ms: 0,
+    llm_totals: llmTotals,
+    layer_metrics: layerMetrics,
     state: input.previousState,
     working_artifact: input.previousWorkingArtifact,
     requirement_artifact: input.previousWorkflowState?.requirement_artifact ?? null,
@@ -366,6 +428,36 @@ async function handleParseFailure(input: {
     ],
   }, input.responseProvenance));
   await input.input.store.update(input.input.thread);
+  emitOnionTurnTelemetry({
+    traceId: input.traceId,
+    threadId: input.input.thread.id,
+    turnId: input.latestUserEvent.id,
+    scopePath: input.input.thread.scopePath,
+    lifecycleStatus: "active",
+    currentLayer: input.priorClarification.selection.current_layer,
+    selectedNextQuestion: input.priorClarification.selection.next_question?.question ?? null,
+    turnLatencyMs: input.totalLatencyMs,
+    parserLatencyMs: 0,
+    llmTotals,
+    layerMetrics,
+    freezeBlockerCount: layerMetrics.freeze_blocker_count,
+    openDecisionCount: layerMetrics.open_decision_count,
+    persistence: {
+      finalizedRequirementMemoryId: input.previousWorkflowState?.finalized_requirement_memory_id ?? null,
+      receipts: persistenceReceipts,
+      telemetry: {
+        finalized_requirement_create_ms: 0,
+        finalized_requirement_lock_ms: 0,
+        provisional_retire_ms: 0,
+        supersede_ms: 0,
+      },
+    },
+    clarificationQuestion: input.priorClarification.selection.next_question?.question ?? null,
+    freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
+    reopenedScope: false,
+    success: false,
+    resultStatus: "parse_failed_closed",
+  });
 
   const response = [
     "I could not safely map that message into the current requirements state without guessing.",
@@ -376,7 +468,7 @@ async function handleParseFailure(input: {
   return {
     response,
     provenance: input.responseProvenance,
-    latency_ms: 0,
+    latency_ms: input.totalLatencyMs,
     session: input.parserSession,
     state_commit_summary: "Requirements-gathering onion needs a clearer answer before the scope can move forward.",
     open_loops: [
@@ -389,6 +481,7 @@ async function handleParseFailure(input: {
 async function persistOnionArtifacts(input: {
   traceId: string;
   turnId: string;
+  threadId: string;
   scopePath: string | null | undefined;
   previousWorkflowState: Thread["workflowState"]["onion"];
   reducedState: OnionState;
@@ -401,9 +494,21 @@ async function persistOnionArtifacts(input: {
 }): Promise<{
   finalizedRequirementMemoryId: string | null;
   receipts: OnionPersistenceReceiptType[];
+  telemetry: {
+    finalized_requirement_create_ms: number;
+    finalized_requirement_lock_ms: number;
+    provisional_retire_ms: number;
+    supersede_ms: number;
+  };
 }> {
   const receipts: OnionPersistenceReceiptType[] = [];
   let finalizedRequirementMemoryId = input.previousWorkflowState?.finalized_requirement_memory_id ?? null;
+  const telemetry = {
+    finalized_requirement_create_ms: 0,
+    finalized_requirement_lock_ms: 0,
+    provisional_retire_ms: 0,
+    supersede_ms: 0,
+  };
 
   if (
     input.previousWorkflowState?.finalized_requirement_memory_id
@@ -418,18 +523,23 @@ async function persistOnionArtifacts(input: {
         action: "supersede",
         scope_path: input.scopePath ?? null,
         record_id: input.previousWorkflowState.finalized_requirement_memory_id,
+        duration_ms: 0,
         success: false,
         message: "Could not retire the previously finalized requirement artifact after the scope reopened.",
       }));
       finalizedRequirementMemoryId = null;
     } else {
+      const supersedeStartedAt = Date.now();
       try {
         const retireReceipt = await input.config.brainManageMemory(
           "supersede",
           input.previousWorkflowState.finalized_requirement_memory_id,
           input.scopePath,
           createSystemProvenance(`COO/requirements-gathering/live/supersede-finalized-requirement/${input.traceId}/${input.turnId}`),
-          { reason: "Superseded by a reopened requirements onion scope." },
+          {
+            reason: "Superseded by a reopened requirements onion scope.",
+            telemetry_context: buildBrainTelemetryContext(input),
+          },
         );
         assertSuccessfulMemoryManageMutation(
           retireReceipt,
@@ -443,11 +553,14 @@ async function persistOnionArtifacts(input: {
           action: "supersede",
           scope_path: input.scopePath,
           record_id: input.previousWorkflowState.finalized_requirement_memory_id,
+          duration_ms: Date.now() - supersedeStartedAt,
           success: true,
           message: "Retired the previously finalized requirement artifact because the scope reopened.",
         }));
+        telemetry.supersede_ms = Date.now() - supersedeStartedAt;
         finalizedRequirementMemoryId = null;
       } catch (error) {
+        telemetry.supersede_ms = Date.now() - supersedeStartedAt;
         receipts.push(OnionPersistenceReceipt.parse({
           kind: "superseded_requirement_retire",
           target: "memory_engine",
@@ -456,6 +569,7 @@ async function persistOnionArtifacts(input: {
           action: "supersede",
           scope_path: input.scopePath,
           record_id: input.previousWorkflowState.finalized_requirement_memory_id,
+          duration_ms: telemetry.supersede_ms,
           success: false,
           message: error instanceof Error ? error.message : String(error),
         }));
@@ -472,6 +586,7 @@ async function persistOnionArtifacts(input: {
     return {
       finalizedRequirementMemoryId,
       receipts,
+      telemetry,
     };
   }
 
@@ -483,12 +598,14 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "create",
       scope_path: null,
+      duration_ms: 0,
       success: false,
       message: "Cannot persist the finalized requirement artifact without an explicit scope.",
     }));
     return {
       finalizedRequirementMemoryId: null,
       receipts,
+      telemetry,
     };
   }
 
@@ -500,12 +617,14 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "create",
       scope_path: input.scopePath,
+      duration_ms: 0,
       success: false,
       message: "The governed requirement persistence route is not connected.",
     }));
     return {
       finalizedRequirementMemoryId: null,
       receipts,
+      telemetry,
     };
   }
 
@@ -517,12 +636,14 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "create",
       scope_path: input.scopePath,
+      duration_ms: 0,
       success: false,
       message: "Skipped finalized requirement creation because the memory-manage route is not connected, so the artifact cannot be locked truthfully.",
     }));
     return {
       finalizedRequirementMemoryId: null,
       receipts,
+      telemetry,
     };
   }
 
@@ -534,16 +655,19 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "create",
       scope_path: input.scopePath,
+      duration_ms: 0,
       success: false,
       message: "Skipped finalized requirement creation because the memory-manage route is not connected, so failed publish cleanup would not be truthful.",
     }));
     return {
       finalizedRequirementMemoryId: null,
       receipts,
+      telemetry,
     };
   }
 
   let provisionalFinalizedRequirementMemoryId: string | null = null;
+  const createStartedAt = Date.now();
   try {
     const createReceipt = await input.config.brainCreateFinalizedRequirementCandidate(
       `Finalized requirements: ${input.requirementArtifact.human_scope.topic}`,
@@ -556,8 +680,10 @@ async function persistOnionArtifacts(input: {
       ["requirements-gathering", "onion", "finalized-requirement-list", "coo-owned"],
       input.scopePath,
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-create/${input.traceId}/${input.turnId}`),
+      buildBrainTelemetryContext(input),
     );
     provisionalFinalizedRequirementMemoryId = typeof createReceipt.id === "string" ? createReceipt.id : null;
+    telemetry.finalized_requirement_create_ms = Date.now() - createStartedAt;
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_create",
       target: "memory_engine",
@@ -566,12 +692,14 @@ async function persistOnionArtifacts(input: {
       action: "create",
       scope_path: input.scopePath,
       record_id: provisionalFinalizedRequirementMemoryId,
+      duration_ms: telemetry.finalized_requirement_create_ms,
       success: Boolean(provisionalFinalizedRequirementMemoryId),
       message: provisionalFinalizedRequirementMemoryId
         ? "Persisted the finalized requirement artifact through the governed requirements surface."
         : "The governed requirements surface did not return an artifact id.",
     }));
   } catch (error) {
+    telemetry.finalized_requirement_create_ms = Date.now() - createStartedAt;
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_create",
       target: "memory_engine",
@@ -579,12 +707,14 @@ async function persistOnionArtifacts(input: {
       artifact_kind: "requirement_list",
       action: "create",
       scope_path: input.scopePath,
+      duration_ms: telemetry.finalized_requirement_create_ms,
       success: false,
       message: error instanceof Error ? error.message : String(error),
     }));
     return {
       finalizedRequirementMemoryId: null,
       receipts,
+      telemetry,
     };
   }
 
@@ -592,9 +722,11 @@ async function persistOnionArtifacts(input: {
     return {
       finalizedRequirementMemoryId: null,
       receipts,
+      telemetry,
     };
   }
 
+  const lockStartedAt = Date.now();
   try {
     const lockReceipt = await input.config.brainPublishFinalizedRequirement(
       provisionalFinalizedRequirementMemoryId,
@@ -602,6 +734,7 @@ async function persistOnionArtifacts(input: {
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-lock/${input.traceId}/${input.turnId}`),
       {
         reason: "Approved requirements artifact must become durable COO-owned truth for downstream use.",
+        telemetry_context: buildBrainTelemetryContext(input),
       },
     );
     assertSuccessfulMemoryManageMutation(
@@ -616,11 +749,14 @@ async function persistOnionArtifacts(input: {
       action: "publish_finalized_requirement",
       scope_path: input.scopePath,
       record_id: provisionalFinalizedRequirementMemoryId,
+      duration_ms: Date.now() - lockStartedAt,
       success: true,
       message: "Locked the finalized requirement artifact after approved freeze.",
     }));
+    telemetry.finalized_requirement_lock_ms = Date.now() - lockStartedAt;
     finalizedRequirementMemoryId = provisionalFinalizedRequirementMemoryId;
   } catch (error) {
+    telemetry.finalized_requirement_lock_ms = Date.now() - lockStartedAt;
     receipts.push(OnionPersistenceReceipt.parse({
       kind: "finalized_requirement_lock",
       target: "memory_engine",
@@ -629,22 +765,27 @@ async function persistOnionArtifacts(input: {
       action: "publish_finalized_requirement",
       scope_path: input.scopePath,
       record_id: provisionalFinalizedRequirementMemoryId,
+      duration_ms: telemetry.finalized_requirement_lock_ms,
       success: false,
       message: error instanceof Error ? error.message : String(error),
     }));
-    receipts.push(await retireProvisionalFinalizedRequirement({
+    const provisionalRetire = await retireProvisionalFinalizedRequirement({
       traceId: input.traceId,
       turnId: input.turnId,
+      threadId: input.threadId,
       scopePath: input.scopePath,
       memoryId: provisionalFinalizedRequirementMemoryId,
       brainManageMemory: input.config.brainManageMemory,
-    }));
+    });
+    telemetry.provisional_retire_ms = provisionalRetire.duration_ms;
+    receipts.push(provisionalRetire);
     finalizedRequirementMemoryId = null;
   }
 
   return {
     finalizedRequirementMemoryId,
     receipts,
+    telemetry,
   };
 }
 
@@ -669,20 +810,40 @@ function assertSuccessfulMemoryManageMutation(
   throw new Error(`${failurePrefix} (${detail.join(", ")})`);
 }
 
+function buildBrainTelemetryContext(input: {
+  traceId: string;
+  turnId: string;
+  threadId: string;
+  scopePath: string | null | undefined;
+}): Record<string, unknown> {
+  return {
+    trace_id: input.traceId,
+    turn_id: input.turnId,
+    thread_id: input.threadId,
+    scope_path: input.scopePath ?? null,
+    workflow: "requirements_gathering_onion",
+  };
+}
+
 async function retireProvisionalFinalizedRequirement(input: {
   traceId: string;
   turnId: string;
+  threadId: string;
   scopePath: string;
   memoryId: string;
   brainManageMemory: NonNullable<ControllerConfig["brainManageMemory"]>;
 }): Promise<OnionPersistenceReceiptType> {
+  const startedAt = Date.now();
   try {
     const retireReceipt = await input.brainManageMemory(
       "archive",
       input.memoryId,
       input.scopePath,
       createSystemProvenance(`COO/requirements-gathering/live/finalized-requirement-retire/${input.traceId}/${input.turnId}`),
-      { reason: "Retire provisional finalized requirement after durable lock failure." },
+      {
+        reason: "Retire provisional finalized requirement after durable lock failure.",
+        telemetry_context: buildBrainTelemetryContext(input),
+      },
     );
     assertSuccessfulMemoryManageMutation(
       retireReceipt,
@@ -696,6 +857,7 @@ async function retireProvisionalFinalizedRequirement(input: {
       action: "archive",
       scope_path: input.scopePath,
       record_id: input.memoryId,
+      duration_ms: Date.now() - startedAt,
       success: true,
       message: "Retired the provisional finalized requirement artifact after the durable lock step failed.",
     });
@@ -708,6 +870,7 @@ async function retireProvisionalFinalizedRequirement(input: {
       action: "archive",
       scope_path: input.scopePath,
       record_id: input.memoryId,
+      duration_ms: Date.now() - startedAt,
       success: false,
       message: error instanceof Error ? error.message : String(error),
     });
@@ -992,6 +1155,139 @@ function emitOperationTelemetry(
         error_message: record.error_message ?? null,
       },
     });
+  });
+}
+
+function summarizeLlmCalls(llmCalls: OnionLlmCallRecordType[]): {
+  tokens_in: number;
+  tokens_out: number;
+  estimated_cost_usd: number | null;
+} {
+  let estimatedCostUsd = 0;
+  let hasCost = false;
+
+  for (const call of llmCalls) {
+    if (typeof call.estimated_cost_usd === "number") {
+      estimatedCostUsd += call.estimated_cost_usd;
+      hasCost = true;
+    }
+  }
+
+  return {
+    tokens_in: llmCalls.reduce((sum, call) => sum + call.tokens_in, 0),
+    tokens_out: llmCalls.reduce((sum, call) => sum + call.tokens_out, 0),
+    estimated_cost_usd: hasCost ? Number(estimatedCostUsd.toFixed(6)) : null,
+  };
+}
+
+function summarizeLayerMetrics(input: {
+  thread: Thread;
+  currentLayer: string;
+  currentTurnLatencyMs: number;
+  clarificationQuestion: string | null;
+  freezeBlockerCount: number;
+  openDecisionCount: number;
+}): {
+  turns_in_current_layer: number;
+  time_in_current_layer_ms: number;
+  clarification_turn_count_total: number;
+  freeze_blocker_count: number;
+  open_decision_count: number;
+} {
+  const priorOnionResults = input.thread.events.filter((event) => event.type === "onion_turn_result");
+  const priorSameLayer = priorOnionResults.filter((event) => event.data.current_layer === input.currentLayer);
+  const priorTimeInLayerMs = priorSameLayer.reduce((sum, event) => sum + (event.data.turn_latency_ms ?? 0), 0);
+  const priorClarificationCount = priorOnionResults.reduce((sum, event) => (
+    event.data.workflow_trace.selected_next_question ? sum + 1 : sum
+  ), 0);
+
+  return {
+    turns_in_current_layer: priorSameLayer.length + 1,
+    time_in_current_layer_ms: priorTimeInLayerMs + input.currentTurnLatencyMs,
+    clarification_turn_count_total: priorClarificationCount + (input.clarificationQuestion ? 1 : 0),
+    freeze_blocker_count: input.freezeBlockerCount,
+    open_decision_count: input.openDecisionCount,
+  };
+}
+
+function emitOnionTurnTelemetry(input: {
+  traceId: string;
+  threadId: string;
+  turnId: string;
+  scopePath: string | null | undefined;
+  lifecycleStatus: OnionWorkflowLifecycleStatusType;
+  currentLayer: string;
+  selectedNextQuestion: string | null;
+  turnLatencyMs: number;
+  parserLatencyMs: number;
+  llmTotals: {
+    tokens_in: number;
+    tokens_out: number;
+    estimated_cost_usd: number | null;
+  };
+  layerMetrics: {
+    turns_in_current_layer: number;
+    time_in_current_layer_ms: number;
+    clarification_turn_count_total: number;
+    freeze_blocker_count: number;
+    open_decision_count: number;
+  };
+  freezeBlockerCount: number;
+  openDecisionCount: number;
+  persistence: {
+    finalizedRequirementMemoryId: string | null;
+    receipts: OnionPersistenceReceiptType[];
+    telemetry: {
+      finalized_requirement_create_ms: number;
+      finalized_requirement_lock_ms: number;
+      provisional_retire_ms: number;
+      supersede_ms: number;
+    };
+  };
+  clarificationQuestion: string | null;
+  freezeRequest: string | null;
+  reopenedScope: boolean;
+  success?: boolean;
+  resultStatus?: string;
+}): void {
+  emit({
+    provenance: createSystemProvenance(`COO/requirements-gathering/live/onion-turn/${input.traceId}/${input.turnId}`),
+    category: "turn",
+    operation: "onion_turn",
+    latency_ms: input.turnLatencyMs,
+    success: input.success ?? true,
+    metadata: {
+      thread_id: input.threadId,
+      scope_path: input.scopePath ?? null,
+      workflow: "requirements_gathering_onion",
+      trace_id: input.traceId,
+      turn_id: input.turnId,
+      route_stage: "requirements_gathering_onion",
+      current_layer: input.currentLayer,
+      next_layer: input.selectedNextQuestion ? input.currentLayer : null,
+      selected_next_question: input.selectedNextQuestion,
+      lifecycle_status: input.lifecycleStatus,
+      result_status: input.resultStatus ?? input.lifecycleStatus,
+      parser_latency_ms: input.parserLatencyMs,
+      llm_tokens_in: input.llmTotals.tokens_in,
+      llm_tokens_out: input.llmTotals.tokens_out,
+      llm_estimated_cost_usd: input.llmTotals.estimated_cost_usd,
+      turns_in_current_layer: input.layerMetrics.turns_in_current_layer,
+      time_in_current_layer_ms: input.layerMetrics.time_in_current_layer_ms,
+      clarification_turn_count_total: input.layerMetrics.clarification_turn_count_total,
+      clarification_requested: Boolean(input.clarificationQuestion),
+      freeze_request_present: Boolean(input.freezeRequest),
+      freeze_blocker_count: input.freezeBlockerCount,
+      open_decision_count: input.openDecisionCount,
+      finalized_requirement_memory_id: input.persistence.finalizedRequirementMemoryId,
+      finalized_requirement_create_ms: input.persistence.telemetry.finalized_requirement_create_ms,
+      finalized_requirement_lock_ms: input.persistence.telemetry.finalized_requirement_lock_ms,
+      provisional_retire_ms: input.persistence.telemetry.provisional_retire_ms,
+      supersede_ms: input.persistence.telemetry.supersede_ms,
+      persistence_failure_count: input.persistence.receipts.filter((receipt) => !receipt.success).length,
+      persistence_receipt_kinds: input.persistence.receipts.map((receipt) => receipt.kind),
+      reopened_scope: input.reopenedScope,
+    },
   });
 }
 

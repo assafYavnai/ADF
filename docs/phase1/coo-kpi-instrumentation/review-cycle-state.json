@@ -1,0 +1,70 @@
+{
+  "phase_number": 1,
+  "feature_slug": "coo-kpi-instrumentation",
+  "repo_root": "C:/ADF",
+  "feature_agent_registry_key": "phase1/coo-kpi-instrumentation",
+  "auditor_execution_id": "019d5226-db6c-7db1-a69b-314739cacd24",
+  "reviewer_execution_id": "019d5226-dbcb-7f60-8583-0306835b2405",
+  "implementor_execution_id": "019d5226-dc2d-7492-a886-0c6cd236a8b1",
+  "auditor_execution_access_mode": "inherits_current_runtime_access",
+  "reviewer_execution_access_mode": "inherits_current_runtime_access",
+  "implementor_execution_access_mode": "inherits_current_runtime_access",
+  "auditor_model": null,
+  "reviewer_model": null,
+  "auditor_reasoning_effort": null,
+  "reviewer_reasoning_effort": null,
+  "resolved_runtime_permission_model": "native_inherited_access_only",
+  "access_mode_resolution_notes": "Repaired cycle state after malformed review-cycle-state.json reset; persistent native-agent auditor, reviewer, and implementor lanes remain the active continuity mechanism under the current danger-full-access, approval-never inherited runtime.",
+  "resolved_runtime_capabilities": {},
+  "current_branch": "main",
+  "last_completed_cycle": 0,
+  "last_commit_sha": null,
+  "active_cycle_number": 1,
+  "cycle_runtime": {
+    "cycle_number": 1,
+    "cycle_name": "cycle-01",
+    "status": "fix_report_complete_commit_push_pending",
+    "cycle_started_at": "2026-04-03T07:08:21.874Z",
+    "review_requested_at": "2026-04-03T07:08:21.872Z",
+    "auditor_finished_at": "2026-04-03T07:08:21.872Z",
+    "reviewer_finished_at": "2026-04-03T07:09:08.908Z",
+    "implementor_started_at": "2026-04-03T07:11:10.266Z",
+    "implementor_finished_at": "2026-04-03T07:25:18.108Z",
+    "verification_finished_at": "2026-04-03T07:25:28.072Z",
+    "cycle_finished_at": null,
+    "report_ready": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surfaced": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surface_order": [
+      "reviewer",
+      "auditor"
+    ],
+    "lane_verdicts": {
+      "auditor": "reject",
+      "reviewer": "approve"
+    },
+    "recreated_executions": {
+      "auditor": false,
+      "reviewer": false,
+      "implementor": false
+    },
+    "last_note": null
+  },
+  "split_review_continuity": {
+    "mode": "rejecting_lane_only",
+    "approving_lane": "reviewer",
+    "rejecting_lane": "auditor",
+    "final_sanity_lane": null,
+    "carried_from_cycle": 1,
+    "final_sanity_completed": false,
+    "updated_at": "2026-04-03T07:09:08.908Z",
+    "note": "Split verdict detected. Reuse the approving lane and rerun only the rejecting lane next cycle."
+  },
+  "created_at": "2026-04-03T07:08:21.869Z",
+  "updated_at": "2026-04-03T07:25:30.974Z"
+}

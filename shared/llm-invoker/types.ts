@@ -52,6 +52,7 @@ export const InvocationAttempt = z.object({
   session_status: InvocationAttemptSessionStatus,
   error_message: z.string().optional(),
   usage: InvocationUsageEstimate.optional(),
+  telemetry_metadata: z.record(z.unknown()).optional(),
 });
 export type InvocationAttempt = z.infer<typeof InvocationAttempt>;
 
@@ -66,6 +67,7 @@ export const InvocationParams = z.object({
   prompt: z.string(),
   source_path: z.string(),
   session: InvocationSessionRequest.optional(),
+  telemetry_metadata: z.record(z.unknown()).optional(),
   fallback: z
     .object({
       cli: LLMProvider,

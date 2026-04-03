@@ -4,6 +4,7 @@ import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { ProvenanceSchema, createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
 import type { InvocationSessionHandle } from "../../shared/llm-invoker/types.js";
+import { emit, hasConfiguredSink } from "../../shared/telemetry/collector.js";
 import { WorkflowName } from "./workflow-contract.js";
 import {
   OnionTurnResultRecord,
@@ -384,27 +385,71 @@ export class FileSystemThreadStore implements ThreadStore {
   constructor(private threadsDir: string) {}
 
   async create(scopePath: string | null = null): Promise<Thread> {
+    const startedAt = Date.now();
     await mkdir(this.threadsDir, { recursive: true });
     const thread = createThread(scopePath);
-    await this.update(thread);
+    try {
+      await this.update(thread);
+      emitThreadStoreMetric("thread_create", Date.now() - startedAt, true, {
+        thread_id: thread.id,
+        scope_path: scopePath,
+      });
+    } catch (error) {
+      emitThreadStoreMetric("thread_create", Date.now() - startedAt, false, {
+        thread_id: thread.id,
+        scope_path: scopePath,
+        error_message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
     return thread;
   }
 
   async get(id: string): Promise<Thread> {
     const filePath = join(this.threadsDir, `${id}.json`);
-    const raw = await readFile(filePath, "utf-8");
-    return ThreadSchema.parse(JSON.parse(raw));
+    const startedAt = Date.now();
+    try {
+      const raw = await readFile(filePath, "utf-8");
+      const thread = ThreadSchema.parse(JSON.parse(raw));
+      emitThreadStoreMetric("thread_load", Date.now() - startedAt, true, {
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        event_count: thread.events.length,
+      });
+      return thread;
+    } catch (error) {
+      emitThreadStoreMetric("thread_load", Date.now() - startedAt, false, {
+        requested_thread_id: id,
+        error_message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   async update(thread: Thread): Promise<void> {
+    const startedAt = Date.now();
     await mkdir(this.threadsDir, { recursive: true });
     thread.updatedAt = new Date().toISOString();
 
     const jsonPath = join(this.threadsDir, `${thread.id}.json`);
-    await writeFile(jsonPath, JSON.stringify(thread, null, 2), "utf-8");
-
     const txtPath = join(this.threadsDir, `${thread.id}.txt`);
-    await writeFile(txtPath, serializeForLLM(thread), "utf-8");
+    try {
+      await writeFile(jsonPath, JSON.stringify(thread, null, 2), "utf-8");
+      await writeFile(txtPath, serializeForLLM(thread), "utf-8");
+      emitThreadStoreMetric("thread_save", Date.now() - startedAt, true, {
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        event_count: thread.events.length,
+      });
+    } catch (error) {
+      emitThreadStoreMetric("thread_save", Date.now() - startedAt, false, {
+        thread_id: thread.id,
+        scope_path: thread.scopePath,
+        event_count: thread.events.length,
+        error_message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   async list(): Promise<string[]> {
@@ -413,4 +458,24 @@ export class FileSystemThreadStore implements ThreadStore {
       .filter((f) => f.endsWith(".json"))
       .map((f) => f.replace(".json", ""));
   }
+}
+
+function emitThreadStoreMetric(
+  operation: "thread_create" | "thread_load" | "thread_save",
+  latencyMs: number,
+  success: boolean,
+  metadata: Record<string, unknown>,
+): void {
+  if (!hasConfiguredSink()) {
+    return;
+  }
+
+  emit({
+    provenance: createSystemProvenance(`COO/controller/thread/${operation}`),
+    category: "system",
+    operation,
+    latency_ms: latencyMs,
+    success,
+    metadata,
+  });
 }

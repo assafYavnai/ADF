@@ -1,0 +1,100 @@
+{
+  "id": "b851deec-0edb-4b5e-941b-4175eafdc33c",
+  "events": [
+    {
+      "type": "user_input",
+      "data": {
+        "message": "exercise the brain_search_unavailable context branch"
+      },
+      "timestamp": "2026-04-03T07:23:06.899Z",
+      "id": "ccebcbec-26e4-49da-ab23-aed506fefccd",
+      "provenance": {
+        "invocation_id": "6a7e48b2-6029-44bd-9b8e-6874608da7ab",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:06.898Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "respond directly with a context warning",
+        "confidence": 0.99,
+        "workflow": "direct_coo_response",
+        "reasoning": "Route \"exercise the brain_search_unavailable context branch\" into a direct COO response lane."
+      },
+      "timestamp": "2026-04-03T07:23:06.900Z",
+      "id": "792df9e6-5f22-4e22-8d4f-48a2927c566b",
+      "provenance": {
+        "invocation_id": "f8be8834-a7a4-4ac2-b5f3-6563adc90ded",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/b851deec-0edb-4b5e-941b-4175eafdc33c",
+        "timestamp": "2026-04-03T07:23:06.900Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "The COO responded with the brain_search_unavailable warning surfaced truthfully."
+      },
+      "timestamp": "2026-04-03T07:23:06.901Z",
+      "id": "43540537-237a-4af7-b318-08135eaed460",
+      "provenance": {
+        "invocation_id": "e863a864-fa87-4d4f-9e25-5bfd8df65454",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "COO/intelligence/respond",
+        "timestamp": "2026-04-03T07:23:06.901Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Completed turn via direct_coo_response. Response: The COO responded with the brain_search_unavailable warning surfaced truthfully.",
+        "openLoops": [],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-03T07:23:06.901Z",
+      "id": "fa97974c-bcc4-4eca-97d1-08e432640271",
+      "provenance": {
+        "invocation_id": "6a7e48b2-6029-44bd-9b8e-6874608da7ab",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:06.898Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-03T07:23:06.898Z",
+  "updatedAt": "2026-04-03T07:23:06.901Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": null,
+    "onion": null
+  }
+}

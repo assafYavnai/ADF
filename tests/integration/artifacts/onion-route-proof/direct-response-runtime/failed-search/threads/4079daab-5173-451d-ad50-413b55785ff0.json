@@ -1,0 +1,100 @@
+{
+  "id": "4079daab-5173-451d-ad50-413b55785ff0",
+  "events": [
+    {
+      "type": "user_input",
+      "data": {
+        "message": "show the current queue guidance even if Brain search is slow and fails"
+      },
+      "timestamp": "2026-04-03T07:23:02.297Z",
+      "id": "24d40ef6-ecc2-4aed-a7a9-71f86b402b3d",
+      "provenance": {
+        "invocation_id": "3e781f85-4627-4a94-bc34-4e0fad880f11",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:02.296Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "answer despite a Brain lookup failure",
+        "confidence": 0.99,
+        "workflow": "direct_coo_response",
+        "reasoning": "Route \"show the current queue guidance even if Brain search is slow and fails\" into a direct COO response lane."
+      },
+      "timestamp": "2026-04-03T07:23:02.298Z",
+      "id": "9d142710-d90a-4ef5-9f2f-db346f1cbea0",
+      "provenance": {
+        "invocation_id": "a2d84ab4-1bcd-405e-b9a1-dca44e20702e",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/4079daab-5173-451d-ad50-413b55785ff0",
+        "timestamp": "2026-04-03T07:23:02.298Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "The Brain lookup failed, but the COO still responded from live context and explicit warning text."
+      },
+      "timestamp": "2026-04-03T07:23:02.338Z",
+      "id": "415b3cd6-23cc-4c71-ba76-9b11bb7961fe",
+      "provenance": {
+        "invocation_id": "e21bb8b8-a869-4b7a-827c-f7d5a31db48c",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "COO/intelligence/respond",
+        "timestamp": "2026-04-03T07:23:02.338Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Completed turn via direct_coo_response. Response: The Brain lookup failed, but the COO still responded from live context and explicit warning text.",
+        "openLoops": [],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-03T07:23:02.338Z",
+      "id": "8bf0d293-5009-4338-81d0-135299896f1f",
+      "provenance": {
+        "invocation_id": "3e781f85-4627-4a94-bc34-4e0fad880f11",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:02.296Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-03T07:23:02.297Z",
+  "updatedAt": "2026-04-03T07:23:02.339Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": null,
+    "onion": null
+  }
+}

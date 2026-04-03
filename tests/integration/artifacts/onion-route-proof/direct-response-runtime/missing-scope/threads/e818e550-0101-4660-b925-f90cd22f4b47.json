@@ -1,0 +1,100 @@
+{
+  "id": "e818e550-0101-4660-b925-f90cd22f4b47",
+  "events": [
+    {
+      "type": "user_input",
+      "data": {
+        "message": "exercise the missing_scope context branch"
+      },
+      "timestamp": "2026-04-03T07:23:04.644Z",
+      "id": "aff83930-1e9d-42a0-945c-aad19eaff1d9",
+      "provenance": {
+        "invocation_id": "94c462c7-1495-418f-9cda-3f3dcc2994ca",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:04.643Z"
+      }
+    },
+    {
+      "type": "classifier_result",
+      "data": {
+        "intent": "respond directly with a context warning",
+        "confidence": 0.99,
+        "workflow": "direct_coo_response",
+        "reasoning": "Route \"exercise the missing_scope context branch\" into a direct COO response lane."
+      },
+      "timestamp": "2026-04-03T07:23:04.645Z",
+      "id": "25ed38da-7cb2-4c67-9129-490b67a0fd34",
+      "provenance": {
+        "invocation_id": "83505644-f928-4f71-ae74-e80b5930bf7f",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/e818e550-0101-4660-b925-f90cd22f4b47",
+        "timestamp": "2026-04-03T07:23:04.645Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "The COO responded with the missing_scope warning surfaced truthfully."
+      },
+      "timestamp": "2026-04-03T07:23:04.646Z",
+      "id": "a53fc9ab-26b9-4e65-8348-95cecebfdc50",
+      "provenance": {
+        "invocation_id": "fd760027-4eec-4d6d-a8fb-fbb8497575fb",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "COO/intelligence/respond",
+        "timestamp": "2026-04-03T07:23:04.646Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Completed turn via direct_coo_response. Response: The COO responded with the missing_scope warning surfaced truthfully.",
+        "openLoops": [],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-03T07:23:04.646Z",
+      "id": "87b51754-5884-49b3-9bb0-1125d8a446aa",
+      "provenance": {
+        "invocation_id": "94c462c7-1495-418f-9cda-3f3dcc2994ca",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:23:04.643Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-03T07:23:04.643Z",
+  "updatedAt": "2026-04-03T07:23:04.646Z",
+  "status": "active",
+  "scopePath": null,
+  "workflowState": {
+    "active_workflow": null,
+    "onion": null
+  }
+}

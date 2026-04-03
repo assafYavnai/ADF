@@ -126,6 +126,7 @@ export const MemoryManageInput = z.object({
   tags: z.array(z.string()).optional(),
   trust_level: TrustLevel.optional(),
   reason: z.string().optional(),
+  telemetry_context: z.record(z.unknown()).optional(),
   provenance: ProvenanceSchema,
 });
 export type MemoryManageInput = z.infer<typeof MemoryManageInput>;
