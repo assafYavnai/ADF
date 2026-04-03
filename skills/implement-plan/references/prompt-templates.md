@@ -210,6 +210,7 @@ Rules:
   - evidence to report back
   - `APPROVED` / `REJECTED: <comments>` response contract
 - section `7. Observability / Audit` must make review-cycle status, machine verification status, and human verification status truthfully visible
+- section `7. Observability / Audit` must also make worktree and merge state truthfully visible when merge completion is required
 - report artifacts created from this contract must stay human-facing: short sections, concise bullets where appropriate, and no dense wall-of-text output
 
 ## Pushback artifact template
