@@ -145,15 +145,17 @@ The main skill must:
 - load and normalize feature context
 - verify plan integrity before implementation
 - push back when the implementation slice is weak or unsafe
+- create or reuse the feature worktree and feature branch before serious implementation work begins
 - create the implementor brief only when integrity passes
 - spawn or resume the implementation worker under the strongest truthful worker mode
 - wait for completion
 - verify outputs
 - write completion artifacts
-- commit and push all feature artifacts to origin
-- if `post_send_to_review=true`, hand the same feature stream to `review-cycle` after implementation closeout
+- commit and push implementation changes and feature artifacts on the feature branch
+- if `post_send_to_review=true`, hand the same feature stream to `review-cycle` after machine verification using the feature worktree as the review repo root
 - if `review_until_complete=true`, pass `until_complete=true` and pass `max_cycles` only when `review_max_cycles` was supplied
-- only then mark the implementation slice completed
+- once approval gates are satisfied, enqueue the exact approved commit for `merge-queue`
+- mark the implementation slice completed only after `merge-queue` lands the merge successfully and sync state is recorded truthfully
 
 Do not delegate orchestration responsibility to the worker.
 
@@ -221,20 +223,22 @@ Rules:
 - run the machine-verification loop until it passes or blocks
 - verify outputs
 - write `completion-summary.md`
-- commit and push all code and feature artifacts to origin
-- if `post_send_to_review=false` and human verification is not required, mark the feature completed when closeout succeeds
+- commit and push all code and feature artifacts on the feature branch, not the base branch
+- if `post_send_to_review=false` and human verification is not required, stop at merge-ready state instead of marking the feature completed directly
 - if human verification is required, `post_send_to_review` must be enabled because human testing happens only after the first route-level `review-cycle` gate
-- if `post_send_to_review=true`, call `review-cycle` for the same feature stream after machine verification and mark the feature completed only after review closes cleanly
+- if `post_send_to_review=true`, call `review-cycle` for the same feature stream after machine verification and pass the feature worktree as the review repo root
 - if `post_send_to_review=true` and `review_until_complete=true`, pass `until_complete=true` to `review-cycle` and let `review-cycle` default `max_cycles` to `5` unless `review_max_cycles` was supplied
 - if human verification is required, surface the testing-phase handoff instead of closing immediately
 - if human verification is required and human testing rejects, return to code fix plus machine verification before re-requesting human testing
 - after human approval, run a final sanity `review-cycle` only when code changed after human approval
 - if a post-approval sanity fix changes approved human-facing behavior, treat the human approval as stale and return to human testing instead of silently closing
+- after the approval gates are satisfied, enqueue the exact approved commit into `merge-queue`
+- do not mark the feature completed until `merge-queue` reports merge success and truthful local target sync status
 
 `action=mark-complete`
 
 - require a target feature stream
-- persist feature completion in state and index
+- persist feature completion in state and index only after merge success evidence exists
 - remove the feature from active/open output
 - do not silently mark complete if closeout evidence is missing
 
@@ -251,16 +255,19 @@ Use the helper scripts for deterministic local state:
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs mark-complete ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs completion-summary ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-setup-helper.mjs write-setup ...`
+- `node C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs enqueue ...`
 
 ## Closeout
 
 When an implementation slice succeeds, end by showing:
 
 - the feature artifact tree
+- the feature worktree path, base branch, and feature branch
 - the saved implementor execution identifier if available
 - the resolved worker and control-plane runtime/access mode summary
 - the completion summary
-- the commit SHA if push succeeded, or the exact git failure if it did not
+- the feature-branch commit SHA if push succeeded, or the exact git failure if it did not
+- the merge-queue request identifier when merge handoff was created
 
 If human verification is required, the testing-phase handoff must use this exact visible shape:
 

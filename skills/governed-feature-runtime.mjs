@@ -54,6 +54,12 @@ export const IMPLEMENT_PLAN_ACTIVE_RUN_STATUSES = new Set([
   "brief_ready",
   "implementation_running",
   "verification_pending",
+  "review_pending",
+  "human_verification_pending",
+  "merge_ready",
+  "merge_queued",
+  "merge_in_progress",
+  "merge_blocked",
   "closeout_pending",
   "completed",
   "blocked"
@@ -64,9 +70,17 @@ export const IMPLEMENT_PLAN_EVENTS = new Set([
   "integrity-passed",
   "integrity-failed",
   "brief-written",
+  "worktree-prepared",
   "implementor-started",
   "implementor-finished",
   "verification-finished",
+  "review-requested",
+  "human-verification-requested",
+  "merge-ready",
+  "merge-queued",
+  "merge-started",
+  "merge-blocked",
+  "merge-finished",
   "completion-summary-written",
   "closeout-finished",
   "feature-blocked",
@@ -468,25 +482,60 @@ export function shouldRecreateExecution(executionId, existingMode, requiredMode)
 }
 
 export function gitOutput(projectRoot, args) {
+  const result = gitRun(projectRoot, args);
+  if (result.status !== 0) {
+    return null;
+  }
+  return result.stdout || null;
+}
+
+export function gitRun(projectRoot, args, options = {}) {
   try {
     const result = spawnSync("git", ["-c", "safe.directory=" + normalizeSlashes(projectRoot), ...args], {
       cwd: projectRoot,
       encoding: "utf8",
       windowsHide: true,
-      timeout: 10000
+      timeout: options.timeoutMs ?? 10000
     });
-    if (result.status !== 0) {
-      return null;
-    }
-    const stdout = result.stdout?.trim();
-    return stdout ? stdout : null;
+    return {
+      status: result.status ?? 1,
+      stdout: result.stdout?.trim() ?? "",
+      stderr: result.stderr?.trim() ?? ""
+    };
   } catch {
-    return null;
+    return {
+      status: 1,
+      stdout: "",
+      stderr: ""
+    };
   }
 }
 
 export function detectCurrentBranch(projectRoot) {
   return gitOutput(projectRoot, ["branch", "--show-current"]);
+}
+
+export function detectOriginHeadBranch(projectRoot) {
+  const symbolic = gitOutput(projectRoot, ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"]);
+  return symbolic?.startsWith("origin/") ? symbolic.slice("origin/".length) : null;
+}
+
+export function detectDefaultBaseBranch(projectRoot) {
+  return detectCurrentBranch(projectRoot) ?? detectOriginHeadBranch(projectRoot) ?? "main";
+}
+
+export function gitRefExists(projectRoot, ref) {
+  return gitRun(projectRoot, ["rev-parse", "--verify", ref]).status === 0;
+}
+
+export function sanitizePathSegment(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^\.+|\.+$/g, "");
+  return normalized || "item";
 }
 
 export function stripCodeFences(text) {

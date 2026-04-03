@@ -114,6 +114,7 @@ Rules:
 - do not start code changes without a machine verification plan and a human verification plan
 - if `Human Verification Plan` says `Required: true`, do not proceed unless the slice is configured to hand off to `review-cycle`
 - if human verification is required, the implementation is not ready to close until the testing-phase handoff is prepared in the required fixed shape
+- treat review approval as merge-ready state, not final completion
 - update authoritative docs when materially affected
 - if a supposedly trusted input is malformed or contradictory, stop and say so instead of guessing
 
@@ -142,6 +143,8 @@ Rules:
   - `Human Verification Requirement`
   - `Human Verification Status`
   - `Review-Cycle Status`
+  - `Merge Status`
+  - `Local Target Sync Status`
   - concrete evidence
 
 ## Normalized implementation contract template
@@ -180,6 +183,7 @@ Rules:
   - evidence to report back
   - `APPROVED` / `REJECTED: <comments>` response contract
 - section `7. Observability / Audit` must make review-cycle status, machine verification status, and human verification status truthfully visible
+- section `7. Observability / Audit` must also make worktree and merge state truthfully visible when merge completion is required
 
 ## Pushback artifact template
 
@@ -221,7 +225,7 @@ Rules:
 - headings must appear in the listed order
 - only include integrity-verified assumptions
 - section `8. Proof / Verification Expectations` must restate the machine verification plan and the human verification requirement
-- section `10. Closeout Rules` must say whether human testing is required, when review-cycle runs, and whether a post-human-approval sanity pass is required
+- section `10. Closeout Rules` must say whether human testing is required, when review-cycle runs, whether a post-human-approval sanity pass is required, and that final completion happens only after merge success
 
 ## Help/get-settings/list-features output guidance
 

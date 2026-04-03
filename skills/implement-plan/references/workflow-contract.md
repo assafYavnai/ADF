@@ -64,6 +64,7 @@ The helper must resolve and return at minimum:
 - `feature_slug`
 - `feature_root`
 - `skill_state_root`
+- `worktrees_root`
 - `setup_path`
 - `registry_path`
 - `features_index_path`
@@ -81,6 +82,7 @@ Project-level files:
 - `<project_root>/.codex/implement-plan/setup.json`
 - `<project_root>/.codex/implement-plan/agent-registry.json`
 - `<project_root>/.codex/implement-plan/features-index.json`
+- `<project_root>/.codex/implement-plan/worktrees/...`
 
 Feature root:
 
@@ -202,6 +204,7 @@ Persist this shape under `<project_root>/.codex/implement-plan/features-index.js
       "feature_root": "C:/ExampleProject/docs/phase1/example-feature",
       "feature_status": "active",
       "active_run_status": "context_ready",
+      "merge_status": "not_ready",
       "last_completed_step": "context_collected",
       "last_commit_sha": null,
       "updated_at": "ISO-8601"
@@ -242,6 +245,16 @@ Persist this shape under the feature root:
   "resolved_runtime_permission_model": null,
   "resolved_runtime_capabilities": {},
   "current_branch": null,
+  "base_branch": "main",
+  "feature_branch": "implement-plan/phase1/example-feature",
+  "worktree_path": "C:/ExampleProject/.codex/implement-plan/worktrees/phase1/example-feature",
+  "worktree_status": "ready",
+  "merge_required": true,
+  "merge_status": "not_ready",
+  "approved_commit_sha": null,
+  "merge_commit_sha": null,
+  "merge_queue_request_id": null,
+  "local_target_sync_status": "not_started",
   "last_completed_step": null,
   "last_commit_sha": null,
   "active_run_status": "idle",
@@ -266,6 +279,12 @@ At minimum support:
 - `brief_ready`
 - `implementation_running`
 - `verification_pending`
+- `review_pending`
+- `human_verification_pending`
+- `merge_ready`
+- `merge_queued`
+- `merge_in_progress`
+- `merge_blocked`
 - `closeout_pending`
 - `completed`
 - `blocked`
@@ -315,6 +334,7 @@ Before any implementor worker starts, the main skill must verify:
 - upstream context is sufficient to implement without business guessing
 - the feature is still active/open
 - the target slice is bounded and product-shaped, not broad speculative refactoring
+- a deterministic base branch, feature branch, and worktree path can be resolved for the feature stream
 
 If integrity fails:
 
@@ -346,10 +366,11 @@ The implementation flow must stay truthful and minimal:
 
 1. implement
 2. run the machine-verification loop
-3. if configured, send the slice to `review-cycle`
+3. if configured, send the slice to `review-cycle` against the feature worktree snapshot
 4. if human verification is required and the route-level review approved, enter the human-testing phase
 5. after human approval, run a final sanity `review-cycle` only if code changed after human approval
-6. close only when every required verification gate is satisfied
+6. when approval gates are satisfied, enqueue the exact approved commit into `merge-queue`
+7. close only when every required verification gate is satisfied and the merge queue reports merge success truthfully
 
 Rules:
 
@@ -360,6 +381,8 @@ Rules:
 - if human verification is required, use review-cycle as the route-closure gate before handing the slice to human testing
 - if human testing rejects, return to code fix plus machine verification before re-requesting human testing
 - when code changes after human approval, any sanity-pass fix must preserve approved human-facing behavior or the human approval becomes stale
+- implementation, machine verification, and review-cycle all operate against the dedicated feature worktree rather than the shared base checkout
+- approval on the feature branch is merge-ready state, not completed state
 
 ## Human-testing handoff rule
 
@@ -413,31 +436,36 @@ Therefore:
 `action=run`
 
 - perform all of `prepare`
+- create or reuse the deterministic feature worktree before implementor execution
 - spawn or resume the implementor when integrity passes
 - wait for completion
 - run the machine-verification loop until it passes or blocks
 - verify outputs
 - write `completion-summary.md`
-- commit and push all feature artifacts to origin
-- if `post_send_to_review=false` and human verification is not required, mark the feature completed when closeout succeeds
-- if `post_send_to_review=true`, invoke `review-cycle` for the same feature stream after machine verification and mark the feature completed only if review closes cleanly
+- commit and push all feature artifacts on the feature branch
+- if `post_send_to_review=false` and human verification is not required, stop at merge-ready state and enqueue the approved commit instead of marking the feature completed immediately
+- if `post_send_to_review=true`, invoke `review-cycle` for the same feature stream after machine verification using the feature worktree as `repo_root`
 - if `post_send_to_review=true` and `review_until_complete=true`, pass `until_complete=true` to `review-cycle` and let `review-cycle` default `max_cycles` to `5` unless `review_max_cycles` was supplied
 - if human verification is required, do not mark the feature completed until the human-testing phase and any required post-human-approval sanity review are both satisfied
+- after approval gates are satisfied, enqueue the exact approved commit in `merge-queue`
+- do not mark the feature completed until `merge-queue` updates the feature to merged and completion closeout succeeds
 
 `action=mark-complete`
 
 - require a target feature stream
-- persist completion in both state and index
+- persist completion in both state and index only after merge success evidence exists
 - remove the feature from active/open output
 
 ## Git closeout rule
 
 Successful implementation is not final until:
 
-- code changes are committed
-- feature artifacts are committed
+- feature-branch code changes are committed
+- feature-branch artifacts are committed
 - docs/specs/contracts updates are committed
-- changes are pushed to origin
+- feature-branch changes are pushed to origin
+- the approved commit is merged into the target branch
+- target-branch sync state is recorded truthfully
 
 If commit or push fails:
 
@@ -463,3 +491,5 @@ Section `4. Verification Evidence` must distinguish at minimum:
 - human verification requirement
 - human verification status
 - review-cycle status
+- merge status
+- local target sync status
