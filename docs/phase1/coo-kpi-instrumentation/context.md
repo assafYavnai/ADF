@@ -5,7 +5,7 @@
 - Phase: `1`
 - Feature slug: `coo-kpi-instrumentation`
 - Branch: `main`
-- Active cycle: `cycle-01`
+- Active cycle: completed (cycle-04 approved)
 
 ## Normalized Route Contract
 
