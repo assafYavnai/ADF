@@ -16,6 +16,7 @@ Last updated: 2026-04-03
 | **Memory persistence** | PostgreSQL + pgvector through the Brain MCP engine |
 | **LLM calls** | CLI-based only. Codex primary, Claude fallback. |
 | **Shell** | Bash is the canonical ADF shell on every host OS. On Windows, `adf.cmd` is only a trampoline into `bash adf.sh ...`, and non-bash workflow execution is non-compliant. |
+| **Bootstrap / runtime gate** | Agents must run `--runtime-preflight` first. Normal launch uses a fast runtime gate plus cheap required-artifact checks. Dependency/build repair lives on explicit `--install`, and full bash + Brain verification lives on fail-closed `--doctor`. |
 | **Python** | Allowed for specialist tools, not for the controller core |
 
 ## Core Principle

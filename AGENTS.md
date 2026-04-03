@@ -3,6 +3,9 @@
 ## Brain Integration
 All agents must load context from Brain at startup and capture durable knowledge (decisions, conventions, lessons) during work. See cli-agent.md for the full protocol.
 
+## Runtime Preflight
+Before substantive work, every agent must run the ADF runtime preflight and use its output as authority for host OS, workflow shell, command construction style, path style, launcher entrypoint, and bounded repair commands.
+
 ## Routing
 
 ### If you are a CLI agent (Claude Code, Codex CLI, Gemini CLI):

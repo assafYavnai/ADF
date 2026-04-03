@@ -9,7 +9,9 @@ MEMORY_ENGINE_DIR="$REPO_ROOT/components/memory-engine"
 COO_DIR="$REPO_ROOT/COO"
 DOCTOR_AUDIT_SCRIPT="$REPO_ROOT/tools/doctor-brain-audit.mjs"
 DOCTOR_SMOKE_SCRIPT="$REPO_ROOT/tools/doctor-brain-connect-smoke.mjs"
+RUNTIME_PREFLIGHT_SCRIPT="$REPO_ROOT/tools/agent-runtime-preflight.mjs"
 DOCTOR_INCIDENT_DIR="$REPO_ROOT/memory/doctor-incidents"
+INSTALL_STATE_PATH="$REPO_ROOT/.codex/runtime/install-state.json"
 TMP_DIR="$REPO_ROOT/tmp"
 DEFAULT_SCOPE="assafyavnai/adf"
 DOCTOR_AUDIT_SCOPE="assafyavnai/adf"
@@ -65,6 +67,9 @@ fi
 
 SHOW_HELP=false
 RUN_DOCTOR=false
+RUN_RUNTIME_PREFLIGHT=false
+RUN_INSTALL=false
+OUTPUT_JSON=false
 SCOPE="$DEFAULT_SCOPE"
 ONION_ENABLED=true
 MODE="tsx-direct"
@@ -78,6 +83,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --doctor)
       RUN_DOCTOR=true
+      shift
+      ;;
+    --runtime-preflight)
+      RUN_RUNTIME_PREFLIGHT=true
+      shift
+      ;;
+    --install)
+      RUN_INSTALL=true
+      shift
+      ;;
+    --json)
+      OUTPUT_JSON=true
       shift
       ;;
     --scope)
@@ -121,7 +138,11 @@ USAGE
 
 FLAGS
   --help, -h     Show this help text
+  --runtime-preflight
+                  Run the fast runtime gate and emit environment truth for agents
+  --install       Run explicit install/bootstrap repair for repo dependencies and builds
   --doctor       Repair bounded prerequisites, require working bash + Brain MCP, and log success to Brain
+  --json         Emit JSON when used with --runtime-preflight
   --scope <id>   Override Brain scope (default: $DEFAULT_SCOPE)
   --no-onion     Disable onion requirements lane
   --tsx-direct   Run COO through the local tsx shim (default)
@@ -131,6 +152,8 @@ FLAGS
 
 EXAMPLES
   ./adf.sh --help
+  ./adf.sh --runtime-preflight --json
+  ./adf.sh --install
   ./adf.sh --doctor
   ./adf.sh --built -- --resume-last
   ./adf.sh --scope assafyavnai/adf -- --thread-id <uuid>
@@ -140,6 +163,18 @@ EOF
 if $SHOW_HELP; then
   print_help
   exit 0
+fi
+
+if $OUTPUT_JSON && ! $RUN_RUNTIME_PREFLIGHT; then
+  die "--json is only supported with --runtime-preflight"
+fi
+
+primary_mode_count=0
+$RUN_DOCTOR && primary_mode_count=$((primary_mode_count + 1))
+$RUN_RUNTIME_PREFLIGHT && primary_mode_count=$((primary_mode_count + 1))
+$RUN_INSTALL && primary_mode_count=$((primary_mode_count + 1))
+if (( primary_mode_count > 1 )); then
+  die "--install, --runtime-preflight, and --doctor are mutually exclusive"
 fi
 
 needs_npm_install() {
@@ -226,6 +261,39 @@ new_uuid() {
 
 json_string() {
   node -e "process.stdout.write(JSON.stringify(process.argv[1] ?? ''))" "$1"
+}
+
+write_install_state() {
+  local completed_at="$1"
+  local host_os="linux"
+  local node_version
+  local bash_path
+  local repairs_json
+
+  if is_windows_host; then
+    host_os="windows"
+  elif [[ "$(uname -s)" == "Darwin" ]]; then
+    host_os="macos"
+  fi
+
+  node_version="$(node --version 2>/dev/null || true)"
+  bash_path="$(command_location bash)"
+  repairs_json="$(json_array_from_name DOCTOR_REPAIRS_JSON)"
+
+  mkdir -p "$(dirname "$INSTALL_STATE_PATH")"
+  cat >"$INSTALL_STATE_PATH" <<EOF
+{
+  "schema_version": 1,
+  "repo_root": $(json_string "$REPO_ROOT"),
+  "host_os": $(json_string "$host_os"),
+  "npm_command": $(json_string "$NPM_CMD"),
+  "npx_command": $(json_string "$NPX_CMD"),
+  "node_version": $(json_string "$node_version"),
+  "bash_path": $(json_string "$bash_path"),
+  "completed_at": $(json_string "$completed_at"),
+  "repairs": $repairs_json
+}
+EOF
 }
 
 declare -a DOCTOR_CHECK_LINES=()
@@ -610,86 +678,63 @@ run_doctor() {
   print_doctor_report "" "$brain_audit_result"
 }
 
-run_launch_preflight() {
-  step "Checking required commands"
+run_runtime_preflight_route() {
+  [[ -f "$RUNTIME_PREFLIGHT_SCRIPT" ]] || die "Runtime preflight script is missing: $RUNTIME_PREFLIGHT_SCRIPT"
   command -v node >/dev/null 2>&1 || die "node is not installed or not on PATH."
-  command -v "$NPM_CMD" >/dev/null 2>&1 || die "$NPM_CMD is not installed or not on PATH."
-  info "node  $(command_location node)"
-  info "$NPM_CMD  $(command_location "$NPM_CMD")"
 
-  step "Checking bash runtime"
-  capture_command bash --version
-  if [[ $CAPTURE_STATUS -ne 0 ]]; then
-    die "bash is present but not healthy in this runtime: $CAPTURE_OUTPUT"
+  local -a args
+  args=("$RUNTIME_PREFLIGHT_SCRIPT" "--repo-root" "$REPO_ROOT" "--launch-mode" "$MODE")
+  if $OUTPUT_JSON; then
+    args+=("--json")
   fi
-  info "bash  $(command_location bash)"
 
-  step "Checking optional commands"
-  for cmd in rg pg_isready; do
-    if command -v "$cmd" >/dev/null 2>&1; then
-      info "$cmd  $(command_location "$cmd")"
+  node "${args[@]}"
+}
+
+assert_runtime_preflight() {
+  [[ -f "$RUNTIME_PREFLIGHT_SCRIPT" ]] || die "Runtime preflight script is missing: $RUNTIME_PREFLIGHT_SCRIPT"
+  command -v node >/dev/null 2>&1 || die "node is not installed or not on PATH."
+  node "$RUNTIME_PREFLIGHT_SCRIPT" --repo-root "$REPO_ROOT" --launch-mode "$MODE" --assert-only
+}
+
+print_install_report() {
+  local entry
+
+  echo "ADF install/bootstrap"
+  if [[ ${#DOCTOR_REPAIR_LINES[@]} -eq 0 ]]; then
+    echo "[PASS] No install/bootstrap repairs were needed."
+    return
+  fi
+
+  for entry in "${DOCTOR_REPAIR_LINES[@]}"; do
+    IFS="$FIELD_SEP" read -r status name detail started_at completed_at <<<"$entry"
+    if [[ "$status" == "applied" ]]; then
+      echo "[FIXED] $name"
     else
-      warn "$cmd not found (optional but useful)"
+      echo "[FAILED] $name"
     fi
+    echo "  $detail"
   done
+}
 
-  if command -v pg_isready >/dev/null 2>&1; then
-    step "Checking PostgreSQL"
-    if pg_isready -h localhost -p 5432 -q 2>/dev/null; then
-      info "PostgreSQL is accepting connections on localhost:5432"
-    else
-      die "PostgreSQL is NOT reachable on localhost:5432. Memory engine requires it. Start PostgreSQL and try again."
-    fi
+run_install_route() {
+  local completed_at
+
+  reset_doctor_state
+  repair_doctor_prerequisites || die "Install/bootstrap repair failed."
+  completed_at="$(iso_now)"
+  write_install_state "$completed_at"
+  print_install_report
+  echo ""
+  run_runtime_preflight_route
+}
+
+run_launch_preflight() {
+  step "Runtime preflight"
+  if ! assert_runtime_preflight; then
+    die "Runtime preflight failed. Run ./adf.sh --runtime-preflight for details or ./adf.sh --install for bounded repair."
   fi
-
-  step "Checking memory-engine dependencies"
-  if needs_npm_install "$MEMORY_ENGINE_DIR"; then
-    echo "  ...  Running $NPM_CMD install in components/memory-engine/"
-    run_checked "$MEMORY_ENGINE_DIR" "$NPM_CMD" install --no-fund --no-audit || die "$NPM_CMD install failed in memory-engine"
-    info "memory-engine dependencies installed"
-  else
-    info "memory-engine node_modules up to date - skipped"
-  fi
-
-  step "Checking memory-engine build"
-  if needs_memory_engine_build; then
-    echo "  ...  Building memory-engine"
-    run_checked "$MEMORY_ENGINE_DIR" "$NPM_CMD" run build || die "memory-engine build failed"
-    info "memory-engine built"
-  else
-    info "memory-engine dist up to date - skipped"
-  fi
-
-  step "Checking COO dependencies"
-  if needs_npm_install "$COO_DIR"; then
-    echo "  ...  Running $NPM_CMD install in COO/"
-    run_checked "$COO_DIR" "$NPM_CMD" install --no-fund --no-audit || die "$NPM_CMD install failed in COO"
-    info "COO dependencies installed"
-  else
-    info "COO node_modules up to date - skipped"
-  fi
-
-  step "Final preflight"
-  [[ -f "$MEMORY_ENGINE_DIR/dist/server.js" ]] || die "components/memory-engine/dist/server.js missing after build step"
-  [[ -d "$MEMORY_ENGINE_DIR/node_modules/@modelcontextprotocol/sdk/dist/esm/client" ]] || die "MCP SDK client not found in memory-engine node_modules"
-
-  if [[ "$MODE" == "tsx-direct" || "$MODE" == "watch" ]]; then
-    local_tsx_shim "$COO_DIR" >/dev/null || die "tsx not found in COO node_modules"
-  fi
-
-  if [[ "$MODE" == "built" ]]; then
-    if needs_coo_build; then
-      step "Checking COO build"
-      echo "  ...  Building COO"
-      run_checked "$COO_DIR" "$NPM_CMD" run build || die "COO build failed"
-      info "COO built"
-    else
-      info "COO dist up to date - skipped"
-    fi
-    [[ -f "$COO_DIR/dist/COO/controller/cli.js" ]] || die "COO built entrypoint missing: dist/COO/controller/cli.js"
-  fi
-
-  info "All preflight checks passed"
+  info "Runtime preflight passed"
 }
 
 launch_coo() {
@@ -737,6 +782,16 @@ launch_coo() {
 
 if $RUN_DOCTOR; then
   run_doctor
+  exit $?
+fi
+
+if $RUN_INSTALL; then
+  run_install_route
+  exit $?
+fi
+
+if $RUN_RUNTIME_PREFLIGHT; then
+  run_runtime_preflight_route
   exit $?
 fi
 

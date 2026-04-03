@@ -19,6 +19,34 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 - Read [docs/v0/architecture.md](../v0/architecture.md) for technical architecture
 - Read [docs/PHASE1_MASTER_PLAN.md](../PHASE1_MASTER_PLAN.md) for Phase 1 operating alignment
 
+## Mandatory Runtime Preflight
+
+Before substantive work, run the ADF runtime preflight and use its output as the authoritative runtime contract.
+
+- POSIX or real bash terminal: `./adf.sh --runtime-preflight --json`
+- Windows non-bash control plane: `adf.cmd --runtime-preflight --json`
+
+Treat these output fields as authority:
+
+- `host_os`
+- `workflow_shell`
+- `terminal_shell_hint`
+- `shell_contract.command_construction_mode`
+- `shell_contract.bash_write_style`
+- `shell_contract.path_style`
+- `commands.npm.command_name`
+- `commands.npx.command_name`
+- `recommended_commands.runtime_preflight`
+- `recommended_commands.install`
+- `recommended_commands.doctor`
+- `recommended_commands.launch`
+
+If runtime preflight fails:
+
+- use `--install` for bounded dependency/build/bootstrap repair
+- use `--doctor` when you need full bash + Brain MCP verification
+- do not continue with ad-hoc workflow commands until the blocking issue is understood
+
 ## Shell Guidance
 - ADF's canonical shell is `bash` on every host OS.
 - On Windows, the host OS is still Windows, but the ADF shell remains `bash`. Agents must stay aware of Windows path and process behavior without treating PowerShell as an equivalent workflow shell.
@@ -30,12 +58,13 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 - Use PowerShell only for Windows-native leaf tasks that are outside the ADF workflow shell contract.
 - On Windows bash runtimes, `adf.sh` requires `npm.cmd` / `npx.cmd`. Generic `npm` / `npx` fallback is non-compliant. Prefer local `.cmd` shims under `node_modules/.bin/` when the native command resolution requires them.
 - For multiline execution, write a temporary bash script and run it through `bash`.
+- On Windows, if the control plane is not a real bash terminal or the command is quote-heavy, regex-heavy, or multiline, write a temporary `.sh` file and run it through bash instead of nesting fragile `bash -lc "..."` quoting.
 - After editing JavaScript helpers or workflow scripts, run `node --check` and a small smoke test.
 
 ## Context Loading
 
 The preferred Brain path is the `project-brain` MCP tool surface when the runtime exposes it.
-Do NOT invent a fake MCP path. If `project-brain` is missing in the current runtime, treat that as a runtime defect, persist required authority in repo-backed truth, flag the missing MCP surface to the CEO, and use `./adf.sh --doctor` or `adf.cmd --doctor` to attempt bounded repairs and enforce a working local Brain MCP route.
+Do NOT invent a fake MCP path. If `project-brain` is missing in the current runtime, treat that as a runtime defect, persist required authority in repo-backed truth, flag the missing MCP surface to the CEO, and use runtime preflight first, `--install` for bounded repair when needed, and `./adf.sh --doctor` or `adf.cmd --doctor` only when full bash + Brain verification is required.
 Doctor is fail-closed: it may repair install/build preconditions, but it must end with a working bash runtime, a working Brain MCP connection, and a Brain audit write or it blocks with a durable local incident report.
 Do NOT import or require memory-engine TypeScript code just to work around a missing MCP surface.
 
