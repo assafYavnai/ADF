@@ -159,6 +159,13 @@ Pass criteria:
 8. Repeat with bash intentionally broken.
 9. Repeat with Brain MCP intentionally broken.
 
+## Automated Runner Artifact
+
+- Use `bash docs/phase1/bash-execution-enforcement/cycle-01/run-proof-sequence.sh` from a real VS Code bash terminal to capture the automatable proof steps into a timestamped artifact folder under `docs/phase1/bash-execution-enforcement/cycle-01/proof-runs/`.
+- The runner streams step progress to the terminal, saves one log per step plus `proof-summary.md`, and exits non-zero if any required proof step fails.
+- The runner is fail-fast by default so a broken route stops immediately with the partial proof bundle preserved. Use `--continue-on-error` only when you intentionally want a full sweep after a failure.
+- The runner includes a per-step watchdog (`--step-timeout <sec>`, default `600`) so a hung wrapper or doctor step does not stall silently.
+
 ## Blocking Conditions
 
 Implementation is not accepted if any of the following remain true:
