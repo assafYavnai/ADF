@@ -54,6 +54,11 @@ Rules:
 
 - do not approve speculative refactoring
 - do not accept missing deliverables, missing acceptance gates, or missing edit boundaries as good enough
+- do not accept a slice that lacks `Machine Verification Plan`
+- do not accept a slice that lacks `Human Verification Plan`
+- do not accept a human verification plan that omits `Required: true|false`
+- do not accept `Human Verification Plan` with `Required: true` when the slice is not configured to hand off to `review-cycle`
+- if `Required: true`, do not pass a slice that lacks explicit testing-phase instructions, expected results, evidence to report back, and `APPROVED` / `REJECTED: <comments>` response guidance
 - do not pass a slice that still requires business guessing
 - treat `blocked` feature status as non-runnable until explicitly resolved
 
@@ -81,6 +86,11 @@ List what must not be changed.
 
 4. Proof Plan
 List the exact tests, runtime checks, or artifacts you will produce.
+Include:
+- `Machine Verification Plan`
+- `Human Verification Plan`
+- whether human verification is required
+- the exact testing-phase handoff message or artifact when human verification is required
 
 5. Artifact Updates
 List which docs, contracts, or state artifacts must be updated.
@@ -101,6 +111,9 @@ Rules:
 - use only integrity-verified assumptions
 - do not broaden scope
 - do not modify forbidden areas
+- do not start code changes without a machine verification plan and a human verification plan
+- if `Human Verification Plan` says `Required: true`, do not proceed unless the slice is configured to hand off to `review-cycle`
+- if human verification is required, the implementation is not ready to close until the testing-phase handoff is prepared in the required fixed shape
 - update authoritative docs when materially affected
 - if a supposedly trusted input is malformed or contradictory, stop and say so instead of guessing
 
@@ -124,6 +137,12 @@ Rules:
 - headings must appear in the listed order
 - if a section is empty, write `None.`
 - do not claim completion if commit or push failed
+- section `4. Verification Evidence` must clearly distinguish:
+  - `Machine Verification`
+  - `Human Verification Requirement`
+  - `Human Verification Status`
+  - `Review-Cycle Status`
+  - concrete evidence
 
 ## Normalized implementation contract template
 
@@ -149,6 +168,18 @@ Rules:
 - headings must appear in the listed order
 - fenced code blocks do not count as valid heading locations
 - if a section is unknown, do not invent content; fail integrity instead
+- section `6. Acceptance Gates` must include exact sublabels:
+  - `Machine Verification Plan`
+  - `Human Verification Plan`
+- `Human Verification Plan` must include `Required: true` or `Required: false`
+- if `Required: true`, `Human Verification Plan` must include:
+  - explicit testing-phase language
+  - executive summary of implemented behavior
+  - exact test steps
+  - expected results
+  - evidence to report back
+  - `APPROVED` / `REJECTED: <comments>` response contract
+- section `7. Observability / Audit` must make review-cycle status, machine verification status, and human verification status truthfully visible
 
 ## Pushback artifact template
 
@@ -189,6 +220,8 @@ Rules:
 - each heading must appear exactly once
 - headings must appear in the listed order
 - only include integrity-verified assumptions
+- section `8. Proof / Verification Expectations` must restate the machine verification plan and the human verification requirement
+- section `10. Closeout Rules` must say whether human testing is required, when review-cycle runs, and whether a post-human-approval sanity pass is required
 
 ## Help/get-settings/list-features output guidance
 

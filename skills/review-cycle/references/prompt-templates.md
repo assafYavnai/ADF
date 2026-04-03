@@ -24,6 +24,11 @@ If a prior cycle fix-report exists, treat it as context, not as proof that closu
 Create exactly 3 sections:
 
 1. Findings
+The first non-empty line under this heading must be:
+- `Overall Verdict: APPROVED`
+or
+- `Overall Verdict: REJECTED`
+
 List current findings, highest severity first.
 For each finding include:
 - failure class
@@ -68,6 +73,7 @@ Important:
 - Prefer the smallest route-contract fix that closes the class.
 - Do not treat the cited files as the scope of the bug.
 - Do not mark something closed just because the previous cycle said it was fixed.
+- End the report body with `Final Verdict: APPROVED` or `Final Verdict: REJECTED`.
 ```
 
 ## Reviewer prompt template
@@ -82,6 +88,11 @@ Review the implementation against the audit as a route-closure review, not a dif
 Create exactly 3 sections:
 
 1. Closure Verdicts
+The first non-empty line under this heading must be:
+- `Overall Verdict: APPROVED`
+or
+- `Overall Verdict: REJECTED`
+
 For each audited failure class, mark:
 - Closed / Partial / Open
 
@@ -125,6 +136,7 @@ Reject the fix as incomplete if:
 - it widens scope into broad refactoring without necessity
 - it treats historical debt as if it were a live route closure
 - it claims closure without concrete proof
+- End the report body with `Final Verdict: APPROVED` or `Final Verdict: REJECTED`.
 ```
 
 ## Implementor prompt template
@@ -191,6 +203,7 @@ Rules:
 - Happy-path proof is insufficient for shared-surface changes.
 - If claimed route, mutated route, and proved route do not line up, stop and call the route still open.
 - Check for proof or test seams contaminating live bootstrap, and for env or harness knobs that silently alter production behavior.
+- If this pass is a post-human-approval sanity pass, preserve the approved human-facing behavior. If closure would require changing that behavior, call human approval stale instead of hiding the regression behind a silent fix.
 - Do not treat the cited files as the scope of the bug. Treat them as evidence of a failure class, then sweep the full route and sibling sites for the same contract break.
 - Update all materially affected authoritative docs, including design docs, context docs, architecture docs, specs, runbooks, and related project documents.
 - Create or update `fix-plan.md` before code changes when implementation is required.

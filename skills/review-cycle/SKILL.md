@@ -200,6 +200,7 @@ If `until_complete=true`:
 - continue into the next cycle automatically only when another real fix pass is required
 - stop early on blockers such as setup or access failure, git closeout failure, unresolved contract ambiguity, or repeated rejection with no material delta
 - when the cycle cap is reached without closure, stop and surface the exact remaining open route work
+- when the invocation is a post-human-approval sanity pass, only keep looping while the fix preserves the approved human-facing behavior; if the required fix would change that behavior, stop and return the slice to human testing instead of silently continuing
 
 ## Split verdict rule
 
@@ -219,7 +220,7 @@ When auditor and reviewer executions return reports, print each completed report
 
 ```text
 ##################################################################
-########### The <Auditor | Reviewer> Report is Ready #############
+########### The <Auditor | Reviewer> Report is Ready - <APPROVED | REJECTED> ###########
 ##################################################################
 
 <show report>
@@ -233,6 +234,7 @@ Rules:
 - print the report as soon as that agent returns, even if the other report is still running
 - if both reports finish before implementor work starts, print both in arrival order
 - do not start implementor fixing until every already-returned report has been surfaced in this wrapper
+- require the report body itself to start section 1 with `Overall Verdict: APPROVED|REJECTED` and end with `Final Verdict: APPROVED|REJECTED`
 
 ## Implementor lane rule
 

@@ -168,6 +168,11 @@ At minimum, check:
 - required deliverables are stated clearly
 - allowed edits and forbidden edits are stated clearly
 - acceptance gates are stated clearly
+- `Machine Verification Plan` exists
+- `Human Verification Plan` exists
+- `Human Verification Plan` states `Required: true|false`
+- if `Human Verification Plan` says `Required: true`, the slice is configured with `post_send_to_review=true`
+- if human verification is required, the plan also includes explicit testing-phase instructions, expected results, evidence to report back, and `APPROVED` / `REJECTED: <comments>` response guidance
 - observability or audit expectations are stated when required
 - dependencies, constraints, and non-goals are explicit enough
 - upstream context is sufficient to implement without business guessing
@@ -213,12 +218,18 @@ Rules:
 - do everything from `prepare`
 - spawn or resume the implementor when integrity passes
 - wait for completion
+- run the machine-verification loop until it passes or blocks
 - verify outputs
 - write `completion-summary.md`
 - commit and push all code and feature artifacts to origin
-- if `post_send_to_review=false`, mark the feature completed when closeout succeeds
-- if `post_send_to_review=true`, call `review-cycle` for the same feature stream after implementation closeout and mark the feature completed only after review closes cleanly
+- if `post_send_to_review=false` and human verification is not required, mark the feature completed when closeout succeeds
+- if human verification is required, `post_send_to_review` must be enabled because human testing happens only after the first route-level `review-cycle` gate
+- if `post_send_to_review=true`, call `review-cycle` for the same feature stream after machine verification and mark the feature completed only after review closes cleanly
 - if `post_send_to_review=true` and `review_until_complete=true`, pass `until_complete=true` to `review-cycle` and let `review-cycle` default `max_cycles` to `5` unless `review_max_cycles` was supplied
+- if human verification is required, surface the testing-phase handoff instead of closing immediately
+- if human verification is required and human testing rejects, return to code fix plus machine verification before re-requesting human testing
+- after human approval, run a final sanity `review-cycle` only when code changed after human approval
+- if a post-approval sanity fix changes approved human-facing behavior, treat the human approval as stale and return to human testing instead of silently closing
 
 `action=mark-complete`
 
@@ -250,3 +261,12 @@ When an implementation slice succeeds, end by showing:
 - the resolved worker and control-plane runtime/access mode summary
 - the completion summary
 - the commit SHA if push succeeded, or the exact git failure if it did not
+
+If human verification is required, the testing-phase handoff must use this exact visible shape:
+
+- `IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING`
+- short executive summary of implemented behavior
+- `IMPLEMENTATION IS READY FOR TESTING`
+- exact testing sequence, expected results, and evidence to report back
+- explicit response contract using `APPROVED` or `REJECTED: <comments>`
+- `IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING`

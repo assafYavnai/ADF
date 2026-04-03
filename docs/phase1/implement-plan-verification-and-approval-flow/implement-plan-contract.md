@@ -81,6 +81,16 @@ Upgrade the repo-owned `implement-plan` skill so it hard-requires explicit machi
 8. Completion reporting and feature state stay truthful about machine verification, human verification, review-cycle verdicts, and closeout eligibility.
 9. The updated skills still validate exact headings and preserve current closeout/resume behavior.
 
+Machine Verification Plan
+- Run `node --check` on modified helper and script files.
+- Run targeted helper smoke checks that prove missing verification-plan sections now fail and valid plans pass.
+- Run targeted `review-cycle` helper smoke checks for explicit verdict summary output.
+- Refresh and validate the installed Codex skill output if the repo-owned source changes materially.
+
+Human Verification Plan
+- Required: false
+- Reason: this slice changes skill contracts, helper validation, and prompt/reporting behavior only. Route closure for this feature is proven through repo-side machine checks plus review-cycle verification, not through a separate human-facing product test.
+
 7. Observability / Audit
 
 - The contract must make it obvious whether machine verification is planned, executed, and passed.

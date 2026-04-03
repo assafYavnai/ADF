@@ -64,6 +64,13 @@ Implement the approved `implement-plan` workflow upgrade so every bounded slice 
 - Machine verification on modified helpers and scripts, including `node --check`.
 - Targeted smoke checks for review handoff flags and any new summary/verdict outputs.
 - If helper or contract behavior changes materially, regenerate and validate the local installed Codex skill output.
+- Machine Verification Plan:
+  - `node --check` on modified helper and script files
+  - helper prepare smoke checks for both failing and passing verification-plan cases
+  - targeted `review-cycle` cycle-summary proof for explicit verdict surfacing
+- Human Verification Plan:
+  - Required: false
+  - reason: this slice changes workflow contracts and helper behavior rather than human-facing product behavior
 
 9. Required Artifact Updates
 
@@ -81,3 +88,4 @@ Implement the approved `implement-plan` workflow upgrade so every bounded slice 
 - After implementation, run machine verification before any review handoff.
 - Use `review-cycle` with `until_complete=true` for the implementation closeout path when the slice is ready.
 - Do not mark the feature complete until completion artifacts are valid and git closeout succeeded.
+- If a later revision to this slice introduces human-facing behavior that needs manual confirmation, add a real testing-phase handoff instead of leaving `Required: false`.

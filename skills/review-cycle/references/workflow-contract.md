@@ -323,6 +323,7 @@ If `until_complete=true`:
 - continue automatically only while each completed cycle shows that another real fix pass is still required
 - stop immediately on setup or access failure, git closeout failure, unresolved contract ambiguity, or repeated rejection without material progress
 - when the cycle cap is reached, stop and surface the exact remaining open route work and current stream state
+- when the invocation is a post-human-approval sanity pass, only continue while any required fix preserves the already approved human-facing behavior; otherwise stop and return the slice to human verification
 
 ## Access-resolution rules
 
@@ -571,7 +572,7 @@ When auditor or reviewer work completes and produces a report artifact, the orch
 
 ```text
 ##################################################################
-########### The <Auditor | Reviewer> Report is Ready #############
+########### The <Auditor | Reviewer> Report is Ready - <APPROVED | REJECTED> ###########
 ##################################################################
 
 <show report>
@@ -586,6 +587,8 @@ Execution rules:
 - if the second report arrives before implementor work starts, print it the same way immediately on arrival
 - do not start implementor fixing until every already-returned report has been surfaced in this wrapper
 - if implementor work is not needed because both reports are clean, still surface the reports in this wrapper
+- the report body itself must start section 1 with `Overall Verdict: APPROVED|REJECTED`
+- the report body itself must end with `Final Verdict: APPROVED|REJECTED`
 
 ## Implementor rules
 

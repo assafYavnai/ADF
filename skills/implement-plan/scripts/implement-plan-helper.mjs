@@ -685,6 +685,9 @@ async function buildCompletionSummary(input) {
   const implementationSeconds = diffSeconds(runTimestamps.implementor_started_at, runTimestamps.implementor_finished_at);
   const verificationSeconds = diffSeconds(runTimestamps.implementor_finished_at, runTimestamps.verification_finished_at);
   const closeoutSeconds = diffSeconds(runTimestamps.verification_finished_at, runTimestamps.closeout_finished_at);
+  const verificationSection = completionText
+    ? extractHeadingSection(completionText, "4. Verification Evidence")
+    : "";
 
   return {
     command: "completion-summary",
@@ -714,12 +717,20 @@ async function buildCompletionSummary(input) {
           objective_completed: extractBulletishLines(completionText, "1. Objective Completed", 5),
           deliverables_produced: extractBulletishLines(completionText, "2. Deliverables Produced", 8),
           verification_evidence: extractBulletishLines(completionText, "4. Verification Evidence", 8),
+          machine_verification: extractLabeledValue(verificationSection, "Machine Verification"),
+          human_verification_requirement: extractLabeledValue(verificationSection, "Human Verification Requirement"),
+          human_verification_status: extractLabeledValue(verificationSection, "Human Verification Status"),
+          review_cycle_status: extractLabeledValue(verificationSection, "Review-Cycle Status"),
           remaining_debt: extractBulletishLines(completionText, "7. Remaining Non-Goals / Debt", 8)
         }
       : {
           objective_completed: [],
           deliverables_produced: [],
           verification_evidence: [],
+          machine_verification: null,
+          human_verification_requirement: null,
+          human_verification_status: null,
+          review_cycle_status: null,
           remaining_debt: []
         }
   };
@@ -1205,6 +1216,8 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
     inputPack.feature_artifacts.contract.text ?? "",
     ...inputPack.review_cycle_artifacts.flatMap((cycle) => cycle.artifacts.map((artifact) => artifact.text ?? ""))
   ].join("\n\n").toLowerCase();
+  const verificationSourceText = String(contractArtifact.valid ? (contractArtifact.text ?? combinedText) : combinedText);
+  const verificationPlanState = evaluateVerificationPlanState(verificationSourceText);
 
   const requiredSignals = [
     { key: "deliverables", patterns: [/deliverable/, /output/, /produce/] },
@@ -1230,6 +1243,57 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
     blockingIssues.push(issue("slice-not-bounded", "The target slice is not explicitly bounded.", contractSource.paths, "Define the exact product slice and keep it out of speculative refactoring territory."));
   }
 
+  if (!verificationPlanState.machine_plan_present) {
+    blockingIssues.push(issue(
+      "missing-machine-verification-plan",
+      "The implementation slice does not include a Machine Verification Plan.",
+      contractSource.paths,
+      "Add a Machine Verification Plan that names the exact tests, smoke checks, or runtime evidence required before the slice can advance."
+    ));
+  }
+
+  if (!verificationPlanState.human_plan_present) {
+    blockingIssues.push(issue(
+      "missing-human-verification-plan",
+      "The implementation slice does not include a Human Verification Plan.",
+      contractSource.paths,
+      "Add a Human Verification Plan that explicitly states Required: true or Required: false."
+    ));
+  } else if (verificationPlanState.human_required === null) {
+    blockingIssues.push(issue(
+      "missing-human-verification-required-flag",
+      "The Human Verification Plan does not state Required: true or Required: false.",
+      contractSource.paths,
+      "Add Required: true or Required: false to the Human Verification Plan."
+    ));
+  } else if (verificationPlanState.human_required === true) {
+    if (!input.postSendToReview) {
+      blockingIssues.push(issue(
+        "missing-review-cycle-gate-for-human-verification",
+        "Human verification is required, but post-review handoff is disabled.",
+        contractSource.paths,
+        "Enable post_send_to_review so the slice must pass review-cycle before entering human testing."
+      ));
+    }
+
+    const missingHumanDetails = [];
+    if (!verificationPlanState.testing_phase_language_present) missingHumanDetails.push("explicit testing-phase language");
+    if (!verificationPlanState.executive_summary_present) missingHumanDetails.push("executive summary of implemented behavior");
+    if (!verificationPlanState.test_steps_present) missingHumanDetails.push("exact test steps");
+    if (!verificationPlanState.expected_results_present) missingHumanDetails.push("expected results");
+    if (!verificationPlanState.evidence_guidance_present) missingHumanDetails.push("evidence or observations to report back");
+    if (!verificationPlanState.response_contract_present) missingHumanDetails.push("APPROVED / REJECTED response contract");
+
+    if (missingHumanDetails.length > 0) {
+      blockingIssues.push(issue(
+        "incomplete-human-verification-plan",
+        "The Human Verification Plan is required but incomplete.",
+        contractSource.paths,
+        "Expand the Human Verification Plan to include " + missingHumanDetails.join(", ") + "."
+      ));
+    }
+  }
+
   if (contractSource.type === "equivalent_sources") {
     warnings.push("No valid normalized implement-plan-contract.md was found. The main skill should materialize one before worker execution.");
   }
@@ -1251,6 +1315,34 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
     warnings,
     next_safe_move: nextSafeMove
   };
+}
+
+function evaluateVerificationPlanState(text) {
+  const normalized = String(text ?? "").toLowerCase();
+  const machinePlanPresent = /machine verification plan/.test(normalized);
+  const humanPlanPresent = /human verification plan/.test(normalized);
+  const humanWindow = extractAnchorWindow(normalized, "human verification plan", 2400);
+  const requiredMatch = /required:\s*(true|false)/.exec(humanWindow);
+  const humanRequired = requiredMatch ? requiredMatch[1] === "true" : null;
+
+  return {
+    machine_plan_present: machinePlanPresent,
+    human_plan_present: humanPlanPresent,
+    human_required: humanRequired,
+    testing_phase_language_present: /testing phase|ready for (your )?testing/.test(humanWindow),
+    executive_summary_present: /executive summary|implemented behavior|implemented:/.test(humanWindow),
+    test_steps_present: /test steps|testing sequence|please test the following|1\./.test(humanWindow),
+    expected_results_present: /expected result/.test(humanWindow),
+    evidence_guidance_present: /evidence|report back|observation/.test(humanWindow),
+    response_contract_present: /approved/.test(humanWindow) && /rejected/.test(humanWindow)
+  };
+}
+
+function extractAnchorWindow(text, anchor, maxLength) {
+  const source = String(text ?? "");
+  const start = source.lastIndexOf(anchor);
+  if (start < 0) return source;
+  return source.slice(start, start + maxLength);
 }
 
 async function writePushbackArtifact(pushbackPath, integrity) {
@@ -1337,6 +1429,31 @@ async function syncFeaturesIndex(paths, state) {
     next.updated_at = nowIso();
     await writeJsonAtomic(indexPath, next);
   });
+}
+
+function extractHeadingSection(text, heading) {
+  const lines = String(text ?? "").split(/\r?\n/);
+  const start = lines.findIndex((line) => line.trim() === heading);
+  if (start < 0) return "";
+  let end = lines.length;
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (/^\d+\.\s+/.test(lines[index].trim())) {
+      end = index;
+      break;
+    }
+  }
+  return lines.slice(start + 1, end).join("\n").trim();
+}
+
+function extractLabeledValue(text, label) {
+  if (!text) return null;
+  const expression = new RegExp("^" + escapeRegex(label) + "\\s*:\\s*(.+)$", "im");
+  const match = expression.exec(text);
+  return match ? match[1].trim() : null;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function summarizeFeatureSections(index) {

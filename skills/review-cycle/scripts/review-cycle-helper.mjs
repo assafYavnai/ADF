@@ -869,6 +869,8 @@ async function cycleSummary(input) {
     reviewFinishedAt
   );
   const totalDurationSeconds = diffSeconds(runtime?.cycle_started_at ?? null, cycleEndedAt ?? null);
+  const auditorVerdict = formatLaneVerdictLabel(runtime?.lane_verdicts?.auditor);
+  const reviewerVerdict = formatLaneVerdictLabel(runtime?.lane_verdicts?.reviewer);
 
   return {
     feature_root: normalizeSlashes(featureRoot),
@@ -886,6 +888,11 @@ async function cycleSummary(input) {
       implementation_seconds: diffSeconds(runtime?.implementor_started_at ?? null, runtime?.implementor_finished_at ?? null),
       verification_seconds: diffSeconds(runtime?.implementor_finished_at ?? null, runtime?.verification_finished_at ?? null),
       closeout_seconds: diffSeconds(runtime?.verification_finished_at ?? null, runtime?.cycle_finished_at ?? null)
+    },
+    verdict_summary: {
+      auditor: auditorVerdict,
+      reviewer: reviewerVerdict,
+      overall: resolveCycleOverallVerdict(auditorVerdict, reviewerVerdict)
     },
     high_level_findings: {
       auditor: extractHighlights(auditText, "1. Findings", 4),
@@ -1313,6 +1320,19 @@ function normalizeSplitReviewContinuity(value) {
 
 function normalizeLaneVerdict(value) {
   return LANE_VERDICTS.has(value) ? value : "unknown";
+}
+
+function formatLaneVerdictLabel(value) {
+  const normalized = normalizeLaneVerdict(value);
+  if (normalized === "approve") return "APPROVED";
+  if (normalized === "reject") return "REJECTED";
+  return "PENDING";
+}
+
+function resolveCycleOverallVerdict(auditorVerdict, reviewerVerdict) {
+  if (auditorVerdict === "REJECTED" || reviewerVerdict === "REJECTED") return "REJECTED";
+  if (auditorVerdict === "APPROVED" && reviewerVerdict === "APPROVED") return "APPROVED";
+  return "PENDING";
 }
 
 function validateLaneVerdict(value, fieldName) {
