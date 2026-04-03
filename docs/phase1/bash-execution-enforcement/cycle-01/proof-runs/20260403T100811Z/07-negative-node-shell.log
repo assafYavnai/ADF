@@ -1,0 +1,30 @@
+# Step: 07-negative-node-shell
+# Description: Force SHELL to PowerShell and prove the Node trampoline still selects approved bash only.
+# StartedAt: 2026-04-03T10:08:14Z
+# RepoRoot: /c/ADF
+# TimeoutSeconds: 600
+
+adf.sh - Authoritative bash launcher for ADF COO
+
+USAGE
+  ./adf.sh [flags] [-- <COO args>]
+  adf.cmd [flags] [-- <COO args>]    # Windows trampoline into bash
+
+FLAGS
+  --help, -h     Show this help text
+  --doctor       Repair bounded prerequisites, require working bash + Brain MCP, and log success to Brain
+  --scope <id>   Override Brain scope (default: assafyavnai/adf)
+  --no-onion     Disable onion requirements lane
+  --tsx-direct   Run COO through the local tsx shim (default)
+  --watch        Run COO through tsx watch
+  --built        Run compiled COO JavaScript
+  --             Pass remaining args directly to COO
+
+EXAMPLES
+  ./adf.sh --help
+  ./adf.sh --doctor
+  ./adf.sh --built -- --resume-last
+  ./adf.sh --scope assafyavnai/adf -- --thread-id <uuid>
+
+# CompletedAt: 2026-04-03T10:08:14Z
+# ExitCode: 0

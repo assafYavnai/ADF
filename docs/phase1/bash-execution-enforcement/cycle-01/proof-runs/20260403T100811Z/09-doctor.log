@@ -1,0 +1,39 @@
+# Step: 09-doctor
+# Description: Run the fail-closed doctor route and capture Brain audit or incident output.
+# StartedAt: 2026-04-03T10:08:15Z
+# RepoRoot: /c/ADF
+# TimeoutSeconds: 600
+
+
+> @adf/coo@0.1.0 build
+> tsc
+
+ADF doctor
+Repairs attempted
+[FIXED] COO build
+  Built COO artifacts required for Brain MCP connectivity checks.
+[PASS] node
+  node is available via /c/Program Files/nodejs/node.
+[PASS] npm
+  npm.cmd is available via /c/Program Files/nodejs/npm.cmd.
+[PASS] rg
+  rg is available via /c/Users/sufin/AppData/Local/Microsoft/WinGet/Links/rg.
+[PASS] bash
+  bash starts successfully via /usr/bin/bash.
+[PASS] COO tsx shim
+  Local COO tsx shim found at /c/ADF/COO/node_modules/.bin/tsx.cmd.
+[PASS] memory-engine tsx shim
+  Local memory-engine tsx shim found at /c/ADF/components/memory-engine/node_modules/.bin/tsx.cmd.
+[WARN] repo-root tsx import
+  node:internal/modules/package_json_reader:301
+[PASS] git safe.directory
+  git status works without extra safe.directory flags.
+[PASS] PostgreSQL reachability
+  PostgreSQL is accepting connections on localhost:5432.
+[PASS] memory-engine connect smoke
+  MemoryEngineClient.connect() succeeded from the current bash runtime.
+[PASS] Brain audit
+  {"status":"logged","result":{"id":"4fb0d2ef-8bdd-4df7-928f-b304bd232ec3","status":"duplicate_semantic","message":"Semantically similar entry found — skipped."}}
+
+# CompletedAt: 2026-04-03T10:08:27Z
+# ExitCode: 0
