@@ -40,8 +40,8 @@
 - Human Verification Requirement: Required: false.
 - Human Verification Status: not_required.
 - Review-Cycle Status: cycle-02 approved after cycle-01 fixed approval-bypass and same-lane serialization defects.
-- Merge Status: feature mechanics implemented; this feature stream itself is not yet queued or merged in this turn.
-- Local Target Sync Status: not_started for this feature stream; the temp smoke recorded `skipped_dirty_checkout` truthfully for its own repo.
+- Merge Status: administrative closeout exception. This slice landed directly on `main` while bootstrapping the new workflow, so it was review-approved and then manually reconciled instead of going through normal `merge-queue` landing.
+- Local Target Sync Status: not_required for the administrative reconciliation because the slice was already on `main`; the temp smoke still recorded `skipped_dirty_checkout` truthfully for its own repo.
 
 5. Feature Artifacts Updated
 
@@ -56,10 +56,10 @@
 
 - Plan artifacts were committed earlier in `4e860c1`.
 - Implementation changes were committed in `4cebada`.
-- Push and final feature completion are still pending because this feature stream itself has not gone through review approval and merge-queue closeout yet.
+- Review-cycle closed in `a593597`, `8122180`, and `5c690ea`. Implement-plan state was then administratively reconciled because this slice predates its own merge-queue closeout path and was already landed on `main`.
 
 7. Remaining Non-Goals / Debt
 
-- The current feature stream still needs the clean approval pass and approved merge-closeout to be marked completed truthfully.
-- No review-cycle artifacts were generated in this turn for this feature stream.
+- Historical note: this slice is the bootstrap exception for the new merge-queue flow. It is completed, but not through a normal queued merge landing.
+- Review-cycle artifacts now exist under [cycle-01](/C:/ADF/docs/phase1/implement-plan-worktree-merge-queue/cycle-01) and [cycle-02](/C:/ADF/docs/phase1/implement-plan-worktree-merge-queue/cycle-02).
 - No attempt was made in this turn to retrofit unrelated active features onto the new worktree and merge-queue flow.
