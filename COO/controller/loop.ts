@@ -200,22 +200,22 @@ export async function handleTurn(
       await store.update(thread);
       stepsPassed.push("error_streak_escalation");
       stepsPassed.push("thread_state_commit");
-      emit({
-        provenance: controllerProv,
-        category: "turn",
-        operation: "handle_turn",
-        latency_ms: Date.now() - turnStart,
-        success: false,
-        metadata: {
-          workflow: "error_streak_escalation",
-          thread_id: thread.id,
-          scope_path: thread.scopePath,
-          active_workflow: thread.workflowState.active_workflow,
-          recovery_path: recoveryPath,
-          failure_stage: "error_streak_guard",
-          steps_passed: stepsPassed,
+      emitTurnMetric(controllerProv, "handle_turn", Date.now() - turnStart, false, buildHandleTurnTelemetryMetadata({
+        thread,
+        workflow: "error_streak_escalation",
+        routeStage: "error_streak_guard",
+        resultStatus: "escalated",
+        recoveryPath,
+        stepsPassed,
+        failureStage: "error_streak_guard",
+        requestedThreadId: threadId,
+        requestedScopePath,
+        error: {
+          error_class: "ConsecutiveErrorGuard",
+          error_code: "error_streak_guard",
+          error_message: escalation,
         },
-      });
+      }));
       return { threadId: thread.id, response: escalation, thread };
     }
 
@@ -246,42 +246,40 @@ export async function handleTurn(
       stepsPassed.push("persisted_onion_gate_block");
       stepsPassed.push("thread_state_commit");
 
-      emit({
-        provenance: controllerProv,
-        category: "turn",
-        operation: "handle_turn",
-        latency_ms: Date.now() - turnStart,
-        success: false,
+      emitTurnMetric(controllerProv, "handle_turn", Date.now() - turnStart, false, buildHandleTurnTelemetryMetadata({
+        thread,
+        workflow: "requirements_gathering_onion",
+        routeStage: "persisted_onion_gate",
+        resultStatus: "blocked",
+        recoveryPath,
+        stepsPassed,
+        failureStage: "persisted_onion_gate",
+        requestedThreadId: threadId,
+        requestedScopePath,
         metadata: {
-          workflow: "requirements_gathering_onion",
-          thread_id: thread.id,
-          scope_path: thread.scopePath,
           gate_status: "disabled",
-          recovery_path: recoveryPath,
-          steps_passed: stepsPassed,
         },
-      });
+        error: {
+          error_class: "FeatureGateDisabled",
+          error_code: "persisted_onion_gate_disabled",
+          error_message: response,
+        },
+      }));
 
       return { threadId: thread.id, response, thread };
     }
   } catch (err) {
-    emit({
-      provenance: controllerProv,
-      category: "turn",
-      operation: "handle_turn",
-      latency_ms: Date.now() - turnStart,
-      success: false,
-      metadata: {
-        requested_thread_id: threadId,
-        requested_scope_path: requestedScopePath,
-        thread_id: thread?.id ?? null,
-        scope_path: thread?.scopePath ?? requestedScopePath,
-        active_workflow: thread?.workflowState.active_workflow ?? null,
-        recovery_path: recoveryPath,
-        failure_stage: failureStage,
-        steps_passed: stepsPassed,
-      },
-    });
+    emitTurnMetric(controllerProv, "handle_turn", Date.now() - turnStart, false, buildHandleTurnTelemetryMetadata({
+      thread,
+      routeStage: failureStage,
+      resultStatus: "failed",
+      recoveryPath,
+      stepsPassed,
+      failureStage,
+      requestedThreadId: threadId,
+      requestedScopePath,
+      error: classifyHandleTurnError(err, failureStage),
+    }));
     throw err;
   }
 
@@ -294,6 +292,7 @@ export async function handleTurn(
   let turnContextMs = 0;
   let classifierResult: InvocationResult | null = null;
   let intelligenceSessionStatus = "none";
+  let workflowForTelemetry: string | null = resolveClassifierWorkflow(thread);
 
   try {
     const sessionHandles = getLatestSessionHandles(thread);
@@ -335,6 +334,7 @@ export async function handleTurn(
       });
       classifierMs = classifierResult.latency_ms;
       classification = parseClassifierResponse(classifierResult.response);
+      workflowForTelemetry = classification.workflow;
       emitTurnMetric(classifierResult.provenance, "classifier_step", classifierMs, true, {
         thread_id: thread.id,
         scope_path: thread.scopePath,
@@ -489,28 +489,31 @@ export async function handleTurn(
     stepsPassed.push("thread_state_commit");
 
     // Emit turn telemetry
-    emit({
-      provenance: controllerProv,
-      category: "turn",
-      operation: "handle_turn",
-      latency_ms: Date.now() - turnStart,
-      success: true,
-      classifier_ms: classifierMs,
-      intelligence_ms: intelligenceMs,
-      context_ms: turnContextMs,
-      total_events: thread.events.length,
-      metadata: {
-        workflow: classification.workflow,
-        thread_id: thread.id,
-        scope_path: thread.scopePath,
-        active_workflow: thread.workflowState.active_workflow,
-        recovery_path: recoveryPath,
-        steps_passed: stepsPassed,
-        classifier_session_status: classifierResult.session?.status ?? "none",
-        intelligence_session_status: intelligenceSessionStatus,
-        selected_memory_tool: classification.tool ?? null,
-      },
-    });
+    emitTurnMetric(
+      controllerProv,
+      "handle_turn",
+      Date.now() - turnStart,
+      true,
+      buildHandleTurnTelemetryMetadata({
+        thread,
+        workflow: workflowForTelemetry,
+        routeStage: workflowForTelemetry ?? "turn_complete",
+        resultStatus: resolveHandleTurnResultStatus(workflowForTelemetry, thread),
+        recoveryPath,
+        stepsPassed,
+        requestedThreadId: threadId,
+        requestedScopePath,
+        metadata: {
+          classifier_session_status: classifierResult.session?.status ?? "none",
+          intelligence_session_status: intelligenceSessionStatus,
+          selected_memory_tool: classification.tool ?? null,
+        },
+      }),
+      classifierMs,
+      intelligenceMs,
+      turnContextMs,
+      thread.events.length,
+    );
 
     return { threadId: thread.id, response, thread };
   } catch (err) {
@@ -526,21 +529,18 @@ export async function handleTurn(
     await store.update(thread);
     stepsPassed.push("error_recorded");
 
-    emit({
-      provenance: controllerProv,
-      category: "turn",
-      operation: "handle_turn",
-      latency_ms: Date.now() - turnStart,
-      success: false,
-      metadata: {
-        thread_id: thread.id,
-        scope_path: thread.scopePath,
-        active_workflow: thread.workflowState.active_workflow,
-        recovery_path: recoveryPath,
-        failure_stage: failureStage,
-        steps_passed: stepsPassed,
-      },
-    });
+    emitTurnMetric(controllerProv, "handle_turn", Date.now() - turnStart, false, buildHandleTurnTelemetryMetadata({
+      thread,
+      workflow: workflowForTelemetry,
+      routeStage: failureStage,
+      resultStatus: "failed",
+      recoveryPath,
+      stepsPassed,
+      failureStage,
+      requestedThreadId: threadId,
+      requestedScopePath,
+      error: classifyHandleTurnError(err, failureStage),
+    }));
 
     return { threadId: thread.id, response: `An error occurred: ${errorMessage}`, thread };
   }
@@ -1113,6 +1113,10 @@ function emitTurnMetric(
   latencyMs: number,
   success: boolean,
   metadata: Record<string, unknown>,
+  classifierMs?: number,
+  intelligenceMs?: number,
+  contextMs?: number,
+  totalEvents?: number,
 ): void {
   emit({
     provenance,
@@ -1120,8 +1124,79 @@ function emitTurnMetric(
     operation,
     latency_ms: latencyMs,
     success,
+    classifier_ms: classifierMs,
+    intelligence_ms: intelligenceMs,
+    context_ms: contextMs,
+    total_events: totalEvents,
     metadata,
   });
+}
+
+function buildHandleTurnTelemetryMetadata(input: {
+  thread: Thread | null | undefined;
+  workflow?: string | null;
+  routeStage: string;
+  resultStatus: string;
+  recoveryPath: string;
+  stepsPassed: string[];
+  failureStage?: string;
+  requestedThreadId?: string | null;
+  requestedScopePath?: string | null;
+  metadata?: Record<string, unknown>;
+  error?: {
+    error_class?: string | null;
+    error_code?: string | null;
+    error_message?: string | null;
+  };
+}): Record<string, unknown> {
+  const resolvedWorkflow = input.workflow ?? (input.thread ? resolveClassifierWorkflow(input.thread) : null);
+
+  return {
+    requested_thread_id: input.requestedThreadId ?? null,
+    requested_scope_path: input.requestedScopePath ?? null,
+    thread_id: input.thread?.id ?? null,
+    scope_path: input.thread?.scopePath ?? input.requestedScopePath ?? null,
+    active_workflow: input.thread?.workflowState.active_workflow ?? null,
+    workflow: resolvedWorkflow ?? null,
+    trace_id: resolveHandleTurnTraceId(input.thread),
+    route_stage: input.routeStage,
+    result_status: input.resultStatus,
+    recovery_path: input.recoveryPath,
+    failure_stage: input.failureStage ?? null,
+    steps_passed: input.stepsPassed,
+    error_class: input.error?.error_class ?? null,
+    error_code: input.error?.error_code ?? null,
+    error_message: input.error?.error_message ?? null,
+    ...(input.metadata ?? {}),
+  };
+}
+
+function resolveHandleTurnTraceId(thread: Thread | null | undefined): string | null {
+  return thread?.workflowState.onion?.trace_id ?? null;
+}
+
+function resolveHandleTurnResultStatus(
+  workflow: string | null | undefined,
+  thread: Thread,
+): string {
+  if (workflow === "requirements_gathering_onion") {
+    return thread.workflowState.onion?.lifecycle_status ?? "active";
+  }
+  if (workflow === "pushback") {
+    return "pushback";
+  }
+  return "completed";
+}
+
+function classifyHandleTurnError(
+  error: unknown,
+  failureStage: string,
+): { error_class: string; error_code: string; error_message: string } {
+  return {
+    error_class: error instanceof Error && error.name ? error.name : "UnknownTurnError",
+    error_code: failureStage,
+    error_message: error instanceof Error ? error.message : String(error),
+  };
 }
 
 function buildLlmTelemetryMetadata(

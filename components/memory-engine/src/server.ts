@@ -124,11 +124,14 @@ server.setRequestHandler(
         case "emit_metrics_batch":
           return handleEmitMetricsBatch(args);
         case "query_metrics":
-          return handleQueryMetrics(args);
+          response = await handleQueryMetrics(args);
+          break;
         case "get_cost_summary":
-          return handleGetCostSummary(args);
+          response = await handleGetCostSummary(args);
+          break;
         case "get_kpi_summary":
-          return handleGetKpiSummary(args);
+          response = await handleGetKpiSummary(args);
+          break;
 
         default:
           return {
@@ -144,6 +147,7 @@ server.setRequestHandler(
       await emitToolRouteTelemetry(name, callerProvenance, Date.now() - toolStart, true, {
         scope: typeof args.scope === "string" ? args.scope : undefined,
         action: typeof args.action === "string" ? args.action : undefined,
+        ...summarizeToolRequest(name, args),
         ...telemetryContext,
         ...summarizeToolResponse(name, response),
       });
@@ -153,6 +157,7 @@ server.setRequestHandler(
       await emitToolRouteTelemetry(name, callerProvenance, Date.now() - toolStart, false, {
         scope: typeof args.scope === "string" ? args.scope : undefined,
         action: typeof args.action === "string" ? args.action : undefined,
+        ...summarizeToolRequest(name, args),
         ...telemetryContext,
         error: message,
       });
@@ -507,11 +512,40 @@ function shouldEmitToolRouteTelemetry(toolName: string): boolean {
   return ![
     "emit_metric",
     "emit_metrics_batch",
-    "query_metrics",
-    "get_cost_summary",
-    "get_kpi_summary",
     "memory_manage",
   ].includes(toolName);
+}
+
+function summarizeToolRequest(
+  toolName: string,
+  args: Record<string, unknown>,
+): Record<string, unknown> {
+  switch (toolName) {
+    case "query_metrics":
+      return {
+        requested_category: typeof args.category === "string" ? args.category : null,
+        requested_operation: typeof args.operation === "string" ? args.operation : null,
+        requested_source_path: typeof args.source_path === "string" ? args.source_path : null,
+        requested_telemetry_partition: typeof args.telemetry_partition === "string" ? args.telemetry_partition : null,
+        requested_workflow: typeof args.workflow === "string" ? args.workflow : null,
+        requested_limit: typeof args.limit === "number" ? args.limit : null,
+        requested_thread_filter: typeof args.thread_id === "string",
+        requested_trace_filter: typeof args.trace_id === "string",
+      };
+    case "get_cost_summary":
+    case "get_kpi_summary":
+      return {
+        requested_source_path: typeof args.source_path === "string" ? args.source_path : null,
+        requested_telemetry_partition: typeof args.telemetry_partition === "string" ? args.telemetry_partition : null,
+        requested_workflow: typeof args.workflow === "string" ? args.workflow : null,
+        requested_thread_filter: typeof args.thread_id === "string",
+        requested_trace_filter: typeof args.trace_id === "string",
+        requested_since: typeof args.since === "string" ? args.since : null,
+        requested_until: typeof args.until === "string" ? args.until : null,
+      };
+    default:
+      return {};
+  }
 }
 
 function summarizeToolResponse(
@@ -539,6 +573,22 @@ function summarizeToolResponse(
           result_count: Array.isArray(parsed?.items) ? parsed.items.length : parsed?.total ?? 0,
           total: parsed?.total ?? null,
           has_more: parsed?.has_more ?? null,
+        };
+      case "query_metrics":
+        return {
+          result_count: Array.isArray(parsed) ? parsed.length : 0,
+        };
+      case "get_cost_summary":
+        return {
+          result_count: Array.isArray(parsed?.breakdown) ? parsed.breakdown.length : 0,
+          total_calls: parsed?.totals?.total_calls ?? null,
+          total_cost_usd: parsed?.totals?.total_cost_usd ?? null,
+        };
+      case "get_kpi_summary":
+        return {
+          workflow_count: Array.isArray(parsed?.workflow_breakdown) ? parsed.workflow_breakdown.length : 0,
+          kpi_usage_rows: Array.isArray(parsed?.kpi_api_usage?.by_operation) ? parsed.kpi_api_usage.by_operation.length : 0,
+          frozen_trace_count: parsed?.requirements_gathering?.frozen_trace_count ?? null,
         };
       case "memory_manage":
         return {
