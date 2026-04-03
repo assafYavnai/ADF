@@ -466,6 +466,7 @@ The normalized contract must identify:
 - proof route required
 - mutation boundary
 - shared-surface risk boundary
+- KPI applicability and KPI closure expectation
 - docs in scope
 - non-goals
 
@@ -498,6 +499,31 @@ Do not let code changes start until `fix-plan.md` is valid and its sections free
 
 A valid heading structure alone is not enough.
 The invoker must reject a thin or endpoint-only freeze.
+
+## KPI closure gate
+
+Every applicable route under review must carry an explicit KPI judgment instead of leaving KPI status implicit.
+
+Rules:
+
+- `fix-plan.md` must freeze `KPI Applicability` as one of:
+  - `required`
+  - `not required`
+  - `temporary exception approved`
+- if KPI is required or covered by a temporary exception, `fix-plan.md` must also freeze:
+  - `KPI Route / Touched Path`
+  - `KPI Raw-Truth Source`
+  - `KPI Coverage / Proof`
+  - `KPI Production / Proof Partition`
+- if KPI is not required, `fix-plan.md` must state `KPI Non-Applicability Rationale`
+- if a temporary KPI exception is used, `fix-plan.md` must also state:
+  - `KPI Exception Owner`
+  - `KPI Exception Expiry`
+  - `KPI Exception Production Status`
+  - `KPI Compensating Control`
+- auditor and reviewer reports must explicitly state `KPI Closure State` as `Closed`, `Partial`, `Open`, or `Temporary Exception`
+- do not treat a route as closed when KPI proof is missing, when the KPI proof route does not match the claimed route, or when the temporary exception details are incomplete
+- do not let vague observability wording substitute for the explicit KPI fields above
 
 ## Shared-surface and new-power gate
 
@@ -539,6 +565,11 @@ Before closure, compare:
 - route actually exercised by proof
 
 If these do not match, the reviewer must mark the fix `Partial` or `Open` and name the remaining gap.
+
+KPI proof must obey the same rule:
+
+- if KPI closure is claimed, the claimed KPI route, the route actually changed, and the route actually proved must line up
+- if they do not line up, the reviewer must keep KPI closure `Partial` or `Open`
 
 ## Regression forecast gate
 
@@ -589,6 +620,7 @@ Execution rules:
 - if implementor work is not needed because both reports are clean, still surface the reports in this wrapper
 - the report body itself must start section 1 with `Overall Verdict: APPROVED|REJECTED`
 - the report body itself must end with `Final Verdict: APPROVED|REJECTED`
+- the report body must stay human-facing and easy to scan, not a blob of dense prose
 
 ## Implementor rules
 
@@ -603,9 +635,11 @@ Also enforce this rule:
 Additional implementation gates:
 
 - `fix-plan.md` must be created or updated before code changes and must satisfy the pre-code route-contract freeze
+- `fix-plan.md` must also freeze KPI applicability, KPI closure expectations, and any approved KPI exception details
 - if a shared surface changes, require explicit new-power analysis and negative proof before closure
 - if proof relies on a seam, harness, toggle, or env knob, require live-route vs proof-route isolation evidence
 - if claimed supported route, mutated route, and proved route do not match, keep the fix open
+- if KPI closure is required and the KPI fields or KPI proof stay incomplete, keep the fix open
 - require pre-code regression forecasting with targeted checks, not only post-hoc verification
 
 Affected authoritative docs may include:
@@ -636,11 +670,24 @@ Before ending, print a cycle summary that includes:
 
 - high-level auditor findings
 - high-level reviewer verdicts
+- KPI closure status
 - high-level fixes applied
 - verification outcome
 - remaining debt or explicit non-goals
 - total cycle time
 - optional phase timing breakdown when available
+
+## Human-facing report rule
+
+The cycle artifacts and surfaced reports are decision tools for humans.
+
+Rules:
+
+- keep audit, review, fix-plan, fix-report, and cycle-summary outputs easy to scan
+- lead with the current verdict or route state before longer detail
+- use short sections and concise bullets when the content is list-shaped
+- separate status, findings, and next actions instead of blending them together
+- reference long evidence instead of pasting giant text blocks unless exact text is required
 
 ## Git closeout rules
 

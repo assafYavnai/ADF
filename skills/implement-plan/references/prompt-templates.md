@@ -8,6 +8,7 @@ Global output discipline for all worker-facing or checker-facing prompts:
 - do not claim proof that is not backed by a concrete file, command, runtime observation, or other persisted evidence
 - if a required artifact is missing or malformed, treat that as a blocker inside the required sections instead of guessing
 - if a section would otherwise be empty, write `None.`
+- keep user-facing report artifacts human-facing and easy to scan instead of turning them into dense prose
 
 ## Integrity checker / pushback template
 
@@ -59,6 +60,18 @@ Rules:
 - do not accept a human verification plan that omits `Required: true|false`
 - do not accept `Human Verification Plan` with `Required: true` when the slice is not configured to hand off to `review-cycle`
 - if `Required: true`, do not pass a slice that lacks explicit testing-phase instructions, expected results, evidence to report back, and `APPROVED` / `REJECTED: <comments>` response guidance
+- do not pass a slice that omits `KPI Applicability`
+- do not pass a slice that says `KPI Applicability: required` or `KPI Applicability: temporary exception approved` but omits any of:
+  - `KPI Route / Touched Path`
+  - `KPI Raw-Truth Source`
+  - `KPI Coverage / Proof`
+  - `KPI Production / Proof Partition`
+- do not pass a slice that says `KPI Applicability: not required` but omits `KPI Non-Applicability Rationale`
+- do not pass a slice that uses `KPI Applicability: temporary exception approved` without:
+  - `KPI Exception Owner`
+  - `KPI Exception Expiry`
+  - `KPI Exception Production Status`
+  - `KPI Compensating Control`
 - do not pass a slice that still requires business guessing
 - treat `blocked` feature status as non-runnable until explicitly resolved
 
@@ -169,8 +182,25 @@ Rules:
 - fenced code blocks do not count as valid heading locations
 - if a section is unknown, do not invent content; fail integrity instead
 - section `6. Acceptance Gates` must include exact sublabels:
+  - `KPI Applicability`
+  - `KPI Route / Touched Path`
+  - `KPI Raw-Truth Source`
+  - `KPI Coverage / Proof`
+  - `KPI Production / Proof Partition`
+  - `KPI Non-Applicability Rationale`
+  - `KPI Exception Owner`
+  - `KPI Exception Expiry`
+  - `KPI Exception Production Status`
+  - `KPI Compensating Control`
   - `Machine Verification Plan`
   - `Human Verification Plan`
+- `KPI Applicability` must be exactly one of:
+  - `required`
+  - `not required`
+  - `temporary exception approved`
+- when `KPI Applicability` is `required` or `temporary exception approved`, the KPI route, raw-truth source, coverage or proof, and production or proof partition fields must contain explicit content
+- when `KPI Applicability` is `not required`, `KPI Non-Applicability Rationale` must explain why the slice is outside the KPI rule
+- when `KPI Applicability` is `temporary exception approved`, the exception owner, expiry, production status, and compensating control fields must contain explicit content, and the production status must keep the slice out of production-complete claims
 - `Human Verification Plan` must include `Required: true` or `Required: false`
 - if `Required: true`, `Human Verification Plan` must include:
   - explicit testing-phase language
@@ -180,6 +210,7 @@ Rules:
   - evidence to report back
   - `APPROVED` / `REJECTED: <comments>` response contract
 - section `7. Observability / Audit` must make review-cycle status, machine verification status, and human verification status truthfully visible
+- report artifacts created from this contract must stay human-facing: short sections, concise bullets where appropriate, and no dense wall-of-text output
 
 ## Pushback artifact template
 

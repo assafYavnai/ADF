@@ -300,6 +300,18 @@ At minimum collect and categorize:
 
 Before any implementor worker starts, the main skill must verify:
 
+- the contract explicitly states `KPI Applicability: required`, `KPI Applicability: not required`, or `KPI Applicability: temporary exception approved`
+- if KPI is required or covered by a temporary exception, the contract explicitly freezes:
+  - `KPI Route / Touched Path`
+  - `KPI Raw-Truth Source`
+  - `KPI Coverage / Proof`
+  - `KPI Production / Proof Partition`
+- if KPI is not required, the contract includes `KPI Non-Applicability Rationale`
+- if a temporary KPI exception is used, the contract also includes:
+  - `KPI Exception Owner`
+  - `KPI Exception Expiry`
+  - `KPI Exception Production Status`
+  - `KPI Compensating Control`
 - required implementation contract exists or a valid equivalent source is available
 - the plan is explicit and internally coherent
 - required deliverables are clear
@@ -328,6 +340,18 @@ If integrity passes:
 - write or refresh `implement-plan-contract.md` if normalization is needed
 - write `implement-plan-brief.md`
 - spawn or resume the implementor
+
+## KPI applicability gate
+
+Every implementation slice must make KPI applicability explicit before implementation may begin.
+
+Rules:
+
+- do not allow a slice to stay silent on KPI applicability
+- when KPI is required, freeze the route or touched path, the raw KPI truth source, the KPI coverage or proof expected, and the production or proof partition handling
+- when KPI is not required, require a narrow rationale that says why the slice is outside the KPI rule instead of omitting KPI discussion
+- when a temporary exception is used, require explicit approval status, owner, expiry, compensating control, and an explicit not-production-complete statement
+- do not let vague observability wording stand in for the required KPI contract fields
 
 ## Worker mode rule
 
@@ -373,6 +397,18 @@ Use this fixed message shape:
 - exact testing sequence, expected results, and evidence to report back
 - explicit response contract using `APPROVED` or `REJECTED: <comments>`
 - `IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING`
+
+## Human-facing report rule
+
+The user-facing artifacts for this workflow are reports, not raw dumps.
+
+Rules:
+
+- `implement-plan-pushback.md`, `implement-plan-brief.md`, `completion-summary.md`, and the testing handoff must be easy for a human to scan quickly
+- lead with the most important current outcome
+- keep sections short and use concise bullets when the content is list-shaped
+- separate status, findings or blockers, and next actions instead of blending them into one paragraph wall
+- reference long evidence instead of pasting it inline unless exact text is required
 
 ## Thread-safety rule
 

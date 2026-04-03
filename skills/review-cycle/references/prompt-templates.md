@@ -11,6 +11,7 @@ Global output discipline for every worker:
 - if claimed route, mutated route, and proved route differ, name the mismatch instead of smoothing it over
 - if a required input artifact is missing or malformed, treat that as a blocker inside the required sections instead of guessing
 - if a section is empty, write `None.` under that heading instead of inventing content
+- keep user-facing reports human-facing and easy to scan instead of turning them into dense narrative blobs
 
 ## Auditor prompt template
 
@@ -36,6 +37,9 @@ For each finding include:
 - exact route (A -> B -> C)
 - exact file/line references
 - concrete operational impact
+- KPI applicability
+- KPI closure state: Closed / Partial / Open / Temporary Exception
+- KPI proof or exception gap
 - sweep scope: what sibling paths/components must be checked for the same pattern
 - closure proof: what tests/runtime evidence/DB proof must exist before this can be called closed
 - shared-surface expansion risk: none / present and where
@@ -100,6 +104,9 @@ And include:
 - enforced route invariant
 - evidence shown
 - missing proof
+- KPI applicability
+- KPI closure state: Closed / Partial / Open / Temporary Exception
+- missing KPI proof or incomplete exception details
 - sibling sites still uncovered
 - whether broader shared power was introduced and whether that was justified
 - whether negative proof exists where required
@@ -127,6 +134,9 @@ If no further fix pass is required, write:
 - None.
 
 Reject the fix as incomplete if:
+- it does not explicitly judge KPI applicability or KPI closure state for an applicable route
+- it claims KPI closure without matching route-level proof
+- it uses a temporary KPI exception without owner, expiry, production status, and compensating control
 - it patches cited lines but not sibling instances of the same failure class
 - it changes behavior without proving the invariant end to end
 - it introduces broader shared power without naming who may and may not use it
@@ -160,6 +170,13 @@ None.
 For each failure class, state:
 - claimed supported route
 - end-to-end invariant
+- KPI Applicability
+- KPI Route / Touched Path
+- KPI Raw-Truth Source
+- KPI Coverage / Proof
+- KPI Production / Proof Partition
+- KPI Non-Applicability Rationale when KPI is not required
+- KPI Exception Owner / Expiry / Production Status / Compensating Control when a temporary exception is approved
 - allowed mutation surfaces
 - forbidden shared-surface expansion
 - docs that must be updated
@@ -175,7 +192,7 @@ None.
 
 4. Closure Proof
 List the exact tests, runtime evidence, DB queries, persisted artifacts, or shutdown behavior you will produce to prove closure.
-Include the route you will prove, and include negative proof plus live/proof isolation checks when required.
+Include the route you will prove, the KPI proof route when KPI closure is in scope, and include negative proof plus live/proof isolation checks when required.
 
 If no proof is required because nothing changes, write:
 None.
@@ -238,10 +255,10 @@ Rules:
 - headings must appear in the listed order
 - if a section is empty, write `None.` under it
 - `1. Failure Classes` must name the failure classes to close, and must normalize a broad or mixed task into route-level failure classes before coding
-- `2. Route Contracts` must freeze claimed supported route, end-to-end invariants, allowed mutation surfaces, forbidden shared-surface expansion, and docs to update
+- `2. Route Contracts` must freeze claimed supported route, end-to-end invariants, KPI applicability, KPI route or touched path, KPI raw-truth source, KPI coverage or proof, KPI production or proof partition handling, allowed mutation surfaces, forbidden shared-surface expansion, and docs to update
 - `3. Sweep Scope` must name upstream/downstream siblings, adjacent routes, and shared callers or surfaces to inspect
 - `4. Planned Changes` must stay minimal and must name any new power being introduced on a shared surface
-- `5. Closure Proof` must state the route to prove, the negative proof required for shared-surface changes, live/proof isolation checks, and the targeted regression checks
+- `5. Closure Proof` must state the route to prove, the KPI closure proof or approved exception state, the negative proof required for shared-surface changes, live/proof isolation checks, and the targeted regression checks
 
 ## fix-report.md format
 
@@ -263,7 +280,7 @@ Rules:
 - headings must appear in the listed order
 - if a section is empty, write `None.` under it
 - do not claim closure without concrete evidence in section 5
-- section 5 must name the proved route, include negative proof when a shared surface changed, and call out live/proof isolation checks when those mattered
+- section 5 must name the proved route, the KPI closure state, the KPI proof or temporary exception details, include negative proof when a shared surface changed, and call out live/proof isolation checks when those mattered
 - if claimed supported route, mutated route, and proved route do not match, treat that as remaining open work instead of closure
 
 ## Commit message format
