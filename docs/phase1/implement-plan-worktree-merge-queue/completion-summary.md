@@ -54,7 +54,7 @@
 6. Commit And Push Result
 
 - Plan artifacts were committed earlier in `4e860c1`.
-- Implementation changes are ready for a scoped feature commit in this turn.
+- Implementation changes were committed in `4cebada`.
 - Push and final feature completion are still pending because this feature stream itself has not gone through review approval and merge-queue closeout yet.
 
 7. Remaining Non-Goals / Debt
