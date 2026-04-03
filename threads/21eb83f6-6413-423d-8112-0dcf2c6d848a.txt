@@ -1,0 +1,48 @@
+<workflow_state>
+Workflow owner: requirements_gathering_onion (persisted)
+Lifecycle status: handoff_ready
+Current layer: approved
+Freeze status: approved
+Topic: /status command in the COO CLI
+Goal: I want a /status command in the COO CLI.
+Expected result: The /status command shows current thread ID, active workflow, onion layer if present, scope path, and last state commit timestamp.
+Success view: i type "/status" in CEO prompt and see all the above listed items line by line
+Major parts: /status command in the COO CLI
+Open decisions remaining: 0
+No next question: The onion is already frozen and approved.
+Finalized requirement memory id: 5a1a770a-5e04-450a-8757-9832e923b298
+Approved snapshot turn id: 3ddd60f3-c659-4bae-83ac-ac118fc55e99
+Approved snapshot time: 2026-04-02T23:35:21.716Z
+Topic: /status command in the COO CLI
+Goal: I want a /status command in the COO CLI.
+Expected result: The /status command shows current thread ID, active workflow, onion layer if present, scope path, and last state commit timestamp.
+Success view: i type "/status" in CEO prompt and see all the above listed items line by line
+Major parts: /status command in the COO CLI
+Experience/UI: not part of scope
+Boundaries: Use the onion requirements process. | Ask one question at a time. | Do not freeze until I explicitly approve. | If anything is unclear ask the smallest next question.
+Open decisions: none
+</workflow_state>
+
+<thread_checkpoint>
+<state_commit>
+{
+  "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 5a1a770a-5e04-450a-8757-9832e923b298.",
+  "openLoops": [],
+  "decisions": [],
+  "sessionHandles": {
+    "classifier": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "session_id": "019d5088-2a3a-7643-a424-da733e2db0d6",
+      "source": "provider_returned"
+    },
+    "intelligence": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "019d5077-4690-7020-9e4e-ccac9a3f1cee",
+      "source": "provider_returned"
+    }
+  }
+}
+</state_commit>
+</thread_checkpoint>

@@ -1,0 +1,50 @@
+{
+  "id": "1a05669a-d95d-4fd8-8966-e41bc5f43351",
+  "events": [
+    {
+      "type": "user_input",
+      "data": {
+        "message": "I want a /status command in the COO CLI that prints current thread ID, active workflow, onion layer if any, scope path, and last state commit timestamp; use the onion requirements process, ask one question at a time, and do not freeze until I explicitly approve."
+      },
+      "timestamp": "2026-04-02T22:53:41.949Z",
+      "id": "78154cd8-4a92-410d-a8ae-b64753a35eee",
+      "provenance": {
+        "invocation_id": "6960783a-9ff7-48ee-b893-3c8ca76674c7",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T22:53:41.946Z"
+      }
+    },
+    {
+      "type": "error",
+      "data": {
+        "source": "controller",
+        "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"null\",\n    \"path\": [\n      \"tool\"\n    ],\n    \"message\": \"Expected string, received null\"\n  }\n]",
+        "recoverable": true,
+        "attemptNumber": 1
+      },
+      "timestamp": "2026-04-02T22:54:46.429Z",
+      "id": "216325a4-2588-4321-bd3c-1baaee98659c",
+      "provenance": {
+        "invocation_id": "6960783a-9ff7-48ee-b893-3c8ca76674c7",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-02T22:53:41.946Z"
+      }
+    }
+  ],
+  "createdAt": "2026-04-02T22:53:41.947Z",
+  "updatedAt": "2026-04-02T22:54:46.430Z",
+  "status": "active",
+  "scopePath": "assafyavnai/shippingagent",
+  "workflowState": {
+    "active_workflow": null,
+    "onion": null
+  }
+}
