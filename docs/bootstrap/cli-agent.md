@@ -20,15 +20,21 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 - Read [docs/PHASE1_MASTER_PLAN.md](../PHASE1_MASTER_PLAN.md) for Phase 1 operating alignment
 
 ## Shell Guidance
-- Prefer `bash` when available. Detect and invoke it explicitly.
-- For multiline execution, write a temporary `.sh` file and run `bash <script>`.
-- Use PowerShell only when `bash` is unavailable or the task is Windows-specific.
+- Use capability-based shell selection. Prefer real `bash` only when a smoke check such as `bash --version` succeeds in the current runtime.
+- Prefer the repo launcher entrypoints over shell assumptions:
+  - POSIX: `./adf.sh`
+  - Windows: `adf.cmd`
+  - Direct Windows launcher: `powershell -ExecutionPolicy Bypass -File tools/adf-launcher.ps1`
+- On Windows, prefer `npm.cmd` / `npx.cmd` or local `.cmd` shims under `node_modules/.bin/` because PowerShell may resolve `npm` / `npx` to blocked `.ps1` wrappers.
+- For multiline execution, write a temporary script for the shell that actually works in the current runtime instead of assuming `.sh` is runnable everywhere.
 - After editing JavaScript helpers or workflow scripts, run `node --check` and a small smoke test.
 
 ## Context Loading
 
-The Brain MCP server (`project-brain`) is available as an MCP tool in your session.
-Do NOT import or require memory-engine TypeScript code. Use the MCP tools directly.
+The preferred Brain path is the `project-brain` MCP tool surface when the runtime exposes it.
+Do NOT invent a fake MCP path. If `project-brain` is missing in the current runtime, treat that as a runtime defect, persist required authority in repo-backed truth, flag the missing MCP surface to the CEO, and use `adf.cmd --doctor` or `powershell -ExecutionPolicy Bypass -File tools/adf-launcher.ps1 --doctor` to attempt bounded repairs and enforce a working local Brain MCP route.
+Doctor is fail-closed: it may repair install/build preconditions, but it must end with a working Brain MCP connection and Brain audit write or it blocks with a durable local incident report.
+Do NOT import or require memory-engine TypeScript code just to work around a missing MCP surface.
 
 After reading this file, call the MCP tool `mcp__project-brain__get_context_summary` with:
 ```json
