@@ -12,12 +12,15 @@ import {
   RUNTIME_PERMISSION_MODELS,
   buildFeatureRegistryKey,
   booleanArg,
+  detectDefaultBaseBranch,
   describeError,
   detectCurrentBranch,
   diffSeconds,
   emptyToNull,
   extractBulletishLines,
   formatDuration,
+  gitRefExists,
+  gitRun,
   installBrokenPipeGuards,
   isFilled,
   isPlainObject,
@@ -34,6 +37,7 @@ import {
   requiredArg,
   resolveFeatureRoot,
   resolveSkillStateRoot,
+  sanitizePathSegment,
   safeInteger,
   safeReaddir,
   shouldRecreateExecution,
@@ -131,6 +135,32 @@ const REVIEW_CYCLE_ARTIFACTS = [
   "fix-report.md"
 ];
 
+const MERGE_STATUSES = new Set([
+  "not_ready",
+  "ready_to_queue",
+  "queued",
+  "in_progress",
+  "merged",
+  "blocked",
+  "not_required"
+]);
+
+const WORKTREE_STATUSES = new Set([
+  "missing",
+  "ready",
+  "mismatch",
+  "error"
+]);
+
+const LOCAL_TARGET_SYNC_STATUSES = new Set([
+  "not_started",
+  "fetched_only",
+  "fast_forwarded",
+  "skipped_dirty_checkout",
+  "skipped_branch_not_checked_out",
+  "failed"
+]);
+
 const STATUS_MESSAGES = {
   active: "Feature is active and may run.",
   blocked: "Feature is blocked and cannot run until the blocker is resolved.",
@@ -193,6 +223,16 @@ async function main() {
       resolvedRuntimePermissionModel: args.values["resolved-runtime-permission-model"],
       featureStatus: args.values["feature-status"],
       currentBranch: args.values["current-branch"],
+      baseBranch: args.values["base-branch"],
+      featureBranch: args.values["feature-branch"],
+      worktreePath: args.values["worktree-path"],
+      worktreeStatus: args.values["worktree-status"],
+      mergeRequired: args.values["merge-required"],
+      mergeStatus: args.values["merge-status"],
+      approvedCommitSha: args.values["approved-commit-sha"],
+      mergeCommitSha: args.values["merge-commit-sha"],
+      mergeQueueRequestId: args.values["merge-queue-request-id"],
+      localTargetSyncStatus: args.values["local-target-sync-status"],
       lastCompletedStep: args.values["last-completed-step"],
       lastCommitSha: args.values["last-commit-sha"],
       activeRunStatus: args.values["active-run-status"],
@@ -247,7 +287,7 @@ async function renderHelp(args) {
   return {
     command: "help",
     project_root: projectRoot,
-    purpose: "Govern bounded feature implementation slices by validating setup, checking plan integrity, producing pushback or a strong implementor brief, then closing out with truthful state and git artifacts.",
+    purpose: "Govern bounded feature implementation slices by validating setup, checking plan integrity, preparing isolated worktrees, producing pushback or a strong implementor brief, and handing approved commits to merge closeout truthfully.",
     actions: ["help", "get-settings", "list-features", "prepare", "run", "mark-complete"],
     required_inputs_for_run: ["project_root", "phase_number", "feature_slug", "task_summary"],
     optional_inputs: [
@@ -267,7 +307,8 @@ async function renderHelp(args) {
     mark_complete_usage: "Use action=mark-complete with project_root, phase_number, and feature_slug after completion-summary.md exists and push evidence is recorded.",
     closed_feature_note: "Completed or closed features cannot run again until they are reopened or cloned into a new feature stream.",
     post_send_to_review_note: "When post_send_to_review=true, implement-plan should hand the feature stream to review-cycle after implementation closeout. post_send_for_review remains a compatibility alias.",
-    review_cycle_handoff_note: "When review_until_complete=true, implement-plan should pass until_complete=true to review-cycle. If review_max_cycles is omitted in that mode, review-cycle keeps its default cap of 5."
+    review_cycle_handoff_note: "When review_until_complete=true, implement-plan should pass until_complete=true to review-cycle. If review_max_cycles is omitted in that mode, review-cycle keeps its default cap of 5.",
+    merge_queue_note: "Approved feature-branch commits are merge-ready, not complete. Completion happens only after merge-queue lands the approved commit and records target-branch sync truthfully."
   };
 }
 
@@ -358,6 +399,18 @@ async function prepareFeature(input) {
       nextState.current_branch = currentBranch;
       changed = true;
     }
+    if (!nextState.base_branch) {
+      nextState.base_branch = detectDefaultBaseBranch(input.projectRoot);
+      changed = true;
+    }
+    if (!nextState.feature_branch) {
+      nextState.feature_branch = buildFeatureBranchName(input.phaseNumber, input.featureSlug);
+      changed = true;
+    }
+    if (!nextState.worktree_path) {
+      nextState.worktree_path = normalizeSlashes(resolveFeatureWorktreePath(paths));
+      changed = true;
+    }
 
     if (setup.complete) {
       if (nextState.resolved_runtime_permission_model !== setup.data.runtime_permission_model) {
@@ -413,13 +466,46 @@ async function prepareFeature(input) {
       };
       changed = true;
     } else {
-      nextState.active_run_status = "context_ready";
-      nextState.last_completed_step = "context_collected";
-      nextState.run_timestamps = {
-        ...(nextState.run_timestamps ?? {}),
-        context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso()
-      };
-      changed = true;
+      const worktree = ensureFeatureWorktree(
+        paths,
+        nextState.base_branch,
+        nextState.feature_branch,
+        nextState.worktree_path
+      );
+      nextState.worktree_path = worktree.worktree_path;
+      nextState.worktree_status = worktree.worktree_status;
+      nextState.merge_required = true;
+      nextState.merge_status = nextState.merge_status === "merged" ? "merged" : "not_ready";
+      nextState.local_target_sync_status = nextState.local_target_sync_status ?? "not_started";
+      if (worktree.worktree_status !== "ready") {
+        integrity.blocking_issues.push(issue(
+          "worktree-not-ready",
+          "The feature worktree could not be prepared for isolated implementation.",
+          [worktree.worktree_path],
+          worktree.message
+        ));
+        await writePushbackArtifact(paths.pushbackPath, integrity);
+        nextState.active_run_status = nextState.feature_status === "blocked" ? "blocked" : "integrity_failed";
+        nextState.last_completed_step = "integrity_precheck_failed";
+        nextState.last_error = worktree.message;
+        nextState.run_timestamps = {
+          ...(nextState.run_timestamps ?? {}),
+          context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso(),
+          integrity_failed_at: nowIso()
+        };
+        changed = true;
+      } else {
+        nextState.current_branch = nextState.feature_branch;
+        nextState.last_error = null;
+        nextState.active_run_status = "context_ready";
+        nextState.last_completed_step = "context_collected";
+        nextState.run_timestamps = {
+          ...(nextState.run_timestamps ?? {}),
+          context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso(),
+          worktree_prepared_at: nextState.run_timestamps?.worktree_prepared_at ?? nowIso()
+        };
+        changed = true;
+      }
     }
 
     nextState.artifacts = {
@@ -431,7 +517,8 @@ async function prepareFeature(input) {
       pushback_path: normalizeSlashes(paths.pushbackPath),
       brief_path: normalizeSlashes(paths.briefPath),
       completion_summary_path: normalizeSlashes(paths.completionSummaryPath),
-      implementation_run_dir: normalizeSlashes(paths.implementationRunDir)
+      implementation_run_dir: normalizeSlashes(paths.implementationRunDir),
+      worktree_path: nextState.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths))
     };
 
     if (changed) {
@@ -478,6 +565,7 @@ async function prepareFeature(input) {
     feature_slug: input.featureSlug,
     feature_root: normalizeSlashes(paths.featureRoot),
     skill_state_root: normalizeSlashes(paths.skillStateRoot),
+    worktrees_root: normalizeSlashes(paths.worktreesRoot),
     setup_path: normalizeSlashes(paths.setupPath),
     registry_path: normalizeSlashes(paths.registryPath),
     features_index_path: normalizeSlashes(paths.featuresIndexPath),
@@ -499,6 +587,20 @@ async function prepareFeature(input) {
     current_branch: state.current_branch ?? null,
     active_run_status: state.active_run_status ?? null,
     last_completed_step: state.last_completed_step ?? null,
+    worktree: {
+      base_branch: state.base_branch ?? null,
+      feature_branch: state.feature_branch ?? null,
+      worktree_path: state.worktree_path ?? null,
+      worktree_status: state.worktree_status ?? null
+    },
+    merge_lifecycle: {
+      merge_required: state.merge_required ?? false,
+      merge_status: state.merge_status ?? null,
+      approved_commit_sha: state.approved_commit_sha ?? null,
+      merge_commit_sha: state.merge_commit_sha ?? null,
+      merge_queue_request_id: state.merge_queue_request_id ?? null,
+      local_target_sync_status: state.local_target_sync_status ?? null
+    },
     implementor_lane: {
       execution_id: state.implementor_execution_id ?? null,
       execution_access_mode: state.implementor_execution_access_mode ?? null,
@@ -526,6 +628,11 @@ async function prepareFeature(input) {
       detected_feature_root: normalizeSlashes(paths.featureRoot),
       feature_status: state.feature_status,
       active_run_status: state.active_run_status,
+      base_branch: state.base_branch ?? null,
+      feature_branch: state.feature_branch ?? null,
+      worktree_path: state.worktree_path ?? null,
+      worktree_status: state.worktree_status ?? null,
+      merge_status: state.merge_status ?? null,
       setup_status: setup.complete ? "ready" : setup.exists ? "invalid" : "missing",
       implementor_execution_id: state.implementor_execution_id ?? null,
       implementor_access_mode: featureLockResult.requiredAccessMode,
@@ -563,6 +670,18 @@ async function updateState(input) {
     }
     if (input.featureStatus !== undefined) next.feature_status = parseOptionalFeatureStatus(input.featureStatus, "feature-status") ?? next.feature_status;
     if (input.currentBranch !== undefined) next.current_branch = emptyToNull(input.currentBranch);
+    if (input.baseBranch !== undefined) next.base_branch = emptyToNull(input.baseBranch);
+    if (input.featureBranch !== undefined) next.feature_branch = emptyToNull(input.featureBranch);
+    if (input.worktreePath !== undefined) next.worktree_path = emptyToNull(input.worktreePath);
+    if (input.worktreeStatus !== undefined) next.worktree_status = parseOptionalWorktreeStatus(input.worktreeStatus, "worktree-status") ?? next.worktree_status;
+    if (input.mergeRequired !== undefined) next.merge_required = parseOptionalBooleanInput(input.mergeRequired, "merge-required") ?? next.merge_required;
+    if (input.mergeStatus !== undefined) next.merge_status = parseOptionalMergeStatus(input.mergeStatus, "merge-status") ?? next.merge_status;
+    if (input.approvedCommitSha !== undefined) next.approved_commit_sha = emptyToNull(input.approvedCommitSha);
+    if (input.mergeCommitSha !== undefined) next.merge_commit_sha = emptyToNull(input.mergeCommitSha);
+    if (input.mergeQueueRequestId !== undefined) next.merge_queue_request_id = emptyToNull(input.mergeQueueRequestId);
+    if (input.localTargetSyncStatus !== undefined) {
+      next.local_target_sync_status = parseOptionalLocalTargetSyncStatus(input.localTargetSyncStatus, "local-target-sync-status") ?? next.local_target_sync_status;
+    }
     if (input.lastCompletedStep !== undefined) next.last_completed_step = emptyToNull(input.lastCompletedStep);
     if (input.lastCommitSha !== undefined) next.last_commit_sha = emptyToNull(input.lastCommitSha);
     if (input.activeRunStatus !== undefined) next.active_run_status = parseOptionalActiveRunStatus(input.activeRunStatus, "active-run-status") ?? next.active_run_status;
@@ -655,6 +774,9 @@ async function markComplete(input) {
     if (!completionValidation.valid) {
       fail("Refusing to mark complete because completion-summary.md is missing or invalid: " + completionValidation.error);
     }
+    if (next.merge_required === true && next.merge_status !== "merged") {
+      fail("Refusing to mark complete because merge_status is '" + (next.merge_status ?? "unknown") + "' instead of 'merged'.");
+    }
 
     next.feature_status = "completed";
     next.active_run_status = "completed";
@@ -719,6 +841,20 @@ async function buildCompletionSummary(input) {
     active_run_status: state.active_run_status,
     last_commit_sha: state.last_commit_sha ?? null,
     current_branch: state.current_branch ?? null,
+    worktree: {
+      base_branch: state.base_branch ?? null,
+      feature_branch: state.feature_branch ?? null,
+      worktree_path: state.worktree_path ?? null,
+      worktree_status: state.worktree_status ?? null
+    },
+    merge_lifecycle: {
+      merge_required: state.merge_required ?? false,
+      merge_status: state.merge_status ?? null,
+      approved_commit_sha: state.approved_commit_sha ?? null,
+      merge_commit_sha: state.merge_commit_sha ?? null,
+      merge_queue_request_id: state.merge_queue_request_id ?? null,
+      local_target_sync_status: state.local_target_sync_status ?? null
+    },
     timing: {
       total_seconds: totalSeconds,
       total_duration: formatDuration(totalSeconds),
@@ -738,6 +874,8 @@ async function buildCompletionSummary(input) {
           human_verification_requirement: extractLabeledValue(verificationSection, "Human Verification Requirement"),
           human_verification_status: extractLabeledValue(verificationSection, "Human Verification Status"),
           review_cycle_status: extractLabeledValue(verificationSection, "Review-Cycle Status"),
+          merge_status: extractLabeledValue(verificationSection, "Merge Status"),
+          local_target_sync_status: extractLabeledValue(verificationSection, "Local Target Sync Status"),
           remaining_debt: extractBulletishLines(completionText, "7. Remaining Non-Goals / Debt", 8)
         }
       : {
@@ -748,6 +886,8 @@ async function buildCompletionSummary(input) {
           human_verification_requirement: null,
           human_verification_status: null,
           review_cycle_status: null,
+          merge_status: null,
+          local_target_sync_status: null,
           remaining_debt: []
         }
   };
@@ -770,6 +910,7 @@ function buildPaths(projectRoot, phaseNumber, featureSlug) {
     locksRoot: join(skillStateRoot, "locks"),
     featureLocksRoot: join(skillStateRoot, "locks", "features"),
     projectLocksRoot: join(skillStateRoot, "locks", "project"),
+    worktreesRoot: join(skillStateRoot, "worktrees"),
     registryKey: buildFeatureRegistryKey(phaseNumber, featureSlug),
     readmePath: join(featureRoot, "README.md"),
     contextPath: join(featureRoot, "context.md"),
@@ -781,6 +922,82 @@ function buildPaths(projectRoot, phaseNumber, featureSlug) {
     implementationRunDir: join(featureRoot, "implementation-run"),
     templatesRoot: "C:/ADF/skills/implement-plan",
     referencesRoot: "C:/ADF/skills/implement-plan/references"
+  };
+}
+
+function buildFeatureBranchName(phaseNumber, featureSlug) {
+  return "implement-plan/phase" + phaseNumber + "/" + featureSlug.replace(/\//g, "-");
+}
+
+function resolveFeatureWorktreePath(paths) {
+  return join(
+    paths.worktreesRoot,
+    "phase" + paths.phaseNumber,
+    ...paths.featureSlug.split("/").map((segment) => sanitizePathSegment(segment))
+  );
+}
+
+function resolveBaseRef(projectRoot, baseBranch) {
+  if (gitRefExists(projectRoot, "refs/remotes/origin/" + baseBranch)) {
+    return "origin/" + baseBranch;
+  }
+  return baseBranch;
+}
+
+function ensureFeatureWorktree(paths, baseBranch, featureBranch, requestedPath) {
+  const worktreePath = requestedPath ?? resolveFeatureWorktreePath(paths);
+  const existingBranch = detectCurrentBranch(worktreePath);
+
+  if (existingBranch && existingBranch === featureBranch) {
+    return {
+      worktree_path: normalizeSlashes(worktreePath),
+      feature_branch: featureBranch,
+      base_branch: baseBranch,
+      worktree_status: "ready",
+      created: false,
+      reused: true,
+      message: "Reused the existing feature worktree."
+    };
+  }
+
+  if (existingBranch && existingBranch !== featureBranch) {
+    return {
+      worktree_path: normalizeSlashes(worktreePath),
+      feature_branch: featureBranch,
+      base_branch: baseBranch,
+      worktree_status: "mismatch",
+      created: false,
+      reused: false,
+      message: "The configured worktree path is already attached to branch '" + existingBranch + "'."
+    };
+  }
+
+  const baseRef = resolveBaseRef(paths.projectRoot, baseBranch);
+  const args = gitRefExists(paths.projectRoot, "refs/heads/" + featureBranch)
+    ? ["worktree", "add", worktreePath, featureBranch]
+    : ["worktree", "add", "-b", featureBranch, worktreePath, baseRef];
+  const result = gitRun(paths.projectRoot, args, { timeoutMs: 30000 });
+
+  if (result.status !== 0) {
+    return {
+      worktree_path: normalizeSlashes(worktreePath),
+      feature_branch: featureBranch,
+      base_branch: baseBranch,
+      worktree_status: "error",
+      created: false,
+      reused: false,
+      message: result.stderr || result.stdout || "git worktree add failed."
+    };
+  }
+
+  return {
+    worktree_path: normalizeSlashes(worktreePath),
+    feature_branch: featureBranch,
+    base_branch: baseBranch,
+    worktree_status: "ready",
+    created: true,
+    reused: false,
+    message: "Created a dedicated feature worktree."
   };
 }
 
@@ -956,6 +1173,22 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
   state.project_root = input.projectRoot;
   state.feature_registry_key = paths.registryKey;
   state.current_branch = state.current_branch ?? currentBranch ?? null;
+  state.base_branch = state.base_branch ?? detectDefaultBaseBranch(input.projectRoot);
+  state.feature_branch = state.feature_branch ?? buildFeatureBranchName(input.phaseNumber, input.featureSlug);
+  state.worktree_path = state.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths));
+  if (!WORKTREE_STATUSES.has(state.worktree_status)) {
+    state.worktree_status = "missing";
+    repairs.push("worktree_status was invalid and reset.");
+  }
+  state.merge_required = typeof state.merge_required === "boolean" ? state.merge_required : false;
+  if (!MERGE_STATUSES.has(state.merge_status)) {
+    state.merge_status = state.merge_required ? "not_ready" : "not_required";
+    repairs.push("merge_status was invalid and reset.");
+  }
+  if (!LOCAL_TARGET_SYNC_STATUSES.has(state.local_target_sync_status)) {
+    state.local_target_sync_status = "not_started";
+    repairs.push("local_target_sync_status was invalid and reset.");
+  }
   state.created_at = state.created_at ?? nowIso();
   state.updated_at = nowIso();
   state.run_timestamps = isPlainObject(state.run_timestamps) ? state.run_timestamps : {};
@@ -1002,6 +1235,16 @@ function buildInitialState(paths, input, registryEntry, indexEntry, currentBranc
     resolved_runtime_permission_model: registryEntry?.resolved_runtime_permission_model ?? null,
     resolved_runtime_capabilities: {},
     current_branch: currentBranch ?? null,
+    base_branch: detectDefaultBaseBranch(input.projectRoot),
+    feature_branch: buildFeatureBranchName(input.phaseNumber, input.featureSlug),
+    worktree_path: normalizeSlashes(resolveFeatureWorktreePath(paths)),
+    worktree_status: "missing",
+    merge_required: false,
+    merge_status: "not_required",
+    approved_commit_sha: null,
+    merge_commit_sha: null,
+    merge_queue_request_id: null,
+    local_target_sync_status: "not_started",
     last_completed_step: null,
     last_commit_sha: null,
     active_run_status: input.featureStatusOverride === "blocked" ? "blocked" : "idle",
@@ -1553,6 +1796,7 @@ async function syncFeaturesIndex(paths, state) {
       feature_root: normalizeSlashes(paths.featureRoot),
       feature_status: state.feature_status,
       active_run_status: state.active_run_status,
+      merge_status: state.merge_status ?? null,
       last_completed_step: state.last_completed_step ?? null,
       last_commit_sha: state.last_commit_sha ?? null,
       updated_at: nowIso()
@@ -1596,6 +1840,7 @@ function summarizeFeatureSections(index) {
     feature_slug: item.feature_slug,
     feature_status: item.feature_status,
     active_run_status: item.active_run_status,
+    merge_status: item.merge_status ?? null,
     last_completed_step: item.last_completed_step ?? null,
     last_commit_sha: item.last_commit_sha ?? null,
     updated_at: item.updated_at ?? null
@@ -1632,9 +1877,17 @@ function applyEventTransition(state, event, timestamp) {
     "integrity-passed": { activeRunStatus: "brief_ready", lastCompletedStep: "integrity_passed", timestampKey: "integrity_passed_at" },
     "integrity-failed": { activeRunStatus: state.feature_status === "blocked" ? "blocked" : "integrity_failed", lastCompletedStep: "integrity_failed", timestampKey: "integrity_failed_at" },
     "brief-written": { activeRunStatus: "brief_ready", lastCompletedStep: "brief_written", timestampKey: "brief_written_at" },
+    "worktree-prepared": { activeRunStatus: "brief_ready", lastCompletedStep: "worktree_prepared", timestampKey: "worktree_prepared_at" },
     "implementor-started": { activeRunStatus: "implementation_running", lastCompletedStep: "implementor_started", timestampKey: "implementor_started_at" },
     "implementor-finished": { activeRunStatus: "verification_pending", lastCompletedStep: "implementor_finished", timestampKey: "implementor_finished_at" },
     "verification-finished": { activeRunStatus: "closeout_pending", lastCompletedStep: "verification_finished", timestampKey: "verification_finished_at" },
+    "review-requested": { activeRunStatus: "review_pending", lastCompletedStep: "review_requested", timestampKey: "review_requested_at" },
+    "human-verification-requested": { activeRunStatus: "human_verification_pending", lastCompletedStep: "human_verification_requested", timestampKey: "human_verification_requested_at" },
+    "merge-ready": { activeRunStatus: "merge_ready", lastCompletedStep: "merge_ready", timestampKey: "merge_ready_at" },
+    "merge-queued": { activeRunStatus: "merge_queued", lastCompletedStep: "merge_queued", timestampKey: "merge_queued_at" },
+    "merge-started": { activeRunStatus: "merge_in_progress", lastCompletedStep: "merge_started", timestampKey: "merge_started_at" },
+    "merge-blocked": { activeRunStatus: "merge_blocked", lastCompletedStep: "merge_blocked", timestampKey: "merge_blocked_at" },
+    "merge-finished": { activeRunStatus: "closeout_pending", lastCompletedStep: "merge_finished", timestampKey: "merge_finished_at" },
     "completion-summary-written": { activeRunStatus: "closeout_pending", lastCompletedStep: "completion_summary_written", timestampKey: "completion_summary_written_at" },
     "closeout-finished": { activeRunStatus: "completed", lastCompletedStep: "closeout_finished", timestampKey: "closeout_finished_at" },
     "feature-blocked": { activeRunStatus: "blocked", lastCompletedStep: "feature_blocked", timestampKey: "feature_blocked_at", featureStatus: "blocked" },
@@ -1649,6 +1902,22 @@ function applyEventTransition(state, event, timestamp) {
   state.active_run_status = transition.activeRunStatus;
   state.last_completed_step = transition.lastCompletedStep;
   state.run_timestamps[transition.timestampKey] = timestamp;
+  if (event === "merge-ready") {
+    state.merge_required = true;
+    state.merge_status = "ready_to_queue";
+  } else if (event === "merge-queued") {
+    state.merge_required = true;
+    state.merge_status = "queued";
+  } else if (event === "merge-started") {
+    state.merge_required = true;
+    state.merge_status = "in_progress";
+  } else if (event === "merge-blocked") {
+    state.merge_required = true;
+    state.merge_status = "blocked";
+  } else if (event === "merge-finished") {
+    state.merge_required = true;
+    state.merge_status = "merged";
+  }
 }
 
 async function collectReviewCycleArtifacts(featureRoot) {
@@ -1836,6 +2105,30 @@ function parseOptionalAccessMode(value, label) {
   if (!isFilled(value)) return null;
   if (!ACCESS_MODES.has(value)) {
     fail("Invalid value for --" + label + ". Allowed values: " + Array.from(ACCESS_MODES).join(", ") + ".");
+  }
+  return value;
+}
+
+function parseOptionalWorktreeStatus(value, label) {
+  if (!isFilled(value)) return null;
+  if (!WORKTREE_STATUSES.has(value)) {
+    fail("Invalid value for --" + label + ". Allowed values: " + Array.from(WORKTREE_STATUSES).join(", ") + ".");
+  }
+  return value;
+}
+
+function parseOptionalMergeStatus(value, label) {
+  if (!isFilled(value)) return null;
+  if (!MERGE_STATUSES.has(value)) {
+    fail("Invalid value for --" + label + ". Allowed values: " + Array.from(MERGE_STATUSES).join(", ") + ".");
+  }
+  return value;
+}
+
+function parseOptionalLocalTargetSyncStatus(value, label) {
+  if (!isFilled(value)) return null;
+  if (!LOCAL_TARGET_SYNC_STATUSES.has(value)) {
+    fail("Invalid value for --" + label + ". Allowed values: " + Array.from(LOCAL_TARGET_SYNC_STATUSES).join(", ") + ".");
   }
   return value;
 }
