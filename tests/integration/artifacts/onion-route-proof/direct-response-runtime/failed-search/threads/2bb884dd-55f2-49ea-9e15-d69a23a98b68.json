@@ -1,64 +1,64 @@
 {
-  "id": "b851deec-0edb-4b5e-941b-4175eafdc33c",
+  "id": "2bb884dd-55f2-49ea-9e15-d69a23a98b68",
   "events": [
     {
       "type": "user_input",
       "data": {
-        "message": "exercise the brain_search_unavailable context branch"
+        "message": "show the current queue guidance even if Brain search is slow and fails"
       },
-      "timestamp": "2026-04-03T07:23:06.899Z",
-      "id": "ccebcbec-26e4-49da-ab23-aed506fefccd",
+      "timestamp": "2026-04-03T07:34:43.245Z",
+      "id": "5932a988-1996-4ff4-a20a-0f9bd35d44d2",
       "provenance": {
-        "invocation_id": "6a7e48b2-6029-44bd-9b8e-6874608da7ab",
+        "invocation_id": "bede7738-3f5c-4057-b4e3-51a1de76163c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:06.898Z"
+        "timestamp": "2026-04-03T07:34:43.243Z"
       }
     },
     {
       "type": "classifier_result",
       "data": {
-        "intent": "respond directly with a context warning",
+        "intent": "answer despite a Brain lookup failure",
         "confidence": 0.99,
         "workflow": "direct_coo_response",
-        "reasoning": "Route \"exercise the brain_search_unavailable context branch\" into a direct COO response lane."
+        "reasoning": "Route \"show the current queue guidance even if Brain search is slow and fails\" into a direct COO response lane."
       },
-      "timestamp": "2026-04-03T07:23:06.900Z",
-      "id": "792df9e6-5f22-4e22-8d4f-48a2927c566b",
+      "timestamp": "2026-04-03T07:34:43.245Z",
+      "id": "71b5c653-4974-40dd-95aa-24a4c9889e74",
       "provenance": {
-        "invocation_id": "f8be8834-a7a4-4ac2-b5f3-6563adc90ded",
+        "invocation_id": "548d16b6-c5e4-448d-a370-45e9bce0d453",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/b851deec-0edb-4b5e-941b-4175eafdc33c",
-        "timestamp": "2026-04-03T07:23:06.900Z"
+        "source_path": "COO/classifier/classify/2bb884dd-55f2-49ea-9e15-d69a23a98b68",
+        "timestamp": "2026-04-03T07:34:43.245Z"
       }
     },
     {
       "type": "coo_response",
       "data": {
-        "message": "The COO responded with the brain_search_unavailable warning surfaced truthfully."
+        "message": "The Brain lookup failed, but the COO still responded from live context and explicit warning text."
       },
-      "timestamp": "2026-04-03T07:23:06.901Z",
-      "id": "43540537-237a-4af7-b318-08135eaed460",
+      "timestamp": "2026-04-03T07:34:43.279Z",
+      "id": "24a02b03-877e-4481-a7f9-03bef3d3a9b0",
       "provenance": {
-        "invocation_id": "e863a864-fa87-4d4f-9e25-5bfd8df65454",
+        "invocation_id": "18008752-03ca-4050-bae4-289510a07812",
         "provider": "codex",
         "model": "gpt-5.4",
         "reasoning": "xhigh",
         "was_fallback": false,
         "source_path": "COO/intelligence/respond",
-        "timestamp": "2026-04-03T07:23:06.901Z"
+        "timestamp": "2026-04-03T07:34:43.279Z"
       }
     },
     {
       "type": "state_commit",
       "data": {
-        "summary": "Completed turn via direct_coo_response. Response: The COO responded with the brain_search_unavailable warning surfaced truthfully.",
+        "summary": "Completed turn via direct_coo_response. Response: The Brain lookup failed, but the COO still responded from live context and explicit warning text.",
         "openLoops": [],
         "decisions": [],
         "sessionHandles": {
@@ -76,21 +76,21 @@
           }
         }
       },
-      "timestamp": "2026-04-03T07:23:06.901Z",
-      "id": "fa97974c-bcc4-4eca-97d1-08e432640271",
+      "timestamp": "2026-04-03T07:34:43.279Z",
+      "id": "086b66fa-1a1e-4f9c-bfa5-2bc4efad7ae5",
       "provenance": {
-        "invocation_id": "6a7e48b2-6029-44bd-9b8e-6874608da7ab",
+        "invocation_id": "bede7738-3f5c-4057-b4e3-51a1de76163c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:06.898Z"
+        "timestamp": "2026-04-03T07:34:43.243Z"
       }
     }
   ],
-  "createdAt": "2026-04-03T07:23:06.898Z",
-  "updatedAt": "2026-04-03T07:23:06.901Z",
+  "createdAt": "2026-04-03T07:34:43.244Z",
+  "updatedAt": "2026-04-03T07:34:43.279Z",
   "status": "active",
   "scopePath": "assafyavnai/shippingagent",
   "workflowState": {

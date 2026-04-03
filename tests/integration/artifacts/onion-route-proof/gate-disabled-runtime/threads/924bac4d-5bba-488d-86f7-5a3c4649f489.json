@@ -1,17 +1,17 @@
 {
-  "id": "069112cc-9e46-4dee-8b54-5f85edffd760",
+  "id": "924bac4d-5bba-488d-86f7-5a3c4649f489",
   "events": [
     {
-      "timestamp": "2026-04-03T07:23:11.401Z",
-      "id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+      "timestamp": "2026-04-03T07:34:59.618Z",
+      "id": "d5b1c082-452c-411b-8c67-9df021773431",
       "provenance": {
-        "invocation_id": "a1938570-87bc-4a8b-87ad-0992785a40f2",
+        "invocation_id": "0a461926-2fb2-458f-b614-b28c9fbc9229",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.400Z"
+        "timestamp": "2026-04-03T07:34:59.617Z"
       },
       "type": "user_input",
       "data": {
@@ -19,16 +19,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.402Z",
-      "id": "4fd268ba-33dc-46a4-8bb8-e7233b74a9e2",
+      "timestamp": "2026-04-03T07:34:59.618Z",
+      "id": "c1b8ab22-4fcd-4711-8e6f-62ea42315a1f",
       "provenance": {
-        "invocation_id": "f6aeb881-a264-4497-9dd8-a5e898610972",
+        "invocation_id": "e704346f-b87b-4ae6-8556-c5c9d87da833",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:11.402Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.618Z"
       },
       "type": "classifier_result",
       "data": {
@@ -39,24 +39,24 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.407Z",
-      "id": "d8c9e323-36ae-4c2b-8384-4067a9565cfa",
+      "timestamp": "2026-04-03T07:34:59.619Z",
+      "id": "63e45959-9e11-46e1-854e-f803e74d0904",
       "provenance": {
-        "invocation_id": "b2f7b611-4f64-4a21-9307-2261e944dfe1",
+        "invocation_id": "cf7ebf8f-9d8b-4ea9-b3d9-50f2e3169269",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.403Z"
+        "timestamp": "2026-04-03T07:34:59.619Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
         "lifecycle_status": "active",
         "current_layer": "expected_result",
-        "turn_latency_ms": 3,
+        "turn_latency_ms": 0,
         "parser_latency_ms": 23,
         "llm_totals": {
           "tokens_in": 541,
@@ -65,7 +65,7 @@
         },
         "layer_metrics": {
           "turns_in_current_layer": 1,
-          "time_in_current_layer_ms": 3,
+          "time_in_current_layer_ms": 0,
           "clarification_turn_count_total": 1,
           "freeze_blocker_count": 5,
           "open_decision_count": 0
@@ -135,8 +135,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
           "current_layer": "expected_result",
           "workflow_step": "clarification",
           "decision_reason": "Outer-shell field \"expected_result\" is still missing.",
@@ -158,11 +158,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:11.404Z",
-            "completed_at": "2026-04-03T07:23:11.404Z",
+            "started_at": "2026-04-03T07:34:59.619Z",
+            "completed_at": "2026-04-03T07:34:59.619Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -177,11 +177,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:11.405Z",
-            "completed_at": "2026-04-03T07:23:11.405Z",
+            "started_at": "2026-04-03T07:34:59.619Z",
+            "completed_at": "2026-04-03T07:34:59.619Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -196,11 +196,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:11.405Z",
-            "completed_at": "2026-04-03T07:23:11.405Z",
+            "started_at": "2026-04-03T07:34:59.619Z",
+            "completed_at": "2026-04-03T07:34:59.619Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -214,11 +214,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:11.405Z",
-            "completed_at": "2026-04-03T07:23:11.405Z",
+            "started_at": "2026-04-03T07:34:59.619Z",
+            "completed_at": "2026-04-03T07:34:59.619Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -232,12 +232,12 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:11.405Z",
-            "completed_at": "2026-04-03T07:23:11.406Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:34:59.619Z",
+            "completed_at": "2026-04-03T07:34:59.619Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -250,11 +250,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:11.406Z",
-            "completed_at": "2026-04-03T07:23:11.406Z",
+            "started_at": "2026-04-03T07:34:59.619Z",
+            "completed_at": "2026-04-03T07:34:59.619Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -271,8 +271,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "77276f62-c5cb-4cfb-b8df-d802807012e4",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "d5b1c082-452c-411b-8c67-9df021773431",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -305,16 +305,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.408Z",
-      "id": "7b66da2e-4e40-4468-8103-a58feea74436",
+      "timestamp": "2026-04-03T07:34:59.621Z",
+      "id": "6c2c6fa9-99d2-429a-803d-875954f27ccb",
       "provenance": {
-        "invocation_id": "b2f7b611-4f64-4a21-9307-2261e944dfe1",
+        "invocation_id": "cf7ebf8f-9d8b-4ea9-b3d9-50f2e3169269",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.403Z"
+        "timestamp": "2026-04-03T07:34:59.619Z"
       },
       "type": "coo_response",
       "data": {
@@ -322,16 +322,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.408Z",
-      "id": "2f4e3ed0-1df2-4dba-b59f-0c3634b925ec",
+      "timestamp": "2026-04-03T07:34:59.621Z",
+      "id": "bc05d8f0-be3a-438d-a344-c0048a931887",
       "provenance": {
-        "invocation_id": "a1938570-87bc-4a8b-87ad-0992785a40f2",
+        "invocation_id": "0a461926-2fb2-458f-b614-b28c9fbc9229",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.400Z"
+        "timestamp": "2026-04-03T07:34:59.617Z"
       },
       "type": "state_commit",
       "data": {
@@ -357,16 +357,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.409Z",
-      "id": "9c087ba5-5236-4684-8cba-a38534215450",
+      "timestamp": "2026-04-03T07:34:59.622Z",
+      "id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
       "provenance": {
-        "invocation_id": "304406d6-f97d-4a76-a4bc-05d6da2b7fa5",
+        "invocation_id": "b62a81a4-d0e3-4e5c-8c47-2b89d1153f06",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.409Z"
+        "timestamp": "2026-04-03T07:34:59.621Z"
       },
       "type": "user_input",
       "data": {
@@ -374,16 +374,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.410Z",
-      "id": "caf8ba4c-ae62-4d44-b40d-fbc25d645db4",
+      "timestamp": "2026-04-03T07:34:59.622Z",
+      "id": "50190483-1b4d-4a37-ad3a-24ee8827b85a",
       "provenance": {
-        "invocation_id": "0864c10f-8132-4422-b5bf-1dda66af60a9",
+        "invocation_id": "f486e74c-e2fe-4190-a054-6480123b1756",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:11.410Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.622Z"
       },
       "type": "classifier_result",
       "data": {
@@ -394,24 +394,24 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.413Z",
-      "id": "9c555203-610c-4324-a3e4-e1f2a4e82864",
+      "timestamp": "2026-04-03T07:34:59.623Z",
+      "id": "51136c52-d951-4fcf-85df-a75c2d7f8d37",
       "provenance": {
-        "invocation_id": "e5af9417-4957-4804-ad73-b7dadd532054",
+        "invocation_id": "926e0b62-213f-477d-a3f8-8d638061189e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.411Z"
+        "timestamp": "2026-04-03T07:34:59.623Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
         "lifecycle_status": "active",
         "current_layer": "success_view",
-        "turn_latency_ms": 1,
+        "turn_latency_ms": 0,
         "parser_latency_ms": 23,
         "llm_totals": {
           "tokens_in": 563,
@@ -420,7 +420,7 @@
         },
         "layer_metrics": {
           "turns_in_current_layer": 1,
-          "time_in_current_layer_ms": 1,
+          "time_in_current_layer_ms": 0,
           "clarification_turn_count_total": 2,
           "freeze_blocker_count": 4,
           "open_decision_count": 0
@@ -488,8 +488,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
           "current_layer": "success_view",
           "workflow_step": "clarification",
           "decision_reason": "Outer-shell field \"success_view\" is still missing.",
@@ -509,12 +509,12 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:11.411Z",
-            "completed_at": "2026-04-03T07:23:11.412Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:34:59.623Z",
+            "completed_at": "2026-04-03T07:34:59.623Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "actor": "ceo",
@@ -528,11 +528,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:11.412Z",
-            "completed_at": "2026-04-03T07:23:11.412Z",
+            "started_at": "2026-04-03T07:34:59.623Z",
+            "completed_at": "2026-04-03T07:34:59.623Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -547,11 +547,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:11.412Z",
-            "completed_at": "2026-04-03T07:23:11.412Z",
+            "started_at": "2026-04-03T07:34:59.623Z",
+            "completed_at": "2026-04-03T07:34:59.623Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -565,11 +565,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:11.412Z",
-            "completed_at": "2026-04-03T07:23:11.412Z",
+            "started_at": "2026-04-03T07:34:59.623Z",
+            "completed_at": "2026-04-03T07:34:59.623Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -583,11 +583,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:11.412Z",
-            "completed_at": "2026-04-03T07:23:11.412Z",
+            "started_at": "2026-04-03T07:34:59.623Z",
+            "completed_at": "2026-04-03T07:34:59.623Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -601,11 +601,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:11.412Z",
-            "completed_at": "2026-04-03T07:23:11.412Z",
+            "started_at": "2026-04-03T07:34:59.623Z",
+            "completed_at": "2026-04-03T07:34:59.623Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -622,8 +622,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9c087ba5-5236-4684-8cba-a38534215450",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "e9baee48-09fc-46d3-a206-4224c9ba9735",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -656,16 +656,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.414Z",
-      "id": "80e958cd-401a-4028-b966-d3641df7f044",
+      "timestamp": "2026-04-03T07:34:59.624Z",
+      "id": "9546ab55-2db9-4d80-af8b-7f8b4cef8269",
       "provenance": {
-        "invocation_id": "e5af9417-4957-4804-ad73-b7dadd532054",
+        "invocation_id": "926e0b62-213f-477d-a3f8-8d638061189e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.411Z"
+        "timestamp": "2026-04-03T07:34:59.623Z"
       },
       "type": "coo_response",
       "data": {
@@ -673,16 +673,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.414Z",
-      "id": "44e6ed22-1af2-409b-8e35-48e630d40786",
+      "timestamp": "2026-04-03T07:34:59.624Z",
+      "id": "cdf2a5e0-ad5e-4716-9661-930370c780b9",
       "provenance": {
-        "invocation_id": "304406d6-f97d-4a76-a4bc-05d6da2b7fa5",
+        "invocation_id": "b62a81a4-d0e3-4e5c-8c47-2b89d1153f06",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.409Z"
+        "timestamp": "2026-04-03T07:34:59.621Z"
       },
       "type": "state_commit",
       "data": {
@@ -708,16 +708,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.415Z",
-      "id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+      "timestamp": "2026-04-03T07:34:59.625Z",
+      "id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
       "provenance": {
-        "invocation_id": "803eee1f-eccd-48e0-ad55-2225adf3486e",
+        "invocation_id": "be20d879-dcee-4928-99ad-7abc0021ff96",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.415Z"
+        "timestamp": "2026-04-03T07:34:59.625Z"
       },
       "type": "user_input",
       "data": {
@@ -725,16 +725,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.416Z",
-      "id": "d25ab957-c9a2-4565-a31e-21eff4d23f17",
+      "timestamp": "2026-04-03T07:34:59.626Z",
+      "id": "391a929b-5a82-48a4-83f1-e7e44b4bc7f1",
       "provenance": {
-        "invocation_id": "bd5ec8be-8238-4a1e-b044-f3931bd68e69",
+        "invocation_id": "4c1a5f92-f408-429a-a0fb-b6b4d0ff9592",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:11.416Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.626Z"
       },
       "type": "classifier_result",
       "data": {
@@ -745,24 +745,24 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.418Z",
-      "id": "75554c84-2dff-4a48-9386-bdd880c69da6",
+      "timestamp": "2026-04-03T07:34:59.627Z",
+      "id": "15f30567-a0e0-4115-8c96-645fd92323eb",
       "provenance": {
-        "invocation_id": "aca10e4b-598e-49b5-84d1-93309783aff1",
+        "invocation_id": "029e9166-25de-4441-bb7a-d7f8c2b6b24e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.417Z"
+        "timestamp": "2026-04-03T07:34:59.627Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
         "lifecycle_status": "active",
         "current_layer": "major_parts",
-        "turn_latency_ms": 1,
+        "turn_latency_ms": 0,
         "parser_latency_ms": 23,
         "llm_totals": {
           "tokens_in": 580,
@@ -771,7 +771,7 @@
         },
         "layer_metrics": {
           "turns_in_current_layer": 1,
-          "time_in_current_layer_ms": 1,
+          "time_in_current_layer_ms": 0,
           "clarification_turn_count_total": 3,
           "freeze_blocker_count": 3,
           "open_decision_count": 0
@@ -837,8 +837,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
           "current_layer": "major_parts",
           "workflow_step": "clarification",
           "decision_reason": "Major parts are still missing.",
@@ -857,11 +857,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:11.417Z",
-            "completed_at": "2026-04-03T07:23:11.417Z",
+            "started_at": "2026-04-03T07:34:59.627Z",
+            "completed_at": "2026-04-03T07:34:59.627Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -876,11 +876,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:11.417Z",
-            "completed_at": "2026-04-03T07:23:11.417Z",
+            "started_at": "2026-04-03T07:34:59.627Z",
+            "completed_at": "2026-04-03T07:34:59.627Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -895,12 +895,12 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:11.417Z",
-            "completed_at": "2026-04-03T07:23:11.418Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:34:59.627Z",
+            "completed_at": "2026-04-03T07:34:59.627Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -913,11 +913,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:11.418Z",
-            "completed_at": "2026-04-03T07:23:11.418Z",
+            "started_at": "2026-04-03T07:34:59.627Z",
+            "completed_at": "2026-04-03T07:34:59.627Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -931,11 +931,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:11.418Z",
-            "completed_at": "2026-04-03T07:23:11.418Z",
+            "started_at": "2026-04-03T07:34:59.627Z",
+            "completed_at": "2026-04-03T07:34:59.627Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -949,11 +949,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:11.418Z",
-            "completed_at": "2026-04-03T07:23:11.418Z",
+            "started_at": "2026-04-03T07:34:59.627Z",
+            "completed_at": "2026-04-03T07:34:59.627Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -970,8 +970,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "9404c6c8-bbf8-457b-b951-14644e2ede74",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "f7d0c0d2-8f4e-493f-8b31-f92cf03ee43a",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1004,16 +1004,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.419Z",
-      "id": "fad443da-e5e9-47d2-bf3b-0ccbc42ebe6e",
+      "timestamp": "2026-04-03T07:34:59.628Z",
+      "id": "d0df230e-45eb-4260-a606-c6c1fe5b0300",
       "provenance": {
-        "invocation_id": "aca10e4b-598e-49b5-84d1-93309783aff1",
+        "invocation_id": "029e9166-25de-4441-bb7a-d7f8c2b6b24e",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.417Z"
+        "timestamp": "2026-04-03T07:34:59.627Z"
       },
       "type": "coo_response",
       "data": {
@@ -1021,16 +1021,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.419Z",
-      "id": "502c2662-19ca-4d71-a6c9-3deb8426c6de",
+      "timestamp": "2026-04-03T07:34:59.628Z",
+      "id": "066c4857-9eb9-4c71-be61-a9e041218a39",
       "provenance": {
-        "invocation_id": "803eee1f-eccd-48e0-ad55-2225adf3486e",
+        "invocation_id": "be20d879-dcee-4928-99ad-7abc0021ff96",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.415Z"
+        "timestamp": "2026-04-03T07:34:59.625Z"
       },
       "type": "state_commit",
       "data": {
@@ -1056,16 +1056,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.421Z",
-      "id": "672ec91e-5805-422e-9424-dfade461a352",
+      "timestamp": "2026-04-03T07:34:59.629Z",
+      "id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
       "provenance": {
-        "invocation_id": "848ebd67-b202-4b40-8858-bffa105fd0a2",
+        "invocation_id": "ba9a2993-f118-4e9b-bb1b-63ce1f8a154c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.420Z"
+        "timestamp": "2026-04-03T07:34:59.629Z"
       },
       "type": "user_input",
       "data": {
@@ -1073,16 +1073,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.422Z",
-      "id": "3e29b6ae-9500-4ad9-99bb-e866465b2087",
+      "timestamp": "2026-04-03T07:34:59.631Z",
+      "id": "8986910c-5dfe-43d7-94d1-5aeff177441e",
       "provenance": {
-        "invocation_id": "0dc6468a-5cab-4ec7-8910-bb6025968f76",
+        "invocation_id": "1cf106a1-0fe7-4e96-b0cb-8d562dfe634a",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:11.422Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.630Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1093,21 +1093,21 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.424Z",
-      "id": "64859d33-aab0-4497-8e12-f96e6d885bd1",
+      "timestamp": "2026-04-03T07:34:59.632Z",
+      "id": "b743dca4-1dea-45fa-9849-61d886e90d9c",
       "provenance": {
-        "invocation_id": "2e2327cf-9162-453c-8b02-b63638a9cad9",
+        "invocation_id": "694b5d7d-d03c-463f-a27b-a547f5d0debd",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.423Z"
+        "timestamp": "2026-04-03T07:34:59.631Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
         "lifecycle_status": "active",
         "current_layer": "part_clarification",
         "turn_latency_ms": 1,
@@ -1245,8 +1245,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
           "current_layer": "part_clarification",
           "workflow_step": "clarification",
           "decision_reason": "Major part \"Queue view\" still needs clarification.",
@@ -1269,11 +1269,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:11.423Z",
-            "completed_at": "2026-04-03T07:23:11.423Z",
+            "started_at": "2026-04-03T07:34:59.631Z",
+            "completed_at": "2026-04-03T07:34:59.631Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1288,11 +1288,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:11.424Z",
-            "completed_at": "2026-04-03T07:23:11.424Z",
+            "started_at": "2026-04-03T07:34:59.632Z",
+            "completed_at": "2026-04-03T07:34:59.632Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1307,11 +1307,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:11.424Z",
-            "completed_at": "2026-04-03T07:23:11.424Z",
+            "started_at": "2026-04-03T07:34:59.632Z",
+            "completed_at": "2026-04-03T07:34:59.632Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1325,11 +1325,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:11.424Z",
-            "completed_at": "2026-04-03T07:23:11.424Z",
+            "started_at": "2026-04-03T07:34:59.632Z",
+            "completed_at": "2026-04-03T07:34:59.632Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1343,11 +1343,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:11.424Z",
-            "completed_at": "2026-04-03T07:23:11.424Z",
+            "started_at": "2026-04-03T07:34:59.632Z",
+            "completed_at": "2026-04-03T07:34:59.632Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1361,11 +1361,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:11.424Z",
-            "completed_at": "2026-04-03T07:23:11.424Z",
+            "started_at": "2026-04-03T07:34:59.632Z",
+            "completed_at": "2026-04-03T07:34:59.632Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1382,8 +1382,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "672ec91e-5805-422e-9424-dfade461a352",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "87a45d9d-3f64-43bf-a00a-a9b24fbf720c",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1416,16 +1416,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.425Z",
-      "id": "d5ebbb20-b353-408b-8d94-ac26ecf542ff",
+      "timestamp": "2026-04-03T07:34:59.633Z",
+      "id": "de09e38b-6836-4fc4-821c-4570a7e11321",
       "provenance": {
-        "invocation_id": "2e2327cf-9162-453c-8b02-b63638a9cad9",
+        "invocation_id": "694b5d7d-d03c-463f-a27b-a547f5d0debd",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.423Z"
+        "timestamp": "2026-04-03T07:34:59.631Z"
       },
       "type": "coo_response",
       "data": {
@@ -1433,16 +1433,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.425Z",
-      "id": "a6f46c40-d2e6-4c05-86b1-ae646ba67389",
+      "timestamp": "2026-04-03T07:34:59.633Z",
+      "id": "1972ebb8-0860-4a37-adb3-0cb9758f042d",
       "provenance": {
-        "invocation_id": "848ebd67-b202-4b40-8858-bffa105fd0a2",
+        "invocation_id": "ba9a2993-f118-4e9b-bb1b-63ce1f8a154c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.420Z"
+        "timestamp": "2026-04-03T07:34:59.629Z"
       },
       "type": "state_commit",
       "data": {
@@ -1468,16 +1468,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.427Z",
-      "id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+      "timestamp": "2026-04-03T07:34:59.634Z",
+      "id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
       "provenance": {
-        "invocation_id": "1157a2fd-8314-4a02-8ec4-6d6372e78506",
+        "invocation_id": "38b1cbde-e728-44b1-8f0b-8c0b239f7f99",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.426Z"
+        "timestamp": "2026-04-03T07:34:59.633Z"
       },
       "type": "user_input",
       "data": {
@@ -1485,16 +1485,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.429Z",
-      "id": "ddf5abd9-e4ff-4891-8292-592e9b3f4dfb",
+      "timestamp": "2026-04-03T07:34:59.635Z",
+      "id": "df00a05c-8f06-4ce3-976c-d79e66437b88",
       "provenance": {
-        "invocation_id": "100e6206-a099-408f-a156-047aa617353e",
+        "invocation_id": "ad7235c9-59d2-4a28-aca0-e8ffb0a2a985",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:11.429Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.635Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1505,24 +1505,24 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.431Z",
-      "id": "a804cf51-903d-43f3-b5a6-f7f0c96e189d",
+      "timestamp": "2026-04-03T07:34:59.636Z",
+      "id": "f0b30f82-9c48-4f89-b607-e93ba2347491",
       "provenance": {
-        "invocation_id": "ca826580-2a69-4203-bf8f-fd2f6a93af3c",
+        "invocation_id": "372f07a2-7477-4a4f-ba55-288bcee24df4",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.430Z"
+        "timestamp": "2026-04-03T07:34:59.636Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
         "lifecycle_status": "active",
         "current_layer": "experience_ui",
-        "turn_latency_ms": 1,
+        "turn_latency_ms": 0,
         "parser_latency_ms": 23,
         "llm_totals": {
           "tokens_in": 712,
@@ -1531,7 +1531,7 @@
         },
         "layer_metrics": {
           "turns_in_current_layer": 1,
-          "time_in_current_layer_ms": 1,
+          "time_in_current_layer_ms": 0,
           "clarification_turn_count_total": 5,
           "freeze_blocker_count": 2,
           "open_decision_count": 0
@@ -1729,8 +1729,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
           "current_layer": "experience_ui",
           "workflow_step": "clarification",
           "decision_reason": "The scope still needs an explicit UI/experience relevance decision.",
@@ -1752,11 +1752,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:11.430Z",
-            "completed_at": "2026-04-03T07:23:11.430Z",
+            "started_at": "2026-04-03T07:34:59.636Z",
+            "completed_at": "2026-04-03T07:34:59.636Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1771,12 +1771,12 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:11.430Z",
-            "completed_at": "2026-04-03T07:23:11.431Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:34:59.636Z",
+            "completed_at": "2026-04-03T07:34:59.636Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "current_layer": "experience_ui",
@@ -1790,11 +1790,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:11.431Z",
-            "completed_at": "2026-04-03T07:23:11.431Z",
+            "started_at": "2026-04-03T07:34:59.636Z",
+            "completed_at": "2026-04-03T07:34:59.636Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1808,11 +1808,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:11.431Z",
-            "completed_at": "2026-04-03T07:23:11.431Z",
+            "started_at": "2026-04-03T07:34:59.636Z",
+            "completed_at": "2026-04-03T07:34:59.636Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1826,11 +1826,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:11.431Z",
-            "completed_at": "2026-04-03T07:23:11.431Z",
+            "started_at": "2026-04-03T07:34:59.636Z",
+            "completed_at": "2026-04-03T07:34:59.636Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1844,11 +1844,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:11.431Z",
-            "completed_at": "2026-04-03T07:23:11.431Z",
+            "started_at": "2026-04-03T07:34:59.636Z",
+            "completed_at": "2026-04-03T07:34:59.636Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -1865,8 +1865,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "489b752b-04ae-4aa7-a118-42fd6e3fc78e",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "a1ed97cd-bad8-4358-8ac2-7496247bda77",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -1899,16 +1899,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.433Z",
-      "id": "f3d0cdd8-7b4e-400c-9104-89ab191bf97b",
+      "timestamp": "2026-04-03T07:34:59.637Z",
+      "id": "5eac0f5d-8704-401a-bed7-625a0ae46561",
       "provenance": {
-        "invocation_id": "ca826580-2a69-4203-bf8f-fd2f6a93af3c",
+        "invocation_id": "372f07a2-7477-4a4f-ba55-288bcee24df4",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:11.430Z"
+        "timestamp": "2026-04-03T07:34:59.636Z"
       },
       "type": "coo_response",
       "data": {
@@ -1916,16 +1916,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:11.433Z",
-      "id": "96759c99-ffff-486b-9ad5-db9b9a045dd1",
+      "timestamp": "2026-04-03T07:34:59.637Z",
+      "id": "01feba9d-c731-482d-8809-22d9b23c433c",
       "provenance": {
-        "invocation_id": "1157a2fd-8314-4a02-8ec4-6d6372e78506",
+        "invocation_id": "38b1cbde-e728-44b1-8f0b-8c0b239f7f99",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:11.426Z"
+        "timestamp": "2026-04-03T07:34:59.633Z"
       },
       "type": "state_commit",
       "data": {
@@ -1951,16 +1951,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.691Z",
-      "id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+      "timestamp": "2026-04-03T07:34:59.639Z",
+      "id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
       "provenance": {
-        "invocation_id": "6e80e509-4f86-4333-9eae-0ce4e51690d8",
+        "invocation_id": "cc1e85a8-1177-46bb-ae40-2f1cefed2322",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:13.690Z"
+        "timestamp": "2026-04-03T07:34:59.638Z"
       },
       "type": "user_input",
       "data": {
@@ -1968,16 +1968,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.693Z",
-      "id": "e9d6eb35-db37-489b-8ab1-9077d71e2ff9",
+      "timestamp": "2026-04-03T07:34:59.639Z",
+      "id": "99aec7f9-4091-4936-80d8-b1301bcd9ef6",
       "provenance": {
-        "invocation_id": "f960eabc-766f-4963-8289-970137b872ae",
+        "invocation_id": "5fb1a252-3ab9-4335-9e92-99b75fabee81",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:13.693Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.639Z"
       },
       "type": "classifier_result",
       "data": {
@@ -1988,24 +1988,24 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.696Z",
-      "id": "0c77b43c-10e5-4483-a0a5-84b5da4f7889",
+      "timestamp": "2026-04-03T07:34:59.641Z",
+      "id": "6a39d4c9-a750-4e40-8607-696c03aee778",
       "provenance": {
-        "invocation_id": "4d4a8b0a-2a55-48da-a3eb-7644377a47a5",
+        "invocation_id": "415198aa-d6f9-443a-bb29-15421d1511cc",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:13.694Z"
+        "timestamp": "2026-04-03T07:34:59.640Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
         "lifecycle_status": "active",
         "current_layer": "open_decisions",
-        "turn_latency_ms": 2,
+        "turn_latency_ms": 1,
         "parser_latency_ms": 23,
         "llm_totals": {
           "tokens_in": 704,
@@ -2014,7 +2014,7 @@
         },
         "layer_metrics": {
           "turns_in_current_layer": 1,
-          "time_in_current_layer_ms": 2,
+          "time_in_current_layer_ms": 1,
           "clarification_turn_count_total": 6,
           "freeze_blocker_count": 1,
           "open_decision_count": 1
@@ -2252,8 +2252,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
           "current_layer": "open_decisions",
           "workflow_step": "clarification",
           "decision_reason": "Open business decision \"live_update_model\" is unresolved: Should live updates use polling or push for the first release?",
@@ -2279,12 +2279,12 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:13.694Z",
-            "completed_at": "2026-04-03T07:23:13.695Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:34:59.640Z",
+            "completed_at": "2026-04-03T07:34:59.640Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "actor": "ceo",
@@ -2298,11 +2298,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:13.695Z",
-            "completed_at": "2026-04-03T07:23:13.695Z",
+            "started_at": "2026-04-03T07:34:59.640Z",
+            "completed_at": "2026-04-03T07:34:59.640Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2317,12 +2317,12 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:13.695Z",
-            "completed_at": "2026-04-03T07:23:13.695Z",
-            "duration_ms": 0,
+            "started_at": "2026-04-03T07:34:59.640Z",
+            "completed_at": "2026-04-03T07:34:59.641Z",
+            "duration_ms": 1,
             "success": true,
             "input_summary": {
               "freeze_status": "draft",
@@ -2335,11 +2335,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:13.695Z",
-            "completed_at": "2026-04-03T07:23:13.695Z",
+            "started_at": "2026-04-03T07:34:59.641Z",
+            "completed_at": "2026-04-03T07:34:59.641Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2353,11 +2353,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:13.695Z",
-            "completed_at": "2026-04-03T07:23:13.695Z",
+            "started_at": "2026-04-03T07:34:59.641Z",
+            "completed_at": "2026-04-03T07:34:59.641Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2371,11 +2371,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:13.696Z",
-            "completed_at": "2026-04-03T07:23:13.696Z",
+            "started_at": "2026-04-03T07:34:59.641Z",
+            "completed_at": "2026-04-03T07:34:59.641Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2392,8 +2392,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "a94e104c-6490-4919-99a6-4bb0237bf095",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "13ab11d0-e97b-4ce3-b24f-23993fa9d90c",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -2426,16 +2426,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.697Z",
-      "id": "1cc2f036-21a3-4ba4-8019-9316d8bc123b",
+      "timestamp": "2026-04-03T07:34:59.643Z",
+      "id": "c3133123-53f6-49e5-94ac-39355f9cc0b9",
       "provenance": {
-        "invocation_id": "4d4a8b0a-2a55-48da-a3eb-7644377a47a5",
+        "invocation_id": "415198aa-d6f9-443a-bb29-15421d1511cc",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:13.694Z"
+        "timestamp": "2026-04-03T07:34:59.640Z"
       },
       "type": "coo_response",
       "data": {
@@ -2443,16 +2443,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.697Z",
-      "id": "31d35b55-195a-4023-ae54-72d8b8941cc5",
+      "timestamp": "2026-04-03T07:34:59.643Z",
+      "id": "8bed49d3-6dfa-469e-bebb-2396b55e97bb",
       "provenance": {
-        "invocation_id": "6e80e509-4f86-4333-9eae-0ce4e51690d8",
+        "invocation_id": "cc1e85a8-1177-46bb-ae40-2f1cefed2322",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:13.690Z"
+        "timestamp": "2026-04-03T07:34:59.638Z"
       },
       "type": "state_commit",
       "data": {
@@ -2478,16 +2478,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.699Z",
-      "id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+      "timestamp": "2026-04-03T07:34:59.644Z",
+      "id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
       "provenance": {
-        "invocation_id": "da69dfe1-ba61-445a-a116-b80111476541",
+        "invocation_id": "c4d9efc2-5beb-4fb3-b544-853b3663189c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:13.698Z"
+        "timestamp": "2026-04-03T07:34:59.643Z"
       },
       "type": "user_input",
       "data": {
@@ -2495,16 +2495,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.700Z",
-      "id": "4838c451-e655-462c-912a-2004e62cca2f",
+      "timestamp": "2026-04-03T07:34:59.646Z",
+      "id": "b06eadcd-edd2-4de9-a1c1-96265043acbd",
       "provenance": {
-        "invocation_id": "fcd3dd21-af42-4afc-847c-33be146aa984",
+        "invocation_id": "c77e351f-83ef-4351-a8ff-ee74b2ac702e",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:13.700Z"
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.646Z"
       },
       "type": "classifier_result",
       "data": {
@@ -2515,21 +2515,21 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.702Z",
-      "id": "ac7f5518-9e12-4e64-841d-c7fd99236b20",
+      "timestamp": "2026-04-03T07:34:59.649Z",
+      "id": "e0a5bd1c-eee8-478e-9ca8-5a198d928fb5",
       "provenance": {
-        "invocation_id": "97b0428b-edc2-45b3-9598-1e8f6e8d50a9",
+        "invocation_id": "a0dba620-3eb8-494d-be79-9b6983f604ed",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:13.701Z"
+        "timestamp": "2026-04-03T07:34:59.648Z"
       },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
         "lifecycle_status": "awaiting_freeze_approval",
         "current_layer": "whole_onion_freeze",
         "turn_latency_ms": 1,
@@ -2651,7 +2651,7 @@
           "freeze_status": {
             "status": "ready_to_request",
             "blockers": [],
-            "ready_since_turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29"
+            "ready_since_turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0"
           },
           "approved_snapshot": null
         },
@@ -2762,7 +2762,7 @@
           "freeze_status": {
             "status": "ready_to_request",
             "blockers": [],
-            "ready_since_turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29"
+            "ready_since_turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0"
           },
           "approved_snapshot": null,
           "scope_summary": [
@@ -2779,8 +2779,8 @@
         "requirement_artifact": null,
         "finalized_requirement_memory_id": null,
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
           "current_layer": "whole_onion_freeze",
           "workflow_step": "freeze_ready",
           "decision_reason": "The whole onion is coherent enough to request explicit freeze approval.",
@@ -2803,11 +2803,11 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:13.701Z",
-            "completed_at": "2026-04-03T07:23:13.701Z",
+            "started_at": "2026-04-03T07:34:59.648Z",
+            "completed_at": "2026-04-03T07:34:59.648Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2822,11 +2822,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:13.702Z",
-            "completed_at": "2026-04-03T07:23:13.702Z",
+            "started_at": "2026-04-03T07:34:59.648Z",
+            "completed_at": "2026-04-03T07:34:59.648Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2841,11 +2841,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:13.702Z",
-            "completed_at": "2026-04-03T07:23:13.702Z",
+            "started_at": "2026-04-03T07:34:59.648Z",
+            "completed_at": "2026-04-03T07:34:59.648Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2859,11 +2859,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:13.702Z",
-            "completed_at": "2026-04-03T07:23:13.702Z",
+            "started_at": "2026-04-03T07:34:59.648Z",
+            "completed_at": "2026-04-03T07:34:59.648Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2877,11 +2877,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:13.702Z",
-            "completed_at": "2026-04-03T07:23:13.702Z",
+            "started_at": "2026-04-03T07:34:59.648Z",
+            "completed_at": "2026-04-03T07:34:59.648Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2895,11 +2895,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:13.702Z",
-            "completed_at": "2026-04-03T07:23:13.702Z",
+            "started_at": "2026-04-03T07:34:59.648Z",
+            "completed_at": "2026-04-03T07:34:59.648Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -2916,8 +2916,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -2950,16 +2950,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.704Z",
-      "id": "61963d58-f2ae-42e8-915d-e03f889a75dd",
+      "timestamp": "2026-04-03T07:34:59.650Z",
+      "id": "f0d78376-8649-4c37-b14d-c00384581b5f",
       "provenance": {
-        "invocation_id": "97b0428b-edc2-45b3-9598-1e8f6e8d50a9",
+        "invocation_id": "a0dba620-3eb8-494d-be79-9b6983f604ed",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:13.701Z"
+        "timestamp": "2026-04-03T07:34:59.648Z"
       },
       "type": "coo_response",
       "data": {
@@ -2967,16 +2967,16 @@
       }
     },
     {
-      "timestamp": "2026-04-03T07:23:13.704Z",
-      "id": "d6d4cf23-5edb-4639-9ab9-067541a4eab5",
+      "timestamp": "2026-04-03T07:34:59.650Z",
+      "id": "eaf5f63b-ebd8-4998-94c1-3c771a429b76",
       "provenance": {
-        "invocation_id": "da69dfe1-ba61-445a-a116-b80111476541",
+        "invocation_id": "c4d9efc2-5beb-4fb3-b544-853b3663189c",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:13.698Z"
+        "timestamp": "2026-04-03T07:34:59.643Z"
       },
       "type": "state_commit",
       "data": {
@@ -3002,50 +3002,61 @@
       }
     },
     {
-      "type": "user_input",
-      "data": {
-        "message": "Freeze it."
-      },
-      "timestamp": "2026-04-03T07:23:13.706Z",
-      "id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+      "timestamp": "2026-04-03T07:34:59.653Z",
+      "id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
       "provenance": {
-        "invocation_id": "1d20b571-13c5-4500-bfff-412516622fb5",
+        "invocation_id": "792de5f6-b5c3-4174-af5f-98b3a3cbd267",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:13.705Z"
+        "timestamp": "2026-04-03T07:34:59.651Z"
+      },
+      "type": "user_input",
+      "data": {
+        "message": "Freeze it."
       }
     },
     {
+      "timestamp": "2026-04-03T07:34:59.654Z",
+      "id": "9adc1ed3-5376-43dc-a2a6-cd7fe0634645",
+      "provenance": {
+        "invocation_id": "dea42589-4538-4935-ab21-d86f648b0c97",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "COO/classifier/classify/924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "timestamp": "2026-04-03T07:34:59.654Z"
+      },
       "type": "classifier_result",
       "data": {
         "intent": "continue requirements gathering",
         "confidence": 0.99,
         "workflow": "requirements_gathering_onion",
         "reasoning": "Route \"Freeze it.\" into the live requirements onion lane."
-      },
-      "timestamp": "2026-04-03T07:23:13.708Z",
-      "id": "a681c0ce-cd02-47e7-ba1d-f11dca935b3c",
-      "provenance": {
-        "invocation_id": "be7a07ee-c530-4fa4-9ff7-7c860febc6ed",
-        "provider": "codex",
-        "model": "gpt-5.3-codex-spark",
-        "reasoning": "medium",
-        "was_fallback": false,
-        "source_path": "COO/classifier/classify/069112cc-9e46-4dee-8b54-5f85edffd760",
-        "timestamp": "2026-04-03T07:23:13.708Z"
       }
     },
     {
+      "timestamp": "2026-04-03T07:34:59.695Z",
+      "id": "c77cc9ca-c93e-4e31-8e9f-62f393edfd9d",
+      "provenance": {
+        "invocation_id": "0f55f392-7e80-48e4-adb2-504dbe172b67",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/requirements-gathering/live/respond",
+        "timestamp": "2026-04-03T07:34:59.655Z"
+      },
       "type": "onion_turn_result",
       "data": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
         "lifecycle_status": "handoff_ready",
         "current_layer": "approved",
-        "turn_latency_ms": 27,
+        "turn_latency_ms": 40,
         "parser_latency_ms": 23,
         "llm_totals": {
           "tokens_in": 665,
@@ -3054,7 +3065,7 @@
         },
         "layer_metrics": {
           "turns_in_current_layer": 1,
-          "time_in_current_layer_ms": 27,
+          "time_in_current_layer_ms": 40,
           "clarification_turn_count_total": 6,
           "freeze_blocker_count": 0,
           "open_decision_count": 0
@@ -3164,13 +3175,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
-            "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "ready_since_turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
+            "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
-            "approved_at": "2026-04-03T07:23:13.706Z",
+            "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+            "approved_at": "2026-04-03T07:34:59.653Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3381,13 +3392,13 @@
           "freeze_status": {
             "status": "approved",
             "blockers": [],
-            "ready_since_turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
-            "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "ready_since_turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
+            "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "approval_note": "The human-facing scope is right. Freeze it."
           },
           "approved_snapshot": {
-            "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
-            "approved_at": "2026-04-03T07:23:13.706Z",
+            "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+            "approved_at": "2026-04-03T07:34:59.653Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3504,11 +3515,11 @@
         "requirement_artifact": {
           "schema_version": "1.0",
           "artifact_kind": "requirement_list",
-          "artifact_id": "onion-requirements::onion::069112cc-9e46-4dee-8b54-5f85edffd760::29c2eea8-41ae-430d-ad87-e2563266c88c",
-          "source_approval_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+          "artifact_id": "onion-requirements::onion::924bac4d-5bba-488d-86f7-5a3c4649f489::211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+          "source_approval_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
           "human_scope": {
-            "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
-            "approved_at": "2026-04-03T07:23:13.706Z",
+            "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+            "approved_at": "2026-04-03T07:34:59.653Z",
             "topic": "Execution monitor for ADF",
             "goal": "See what the system is currently doing, starting with the implementation queue.",
             "expected_result": "A local URL that shows the current system status with live updates.",
@@ -3704,10 +3715,10 @@
             "No LLM expansion or silent business guessing was used."
           ]
         },
-        "finalized_requirement_memory_id": "1e9b42e8-6bcc-4598-a50f-cacea13cfb30",
+        "finalized_requirement_memory_id": "18366b11-f711-46d4-95d0-51d34a738d6e",
         "workflow_trace": {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
           "current_layer": "approved",
           "workflow_step": "handoff_ready",
           "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
@@ -3730,12 +3741,12 @@
         },
         "operation_records": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "operation": "onion_reducer",
-            "started_at": "2026-04-03T07:23:13.709Z",
-            "completed_at": "2026-04-03T07:23:13.710Z",
-            "duration_ms": 1,
+            "started_at": "2026-04-03T07:34:59.656Z",
+            "completed_at": "2026-04-03T07:34:59.656Z",
+            "duration_ms": 0,
             "success": true,
             "input_summary": {
               "actor": "ceo",
@@ -3749,11 +3760,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "operation": "clarification_policy",
-            "started_at": "2026-04-03T07:23:13.710Z",
-            "completed_at": "2026-04-03T07:23:13.710Z",
+            "started_at": "2026-04-03T07:34:59.656Z",
+            "completed_at": "2026-04-03T07:34:59.656Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3768,11 +3779,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "operation": "freeze_check",
-            "started_at": "2026-04-03T07:23:13.710Z",
-            "completed_at": "2026-04-03T07:23:13.710Z",
+            "started_at": "2026-04-03T07:34:59.657Z",
+            "completed_at": "2026-04-03T07:34:59.657Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3786,11 +3797,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "operation": "artifact_deriver",
-            "started_at": "2026-04-03T07:23:13.711Z",
-            "completed_at": "2026-04-03T07:23:13.711Z",
+            "started_at": "2026-04-03T07:34:59.657Z",
+            "completed_at": "2026-04-03T07:34:59.657Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3804,11 +3815,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "operation": "readiness_check",
-            "started_at": "2026-04-03T07:23:13.711Z",
-            "completed_at": "2026-04-03T07:23:13.711Z",
+            "started_at": "2026-04-03T07:34:59.657Z",
+            "completed_at": "2026-04-03T07:34:59.657Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3822,11 +3833,11 @@
             }
           },
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "operation": "audit_trace_build",
-            "started_at": "2026-04-03T07:23:13.711Z",
-            "completed_at": "2026-04-03T07:23:13.711Z",
+            "started_at": "2026-04-03T07:34:59.657Z",
+            "completed_at": "2026-04-03T07:34:59.657Z",
             "duration_ms": 0,
             "success": true,
             "input_summary": {
@@ -3843,8 +3854,8 @@
         ],
         "llm_calls": [
           {
-            "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-            "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+            "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+            "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
             "provider": "codex",
             "model": "gpt-5.4",
             "purpose": "onion_turn_parse",
@@ -3864,8 +3875,8 @@
             "artifact_kind": "requirement_list",
             "action": "create",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "1e9b42e8-6bcc-4598-a50f-cacea13cfb30",
-            "duration_ms": 19,
+            "record_id": "18366b11-f711-46d4-95d0-51d34a738d6e",
+            "duration_ms": 31,
             "success": true,
             "message": "Persisted the finalized requirement artifact through the governed requirements surface."
           },
@@ -3876,8 +3887,8 @@
             "artifact_kind": "requirement_list",
             "action": "publish_finalized_requirement",
             "scope_path": "assafyavnai/shippingagent",
-            "record_id": "1e9b42e8-6bcc-4598-a50f-cacea13cfb30",
-            "duration_ms": 6,
+            "record_id": "18366b11-f711-46d4-95d0-51d34a738d6e",
+            "duration_ms": 7,
             "success": true,
             "message": "Locked the finalized requirement artifact after approved freeze."
           },
@@ -3894,42 +3905,42 @@
             "message": "Thread workflow state persisted for the live onion turn."
           }
         ],
-        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 1e9b42e8-6bcc-4598-a50f-cacea13cfb30.",
+        "state_commit_summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 18366b11-f711-46d4-95d0-51d34a738d6e.",
         "open_loops": []
-      },
-      "timestamp": "2026-04-03T07:23:13.737Z",
-      "id": "9e9e25dc-dad6-491d-827c-ecb709d5a329",
+      }
+    },
+    {
+      "timestamp": "2026-04-03T07:34:59.696Z",
+      "id": "c9640334-f874-4855-a94c-45826bfed6dd",
       "provenance": {
-        "invocation_id": "65cf03c8-684c-4137-8931-04f0d8119d5b",
+        "invocation_id": "0f55f392-7e80-48e4-adb2-504dbe172b67",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:13.709Z"
-      }
-    },
-    {
+        "timestamp": "2026-04-03T07:34:59.655Z"
+      },
       "type": "coo_response",
       "data": {
-        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 1e9b42e8-6bcc-4598-a50f-cacea13cfb30\nThe COO handoff is ready for downstream review."
-      },
-      "timestamp": "2026-04-03T07:23:13.738Z",
-      "id": "f0e94b46-1257-4d3a-b08e-702e39e3872f",
+        "message": "I froze the requirements onion and stored the finalized requirement artifact for downstream use.\nFinalized requirement artifact id: 18366b11-f711-46d4-95d0-51d34a738d6e\nThe COO handoff is ready for downstream review."
+      }
+    },
+    {
+      "timestamp": "2026-04-03T07:34:59.696Z",
+      "id": "0d59d607-40fc-42f7-9594-cd02a4112657",
       "provenance": {
-        "invocation_id": "65cf03c8-684c-4137-8931-04f0d8119d5b",
+        "invocation_id": "792de5f6-b5c3-4174-af5f-98b3a3cbd267",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
-        "source_path": "COO/requirements-gathering/live/respond",
-        "timestamp": "2026-04-03T07:23:13.709Z"
-      }
-    },
-    {
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:34:59.651Z"
+      },
       "type": "state_commit",
       "data": {
-        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 1e9b42e8-6bcc-4598-a50f-cacea13cfb30.",
+        "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 18366b11-f711-46d4-95d0-51d34a738d6e.",
         "openLoops": [],
         "decisions": [],
         "sessionHandles": {
@@ -3946,29 +3957,107 @@
             "source": "provider_returned"
           }
         }
+      }
+    },
+    {
+      "type": "user_input",
+      "data": {
+        "message": "Do not keep it frozen. Reopen the scope so I can correct it before we freeze again."
       },
-      "timestamp": "2026-04-03T07:23:13.738Z",
-      "id": "ebab63b2-50d6-4db2-9c3f-a41bd2183050",
+      "timestamp": "2026-04-03T07:35:02.051Z",
+      "id": "37c4e4bb-45f7-485d-a3c1-734d5793e596",
       "provenance": {
-        "invocation_id": "1d20b571-13c5-4500-bfff-412516622fb5",
+        "invocation_id": "7b808305-f44c-4be8-ac79-3cdfb83edef4",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:23:13.705Z"
+        "timestamp": "2026-04-03T07:35:02.049Z"
+      }
+    },
+    {
+      "type": "error",
+      "data": {
+        "source": "controller",
+        "message": "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully.",
+        "recoverable": true,
+        "attemptNumber": 1
+      },
+      "timestamp": "2026-04-03T07:35:02.052Z",
+      "id": "3d4876be-5260-430b-b015-77a75c2357fb",
+      "provenance": {
+        "invocation_id": "7b808305-f44c-4be8-ac79-3cdfb83edef4",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:35:02.049Z"
+      }
+    },
+    {
+      "type": "coo_response",
+      "data": {
+        "message": "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully."
+      },
+      "timestamp": "2026-04-03T07:35:02.052Z",
+      "id": "5ee37ce8-b60c-4f00-8b3c-e1d661601ae5",
+      "provenance": {
+        "invocation_id": "7b808305-f44c-4be8-ac79-3cdfb83edef4",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:35:02.049Z"
+      }
+    },
+    {
+      "type": "state_commit",
+      "data": {
+        "summary": "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
+        "openLoops": [
+          "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully."
+        ],
+        "decisions": [],
+        "sessionHandles": {
+          "classifier": {
+            "provider": "codex",
+            "model": "gpt-5.3-codex-spark",
+            "session_id": "stub-session-1",
+            "source": "provider_returned"
+          },
+          "intelligence": {
+            "provider": "codex",
+            "model": "gpt-5.4",
+            "session_id": "stub-session-2",
+            "source": "provider_returned"
+          }
+        }
+      },
+      "timestamp": "2026-04-03T07:35:02.052Z",
+      "id": "18e5a762-91b7-4d68-b3f2-6ed2f13d6359",
+      "provenance": {
+        "invocation_id": "7b808305-f44c-4be8-ac79-3cdfb83edef4",
+        "provider": "system",
+        "model": "none",
+        "reasoning": "none",
+        "was_fallback": false,
+        "source_path": "COO/controller/handle-turn",
+        "timestamp": "2026-04-03T07:35:02.049Z"
       }
     }
   ],
-  "createdAt": "2026-04-03T07:23:11.400Z",
-  "updatedAt": "2026-04-03T07:23:13.738Z",
+  "createdAt": "2026-04-03T07:34:59.617Z",
+  "updatedAt": "2026-04-03T07:35:02.052Z",
   "status": "active",
   "scopePath": "assafyavnai/shippingagent",
   "workflowState": {
     "active_workflow": null,
     "onion": {
-      "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-      "last_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+      "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+      "last_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
       "lifecycle_status": "handoff_ready",
       "current_layer": "approved",
       "selected_next_question": null,
@@ -4078,13 +4167,13 @@
         "freeze_status": {
           "status": "approved",
           "blockers": [],
-          "ready_since_turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
-          "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+          "ready_since_turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
+          "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
           "approval_note": "The human-facing scope is right. Freeze it."
         },
         "approved_snapshot": {
-          "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
-          "approved_at": "2026-04-03T07:23:13.706Z",
+          "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+          "approved_at": "2026-04-03T07:34:59.653Z",
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
           "expected_result": "A local URL that shows the current system status with live updates.",
@@ -4295,13 +4384,13 @@
         "freeze_status": {
           "status": "approved",
           "blockers": [],
-          "ready_since_turn_id": "f1dbf90c-57d4-41b5-8507-1944b92e7e29",
-          "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+          "ready_since_turn_id": "34f82c8a-f080-4cb0-925f-2e964df9dfd0",
+          "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
           "approval_note": "The human-facing scope is right. Freeze it."
         },
         "approved_snapshot": {
-          "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
-          "approved_at": "2026-04-03T07:23:13.706Z",
+          "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+          "approved_at": "2026-04-03T07:34:59.653Z",
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
           "expected_result": "A local URL that shows the current system status with live updates.",
@@ -4418,11 +4507,11 @@
       "requirement_artifact": {
         "schema_version": "1.0",
         "artifact_kind": "requirement_list",
-        "artifact_id": "onion-requirements::onion::069112cc-9e46-4dee-8b54-5f85edffd760::29c2eea8-41ae-430d-ad87-e2563266c88c",
-        "source_approval_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+        "artifact_id": "onion-requirements::onion::924bac4d-5bba-488d-86f7-5a3c4649f489::211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+        "source_approval_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
         "human_scope": {
-          "approved_turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
-          "approved_at": "2026-04-03T07:23:13.706Z",
+          "approved_turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
+          "approved_at": "2026-04-03T07:34:59.653Z",
           "topic": "Execution monitor for ADF",
           "goal": "See what the system is currently doing, starting with the implementation queue.",
           "expected_result": "A local URL that shows the current system status with live updates.",
@@ -4618,10 +4707,10 @@
           "No LLM expansion or silent business guessing was used."
         ]
       },
-      "finalized_requirement_memory_id": "1e9b42e8-6bcc-4598-a50f-cacea13cfb30",
+      "finalized_requirement_memory_id": "18366b11-f711-46d4-95d0-51d34a738d6e",
       "latest_audit_trace": {
-        "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-        "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+        "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+        "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
         "current_layer": "approved",
         "workflow_step": "handoff_ready",
         "decision_reason": "Requirement artifact is ready for downstream technical review without hidden business guessing.",
@@ -4644,8 +4733,8 @@
       },
       "latest_llm_calls": [
         {
-          "trace_id": "onion::069112cc-9e46-4dee-8b54-5f85edffd760",
-          "turn_id": "29c2eea8-41ae-430d-ad87-e2563266c88c",
+          "trace_id": "onion::924bac4d-5bba-488d-86f7-5a3c4649f489",
+          "turn_id": "211a5556-046d-4fd1-9c4d-cebc1cf782d6",
           "provider": "codex",
           "model": "gpt-5.4",
           "purpose": "onion_turn_parse",
@@ -4665,8 +4754,8 @@
           "artifact_kind": "requirement_list",
           "action": "create",
           "scope_path": "assafyavnai/shippingagent",
-          "record_id": "1e9b42e8-6bcc-4598-a50f-cacea13cfb30",
-          "duration_ms": 19,
+          "record_id": "18366b11-f711-46d4-95d0-51d34a738d6e",
+          "duration_ms": 31,
           "success": true,
           "message": "Persisted the finalized requirement artifact through the governed requirements surface."
         },
@@ -4677,8 +4766,8 @@
           "artifact_kind": "requirement_list",
           "action": "publish_finalized_requirement",
           "scope_path": "assafyavnai/shippingagent",
-          "record_id": "1e9b42e8-6bcc-4598-a50f-cacea13cfb30",
-          "duration_ms": 6,
+          "record_id": "18366b11-f711-46d4-95d0-51d34a738d6e",
+          "duration_ms": 7,
           "success": true,
           "message": "Locked the finalized requirement artifact after approved freeze."
         },
