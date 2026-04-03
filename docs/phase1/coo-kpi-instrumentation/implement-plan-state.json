@@ -1,7 +1,7 @@
 {
   "phase_number": 1,
   "feature_slug": "coo-kpi-instrumentation",
-  "project_root": "C:/ADF",
+  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-kpi-instrumentation",
   "feature_registry_key": "phase1/coo-kpi-instrumentation",
   "feature_status": "active",
   "implementor_execution_id": null,
@@ -23,11 +23,11 @@
     "codex_cli_bypass_supported": true
   },
   "current_branch": "implement-plan/phase1/coo-kpi-instrumentation",
-  "last_completed_step": "completion_summary_written",
-  "last_commit_sha": null,
-  "active_run_status": "closeout_pending",
+  "last_completed_step": "merge_ready",
+  "last_commit_sha": "54d4089326016bd75e79a0bcc9ce658e07af4f22",
+  "active_run_status": "merge_ready",
   "created_at": "2026-04-03T12:10:34.312Z",
-  "updated_at": "2026-04-03T12:50:02.987Z",
+  "updated_at": "2026-04-03T13:37:29.186Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-03T12:10:34.328Z",
     "integrity_passed_at": "2026-04-03T12:11:20.691Z",
@@ -36,7 +36,8 @@
     "implementor_finished_at": "2026-04-03T12:49:00.134Z",
     "verification_finished_at": "2026-04-03T12:49:00.778Z",
     "completion_summary_written_at": "2026-04-03T12:50:02.987Z",
-    "worktree_prepared_at": null
+    "worktree_prepared_at": null,
+    "merge_ready_at": "2026-04-03T13:37:29.176Z"
   },
   "event_log": [
     {
@@ -68,6 +69,11 @@
       "event": "completion-summary-written",
       "timestamp": "2026-04-03T12:50:02.987Z",
       "note": "Completion summary saved with verification evidence and truthful pending closeout status."
+    },
+    {
+      "event": "merge-ready",
+      "timestamp": "2026-04-03T13:37:29.176Z",
+      "note": "Review-approved KPI slice commit is pushed on the feature branch and ready for merge-queue."
     }
   ],
   "artifacts": {
@@ -87,6 +93,6 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-kpi-instrumentation",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
+  "merge_status": "ready_to_queue",
   "local_target_sync_status": "not_started"
 }
