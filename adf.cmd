@@ -44,9 +44,14 @@ exit /b 0
 :is_approved_bash
 set "CANDIDATE=%~f1"
 if /I not "%~nx1"=="bash.exe" exit /b 1
-echo(!CANDIDATE!| findstr /I /L /C:"\msys64\" /C:"\Git\" >nul
-if errorlevel 1 exit /b 1
-exit /b 0
+set "NORMALIZED=!CANDIDATE!"
+set "MSYS_MATCH=!NORMALIZED:\msys64\=!"
+if /I not "!MSYS_MATCH!"=="!NORMALIZED!" exit /b 0
+set "GIT_MATCH=!NORMALIZED:\Git\=!"
+if /I not "!GIT_MATCH!"=="!NORMALIZED!" exit /b 0
+set "GIT_MATCH=!NORMALIZED:\git\=!"
+if /I not "!GIT_MATCH!"=="!NORMALIZED!" exit /b 0
+exit /b 1
 
 :scan_where
 for /f "delims=" %%F in ('where bash.exe 2^>nul') do (

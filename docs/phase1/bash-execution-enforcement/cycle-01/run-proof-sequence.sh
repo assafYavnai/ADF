@@ -76,6 +76,15 @@ windows_path() {
   printf '%s' "$target"
 }
 
+write_cmd_helper() {
+  local helper_name="$1"
+  local helper_body="$2"
+  local helper_path="$RUN_DIR/${helper_name}.cmd"
+
+  printf '%s\n' "$helper_body" >"$helper_path"
+  windows_path "$helper_path"
+}
+
 terminate_pid_tree() {
   local pid="$1"
 
@@ -279,14 +288,23 @@ step_adf_help() {
 
 step_cmd_wrapper_help() {
   local adf_cmd_win
+  local helper_win
   adf_cmd_win="$(windows_path "$REPO_ROOT/adf.cmd")"
-  powershell.exe -ExecutionPolicy Bypass -Command "& '$adf_cmd_win' --help"
+  helper_win="$(write_cmd_helper "_04-cmd-wrapper-help" "@echo off
+call \"$adf_cmd_win\" --help
+exit /b %ERRORLEVEL%")"
+  cmd.exe //d //c "$helper_win"
 }
 
 step_negative_cmd_wrapper() {
   local adf_cmd_win
+  local helper_win
   adf_cmd_win="$(windows_path "$REPO_ROOT/adf.cmd")"
-  env SHELL="$FAKE_SHELL" powershell.exe -ExecutionPolicy Bypass -Command "& '$adf_cmd_win' --help"
+  helper_win="$(write_cmd_helper "_05-negative-cmd-shell" "@echo off
+set \"SHELL=$FAKE_SHELL\"
+call \"$adf_cmd_win\" --help
+exit /b %ERRORLEVEL%")"
+  cmd.exe //d //c "$helper_win"
 }
 
 step_negative_ps_wrapper() {
