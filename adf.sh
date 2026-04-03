@@ -11,7 +11,7 @@ DOCTOR_AUDIT_SCRIPT="$REPO_ROOT/tools/doctor-brain-audit.mjs"
 DOCTOR_SMOKE_SCRIPT="$REPO_ROOT/tools/doctor-brain-connect-smoke.mjs"
 DOCTOR_INCIDENT_DIR="$REPO_ROOT/memory/doctor-incidents"
 TMP_DIR="$REPO_ROOT/tmp"
-DEFAULT_SCOPE="assafyavnai/shippingagent"
+DEFAULT_SCOPE="assafyavnai/adf"
 DOCTOR_AUDIT_SCOPE="assafyavnai/adf"
 FIELD_SEP=$'\x1f'
 
@@ -45,9 +45,19 @@ choose_command() {
   printf '%s' "$fallback"
 }
 
+require_windows_command() {
+  local cmd="$1"
+
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    die "Windows bash hosts require $cmd on PATH. Generic fallback to ${cmd%%.*} is not allowed."
+  fi
+
+  printf '%s' "$cmd"
+}
+
 if is_windows_host; then
-  NPM_CMD="$(choose_command "npm.cmd" "npm")"
-  NPX_CMD="$(choose_command "npx.cmd" "npx")"
+  NPM_CMD="$(require_windows_command "npm.cmd")"
+  NPX_CMD="$(require_windows_command "npx.cmd")"
 else
   NPM_CMD="npm"
   NPX_CMD="npx"

@@ -22,12 +22,13 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 ## Shell Guidance
 - ADF's canonical shell is `bash` on every host OS.
 - On Windows, the host OS is still Windows, but the ADF shell remains `bash`. Agents must stay aware of Windows path and process behavior without treating PowerShell as an equivalent workflow shell.
+- Approved Windows bash runtimes for ADF launch are `MSYS2` and `Git Bash`. `SHELL` is only a candidate hint; wrappers must reject non-bash executables and unapproved bash paths.
 - Prefer the repo launcher entrypoints over ad-hoc shell assumptions:
   - POSIX: `./adf.sh`
   - Windows: `adf.cmd`
 - `adf.cmd` is a trampoline into `bash adf.sh ...` only. If bash is missing or broken, it must hard-stop.
 - Use PowerShell only for Windows-native leaf tasks that are outside the ADF workflow shell contract.
-- On Windows bash runtimes, prefer `npm.cmd` / `npx.cmd` or local `.cmd` shims under `node_modules/.bin/` when the native command resolution requires them.
+- On Windows bash runtimes, `adf.sh` requires `npm.cmd` / `npx.cmd`. Generic `npm` / `npx` fallback is non-compliant. Prefer local `.cmd` shims under `node_modules/.bin/` when the native command resolution requires them.
 - For multiline execution, write a temporary bash script and run it through `bash`.
 - After editing JavaScript helpers or workflow scripts, run `node --check` and a small smoke test.
 

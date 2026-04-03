@@ -2,7 +2,7 @@
 
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,9 +29,23 @@ function candidateBashPaths() {
   return candidates.filter((entry, index, array) => entry && array.indexOf(entry) === index);
 }
 
+function isApprovedBashPath(candidate) {
+  if (!candidate) {
+    return false;
+  }
+
+  if (process.platform === "win32") {
+    const normalized = candidate.toLowerCase();
+    return basename(candidate).toLowerCase() === "bash.exe" &&
+      (normalized.includes("\\msys64\\") || normalized.includes("\\git\\"));
+  }
+
+  return basename(candidate) === "bash";
+}
+
 function locateBash() {
   for (const candidate of candidateBashPaths()) {
-    if (existsSync(candidate)) {
+    if (existsSync(candidate) && isApprovedBashPath(candidate)) {
       return candidate;
     }
   }
@@ -40,7 +54,10 @@ function locateBash() {
     encoding: "utf8",
   });
   if (whereResult.status === 0) {
-    const discovered = whereResult.stdout.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+    const discovered = whereResult.stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line) => line && isApprovedBashPath(line));
     if (discovered) {
       return discovered;
     }
@@ -51,7 +68,7 @@ function locateBash() {
 
 const bashPath = locateBash();
 if (!bashPath) {
-  console.error("FATAL: ADF requires a working bash runtime. Install or expose bash and retry.");
+  console.error("FATAL: ADF requires a working approved bash runtime. Install or expose MSYS2 or Git Bash and retry.");
   process.exit(1);
 }
 

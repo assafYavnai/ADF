@@ -29,6 +29,8 @@ Implementation is acceptable only if all of the following are true:
 - a supported VS Code bash terminal proves a real bash shell is active
 - `./adf.sh` runs under bash and drives the COO route through bash
 - `adf.cmd` does not implement a separate PowerShell workflow shell
+- Windows trampolines accept only approved `MSYS2` or `Git Bash` runtimes, and they do not treat `SHELL` as authority
+- on Windows bash hosts, launcher package-manager resolution fails closed unless `npm.cmd` / `npx.cmd` are available
 - doctor does not silently continue when bash is broken
 - doctor does not silently continue when Brain MCP is broken
 - successful doctor runs write a Brain audit
@@ -66,14 +68,29 @@ Pass criteria:
 From Windows:
 
 - run `adf.cmd --help`
+- run `adf.cmd --help` again with `SHELL` pointed at `powershell.exe`
 
 Pass criteria:
 
 - the wrapper validates bash
+- the wrapper ignores non-approved `SHELL` candidates and still selects only approved bash runtimes
 - the wrapper forwards into `bash adf.sh ...`
 - the wrapper does not become the real workflow shell
 
-### 4. Doctor success proof
+### 4. Windows package-manager proof
+
+From a supported Windows bash terminal:
+
+- verify `command -v npm.cmd`
+- verify `command -v npx.cmd`
+- run `./adf.sh --help`
+
+Pass criteria:
+
+- `npm.cmd` and `npx.cmd` are both required on the Windows bash route
+- no generic `npm` / `npx` fallback is used
+
+### 5. Doctor success proof
 
 From the supported entrypoint:
 

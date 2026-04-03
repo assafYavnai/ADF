@@ -10,6 +10,27 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $AdfScript = Join-Path $RepoRoot "adf.sh"
 
+function Test-ApprovedBashCandidate {
+  param(
+    [string]$Candidate
+  )
+
+  if (-not $Candidate) {
+    return $false
+  }
+
+  if (-not (Test-Path -LiteralPath $Candidate)) {
+    return $false
+  }
+
+  if ([System.IO.Path]::GetFileName($Candidate) -ine "bash.exe") {
+    return $false
+  }
+
+  $normalized = [System.IO.Path]::GetFullPath($Candidate).ToLowerInvariant()
+  return $normalized.Contains("\msys64\") -or $normalized.Contains("\git\")
+}
+
 function Get-BashPath {
   $candidates = @()
 
@@ -35,7 +56,7 @@ function Get-BashPath {
   }
 
   foreach ($candidate in $candidates) {
-    if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+    if (Test-ApprovedBashCandidate $candidate) {
       return $candidate
     }
   }
@@ -45,7 +66,7 @@ function Get-BashPath {
 
 $bash = Get-BashPath
 if (-not $bash) {
-  throw "ADF requires a working bash runtime on Windows. Install or expose MSYS2 or Git Bash and retry."
+  throw "ADF requires a working approved bash runtime on Windows. Install or expose MSYS2 or Git Bash and retry."
 }
 
 & $bash --version *> $null

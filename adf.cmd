@@ -1,36 +1,23 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "SCRIPT_DIR=%~dp0"
 set "BASH_EXE="
 
-if defined SHELL if exist "%SHELL%" (
-  set "BASH_EXE=%SHELL%"
-)
+if defined SHELL call :consider_candidate "%SHELL%"
 
-if not defined BASH_EXE if exist "%ProgramFiles%\msys64\usr\bin\bash.exe" (
-  set "BASH_EXE=%ProgramFiles%\msys64\usr\bin\bash.exe"
-)
+if not defined BASH_EXE call :consider_candidate "%ProgramFiles%\msys64\usr\bin\bash.exe"
 
-if not defined BASH_EXE if exist "%ProgramFiles%\Git\bin\bash.exe" (
-  set "BASH_EXE=%ProgramFiles%\Git\bin\bash.exe"
-)
+if not defined BASH_EXE call :consider_candidate "%ProgramFiles%\Git\bin\bash.exe"
 
-if not defined BASH_EXE if exist "%ProgramFiles%\Git\usr\bin\bash.exe" (
-  set "BASH_EXE=%ProgramFiles%\Git\usr\bin\bash.exe"
-)
+if not defined BASH_EXE call :consider_candidate "%ProgramFiles%\Git\usr\bin\bash.exe"
 
-if not defined BASH_EXE (
-  for /f "delims=" %%F in ('where bash.exe 2^>nul') do (
-    set "BASH_EXE=%%F"
-    goto bash_found
-  )
-)
+if not defined BASH_EXE call :scan_where
 
 :bash_found
 if not defined BASH_EXE (
   echo FATAL: ADF requires a working bash runtime on Windows.
-  echo        Install or expose MSYS2 or Git Bash and retry.
+  echo        Install or expose an approved MSYS2 or Git Bash runtime and retry.
   exit /b 1
 )
 
@@ -44,3 +31,26 @@ if errorlevel 1 (
 
 "%BASH_EXE%" "%SCRIPT_DIR%adf.sh" %*
 exit /b %ERRORLEVEL%
+
+:consider_candidate
+set "CANDIDATE=%~1"
+if not defined CANDIDATE exit /b 1
+if not exist "%CANDIDATE%" exit /b 1
+call :is_approved_bash "%CANDIDATE%"
+if errorlevel 1 exit /b 1
+set "BASH_EXE=%CANDIDATE%"
+exit /b 0
+
+:is_approved_bash
+set "CANDIDATE=%~f1"
+if /I not "%~nx1"=="bash.exe" exit /b 1
+echo(!CANDIDATE!| findstr /I /L /C:"\msys64\" /C:"\Git\" >nul
+if errorlevel 1 exit /b 1
+exit /b 0
+
+:scan_where
+for /f "delims=" %%F in ('where bash.exe 2^>nul') do (
+  call :consider_candidate "%%F"
+  if defined BASH_EXE exit /b 0
+)
+exit /b 1
