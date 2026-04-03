@@ -17,7 +17,7 @@ ADF/
       memory-engine-client.ts
     requirements-gathering/         # CEO-facing feature shaping lane (live behind feature gate)
       contracts/                    # serializable onion state/artifact/observability contracts
-      engine/                       # pure onion reducer, freeze, derivation, readiness, audit logic
+      engine/                       # pure onion reducer, conversation-state derivation/rendering, freeze, derivation, readiness, audit logic
       live/                         # thin controller integration adapter for the supported COO route
       fixtures/                     # deterministic sample turns/traces for route-free proof
       rulebook.json                 # seed rules for onion-based intake and freeze
@@ -110,7 +110,7 @@ ADF/
 ## Key Conventions
 
 - **COO/** - the core deterministic orchestrator and reasoning layer. Organized by layers such as controller/, requirements-gathering/, classifier/, intelligence/, context-engineer/, shared/.
-- **COO lanes** may start governance-first, then grow into live feature-gated runtime paths. The requirements-gathering lane now includes contracts, pure engine logic, a live controller adapter, and route-proof artifacts under the same folder.
+- **COO lanes** may start governance-first, then grow into live feature-gated runtime paths. The requirements-gathering lane now includes contracts, pure engine logic, derived conversation-state rendering, a live controller adapter, and route-proof artifacts under the same folder.
 - **Each LLM-powered layer** has its own `role/`, `rulebook.json`, `review-prompt.json`, and `prompt.md` in its directory (boxed hierarchy).
 - **shared/** (root) - project-wide utilities callable by any component: provenance, llm-invoker, telemetry, learning-engine.
 - **tools/** - governance tools (agent-role-builder, llm-tool-builder). Each has its own `role/`, `rulebook.json`, `review-prompt.json`, and `runs/` for permanent audit trails.

@@ -5,7 +5,7 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
 ## 1. Route Claim vs Route Proof
 
 - Runtime capability now proved at two live COO seams:
-  - `CLI -> controller -> classifier -> requirements_gathering_onion -> thread workflowState.onion -> governed requirement persistence -> COO response -> telemetry`
+  - `CLI -> controller -> classifier -> requirements_gathering_onion -> onion truth state + readiness/freeze facts -> derived conversation-state render -> COO response -> telemetry`
   - `controller.handleTurn -> classifier -> context-engineer -> direct COO response -> telemetry`
 - The ordinary production CLI rejects proof-only parser-update injection unless explicit `--test-proof-mode` is enabled.
 - KPI rollup proof now exists through the read-only `get_kpi_summary` route, sourced from raw telemetry rather than a parallel summary store.
@@ -23,6 +23,7 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
 - Direct COO response proof covers classifier telemetry, context assembly telemetry, positive Brain search telemetry, failed Brain-search latency retention, no-attempt zero-latency branches, LLM invocation telemetry, persistence telemetry, and KPI rollup derivation.
 - Controller-triggered Brain telemetry on the proved COO route now carries frozen `route_stage` / `step_name` attribution, including `context_engineer/load_knowledge` for Brain reads and `memory_operation/capture_memory` for controller write calls.
 - Onion success proof covers classifier telemetry, onion turn telemetry, finalized requirement create/lock telemetry, frozen-scope handoff truth, and KPI rollups for turns-to-freeze/time-to-freeze/tokens-to-freeze.
+- CEO-facing onion replies are now rendered from a derived conversation-state projection instead of directly exposing raw `Topic` / `Goal` / `Expected result` slot labels, while persisted onion/thread truth remains unchanged.
 - Lock-failure cleanup proof still shows blocked finalization truth: provisional create succeeds, publish fails closed, provisional row retires, and downstream readers stay on truthful current state.
 - Gate-disabled follow-up proof still shows persisted onion ownership blocking resume when the feature gate is off.
 - Supersession proof still shows explicit retirement of the prior locked finalized artifact before replacement publication.
@@ -57,6 +58,7 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
   - successful `requirements_manage create_finalized_candidate`
   - successful `memory_manage:publish_finalized_requirement`
   - non-zero rollups for turns/time/tokens-to-freeze
+  - CEO-facing clarification, ready-for-approval, blocked, and reopen-after-freeze responses stay natural while preserving one-question-at-a-time governance
 - Gate-disabled branch: `handle_turn.success=false`, `metadata.workflow=requirements_gathering_onion`, `metadata.gate_status=disabled`.
 - Direct proof-thread KPI summary returns proof-only turn, Brain, LLM, context, and persistence latency for the proof thread, while the same thread queried in the `production` partition returns `0` turns.
 
@@ -69,6 +71,7 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
 ## 6. Narrow Boundary Still Intentional
 
 - The deterministic CLI bootstrap proof remains explicit test-only behavior behind `--test-proof-mode`; the ordinary CEO-facing CLI path stays on the live invoker route.
+- Persisted onion state, approved snapshots, and working artifacts remain the source of truth; derived conversation state is intentionally non-persistent and exists only to control CEO-facing phrasing.
 - Raw KPI truth remains append-only in PostgreSQL telemetry; `get_kpi_summary` is read-only derivation, not a replacement write path.
 - Proof telemetry is intentionally partitioned from production telemetry and must stay explicitly requested in rollup queries.
 - The governed finalized-requirement lifecycle remains intentionally narrow: only COO-owned onion finalized requirement artifacts use `create_finalized_candidate`, `publish_finalized_requirement`, and the supersession retirement route.

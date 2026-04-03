@@ -1,21 +1,21 @@
 {
-  "id": "2bb884dd-55f2-49ea-9e15-d69a23a98b68",
+  "id": "99a612af-5f2f-44e7-a6b6-433f0ebcb8db",
   "events": [
     {
       "type": "user_input",
       "data": {
         "message": "show the current queue guidance even if Brain search is slow and fails"
       },
-      "timestamp": "2026-04-03T07:34:43.245Z",
-      "id": "5932a988-1996-4ff4-a20a-0f9bd35d44d2",
+      "timestamp": "2026-04-03T10:27:52.841Z",
+      "id": "6a217939-c7d8-416c-b92a-385dfac45b37",
       "provenance": {
-        "invocation_id": "bede7738-3f5c-4057-b4e3-51a1de76163c",
+        "invocation_id": "19756ff2-96f3-470b-a4b8-c2685f70cb49",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:34:43.243Z"
+        "timestamp": "2026-04-03T10:27:52.840Z"
       }
     },
     {
@@ -26,16 +26,16 @@
         "workflow": "direct_coo_response",
         "reasoning": "Route \"show the current queue guidance even if Brain search is slow and fails\" into a direct COO response lane."
       },
-      "timestamp": "2026-04-03T07:34:43.245Z",
-      "id": "71b5c653-4974-40dd-95aa-24a4c9889e74",
+      "timestamp": "2026-04-03T10:27:52.842Z",
+      "id": "7022537c-32b6-4e5c-96cc-fd641af0ce46",
       "provenance": {
-        "invocation_id": "548d16b6-c5e4-448d-a370-45e9bce0d453",
+        "invocation_id": "e7b5cd18-4795-4718-96ca-3c3a02502204",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/2bb884dd-55f2-49ea-9e15-d69a23a98b68",
-        "timestamp": "2026-04-03T07:34:43.245Z"
+        "source_path": "COO/classifier/classify/99a612af-5f2f-44e7-a6b6-433f0ebcb8db",
+        "timestamp": "2026-04-03T10:27:52.842Z"
       }
     },
     {
@@ -43,16 +43,16 @@
       "data": {
         "message": "The Brain lookup failed, but the COO still responded from live context and explicit warning text."
       },
-      "timestamp": "2026-04-03T07:34:43.279Z",
-      "id": "24a02b03-877e-4481-a7f9-03bef3d3a9b0",
+      "timestamp": "2026-04-03T10:27:52.878Z",
+      "id": "da558cd7-597f-4079-8d69-45aefa6e7881",
       "provenance": {
-        "invocation_id": "18008752-03ca-4050-bae4-289510a07812",
+        "invocation_id": "6169d836-ef34-4301-8748-5597b0a15d9f",
         "provider": "codex",
         "model": "gpt-5.4",
         "reasoning": "xhigh",
         "was_fallback": false,
         "source_path": "COO/intelligence/respond",
-        "timestamp": "2026-04-03T07:34:43.279Z"
+        "timestamp": "2026-04-03T10:27:52.878Z"
       }
     },
     {
@@ -76,21 +76,21 @@
           }
         }
       },
-      "timestamp": "2026-04-03T07:34:43.279Z",
-      "id": "086b66fa-1a1e-4f9c-bfa5-2bc4efad7ae5",
+      "timestamp": "2026-04-03T10:27:52.878Z",
+      "id": "bb1da641-f5ac-4f75-8488-e96f2163d7cb",
       "provenance": {
-        "invocation_id": "bede7738-3f5c-4057-b4e3-51a1de76163c",
+        "invocation_id": "19756ff2-96f3-470b-a4b8-c2685f70cb49",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T07:34:43.243Z"
+        "timestamp": "2026-04-03T10:27:52.840Z"
       }
     }
   ],
-  "createdAt": "2026-04-03T07:34:43.244Z",
-  "updatedAt": "2026-04-03T07:34:43.279Z",
+  "createdAt": "2026-04-03T10:27:52.840Z",
+  "updatedAt": "2026-04-03T10:27:52.879Z",
   "status": "active",
   "scopePath": "assafyavnai/shippingagent",
   "workflowState": {

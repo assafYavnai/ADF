@@ -16,7 +16,7 @@ Review the requirements-gathering implementation end to end, with emphasis on th
 
 The target live route is:
 
-`CLI -> controller -> classifier -> requirements_gathering_onion -> thread workflow state + governed requirement persistence -> COO response -> telemetry`
+`CLI -> controller -> classifier -> requirements_gathering_onion -> onion truth state + readiness/freeze facts -> derived conversation-state render -> COO response -> telemetry`
 
 The route is currently documented in:
 
@@ -35,6 +35,8 @@ Primary live-route files:
 - [`COO/controller/memory-engine-client.ts`](../../COO/controller/memory-engine-client.ts)
 - [`COO/requirements-gathering/contracts/onion-live.ts`](../../COO/requirements-gathering/contracts/onion-live.ts)
 - [`COO/requirements-gathering/live/onion-live.ts`](../../COO/requirements-gathering/live/onion-live.ts)
+- [`COO/requirements-gathering/engine/conversation-state.ts`](../../COO/requirements-gathering/engine/conversation-state.ts)
+- [`COO/requirements-gathering/engine/conversation-renderer.ts`](../../COO/requirements-gathering/engine/conversation-renderer.ts)
 
 Dormant/pure onion engine surfaces already existed and are now consumed by the live adapter:
 
@@ -58,6 +60,7 @@ Existing tests related to the feature:
 
 - [`COO/classifier/classifier.test.ts`](../../COO/classifier/classifier.test.ts)
 - [`COO/controller/thread.test.ts`](../../COO/controller/thread.test.ts)
+- [`COO/requirements-gathering/engine/conversation-renderer.test.ts`](../../COO/requirements-gathering/engine/conversation-renderer.test.ts)
 - [`COO/requirements-gathering/onion-lane.test.ts`](../../COO/requirements-gathering/onion-lane.test.ts)
 - [`tests/integration/onion-route.runtime-proof.ts`](../../tests/integration/onion-route.runtime-proof.ts)
 
@@ -85,6 +88,7 @@ The audit and review should check at least these route-level claims:
 - route-level telemetry and workflow audit are durable, not only in memory
 - the runtime proof reflects real behavior rather than a mocked endpoint-only shortcut
 - sibling routes and persistence/telemetry surfaces were checked, not just the new adapter
+- onion/internal truth state remains the persisted source of truth while CEO-facing conversation state stays a derived, non-persistent presentation layer
 
 ## 8. Non-Goals
 

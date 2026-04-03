@@ -987,12 +987,24 @@ async function runSuccessProof(runtimeRoot: string) {
       /Should live updates use polling or push for the first release\?/,
     );
     assert.match(
+      phaseTwo.responses[0],
+      /I understand the request is about Execution monitor for ADF\./,
+    );
+    assert.doesNotMatch(
+      phaseTwo.responses[0],
+      /Topic:|Goal:|Expected result:/,
+    );
+    assert.match(
       phaseTwo.responses[1],
-      /Is anything missing or wrong, and should I freeze it now\?/,
+      /If that matches your intent, should I freeze this scope now\?/,
+    );
+    assert.doesNotMatch(
+      phaseTwo.responses[1],
+      /Topic:|Goal:|Expected result:/,
     );
     assert.match(
       phaseTwo.responses[2],
-      /I froze the requirements onion and stored the finalized requirement artifact/,
+      /The scope is frozen and the finalized requirement artifact is stored as/,
     );
 
     await closeTelemetry();
@@ -1304,7 +1316,7 @@ async function runLockFailureCleanupProof(runtimeRoot: string) {
 
     assert.match(
       retry.responses.at(-1) ?? "",
-      /I froze the requirements onion and stored the finalized requirement artifact/i,
+      /The scope is frozen and the finalized requirement artifact is stored as/i,
     );
 
     const retryArtifacts = await readThreadArtifacts(runtimeRoot, retry.threadId);
@@ -1787,7 +1799,8 @@ async function runCliProofModeEntry(runtimeRoot: string) {
   assert.match(stdout, /Recovered 1 persisted telemetry event\(s\) from the local outbox\./);
   assert.match(stdout, /Requirements-gathering onion: enabled \(feature gate\)/);
   assert.match(stdout, /LLM invoker: test-proof-mode \(guarded\)/);
-  assert.match(stdout, /COO> Current scope so far:/);
+  assert.match(stdout, /COO> I understand the request is about Execution monitor for ADF\./);
+  assert.doesNotMatch(stdout, /COO> Current scope so far:/);
   assert.match(stdout, /Session ended\./);
 
   const threadIdMatch = stdout.match(/\[thread: ([0-9a-f-]{36}), scope:/i);

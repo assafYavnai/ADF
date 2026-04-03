@@ -36,6 +36,8 @@ import { createEmptyOnionState, type OnionState } from "../contracts/onion-state
 import { buildAuditTrace } from "../engine/audit-trace.js";
 import { deriveRequirementArtifact } from "../engine/artifact-deriver.js";
 import { selectNextClarificationQuestion } from "../engine/clarification-policy.js";
+import { renderConversationResponse } from "../engine/conversation-renderer.js";
+import { deriveConversationState } from "../engine/conversation-state.js";
 import { evaluateFreezeReadiness } from "../engine/freeze-check.js";
 import { reduceOnionState } from "../engine/onion-reducer.js";
 import { evaluateReadiness } from "../engine/readiness-check.js";
@@ -306,7 +308,7 @@ export async function handleRequirementsGatheringOnion(input: {
   return {
     response: buildCeoResponse({
       lifecycleStatus,
-      workingArtifact: reduced.working_artifact,
+      state: reduced.state,
       stateCommitSummary,
       clarificationQuestion: clarification.selection.next_question?.question ?? null,
       freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
@@ -1019,49 +1021,22 @@ function buildOpenLoops(input: {
 
 function buildCeoResponse(input: {
   lifecycleStatus: OnionWorkflowLifecycleStatusType;
-  workingArtifact: WorkingScopeArtifact;
+  state: OnionState;
   stateCommitSummary: string;
   clarificationQuestion: string | null;
   freezeRequest: string | null;
   finalizedRequirementMemoryId: string | null;
   persistenceFailures: OnionPersistenceReceiptType[];
 }): string {
-  if (input.persistenceFailures.length > 0) {
-    return [
-      "I froze the human-facing scope, but I could not complete the durable handoff truthfully.",
-      ...input.persistenceFailures.map((receipt) => `- ${receipt.message}`),
-    ].join("\n");
-  }
-
-  if (input.lifecycleStatus === "handoff_ready") {
-    return [
-      "I froze the requirements onion and stored the finalized requirement artifact for downstream use.",
-      `Finalized requirement artifact id: ${input.finalizedRequirementMemoryId}`,
-      "The COO handoff is ready for downstream review.",
-    ].join("\n");
-  }
-
-  if (input.freezeRequest) {
-    return [
-      "Here is the full human-facing scope I have gathered:",
-      ...input.workingArtifact.scope_summary.map((line) => `- ${line}`),
-      input.freezeRequest,
-    ].join("\n");
-  }
-
-  const visibleSummary = input.workingArtifact.scope_summary
-    .filter((line) => !/missing|not yet decided/i.test(line))
-    .slice(0, 4)
-    .map((line) => `- ${line}`);
-
-  if (input.clarificationQuestion) {
-    return [
-      ...(visibleSummary.length > 0 ? ["Current scope so far:", ...visibleSummary] : []),
-      input.clarificationQuestion,
-    ].join("\n");
-  }
-
-  return input.stateCommitSummary;
+  return renderConversationResponse(deriveConversationState({
+    lifecycleStatus: input.lifecycleStatus,
+    state: input.state,
+    clarificationQuestion: input.clarificationQuestion,
+    freezeRequest: input.freezeRequest,
+    finalizedRequirementMemoryId: input.finalizedRequirementMemoryId,
+    persistenceFailures: input.persistenceFailures,
+    stateCommitSummary: input.stateCommitSummary,
+  }));
 }
 
 function buildLlmCallRecordFromResult(
