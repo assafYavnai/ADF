@@ -40,7 +40,7 @@ The direct CLI smoke above was intentionally run in the current non-compliant Po
 
 6. Commit And Push Result
 
-- Commit: pending
+- Commit: `546f453` `Implement runtime preflight and install split`
 - Push: pending
 
 7. Remaining Non-Goals / Debt
