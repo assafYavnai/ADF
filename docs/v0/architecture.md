@@ -15,7 +15,7 @@ Last updated: 2026-04-03
 | **Thread persistence** | JSON files as the current durable thread truth |
 | **Memory persistence** | PostgreSQL + pgvector through the Brain MCP engine |
 | **LLM calls** | CLI-based only. Codex primary, Claude fallback. |
-| **Shell** | Capability-based. Prefer real bash when it actually starts; otherwise use the platform-native launchers and wrappers such as `adf.cmd`, `tools/adf-launcher.ps1`, and `npm.cmd`. |
+| **Shell** | Bash is the canonical ADF shell on every host OS. On Windows, `adf.cmd` is only a trampoline into `bash adf.sh ...`, and non-bash workflow execution is non-compliant. |
 | **Python** | Allowed for specialist tools, not for the controller core |
 
 ## Core Principle

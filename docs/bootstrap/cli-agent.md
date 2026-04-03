@@ -20,20 +20,22 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 - Read [docs/PHASE1_MASTER_PLAN.md](../PHASE1_MASTER_PLAN.md) for Phase 1 operating alignment
 
 ## Shell Guidance
-- Use capability-based shell selection. Prefer real `bash` only when a smoke check such as `bash --version` succeeds in the current runtime.
-- Prefer the repo launcher entrypoints over shell assumptions:
+- ADF's canonical shell is `bash` on every host OS.
+- On Windows, the host OS is still Windows, but the ADF shell remains `bash`. Agents must stay aware of Windows path and process behavior without treating PowerShell as an equivalent workflow shell.
+- Prefer the repo launcher entrypoints over ad-hoc shell assumptions:
   - POSIX: `./adf.sh`
   - Windows: `adf.cmd`
-  - Direct Windows launcher: `powershell -ExecutionPolicy Bypass -File tools/adf-launcher.ps1`
-- On Windows, prefer `npm.cmd` / `npx.cmd` or local `.cmd` shims under `node_modules/.bin/` because PowerShell may resolve `npm` / `npx` to blocked `.ps1` wrappers.
-- For multiline execution, write a temporary script for the shell that actually works in the current runtime instead of assuming `.sh` is runnable everywhere.
+- `adf.cmd` is a trampoline into `bash adf.sh ...` only. If bash is missing or broken, it must hard-stop.
+- Use PowerShell only for Windows-native leaf tasks that are outside the ADF workflow shell contract.
+- On Windows bash runtimes, prefer `npm.cmd` / `npx.cmd` or local `.cmd` shims under `node_modules/.bin/` when the native command resolution requires them.
+- For multiline execution, write a temporary bash script and run it through `bash`.
 - After editing JavaScript helpers or workflow scripts, run `node --check` and a small smoke test.
 
 ## Context Loading
 
 The preferred Brain path is the `project-brain` MCP tool surface when the runtime exposes it.
-Do NOT invent a fake MCP path. If `project-brain` is missing in the current runtime, treat that as a runtime defect, persist required authority in repo-backed truth, flag the missing MCP surface to the CEO, and use `adf.cmd --doctor` or `powershell -ExecutionPolicy Bypass -File tools/adf-launcher.ps1 --doctor` to attempt bounded repairs and enforce a working local Brain MCP route.
-Doctor is fail-closed: it may repair install/build preconditions, but it must end with a working Brain MCP connection and Brain audit write or it blocks with a durable local incident report.
+Do NOT invent a fake MCP path. If `project-brain` is missing in the current runtime, treat that as a runtime defect, persist required authority in repo-backed truth, flag the missing MCP surface to the CEO, and use `./adf.sh --doctor` or `adf.cmd --doctor` to attempt bounded repairs and enforce a working local Brain MCP route.
+Doctor is fail-closed: it may repair install/build preconditions, but it must end with a working bash runtime, a working Brain MCP connection, and a Brain audit write or it blocks with a durable local incident report.
 Do NOT import or require memory-engine TypeScript code just to work around a missing MCP surface.
 
 After reading this file, call the MCP tool `mcp__project-brain__get_context_summary` with:
