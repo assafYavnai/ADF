@@ -115,6 +115,8 @@ Derived KPI summaries must be read-only and must be computed from raw telemetry.
 The slice must support or report:
 
 - average turn latency
+- turn latency `p50`, `p95`, and `p99`
+- slow-turn bucket counts for `>1s`, `>10s`, and `>60s`
 - average classifier latency
 - average LLM latency
 - average Brain latency
@@ -126,8 +128,17 @@ The slice must support or report:
 - reopen count
 - pushback count
 - failure rate by workflow
+- failure concentration by `route_stage`
+- unknown-workflow count
+- `handle_turn` metadata completeness for `workflow`, `trace_id`, `route_stage`, and `result_status`
 - fallback rate by provider/model
+- uncosted LLM call count
 - outbox spool/replay count
+- KPI API usage counts and latency for:
+  - `query_metrics`
+  - `get_cost_summary`
+  - `get_kpi_summary`
+- lifecycle parity between `onion_turn` handoff truth and finalized publish truth
 - production-vs-proof route counts
 
 ## 6. Proof Gate

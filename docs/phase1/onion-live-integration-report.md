@@ -9,6 +9,7 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
   - `controller.handleTurn -> classifier -> context-engineer -> direct COO response -> telemetry`
 - The ordinary production CLI rejects proof-only parser-update injection unless explicit `--test-proof-mode` is enabled.
 - KPI rollup proof now exists through the read-only `get_kpi_summary` route, sourced from raw telemetry rather than a parallel summary store.
+- KPI-on-KPI proof now exists: `query_metrics`, `get_cost_summary`, and `get_kpi_summary` all emit their own bounded route telemetry without recursive self-counting inside the current response.
 - Direct COO response proof now covers:
   - successful scoped Brain retrieval
   - failed Brain-search latency retention on the context-assembly and canonical turn rows
@@ -23,6 +24,7 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
 - Direct COO response proof covers classifier telemetry, context assembly telemetry, positive Brain search telemetry, failed Brain-search latency retention, no-attempt zero-latency branches, LLM invocation telemetry, persistence telemetry, and KPI rollup derivation.
 - Controller-triggered Brain telemetry on the proved COO route now carries frozen `route_stage` / `step_name` attribution, including `context_engineer/load_knowledge` for Brain reads and `memory_operation/capture_memory` for controller write calls.
 - Onion success proof covers classifier telemetry, onion turn telemetry, finalized requirement create/lock telemetry, frozen-scope handoff truth, and KPI rollups for turns-to-freeze/time-to-freeze/tokens-to-freeze.
+- Canonical `handle_turn` rows now carry triage-grade metadata on the proved route, including `trace_id`, `route_stage`, `result_status`, and typed failure fields on blocked/failed turns.
 - CEO-facing onion replies are now rendered from a derived conversation-state projection instead of directly exposing raw `Topic` / `Goal` / `Expected result` slot labels, while persisted onion/thread truth remains unchanged.
 - Lock-failure cleanup proof still shows blocked finalization truth: provisional create succeeds, publish fails closed, provisional row retires, and downstream readers stay on truthful current state.
 - Gate-disabled follow-up proof still shows persisted onion ownership blocking resume when the feature gate is off.
@@ -52,20 +54,25 @@ Saved on 2026-04-03 from [`tests/integration/artifacts/onion-route-proof/report.
   - `missing_scope` and `brain_search_unavailable` branches keep `knowledge_latency_ms=0` and emit no `search_memory` rows because no Brain lookup was attempted
   - controller `capture_memory` proof records `route_stage=memory_operation` and `step_name=capture_memory` while keeping the `proof` telemetry partition and thread/scope ownership intact
   - `get_kpi_summary` reports non-zero proof-only context latency for both successful and failed-search direct-response threads, while the failed-search branch keeps `brain_latency_ms=0` because no Brain row was persisted
+  - direct-response `handle_turn` rows now prove `route_stage=direct_coo_response`, `result_status=completed`, and a durable `trace_id` key even when the value is `null`
 - Onion success branch:
   - `8` classifier rows
   - `8` `onion_turn` rows
   - successful `requirements_manage create_finalized_candidate`
   - successful `memory_manage:publish_finalized_requirement`
   - non-zero rollups for turns/time/tokens-to-freeze
+  - `turn_latency` rollups now expose percentile and slow-bucket truth
+  - requirements KPI parity now reconciles `onion_turn` handoff rows with finalized publish rows
+  - `kpi_quality.handle_turn_metadata_completeness` proves `route_stage` and `result_status` coverage at `100%` on the proof slice
   - CEO-facing clarification, ready-for-approval, blocked, and reopen-after-freeze responses stay natural while preserving one-question-at-a-time governance
-- Gate-disabled branch: `handle_turn.success=false`, `metadata.workflow=requirements_gathering_onion`, `metadata.gate_status=disabled`.
+- Gate-disabled branch: `handle_turn.success=false`, `metadata.workflow=requirements_gathering_onion`, `metadata.gate_status=disabled`, `metadata.route_stage=persisted_onion_gate`, `metadata.result_status=blocked`, `metadata.error_class=FeatureGateDisabled`.
 - Direct proof-thread KPI summary returns proof-only turn, Brain, LLM, context, and persistence latency for the proof thread, while the same thread queried in the `production` partition returns `0` turns.
 
 ## 5. Verification Commands
 
+- `npm.cmd run build` (from `C:/ADF/components/memory-engine`) passed.
 - `npm.cmd run build` (from `C:/ADF/COO`) passed.
-- `npx.cmd tsx --test COO/context-engineer/context-engineer.test.ts tests/integration/telemetry-route.integration.test.ts` (from `C:/ADF`) passed `4/4`.
+- `npx.cmd tsx --test tests/integration/telemetry-route.integration.test.ts` (from `C:/ADF`) passed `2/2`.
 - `npx.cmd tsx tests/integration/onion-route.runtime-proof.ts` (from `C:/ADF`) passed and regenerated proof artifacts.
 
 ## 6. Narrow Boundary Still Intentional

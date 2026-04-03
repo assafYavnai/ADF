@@ -10,9 +10,9 @@ Success view: I can open the page, see the queue, and drill into current executi
 Major parts: Queue view, Flow view, Node details, Audit trail, Metrics
 Open decisions remaining: 0
 No next question: The onion is already frozen and approved.
-Finalized requirement memory id: eca3d8c9-e7be-4901-a13c-18e234a588a0
-Approved snapshot turn id: 41dd8671-0e4d-40cd-8a19-00476bfd5218
-Approved snapshot time: 2026-04-03T10:43:18.295Z
+Finalized requirement memory id: 63da1459-67f2-4304-8fa0-1edb0ca08b1f
+Approved snapshot turn id: 495b2a08-7473-49de-8435-90100843f168
+Approved snapshot time: 2026-04-03T13:28:58.590Z
 Topic: Execution monitor for ADF
 Goal: See what the system is currently doing, starting with the implementation queue.
 Expected result: A local URL that shows the current system status with live updates.
@@ -26,10 +26,8 @@ Open decisions: none
 <thread_checkpoint>
 <state_commit>
 {
-  "summary": "Blocked turn because persisted onion workflow ownership exists while the gate is disabled.",
-  "openLoops": [
-    "This thread carries persisted requirements-gathering onion state, but the live onion feature gate is disabled. Re-run with --enable-onion or set ADF_ENABLE_REQUIREMENTS_GATHERING_ONION=1 to continue it truthfully."
-  ],
+  "summary": "Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as 63da1459-67f2-4304-8fa0-1edb0ca08b1f.",
+  "openLoops": [],
   "decisions": [],
   "sessionHandles": {
     "classifier": {

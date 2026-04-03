@@ -94,3 +94,112 @@ test("telemetry routes reject partial provenance and use explicit internal prove
     await client.close();
   }
 });
+
+test("kpi read routes emit telemetry and KPI summary reports prior KPI API usage", async () => {
+  const client = await MemoryEngineClient.connect(process.cwd());
+  const callJsonTool = (client as any).callJsonTool.bind(client as any) as (
+    name: string,
+    args: Record<string, unknown>
+  ) => Promise<any>;
+  const routeStart = new Date().toISOString();
+
+  try {
+    await callJsonTool("query_metrics", {
+      since: routeStart,
+      source_path: "COO/",
+      telemetry_partition: "production",
+      limit: 5,
+    });
+
+    await callJsonTool("get_cost_summary", {
+      since: routeStart,
+      source_path: "COO/",
+      telemetry_partition: "production",
+    });
+
+    const firstSummary = await callJsonTool("get_kpi_summary", {
+      since: routeStart,
+      source_path: "COO/",
+      telemetry_partition: "production",
+    });
+
+    assert.ok(Array.isArray(firstSummary.kpi_api_usage?.by_operation));
+    assert.ok(
+      firstSummary.kpi_api_usage.by_operation.some((row: any) =>
+        row.operation === "query_metrics" && Number(row.total_calls ?? 0) >= 1,
+      ),
+    );
+    assert.ok(
+      firstSummary.kpi_api_usage.by_operation.some((row: any) =>
+        row.operation === "get_cost_summary" && Number(row.total_calls ?? 0) >= 1,
+      ),
+    );
+    assert.ok(
+      !firstSummary.kpi_api_usage.by_operation.some((row: any) =>
+        row.operation === "get_kpi_summary" && Number(row.total_calls ?? 0) > 0,
+      ),
+    );
+
+    const secondSummary = await callJsonTool("get_kpi_summary", {
+      since: routeStart,
+      source_path: "COO/",
+      telemetry_partition: "production",
+    });
+
+    assert.ok(
+      secondSummary.kpi_api_usage.by_operation.some((row: any) =>
+        row.operation === "get_kpi_summary" && Number(row.total_calls ?? 0) >= 1,
+      ),
+    );
+
+    const routeRows = await pool.query(
+      `SELECT operation, source_path, metadata
+         FROM telemetry
+        WHERE operation IN ('query_metrics', 'get_cost_summary', 'get_kpi_summary')
+          AND created_at >= $1
+        ORDER BY created_at ASC`,
+      [routeStart],
+    );
+
+    assert.ok(
+      routeRows.rows.some((row) =>
+        row.operation === "query_metrics"
+        && row.source_path === "memory-engine/internal/tool-route-telemetry/query_metrics"
+        && row.metadata?.telemetry_provenance_mode === "internal"
+        && row.metadata?.requested_telemetry_partition === "production"
+        && Number(row.metadata?.requested_limit ?? 0) === 5,
+      ),
+    );
+    assert.ok(
+      routeRows.rows.some((row) =>
+        row.operation === "get_cost_summary"
+        && row.source_path === "memory-engine/internal/tool-route-telemetry/get_cost_summary"
+        && row.metadata?.requested_telemetry_partition === "production"
+        && row.metadata?.requested_source_path === "COO/",
+      ),
+    );
+    assert.ok(
+      routeRows.rows.some((row) =>
+        row.operation === "get_kpi_summary"
+        && row.source_path === "memory-engine/internal/tool-route-telemetry/get_kpi_summary"
+        && row.metadata?.requested_telemetry_partition === "production"
+        && row.metadata?.requested_source_path === "COO/"
+        && Number(row.metadata?.workflow_count ?? 0) >= 0,
+      ),
+    );
+  } finally {
+    await pool.query(
+      `DELETE FROM telemetry
+        WHERE created_at >= $1
+          AND operation IN ('query_metrics', 'get_cost_summary', 'get_kpi_summary')
+          AND source_path IN ($2, $3, $4)`,
+      [
+        routeStart,
+        "memory-engine/internal/tool-route-telemetry/query_metrics",
+        "memory-engine/internal/tool-route-telemetry/get_cost_summary",
+        "memory-engine/internal/tool-route-telemetry/get_kpi_summary",
+      ],
+    );
+    await client.close();
+  }
+});

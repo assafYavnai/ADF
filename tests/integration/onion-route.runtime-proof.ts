@@ -611,6 +611,9 @@ async function runDirectResponseSuccessScenario(runtimeRoot: string) {
     assert.equal(handleTurnRows.rows.length, 1);
     assert.equal(handleTurnRows.rows[0]?.success, true);
     assert.ok(Number(handleTurnRows.rows[0]?.metadata?.context_ms ?? 0) > 0);
+    assert.equal(handleTurnRows.rows[0]?.metadata?.route_stage, "direct_coo_response");
+    assert.equal(handleTurnRows.rows[0]?.metadata?.result_status, "completed");
+    assert.equal(handleTurnRows.rows[0]?.metadata?.trace_id, null);
 
     const knowledgeSearchRows = await pool.query(
       `SELECT success, metadata
@@ -1172,10 +1175,16 @@ async function runSuccessProof(runtimeRoot: string) {
     assert.ok(Number(proofKpi.averages?.classifier_latency_ms ?? 0) > 0);
     assert.ok(Number(proofKpi.averages?.llm_latency_ms ?? 0) > 0);
     assert.ok(Number(proofKpi.averages?.brain_latency_ms ?? 0) > 0);
+    assert.ok(Number(proofKpi.turn_latency?.p95_latency_ms ?? 0) > 0);
+    assert.ok(Number(proofKpi.turn_latency?.over_1s_count ?? 0) >= 0);
     assert.ok(Number(proofKpi.requirements_gathering?.avg_turns_to_freeze ?? 0) >= 1);
     assert.ok(Number(proofKpi.requirements_gathering?.avg_time_to_freeze_ms ?? 0) > 0);
     assert.ok(Number(proofKpi.requirements_gathering?.avg_tokens_to_freeze ?? 0) > 0);
     assert.ok(Number(proofKpi.requirements_gathering?.avg_clarification_turns_per_requirement ?? 0) >= 1);
+    assert.ok(Number(proofKpi.requirements_gathering?.lifecycle_parity?.published_finalized_trace_count ?? 0) >= 1);
+    assert.ok(Number(proofKpi.requirements_gathering?.lifecycle_parity?.reconciled_frozen_trace_count ?? 0) >= 1);
+    assert.equal(Number(proofKpi.kpi_quality?.handle_turn_metadata_completeness?.route_stage_key_pct ?? 0), 100);
+    assert.equal(Number(proofKpi.kpi_quality?.handle_turn_metadata_completeness?.result_status_key_pct ?? 0), 100);
 
     return {
       runtime_root: runtimeRoot,
@@ -1428,6 +1437,11 @@ async function runGateDisabledProof(runtimeRoot: string) {
     assert.equal(gateTelemetryRows.rows[0]?.success, false);
     assert.equal(gateTelemetryRows.rows[0]?.metadata?.workflow, "requirements_gathering_onion");
     assert.equal(gateTelemetryRows.rows[0]?.metadata?.gate_status, "disabled");
+    assert.equal(gateTelemetryRows.rows[0]?.metadata?.route_stage, "persisted_onion_gate");
+    assert.equal(gateTelemetryRows.rows[0]?.metadata?.result_status, "blocked");
+    assert.ok(typeof gateTelemetryRows.rows[0]?.metadata?.trace_id === "string");
+    assert.equal(gateTelemetryRows.rows[0]?.metadata?.error_class, "FeatureGateDisabled");
+    assert.equal(gateTelemetryRows.rows[0]?.metadata?.error_code, "persisted_onion_gate_disabled");
 
     return {
       runtime_root: runtimeRoot,

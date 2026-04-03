@@ -96,3 +96,38 @@
 ## Environment Note
 
 - The ADF bootstrap requires Brain context load at startup, but no `project-brain` MCP tools were exposed in this Codex runtime. This cycle therefore uses checked local code, docs, proof artifacts, and helper state as its grounded input set.
+
+## 2026-04-03 Live Production KPI Gaps
+
+- The production KPI read tools currently expose KPI rollups, but KPI API usage itself is not durably counted because `query_metrics`, `get_cost_summary`, and `get_kpi_summary` are excluded from generic tool-route telemetry.
+- The current live production KPI rollup reports `frozen_trace_count = 0`, while the same production dataset shows successful finalization activity such as `freeze_check` and `memory_manage:publish_finalized_requirement`; freeze/handoff KPI truth is therefore not yet authoritative.
+- Production `handle_turn` telemetry currently lacks triage-critical metadata on live rows:
+  - `trace_id`
+  - `route_stage`
+  - `result_status`
+  - typed error metadata on failures
+- Production latency is dominated by a small long-tail of very slow turns rather than broad slowdown, so triage-grade KPIs need percentile and slow-bucket reporting, not only averages.
+- Fallback activity is visible, but fallback cost truth is incomplete because some fallback model calls carry tokens without `estimated_cost_usd`.
+- The implementation-planning slice for this stream should focus on production-grade KPI truth, KPI-on-KPI API usage telemetry, metadata completeness KPIs, and bottleneck-oriented rollups for the supported COO route.
+
+## 2026-04-03 Implement-Plan Execution Notes
+
+- KPI read routes now flow through normal tool-route telemetry, so `query_metrics`, `get_cost_summary`, and `get_kpi_summary` are durably counted with bounded request metadata and no recursive self-counting in the current response.
+- `handle_turn` telemetry now emits triage-grade metadata on both success and failure paths:
+  - `workflow`
+  - `trace_id`
+  - `route_stage`
+  - `result_status`
+  - typed failure fields on blocked/failed turns
+- `get_kpi_summary` now reports:
+  - turn latency percentiles and slow buckets
+  - route-stage breakdown
+  - KPI API usage
+  - handle-turn metadata completeness
+  - lifecycle parity between onion handoff and finalized publish truth
+  - uncosted/fallback LLM quality signals
+- Machine verification for this slice passed:
+  - `npm.cmd run build` in `components/memory-engine`
+  - `npm.cmd run build` in `COO`
+  - `npx.cmd tsx --test tests/integration/telemetry-route.integration.test.ts`
+  - `npx.cmd tsx tests/integration/onion-route.runtime-proof.ts`

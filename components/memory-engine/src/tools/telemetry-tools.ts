@@ -176,6 +176,11 @@ export async function handleGetKpiSummary(
     ...baseFilters,
     telemetry_partition: undefined,
   });
+  const kpiUsageParts = buildTelemetryFilterParts({
+    since,
+    until,
+    telemetry_partition: input.telemetry_partition,
+  });
 
   const [
     averageTurnLatency,
@@ -185,14 +190,20 @@ export async function handleGetKpiSummary(
     averageBrainLatency,
     averagePersistenceLatency,
     averageWorkflowLatency,
+    turnLatencyBreakdown,
     workflowBreakdown,
+    routeStageBreakdown,
     fallbackBreakdown,
     brainBreakdown,
     persistenceBreakdown,
     freezeSummary,
+    lifecycleParitySummary,
     pushbackSummary,
     spoolReplaySummary,
     partitionBreakdown,
+    metadataCompletenessSummary,
+    llmCostQualitySummary,
+    kpiApiUsageSummary,
   ] = await Promise.all([
     numericAggregate(parts, `SELECT COALESCE(AVG(latency_ms), 0)::int AS value FROM telemetry ${parts.where} AND operation = 'handle_turn'`),
     numericAggregate(parts, `SELECT COALESCE(AVG(latency_ms), 0)::int AS value FROM telemetry ${parts.where} AND operation = 'classifier_step'`),
@@ -203,15 +214,43 @@ export async function handleGetKpiSummary(
     numericAggregate(parts, `SELECT COALESCE(AVG(latency_ms), 0)::int AS value FROM telemetry ${parts.where} AND operation = 'workflow_execute'`),
     pool.query(
       `SELECT
+         COALESCE(percentile_disc(0.50) WITHIN GROUP (ORDER BY latency_ms), 0)::int AS p50_latency_ms,
+         COALESCE(percentile_disc(0.95) WITHIN GROUP (ORDER BY latency_ms), 0)::int AS p95_latency_ms,
+         COALESCE(percentile_disc(0.99) WITHIN GROUP (ORDER BY latency_ms), 0)::int AS p99_latency_ms,
+         SUM(CASE WHEN latency_ms > 1000 THEN 1 ELSE 0 END)::int AS over_1s_count,
+         SUM(CASE WHEN latency_ms > 10000 THEN 1 ELSE 0 END)::int AS over_10s_count,
+         SUM(CASE WHEN latency_ms > 60000 THEN 1 ELSE 0 END)::int AS over_60s_count
+       FROM telemetry
+       ${parts.where}
+         AND operation = 'handle_turn'`,
+      parts.params,
+    ),
+    pool.query(
+      `SELECT
          COALESCE(metadata->>'workflow', 'unknown') AS workflow,
          COUNT(*)::int AS total_turns,
          SUM(CASE WHEN NOT success THEN 1 ELSE 0 END)::int AS failure_count,
-         COALESCE(AVG(latency_ms), 0)::int AS avg_latency_ms
+         COALESCE(AVG(latency_ms), 0)::int AS avg_latency_ms,
+         COALESCE(percentile_disc(0.95) WITHIN GROUP (ORDER BY latency_ms), 0)::int AS p95_latency_ms
        FROM telemetry
        ${parts.where}
          AND operation = 'handle_turn'
        GROUP BY COALESCE(metadata->>'workflow', 'unknown')
        ORDER BY total_turns DESC, workflow ASC`,
+      parts.params,
+    ),
+    pool.query(
+      `SELECT
+         COALESCE(NULLIF(metadata->>'route_stage', ''), 'unknown') AS route_stage,
+         COUNT(*)::int AS total_turns,
+         SUM(CASE WHEN NOT success THEN 1 ELSE 0 END)::int AS failure_count,
+         COALESCE(AVG(latency_ms), 0)::int AS avg_latency_ms,
+         COALESCE(percentile_disc(0.95) WITHIN GROUP (ORDER BY latency_ms), 0)::int AS p95_latency_ms
+       FROM telemetry
+       ${parts.where}
+         AND operation = 'handle_turn'
+       GROUP BY COALESCE(NULLIF(metadata->>'route_stage', ''), 'unknown')
+       ORDER BY failure_count DESC, total_turns DESC, route_stage ASC`,
       parts.params,
     ),
     pool.query(
@@ -271,30 +310,91 @@ export async function handleGetKpiSummary(
          FROM telemetry
          ${parts.where}
            AND operation = 'onion_turn'
+           AND COALESCE(NULLIF(metadata->>'trace_id', ''), '') <> ''
+       ),
+       terminal_traces AS (
+         SELECT trace_id
+           FROM onion_rows
+          WHERE lifecycle_status = 'handoff_ready'
+         UNION
+         SELECT DISTINCT metadata->>'trace_id' AS trace_id
+           FROM telemetry
+           ${parts.where}
+           AND operation = 'memory_manage:publish_finalized_requirement'
+            AND success = true
+            AND COALESCE(NULLIF(metadata->>'trace_id', ''), '') <> ''
        ),
        freeze_traces AS (
          SELECT
-           trace_id,
-           COUNT(*)::int AS turns_to_freeze,
-           COALESCE(SUM(latency_ms), 0)::int AS time_to_freeze_ms,
-           COALESCE(SUM(llm_tokens_in), 0)::int AS tokens_in_to_freeze,
-           COALESCE(SUM(llm_tokens_out), 0)::int AS tokens_out_to_freeze,
-           COALESCE(SUM(llm_estimated_cost_usd), 0)::numeric(10,6) AS cost_to_freeze_usd,
-           SUM(CASE WHEN clarification_requested THEN 1 ELSE 0 END)::int AS clarification_turns,
-           SUM(CASE WHEN reopened_scope THEN 1 ELSE 0 END)::int AS reopen_count
-         FROM onion_rows
-         GROUP BY trace_id
-         HAVING BOOL_OR(lifecycle_status = 'handoff_ready')
+           terminal_traces.trace_id,
+           COUNT(onion_rows.trace_id)::int AS turns_to_freeze,
+           COALESCE(SUM(onion_rows.latency_ms), 0)::int AS time_to_freeze_ms,
+           COALESCE(SUM(onion_rows.llm_tokens_in), 0)::int AS tokens_in_to_freeze,
+           COALESCE(SUM(onion_rows.llm_tokens_out), 0)::int AS tokens_out_to_freeze,
+           COALESCE(SUM(onion_rows.llm_estimated_cost_usd), 0)::numeric(10,6) AS cost_to_freeze_usd,
+           SUM(CASE WHEN onion_rows.clarification_requested THEN 1 ELSE 0 END)::int AS clarification_turns,
+           SUM(CASE WHEN onion_rows.reopened_scope THEN 1 ELSE 0 END)::int AS reopen_count
+         FROM terminal_traces
+         LEFT JOIN onion_rows
+           ON onion_rows.trace_id = terminal_traces.trace_id
+         GROUP BY terminal_traces.trace_id
        )
        SELECT
          COUNT(*)::int AS frozen_trace_count,
-         COALESCE(AVG(turns_to_freeze), 0)::numeric(10,2) AS avg_turns_to_freeze,
-         COALESCE(AVG(time_to_freeze_ms), 0)::numeric(10,2) AS avg_time_to_freeze_ms,
-         COALESCE(AVG(tokens_in_to_freeze + tokens_out_to_freeze), 0)::numeric(10,2) AS avg_tokens_to_freeze,
+         COALESCE(AVG(NULLIF(turns_to_freeze, 0)), 0)::numeric(10,2) AS avg_turns_to_freeze,
+         COALESCE(AVG(NULLIF(time_to_freeze_ms, 0)), 0)::numeric(10,2) AS avg_time_to_freeze_ms,
+         COALESCE(AVG(NULLIF(tokens_in_to_freeze + tokens_out_to_freeze, 0)), 0)::numeric(10,2) AS avg_tokens_to_freeze,
          COALESCE(AVG(clarification_turns), 0)::numeric(10,2) AS avg_clarification_turns_per_requirement,
          COALESCE(SUM(reopen_count), 0)::int AS reopen_count,
-         COALESCE(AVG(cost_to_freeze_usd), 0)::numeric(10,6) AS avg_cost_to_freeze_usd
+         COALESCE(AVG(NULLIF(cost_to_freeze_usd, 0)), 0)::numeric(10,6) AS avg_cost_to_freeze_usd
        FROM freeze_traces`,
+      parts.params,
+    ),
+    pool.query(
+      `WITH onion_handoff_traces AS (
+         SELECT DISTINCT metadata->>'trace_id' AS trace_id
+           FROM telemetry
+           ${parts.where}
+           AND operation = 'onion_turn'
+            AND success = true
+            AND metadata->>'lifecycle_status' = 'handoff_ready'
+            AND COALESCE(NULLIF(metadata->>'trace_id', ''), '') <> ''
+       ),
+       published_traces AS (
+         SELECT DISTINCT metadata->>'trace_id' AS trace_id
+           FROM telemetry
+           ${parts.where}
+           AND operation = 'memory_manage:publish_finalized_requirement'
+            AND success = true
+            AND COALESCE(NULLIF(metadata->>'trace_id', ''), '') <> ''
+       ),
+       reconciled_traces AS (
+         SELECT trace_id FROM onion_handoff_traces
+         UNION
+         SELECT trace_id FROM published_traces
+       )
+       SELECT
+         (SELECT COUNT(*)::int FROM onion_handoff_traces) AS onion_handoff_trace_count,
+         (SELECT COUNT(*)::int FROM published_traces) AS published_finalized_trace_count,
+         (SELECT COUNT(*)::int FROM reconciled_traces) AS reconciled_frozen_trace_count,
+         (
+           SELECT COUNT(*)::int
+             FROM published_traces p
+            WHERE NOT EXISTS (
+              SELECT 1
+                FROM onion_handoff_traces o
+               WHERE o.trace_id = p.trace_id
+            )
+         ) AS publish_without_onion_handoff_count,
+         (
+           SELECT COUNT(*)::int
+             FROM onion_handoff_traces o
+            WHERE NOT EXISTS (
+              SELECT 1
+                FROM published_traces p
+               WHERE p.trace_id = o.trace_id
+            )
+         ) AS onion_handoff_without_publish_count`,
       parts.params,
     ),
     pool.query(
@@ -326,11 +426,72 @@ export async function handleGetKpiSummary(
        ORDER BY telemetry_partition ASC`,
       allPartitionsParts.params,
     ),
+    pool.query(
+      `SELECT
+         COUNT(*)::int AS total_turns,
+         SUM(CASE WHEN metadata ? 'workflow' THEN 1 ELSE 0 END)::int AS workflow_key_count,
+         SUM(CASE WHEN metadata ? 'trace_id' THEN 1 ELSE 0 END)::int AS trace_id_key_count,
+         SUM(CASE WHEN metadata ? 'route_stage' THEN 1 ELSE 0 END)::int AS route_stage_key_count,
+         SUM(CASE WHEN metadata ? 'result_status' THEN 1 ELSE 0 END)::int AS result_status_key_count,
+         SUM(CASE WHEN COALESCE(NULLIF(metadata->>'workflow', ''), 'unknown') = 'unknown' THEN 1 ELSE 0 END)::int AS unknown_workflow_count,
+         SUM(CASE WHEN NOT success THEN 1 ELSE 0 END)::int AS failed_turn_count,
+         SUM(CASE WHEN NOT success AND COALESCE(NULLIF(metadata->>'error_class', ''), '') <> '' THEN 1 ELSE 0 END)::int AS failed_error_class_count,
+         SUM(CASE WHEN NOT success AND COALESCE(NULLIF(metadata->>'error_code', ''), '') <> '' THEN 1 ELSE 0 END)::int AS failed_error_code_count,
+         SUM(CASE WHEN NOT success AND COALESCE(NULLIF(metadata->>'error_message', ''), '') <> '' THEN 1 ELSE 0 END)::int AS failed_error_message_count
+       FROM telemetry
+       ${parts.where}
+         AND operation = 'handle_turn'`,
+      parts.params,
+    ),
+    pool.query(
+      `SELECT
+         COUNT(*)::int AS total_calls,
+         SUM(CASE WHEN was_fallback THEN 1 ELSE 0 END)::int AS fallback_call_count,
+         SUM(CASE WHEN estimated_cost_usd IS NULL THEN 1 ELSE 0 END)::int AS uncosted_call_count,
+         SUM(CASE WHEN was_fallback AND estimated_cost_usd IS NULL THEN 1 ELSE 0 END)::int AS uncosted_fallback_call_count,
+         COALESCE(SUM(tokens_in), 0)::int AS total_tokens_in,
+         COALESCE(SUM(tokens_out), 0)::int AS total_tokens_out
+       FROM telemetry
+       ${parts.where}
+         AND category = 'llm'`,
+      parts.params,
+    ),
+    pool.query(
+      `SELECT
+         operation,
+         COUNT(*)::int AS total_calls,
+         SUM(CASE WHEN NOT success THEN 1 ELSE 0 END)::int AS failure_count,
+         COALESCE(AVG(latency_ms), 0)::int AS avg_latency_ms,
+         COALESCE(percentile_disc(0.95) WITHIN GROUP (ORDER BY latency_ms), 0)::int AS p95_latency_ms,
+         SUM(CASE WHEN COALESCE(NULLIF(metadata->>'requested_telemetry_partition', ''), 'production') = 'proof' THEN 1 ELSE 0 END)::int AS proof_partition_reads,
+         SUM(CASE WHEN COALESCE(NULLIF(metadata->>'telemetry_provenance_mode', ''), 'internal') = 'caller' THEN 1 ELSE 0 END)::int AS caller_provenance_reads
+       FROM telemetry
+       ${kpiUsageParts.where}
+         AND operation IN ('query_metrics', 'get_cost_summary', 'get_kpi_summary')
+       GROUP BY operation
+       ORDER BY total_calls DESC, operation ASC`,
+      kpiUsageParts.params,
+    ),
   ]);
 
+  const turnLatencyRow = turnLatencyBreakdown.rows[0] ?? {};
   const freezeRow = freezeSummary.rows[0] ?? {};
+  const lifecycleParityRow = lifecycleParitySummary.rows[0] ?? {};
   const pushbackRow = pushbackSummary.rows[0] ?? {};
   const spoolReplayRow = spoolReplaySummary.rows[0] ?? {};
+  const metadataCompletenessRow = metadataCompletenessSummary.rows[0] ?? {};
+  const llmCostQualityRow = llmCostQualitySummary.rows[0] ?? {};
+  const totalTurns = Number(metadataCompletenessRow.total_turns ?? 0);
+  const failedTurns = Number(metadataCompletenessRow.failed_turn_count ?? 0);
+  const kpiApiUsageRows = kpiApiUsageSummary.rows.map((row) => ({
+    ...row,
+    total_calls: Number(row.total_calls ?? 0),
+    failure_count: Number(row.failure_count ?? 0),
+    avg_latency_ms: Number(row.avg_latency_ms ?? 0),
+    p95_latency_ms: Number(row.p95_latency_ms ?? 0),
+    proof_partition_reads: Number(row.proof_partition_reads ?? 0),
+    caller_provenance_reads: Number(row.caller_provenance_reads ?? 0),
+  }));
 
   const payload = {
     filters: {
@@ -351,6 +512,15 @@ export async function handleGetKpiSummary(
       persistence_latency_ms: averagePersistenceLatency,
       workflow_latency_ms: averageWorkflowLatency,
     },
+    turn_latency: {
+      avg_latency_ms: averageTurnLatency,
+      p50_latency_ms: Number(turnLatencyRow.p50_latency_ms ?? 0),
+      p95_latency_ms: Number(turnLatencyRow.p95_latency_ms ?? 0),
+      p99_latency_ms: Number(turnLatencyRow.p99_latency_ms ?? 0),
+      over_1s_count: Number(turnLatencyRow.over_1s_count ?? 0),
+      over_10s_count: Number(turnLatencyRow.over_10s_count ?? 0),
+      over_60s_count: Number(turnLatencyRow.over_60s_count ?? 0),
+    },
     requirements_gathering: {
       frozen_trace_count: Number(freezeRow.frozen_trace_count ?? 0),
       avg_turns_to_freeze: Number(freezeRow.avg_turns_to_freeze ?? 0),
@@ -360,11 +530,53 @@ export async function handleGetKpiSummary(
       avg_clarification_turns_per_requirement: Number(freezeRow.avg_clarification_turns_per_requirement ?? 0),
       reopen_count: Number(freezeRow.reopen_count ?? 0),
       pushback_count: Number(pushbackRow.pushback_count ?? 0),
+      lifecycle_parity: {
+        onion_handoff_trace_count: Number(lifecycleParityRow.onion_handoff_trace_count ?? 0),
+        published_finalized_trace_count: Number(lifecycleParityRow.published_finalized_trace_count ?? 0),
+        reconciled_frozen_trace_count: Number(lifecycleParityRow.reconciled_frozen_trace_count ?? 0),
+        publish_without_onion_handoff_count: Number(lifecycleParityRow.publish_without_onion_handoff_count ?? 0),
+        onion_handoff_without_publish_count: Number(lifecycleParityRow.onion_handoff_without_publish_count ?? 0),
+      },
     },
     workflow_breakdown: workflowBreakdown.rows,
+    route_stage_breakdown: routeStageBreakdown.rows,
     fallback_rate_by_provider_model: fallbackBreakdown.rows,
     brain_breakdown: brainBreakdown.rows,
     persistence_breakdown: persistenceBreakdown.rows,
+    kpi_api_usage: {
+      total_calls: kpiApiUsageRows.reduce((sum, row) => sum + row.total_calls, 0),
+      by_operation: kpiApiUsageRows,
+    },
+    kpi_quality: {
+      unknown_workflow_count: Number(metadataCompletenessRow.unknown_workflow_count ?? 0),
+      handle_turn_metadata_completeness: {
+        total_turns: totalTurns,
+        workflow_key_count: Number(metadataCompletenessRow.workflow_key_count ?? 0),
+        workflow_key_pct: ratioToPct(Number(metadataCompletenessRow.workflow_key_count ?? 0), totalTurns),
+        trace_id_key_count: Number(metadataCompletenessRow.trace_id_key_count ?? 0),
+        trace_id_key_pct: ratioToPct(Number(metadataCompletenessRow.trace_id_key_count ?? 0), totalTurns),
+        route_stage_key_count: Number(metadataCompletenessRow.route_stage_key_count ?? 0),
+        route_stage_key_pct: ratioToPct(Number(metadataCompletenessRow.route_stage_key_count ?? 0), totalTurns),
+        result_status_key_count: Number(metadataCompletenessRow.result_status_key_count ?? 0),
+        result_status_key_pct: ratioToPct(Number(metadataCompletenessRow.result_status_key_count ?? 0), totalTurns),
+        failed_turn_count: failedTurns,
+        failed_error_class_count: Number(metadataCompletenessRow.failed_error_class_count ?? 0),
+        failed_error_class_pct: ratioToPct(Number(metadataCompletenessRow.failed_error_class_count ?? 0), failedTurns),
+        failed_error_code_count: Number(metadataCompletenessRow.failed_error_code_count ?? 0),
+        failed_error_code_pct: ratioToPct(Number(metadataCompletenessRow.failed_error_code_count ?? 0), failedTurns),
+        failed_error_message_count: Number(metadataCompletenessRow.failed_error_message_count ?? 0),
+        failed_error_message_pct: ratioToPct(Number(metadataCompletenessRow.failed_error_message_count ?? 0), failedTurns),
+      },
+      llm_cost_quality: {
+        total_calls: Number(llmCostQualityRow.total_calls ?? 0),
+        fallback_call_count: Number(llmCostQualityRow.fallback_call_count ?? 0),
+        uncosted_call_count: Number(llmCostQualityRow.uncosted_call_count ?? 0),
+        uncosted_call_pct: ratioToPct(Number(llmCostQualityRow.uncosted_call_count ?? 0), Number(llmCostQualityRow.total_calls ?? 0)),
+        uncosted_fallback_call_count: Number(llmCostQualityRow.uncosted_fallback_call_count ?? 0),
+        total_tokens_in: Number(llmCostQualityRow.total_tokens_in ?? 0),
+        total_tokens_out: Number(llmCostQualityRow.total_tokens_out ?? 0),
+      },
+    },
     spool_replay: {
       replay_count: Number(spoolReplayRow.replay_count ?? 0),
       replayed_event_count: Number(spoolReplayRow.replayed_event_count ?? 0),
@@ -530,6 +742,13 @@ async function numericAggregate(
 ): Promise<number> {
   const { rows } = await pool.query(sql, parts.params);
   return Number(rows[0]?.value ?? 0);
+}
+
+function ratioToPct(numerator: number, denominator: number): number {
+  if (denominator <= 0) {
+    return 0;
+  }
+  return Number(((numerator / denominator) * 100).toFixed(2));
 }
 
 export const TELEMETRY_TOOL_DEFINITIONS = [
