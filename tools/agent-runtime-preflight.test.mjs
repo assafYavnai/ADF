@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 import { buildRuntimePreflightReport, renderRuntimePreflightHuman } from "./agent-runtime-preflight.mjs";
 
@@ -34,6 +37,7 @@ function testHealthyWindowsBashWorkflow() {
   ]));
   const processRunner = createProcessRunner(new Map([
     ["/usr/bin/bash --version", { status: 0, stdout: "GNU bash, version 5.2.37(2)-release", stderr: "" }],
+    ["bash --version", { status: 0, stdout: "GNU bash, version 5.2.37(2)-release", stderr: "" }],
     ["pg_isready -h localhost -p 5432 -q", { status: 0, stdout: "", stderr: "" }],
   ]));
   const paths = new Set([
@@ -77,7 +81,68 @@ function testHealthyWindowsBashWorkflow() {
   assert.equal(report.brain_mcp.availability_status, "available");
   assert.equal(report.brain_mcp.verification_status, "doctor_required");
   assert.equal(report.overall_status, "pass");
-  assert.match(report.recommended_commands.runtime_preflight, /adf\.cmd --runtime-preflight --json/);
+  assert.match(report.recommended_commands.runtime_preflight, /\.\/adf\.sh --runtime-preflight --json/);
+  assert.match(report.recommended_commands.launch, /\.\/adf\.sh \[flags\] \[-- <COO args>\]/);
+}
+
+function testWindowsMsysShellPathNormalizesToSpawnableBash() {
+  const tempRoot = mkdtempSync(join(tmpdir(), "adf-preflight-"));
+  try {
+    const fakeBin = join(tempRoot, "bin");
+    mkdirSync(fakeBin, { recursive: true });
+    for (const fileName of ["bash.exe", "node.exe", "npm.cmd", "npx.cmd", "rg.exe", "pg_isready.exe"]) {
+      writeFileSync(join(fakeBin, fileName), "");
+    }
+
+    const bashExe = join(fakeBin, "bash.exe");
+    const nodeExe = join(fakeBin, "node.exe");
+    const npmCmd = join(fakeBin, "npm.cmd");
+    const npxCmd = join(fakeBin, "npx.cmd");
+    const rgExe = join(fakeBin, "rg.exe");
+    const pgExe = join(fakeBin, "pg_isready.exe");
+
+    const processRunner = createProcessRunner(new Map([
+      [`${bashExe} -lc command -v 'bash'`, { status: 0, stdout: bashExe, stderr: "" }],
+      [`${bashExe} --version`, { status: 0, stdout: "GNU bash, version 5.2.37(2)-release", stderr: "" }],
+      [`${pgExe} -h localhost -p 5432 -q`, { status: 0, stdout: "", stderr: "" }],
+    ]));
+
+    const report = buildRuntimePreflightReport({
+      repoRoot: "C:/ADF",
+      launchMode: "tsx-direct",
+      platform: "win32",
+      env: {
+        MSYSTEM: "UCRT64",
+        SHELL: "/usr/bin/bash",
+        BASH: "/usr/bin/bash",
+        ADF_CONTROL_PLANE_KIND: "direct-bash",
+        ADF_ENTRYPOINT: "adf.sh",
+        PATH: `${fakeBin};C:\\Windows\\System32`,
+        PATHEXT: ".EXE;.CMD",
+      },
+      processRunner,
+      pathExists: createPathExists(new Set([
+        "C:/ADF/COO/node_modules/.bin/tsx.cmd",
+        "C:/ADF/COO/dist/COO/controller/memory-engine-client.js",
+        "C:/ADF/components/memory-engine/dist/server.js",
+        "C:/ADF/components/memory-engine/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js",
+        "C:/ADF/tools/doctor-brain-connect-smoke.mjs",
+        "C:/ADF/tools/doctor-brain-audit.mjs",
+        join(fakeBin, "bash.exe"),
+        join(fakeBin, "node.exe"),
+        join(fakeBin, "npm.cmd"),
+        join(fakeBin, "npx.cmd"),
+        join(fakeBin, "rg.exe"),
+        join(fakeBin, "pg_isready.exe"),
+      ])),
+      jsonReader: () => ({ completed_at: "2026-04-03T11:00:00.000Z" }),
+    });
+
+    assert.equal(report.execution_shell, "bash");
+    assert.equal(report.shell_contract.bash_working, true);
+  } finally {
+    rmSync(tempRoot, { recursive: true, force: true });
+  }
 }
 
 function testWindowsTrampolineControlPlane() {
@@ -101,6 +166,7 @@ function testWindowsTrampolineControlPlane() {
     ])),
     processRunner: createProcessRunner(new Map([
       ["/usr/bin/bash --version", { status: 0, stdout: "GNU bash, version 5.2.37(2)-release", stderr: "" }],
+      ["bash --version", { status: 0, stdout: "GNU bash, version 5.2.37(2)-release", stderr: "" }],
     ])),
     pathExists: createPathExists(new Set([
       "C:/ADF/COO/node_modules/.bin/tsx.cmd",
@@ -118,6 +184,7 @@ function testWindowsTrampolineControlPlane() {
   assert.equal(report.control_plane.entrypoint_is_direct_bash, false);
   assert.equal(report.shell_contract.command_construction_mode, "windows-nonbash-control-plane-into-bash");
   assert.match(report.shell_contract.bash_write_style, /temporary \.sh script/i);
+  assert.match(report.recommended_commands.runtime_preflight, /adf\.cmd --runtime-preflight --json/);
 }
 
 function testMissingArtifactsFail() {
@@ -181,6 +248,7 @@ function testHumanRender() {
 
 function main() {
   testHealthyWindowsBashWorkflow();
+  testWindowsMsysShellPathNormalizesToSpawnableBash();
   testWindowsTrampolineControlPlane();
   testMissingArtifactsFail();
   testHumanRender();

@@ -41,6 +41,16 @@ function defaultProcessRunner(command, args) {
   };
 }
 
+function normalizeSpawnCommand(command, { platform, env }) {
+  if (!command) return command;
+  if (platform !== "win32") return command;
+  if (/^[A-Za-z]:[\\/]/.test(command)) return command;
+  if (!command.includes("/")) return command;
+
+  const basename = command.replaceAll("\\", "/").split("/").pop() ?? command;
+  return manualPathLookup(basename, { platform, env }) ?? basename;
+}
+
 function pathEntriesForLookup(pathValue, platform) {
   if (!pathValue) return [];
   if (platform === "win32") {
@@ -75,9 +85,12 @@ function commandLookupScript(command) {
   return `command -v '${String(command).replace(/'/g, `'\\''`)}'`;
 }
 
-function defaultCommandLookup(command, { processRunner, bashCommand, platform }) {
+function defaultCommandLookup(command, { processRunner, bashCommand, platform, env }) {
   if (bashCommand) {
-    const bashResult = processRunner(bashCommand, ["-lc", commandLookupScript(command)]);
+    const bashResult = processRunner(
+      normalizeSpawnCommand(bashCommand, { platform, env }),
+      ["-lc", commandLookupScript(command)],
+    );
     if (bashResult.status === 0 && bashResult.stdout) {
       return bashResult.stdout.split(/\r?\n/)[0].trim();
     }
@@ -89,7 +102,7 @@ function defaultCommandLookup(command, { processRunner, bashCommand, platform })
     return fallbackResult.stdout.split(/\r?\n/)[0].trim();
   }
 
-  return manualPathLookup(command, { platform, env: process.env });
+  return manualPathLookup(command, { platform, env });
 }
 
 function classifyHostOs(platform) {
@@ -168,17 +181,26 @@ function readJsonIfPresent(path) {
   }
 }
 
-function recommendedCommands(hostOs) {
-  const preflight = hostOs === "windows"
+function recommendedCommands(hostOs, controlPlaneKind) {
+  const bashEntrypointPreferred = hostOs !== "windows" || controlPlaneKind === "direct-bash";
+  const preflight = bashEntrypointPreferred
+    ? "./adf.sh --runtime-preflight --json"
+    : hostOs === "windows"
     ? "adf.cmd --runtime-preflight --json"
     : "./adf.sh --runtime-preflight --json";
-  const install = hostOs === "windows"
+  const install = bashEntrypointPreferred
+    ? "./adf.sh --install"
+    : hostOs === "windows"
     ? "adf.cmd --install"
     : "./adf.sh --install";
-  const doctor = hostOs === "windows"
+  const doctor = bashEntrypointPreferred
+    ? "./adf.sh --doctor"
+    : hostOs === "windows"
     ? "adf.cmd --doctor"
     : "./adf.sh --doctor";
-  const launch = hostOs === "windows"
+  const launch = bashEntrypointPreferred
+    ? "./adf.sh [flags] [-- <COO args>]"
+    : hostOs === "windows"
     ? "adf.cmd [flags] [-- <COO args>]"
     : "./adf.sh [flags] [-- <COO args>]";
 
@@ -401,13 +423,15 @@ export function buildRuntimePreflightReport({
   const resolvedRepoRoot = resolve(repoRoot ?? join(__dirname, ".."));
   const hostOs = classifyHostOs(platform);
   const bashCommand = String(env.BASH ?? env.SHELL ?? "bash");
-  const lookup = (name) => (commandLookup ?? ((value) => defaultCommandLookup(value, { processRunner, bashCommand, platform })))(name);
+  const lookup = (name) => (commandLookup ?? ((value) => defaultCommandLookup(value, { processRunner, bashCommand, platform, env })))(name);
 
-  const bashPath = lookup("bash") ?? (env.BASH || env.SHELL || null);
-  const bashVersion = bashPath ? processRunner(bashPath, ["--version"]) : { status: 1, stdout: "", stderr: "bash not found" };
-  const bashWorking = bashVersion.status === 0;
   const controlPlaneKind = classifyControlPlaneKind(hostOs, env);
   const controlPlaneEntrypoint = classifyControlPlaneEntrypoint(env);
+  const bashPath = lookup("bash") ?? normalizeSpawnCommand(env.BASH || env.SHELL || "bash", { platform, env }) ?? null;
+  const bashVersion = bashPath
+    ? processRunner(normalizeSpawnCommand(bashPath, { platform, env }), ["--version"])
+    : { status: 1, stdout: "", stderr: "bash not found" };
+  const bashWorking = bashVersion.status === 0;
 
   const npmCommand = hostOs === "windows" ? "npm.cmd" : "npm";
   const npxCommand = hostOs === "windows" ? "npx.cmd" : "npx";
@@ -439,7 +463,7 @@ export function buildRuntimePreflightReport({
   );
   const installStateFile = installStatePath(resolvedRepoRoot);
   const installState = jsonReader(installStateFile);
-  const commands = recommendedCommands(hostOs);
+  const commands = recommendedCommands(hostOs, controlPlaneKind);
   const brainMcp = buildBrainMcpStatus({
     repoRoot: resolvedRepoRoot,
     artifacts: {

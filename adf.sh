@@ -210,6 +210,45 @@ needs_coo_build() {
   return 1
 }
 
+coo_memory_engine_client_artifact() {
+  printf '%s' "$COO_DIR/dist/COO/controller/memory-engine-client.js"
+}
+
+memory_engine_mcp_sdk_client_artifact() {
+  printf '%s' "$MEMORY_ENGINE_DIR/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js"
+}
+
+coo_needs_install() {
+  needs_npm_install "$COO_DIR" && return 0
+  [[ -z "$(local_tsx_shim "$COO_DIR" || true)" ]] && return 0
+  return 1
+}
+
+memory_engine_needs_install() {
+  needs_npm_install "$MEMORY_ENGINE_DIR" && return 0
+  [[ -z "$(local_tsx_shim "$MEMORY_ENGINE_DIR" || true)" ]] && return 0
+  [[ ! -f "$(memory_engine_mcp_sdk_client_artifact)" ]] && return 0
+  return 1
+}
+
+coo_needs_repair() {
+  coo_needs_install && return 0
+  [[ ! -f "$(coo_memory_engine_client_artifact)" ]] && return 0
+  needs_coo_build && return 0
+  return 1
+}
+
+memory_engine_needs_repair() {
+  memory_engine_needs_install && return 0
+  [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]] && return 0
+  needs_memory_engine_build && return 0
+  return 1
+}
+
+needs_install_state_recording() {
+  [[ ! -f "$INSTALL_STATE_PATH" ]]
+}
+
 local_tsx_shim() {
   local package_dir="$1"
 
@@ -343,6 +382,359 @@ json_array_from_name() {
   done
 
   printf '[%s]' "$joined"
+}
+
+SPINNER_FRAMES=('-' '\' '|' '/')
+SPINNER_CAPTURE_STATUS=0
+SPINNER_CAPTURE_OUTPUT=""
+STATUS_RENDERED=false
+declare -a STATUS_TASK_LABELS=()
+declare -a STATUS_TASK_PIDS=()
+declare -a STATUS_TASK_LOGS=()
+declare -a STATUS_TASK_STARTED_AT=()
+declare -a STATUS_TASK_COMPLETED_AT=()
+declare -a STATUS_TASK_RESULTS=()
+declare -a STATUS_TASK_NAMES=()
+declare -a STATUS_TASK_DETAILS=()
+
+is_interactive_terminal() {
+  [[ -t 1 ]]
+}
+
+join_with_and() {
+  local out=""
+  local item
+
+  for item in "$@"; do
+    if [[ -z "$out" ]]; then
+      out="$item"
+    else
+      out="$out and $item"
+    fi
+  done
+
+  printf '%s' "$out"
+}
+
+run_with_spinner() {
+  local label="$1"
+  shift
+
+  local log_file="$TMP_DIR/spinner-$(date +%s)-$$-$RANDOM.log"
+  mkdir -p "$TMP_DIR"
+
+  ("$@" >"$log_file" 2>&1) &
+  local pid=$!
+  local frame_index=0
+
+  if is_interactive_terminal; then
+    while kill -0 "$pid" 2>/dev/null; do
+      printf '\r%s %s\033[K' "${SPINNER_FRAMES[$frame_index]}" "$label"
+      frame_index=$(((frame_index + 1) % ${#SPINNER_FRAMES[@]}))
+      sleep 0.1
+    done
+  else
+    printf '%s\n' "$label"
+  fi
+
+  set +e
+  wait "$pid"
+  SPINNER_CAPTURE_STATUS=$?
+  set -e
+
+  SPINNER_CAPTURE_OUTPUT="$(cat "$log_file" 2>/dev/null || true)"
+  rm -f "$log_file"
+
+  if is_interactive_terminal; then
+    printf '\r%s %s\033[K\n' "$label" "$([[ $SPINNER_CAPTURE_STATUS -eq 0 ]] && printf 'PASSED' || printf 'FAILED')"
+  else
+    printf '%s %s\n' "$label" "$([[ $SPINNER_CAPTURE_STATUS -eq 0 ]] && printf 'PASSED' || printf 'FAILED')"
+  fi
+
+  return "$SPINNER_CAPTURE_STATUS"
+}
+
+reset_status_tasks() {
+  STATUS_RENDERED=false
+  STATUS_TASK_LABELS=()
+  STATUS_TASK_PIDS=()
+  STATUS_TASK_LOGS=()
+  STATUS_TASK_STARTED_AT=()
+  STATUS_TASK_COMPLETED_AT=()
+  STATUS_TASK_RESULTS=()
+  STATUS_TASK_NAMES=()
+  STATUS_TASK_DETAILS=()
+}
+
+start_status_task() {
+  local name="$1"
+  local label="$2"
+  local detail="$3"
+  shift 3
+
+  local log_file="$TMP_DIR/status-task-$(date +%s)-$$-$RANDOM.log"
+  mkdir -p "$TMP_DIR"
+
+  ("$@" >"$log_file" 2>&1) &
+  STATUS_TASK_NAMES+=("$name")
+  STATUS_TASK_LABELS+=("$label")
+  STATUS_TASK_DETAILS+=("$detail")
+  STATUS_TASK_PIDS+=("$!")
+  STATUS_TASK_LOGS+=("$log_file")
+  STATUS_TASK_STARTED_AT+=("$(iso_now)")
+  STATUS_TASK_COMPLETED_AT+=("")
+  STATUS_TASK_RESULTS+=("running")
+}
+
+render_status_tasks() {
+  local frame_index="$1"
+  local count="${#STATUS_TASK_LABELS[@]}"
+  local idx
+
+  if (( count == 0 )); then
+    return 0
+  fi
+
+  if is_interactive_terminal; then
+    if ! $STATUS_RENDERED; then
+      for ((idx = 0; idx < count; idx += 1)); do
+        printf '\n'
+      done
+      STATUS_RENDERED=true
+    fi
+
+    printf '\033[%dA' "$count"
+    for ((idx = 0; idx < count; idx += 1)); do
+      local indicator="${SPINNER_FRAMES[$frame_index]}"
+      case "${STATUS_TASK_RESULTS[$idx]}" in
+        ok) indicator="OK" ;;
+        failed) indicator="FAILED" ;;
+      esac
+      printf '%-72s [%s]\033[K\n' "${STATUS_TASK_LABELS[$idx]}" "$indicator"
+    done
+  fi
+}
+
+monitor_status_tasks() {
+  local frame_index=0
+  local idx
+  local still_running=true
+
+  if ! is_interactive_terminal; then
+    for ((idx = 0; idx < ${#STATUS_TASK_LABELS[@]}; idx += 1)); do
+      printf '%s ...\n' "${STATUS_TASK_LABELS[$idx]}"
+    done
+  fi
+
+  while $still_running; do
+    still_running=false
+
+    for ((idx = 0; idx < ${#STATUS_TASK_PIDS[@]}; idx += 1)); do
+      if [[ "${STATUS_TASK_RESULTS[$idx]}" != "running" ]]; then
+        continue
+      fi
+
+      if kill -0 "${STATUS_TASK_PIDS[$idx]}" 2>/dev/null; then
+        still_running=true
+        continue
+      fi
+
+      set +e
+      wait "${STATUS_TASK_PIDS[$idx]}"
+      local wait_status=$?
+      set -e
+
+      STATUS_TASK_COMPLETED_AT[$idx]="$(iso_now)"
+      if [[ $wait_status -eq 0 ]]; then
+        STATUS_TASK_RESULTS[$idx]="ok"
+      else
+        STATUS_TASK_RESULTS[$idx]="failed"
+      fi
+
+      if ! is_interactive_terminal; then
+        printf '%s %s\n' "${STATUS_TASK_LABELS[$idx]}" "$([[ $wait_status -eq 0 ]] && printf 'OK' || printf 'FAILED')"
+      fi
+    done
+
+    render_status_tasks "$frame_index"
+    frame_index=$(((frame_index + 1) % ${#SPINNER_FRAMES[@]}))
+    $still_running && sleep 0.1
+  done
+
+  render_status_tasks "$frame_index"
+
+  local any_failed=0
+  for ((idx = 0; idx < ${#STATUS_TASK_RESULTS[@]}; idx += 1)); do
+    local task_status="${STATUS_TASK_RESULTS[$idx]}"
+    local task_detail="${STATUS_TASK_DETAILS[$idx]}"
+    local log_path="${STATUS_TASK_LOGS[$idx]}"
+    if [[ "$task_status" == "ok" ]]; then
+      add_repair "${STATUS_TASK_NAMES[$idx]}" "applied" "$task_detail" "${STATUS_TASK_STARTED_AT[$idx]}" "${STATUS_TASK_COMPLETED_AT[$idx]}"
+    else
+      add_repair "${STATUS_TASK_NAMES[$idx]}" "failed" "$task_detail Failed. See $log_path." "${STATUS_TASK_STARTED_AT[$idx]}" "${STATUS_TASK_COMPLETED_AT[$idx]}"
+      any_failed=1
+    fi
+  done
+
+  return "$any_failed"
+}
+
+capture_runtime_preflight_to_file() {
+  local output_path="$1"
+
+  ADF_ENTRYPOINT="${ADF_ENTRYPOINT:-adf.sh}" \
+  ADF_CONTROL_PLANE_KIND="${ADF_CONTROL_PLANE_KIND:-direct-bash}" \
+  node "$RUNTIME_PREFLIGHT_SCRIPT" --repo-root "$REPO_ROOT" --launch-mode "$MODE" --json >"$output_path"
+}
+
+runtime_preflight_status() {
+  local report_path="$1"
+  node - "$report_path" <<'NODE'
+const fs = require("node:fs");
+const report = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+process.stdout.write(String(report.overall_status ?? ""));
+NODE
+}
+
+runtime_preflight_failures() {
+  local report_path="$1"
+  node - "$report_path" <<'NODE'
+const fs = require("node:fs");
+const report = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+for (const check of report.checks ?? []) {
+  if (check.status === "fail") {
+    console.log(`${check.name}\u001f${check.detail}`);
+  }
+}
+NODE
+}
+
+print_launch_blockers() {
+  local report_path="$1"
+  local had_any=false
+  local entry
+
+  echo "Can't launch ADF because:"
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    IFS="$FIELD_SEP" read -r name detail <<<"$entry"
+    printf -- '- %s: %s\n' "$name" "$detail"
+    had_any=true
+  done < <(runtime_preflight_failures "$report_path")
+
+  if ! $had_any; then
+    echo "- Runtime preflight failed, but no concrete blocking checks were returned."
+  fi
+}
+
+print_repair_failures() {
+  local entry
+  local had_any=false
+
+  echo "Can't launch ADF because:"
+  for entry in "${DOCTOR_REPAIR_LINES[@]}"; do
+    IFS="$FIELD_SEP" read -r status name detail _started_at _completed_at <<<"$entry"
+    [[ "$status" != "failed" ]] && continue
+    printf -- '- %s: %s\n' "$name" "$detail"
+    had_any=true
+  done
+
+  if ! $had_any; then
+    echo "- Bounded repair failed, but no concrete repair failure was recorded."
+  fi
+}
+
+coo_repair_label() {
+  local actions=()
+  coo_needs_install && actions+=("install dependencies")
+  (coo_needs_build || [[ ! -f "$(coo_memory_engine_client_artifact)" ]]) && actions+=("build artifacts")
+  printf 'COO: %s' "$(join_with_and "${actions[@]}")"
+}
+
+memory_engine_repair_label() {
+  local actions=()
+  memory_engine_needs_install && actions+=("install dependencies")
+  (memory_engine_needs_build || [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]]) && actions+=("build artifacts")
+  printf 'memory-engine: %s' "$(join_with_and "${actions[@]}")"
+}
+
+run_coo_repair_lane() {
+  if coo_needs_install; then
+    run_checked "$COO_DIR" "$NPM_CMD" install --no-fund --no-audit
+  fi
+
+  if coo_needs_build || [[ ! -f "$(coo_memory_engine_client_artifact)" ]]; then
+    run_checked "$COO_DIR" "$NPM_CMD" run build
+  fi
+}
+
+run_memory_engine_repair_lane() {
+  if memory_engine_needs_install; then
+    run_checked "$MEMORY_ENGINE_DIR" "$NPM_CMD" install --no-fund --no-audit
+  fi
+
+  if memory_engine_needs_build || [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]]; then
+    run_checked "$MEMORY_ENGINE_DIR" "$NPM_CMD" run build
+  fi
+}
+
+record_install_state_only() {
+  write_install_state "$(iso_now)"
+}
+
+auto_repair_needed() {
+  coo_needs_repair && return 0
+  memory_engine_needs_repair && return 0
+  needs_install_state_recording && return 0
+  return 1
+}
+
+run_auto_repair_flow() {
+  local repair_failed=0
+  reset_doctor_state
+  reset_status_tasks
+
+  if memory_engine_needs_repair; then
+    start_status_task \
+      "memory-engine repair" \
+      "$(memory_engine_repair_label)" \
+      "Repaired missing or stale memory-engine dependencies or artifacts." \
+      run_memory_engine_repair_lane
+  fi
+
+  if coo_needs_repair; then
+    start_status_task \
+      "COO repair" \
+      "$(coo_repair_label)" \
+      "Repaired missing or stale COO dependencies or artifacts." \
+      run_coo_repair_lane
+  fi
+
+  if (( ${#STATUS_TASK_LABELS[@]} > 0 )); then
+    echo "Repairing missing prerequisites..."
+    if ! monitor_status_tasks; then
+      repair_failed=1
+    fi
+  fi
+
+  if [[ $repair_failed -ne 0 ]]; then
+    return 1
+  fi
+
+  if needs_install_state_recording || (( ${#STATUS_TASK_LABELS[@]} > 0 )); then
+    local install_state_started_at
+    local install_state_completed_at
+    install_state_started_at="$(iso_now)"
+    if ! run_with_spinner "Recording install state..." record_install_state_only; then
+      install_state_completed_at="$(iso_now)"
+      add_repair "install state" "failed" "Failed to record successful install/bootstrap state." "$install_state_started_at" "$install_state_completed_at"
+      return 1
+    fi
+    install_state_completed_at="$(iso_now)"
+    add_repair "install state" "applied" "Recorded successful install/bootstrap state." "$install_state_started_at" "$install_state_completed_at"
+  fi
+
+  return 0
 }
 
 print_doctor_report() {
@@ -722,23 +1114,61 @@ print_install_report() {
 }
 
 run_install_route() {
-  local completed_at
+  if ! run_auto_repair_flow; then
+    die "Install/bootstrap repair failed."
+  fi
 
-  reset_doctor_state
-  repair_doctor_prerequisites || die "Install/bootstrap repair failed."
-  completed_at="$(iso_now)"
-  write_install_state "$completed_at"
-  print_install_report
+  echo "ADF install/bootstrap OK"
   echo ""
   run_runtime_preflight_route
 }
 
 run_launch_preflight() {
-  step "Runtime preflight"
-  if ! assert_runtime_preflight; then
-    die "Runtime preflight failed. Run ./adf.sh --runtime-preflight for details or ./adf.sh --install for bounded repair."
+  local report_path="$TMP_DIR/launch-runtime-preflight-$$.json"
+  local overall_status
+
+  mkdir -p "$TMP_DIR"
+
+  if ! run_with_spinner "Running preflight checks..." capture_runtime_preflight_to_file "$report_path"; then
+    if [[ ! -s "$report_path" ]]; then
+      die "Runtime preflight crashed before producing a report."
+    fi
   fi
-  info "Runtime preflight passed"
+
+  overall_status="$(runtime_preflight_status "$report_path")"
+
+  if [[ "$overall_status" != "fail" ]] && ! auto_repair_needed; then
+    echo "ADF preflight OK"
+    rm -f "$report_path"
+    return 0
+  fi
+
+  if auto_repair_needed; then
+    if ! run_auto_repair_flow; then
+      echo ""
+      print_repair_failures
+      rm -f "$report_path"
+      return 1
+    fi
+
+    if ! run_with_spinner "Running preflight checks..." capture_runtime_preflight_to_file "$report_path"; then
+      if [[ ! -s "$report_path" ]]; then
+        die "Runtime preflight crashed after bounded repair."
+      fi
+    fi
+
+    overall_status="$(runtime_preflight_status "$report_path")"
+  fi
+
+  if [[ "$overall_status" == "fail" ]]; then
+    echo ""
+    print_launch_blockers "$report_path"
+    rm -f "$report_path"
+    return 1
+  fi
+
+  echo "ADF preflight OK"
+  rm -f "$report_path"
 }
 
 launch_coo() {
