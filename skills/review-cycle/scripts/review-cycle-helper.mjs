@@ -54,6 +54,16 @@ const ARTIFACT_VALIDATION_RULES = {
 };
 
 const REPORT_ROLES = ["auditor", "reviewer"];
+const LANE_VERDICTS = new Set([
+  "unknown",
+  "approve",
+  "reject"
+]);
+const REVIEW_STRATEGY_MODES = new Set([
+  "full_pair",
+  "rejecting_lane_only",
+  "final_regression_sanity"
+]);
 const EXECUTION_ID_FIELDS = [
   "auditor_execution_id",
   "reviewer_execution_id",
@@ -159,9 +169,27 @@ function installBrokenPipeGuards() {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const command = args.positionals[0];
-  if (!command) {
-    fail("Missing command. Use 'prepare', 'update-state', 'record-event', or 'cycle-summary'.");
+  const command = args.positionals[0] ?? "help";
+
+  if (command === "help") {
+    printJson(await renderHelp({
+      repoRoot: normalizeRepoRoot(args.values["repo-root"] ?? "C:/ADF")
+    }));
+    return;
+  }
+
+  if (command === "get-settings") {
+    printJson(await getSettings({
+      repoRoot: normalizeRepoRoot(args.values["repo-root"] ?? "C:/ADF")
+    }));
+    return;
+  }
+
+  if (command === "list-features") {
+    printJson(await listFeatures({
+      repoRoot: normalizeRepoRoot(args.values["repo-root"] ?? "C:/ADF")
+    }));
+    return;
   }
 
   if (command === "prepare") {
@@ -215,6 +243,7 @@ async function main() {
       repoRoot: normalizeRepoRoot(args.values["repo-root"] ?? "C:/ADF"),
       event: requiredArg(args, "event"),
       role: args.values.role ?? null,
+      laneVerdict: args.values["lane-verdict"] ?? null,
       cycleNumber: args.values["cycle-number"] ?? null,
       timestamp: args.values.timestamp ?? null,
       note: args.values.note ?? null,
@@ -234,7 +263,145 @@ async function main() {
     return;
   }
 
-  fail("Unknown command '" + command + "'. Use 'prepare', 'update-state', 'record-event', or 'cycle-summary'.");
+  fail("Unknown command '" + command + "'. Use 'help', 'get-settings', 'list-features', 'prepare', 'update-state', 'record-event', or 'cycle-summary'.");
+}
+
+async function renderHelp(input) {
+  const settings = await getSettings({ repoRoot: input.repoRoot });
+  const features = await listFeatures({ repoRoot: input.repoRoot });
+
+  return {
+    command: "help",
+    repo_root: normalizeSlashes(input.repoRoot),
+    purpose: "Run one governed route-level audit, review, fix, verify, and closeout cycle for a feature stream, with truthful setup validation, persistent reviewer continuity, and optional multi-cycle closure mode.",
+    actions: ["help", "get-settings", "list-features", "run"],
+    required_inputs_for_run: ["phase_number", "feature_slug", "task_summary"],
+    optional_inputs: [
+      "repo_root",
+      "scope_hint",
+      "non_goals",
+      "auditor_model",
+      "reviewer_model",
+      "auditor_reasoning_effort",
+      "reviewer_reasoning_effort",
+      "until_complete",
+      "max_cycles"
+    ],
+    transparent_setup_behavior: "The main skill validates setup internally and auto-refreshes it with the internal review-cycle setup helper when setup is missing or invalid before reviewer or implementor work starts.",
+    current_settings_summary: settings.summary,
+    active_open_review_streams_summary: features.sections,
+    resume_note: "If a feature already has an incomplete cycle or a surfaced reviewer report, review-cycle resumes that state conservatively instead of starting a new cycle.",
+    pending_closeout_note: "If fix-report.md already exists for the active cycle, review-cycle finishes verification or git closeout before starting another review pass.",
+    split_verdict_note: "If one lane approves and the other rejects, the next cycle reruns only the rejecting lane. Once that lane clears, review-cycle requires one final regression_sanity pass from the previously approving lane before closure.",
+    until_complete_note: "When until_complete=true, review-cycle may continue automatically for up to max_cycles cycles. If max_cycles is omitted in that mode, default it to 5."
+  };
+}
+
+async function getSettings(input) {
+  const setupInfo = await loadSetup(input.repoRoot);
+  return {
+    command: "get-settings",
+    repo_root: normalizeSlashes(input.repoRoot),
+    setup_path: normalizeSlashes(setupInfo.path),
+    setup_exists: setupInfo.exists,
+    setup_complete: setupInfo.complete,
+    validation_errors: setupInfo.validation_errors,
+    validation_warnings: setupInfo.validation_warnings,
+    summary: {
+      preferred_execution_access_mode: setupInfo.data.preferred_execution_access_mode ?? null,
+      preferred_auditor_access_mode: setupInfo.data.preferred_auditor_access_mode ?? null,
+      preferred_reviewer_access_mode: setupInfo.data.preferred_reviewer_access_mode ?? null,
+      preferred_implementor_access_mode: setupInfo.data.preferred_implementor_access_mode ?? null,
+      fallback_execution_access_mode: setupInfo.data.fallback_execution_access_mode ?? null,
+      runtime_permission_model: setupInfo.data.runtime_permission_model ?? null,
+      execution_access_notes: setupInfo.data.execution_access_notes ?? null,
+      preferred_execution_runtime: setupInfo.data.preferred_execution_runtime ?? null,
+      preferred_control_plane_runtime: setupInfo.data.preferred_control_plane_runtime ?? setupInfo.data.preferred_execution_runtime ?? null,
+      persistent_execution_strategy: setupInfo.data.persistent_execution_strategy ?? null,
+      detected_runtime_capabilities: setupInfo.data.detected_runtime_capabilities ?? {}
+    }
+  };
+}
+
+async function listFeatures(input) {
+  const docsRoot = resolve(input.repoRoot, "docs");
+  const stateFiles = await findStateFiles(docsRoot, "review-cycle-state.json");
+  const entries = [];
+
+  for (const statePath of stateFiles) {
+    try {
+      const state = await readJson(statePath);
+      const runtimeStatus = validateRuntimeStatus(state.cycle_runtime?.status);
+      entries.push({
+        feature_registry_key: state.feature_agent_registry_key ?? buildRegistryKey(state.phase_number ?? "unknown", state.feature_slug ?? "unknown"),
+        phase_number: safeInteger(state.phase_number, 0),
+        feature_slug: state.feature_slug ?? null,
+        feature_root: normalizeSlashes(dirname(statePath)),
+        current_cycle_number: safeInteger(state.active_cycle_number ?? state.cycle_runtime?.cycle_number, 0),
+        current_cycle_name: state.cycle_runtime?.cycle_name ?? null,
+        cycle_runtime_status: runtimeStatus,
+        last_completed_cycle: safeInteger(state.last_completed_cycle, 0),
+        last_commit_sha: state.last_commit_sha ?? null,
+        current_branch: state.current_branch ?? null,
+        updated_at: state.updated_at ?? null
+      });
+    } catch (error) {
+      entries.push({
+        feature_registry_key: normalizeSlashes(dirname(statePath)),
+        phase_number: 0,
+        feature_slug: null,
+        feature_root: normalizeSlashes(dirname(statePath)),
+        current_cycle_number: 0,
+        current_cycle_name: null,
+        cycle_runtime_status: "invalid_or_unreadable",
+        last_completed_cycle: 0,
+        last_commit_sha: null,
+        current_branch: null,
+        updated_at: null,
+        validation_error: describeError(error)
+      });
+    }
+  }
+
+  const sortEntries = (items) =>
+    items.slice().sort((left, right) => String(right.updated_at ?? "").localeCompare(String(left.updated_at ?? "")));
+
+  const sections = {
+    open_or_in_progress: sortEntries(entries.filter((entry) =>
+      entry.cycle_runtime_status !== "completed"
+      && entry.cycle_runtime_status !== "fix_report_complete_commit_push_pending"
+      && entry.cycle_runtime_status !== "invalid_or_unreadable"
+    )),
+    pending_closeout: sortEntries(entries.filter((entry) => entry.cycle_runtime_status === "fix_report_complete_commit_push_pending")),
+    completed: sortEntries(entries.filter((entry) => entry.cycle_runtime_status === "completed")),
+    invalid_or_unreadable: sortEntries(entries.filter((entry) => entry.cycle_runtime_status === "invalid_or_unreadable")),
+    known_stream_count: entries.length
+  };
+
+  return {
+    command: "list-features",
+    repo_root: normalizeSlashes(input.repoRoot),
+    docs_root: normalizeSlashes(docsRoot),
+    sections
+  };
+}
+
+async function findStateFiles(rootPath, targetName) {
+  const matches = [];
+  const entries = await safeReaddir(rootPath);
+
+  for (const entry of entries) {
+    const childPath = join(rootPath, entry.name);
+    if (entry.isDirectory()) {
+      matches.push(...(await findStateFiles(childPath, targetName)));
+      continue;
+    }
+    if (entry.isFile() && entry.name === targetName) {
+      matches.push(childPath);
+    }
+  }
+
+  return matches;
 }
 
 async function prepareCycle(input) {
@@ -369,6 +536,7 @@ async function prepareCycle(input) {
   };
   const reportsReady = nextState.cycle_runtime?.report_ready ?? { auditor: false, reviewer: false };
   const reportsSurfaced = nextState.cycle_runtime?.report_surfaced ?? { auditor: false, reviewer: false };
+  const reviewStrategy = resolveReviewStrategy(nextState);
   const setupStatus = setupInfo.complete ? "ready" : setupInfo.exists ? "incomplete" : "missing";
   const nextAction = determineNextAction({
     setupStatus,
@@ -376,7 +544,8 @@ async function prepareCycle(input) {
     commitPushPending,
     currentCycleState,
     reportsReady,
-    reportsSurfaced
+    reportsSurfaced,
+    reviewStrategy
   });
 
   return {
@@ -410,7 +579,8 @@ async function prepareCycle(input) {
       fix_report_exists: fixReportExists,
       commit_push_pending: commitPushPending,
       artifact_status: activeArtifacts,
-      runtime: nextState.cycle_runtime
+      runtime: nextState.cycle_runtime,
+      review_strategy: reviewStrategy
     },
     prior_cycle: priorCycleDir
       ? {
@@ -434,7 +604,8 @@ async function prepareCycle(input) {
       auditor_model: nextState.auditor_model ?? null,
       reviewer_model: nextState.reviewer_model ?? null,
       auditor_reasoning_effort: nextState.auditor_reasoning_effort ?? null,
-      reviewer_reasoning_effort: nextState.reviewer_reasoning_effort ?? null
+      reviewer_reasoning_effort: nextState.reviewer_reasoning_effort ?? null,
+      split_review_continuity: nextState.split_review_continuity
     },
     continuity: {
       registry_entry_found: Boolean(registryEntry),
@@ -473,6 +644,7 @@ async function prepareCycle(input) {
       execution_actions: executionActions,
       report_ready: reportsReady,
       report_surfaced: reportsSurfaced,
+      review_strategy: reviewStrategy,
       recreated_due_to_weaker_access: recreateDueToWeakAccess,
       next_action: nextAction
     }
@@ -625,6 +797,7 @@ async function recordEvent(input) {
     state: synced,
     event: input.event,
     role: input.role,
+    laneVerdict: input.laneVerdict,
     timestamp,
     note: input.note
   });
@@ -725,6 +898,8 @@ async function cycleSummary(input) {
     verification_highlights: extractHighlights(fixReportText, "5. Proof Of Closure", 4),
     remaining_highlights: extractHighlights(fixReportText, "6. Remaining Debt / Non-Goals", 4),
     runtime,
+    review_strategy: resolveReviewStrategy(stateLoad.state),
+    split_review_continuity: stateLoad.state.split_review_continuity,
     state_repairs: stateLoad.repairs
   };
 }
@@ -761,6 +936,15 @@ function applyEvent(input) {
       runtime.cycle_started_at ??= timestamp;
       runtime.review_requested_at ??= timestamp;
       runtime.report_ready[input.role] = true;
+      if (input.laneVerdict !== null) {
+        runtime.lane_verdicts[input.role] = validateLaneVerdict(input.laneVerdict, "lane-verdict");
+        updateSplitReviewContinuity({
+          state,
+          role: input.role,
+          verdict: runtime.lane_verdicts[input.role],
+          timestamp
+        });
+      }
       if (input.role === "auditor") runtime.auditor_finished_at ??= timestamp;
       if (input.role === "reviewer") runtime.reviewer_finished_at ??= timestamp;
       runtime.status = runtime.report_ready.auditor && runtime.report_ready.reviewer
@@ -820,6 +1004,10 @@ function applyEvent(input) {
       runtime.cycle_finished_at ??= timestamp;
       runtime.status = "completed";
       state.last_completed_cycle = Math.max(safeInteger(state.last_completed_cycle, 0), runtime.cycle_number);
+      if (state.split_review_continuity?.mode === "final_regression_sanity"
+        && state.split_review_continuity?.final_sanity_completed) {
+        state.split_review_continuity = defaultSplitReviewContinuity();
+      }
       break;
 
     default:
@@ -863,6 +1051,10 @@ function syncCycleRuntime(input) {
     report_ready: reportReady,
     report_surfaced: reportSurfaced,
     report_surface_order: sanitizeReportSurfaceOrder(existing?.report_surface_order ?? [], reportSurfaced),
+    lane_verdicts: {
+      auditor: reportReady.auditor ? normalizeLaneVerdict(existing?.lane_verdicts?.auditor) : "unknown",
+      reviewer: reportReady.reviewer ? normalizeLaneVerdict(existing?.lane_verdicts?.reviewer) : "unknown"
+    },
     recreated_executions: {
       auditor: Boolean(existing?.recreated_executions?.auditor) || Boolean(input.recreateDueToWeakAccess.auditor),
       reviewer: Boolean(existing?.recreated_executions?.reviewer) || Boolean(input.recreateDueToWeakAccess.reviewer),
@@ -906,6 +1098,7 @@ function ensureCycleRuntime(state, cycleNumber, status) {
     report_ready: { auditor: false, reviewer: false },
     report_surfaced: { auditor: false, reviewer: false },
     report_surface_order: [],
+    lane_verdicts: { auditor: "unknown", reviewer: "unknown" },
     recreated_executions: { auditor: false, reviewer: false, implementor: false },
     last_note: null
   };
@@ -956,6 +1149,10 @@ function normalizeCycleRuntime(runtime) {
       reviewer: Boolean(runtime.report_surfaced?.reviewer)
     },
     report_surface_order: sanitizeReportSurfaceOrder(runtime.report_surface_order ?? [], runtime.report_surfaced ?? {}),
+    lane_verdicts: {
+      auditor: normalizeLaneVerdict(runtime.lane_verdicts?.auditor),
+      reviewer: normalizeLaneVerdict(runtime.lane_verdicts?.reviewer)
+    },
     recreated_executions: {
       auditor: Boolean(runtime.recreated_executions?.auditor),
       reviewer: Boolean(runtime.recreated_executions?.reviewer),
@@ -1001,6 +1198,225 @@ function decideExecutionAction(executionId, recreateDueToWeakAccess) {
   if (isFilled(executionId) && recreateDueToWeakAccess) return "recreate";
   if (isFilled(executionId)) return "resume";
   return "spawn";
+}
+
+function resolveReviewStrategy(state) {
+  const continuity = normalizeSplitReviewContinuity(state.split_review_continuity);
+  const runtime = normalizeCycleRuntime(state.cycle_runtime);
+
+  if (continuity.mode === "rejecting_lane_only" && continuity.rejecting_lane) {
+    return {
+      mode: continuity.mode,
+      review_kind: "delta",
+      requested_lanes: [continuity.rejecting_lane],
+      carried_forward_lanes: continuity.approving_lane ? [continuity.approving_lane] : [],
+      approving_lane: continuity.approving_lane,
+      rejecting_lane: continuity.rejecting_lane,
+      final_sanity_lane: null,
+      carried_from_cycle: continuity.carried_from_cycle,
+      final_sanity_completed: false,
+      review_requirement_satisfied: runtime.report_ready[continuity.rejecting_lane] && runtime.report_surfaced[continuity.rejecting_lane],
+      lane_verdicts: runtime.lane_verdicts,
+      note: continuity.note ?? "Reuse the previously approving lane as carried-forward evidence and rerun only the rejecting lane."
+    };
+  }
+
+  if (continuity.mode === "final_regression_sanity" && continuity.final_sanity_lane) {
+    return {
+      mode: continuity.mode,
+      review_kind: "regression_sanity",
+      requested_lanes: continuity.final_sanity_completed ? [] : [continuity.final_sanity_lane],
+      carried_forward_lanes: REPORT_ROLES.filter((role) => role !== continuity.final_sanity_lane),
+      approving_lane: continuity.approving_lane,
+      rejecting_lane: continuity.rejecting_lane,
+      final_sanity_lane: continuity.final_sanity_lane,
+      carried_from_cycle: continuity.carried_from_cycle,
+      final_sanity_completed: continuity.final_sanity_completed,
+      review_requirement_satisfied: continuity.final_sanity_completed
+        || (runtime.report_ready[continuity.final_sanity_lane] && runtime.report_surfaced[continuity.final_sanity_lane]),
+      lane_verdicts: runtime.lane_verdicts,
+      note: continuity.note ?? "Run one final regression_sanity pass from the previously approving lane before closure."
+    };
+  }
+
+  const requestedLanes = REPORT_ROLES.filter((role) => !runtime.report_ready[role]);
+  return {
+    mode: "full_pair",
+    review_kind: "full",
+    requested_lanes: requestedLanes,
+    carried_forward_lanes: [],
+    approving_lane: null,
+    rejecting_lane: null,
+    final_sanity_lane: null,
+    carried_from_cycle: null,
+    final_sanity_completed: false,
+    review_requirement_satisfied: runtime.report_ready.auditor
+      && runtime.report_ready.reviewer
+      && runtime.report_surfaced.auditor
+      && runtime.report_surfaced.reviewer,
+    lane_verdicts: runtime.lane_verdicts,
+    note: requestedLanes.length === 0
+      ? "The current cycle already has the required full-pair review evidence."
+      : "Run the auditor and reviewer in parallel unless one lane is already resumable."
+  };
+}
+
+function defaultSplitReviewContinuity() {
+  return {
+    mode: "full_pair",
+    approving_lane: null,
+    rejecting_lane: null,
+    final_sanity_lane: null,
+    carried_from_cycle: null,
+    final_sanity_completed: false,
+    updated_at: null,
+    note: null
+  };
+}
+
+function normalizeSplitReviewContinuity(value) {
+  if (!isPlainObject(value)) {
+    return defaultSplitReviewContinuity();
+  }
+
+  const next = {
+    mode: REVIEW_STRATEGY_MODES.has(value.mode) ? value.mode : "full_pair",
+    approving_lane: REPORT_ROLES.includes(value.approving_lane) ? value.approving_lane : null,
+    rejecting_lane: REPORT_ROLES.includes(value.rejecting_lane) ? value.rejecting_lane : null,
+    final_sanity_lane: REPORT_ROLES.includes(value.final_sanity_lane) ? value.final_sanity_lane : null,
+    carried_from_cycle: value.carried_from_cycle === null || value.carried_from_cycle === undefined
+      ? null
+      : safeInteger(value.carried_from_cycle, null),
+    final_sanity_completed: Boolean(value.final_sanity_completed),
+    updated_at: emptyToNull(value.updated_at),
+    note: emptyToNull(value.note)
+  };
+
+  if (next.mode === "rejecting_lane_only") {
+    if (!next.approving_lane || !next.rejecting_lane || next.approving_lane === next.rejecting_lane) {
+      return defaultSplitReviewContinuity();
+    }
+    next.final_sanity_lane = null;
+    next.final_sanity_completed = false;
+    return next;
+  }
+
+  if (next.mode === "final_regression_sanity") {
+    if (!next.final_sanity_lane) {
+      return defaultSplitReviewContinuity();
+    }
+    return next;
+  }
+
+  return defaultSplitReviewContinuity();
+}
+
+function normalizeLaneVerdict(value) {
+  return LANE_VERDICTS.has(value) ? value : "unknown";
+}
+
+function validateLaneVerdict(value, fieldName) {
+  if (!LANE_VERDICTS.has(value)) {
+    fail(fieldName + " must be one of: " + Array.from(LANE_VERDICTS).join(", ") + ".");
+  }
+  return value;
+}
+
+function updateSplitReviewContinuity(input) {
+  const state = input.state;
+  const continuity = normalizeSplitReviewContinuity(state.split_review_continuity);
+  const otherRole = REPORT_ROLES.find((role) => role !== input.role);
+  const otherVerdict = normalizeLaneVerdict(state.cycle_runtime?.lane_verdicts?.[otherRole]);
+
+  if (continuity.mode === "final_regression_sanity" && input.role === continuity.final_sanity_lane) {
+    if (input.verdict === "approve") {
+      state.split_review_continuity = {
+        ...continuity,
+        final_sanity_completed: true,
+        updated_at: input.timestamp,
+        note: "Split verdict cleared after final regression_sanity by " + continuity.final_sanity_lane + "."
+      };
+      return;
+    }
+
+    if (input.verdict === "reject") {
+      state.split_review_continuity = {
+        mode: "rejecting_lane_only",
+        approving_lane: otherRole,
+        rejecting_lane: input.role,
+        final_sanity_lane: null,
+        carried_from_cycle: state.active_cycle_number ?? state.cycle_runtime?.cycle_number ?? null,
+        final_sanity_completed: false,
+        updated_at: input.timestamp,
+        note: "Final regression_sanity reopened the split verdict. Rerun only the rejecting lane next cycle."
+      };
+      return;
+    }
+  }
+
+  if (continuity.mode === "rejecting_lane_only" && input.role === continuity.rejecting_lane) {
+    if (input.verdict === "approve") {
+      state.split_review_continuity = {
+        mode: "final_regression_sanity",
+        approving_lane: continuity.approving_lane,
+        rejecting_lane: continuity.rejecting_lane,
+        final_sanity_lane: continuity.approving_lane,
+        carried_from_cycle: continuity.carried_from_cycle ?? state.active_cycle_number ?? state.cycle_runtime?.cycle_number ?? null,
+        final_sanity_completed: false,
+        updated_at: input.timestamp,
+        note: "Rejecting lane cleared. One final regression_sanity pass is now required from the previously approving lane."
+      };
+      return;
+    }
+
+    if (input.verdict === "reject") {
+      state.split_review_continuity = {
+        ...continuity,
+        carried_from_cycle: state.active_cycle_number ?? state.cycle_runtime?.cycle_number ?? continuity.carried_from_cycle,
+        final_sanity_completed: false,
+        updated_at: input.timestamp,
+        note: "Rejecting lane still has open findings. Keep rerunning only that lane."
+      };
+      return;
+    }
+  }
+
+  if (otherVerdict === "unknown") {
+    return;
+  }
+
+  if (input.verdict === "approve" && otherVerdict === "reject") {
+    state.split_review_continuity = {
+      mode: "rejecting_lane_only",
+      approving_lane: input.role,
+      rejecting_lane: otherRole,
+      final_sanity_lane: null,
+      carried_from_cycle: state.active_cycle_number ?? state.cycle_runtime?.cycle_number ?? null,
+      final_sanity_completed: false,
+      updated_at: input.timestamp,
+      note: "Split verdict detected. Reuse the approving lane and rerun only the rejecting lane next cycle."
+    };
+    return;
+  }
+
+  if (input.verdict === "reject" && otherVerdict === "approve") {
+    state.split_review_continuity = {
+      mode: "rejecting_lane_only",
+      approving_lane: otherRole,
+      rejecting_lane: input.role,
+      final_sanity_lane: null,
+      carried_from_cycle: state.active_cycle_number ?? state.cycle_runtime?.cycle_number ?? null,
+      final_sanity_completed: false,
+      updated_at: input.timestamp,
+      note: "Split verdict detected. Reuse the approving lane and rerun only the rejecting lane next cycle."
+    };
+    return;
+  }
+
+  if ((input.verdict === "approve" && otherVerdict === "approve")
+    || (input.verdict === "reject" && otherVerdict === "reject")) {
+    state.split_review_continuity = defaultSplitReviewContinuity();
+  }
 }
 
 async function loadOrInitializeState(input) {
@@ -1054,7 +1470,8 @@ function normalizeStateObject(existing, defaults, repairs) {
       : {},
     created_at: emptyToNull(existing.created_at) ?? defaults.created_at,
     updated_at: emptyToNull(existing.updated_at) ?? defaults.updated_at,
-    cycle_runtime: existing.cycle_runtime ?? defaults.cycle_runtime
+    cycle_runtime: existing.cycle_runtime ?? defaults.cycle_runtime,
+    split_review_continuity: existing.split_review_continuity ?? defaults.split_review_continuity
   };
 
   if (!isPlainObject(existing.resolved_runtime_capabilities) && existing.resolved_runtime_capabilities !== undefined) {
@@ -1104,6 +1521,8 @@ function normalizeStateObject(existing, defaults, repairs) {
   } else {
     merged.cycle_runtime = null;
   }
+
+  merged.split_review_continuity = normalizeSplitReviewContinuity(existing.split_review_continuity);
 
   return merged;
 }
@@ -1156,6 +1575,7 @@ function defaultState(input) {
     last_commit_sha: input.inferredLastCommitSha ?? null,
     active_cycle_number: inferredCycle,
     cycle_runtime: null,
+    split_review_continuity: defaultSplitReviewContinuity(),
     created_at: nowIso(),
     updated_at: nowIso()
   };
@@ -1595,11 +2015,24 @@ function determineNextAction(input) {
   if (input.setupStatus !== "ready") return "auto_invoke_review_cycle_setup";
   if (input.commitPushPending) return "finish_verification_and_git_closeout";
   if (input.currentCycleState === "invalid_cycle_artifacts") return "clean_invalid_cycle_artifacts_and_restart_current_cycle";
+  for (const role of input.reviewStrategy.requested_lanes ?? []) {
+    if (input.reportsReady[role] && !input.reportsSurfaced[role]) {
+      return "surface_" + role + "_report_and_continue_wait";
+    }
+  }
   if (input.reportsReady.auditor && !input.reportsSurfaced.auditor) return "surface_auditor_report_and_continue_wait";
   if (input.reportsReady.reviewer && !input.reportsSurfaced.reviewer) return "surface_reviewer_report_and_continue_wait";
   if (Object.values(input.recreateDueToWeakAccess).some(Boolean)) return "recreate_execution_with_stronger_access_and_resume";
-  if (input.currentCycleState === "findings_ready_for_fix_planning") return "synthesize_fix_plan_and_resume_implementor";
   if (input.currentCycleState === "fix_planned_or_implementation_in_progress") return "finish_implementation_verification_and_fix_report";
+  if (input.reviewStrategy.mode === "final_regression_sanity") {
+    if (input.reviewStrategy.review_requirement_satisfied) return "close_split_verdict_after_regression_sanity";
+    return "request_final_regression_sanity_from_previously_approving_lane";
+  }
+  if (input.reviewStrategy.mode === "rejecting_lane_only") {
+    if (input.reviewStrategy.review_requirement_satisfied) return "synthesize_fix_plan_from_rejecting_lane_only";
+    return "request_rejecting_lane_only_and_carry_forward_prior_approval";
+  }
+  if (input.currentCycleState === "findings_ready_for_fix_planning") return "synthesize_fix_plan_and_resume_implementor";
   if (input.currentCycleState === "review_in_progress") return "resume_parallel_review_wait";
   return "send_cycle_request_to_auditor_and_reviewer";
 }

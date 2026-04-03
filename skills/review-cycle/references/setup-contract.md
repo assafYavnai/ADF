@@ -1,6 +1,7 @@
 # Review-Cycle Setup Contract
 
 Use this file to create or refresh `<project_root>/.codex/review-cycle/setup.json`.
+This contract is used internally by `review-cycle`; it is not a separate public skill surface.
 
 ## Detection order
 
@@ -147,7 +148,7 @@ Rules:
 Write or refresh setup.json:
 
 ```powershell
-node C:/Users/sufin/.codex/skills/review-cycle-setup/scripts/review-cycle-setup-helper.mjs write-setup `
+node C:/ADF/skills/review-cycle/scripts/review-cycle-setup-helper.mjs write-setup `
   --project-root C:/ADF `
   --runtime-permission-model codex_cli_explicit_full_auto `
   --preferred-execution-access-mode codex_cli_full_auto_bypass `

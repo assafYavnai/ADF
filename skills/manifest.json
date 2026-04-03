@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "shared_files": [
+    "governed-feature-runtime.mjs"
+  ],
+  "skills": [
+    {
+      "name": "review-cycle",
+      "legacy_public_names": [
+        "review-cycle-setup"
+      ],
+      "required_files": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/prompt-templates.md",
+        "references/setup-contract.md",
+        "references/workflow-contract.md",
+        "scripts/review-cycle-helper.mjs",
+        "scripts/review-cycle-setup-helper.mjs"
+      ]
+    },
+    {
+      "name": "implement-plan",
+      "legacy_public_names": [
+        "implement-plan-setup"
+      ],
+      "required_files": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/prompt-templates.md",
+        "references/setup-contract.md",
+        "references/workflow-contract.md",
+        "scripts/implement-plan-helper.mjs",
+        "scripts/implement-plan-setup-helper.mjs"
+      ]
+    }
+  ]
+}

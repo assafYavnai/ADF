@@ -19,6 +19,8 @@ Optional:
 - `reviewer_model`
 - `auditor_reasoning_effort`
 - `reviewer_reasoning_effort`
+- `until_complete` default `false`
+- `max_cycles` default `5` when `until_complete=true`
 
 ## Feature slug safety
 
@@ -38,6 +40,39 @@ Forbidden:
 - backslash-based path escape
 
 The helper must reject unsafe slugs instead of resolving them.
+
+## Help and discoverability
+
+Support these discoverability actions in the helper and main skill:
+
+- `help`
+- `get-settings`
+- `list-features`
+
+Rules:
+
+- if the skill is invoked without inputs, it must show concise help instead of failing
+- if `action=help` is requested, show concise help instead of starting a cycle
+- if `action=get-settings` is requested, show the resolved setup and runtime/access summary
+- if `action=list-features` is requested, show compact review-cycle stream status grouped by current cycle state
+
+Help output must include:
+
+- skill purpose
+- supported actions
+- required inputs for a normal run
+- optional inputs
+- transparent setup behavior summary
+- current settings summary
+- active/open review-cycle streams summary
+- resume and pending-closeout notes
+
+Because review-cycle does not own feature completion lifecycle status like implement-plan, `list-features` should group streams by current cycle state rather than by feature lifecycle status. At minimum support:
+
+- `open_or_in_progress`
+- `pending_closeout`
+- `completed`
+- `invalid_or_unreadable`
 
 ## Project artifacts
 
@@ -206,6 +241,16 @@ Persist this object shape:
   "last_completed_cycle": 0,
   "last_commit_sha": null,
   "active_cycle_number": 1,
+  "split_review_continuity": {
+    "mode": "full_pair",
+    "approving_lane": null,
+    "rejecting_lane": null,
+    "final_sanity_lane": null,
+    "carried_from_cycle": null,
+    "final_sanity_completed": false,
+    "updated_at": null,
+    "note": null
+  },
   "cycle_runtime": {
     "cycle_number": 1,
     "cycle_name": "cycle-01",
@@ -227,6 +272,10 @@ Persist this object shape:
       "reviewer": false
     },
     "report_surface_order": [],
+    "lane_verdicts": {
+      "auditor": "unknown",
+      "reviewer": "unknown"
+    },
     "recreated_executions": {
       "auditor": false,
       "reviewer": false,
@@ -246,6 +295,8 @@ Rules:
 - update `last_completed_cycle` only after the cycle is fully closed out
 - persist the actual access mode used for each execution, not only the preferred mode from setup
 - keep `cycle_runtime` focused on the active or pending-closeout cycle so resume detection stays conservative
+- persist split-review continuity separately from the current-cycle runtime so the next cycle can reuse the approving lane truthfully
+- record the per-lane verdict conservatively as `approve`, `reject`, or `unknown`
 - if state is malformed or unparsable, reinitialize it conservatively and repopulate missing continuity from the registry when possible
 
 ## Setup auto-invocation
@@ -255,12 +306,23 @@ Before spawning or reusing any execution, `review-cycle` must:
 1. load `<repo_root>/.codex/review-cycle/setup.json`
 2. validate that the required setup fields exist
 3. validate that setup enums and worker/control-plane runtime relationships are coherent
-4. if setup is missing, incomplete, unparsable, or incoherent, auto-invoke `$review-cycle-setup`
+4. if setup is missing, incomplete, unparsable, or incoherent, read `references/setup-contract.md` and run the internal `review-cycle-setup-helper.mjs`
 5. reload setup after setup completes
 6. resolve the strongest supported execution-access mode for auditor, reviewer, implementor, and helper executions
 7. record the resolved permission model and capabilities in `review-cycle-state.json`
 
 Do not continue to review or fix work with missing setup unless the runtime makes setup creation impossible. In that case, record the limitation and strongest fallback explicitly.
+
+## Loop mode
+
+Default behavior is one cycle per invocation.
+
+If `until_complete=true`:
+
+- default `max_cycles` to `5` unless the user provided another cap
+- continue automatically only while each completed cycle shows that another real fix pass is still required
+- stop immediately on setup or access failure, git closeout failure, unresolved contract ambiguity, or repeated rejection without material progress
+- when the cycle cap is reached, stop and surface the exact remaining open route work and current stream state
 
 ## Access-resolution rules
 
@@ -330,8 +392,10 @@ If `resume_agent` or equivalent execution reuse fails at runtime:
 - never overwrite a completed `fix-report.md`
 - if the current cycle already contains `fix-report.md` and `last_completed_cycle` is still lower than the current cycle number, treat the cycle as pending verification or commit or push closeout rather than starting another review pass
 - the fix report from cycle `N` is sent forward only on cycle `N+1`
-- if the current cycle already has one review report, reuse it and resume only the missing reviewer lane
-- if both review reports already exist for the current cycle, reuse them unless the user explicitly asks to regenerate
+- if the current cycle already has one review report, reuse it and resume only the missing required lane for the active strategy
+- if a prior cycle ended in a split verdict, carry the approving lane forward and rerun only the rejecting lane on the next cycle
+- if that rejecting lane clears, require one final `regression_sanity` pass from the previously approving lane before closure
+- if both required review reports already exist for the active strategy, reuse them unless the user explicitly asks to regenerate
 - when inferring already-completed history from disk and git, count only contiguous cycles whose artifacts are valid and cleanly tracked
 
 ## Artifact validity rule
@@ -351,6 +415,25 @@ If a malformed or interrupted artifact exists:
 - do not advance the cycle state from that file alone
 - surface the cycle as needing cleanup or regeneration before continuation
 
+## Split verdict handling
+
+If one review lane clears and the other does not:
+
+- persist `split_review_continuity.mode=rejecting_lane_only`
+- store which lane approved and which lane rejected
+- on the next cycle, request only the rejecting lane and carry the previously approving lane forward as reusable evidence
+- do not silently rerun the previously approving lane in that next cycle
+- when the rejecting lane later clears, switch continuity to `final_regression_sanity`
+- request one final `regression_sanity` pass from the previously approving lane
+- only after that final sanity pass clears may the split verdict be treated as fully resolved
+- if the final sanity lane rejects, flip the split so that lane becomes the only lane rerun on the next cycle
+
+Conservative approval mapping for helper state:
+
+- treat a lane as `approve` only when the invoker has actually reviewed the report and concluded no required fix remains for that lane
+- otherwise record `reject`
+- if the invoker cannot classify the report truthfully, leave the lane verdict as `unknown` and do not advance split-review continuity
+
 ## Review input pack
 
 Build the review request from:
@@ -369,6 +452,25 @@ Critical rule:
 
 - do not send the current cycle `fix-report.md` to auditor or reviewer in the same run
 
+## Task normalization gate
+
+If `task_summary` is already narrow and route-clean, keep it as-is.
+
+If it mixes route, proof, docs, persistence, recovery, telemetry, or lifecycle concerns, normalize it into one compact route contract before sending review or implementation work.
+
+The normalized contract must identify:
+
+- failure classes to close
+- claimed supported route
+- proof route required
+- mutation boundary
+- shared-surface risk boundary
+- docs in scope
+- non-goals
+
+Keep this compact.
+Do not create a second planning artifact just for normalization.
+
 ## Prompt-template rule
 
 The invoker must use the matching prompt template body from `references/prompt-templates.md` for:
@@ -378,6 +480,70 @@ The invoker must use the matching prompt template body from `references/prompt-t
 - implementor
 
 The invoker may wrap the template with cycle-specific context and file references, but it must not paraphrase away the required output headings or weaken the output contract.
+
+## Pre-code route-contract freeze
+
+Use `fix-plan.md` as the mandatory pre-code freeze artifact.
+Keep the existing exact headings.
+
+Do not let code changes start until `fix-plan.md` is valid and its sections freeze:
+
+- `1. Failure Classes`: the normalized failure classes to close
+- `2. Route Contracts`: claimed supported route, end-to-end invariants, allowed mutation surfaces, forbidden shared-surface expansion, and docs to update
+- `3. Sweep Scope`: sibling callers, adjacent routes, shared surfaces, and route boundaries to inspect
+- `4. Planned Changes`: the minimal layers to change and any new power being introduced
+- `5. Closure Proof`: proof route, negative proof required, live/proof isolation checks, and targeted regression checks
+- `6. Non-Goals`: explicit out-of-scope work
+
+A valid heading structure alone is not enough.
+The invoker must reject a thin or endpoint-only freeze.
+
+## Shared-surface and new-power gate
+
+If the fix adds or broadens any shared capability such as:
+
+- env var
+- schema field
+- `workflow_status` or lifecycle field
+- controller argument
+- generic create/update path
+- shared helper behavior
+- reusable mutation surface
+
+Then before coding the plan must say:
+
+- who may set it
+- who must not set it
+- what sibling routes or callers could misuse it
+- what negative proof will show misuse is blocked
+
+Happy-path proof alone cannot close such a change.
+
+## Live-route vs proof-route isolation gate
+
+For any route closure, especially when proof uses harnesses or toggles, inspect:
+
+- proof or test seams contaminating live bootstrap
+- env vars or harness knobs that can silently alter production behavior
+- proof paths that are stronger or weaker than the claimed supported runtime path
+
+If isolation is not shown, closure stays open.
+
+## Claimed-route vs proved-route closure gate
+
+Before closure, compare:
+
+- claimed supported route
+- route actually mutated by the code
+- route actually exercised by proof
+
+If these do not match, the reviewer must mark the fix `Partial` or `Open` and name the remaining gap.
+
+## Regression forecast gate
+
+Before coding, the plan must name the most likely regressions the fix could create and the targeted checks that will guard them.
+
+Shared-surface changes must forecast sibling misuse, lifecycle drift, bootstrap contamination, or proof-only path drift when relevant.
 
 ## Detected-status summary format
 
@@ -394,6 +560,8 @@ Before taking action, print a short summary that states:
 - whether any existing execution had to be recreated because of weaker access mode
 - which cached execution IDs will be resumed for auditor, reviewer, and implementor
 - which reviewer reports are already ready and already surfaced
+- which `review_strategy` is active: `full_pair`, `rejecting_lane_only`, or `final_regression_sanity`
+- which lane is being carried forward and which lane must still run, when split-review continuity is active
 - whether setup has validation errors or warnings
 - what the skill will do next
 
@@ -428,6 +596,14 @@ Implementation remains route-level. Keep this rule unchanged:
 Also enforce this rule:
 
 - You must also update all materially affected authoritative documentation in the same cycle, and you must run under the strongest available autonomous access mode supported by the current Codex runtime so the workflow does not stall on permission prompts.
+
+Additional implementation gates:
+
+- `fix-plan.md` must be created or updated before code changes and must satisfy the pre-code route-contract freeze
+- if a shared surface changes, require explicit new-power analysis and negative proof before closure
+- if proof relies on a seam, harness, toggle, or env knob, require live-route vs proof-route isolation evidence
+- if claimed supported route, mutated route, and proved route do not match, keep the fix open
+- require pre-code regression forecasting with targeted checks, not only post-hoc verification
 
 Affected authoritative docs may include:
 
@@ -493,7 +669,7 @@ When `review-cycle` is called without valid setup info:
 
 1. detect missing, invalid, or inconsistent setup from `<repo_root>/.codex/review-cycle/setup.json`
 2. print a status summary that says setup is missing, invalid, or incomplete and that setup will be auto-created or refreshed
-3. run `$review-cycle-setup`
+3. run `node C:/ADF/skills/review-cycle/scripts/review-cycle-setup-helper.mjs write-setup ...`
 4. persist setup.json
 5. reload setup and continue the cycle using the resolved execution-access modes
 
@@ -514,14 +690,38 @@ When the next invocation starts cycle `N+1` for the same feature stream:
 - reuse the cached auditor, reviewer, and implementor execution IDs from state or registry
 - resume those same executions instead of spawning fresh ones
 - send the prior cycle `fix-report.md` forward as reviewer context for cycle `N+1`
+- if there is no split verdict continuity, request both review lanes as usual
+- if the prior cycle ended with one lane approved and one lane rejected, request only the rejecting lane and carry the approving lane forward
+- if the rejecting lane later clears, request only the final `regression_sanity` lane from the previously approving side
 - keep the same execution IDs unless they are broken or under-permissioned
 
 ## Helper commands
 
+Render help and current review-cycle stream summary:
+
+```powershell
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs help `
+  --repo-root C:/ADF
+```
+
+Render resolved settings summary:
+
+```powershell
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs get-settings `
+  --repo-root C:/ADF
+```
+
+Render compact feature-stream summary:
+
+```powershell
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs list-features `
+  --repo-root C:/ADF
+```
+
 Prepare or resume the current cycle and return status summary data:
 
 ```powershell
-node C:/Users/sufin/.codex/skills/review-cycle/scripts/review-cycle-helper.mjs prepare `
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs prepare `
   --phase-number 1 `
   --feature-slug example-feature `
   --task-summary "Close the route-level defect class." `
@@ -531,7 +731,7 @@ node C:/Users/sufin/.codex/skills/review-cycle/scripts/review-cycle-helper.mjs p
 Update cached execution IDs, access modes, branch, or commit metadata:
 
 ```powershell
-node C:/Users/sufin/.codex/skills/review-cycle/scripts/review-cycle-helper.mjs update-state `
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs update-state `
   --phase-number 1 `
   --feature-slug example-feature `
   --repo-root C:/ADF `
@@ -550,18 +750,19 @@ node C:/Users/sufin/.codex/skills/review-cycle/scripts/review-cycle-helper.mjs u
 Record lifecycle events for the active cycle:
 
 ```powershell
-node C:/Users/sufin/.codex/skills/review-cycle/scripts/review-cycle-helper.mjs record-event `
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs record-event `
   --phase-number 1 `
   --feature-slug example-feature `
   --repo-root C:/ADF `
   --event report-ready `
-  --role auditor
+  --role auditor `
+  --lane-verdict approve
 ```
 
 Render the final cycle summary:
 
 ```powershell
-node C:/Users/sufin/.codex/skills/review-cycle/scripts/review-cycle-helper.mjs cycle-summary `
+node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs cycle-summary `
   --phase-number 1 `
   --feature-slug example-feature `
   --repo-root C:/ADF
