@@ -1,0 +1,92 @@
+You are the review-cycle reviewer for `phase1/coo-natural-conversation-rendering`, `cycle-01`.
+
+Repository root: `C:/ADF`
+Branch: `main`
+Commit under review: `bd37f0fcc744306aa945a18c2a07f88c15fc5796`
+Cycle artifact root: `C:/ADF/docs/phase1/coo-natural-conversation-rendering/cycle-01`
+
+Read these authoritative inputs before writing the report:
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/context.md`
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/implement-plan-contract.md`
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/implement-plan-brief.md`
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/completion-summary.md`
+- `C:/ADF/docs/phase1/requirements-gathering/context.md`
+- `C:/ADF/docs/phase1/onion-live-integration-report.md`
+- `C:/ADF/docs/v0/components-and-layers.md`
+- `C:/ADF/docs/v0/folder-structure.md`
+- `C:/ADF/COO/requirements-gathering/live/onion-live.ts`
+- `C:/ADF/COO/requirements-gathering/engine/conversation-state.ts`
+- `C:/ADF/COO/requirements-gathering/engine/conversation-renderer.ts`
+- `C:/ADF/COO/requirements-gathering/engine/conversation-renderer.test.ts`
+- `C:/ADF/COO/requirements-gathering/onion-lane.test.ts`
+- `C:/ADF/tests/integration/onion-route.runtime-proof.ts`
+- `C:/ADF/tests/integration/artifacts/onion-route-proof/report.json`
+
+Task summary:
+Replace shallow COO requirements-gathering replies that expose raw internal state with natural human-facing replies derived from onion state, while preserving one-question-at-a-time clarification, approval/freeze flow, and existing requirement artifact behavior.
+
+For this first cycle there is no current-cycle audit artifact yet. Use these failure classes as the audited failure classes to evaluate:
+- raw internal slot-dump CEO replies leaking internal structure on the supported requirements-gathering onion route
+- missing or weak derived conversation-state projection contract between onion truth and CEO-facing rendering
+- regression risk across sibling CEO-facing branches: blocked/no-scope, reflect-and-confirm, ready-for-approval, approved/frozen, and reopen-after-freeze
+
+Claimed supported route:
+`CEO input -> classifier -> requirements_gathering_onion -> onion state/readiness facts -> conversation-state derivation -> natural response render -> CLI/thread output`
+
+Important review constraints:
+- Treat the observed shallow slot-dump reply as evidence of a failure class, not the whole scope.
+- Sweep the full supported CEO-facing onion reply route and sibling branches for the same contract break.
+- Do not accept an endpoint-only fix.
+- Conversation state must remain derived from existing onion/readiness/approval/blocker facts, not a second persisted truth model.
+- Preserve one-question-at-a-time clarification, explicit freeze approval, approved/frozen behavior, blocked behavior, reopen-after-freeze behavior, requirement artifact creation/finalization, thread persistence, and lock/freeze semantics.
+- Prove the fix on the live supported route, not only through isolated helpers.
+- Keep the review bounded to the COO requirements-gathering onion lane.
+
+Review the implementation against the audit as a route-closure review, not a diff review.
+
+Create exactly 3 sections:
+
+1. Closure Verdicts
+For each audited failure class, mark:
+- Closed / Partial / Open
+
+And include:
+- enforced route invariant
+- evidence shown
+- missing proof
+- sibling sites still uncovered
+- whether broader shared power was introduced and whether that was justified
+- whether negative proof exists where required
+- whether live-route vs proof-route isolation is shown
+- claimed supported route / route mutated / route proved
+- whether the patch is route-complete or endpoint-only
+
+If there are no audited failure classes left open or partial, write:
+- None.
+
+2. Remaining Root Cause
+State what system-level contract or policy is still missing or only partially enforced.
+
+If no root cause remains, write:
+- None.
+
+3. Next Minimal Fix Pass
+List only the smallest end-to-end routes that still need changes.
+For each one, state:
+- what still breaks
+- what minimal additional layers must change
+- what proof is still required
+
+If no further fix pass is required, write:
+- None.
+
+Reject the fix as incomplete if:
+- it patches cited lines but not sibling instances of the same failure class
+- it changes behavior without proving the invariant end to end
+- it introduces broader shared power without naming who may and may not use it
+- it changes a shared surface without negative proof
+- the proved route does not match the claimed supported route
+- proof seams, toggles, or harness knobs contaminate the live route
+- it widens scope into broad refactoring without necessity
+- it treats historical debt as if it were a live route closure
+- it claims closure without concrete proof

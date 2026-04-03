@@ -1,0 +1,90 @@
+You are the review-cycle auditor for `phase1/coo-natural-conversation-rendering`, `cycle-01`.
+
+Repository root: `C:/ADF`
+Branch: `main`
+Commit under review: `bd37f0fcc744306aa945a18c2a07f88c15fc5796`
+Cycle artifact root: `C:/ADF/docs/phase1/coo-natural-conversation-rendering/cycle-01`
+
+Read these authoritative inputs before writing the report:
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/context.md`
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/implement-plan-contract.md`
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/implement-plan-brief.md`
+- `C:/ADF/docs/phase1/coo-natural-conversation-rendering/completion-summary.md`
+- `C:/ADF/docs/phase1/requirements-gathering/context.md`
+- `C:/ADF/docs/phase1/onion-live-integration-report.md`
+- `C:/ADF/docs/v0/components-and-layers.md`
+- `C:/ADF/docs/v0/folder-structure.md`
+- `C:/ADF/COO/requirements-gathering/live/onion-live.ts`
+- `C:/ADF/COO/requirements-gathering/engine/conversation-state.ts`
+- `C:/ADF/COO/requirements-gathering/engine/conversation-renderer.ts`
+- `C:/ADF/COO/requirements-gathering/engine/conversation-renderer.test.ts`
+- `C:/ADF/COO/requirements-gathering/onion-lane.test.ts`
+- `C:/ADF/tests/integration/onion-route.runtime-proof.ts`
+- `C:/ADF/tests/integration/artifacts/onion-route-proof/report.json`
+
+Task summary:
+Replace shallow COO requirements-gathering replies that expose raw internal state with natural human-facing replies derived from onion state, while preserving one-question-at-a-time clarification, approval/freeze flow, and existing requirement artifact behavior.
+
+Claimed supported route:
+`CEO input -> classifier -> requirements_gathering_onion -> onion state/readiness facts -> conversation-state derivation -> natural response render -> CLI/thread output`
+
+Important review constraints:
+- Treat the observed shallow slot-dump reply as evidence of a failure class, not the whole scope.
+- Sweep the full supported CEO-facing onion reply route and sibling branches for the same contract break.
+- Do not accept an endpoint-only fix.
+- Conversation state must remain derived from existing onion/readiness/approval/blocker facts, not a second persisted truth model.
+- Preserve one-question-at-a-time clarification, explicit freeze approval, approved/frozen behavior, blocked behavior, reopen-after-freeze behavior, requirement artifact creation/finalization, thread persistence, and lock/freeze semantics.
+- Prove the fix on the live supported route, not only through isolated helpers.
+- Keep the review bounded to the COO requirements-gathering onion lane.
+
+Audit the current implementation state from a system-route view.
+
+If a prior cycle fix-report exists, treat it as context, not as proof that closure already happened.
+
+Create exactly 3 sections:
+
+1. Findings
+List current findings, highest severity first.
+For each finding include:
+- failure class
+- broken route invariant in one sentence
+- exact route (A -> B -> C)
+- exact file/line references
+- concrete operational impact
+- sweep scope: what sibling paths/components must be checked for the same pattern
+- closure proof: what tests/runtime evidence/DB proof must exist before this can be called closed
+- shared-surface expansion risk: none / present and where
+- negative proof required: what sibling or adjacent misuse must be disproved
+- live/proof isolation risk: none / present and why
+- claimed-route vs proved-route mismatch risk: none / present and why
+- status: live defect / regression / historical debt / policy edge case
+
+If there are no findings, write:
+- None.
+
+2. Conceptual Root Cause
+State the system-level causes that created the issues.
+Group findings by missing contract or policy, not by file.
+Explain what route-level invariant was missing or unenforced.
+
+If there is no remaining root cause, write:
+- None.
+
+3. High-Level View Of System Routes That Still Need Work
+List the end-to-end routes that still need attention.
+For each route include:
+- what must be frozen before implementation
+- why endpoint-only fixes will fail
+- the minimal layers that must change to close the route
+- explicit non-goals, so scope does not widen into general refactoring
+- what done looks like operationally
+
+If no routes still need work, write:
+- None.
+
+Important:
+- Do not stop at the cited endpoint.
+- Sweep for sibling instances of the same failure class in one pass.
+- Prefer the smallest route-contract fix that closes the class.
+- Do not treat the cited files as the scope of the bug.
+- Do not mark something closed just because the previous cycle said it was fixed.

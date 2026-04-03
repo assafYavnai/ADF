@@ -1,64 +1,64 @@
 {
-  "id": "6a222e10-649e-4501-b0c7-59caf5db1a79",
+  "id": "866a77c5-7502-49bf-b83d-ca6af49751e0",
   "events": [
     {
       "type": "user_input",
       "data": {
-        "message": "execution monitor telemetry owner blockers total latency token spend"
+        "message": "show the current queue guidance even if Brain search is slow and fails"
       },
-      "timestamp": "2026-04-03T10:27:50.315Z",
-      "id": "7d7c6278-755f-492f-92c1-1064871464d1",
+      "timestamp": "2026-04-03T10:43:01.509Z",
+      "id": "6d826693-70d7-4be9-bbde-0f2ca3df9f0e",
       "provenance": {
-        "invocation_id": "b81d8e9d-2206-4e7d-bf1f-e9509a0279a8",
+        "invocation_id": "74907d84-37cb-43b6-8f38-d7774cf03ecc",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T10:27:50.313Z"
+        "timestamp": "2026-04-03T10:43:01.508Z"
       }
     },
     {
       "type": "classifier_result",
       "data": {
-        "intent": "summarize the scoped monitoring guidance",
+        "intent": "answer despite a Brain lookup failure",
         "confidence": 0.99,
         "workflow": "direct_coo_response",
-        "reasoning": "Route \"execution monitor telemetry owner blockers total latency token spend\" into a direct COO response lane."
+        "reasoning": "Route \"show the current queue guidance even if Brain search is slow and fails\" into a direct COO response lane."
       },
-      "timestamp": "2026-04-03T10:27:50.317Z",
-      "id": "37b738b8-67d8-46e8-87b4-fbff4358eb51",
+      "timestamp": "2026-04-03T10:43:01.510Z",
+      "id": "12486b08-5070-43cd-a228-862a3411762e",
       "provenance": {
-        "invocation_id": "f0082dcb-6486-40da-bf26-f52b149f4b3b",
+        "invocation_id": "fd8836ab-e661-425a-99a3-fb3f232a9522",
         "provider": "codex",
         "model": "gpt-5.3-codex-spark",
         "reasoning": "medium",
         "was_fallback": false,
-        "source_path": "COO/classifier/classify/6a222e10-649e-4501-b0c7-59caf5db1a79",
-        "timestamp": "2026-04-03T10:27:50.317Z"
+        "source_path": "COO/classifier/classify/866a77c5-7502-49bf-b83d-ca6af49751e0",
+        "timestamp": "2026-04-03T10:43:01.510Z"
       }
     },
     {
       "type": "coo_response",
       "data": {
-        "message": "Queue telemetry should show owner, current stage, blockers, total latency, and token spend in one place."
+        "message": "The Brain lookup failed, but the COO still responded from live context and explicit warning text."
       },
-      "timestamp": "2026-04-03T10:27:50.471Z",
-      "id": "2f699f84-6def-402e-922b-190edbd0b99d",
+      "timestamp": "2026-04-03T10:43:01.544Z",
+      "id": "5cad5c76-1469-4b8d-8506-ad49073dac0e",
       "provenance": {
-        "invocation_id": "76849f77-e4a3-4b81-a48d-0638232ce9ca",
+        "invocation_id": "a36227d4-2249-41db-b6cc-1244ce0167a9",
         "provider": "codex",
         "model": "gpt-5.4",
         "reasoning": "xhigh",
         "was_fallback": false,
         "source_path": "COO/intelligence/respond",
-        "timestamp": "2026-04-03T10:27:50.471Z"
+        "timestamp": "2026-04-03T10:43:01.544Z"
       }
     },
     {
       "type": "state_commit",
       "data": {
-        "summary": "Completed turn via direct_coo_response. Response: Queue telemetry should show owner, current stage, blockers, total latency, and token spend in one place.",
+        "summary": "Completed turn via direct_coo_response. Response: The Brain lookup failed, but the COO still responded from live context and explicit warning text.",
         "openLoops": [],
         "decisions": [],
         "sessionHandles": {
@@ -76,21 +76,21 @@
           }
         }
       },
-      "timestamp": "2026-04-03T10:27:50.471Z",
-      "id": "8d82f642-f0ef-482e-bfe2-c78e1ec0eb03",
+      "timestamp": "2026-04-03T10:43:01.544Z",
+      "id": "6e874459-834d-4655-b7b0-0bbf4cba9adb",
       "provenance": {
-        "invocation_id": "b81d8e9d-2206-4e7d-bf1f-e9509a0279a8",
+        "invocation_id": "74907d84-37cb-43b6-8f38-d7774cf03ecc",
         "provider": "system",
         "model": "none",
         "reasoning": "none",
         "was_fallback": false,
         "source_path": "COO/controller/handle-turn",
-        "timestamp": "2026-04-03T10:27:50.313Z"
+        "timestamp": "2026-04-03T10:43:01.508Z"
       }
     }
   ],
-  "createdAt": "2026-04-03T10:27:50.314Z",
-  "updatedAt": "2026-04-03T10:27:50.471Z",
+  "createdAt": "2026-04-03T10:43:01.508Z",
+  "updatedAt": "2026-04-03T10:43:01.544Z",
   "status": "active",
   "scopePath": "assafyavnai/shippingagent",
   "workflowState": {
