@@ -10,15 +10,20 @@
 
 ## Task Summary
 
-Enforce the system-wide KPI instrumentation rule across `implement-plan` and `review-cycle` so applicable implementation slices cannot close without explicit KPI coverage, KPI proof, or an approved time-bounded exception.
+Harden `implement-plan` and `merge-queue` so approved-commit freeze, queue recovery, canonical root handling, clean target sync, and human-facing closeout failures are deterministic and no longer depend on dirty tracked feature artifacts after approval.
 
 ## Scope Hint
 
-Tighten `implement-plan` and `review-cycle` contracts, prompt templates, helper validation, and closeout reporting so KPI applicability, KPI contract freezing, KPI closure verdicts, and temporary exception handling become explicit workflow gates instead of soft guidance.
+Keep the slice bounded to repo-owned workflow authorities and helper code:
+
+- `implement-plan` state/index behavior at merge-ready handoff
+- `merge-queue` enqueue/process/retry/requeue behavior
+- shared runtime helpers only where canonical-root inference or subprocess failure reporting are truly shared
+- feature artifacts required to keep the slice truthful and human-facing
 
 ## Non-Goals
 
-Do not widen into COO runtime KPI route changes, dashboard/reporting UI, or unrelated workflow redesign outside KPI gating and human-facing report quality for these skills.
+Do not widen into COO runtime KPI route changes, product telemetry work, or unrelated workflow redesign outside approved-commit handoff, merge-queue recovery, canonical roots, and truthful closeout reporting.
 
 ## Discovered Authorities
 
@@ -29,11 +34,15 @@ Do not widen into COO runtime KPI route changes, dashboard/reporting UI, or unre
 - [skill-doc] C:/ADF/skills/implement-plan/references/workflow-contract.md
 - [skill-doc] C:/ADF/skills/implement-plan/references/prompt-templates.md
 - [skill-doc] C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs
-- [skill-doc] C:/ADF/skills/review-cycle/SKILL.md
-- [skill-doc] C:/ADF/skills/review-cycle/references/workflow-contract.md
-- [skill-doc] C:/ADF/skills/review-cycle/references/prompt-templates.md
+- [skill-doc] C:/ADF/skills/merge-queue/SKILL.md
+- [skill-doc] C:/ADF/skills/merge-queue/references/workflow-contract.md
+- [skill-doc] C:/ADF/skills/merge-queue/references/prompt-templates.md
+- [skill-doc] C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs
+- [skill-doc] C:/ADF/skills/governed-feature-runtime.mjs
 
 ## Notes
 
 - This slice is meta-governance work for repo-owned skills.
+- The current merged KPI slice proved that merge success and local root cleanliness must be separated because queue state recorded `local_target_sync_status=skipped_dirty_checkout` even though `origin/main` was correct.
+- The current merge-queue helper still depends on tracked feature-state rewrites after enqueue or merge, which is the main source of the local dirty-state regression being fixed here.
 - Brain route artifacts are present according to runtime preflight, but the `project-brain` MCP tool surface is not exposed in this Codex runtime, so repo-backed authority files are used when Brain capture is required.

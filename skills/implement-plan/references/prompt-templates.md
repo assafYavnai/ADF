@@ -128,6 +128,8 @@ Rules:
 - if `Human Verification Plan` says `Required: true`, do not proceed unless the slice is configured to hand off to `review-cycle`
 - if human verification is required, the implementation is not ready to close until the testing-phase handoff is prepared in the required fixed shape
 - treat review approval as merge-ready state, not final completion
+- when the slice reaches merge-ready state, freeze `approved_commit_sha` from truthful `last_commit_sha` evidence
+- do not rely on post-approval tracked feature-artifact rewrites to mirror queue or merge progress
 - update authoritative docs when materially affected
 - if a supposedly trusted input is malformed or contradictory, stop and say so instead of guessing
 
@@ -151,6 +153,7 @@ Rules:
 - headings must appear in the listed order
 - if a section is empty, write `None.`
 - do not claim completion if commit or push failed
+- if merge has not happened yet, say so plainly instead of implying that feature-branch push equals merged closure
 - section `4. Verification Evidence` must clearly distinguish:
   - `Machine Verification`
   - `Human Verification Requirement`
@@ -159,6 +162,7 @@ Rules:
   - `Merge Status`
   - `Local Target Sync Status`
   - concrete evidence
+- if local operational merge state lives in `.codex`, say that explicitly instead of pretending the tracked feature artifacts were rewritten after approval
 
 ## Normalized implementation contract template
 

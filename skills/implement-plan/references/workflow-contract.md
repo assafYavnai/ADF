@@ -236,6 +236,7 @@ Persist this shape under the feature root:
   "phase_number": 1,
   "feature_slug": "example-feature",
   "project_root": "C:/ExampleProject",
+  "execution_project_root": "C:/ExampleProject/.codex/implement-plan/worktrees/phase1/example-feature",
   "feature_registry_key": "phase1/example-feature",
   "feature_status": "active",
   "implementor_execution_id": null,
@@ -267,6 +268,7 @@ Rules:
 
 - state repairs must be conservative and explicit
 - merge continuity from `agent-registry.json` when safe
+- keep committed `project_root` canonical to the repo root even when execution is happening inside a dedicated feature worktree
 - do not mark the slice completed until git push succeeds, unless a clearly pending-closeout status is persisted
 
 ## Supported active_run_status values
@@ -407,6 +409,8 @@ Rules:
 - when code changes after human approval, any sanity-pass fix must preserve approved human-facing behavior or the human approval becomes stale
 - implementation, machine verification, and review-cycle all operate against the dedicated feature worktree rather than the shared base checkout
 - approval on the feature branch is merge-ready state, not completed state
+- `merge-ready` must freeze `approved_commit_sha` from truthful `last_commit_sha` evidence instead of depending on a later manual handoff
+- after approval, local queue and merge progress belongs in `.codex` operational state; do not dirty tracked feature artifacts just to mirror queue progress or merge success
 
 ## Human-testing handoff rule
 
@@ -484,7 +488,8 @@ Therefore:
 - if `post_send_to_review=true` and `review_until_complete=true`, pass `until_complete=true` to `review-cycle` and let `review-cycle` default `max_cycles` to `5` unless `review_max_cycles` was supplied
 - if human verification is required, do not mark the feature completed until the human-testing phase and any required post-human-approval sanity review are both satisfied
 - after approval gates are satisfied, enqueue the exact approved commit in `merge-queue`
-- do not mark the feature completed until `merge-queue` updates the feature to merged and completion closeout succeeds
+- freeze `approved_commit_sha` when the feature reaches merge-ready state
+- let `merge-queue` update local `.codex` operational closeout state after approval instead of rewriting tracked feature artifacts post-push
 
 `action=mark-complete`
 
@@ -502,6 +507,7 @@ Successful implementation is not final until:
 - feature-branch changes are pushed to origin
 - the approved commit is merged into the target branch
 - target-branch sync state is recorded truthfully
+- post-approval queue and merge progress is stored in local `.codex` state, not by rewriting tracked feature artifacts after push
 
 If commit or push fails:
 

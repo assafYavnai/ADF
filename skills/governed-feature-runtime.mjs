@@ -365,6 +365,23 @@ export function normalizeProjectRoot(value) {
   return normalizeSlashes(resolve(value));
 }
 
+export function inferCanonicalProjectRoot(value) {
+  const normalized = normalizeProjectRoot(value);
+  const markers = [
+    "/.codex/implement-plan/worktrees/",
+    "/.codex/merge-queue/worktrees/"
+  ];
+
+  for (const marker of markers) {
+    const index = normalized.indexOf(marker);
+    if (index > 0) {
+      return normalized.slice(0, index);
+    }
+  }
+
+  return normalized;
+}
+
 export function normalizeSlashes(value) {
   return String(value).replace(/\\/g, "/");
 }
@@ -458,6 +475,32 @@ export function describeError(error) {
   return String(error);
 }
 
+export function formatCommandFailure(command, args, result, fallbackMessage = "Command failed.") {
+  const renderedArgs = Array.isArray(args) ? args.join(" ") : String(args ?? "");
+  const lines = [fallbackMessage, "Command: " + String(command) + (renderedArgs ? " " + renderedArgs : "")];
+
+  if (result?.status !== undefined && result?.status !== null) {
+    lines.push("Exit Status: " + String(result.status));
+  }
+  if (result?.signal) {
+    lines.push("Signal: " + String(result.signal));
+  }
+  if (result?.timed_out) {
+    lines.push("Timed Out: true");
+  }
+  if (isFilled(result?.spawn_error)) {
+    lines.push("Spawn Error: " + String(result.spawn_error));
+  }
+  if (isFilled(result?.stderr)) {
+    lines.push("Stderr: " + String(result.stderr));
+  }
+  if (isFilled(result?.stdout)) {
+    lines.push("Stdout: " + String(result.stdout));
+  }
+
+  return lines.join("\n");
+}
+
 export function printJson(value) {
   process.stdout.write(JSON.stringify(value, null, 2) + "\n");
 }
@@ -500,13 +543,19 @@ export function gitRun(projectRoot, args, options = {}) {
     return {
       status: result.status ?? 1,
       stdout: result.stdout?.trim() ?? "",
-      stderr: result.stderr?.trim() ?? ""
+      stderr: result.stderr?.trim() ?? "",
+      signal: result.signal ?? null,
+      timed_out: Boolean(result.error && result.error.code === "ETIMEDOUT"),
+      spawn_error: result.error ? describeError(result.error) : null
     };
-  } catch {
+  } catch (error) {
     return {
       status: 1,
       stdout: "",
-      stderr: ""
+      stderr: "",
+      signal: null,
+      timed_out: false,
+      spawn_error: describeError(error)
     };
   }
 }

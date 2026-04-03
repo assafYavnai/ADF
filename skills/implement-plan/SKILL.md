@@ -245,7 +245,9 @@ Rules:
 - after human approval, run a final sanity `review-cycle` only when code changed after human approval
 - if a post-approval sanity fix changes approved human-facing behavior, treat the human approval as stale and return to human testing instead of silently closing
 - after the approval gates are satisfied, enqueue the exact approved commit into `merge-queue`
-- do not mark the feature completed until `merge-queue` reports merge success and truthful local target sync status
+- freeze `approved_commit_sha` when the slice reaches `merge-ready`
+- do not let post-approval queue or merge progress rewrite tracked feature artifacts just to mirror local operational state
+- let `merge-queue` own post-approval local `.codex` closeout state and truthful target-sync reporting
 
 `action=mark-complete`
 
@@ -280,6 +282,7 @@ When an implementation slice succeeds, end by showing:
 - the completion summary
 - the feature-branch commit SHA if push succeeded, or the exact git failure if it did not
 - the merge-queue request identifier when merge handoff was created
+- whether the slice stopped at feature-branch merge-ready state or advanced through local merge-queue closeout
 
 User-facing reports for this skill must stay human-facing:
 
