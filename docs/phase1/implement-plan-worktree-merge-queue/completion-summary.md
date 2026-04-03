@@ -36,9 +36,10 @@
 - Machine Verification: `merge-queue` setup, help, get-settings, and status all ran successfully under `C:/ADF`.
 - Machine Verification: `manage-skills install/check` passed for Codex, Claude, and Gemini after the new `merge-queue` skill was added to the manifest.
 - Machine Verification: a temp repo plus bare-remote smoke under `C:/ADF/tmp/merge-queue-smoke` proved `merge-queue enqueue` and `process-next` can land an approved commit, update implement-plan state to `completed`, and record safe local sync as skipped when the checkout is dirty.
+- Machine Verification: cycle-01 review hardening proved `merge-queue enqueue` now rejects state that only has `last_commit_sha`, and proved same-lane `process-next` blocking plus cross-lane independence under `C:/ADF/tmp/merge-queue-cycle-proof`.
 - Human Verification Requirement: Required: false.
 - Human Verification Status: not_required.
-- Review-Cycle Status: not_run in this turn.
+- Review-Cycle Status: cycle-01 found and fixed approval-bypass and same-lane serialization defects; approval pass still pending.
 - Merge Status: feature mechanics implemented; this feature stream itself is not yet queued or merged in this turn.
 - Local Target Sync Status: not_started for this feature stream; the temp smoke recorded `skipped_dirty_checkout` truthfully for its own repo.
 
@@ -59,6 +60,6 @@
 
 7. Remaining Non-Goals / Debt
 
-- The current feature stream still needs review and approved merge-closeout to be marked completed truthfully.
+- The current feature stream still needs the clean approval pass and approved merge-closeout to be marked completed truthfully.
 - No review-cycle artifacts were generated in this turn for this feature stream.
 - No attempt was made in this turn to retrofit unrelated active features onto the new worktree and merge-queue flow.

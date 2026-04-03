@@ -1,0 +1,81 @@
+{
+  "phase_number": 1,
+  "feature_slug": "implement-plan-worktree-merge-queue",
+  "repo_root": "C:/ADF",
+  "feature_agent_registry_key": "phase1/implement-plan-worktree-merge-queue",
+  "auditor_execution_id": null,
+  "reviewer_execution_id": null,
+  "implementor_execution_id": null,
+  "auditor_execution_access_mode": null,
+  "reviewer_execution_access_mode": null,
+  "implementor_execution_access_mode": null,
+  "auditor_model": null,
+  "reviewer_model": null,
+  "auditor_reasoning_effort": null,
+  "reviewer_reasoning_effort": null,
+  "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+  "access_mode_resolution_notes": "Codex CLI full-auto plus bypass is the strongest truthful non-interactive worker mode available for this run. Native agent delegation is not used here because this run is constrained to the non-delegated CLI lane.",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "main",
+  "last_completed_cycle": 0,
+  "last_commit_sha": null,
+  "active_cycle_number": 1,
+  "cycle_runtime": {
+    "cycle_number": 1,
+    "cycle_name": "cycle-01",
+    "status": "fix_report_complete_commit_push_pending",
+    "cycle_started_at": "2026-04-03T13:11:26.619Z",
+    "review_requested_at": "2026-04-03T13:11:44.982Z",
+    "auditor_finished_at": "2026-04-03T13:11:44.982Z",
+    "reviewer_finished_at": "2026-04-03T13:11:51.829Z",
+    "implementor_started_at": "2026-04-03T13:12:28.362Z",
+    "implementor_finished_at": "2026-04-03T13:17:43.076Z",
+    "verification_finished_at": "2026-04-03T13:17:47.305Z",
+    "cycle_finished_at": null,
+    "report_ready": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surfaced": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surface_order": [
+      "auditor",
+      "reviewer"
+    ],
+    "lane_verdicts": {
+      "auditor": "reject",
+      "reviewer": "reject"
+    },
+    "recreated_executions": {
+      "auditor": false,
+      "reviewer": false,
+      "implementor": false
+    },
+    "last_note": null
+  },
+  "split_review_continuity": {
+    "mode": "full_pair",
+    "approving_lane": null,
+    "rejecting_lane": null,
+    "final_sanity_lane": null,
+    "carried_from_cycle": null,
+    "final_sanity_completed": false,
+    "updated_at": null,
+    "note": null
+  },
+  "created_at": "2026-04-03T13:11:26.615Z",
+  "updated_at": "2026-04-03T13:17:51.410Z"
+}

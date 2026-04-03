@@ -40,7 +40,8 @@ Rules:
 
 ## Enqueue rules
 
-- derive missing `base_branch`, `feature_branch`, `worktree_path`, and approved commit from implement-plan state when possible
+- derive missing `base_branch`, `feature_branch`, `worktree_path`, and `approved_commit_sha` from implement-plan state when possible
+- `last_commit_sha` is not merge authority and must never be used as the approved commit fallback
 - reject enqueue when there is no approved commit SHA
 - reject enqueue when the feature is already completed
 - update implement-plan state to `merge_status=queued` when a request is accepted
@@ -49,6 +50,7 @@ Rules:
 
 - fetch before merge
 - land the exact approved commit into a temporary merge worktree based on the latest target branch reference
+- do not start a queued request on a `base_branch` lane while another request in that same lane is already `in_progress`
 - push only after a clean merge
 - on success, update implement-plan merge state, attempt safe local target sync, and mark the feature completed
 - on failure, preserve queue evidence, update implement-plan state truthfully, and do not mark complete

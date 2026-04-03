@@ -201,7 +201,6 @@ async function enqueueRequest(input) {
   );
   const approvedCommitSha = input.approvedCommitSha
     ?? implementPlanState?.approved_commit_sha
-    ?? implementPlanState?.last_commit_sha
     ?? null;
 
   if (!approvedCommitSha) {
@@ -507,6 +506,9 @@ function selectNextQueuedRequest(queue, baseBranch) {
     if (baseBranch && lane.base_branch !== baseBranch) {
       continue;
     }
+    if (laneHasInProgressRequest(lane)) {
+      continue;
+    }
     for (const request of lane.requests ?? []) {
       if (request.status === "queued") {
         candidates.push(request);
@@ -515,6 +517,10 @@ function selectNextQueuedRequest(queue, baseBranch) {
   }
   candidates.sort((left, right) => String(left.queued_at).localeCompare(String(right.queued_at)));
   return candidates[0] ?? null;
+}
+
+function laneHasInProgressRequest(lane) {
+  return (lane.requests ?? []).some((request) => request.status === "in_progress");
 }
 
 function summarizeLane(lane) {
