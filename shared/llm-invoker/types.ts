@@ -64,6 +64,7 @@ export const InvocationParams = z.object({
   sandbox: z.string().optional(),
   bypass: z.boolean().optional(),
   timeout_ms: z.number().optional(),
+  working_directory: z.string().optional(),
   prompt: z.string(),
   source_path: z.string(),
   session: InvocationSessionRequest.optional(),

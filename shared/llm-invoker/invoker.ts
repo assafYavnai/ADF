@@ -563,6 +563,7 @@ async function callClaude(params: InvocationParams, invocationId: string): Promi
     args,
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "claude",
+    cwd: params.working_directory,
     env: { ...process.env },
     stdinText: params.prompt,
   });
@@ -592,6 +593,7 @@ async function callGemini(params: InvocationParams): Promise<CLIResult> {
     args,
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "gemini",
+    cwd: params.working_directory,
     env: { ...process.env },
     stdinText: params.prompt,
   });
@@ -663,6 +665,7 @@ async function runCodexCommand(params: InvocationParams, args: string[]) {
     args: [...args, params.prompt],
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "codex",
+    cwd: params.working_directory,
     env: { ...process.env },
   });
 }
@@ -748,6 +751,7 @@ async function runClaudeWithSession(
     args,
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "claude",
+    cwd: params.working_directory,
     env: { ...process.env },
     stdinText: params.prompt,
   });
