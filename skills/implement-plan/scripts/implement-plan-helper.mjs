@@ -101,6 +101,23 @@ const COMPLETION_HEADINGS = [
   "7. Remaining Non-Goals / Debt"
 ];
 
+const KPI_APPLICABILITY_ALLOWED_VALUES = [
+  "required",
+  "not required",
+  "temporary exception approved"
+];
+
+const KPI_PLACEHOLDER_VALUE_PATTERNS = [
+  /^none\.?$/i,
+  /^n\/a\.?$/i,
+  /^not applicable\.?$/i,
+  /^not specified\.?$/i,
+  /^tbd\.?$/i,
+  /^todo\.?$/i,
+  /^unknown\.?$/i,
+  /^same as above\.?$/i
+];
+
 const REQUIRED_SETUP_FIELDS = [
   "preferred_execution_access_mode",
   "preferred_implementor_access_mode",
@@ -1461,6 +1478,7 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
   ].join("\n\n").toLowerCase();
   const verificationSourceText = String(contractArtifact.valid ? (contractArtifact.text ?? combinedText) : combinedText);
   const verificationPlanState = evaluateVerificationPlanState(verificationSourceText);
+  const kpiPlanState = evaluateKpiPlanState(verificationSourceText);
 
   const requiredSignals = [
     { key: "deliverables", patterns: [/deliverable/, /output/, /produce/] },
@@ -1537,6 +1555,70 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
     }
   }
 
+  if (!isFilled(kpiPlanState.applicability_raw)) {
+    blockingIssues.push(issue(
+      "missing-kpi-applicability-decision",
+      "The implementation slice does not explicitly state whether KPI support is required, not required, or covered by an approved temporary exception.",
+      contractSource.paths,
+      "Add `KPI Applicability: required`, `KPI Applicability: not required`, or `KPI Applicability: temporary exception approved` to the contract."
+    ));
+  } else if (kpiPlanState.applicability === null) {
+    blockingIssues.push(issue(
+      "invalid-kpi-applicability-decision",
+      "The implementation slice uses an unsupported KPI applicability value.",
+      contractSource.paths,
+      "Use one of: " + KPI_APPLICABILITY_ALLOWED_VALUES.join(", ") + "."
+    ));
+  } else if (kpiPlanState.applicability === "not_required") {
+    if (!kpiPlanState.non_applicability_rationale_present) {
+      blockingIssues.push(issue(
+        "missing-kpi-non-applicability-rationale",
+        "The implementation slice says KPI support is not required but does not explain why the slice is outside the KPI rule.",
+        contractSource.paths,
+        "Add `KPI Non-Applicability Rationale:` with the exact reason this slice is outside the KPI instrumentation requirement."
+      ));
+    }
+  } else {
+    const missingKpiFields = [];
+    if (!kpiPlanState.route_or_touched_path_present) missingKpiFields.push("`KPI Route / Touched Path`");
+    if (!kpiPlanState.raw_truth_source_present) missingKpiFields.push("`KPI Raw-Truth Source`");
+    if (!kpiPlanState.coverage_or_proof_present) missingKpiFields.push("`KPI Coverage / Proof`");
+    if (!kpiPlanState.production_proof_partition_present) missingKpiFields.push("`KPI Production / Proof Partition`");
+
+    if (missingKpiFields.length > 0) {
+      blockingIssues.push(issue(
+        "incomplete-kpi-contract-freeze",
+        "The implementation slice requires KPI support but does not freeze the full KPI contract.",
+        contractSource.paths,
+        "Add the missing KPI contract fields: " + missingKpiFields.join(", ") + "."
+      ));
+    }
+
+    if (kpiPlanState.applicability === "temporary_exception_approved") {
+      const missingExceptionFields = [];
+      if (!kpiPlanState.exception_owner_present) missingExceptionFields.push("`KPI Exception Owner`");
+      if (!kpiPlanState.exception_expiry_present) missingExceptionFields.push("`KPI Exception Expiry`");
+      if (!kpiPlanState.exception_compensating_control_present) missingExceptionFields.push("`KPI Compensating Control`");
+      if (!kpiPlanState.exception_production_status_present) missingExceptionFields.push("`KPI Exception Production Status`");
+
+      if (missingExceptionFields.length > 0) {
+        blockingIssues.push(issue(
+          "incomplete-kpi-temporary-exception",
+          "The implementation slice uses a temporary KPI exception but does not record the full approval and recovery details.",
+          contractSource.paths,
+          "Add the missing temporary-exception fields: " + missingExceptionFields.join(", ") + "."
+        ));
+      } else if (!kpiPlanState.exception_marks_not_production_complete) {
+        blockingIssues.push(issue(
+          "invalid-kpi-exception-production-status",
+          "The temporary KPI exception does not explicitly keep the slice out of production-complete status.",
+          contractSource.paths,
+          "Set `KPI Exception Production Status:` to an explicit not-production-complete statement."
+        ));
+      }
+    }
+  }
+
   if (contractSource.type === "equivalent_sources") {
     warnings.push("No valid normalized implement-plan-contract.md was found. The main skill should materialize one before worker execution.");
   }
@@ -1579,6 +1661,55 @@ function evaluateVerificationPlanState(text) {
     evidence_guidance_present: /evidence|report back|observation/.test(humanWindow),
     response_contract_present: /approved/.test(humanWindow) && /rejected/.test(humanWindow)
   };
+}
+
+function evaluateKpiPlanState(text) {
+  const source = String(text ?? "");
+  const applicabilityRaw = extractLabeledValue(source, "KPI Applicability");
+  const applicability = normalizeKpiApplicabilityValue(applicabilityRaw);
+
+  return {
+    applicability_raw: applicabilityRaw,
+    applicability,
+    route_or_touched_path_present: hasMeaningfulLabeledValue(source, "KPI Route / Touched Path"),
+    raw_truth_source_present: hasMeaningfulLabeledValue(source, "KPI Raw-Truth Source"),
+    coverage_or_proof_present: hasMeaningfulLabeledValue(source, "KPI Coverage / Proof"),
+    production_proof_partition_present: hasMeaningfulLabeledValue(source, "KPI Production / Proof Partition"),
+    non_applicability_rationale_present: hasMeaningfulLabeledValue(source, "KPI Non-Applicability Rationale"),
+    exception_owner_present: hasMeaningfulLabeledValue(source, "KPI Exception Owner"),
+    exception_expiry_present: hasMeaningfulLabeledValue(source, "KPI Exception Expiry"),
+    exception_compensating_control_present: hasMeaningfulLabeledValue(source, "KPI Compensating Control"),
+    exception_production_status_present: hasMeaningfulLabeledValue(source, "KPI Exception Production Status"),
+    exception_marks_not_production_complete: /not[- ]production[- ]complete|not yet production[- ]complete|non-production/.test(
+      String(extractLabeledValue(source, "KPI Exception Production Status") ?? "").toLowerCase()
+    )
+  };
+}
+
+function normalizeKpiApplicabilityValue(value) {
+  if (!isFilled(value)) return null;
+  const normalized = String(value)
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (normalized === "required") return "required";
+  if (normalized === "not required" || normalized === "not applicable") return "not_required";
+  if (
+    normalized === "temporary exception approved"
+    || normalized === "approved temporary exception"
+    || normalized === "temporary approved exception"
+  ) {
+    return "temporary_exception_approved";
+  }
+  return null;
+}
+
+function hasMeaningfulLabeledValue(text, label) {
+  const value = extractLabeledValue(text, label);
+  if (!isFilled(value)) return false;
+  return !KPI_PLACEHOLDER_VALUE_PATTERNS.some((pattern) => pattern.test(String(value).trim()));
 }
 
 function extractAnchorWindow(text, anchor, maxLength) {

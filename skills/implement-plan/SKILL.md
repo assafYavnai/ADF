@@ -165,6 +165,18 @@ Before spawning the implementor, the main skill must verify whether the slice is
 
 At minimum, check:
 
+- `KPI Applicability` is explicit
+- if `KPI Applicability` is `required` or `temporary exception approved`, the slice explicitly states:
+  - `KPI Route / Touched Path`
+  - `KPI Raw-Truth Source`
+  - `KPI Coverage / Proof`
+  - `KPI Production / Proof Partition`
+- if `KPI Applicability` is `not required`, the slice states `KPI Non-Applicability Rationale`
+- if `KPI Applicability` is `temporary exception approved`, the slice also states:
+  - `KPI Exception Owner`
+  - `KPI Exception Expiry`
+  - `KPI Exception Production Status`
+  - `KPI Compensating Control`
 - required implementation contract exists or a valid equivalent source is available
 - the slice is explicit, bounded, and internally coherent
 - required deliverables are stated clearly
@@ -268,6 +280,13 @@ When an implementation slice succeeds, end by showing:
 - the completion summary
 - the feature-branch commit SHA if push succeeded, or the exact git failure if it did not
 - the merge-queue request identifier when merge handoff was created
+
+User-facing reports for this skill must stay human-facing:
+
+- lead with the most important current outcome
+- use short sections and concise bullets where appropriate
+- separate status, blockers or findings, and next actions
+- avoid dense wall-of-text output
 
 If human verification is required, the testing-phase handoff must use this exact visible shape:
 

@@ -87,6 +87,7 @@ Rules:
 - do not let serious implementation begin until `fix-plan.md` exists as a valid artifact and freezes:
   - failure classes
   - claimed supported route and end-to-end invariants
+  - KPI applicability and KPI closure expectation
   - allowed mutation surfaces
   - forbidden shared-surface expansion
   - sibling sweep scope
@@ -235,6 +236,7 @@ Rules:
 - if both reports finish before implementor work starts, print both in arrival order
 - do not start implementor fixing until every already-returned report has been surfaced in this wrapper
 - require the report body itself to start section 1 with `Overall Verdict: APPROVED|REJECTED` and end with `Final Verdict: APPROVED|REJECTED`
+- keep surfaced reports human-facing and easy to scan instead of emitting dense wall-of-text output
 
 ## Implementor lane rule
 
@@ -246,10 +248,12 @@ Rules:
 - keep the implementor idle until the helper-reported required review evidence is ready for the active strategy
 - when the helper says review evidence is ready, send the implementor the current cycle request, the active-cycle report paths, any carried-forward approval context, the reusable context, and the implementor prompt from [references/prompt-templates.md](references/prompt-templates.md)
 - require the implementor to freeze the route contract in `fix-plan.md` before code changes
+- require `fix-plan.md` to freeze KPI applicability, KPI closure state, and temporary KPI exception details when KPI closure is deferred
 - require explicit new-power analysis when the fix introduces or broadens a shared surface
 - require negative proof for shared-surface changes, not only happy-path proof
 - require live-route vs proof-route isolation checks when proof uses seams, toggles, harnesses, or alternate bootstrap paths
 - require claimed supported route, route mutated, and route proved to close or remain explicitly open
+- require KPI closure to stay explicitly `Closed`, `Partial`, `Open`, or `Temporary Exception`; do not allow silent KPI gaps
 - require the implementor to update all materially affected authoritative docs in the same cycle
 - require proof-bearing closure, not narrative-only closure
 - do not let the implementor widen scope into general refactoring
@@ -326,3 +330,10 @@ End each invocation by displaying:
 - the current cycle fix report
 - the cycle-complete summary with high-level findings, high-level fixes, verification status, and elapsed cycle time
 - the commit SHA if push succeeded, or the exact git failure if it did not
+
+User-facing review-cycle reports must stay human-facing:
+
+- lead with the current verdict and route state
+- keep sections short and easy to scan
+- separate findings, fixes, and next actions
+- avoid dense narrative blobs
