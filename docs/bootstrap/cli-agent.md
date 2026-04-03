@@ -30,10 +30,16 @@ Treat these output fields as authority:
 
 - `host_os`
 - `workflow_shell`
+- `execution_shell`
 - `terminal_shell_hint`
+- `control_plane.kind`
+- `control_plane.entrypoint`
 - `shell_contract.command_construction_mode`
 - `shell_contract.bash_write_style`
 - `shell_contract.path_style`
+- `brain_mcp.availability_status`
+- `brain_mcp.verification_status`
+- `brain_mcp.verification_command`
 - `commands.npm.command_name`
 - `commands.npx.command_name`
 - `recommended_commands.runtime_preflight`
@@ -46,6 +52,12 @@ If runtime preflight fails:
 - use `--install` for bounded dependency/build/bootstrap repair
 - use `--doctor` when you need full bash + Brain MCP verification
 - do not continue with ad-hoc workflow commands until the blocking issue is understood
+
+Important distinction:
+
+- runtime-preflight reports workflow-shell truth, control-plane entrypoint truth, and Brain route availability or blocked state
+- runtime-preflight does not claim full Brain health
+- `--doctor` is still the only supported route for full bash + Brain verification
 
 ## Shell Guidance
 - ADF's canonical shell is `bash` on every host OS.

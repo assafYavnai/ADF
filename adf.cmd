@@ -29,6 +29,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
+set "ADF_ENTRYPOINT=adf.cmd"
+set "ADF_CONTROL_PLANE_KIND=windows-cmd-trampoline"
 "%BASH_EXE%" "%SCRIPT_DIR%adf.sh" %*
 exit /b %ERRORLEVEL%
 

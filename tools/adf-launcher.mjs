@@ -79,8 +79,14 @@ if (versionCheck.status !== 0) {
   process.exit(versionCheck.status ?? 1);
 }
 
+process.env.ADF_ENTRYPOINT = "tools/adf-launcher.mjs";
+process.env.ADF_CONTROL_PLANE_KIND = process.platform === "win32"
+  ? "windows-node-trampoline"
+  : "node-trampoline";
+
 const result = spawnSync(bashPath, [adfScript, ...process.argv.slice(2)], {
   stdio: "inherit",
+  env: process.env,
 });
 
 process.exit(result.status ?? 1);

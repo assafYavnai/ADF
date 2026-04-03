@@ -7,6 +7,7 @@ Implemented the launcher/bootstrap split between explicit install/bootstrap repa
 - Fast runtime-preflight route in [adf.sh](/C:/ADF/adf.sh) via [agent-runtime-preflight.mjs](/C:/ADF/tools/agent-runtime-preflight.mjs)
 - Explicit install/bootstrap route in [adf.sh](/C:/ADF/adf.sh)
 - Runtime/install state recording at `.codex/runtime/install-state.json` on successful install route execution
+- Strengthened runtime-preflight schema with explicit control-plane entrypoint truth and Brain MCP availability/verification truth
 - Updated bootstrap docs in [AGENTS.md](/C:/ADF/AGENTS.md), [cli-agent.md](/C:/ADF/docs/bootstrap/cli-agent.md), [vscode-agent.md](/C:/ADF/docs/bootstrap/vscode-agent.md), and [architecture.md](/C:/ADF/docs/v0/architecture.md)
 - Direct assertion test script in [agent-runtime-preflight.test.mjs](/C:/ADF/tools/agent-runtime-preflight.test.mjs)
 - Manual proof runner in [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh)
@@ -41,7 +42,8 @@ The direct CLI smoke above was intentionally run in the current non-compliant Po
 6. Commit And Push Result
 
 - Commit: `546f453` `Implement runtime preflight and install split`
-- Push: pending
+- Closeout metadata commit: `50aec53` `Record runtime preflight closeout metadata`
+- Push: succeeded to `origin/main`
 
 7. Remaining Non-Goals / Debt
 

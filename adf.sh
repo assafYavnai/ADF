@@ -688,12 +688,16 @@ run_runtime_preflight_route() {
     args+=("--json")
   fi
 
+  ADF_ENTRYPOINT="${ADF_ENTRYPOINT:-adf.sh}" \
+  ADF_CONTROL_PLANE_KIND="${ADF_CONTROL_PLANE_KIND:-direct-bash}" \
   node "${args[@]}"
 }
 
 assert_runtime_preflight() {
   [[ -f "$RUNTIME_PREFLIGHT_SCRIPT" ]] || die "Runtime preflight script is missing: $RUNTIME_PREFLIGHT_SCRIPT"
   command -v node >/dev/null 2>&1 || die "node is not installed or not on PATH."
+  ADF_ENTRYPOINT="${ADF_ENTRYPOINT:-adf.sh}" \
+  ADF_CONTROL_PLANE_KIND="${ADF_CONTROL_PLANE_KIND:-direct-bash}" \
   node "$RUNTIME_PREFLIGHT_SCRIPT" --repo-root "$REPO_ROOT" --launch-mode "$MODE" --assert-only
 }
 

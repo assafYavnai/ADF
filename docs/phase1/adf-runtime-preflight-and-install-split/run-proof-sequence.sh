@@ -19,6 +19,7 @@ What it does:
   - runs the Windows trampoline preflight route when available
   - runs the explicit install/bootstrap route
   - reruns runtime-preflight after install
+  - captures strengthened JSON proof for control-plane and Brain-route fields
   - records logs and a proof summary under docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/
 EOF
 }

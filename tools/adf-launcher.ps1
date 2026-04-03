@@ -74,5 +74,7 @@ if ($LASTEXITCODE -ne 0) {
   throw "bash is present but not runnable via $bash. Fix the bash runtime and retry."
 }
 
+$env:ADF_ENTRYPOINT = "tools/adf-launcher.ps1"
+$env:ADF_CONTROL_PLANE_KIND = "windows-powershell-trampoline"
 & $bash $AdfScript @CliArgs
 exit $LASTEXITCODE

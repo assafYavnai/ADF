@@ -32,10 +32,16 @@ Use the runtime-preflight output as authority for:
 
 - `host_os`
 - `workflow_shell`
+- `execution_shell`
 - `terminal_shell_hint`
+- `control_plane.kind`
+- `control_plane.entrypoint`
 - `shell_contract.command_construction_mode`
 - `shell_contract.bash_write_style`
 - `shell_contract.path_style`
+- `brain_mcp.availability_status`
+- `brain_mcp.verification_status`
+- `brain_mcp.verification_command`
 - `commands.npm.command_name`
 - `commands.npx.command_name`
 - `recommended_commands.install`
@@ -45,6 +51,7 @@ Use the runtime-preflight output as authority for:
 Do not assume the visible VS Code terminal profile is the same thing as the agent execution shell.
 If runtime preflight says Windows host plus bash workflow shell, stay Windows-aware but issue ADF workflow commands as bash commands.
 If quoting is complex, regex-heavy, or multiline, write a temporary `.sh` file and run it through bash instead of nesting fragile `bash -lc "..."` command strings through a non-bash control plane.
+Treat `brain_mcp.availability_status` as startup truth about whether the Brain route is materially available, but use `brain_mcp.verification_command` when you need full verification instead of assuming runtime-preflight proved Brain health.
 
 ## Shell Guidance
 

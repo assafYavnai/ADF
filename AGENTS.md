@@ -5,6 +5,7 @@ All agents must load context from Brain at startup and capture durable knowledge
 
 ## Runtime Preflight
 Before substantive work, every agent must run the ADF runtime preflight and use its output as authority for host OS, workflow shell, command construction style, path style, launcher entrypoint, and bounded repair commands.
+At minimum, treat `execution_shell`, `control_plane.kind`, `control_plane.entrypoint`, `shell_contract.*`, and `brain_mcp.*` as authoritative startup truth after routing into the correct bootstrap doc below.
 
 ## Routing
 

@@ -121,6 +121,40 @@ function classifyPathStyle(hostOs, env) {
   return "windows-native";
 }
 
+function classifyExecutionShell(bashWorking) {
+  return bashWorking ? "bash" : "unavailable";
+}
+
+function classifyControlPlaneKind(hostOs, env) {
+  if (env.ADF_CONTROL_PLANE_KIND) {
+    return String(env.ADF_CONTROL_PLANE_KIND);
+  }
+  if (hostOs === "windows") {
+    return "implicit-shell-context";
+  }
+  return "implicit-shell-context";
+}
+
+function classifyControlPlaneEntrypoint(env) {
+  return env.ADF_ENTRYPOINT ?? "direct-helper-invocation";
+}
+
+function classifyCommandConstructionMode(hostOs, controlPlaneKind) {
+  if (hostOs !== "windows") return "posix-bash-workflow";
+  if (controlPlaneKind === "direct-bash") return "windows-direct-bash-workflow";
+  return "windows-nonbash-control-plane-into-bash";
+}
+
+function classifyBashWriteStyle(hostOs, controlPlaneKind) {
+  if (hostOs !== "windows") {
+    return "Issue ADF workflow commands directly in bash.";
+  }
+  if (controlPlaneKind === "direct-bash") {
+    return "Issue ADF workflow commands directly in bash, while staying aware of Windows path and process behavior.";
+  }
+  return "Issue ADF workflow commands as bash commands, but treat the control plane as non-bash. If quoting is complex, regex-heavy, or multiline, write a temporary .sh script and run it through bash instead of nesting fragile bash -lc strings.";
+}
+
 function installStatePath(repoRoot) {
   return join(repoRoot, ".codex", "runtime", "install-state.json");
 }
@@ -156,6 +190,44 @@ function recommendedCommands(hostOs) {
   };
 }
 
+function buildBrainMcpStatus({ repoRoot, artifacts, pathExists, recommendedCommands: commands, installState }) {
+  const cooMemoryEngineClientPath = join(repoRoot, "COO", "dist", "COO", "controller", "memory-engine-client.js");
+  const connectSmokeScriptPath = join(repoRoot, "tools", "doctor-brain-connect-smoke.mjs");
+  const doctorAuditScriptPath = join(repoRoot, "tools", "doctor-brain-audit.mjs");
+  const routeArtifactsReady = artifacts.memory_engine_dist.exists &&
+    artifacts.mcp_sdk_client.exists &&
+    pathExists(cooMemoryEngineClientPath) &&
+    pathExists(connectSmokeScriptPath) &&
+    pathExists(doctorAuditScriptPath);
+
+  const availabilityStatus = routeArtifactsReady ? "available" : "blocked";
+  const verificationStatus = routeArtifactsReady ? "doctor_required" : "blocked";
+  const detail = routeArtifactsReady
+    ? "Runtime preflight confirmed that the Brain MCP route artifacts are present. Full Brain verification is intentionally deferred to doctor."
+    : "Runtime preflight found missing Brain MCP route artifacts or proof helpers. The Brain route is blocked until the missing pieces are restored.";
+
+  return {
+    transport: "stdio",
+    availability_status: availabilityStatus,
+    verification_status: verificationStatus,
+    detail,
+    coo_memory_engine_client: {
+      path: cooMemoryEngineClientPath,
+      exists: pathExists(cooMemoryEngineClientPath),
+    },
+    connect_smoke_script: {
+      path: connectSmokeScriptPath,
+      exists: pathExists(connectSmokeScriptPath),
+    },
+    doctor_audit_script: {
+      path: doctorAuditScriptPath,
+      exists: pathExists(doctorAuditScriptPath),
+    },
+    last_verified_at: installState?.brain_mcp_last_verified_at ?? null,
+    verification_command: commands.doctor,
+  };
+}
+
 function buildChecks(input) {
   const checks = [];
   const addCheck = (name, status, detail, fix = null) => {
@@ -176,6 +248,13 @@ function buildChecks(input) {
       ? `ADF workflow shell is bash via ${input.bash.path}.`
       : "bash is missing or not runnable from the current ADF workflow route.",
     input.bash.working ? null : "Install or repair an approved bash runtime, then rerun runtime preflight.",
+  );
+
+  addCheck(
+    "control-plane entrypoint",
+    "pass",
+    `Runtime preflight was entered through ${input.controlPlane.entrypoint} (${input.controlPlane.kind}).`,
+    null,
   );
 
   addCheck(
@@ -283,6 +362,15 @@ function buildChecks(input) {
     input.install_state.exists ? null : `Run ${input.recommended_commands.install} to record a successful install/bootstrap pass.`,
   );
 
+  addCheck(
+    "Brain MCP route",
+    input.brain_mcp.availability_status === "available" ? "pass" : "fail",
+    input.brain_mcp.detail,
+    input.brain_mcp.availability_status === "available"
+      ? `Use ${input.brain_mcp.verification_command} when you need full bash + Brain verification.`
+      : `Run ${input.recommended_commands.install} to restore missing build artifacts, then ${input.brain_mcp.verification_command} for full verification.`,
+  );
+
   return checks;
 }
 
@@ -318,6 +406,8 @@ export function buildRuntimePreflightReport({
   const bashPath = lookup("bash") ?? (env.BASH || env.SHELL || null);
   const bashVersion = bashPath ? processRunner(bashPath, ["--version"]) : { status: 1, stdout: "", stderr: "bash not found" };
   const bashWorking = bashVersion.status === 0;
+  const controlPlaneKind = classifyControlPlaneKind(hostOs, env);
+  const controlPlaneEntrypoint = classifyControlPlaneEntrypoint(env);
 
   const npmCommand = hostOs === "windows" ? "npm.cmd" : "npm";
   const npxCommand = hostOs === "windows" ? "npx.cmd" : "npx";
@@ -349,6 +439,19 @@ export function buildRuntimePreflightReport({
   );
   const installStateFile = installStatePath(resolvedRepoRoot);
   const installState = jsonReader(installStateFile);
+  const commands = recommendedCommands(hostOs);
+  const brainMcp = buildBrainMcpStatus({
+    repoRoot: resolvedRepoRoot,
+    artifacts: {
+      coo_tsx_shim: { path: cooTsxShimPath, exists: pathExists(cooTsxShimPath) },
+      coo_dist: { path: cooDistPath, exists: pathExists(cooDistPath) },
+      memory_engine_dist: { path: memoryEngineDistPath, exists: pathExists(memoryEngineDistPath) },
+      mcp_sdk_client: { path: mcpSdkClientPath, exists: pathExists(mcpSdkClientPath) },
+    },
+    pathExists,
+    recommendedCommands: commands,
+    installState,
+  });
 
   const report = {
     schema_version: 1,
@@ -356,6 +459,7 @@ export function buildRuntimePreflightReport({
     launch_mode: launchMode,
     host_os: hostOs,
     workflow_shell: "bash",
+    execution_shell: classifyExecutionShell(bashWorking),
     terminal_shell_hint: classifyTerminalShellHint(env),
     execution_environment: {
       node_platform: platform,
@@ -365,17 +469,18 @@ export function buildRuntimePreflightReport({
       shell_env: env.SHELL ?? null,
       bash_env: env.BASH ?? null,
     },
+    control_plane: {
+      kind: controlPlaneKind,
+      entrypoint: controlPlaneEntrypoint,
+      entrypoint_is_direct_bash: controlPlaneKind === "direct-bash",
+    },
     shell_contract: {
       canonical_shell: "bash",
       approved_bash_runtime: classifyApprovedBashRuntime(hostOs, env, bashPath),
       bash_path: bashPath,
       bash_working: bashWorking,
-      command_construction_mode: hostOs === "windows"
-        ? "windows-host-bash-workflow"
-        : "posix-bash-workflow",
-      bash_write_style: hostOs === "windows"
-        ? "Issue ADF workflow commands as bash commands. If the control plane is non-bash or quoting is complex, write a temporary .sh script and run it through bash."
-        : "Issue ADF workflow commands directly in bash.",
+      command_construction_mode: classifyCommandConstructionMode(hostOs, controlPlaneKind),
+      bash_write_style: classifyBashWriteStyle(hostOs, controlPlaneKind),
       path_style: classifyPathStyle(hostOs, env),
       windows_native_leaf_shell: hostOs === "windows" ? "powershell-or-cmd-for-leaf-tasks-only" : null,
     },
@@ -401,7 +506,8 @@ export function buildRuntimePreflightReport({
       exists: Boolean(installState),
       last_success_at: installState?.completed_at ?? installState?.updated_at ?? null,
     },
-    recommended_commands: recommendedCommands(hostOs),
+    brain_mcp: brainMcp,
+    recommended_commands: commands,
   };
 
   report.checks = buildChecks({
@@ -416,6 +522,8 @@ export function buildRuntimePreflightReport({
     recommended_commands: report.recommended_commands,
     launch_mode: launchMode,
     postgresql: report.postgresql,
+    controlPlane: report.control_plane,
+    brain_mcp: report.brain_mcp,
   });
   report.overall_status = determineOverallStatus(report.checks);
   report.recommended_next_action = recommendedNextAction(report.overall_status, report.recommended_commands);
