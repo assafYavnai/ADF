@@ -107,6 +107,20 @@ const KPI_APPLICABILITY_ALLOWED_VALUES = [
   "temporary exception approved"
 ];
 
+const COMPATIBILITY_GATE_CONTENT_LABELS = [
+  "Vision Compatibility",
+  "Phase 1 Compatibility",
+  "Master-Plan Compatibility",
+  "Current Gap-Closure Compatibility",
+  "Compatibility Evidence"
+];
+
+const COMPATIBILITY_DECISION_ALLOWED_VALUES = [
+  "compatible",
+  "defer-later-company",
+  "blocked-needs-user-decision"
+];
+
 const KPI_PLACEHOLDER_VALUE_PATTERNS = [
   /^none\.?$/i,
   /^n\/a\.?$/i,
@@ -1617,6 +1631,60 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
         ));
       }
     }
+  }
+
+  const missingCompatLabels = [];
+  for (const label of COMPATIBILITY_GATE_CONTENT_LABELS) {
+    if (!hasMeaningfulLabeledValue(verificationSourceText, label)) {
+      missingCompatLabels.push("`" + label + "`");
+    }
+  }
+  if (missingCompatLabels.length > 0) {
+    blockingIssues.push(issue(
+      "missing-compatibility-gate-fields",
+      "The implementation slice does not explicitly state compatibility with the full Vision/Phase 1/Master-Plan/Gap-Closure authority chain.",
+      contractSource.paths,
+      "Add the missing compatibility fields: " + missingCompatLabels.join(", ") + ". Each must contain a substantive compatibility statement, not a placeholder."
+    ));
+  }
+
+  const compatDecisionRaw = extractLabeledValue(verificationSourceText, "Compatibility Decision");
+  if (!isFilled(compatDecisionRaw)) {
+    blockingIssues.push(issue(
+      "missing-compatibility-decision",
+      "The implementation slice does not include a Compatibility Decision.",
+      contractSource.paths,
+      "Add `Compatibility Decision:` with one of: " + COMPATIBILITY_DECISION_ALLOWED_VALUES.join(", ") + "."
+    ));
+  } else {
+    const normalizedDecision = String(compatDecisionRaw).toLowerCase().replace(/[_\s]+/g, "-").trim();
+    if (!COMPATIBILITY_DECISION_ALLOWED_VALUES.includes(normalizedDecision)) {
+      blockingIssues.push(issue(
+        "invalid-compatibility-decision",
+        "The Compatibility Decision value is not recognized.",
+        contractSource.paths,
+        "Use one of: " + COMPATIBILITY_DECISION_ALLOWED_VALUES.join(", ") + "."
+      ));
+    } else if (normalizedDecision !== "compatible") {
+      blockingIssues.push(issue(
+        "compatibility-decision-not-legal",
+        "The Compatibility Decision is `" + normalizedDecision + "` which is not implementation-legal. Only `compatible` allows implementation to proceed.",
+        contractSource.paths,
+        normalizedDecision === "defer-later-company"
+          ? "This slice is later-company work. Log it for a future phase instead of implementing now."
+          : "This slice needs a user decision before implementation can proceed. Resolve the block and update the Compatibility Decision."
+      ));
+    }
+  }
+
+  const laterCompanyRaw = extractLabeledValue(verificationSourceText, "Later-Company Check");
+  if (isFilled(laterCompanyRaw) && /^yes$/i.test(String(laterCompanyRaw).trim())) {
+    blockingIssues.push(issue(
+      "later-company-check-failed",
+      "The slice is marked `Later-Company Check: yes` — it belongs to a later company phase and must not proceed.",
+      contractSource.paths,
+      "This work should be logged for a future phase. Do not implement later-company work in the active phase."
+    ));
   }
 
   if (contractSource.type === "equivalent_sources") {

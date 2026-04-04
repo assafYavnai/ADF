@@ -40,6 +40,7 @@ For each finding include:
 - KPI applicability
 - KPI closure state: Closed / Partial / Open / Temporary Exception
 - KPI proof or exception gap
+- Compatibility verdict: Compatible / Incompatible (against Vision, Phase 1, Master-Plan, Gap-Closure authority chain)
 - sweep scope: what sibling paths/components must be checked for the same pattern
 - closure proof: what tests/runtime evidence/DB proof must exist before this can be called closed
 - shared-surface expansion risk: none / present and where
@@ -107,6 +108,7 @@ And include:
 - KPI applicability
 - KPI closure state: Closed / Partial / Open / Temporary Exception
 - missing KPI proof or incomplete exception details
+- Compatibility verdict: Compatible / Incompatible (against Vision, Phase 1, Master-Plan, Gap-Closure authority chain)
 - sibling sites still uncovered
 - whether broader shared power was introduced and whether that was justified
 - whether negative proof exists where required
@@ -134,6 +136,9 @@ If no further fix pass is required, write:
 - None.
 
 Reject the fix as incomplete if:
+- it does not explicitly state a Compatibility verdict against the Vision/Phase 1/Master-Plan/Gap-Closure authority chain
+- it omits Vision Compatibility, Phase 1 Compatibility, Master-Plan Compatibility, Current Gap-Closure Compatibility, or Compatibility Evidence
+- it pursues later-company work without explicit justification
 - it does not explicitly judge KPI applicability or KPI closure state for an applicable route
 - it claims KPI closure without matching route-level proof
 - it uses a temporary KPI exception without owner, expiry, production status, and compensating control
@@ -177,6 +182,13 @@ For each failure class, state:
 - KPI Production / Proof Partition
 - KPI Non-Applicability Rationale when KPI is not required
 - KPI Exception Owner / Expiry / Production Status / Compensating Control when a temporary exception is approved
+- Vision Compatibility
+- Phase 1 Compatibility
+- Master-Plan Compatibility
+- Current Gap-Closure Compatibility
+- Later-Company Check
+- Compatibility Decision
+- Compatibility Evidence
 - allowed mutation surfaces
 - forbidden shared-surface expansion
 - docs that must be updated
@@ -255,7 +267,7 @@ Rules:
 - headings must appear in the listed order
 - if a section is empty, write `None.` under it
 - `1. Failure Classes` must name the failure classes to close, and must normalize a broad or mixed task into route-level failure classes before coding
-- `2. Route Contracts` must freeze claimed supported route, end-to-end invariants, KPI applicability, KPI route or touched path, KPI raw-truth source, KPI coverage or proof, KPI production or proof partition handling, allowed mutation surfaces, forbidden shared-surface expansion, and docs to update
+- `2. Route Contracts` must freeze claimed supported route, end-to-end invariants, KPI applicability, KPI route or touched path, KPI raw-truth source, KPI coverage or proof, KPI production or proof partition handling, Vision Compatibility, Phase 1 Compatibility, Master-Plan Compatibility, Current Gap-Closure Compatibility, Later-Company Check, Compatibility Decision, Compatibility Evidence, allowed mutation surfaces, forbidden shared-surface expansion, and docs to update
 - `3. Sweep Scope` must name upstream/downstream siblings, adjacent routes, and shared callers or surfaces to inspect
 - `4. Planned Changes` must stay minimal and must name any new power being introduced on a shared surface
 - `5. Closure Proof` must state the route to prove, the KPI closure proof or approved exception state, the negative proof required for shared-surface changes, live/proof isolation checks, and the targeted regression checks

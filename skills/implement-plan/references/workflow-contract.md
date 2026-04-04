@@ -331,6 +331,16 @@ Before any implementor worker starts, the main skill must verify:
   - `KPI Exception Expiry`
   - `KPI Exception Production Status`
   - `KPI Compensating Control`
+- the contract includes a frozen compatibility section with all required fields:
+  - `Vision Compatibility` against `docs/VISION.md`
+  - `Phase 1 Compatibility` against `docs/PHASE1_VISION.md`
+  - `Master-Plan Compatibility` against `docs/PHASE1_MASTER_PLAN.md`
+  - `Current Gap-Closure Compatibility` against `docs/phase1/adf-phase1-current-gap-closure-plan.md`
+  - `Later-Company Check` (yes or no)
+  - `Compatibility Decision` must be one of: `compatible`, `defer-later-company`, `blocked-needs-user-decision`
+  - `Compatibility Evidence`
+- only `Compatibility Decision: compatible` is implementation-legal
+- `Later-Company Check: yes` blocks implementation regardless of Compatibility Decision
 - required implementation contract exists or a valid equivalent source is available
 - the plan is explicit and internally coherent
 - required deliverables are clear
@@ -372,6 +382,30 @@ Rules:
 - when KPI is not required, require a narrow rationale that says why the slice is outside the KPI rule instead of omitting KPI discussion
 - when a temporary exception is used, require explicit approval status, owner, expiry, compensating control, and an explicit not-production-complete statement
 - do not let vague observability wording stand in for the required KPI contract fields
+
+## Vision / Phase 1 / Master-Plan compatibility gate
+
+Every implementation slice must demonstrate explicit compatibility with the full authority chain before implementation may begin.
+
+Required labeled fields:
+
+- `Vision Compatibility` — how the slice relates to `docs/VISION.md` strategic constraints
+- `Phase 1 Compatibility` — how the slice fits within `docs/PHASE1_VISION.md` scope
+- `Master-Plan Compatibility` — how the slice aligns with `docs/PHASE1_MASTER_PLAN.md` mission filter
+- `Current Gap-Closure Compatibility` — which gap (A-E) from `docs/phase1/adf-phase1-current-gap-closure-plan.md` this slice closes or supports
+- `Later-Company Check` — `yes` if this work belongs to a later company phase, `no` if it belongs now
+- `Compatibility Decision` — `compatible`, `defer-later-company`, or `blocked-needs-user-decision`
+- `Compatibility Evidence` — substantive evidence supporting the decision
+
+Rules:
+
+- do not allow a slice to stay silent on any of the seven compatibility fields
+- do not accept placeholder values like `N/A`, `None`, `TBD`, or `Not applicable` for the four content fields or evidence
+- only `Compatibility Decision: compatible` is implementation-legal
+- `Later-Company Check: yes` blocks implementation regardless of the decision field
+- `defer-later-company` means the work should be logged for a future phase
+- `blocked-needs-user-decision` means the slice needs explicit user resolution before proceeding
+- the compatibility decision must not silently collapse into a generic judgment
 
 ## Worker mode rule
 
