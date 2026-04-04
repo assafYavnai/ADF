@@ -177,6 +177,16 @@ At minimum, check:
   - `KPI Exception Expiry`
   - `KPI Exception Production Status`
   - `KPI Compensating Control`
+- the compatibility section is frozen with all required fields:
+  - `Vision Compatibility` against `docs/VISION.md`
+  - `Phase 1 Compatibility` against `docs/PHASE1_VISION.md`
+  - `Master-Plan Compatibility` against `docs/PHASE1_MASTER_PLAN.md`
+  - `Current Gap-Closure Compatibility` against `docs/phase1/adf-phase1-current-gap-closure-plan.md`
+  - `Later-Company Check` (yes or no)
+  - `Compatibility Decision` must be one of: `compatible`, `defer-later-company`, `blocked-needs-user-decision`
+  - `Compatibility Evidence`
+- only `Compatibility Decision: compatible` is implementation-legal
+- `Later-Company Check: yes` blocks implementation
 - required implementation contract exists or a valid equivalent source is available
 - the slice is explicit, bounded, and internally coherent
 - required deliverables are stated clearly

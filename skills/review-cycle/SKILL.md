@@ -88,6 +88,7 @@ Rules:
   - failure classes
   - claimed supported route and end-to-end invariants
   - KPI applicability and KPI closure expectation
+  - Vision Compatibility, Phase 1 Compatibility, Master-Plan Compatibility, Current Gap-Closure Compatibility, Later-Company Check, Compatibility Decision, and Compatibility Evidence
   - allowed mutation surfaces
   - forbidden shared-surface expansion
   - sibling sweep scope

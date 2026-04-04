@@ -72,6 +72,11 @@ Rules:
   - `KPI Exception Expiry`
   - `KPI Exception Production Status`
   - `KPI Compensating Control`
+- do not pass a slice that omits `Vision Compatibility`, `Phase 1 Compatibility`, `Master-Plan Compatibility`, `Current Gap-Closure Compatibility`, or `Compatibility Evidence`
+- do not pass a slice that omits `Compatibility Decision`
+- do not pass a slice where `Compatibility Decision` is not one of: `compatible`, `defer-later-company`, `blocked-needs-user-decision`
+- do not pass a slice where `Compatibility Decision` is anything other than `compatible` — only `compatible` is implementation-legal
+- do not pass a slice where `Later-Company Check` is `yes`
 - do not pass a slice that still requires business guessing
 - treat `blocked` feature status as non-runnable until explicitly resolved
 
@@ -195,8 +200,21 @@ Rules:
   - `KPI Exception Expiry`
   - `KPI Exception Production Status`
   - `KPI Compensating Control`
+  - `Vision Compatibility`
+  - `Phase 1 Compatibility`
+  - `Master-Plan Compatibility`
+  - `Current Gap-Closure Compatibility`
+  - `Later-Company Check`
+  - `Compatibility Decision`
+  - `Compatibility Evidence`
   - `Machine Verification Plan`
   - `Human Verification Plan`
+- `Compatibility Decision` must be exactly one of:
+  - `compatible`
+  - `defer-later-company`
+  - `blocked-needs-user-decision`
+- only `compatible` is implementation-legal
+- `Later-Company Check: yes` blocks implementation regardless of decision
 - `KPI Applicability` must be exactly one of:
   - `required`
   - `not required`

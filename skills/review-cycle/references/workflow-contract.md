@@ -525,6 +525,25 @@ Rules:
 - do not treat a route as closed when KPI proof is missing, when the KPI proof route does not match the claimed route, or when the temporary exception details are incomplete
 - do not let vague observability wording substitute for the explicit KPI fields above
 
+## Vision / Phase 1 / Master-Plan compatibility gate
+
+Every route under review must carry explicit compatibility judgments against the full authority chain.
+
+Rules:
+
+- `fix-plan.md` must freeze all seven compatibility fields:
+  - `Vision Compatibility` — how the fix relates to `docs/VISION.md` strategic constraints
+  - `Phase 1 Compatibility` — how the fix fits within `docs/PHASE1_VISION.md` scope
+  - `Master-Plan Compatibility` — how the fix aligns with `docs/PHASE1_MASTER_PLAN.md` mission filter
+  - `Current Gap-Closure Compatibility` — which gap (A-E) from `docs/phase1/adf-phase1-current-gap-closure-plan.md` the fix closes or supports
+  - `Later-Company Check` — `yes` or `no`
+  - `Compatibility Decision` — `compatible`, `defer-later-company`, or `blocked-needs-user-decision`
+  - `Compatibility Evidence` — substantive evidence supporting the decision
+- auditor and reviewer reports must explicitly state `Compatibility Verdict` as `Compatible` or `Incompatible`
+- do not treat a route as closed when any of the seven compatibility fields is missing
+- do not treat a route as closed when `Compatibility Decision` is not `compatible` or when `Later-Company Check` is `yes`
+- do not let vague compatibility wording substitute for explicit authority-chain references
+
 ## Shared-surface and new-power gate
 
 If the fix adds or broadens any shared capability such as:
