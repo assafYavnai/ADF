@@ -434,7 +434,11 @@ function renderReviewLine(completion: BriefCompletionEvidence | null | undefined
   }
 
   if (completion.reviewCycles.value === null) {
-    return "Reviews: unavailable.";
+    return `Reviews: unavailable. ${completion.reviewCycles.note}`;
+  }
+
+  if (completion.reviewCycles.value === 0) {
+    return `Reviews: 0 completed review cycles are recorded. ${completion.reviewCycles.note}`;
   }
 
   return completion.reviewCycles.value === 1

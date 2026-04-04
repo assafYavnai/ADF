@@ -103,6 +103,8 @@ interface PlanSignal {
   mergeCommitSha: string | null;
   approvedCommitSha: string | null;
   reviewCycleCount: number | null;
+  reviewCycleQualification: BriefClaimQualification;
+  reviewCycleNote: string;
   tokenCostTokens: number | null;
   keyIssue: string | null;
   keyIssueCount: number | null;
@@ -397,6 +399,8 @@ async function loadImplementPlanSignals(projectRoot: string): Promise<FamilyLoad
           mergeCommitSha: null,
           approvedCommitSha: null,
           reviewCycleCount: null,
+          reviewCycleQualification: "unavailable",
+          reviewCycleNote: "The slice folder has not yet provided review-cycle truth for this item.",
           tokenCostTokens: null,
           keyIssue: null,
           keyIssueCount: null,
@@ -415,7 +419,24 @@ async function loadImplementPlanSignals(projectRoot: string): Promise<FamilyLoad
       if (!entry.isDirectory()) continue;
       const featureRoot = join(phaseRoot, entry.name);
       const statePath = join(featureRoot, "implement-plan-state.json");
-      if (!await pathExists(statePath)) continue;
+      const summaryRaw = await tryReadFile(join(featureRoot, "completion-summary.md"));
+      const reviewCycleEvidence = await loadReviewCycleEvidence(featureRoot, summaryRaw);
+      const fallbackId = normalizeFeatureId(entry.name);
+      const fallbackExisting = items.get(fallbackId);
+
+      if (!await pathExists(statePath)) {
+        if (fallbackExisting) {
+          items.set(fallbackId, mergePlanSignals(fallbackExisting, {
+            ...fallbackExisting,
+            reviewCycleCount: reviewCycleEvidence.reviewCycleCount,
+            reviewCycleQualification: reviewCycleEvidence.reviewCycleQualification,
+            reviewCycleNote: reviewCycleEvidence.reviewCycleNote,
+            tokenCostTokens: parseTokenCost(summaryRaw),
+            explicitNoIssuesRecorded: summaryMentionsNoRecordedIssues(summaryRaw),
+          }));
+        }
+        continue;
+      }
 
       try {
         const state = asRecord(await parseJsonFile<Record<string, unknown>>(statePath));
@@ -425,9 +446,7 @@ async function loadImplementPlanSignals(projectRoot: string): Promise<FamilyLoad
             ?? entry.name,
         );
         const existing = items.get(id);
-        const reviewCycleCount = await loadReviewCycleCount(featureRoot);
-        const { keyIssue, keyIssueCount } = await loadKeyIssueEvidence(featureRoot, reviewCycleCount);
-        const summaryRaw = await tryReadFile(join(featureRoot, "completion-summary.md"));
+        const { keyIssue, keyIssueCount } = await loadKeyIssueEvidence(featureRoot, reviewCycleEvidence.reviewCycleCount);
 
         items.set(id, mergePlanSignals(existing, {
           id,
@@ -443,7 +462,9 @@ async function loadImplementPlanSignals(projectRoot: string): Promise<FamilyLoad
           closeoutFinishedAt: asNonEmptyString(asRecord(state.run_timestamps).closeout_finished_at),
           mergeCommitSha: asNonEmptyString(state.merge_commit_sha),
           approvedCommitSha: asNonEmptyString(state.approved_commit_sha),
-          reviewCycleCount,
+          reviewCycleCount: reviewCycleEvidence.reviewCycleCount,
+          reviewCycleQualification: reviewCycleEvidence.reviewCycleQualification,
+          reviewCycleNote: reviewCycleEvidence.reviewCycleNote,
           tokenCostTokens: parseTokenCost(summaryRaw),
           keyIssue,
           keyIssueCount,
@@ -777,15 +798,13 @@ function buildCompletionEvidence(item: CorrelatedBriefItem): BriefCompletionEvid
   const reviewCycles = reviewCycleCount === null
     ? {
         value: null,
-        qualification: "unavailable" as const,
-        note: "Review-cycle truth is unavailable for this landed item.",
+        qualification: item.plan.reviewCycleQualification,
+        note: item.plan.reviewCycleNote,
       }
     : {
         value: reviewCycleCount,
-        qualification: reviewCycleCount > 0 ? "direct_source" as const : "direct_source" as const,
-        note: reviewCycleCount === 0
-          ? "No completed review-cycle pass is recorded for this landed item."
-          : `${reviewCycleCount} completed review-cycle pass(es) are recorded.`,
+        qualification: item.plan.reviewCycleQualification,
+        note: item.plan.reviewCycleNote,
       };
 
   const tokenCostTokens = item.plan.tokenCostTokens === null
@@ -1421,6 +1440,12 @@ function mergePlanSignals(existing: PlanSignal | undefined, incoming: PlanSignal
     mergeCommitSha: incoming.mergeCommitSha ?? existing.mergeCommitSha,
     approvedCommitSha: incoming.approvedCommitSha ?? existing.approvedCommitSha,
     reviewCycleCount: incoming.reviewCycleCount ?? existing.reviewCycleCount,
+    reviewCycleQualification: shouldReplaceQualification(existing.reviewCycleQualification, incoming.reviewCycleQualification)
+      ? incoming.reviewCycleQualification
+      : existing.reviewCycleQualification,
+    reviewCycleNote: incoming.reviewCycleNote.trim().length > 0
+      ? incoming.reviewCycleNote
+      : existing.reviewCycleNote,
     tokenCostTokens: incoming.tokenCostTokens ?? existing.tokenCostTokens,
     keyIssue: incoming.keyIssue ?? existing.keyIssue,
     keyIssueCount: incoming.keyIssueCount ?? existing.keyIssueCount,
@@ -1428,18 +1453,103 @@ function mergePlanSignals(existing: PlanSignal | undefined, incoming: PlanSignal
   };
 }
 
-async function loadReviewCycleCount(featureRoot: string): Promise<number | null> {
+async function loadReviewCycleEvidence(
+  featureRoot: string,
+  completionSummaryRaw: string | null,
+): Promise<{
+  reviewCycleCount: number | null;
+  reviewCycleQualification: BriefClaimQualification;
+  reviewCycleNote: string;
+}> {
   const reviewStatePath = join(featureRoot, "review-cycle-state.json");
-  if (!await pathExists(reviewStatePath)) {
-    return null;
+  const cycleDirectoryNames = await listCycleDirectories(featureRoot);
+  const reviewStatusLine = extractReviewCycleStatusLine(completionSummaryRaw);
+  const hasCompletionSummary = Boolean(completionSummaryRaw);
+  const hasImplementPlanState = await pathExists(join(featureRoot, "implement-plan-state.json"));
+
+  if (await pathExists(reviewStatePath)) {
+    try {
+      const reviewState = asRecord(await parseJsonFile<Record<string, unknown>>(reviewStatePath));
+      const rawValue = reviewState.last_completed_cycle;
+      const reviewCycleCount = typeof rawValue === "number" && rawValue >= 0 ? rawValue : null;
+      if (reviewCycleCount !== null) {
+        return {
+          reviewCycleCount,
+          reviewCycleQualification: "direct_source",
+          reviewCycleNote: reviewCycleCount === 0
+            ? firstMeaningfulText(
+                normalizeReviewStatusLine(reviewStatusLine),
+                "Structured review-cycle state records zero completed cycles for this landed item.",
+              ) ?? "Structured review-cycle state records zero completed cycles for this landed item."
+            : reviewStatusLine
+              ? `Slice closeout says ${normalizeReviewStatusLine(reviewStatusLine)}`
+              : `${reviewCycleCount} completed review-cycle pass(es) are recorded in structured slice truth.`,
+        };
+      }
+    } catch {
+      // fall through to derived or unavailable evidence below
+    }
   }
 
+  if (cycleDirectoryNames.length > 0) {
+    return {
+      reviewCycleCount: cycleDirectoryNames.length,
+      reviewCycleQualification: "derived_from_sources",
+      reviewCycleNote: reviewStatusLine
+        ? `Structured review-cycle state is missing, but slice artifacts say ${normalizeReviewStatusLine(reviewStatusLine)}`
+        : `Structured review-cycle state is missing, so review count was derived from slice folders: ${cycleDirectoryNames.join(", ")}.`,
+    };
+  }
+
+  if (reviewStatusLine) {
+    const normalizedReviewStatusLine = normalizeReviewStatusLine(reviewStatusLine);
+    if (/not invoked/i.test(reviewStatusLine)) {
+      return {
+        reviewCycleCount: 0,
+        reviewCycleQualification: "direct_source",
+        reviewCycleNote: `Slice closeout says ${normalizedReviewStatusLine}`,
+      };
+    }
+
+    return {
+      reviewCycleCount: null,
+      reviewCycleQualification: "derived_from_sources",
+      reviewCycleNote: `Slice closeout says ${normalizedReviewStatusLine}`,
+    };
+  }
+
+  if (!hasImplementPlanState && !hasCompletionSummary) {
+    return {
+      reviewCycleCount: null,
+      reviewCycleQualification: "unavailable",
+      reviewCycleNote: "The slice folder does not carry closeout or review-cycle artifacts, so review status is not provable.",
+    };
+  }
+
+  if (hasImplementPlanState && !hasCompletionSummary) {
+    return {
+      reviewCycleCount: null,
+      reviewCycleQualification: "unavailable",
+      reviewCycleNote: "The slice folder has implement-plan state but does not explain review-cycle status, so review status is not provable.",
+    };
+  }
+
+  return {
+    reviewCycleCount: null,
+    reviewCycleQualification: "unavailable",
+    reviewCycleNote: "The slice folder has closeout artifacts but does not explain review-cycle status, so review status is not provable.",
+  };
+}
+
+async function listCycleDirectories(featureRoot: string): Promise<string[]> {
   try {
-    const reviewState = asRecord(await parseJsonFile<Record<string, unknown>>(reviewStatePath));
-    const rawValue = reviewState.last_completed_cycle;
-    return typeof rawValue === "number" && rawValue >= 0 ? rawValue : null;
+    const entries = await readdir(featureRoot, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory() && /^cycle-\d+$/i.test(entry.name))
+      .map((entry) => entry.name)
+      .sort((left, right) => left.localeCompare(right));
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -1492,6 +1602,32 @@ function parseTokenCost(raw: string | null): number | null {
 
   const parsed = Number(match[1].replace(/,/g, ""));
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function extractReviewCycleStatusLine(raw: string | null): string | null {
+  if (!raw) {
+    return null;
+  }
+
+  const directLineMatch = raw.match(/^(?:##?\s*)?Review-Cycle Status:\s*(.+)$/im);
+  if (directLineMatch?.[1]) {
+    return directLineMatch[1].trim();
+  }
+
+  const headingBlockMatch = raw.match(/^(?:##?\s*)?Review-Cycle Status:?\s*$\r?\n(?:- |\* )?(.+)$/im);
+  if (headingBlockMatch?.[1]) {
+    return headingBlockMatch[1].trim();
+  }
+
+  return null;
+}
+
+function normalizeReviewStatusLine(value: string | null): string {
+  const trimmed = (value?.trim() ?? "").replace(/^[-*]\s+/, "");
+  if (trimmed.length === 0) {
+    return "review-cycle status is unavailable.";
+  }
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
 
 function summaryMentionsNoRecordedIssues(raw: string | null): boolean {
@@ -1648,6 +1784,30 @@ function trimSentence(value: string): string {
   const sentence = firstSentenceMatch ? firstSentenceMatch[0] : value;
   return sentence.trim();
 }
+
+function shouldReplaceQualification(
+  existing: BriefClaimQualification,
+  incoming: BriefClaimQualification,
+): boolean {
+  return qualificationPriority(incoming) >= qualificationPriority(existing);
+}
+
+function qualificationPriority(value: BriefClaimQualification): number {
+  switch (value) {
+    case "direct_source":
+      return 4;
+    case "derived_from_sources":
+      return 3;
+    case "fallback_missing_source":
+      return 2;
+    case "ambiguous":
+      return 1;
+    case "unavailable":
+    default:
+      return 0;
+  }
+}
+
 
 function extractItemTimestamp(item: unknown): string | null {
   if (!item || typeof item !== "object") return null;

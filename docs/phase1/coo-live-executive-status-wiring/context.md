@@ -58,3 +58,8 @@ This slice should run after the freeze-to-admission wiring slice if possible, so
 - The COO live status route now records a runtime-only last-status-update anchor under `.codex/runtime/coo-live-status-window.json` so the next status run has an explicit comparison frame without mutating tracked source truth.
 - Git verification is intentionally bounded to this live COO surface. It compares feature-slice activity since the previous COO status update and raises a red flag when a recently touched slice is missing from the current COO report, but it does not change the broader context-gathering tool in this slice.
 - Human verification for this slice must now validate both readability and the comparison frame: current update time, previous update time, git coverage basis, and any red-flag context-drop finding.
+- Landed-item review governance can no longer flatten `0` or missing review cycles into plain `unavailable`. The live route now inspects each slice folder for `review-cycle-state.json`, `cycle-*` artifacts, and `completion-summary.md` review status so the CEO can distinguish:
+  - review-cycle explicitly not invoked
+  - review-cycle count recorded directly
+  - review-cycle count derived from slice artifacts
+  - review status not provable because closeout/review artifacts are missing

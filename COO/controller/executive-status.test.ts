@@ -213,6 +213,105 @@ test("stale-source path reduces confidence and surfaces staleness explicitly", a
   assert.ok(result.output.includes("low confidence"));
 });
 
+test("landed work explains when review-cycle was explicitly not invoked in the slice folder", async () => {
+  const threadsDir = join(tempRoot, "threads");
+  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
+  const featureRoot = join(tempRoot, "docs", "phase1", "feature-no-review");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(implementPlanRoot, { recursive: true });
+  await mkdir(featureRoot, { recursive: true });
+
+  await writeJson(join(implementPlanRoot, "features-index.json"), {
+    version: 1,
+    updated_at: "2026-04-03T16:00:00.000Z",
+    features: {
+      "phase1/feature-no-review": {
+        phase_number: 1,
+        feature_slug: "feature-no-review",
+        feature_status: "completed",
+        active_run_status: "completed",
+        merge_status: "merged",
+        last_completed_step: "marked_complete",
+        updated_at: "2026-04-03T16:00:00.000Z",
+      },
+    },
+  });
+  await writeJson(join(featureRoot, "implement-plan-state.json"), {
+    phase_number: 1,
+    feature_slug: "feature-no-review",
+    feature_status: "completed",
+    active_run_status: "completed",
+    merge_status: "merged",
+    last_completed_step: "marked_complete",
+    updated_at: "2026-04-03T16:00:00.000Z",
+    run_timestamps: {
+      context_collected_at: "2026-04-03T15:30:00.000Z",
+      closeout_finished_at: "2026-04-03T16:00:00.000Z",
+    },
+  });
+  await writeFile(
+    join(featureRoot, "completion-summary.md"),
+    [
+      "Human Verification Requirement:",
+      "- Required: false",
+      "",
+      "Review-Cycle Status:",
+      "- Not invoked (post_send_to_review=false)",
+      "",
+      "Token cost unavailable.",
+    ].join("\n"),
+    "utf-8",
+  );
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir,
+    brainClient: null,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("**Feature No Review** - completed and merged"));
+  assert.ok(result.output.includes("Reviews: 0 completed review cycles are recorded. Slice closeout says Not invoked (post_send_to_review=false)."));
+});
+
+test("landed work calls out when the slice folder cannot prove review status", async () => {
+  const threadsDir = join(tempRoot, "threads");
+  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
+  const featureRoot = join(tempRoot, "docs", "phase1", "feature-missing-governance");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(implementPlanRoot, { recursive: true });
+  await mkdir(featureRoot, { recursive: true });
+  await writeFile(join(featureRoot, "README.md"), "# placeholder\n", "utf-8");
+
+  await writeJson(join(implementPlanRoot, "features-index.json"), {
+    version: 1,
+    updated_at: "2026-04-03T16:00:00.000Z",
+    features: {
+      "phase1/feature-missing-governance": {
+        phase_number: 1,
+        feature_slug: "feature-missing-governance",
+        feature_status: "completed",
+        active_run_status: "completed",
+        merge_status: "merged",
+        last_completed_step: "marked_complete",
+        updated_at: "2026-04-03T16:00:00.000Z",
+      },
+    },
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir,
+    brainClient: null,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("**Feature Missing Governance** - completed and merged"));
+  assert.ok(result.output.includes("Reviews: unavailable. The slice folder does not carry closeout or review-cycle artifacts, so review status is not provable."));
+});
+
 test("status window persists the last COO update time so the next run has a comparison frame", async () => {
   const fixture = await createFixture({ includeAdmissions: true });
 

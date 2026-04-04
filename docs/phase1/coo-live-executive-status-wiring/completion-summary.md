@@ -12,7 +12,7 @@ This slice is not fully closed yet. Human verification previously found CEO-surf
 - Runtime-only last-status / git-verification helper in `COO/controller/status-window.ts`
 - COO CLI wiring for `--status` and `/status`
 - Brain requirement read helper in `COO/controller/memory-engine-client.ts`
-- Proof tests for full-source, partial-source, empty-state, blocked, stale, ambiguous-timing, provenance, no-mutation, parity, KPI, status-window persistence, git red-flag behavior, and partition behavior in `COO/controller/executive-status.test.ts`
+- Proof tests for full-source, partial-source, empty-state, blocked, stale, ambiguous-timing, provenance, no-mutation, parity, KPI, status-window persistence, git red-flag behavior, review-cycle governance explanation, and partition behavior in `COO/controller/executive-status.test.ts`
 - Updated slice context in `docs/phase1/coo-live-executive-status-wiring/context.md`
 - Updated integration note in `COO/briefing/INTEGRATION.md`
 
@@ -35,6 +35,8 @@ This slice is not fully closed yet. Human verification previously found CEO-surf
   - now renders the normalized live executive surface instead of directly dumping the internal 4-section brief
   - keeps the internal 4-section brief for parity / KPI proof
   - records the previous COO status update baseline and verifies recent git activity against the current surfaced feature set
+- `COO/briefing/live-source-adapter.ts`
+  - now inspects slice-folder review-cycle artifacts and completion summaries so landed items explain whether review-cycle was recorded, explicitly not invoked, derived from slice artifacts, or not provable
 - `COO/controller/status-window.ts`
   - stores the last COO status update anchor under runtime state
   - inspects git history since the prior update
@@ -54,7 +56,7 @@ Machine Verification
 - Passed:
   - `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd --test briefing\executive-brief.test.ts controller\executive-status.test.ts`
 - Result:
-  - `48` tests passed
+  - `50` tests passed
   - `0` failed
 - Proof coverage includes:
   - full-source happy path
@@ -68,6 +70,7 @@ Machine Verification
   - parity / visibility proof so blocked or attention-worthy items do not disappear silently
   - last-status-update persistence proof so the next COO status run has a comparison frame
   - git-backed context-drop red-flag proof when recent feature-slice work is missing from the current COO surface
+  - landed-item proof for explicit `review-cycle not invoked` and for missing review governance artifacts in slice folders
   - KPI and production/proof partition isolation
 
 Runtime Smoke
@@ -140,6 +143,7 @@ The live status route now:
 - carries provenance / freshness / confidence into the CEO-facing surface
 - renders scan-friendly landed / moving / standout / attention sections
 - records the last COO status update and checks git history since that frame for dropped feature-slice context
+- explains landed-item review governance from slice-folder evidence instead of flattening `0` or missing review cycles into plain `unavailable`
 - keeps ambiguous timing and missing-source truth visible
 
 Refreshed human approval is still pending. After that, the current head still needs a follow-up review-cycle pass, then merge-queue, before the slice can be marked complete truthfully.
