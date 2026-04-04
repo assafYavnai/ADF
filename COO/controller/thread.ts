@@ -327,6 +327,21 @@ function serializeWorkflowState(thread: Thread): string {
     lines.push(`Finalized requirement memory id: ${onion.finalized_requirement_memory_id}`);
   }
 
+  if (onion.cto_admission) {
+    lines.push(`CTO admission status: ${onion.cto_admission.status}`);
+    lines.push(`CTO admission outcome: ${onion.cto_admission.outcome ?? "none"}`);
+    lines.push(`CTO admission decision: ${onion.cto_admission.decision ?? "pending"}`);
+    if (onion.cto_admission.artifact_paths.request_json) {
+      lines.push(`CTO admission request path: ${onion.cto_admission.artifact_paths.request_json}`);
+    }
+    if (onion.cto_admission.artifact_paths.decision_template_json) {
+      lines.push(`CTO admission decision path: ${onion.cto_admission.artifact_paths.decision_template_json}`);
+    }
+    if (onion.cto_admission.artifact_paths.summary_md) {
+      lines.push(`CTO admission summary path: ${onion.cto_admission.artifact_paths.summary_md}`);
+    }
+  }
+
   if (approvedScope) {
     lines.push(`Approved snapshot turn id: ${approvedScope.approved_turn_id}`);
     lines.push(`Approved snapshot time: ${approvedScope.approved_at}`);
@@ -367,6 +382,12 @@ function serializeOnionTurnResult(event: OnionTurnResultEvent): string {
 
   if (event.data.finalized_requirement_memory_id) {
     lines.push(`finalized_requirement_memory_id: ${event.data.finalized_requirement_memory_id}`);
+  }
+
+  if (event.data.cto_admission) {
+    lines.push(`cto_admission_status: ${event.data.cto_admission.status}`);
+    lines.push(`cto_admission_decision: ${event.data.cto_admission.decision ?? "pending"}`);
+    lines.push(`cto_admission_outcome: ${event.data.cto_admission.outcome ?? "none"}`);
   }
 
   return `<onion_turn_result>\n${lines.join("\n")}\n</onion_turn_result>`;
