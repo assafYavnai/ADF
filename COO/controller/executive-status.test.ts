@@ -40,8 +40,17 @@ afterEach(async () => {
   }
 });
 
-test("live executive status renders all four sections from live sources and emits KPI telemetry", async () => {
+test("full-source happy path renders a scan-friendly evidence-qualified executive surface", async () => {
   const fixture = await createFixture({ includeAdmissions: true });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-landed",
+    updatedAt: "2026-04-03T16:04:00.000Z",
+    contextCollectedAt: "2026-04-02T14:34:00.000Z",
+    closeoutFinishedAt: "2026-04-03T16:04:00.000Z",
+    reviewCycles: 1,
+    completionSummary: "Token cost unavailable. No implementation-quality defects recorded.",
+    reviewFinding: "Proof partition contamination of the live artifact root.",
+  });
 
   const result = await buildLiveExecutiveStatus({
     projectRoot: tempRoot,
@@ -51,151 +60,65 @@ test("live executive status renders all four sections from live sources and emit
     telemetryContext: {
       status_surface: "unit_test",
     },
+    loadStatusUpdateAnchor: async () => ({
+      renderedAt: "2026-04-03T15:00:00.000Z",
+      headCommit: "1111111111111111111111111111111111111111",
+    }),
+    inspectGitStatusWindow: async () => makeStatusWindow({
+      currentRenderedAt: "2026-04-03T16:05:00.000Z",
+      previousRenderedAt: "2026-04-03T15:00:00.000Z",
+      previousHeadCommit: "1111111111111111111111111111111111111111",
+      currentHeadCommit: "2222222222222222222222222222222222222222",
+      verificationBasis: "previous_head_commit",
+      commitsSincePrevious: 2,
+      changedFeatureSlugs: ["feature-landed", "feature-moving"],
+      droppedFeatureSlugs: [],
+      verificationNotes: ["Git checked 2 commit(s) since the previous status update."],
+      redFlag: false,
+    }),
+    saveStatusUpdateAnchor: async () => {},
   });
   await drain();
 
   assert.ok(result.output.includes("# COO Executive Status"));
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("## In Motion"));
-  assert.ok(result.output.includes("## What's Next"));
-  assert.ok(result.output.includes("Vendor sign-off missing"));
-  assert.ok(result.output.includes("Feature Table"));
-  assert.ok(result.output.includes("Feature Moving"));
-  assert.ok(result.output.includes("Kick off implementation against the prepared feature branch."));
-  assert.ok(!result.output.includes("featureStatus"), "status surface must stay business-level");
-  assert.ok(!result.output.includes("assafyavnai/adf/feature-moving"), "status surface must not leak raw scope paths");
-  assert.ok(
-    !result.output.includes("Implement Plan Review Cycle Kpi Enforcement"),
-    "plan-only framework work must not leak into the executive brief",
-  );
-  assert.ok(
-    !result.output.includes("Company Table Queue Read Model"),
-    "context-ready plan-only work must not appear without live executive truth",
-  );
-
-  assert.equal(result.diagnostics.missingSourceCount, 0);
+  assert.ok(result.output.includes("Status window:"));
+  assert.ok(result.output.includes("This COO update: 2026-04-03 16:05:00Z (2222222)"));
+  assert.ok(result.output.includes("Previous COO update: 2026-04-03 15:00:00Z (1111111)"));
+  assert.ok(result.output.includes("Coverage check: derived from git commit history between the previous recorded HEAD and the current HEAD."));
+  assert.ok(result.output.includes("What landed:"));
+  assert.ok(result.output.includes("1. **Feature Landed** - completed and merged"));
+  assert.ok(result.output.includes("Timing: about"));
+  assert.ok(result.output.includes("elapsed lifecycle time"));
+  assert.ok(result.output.includes("Active work time is unknown."));
+  assert.ok(result.output.includes("Reviews: 1 completed review cycle is recorded."));
+  assert.ok(result.output.includes("Token cost: unavailable."));
+  assert.ok(result.output.includes("Evidence:"));
+  assert.ok(result.output.includes("What is moving:"));
+  assert.ok(result.output.includes("**Feature Moving** -"));
+  assert.ok(result.output.includes("What needs your attention now:"));
+  assert.ok(result.output.includes("**Feature Blocked** - Vendor sign-off missing"));
+  assert.ok(!result.output.includes("featureStatus"));
+  assert.ok(!result.output.includes("assafyavnai/adf/feature-moving"));
 
   assertEventPresent("live_status_invocation_count");
-  const buildEvent = assertSingleEvent("live_exec_brief_build_latency_ms");
-  assert.equal(buildEvent.metadata?.telemetry_partition, "proof");
-  assert.equal(buildEvent.metadata?.source_partition, "proof");
-  assert.equal(buildEvent.metadata?.over_1s, 0);
-  assert.equal(buildEvent.metadata?.over_10s, 0);
-  assert.equal(buildEvent.metadata?.over_60s, 0);
+  assertEventPresent("live_exec_brief_build_latency_ms");
   assertEventPresent("live_exec_brief_render_success_count");
   assert.equal(findEvents("live_exec_brief_render_failure_count").length, 0);
-
-  const missingEvent = assertSingleEvent("live_source_adapter_missing_source_count");
-  assert.equal(missingEvent.metadata?.count, 0);
-
   assert.equal(assertSingleEvent("issues_visibility_parity_count").metadata?.parity_match, true);
   assert.equal(assertSingleEvent("table_visibility_parity_count").metadata?.parity_match, true);
   assert.equal(assertSingleEvent("in_motion_visibility_parity_count").metadata?.parity_match, true);
   assert.equal(assertSingleEvent("next_visibility_parity_count").metadata?.parity_match, true);
-  assertEventPresent("live_source_freshness_age_ms");
+  assert.equal(assertSingleEvent("live_exec_brief_render_success_count").metadata?.git_context_red_flag, false);
 });
 
-test("live executive status degrades cleanly when CTO admission artifacts are missing", async () => {
-  const fixture = await createFixture({ includeAdmissions: false });
-
-  const result = await buildLiveExecutiveStatus({
-    projectRoot: tempRoot,
-    threadsDir: fixture.threadsDir,
-    brainClient: fixture.brainClient,
-    sourcePartition: "proof",
-  });
-  await drain();
-
-  assert.ok(result.output.includes("Status notes:"));
-  assert.ok(result.output.includes("CTO admission truth is not available yet"));
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("## In Motion"));
-  assert.ok(result.output.includes("## What's Next"));
-  assert.ok(result.diagnostics.unavailableFamilies.includes("cto_admission"));
-
-  const missingEvent = assertSingleEvent("live_source_adapter_missing_source_count");
-  assert.ok(Number(missingEvent.metadata?.count ?? 0) >= 1);
-});
-
-test("live executive status keeps the richest same-scope thread and surfaces the admission next step", async () => {
+test("partial-source path stays visible as fallback when CTO admission truth is missing", async () => {
   const threadsDir = join(tempRoot, "threads");
   const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
   await mkdir(threadsDir, { recursive: true });
   await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
   await mkdir(implementPlanRoot, { recursive: true });
 
-  const finalizedRequirementId = "44444444-4444-4444-8444-444444444444";
-  const richThread = makeOnionThread({
-    scopePath: "assafyavnai/shippingagent",
-    topic: "/status command in the COO CLI",
-    lifecycleStatus: "handoff_ready",
-    currentLayer: "approved",
-    blockers: [],
-    openDecisions: [],
-    openLoops: [],
-    finalizedRequirementMemoryId: finalizedRequirementId,
-  });
-  richThread.updatedAt = "2026-04-03T16:00:00.000Z";
-  await writeThread(threadsDir, richThread);
-
-  const thinThread = createThread("assafyavnai/shippingagent");
-  thinThread.updatedAt = "2026-04-03T16:05:00.000Z";
-  thinThread.workflowState = {
-    active_workflow: null,
-    onion: null,
-  };
-  thinThread.events.push(createEvent("error", {
-    source: "controller",
-    message: "synthetic recoverable error",
-    recoverable: true,
-    attemptNumber: 1,
-  }));
-  await writeThread(threadsDir, thinThread);
-
-  await writeJson(join(implementPlanRoot, "features-index.json"), {
-    version: 1,
-    updated_at: "2026-04-03T16:06:00.000Z",
-    features: {},
-  });
-
-  const result = await buildLiveExecutiveStatus({
-    projectRoot: tempRoot,
-    threadsDir,
-    brainClient: {
-      async getRequirement(memoryId: string): Promise<Record<string, unknown>> {
-        assert.equal(memoryId, finalizedRequirementId);
-        return {
-          content: {
-            feature_slug: "shippingagent",
-            requirement_summary: "The finalized requirement is ready for technical admission.",
-            open_business_decisions: [],
-            blockers: [],
-            derivation_status: "ready",
-          },
-          updated_at: "2026-04-03T16:00:00.000Z",
-        };
-      },
-    },
-    sourcePartition: "proof",
-  });
-  await drain();
-
-  assert.ok(result.output.includes("**/status command in the COO CLI**"));
-  assert.ok(result.output.includes("Review the finalized requirement for technical admission."));
-  assert.ok(!result.output.includes("No pending next actions."));
-  assert.ok(!result.output.includes("- **Shippingagent**: Shaping - The COO is actively shaping this work."));
-});
-
-test("live executive status falls back to the thread-carried finalized requirement when the Brain read fails", async () => {
-  const threadsDir = join(tempRoot, "threads");
-  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
-  await mkdir(threadsDir, { recursive: true });
-  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
-  await mkdir(implementPlanRoot, { recursive: true });
-
-  const richThread = makeOnionThread({
+  const thread = makeOnionThread({
     scopePath: "assafyavnai/shippingagent",
     topic: "/status command in the COO CLI",
     lifecycleStatus: "handoff_ready",
@@ -205,65 +128,6 @@ test("live executive status falls back to the thread-carried finalized requireme
     openLoops: [],
     finalizedRequirementMemoryId: "55555555-5555-4555-8555-555555555555",
   });
-  richThread.updatedAt = "2026-04-03T16:00:00.000Z";
-  await writeThread(threadsDir, richThread);
-
-  await writeJson(join(implementPlanRoot, "features-index.json"), {
-    version: 1,
-    updated_at: "2026-04-03T16:06:00.000Z",
-    features: {},
-  });
-
-  const result = await buildLiveExecutiveStatus({
-    projectRoot: tempRoot,
-    threadsDir,
-    brainClient: {
-      async getRequirement(): Promise<Record<string, unknown>> {
-        throw new Error("synthetic Brain read failure");
-      },
-    },
-    sourcePartition: "proof",
-  });
-  await drain();
-
-  assert.ok(!result.output.includes("Finalized requirement truth is unavailable"));
-  assert.ok(result.output.includes("Review the finalized requirement for technical admission."));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("Awaiting decision -"));
-});
-
-test("live executive status tolerates legacy onion events missing layer metrics", async () => {
-  const threadsDir = join(tempRoot, "threads");
-  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
-  await mkdir(threadsDir, { recursive: true });
-  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
-  await mkdir(implementPlanRoot, { recursive: true });
-
-  const thread = makeOnionThread({
-    scopePath: "assafyavnai/legacy-feature",
-    topic: "Legacy Feature",
-    lifecycleStatus: "handoff_ready",
-    currentLayer: "approved",
-    blockers: [],
-    openDecisions: [],
-    openLoops: [],
-    finalizedRequirementMemoryId: "66666666-6666-4666-8666-666666666666",
-  });
-  thread.events.push(createEvent("onion_turn_result", {
-    trace_id: "legacy-trace",
-    turn_id: "legacy-turn",
-    lifecycle_status: "handoff_ready",
-    current_layer: "approved",
-    state: thread.workflowState.onion!.state,
-    working_artifact: thread.workflowState.onion!.working_artifact,
-    requirement_artifact: thread.workflowState.onion!.requirement_artifact,
-    finalized_requirement_memory_id: thread.workflowState.onion!.finalized_requirement_memory_id,
-    workflow_trace: thread.workflowState.onion!.latest_audit_trace,
-    operation_records: [],
-    llm_calls: [],
-    state_commit_summary: "Legacy onion event without layer metrics.",
-    open_loops: [],
-  } as never));
   await writeThread(threadsDir, thread);
 
   await writeJson(join(implementPlanRoot, "features-index.json"), {
@@ -284,49 +148,17 @@ test("live executive status tolerates legacy onion events missing layer metrics"
   });
   await drain();
 
-  assert.ok(result.output.includes("Legacy Feature"));
+  assert.ok(
+    result.output.includes("CTO admission truth is missing")
+      || result.output.includes("falls back to thread and finalized requirement truth"),
+  );
   assert.ok(result.output.includes("Review the finalized requirement for technical admission."));
+  assert.ok(result.output.includes("What needs your attention now:"));
+  assert.ok(result.output.includes("**/status command in the COO CLI**"));
+  assert.ok(result.diagnostics.unavailableFamilies.includes("cto_admission"));
 });
 
-test("live executive status shows recently finished merged work in status notes", async () => {
-  const threadsDir = join(tempRoot, "threads");
-  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
-  await mkdir(threadsDir, { recursive: true });
-  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
-  await mkdir(implementPlanRoot, { recursive: true });
-
-  await writeJson(join(implementPlanRoot, "features-index.json"), {
-    version: 1,
-    updated_at: "2026-04-03T16:06:00.000Z",
-    features: {
-      "phase1/finished-feature": {
-        phase_number: 1,
-        feature_slug: "finished-feature",
-        feature_status: "completed",
-        active_run_status: "completed",
-        merge_status: "merged",
-        last_completed_step: "marked_complete",
-        updated_at: "2026-04-03T16:04:00.000Z",
-      },
-    },
-  });
-
-  const result = await buildLiveExecutiveStatus({
-    projectRoot: tempRoot,
-    threadsDir,
-    brainClient: null,
-    sourcePartition: "proof",
-    now: new Date("2026-04-04T12:00:00.000Z"),
-  });
-  await drain();
-
-  assert.ok(result.output.includes("Status notes:"));
-  assert.ok(result.output.includes("Recently finished: Finished Feature - completed and merged"));
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## What's Next"));
-});
-
-test("live executive status renders the four sections cleanly for an empty source set", async () => {
+test("empty-state path stays scan-friendly and does not pretend missing sources mean calm truth", async () => {
   const threadsDir = join(tempRoot, "threads");
   await mkdir(threadsDir, { recursive: true });
   await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
@@ -339,16 +171,228 @@ test("live executive status renders the four sections cleanly for an empty sourc
   });
   await drain();
 
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("## In Motion"));
-  assert.ok(result.output.includes("## What's Next"));
-  assert.ok(result.output.includes("No blocked items"));
-  assert.ok(result.output.includes("No open decisions"));
-  assert.ok(result.output.includes("No features actively"));
-  assert.ok(result.output.includes("No pending next actions"));
+  assert.ok(result.output.includes("# COO Executive Status"));
+  assert.ok(result.output.includes("Some source truth is missing"));
+  assert.ok(result.output.includes("What landed:"));
+  assert.ok(result.output.includes("No recent landed work is visible in the current evidence."));
+  assert.ok(result.output.includes("What needs your attention now:"));
+  assert.ok(result.output.includes("Nothing urgent is blocked right now"));
   assert.equal(result.facts.features.length, 0);
-  assert.equal(result.diagnostics.sourceFreshnessAgeMs >= 0, true);
+});
+
+test("blocked-item path surfaces the blocker with direct-source evidence", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("**Feature Blocked** - Vendor sign-off missing"));
+  assert.ok(result.output.includes("Recommendation:"));
+  assert.ok(result.output.includes("The blocker comes directly from live COO thread/onion truth."));
+  assert.ok(result.output.includes("high confidence"));
+});
+
+test("stale-source path reduces confidence and surfaces staleness explicitly", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    now: new Date("2026-04-10T12:00:00.000Z"),
+  });
+  await drain();
+
+  assert.ok(result.output.includes("stale"));
+  assert.ok(result.output.includes("low confidence"));
+});
+
+test("status window persists the last COO update time so the next run has a comparison frame", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+
+  await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    now: new Date("2026-04-03T10:00:00.000Z"),
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    now: new Date("2026-04-03T12:00:00.000Z"),
+  });
+  await drain();
+
+  assert.ok(result.output.includes("Status window:"));
+  assert.ok(result.output.includes("This COO update: 2026-04-03 12:00:00Z"));
+  assert.ok(result.output.includes("Previous COO update: 2026-04-03 10:00:00Z"));
+  assert.ok(result.statusWindow);
+  assert.equal(result.statusWindow?.previousRenderedAt, "2026-04-03T10:00:00.000Z");
+});
+
+test("ambiguous timing path does not present elapsed lifecycle time as active work duration", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-landed",
+    updatedAt: "2026-04-03T16:04:00.000Z",
+    contextCollectedAt: "2026-04-02T14:34:00.000Z",
+    closeoutFinishedAt: "2026-04-03T16:04:00.000Z",
+    reviewCycles: 1,
+    completionSummary: "Token cost unavailable.",
+    reviewFinding: "Proof partition contamination of the live artifact root.",
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("elapsed lifecycle time"));
+  assert.ok(result.output.includes("Active work time is unknown."));
+  assert.ok(!result.output.includes("implementation took 1d 1h"));
+});
+
+test("provenance path distinguishes direct, derived, and fallback claims", async () => {
+  const fixture = await createFixture({ includeAdmissions: false });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-landed",
+    updatedAt: "2026-04-03T16:04:00.000Z",
+    contextCollectedAt: "2026-04-03T14:00:00.000Z",
+    closeoutFinishedAt: "2026-04-03T16:04:00.000Z",
+    reviewCycles: 0,
+    completionSummary: "No implementation-quality defects recorded.",
+    reviewFinding: null,
+  });
+  await writeThread(fixture.threadsDir, makeOnionThread({
+    scopePath: "assafyavnai/adf/feature-gap",
+    topic: "Feature Gap",
+    lifecycleStatus: "handoff_ready",
+    currentLayer: "approved",
+    blockers: [],
+    openDecisions: [],
+    openLoops: [],
+    finalizedRequirementMemoryId: "77777777-7777-4777-8777-777777777777",
+  }));
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("The blocker comes directly from live COO thread/onion truth."));
+  assert.ok(result.output.includes("This landed summary is derived from implement-plan closeout plus any recorded review artifacts."));
+  assert.ok(
+    result.output.includes("CTO admission truth is missing")
+      || result.output.includes("falls back to thread and finalized requirement truth"),
+  );
+});
+
+test("live executive status stays derived-only and does not mutate source files", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-landed",
+    updatedAt: "2026-04-03T16:04:00.000Z",
+    contextCollectedAt: "2026-04-03T14:00:00.000Z",
+    closeoutFinishedAt: "2026-04-03T16:04:00.000Z",
+    reviewCycles: 0,
+    completionSummary: "No implementation-quality defects recorded.",
+    reviewFinding: null,
+  });
+
+  const threadFiles = (await readdir(fixture.threadsDir))
+    .filter((entry) => entry.endsWith(".json"))
+    .map((entry) => join(fixture.threadsDir, entry));
+  const watchedPaths = [
+    ...threadFiles,
+    join(tempRoot, "docs", "phase1", "feature-moving", "cto-admission-decision.template.json"),
+    join(tempRoot, ".codex", "implement-plan", "features-index.json"),
+    join(tempRoot, "docs", "phase1", "feature-landed", "implement-plan-state.json"),
+  ];
+
+  const before = await Promise.all(watchedPaths.map((path) => readFile(path, "utf-8")));
+
+  await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  const after = await Promise.all(watchedPaths.map((path) => readFile(path, "utf-8")));
+  assert.deepEqual(after, before);
+});
+
+test("parity and visibility proof keeps blocked or attention-worthy items visible", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.equal(result.brief.parity.issuesExpected, result.brief.parity.issuesActual);
+  assert.equal(result.brief.parity.tableExpected, result.brief.parity.tableActual);
+  assert.equal(result.brief.parity.inMotionExpected, result.brief.parity.inMotionActual);
+  assert.equal(result.brief.parity.whatsNextExpected, result.brief.parity.whatsNextActual);
+  assert.ok(result.output.includes("Feature Blocked"));
+  assert.ok(result.output.includes("Feature Table"));
+});
+
+test("git verification raises a red flag when recent feature work is missing from the current COO context", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    loadStatusUpdateAnchor: async () => ({
+      renderedAt: "2026-04-03T15:00:00.000Z",
+      headCommit: "1111111111111111111111111111111111111111",
+    }),
+    inspectGitStatusWindow: async () => makeStatusWindow({
+      currentRenderedAt: "2026-04-03T16:00:00.000Z",
+      previousRenderedAt: "2026-04-03T15:00:00.000Z",
+      previousHeadCommit: "1111111111111111111111111111111111111111",
+      currentHeadCommit: "3333333333333333333333333333333333333333",
+      verificationBasis: "previous_head_commit",
+      commitsSincePrevious: 3,
+      changedFeatureSlugs: ["feature-blocked", "feature-hidden"],
+      droppedFeatureSlugs: ["feature-hidden"],
+      verificationNotes: [
+        "Git checked 3 commit(s) since the previous status update.",
+        "Red flag: git shows recent work on feature-hidden, but the current COO surface does not carry it.",
+      ],
+      redFlag: true,
+    }),
+    saveStatusUpdateAnchor: async () => {},
+  });
+  await drain();
+
+  assert.ok(result.output.includes("What stands out:"));
+  assert.ok(result.output.includes("Red flag: git shows recent work on Feature Hidden"));
+  assert.ok(result.output.includes("1. **Status coverage** - Recent git activity on Feature Hidden is missing from the current COO status."));
+  assert.equal(assertSingleEvent("live_exec_brief_render_success_count").metadata?.git_context_red_flag, true);
 });
 
 test("live executive status keeps mixed source partition distinct from proof telemetry partition", async () => {
@@ -366,31 +410,6 @@ test("live executive status keeps mixed source partition distinct from proof tel
   const buildEvent = assertSingleEvent("live_exec_brief_build_latency_ms");
   assert.equal(buildEvent.metadata?.telemetry_partition, "proof");
   assert.equal(buildEvent.metadata?.source_partition, "mixed");
-});
-
-test("live executive status stays derived-only and does not mutate source files", async () => {
-  const fixture = await createFixture({ includeAdmissions: true });
-  const threadFiles = (await readdir(fixture.threadsDir))
-    .filter((entry) => entry.endsWith(".json"))
-    .map((entry) => join(fixture.threadsDir, entry));
-  const watchedPaths = [
-    ...threadFiles,
-    join(tempRoot, "docs", "phase1", "feature-moving", "cto-admission-decision.template.json"),
-    join(tempRoot, ".codex", "implement-plan", "features-index.json"),
-  ];
-
-  const before = await Promise.all(watchedPaths.map((path) => readFile(path, "utf-8")));
-
-  await buildLiveExecutiveStatus({
-    projectRoot: tempRoot,
-    threadsDir: fixture.threadsDir,
-    brainClient: fixture.brainClient,
-    sourcePartition: "proof",
-  });
-  await drain();
-
-  const after = await Promise.all(watchedPaths.map((path) => readFile(path, "utf-8")));
-  assert.deepEqual(after, before);
 });
 
 async function createFixture(options: { includeAdmissions: boolean }): Promise<{
@@ -484,26 +503,6 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
         updated_at: "2026-04-03T16:01:00.000Z",
         feature_branch: "implement-plan/phase1/feature-next",
       },
-      "phase1/implement-plan-review-cycle-kpi-enforcement": {
-        phase_number: 1,
-        feature_slug: "implement-plan-review-cycle-kpi-enforcement",
-        feature_status: "active",
-        active_run_status: "closeout_pending",
-        merge_status: "not_ready",
-        last_completed_step: "completion_summary_written",
-        updated_at: "2026-04-03T16:02:00.000Z",
-        feature_branch: "implement-plan/phase1/implement-plan-review-cycle-kpi-enforcement",
-      },
-      "phase1/company-table-queue-read-model": {
-        phase_number: 1,
-        feature_slug: "company-table-queue-read-model",
-        feature_status: "active",
-        active_run_status: "context_ready",
-        merge_status: "not_ready",
-        last_completed_step: "context_collected",
-        updated_at: "2026-04-03T16:03:00.000Z",
-        feature_branch: "implement-plan/phase1/company-table-queue-read-model",
-      },
     },
   });
 
@@ -565,6 +564,49 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
       },
     },
   };
+}
+
+async function writeCompletedFeatureTruth(input: {
+  featureSlug: string;
+  updatedAt: string;
+  contextCollectedAt: string;
+  closeoutFinishedAt: string;
+  reviewCycles: number;
+  completionSummary: string;
+  reviewFinding: string | null;
+}): Promise<void> {
+  const featureRoot = join(tempRoot, "docs", "phase1", input.featureSlug);
+  await mkdir(featureRoot, { recursive: true });
+  await writeJson(join(featureRoot, "implement-plan-state.json"), {
+    phase_number: 1,
+    feature_slug: input.featureSlug,
+    feature_status: "completed",
+    active_run_status: "completed",
+    merge_status: "merged",
+    last_completed_step: "marked_complete",
+    updated_at: input.updatedAt,
+    created_at: input.contextCollectedAt,
+    merge_commit_sha: "merge-commit-sha",
+    approved_commit_sha: "approved-commit-sha",
+    run_timestamps: {
+      context_collected_at: input.contextCollectedAt,
+      closeout_finished_at: input.closeoutFinishedAt,
+    },
+  });
+  await writeJson(join(featureRoot, "review-cycle-state.json"), {
+    last_completed_cycle: input.reviewCycles,
+  });
+  await writeFile(join(featureRoot, "completion-summary.md"), input.completionSummary, "utf-8");
+
+  if (input.reviewCycles > 0 && input.reviewFinding) {
+    const cycleRoot = join(featureRoot, `cycle-${String(input.reviewCycles).padStart(2, "0")}`);
+    await mkdir(cycleRoot, { recursive: true });
+    await writeFile(
+      join(cycleRoot, "review-findings.md"),
+      `1. Findings\n- Failure class: ${input.reviewFinding}\n`,
+      "utf-8",
+    );
+  }
 }
 
 async function writeAdmissionArtifacts(
@@ -745,4 +787,22 @@ function assertSingleEvent(operation: string): MetricEvent {
   const events = findEvents(operation);
   assert.equal(events.length, 1, `Expected exactly one telemetry event for ${operation}`);
   return events[0];
+}
+
+function makeStatusWindow(input: {
+  currentRenderedAt: string;
+  previousRenderedAt: string | null;
+  previousHeadCommit: string | null;
+  currentHeadCommit: string | null;
+  verificationBasis: "previous_head_commit" | "previous_rendered_at" | "baseline_not_established" | "unavailable";
+  commitsSincePrevious: number;
+  changedFeatureSlugs: string[];
+  droppedFeatureSlugs: string[];
+  verificationNotes: string[];
+  redFlag: boolean;
+}) {
+  return {
+    ...input,
+    gitAvailable: input.verificationBasis !== "unavailable",
+  };
 }

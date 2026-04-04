@@ -25,6 +25,7 @@ Wire the bounded live executive status surface so the COO can render a real four
 
 - live `BriefSourceFacts` adapter
 - live status/startup rendering path
+- runtime-only last-status-update / git-verification window for the COO live surface
 - graceful partial-source handling
 - KPI emission and proof for the live path
 - targeted tests
@@ -62,6 +63,7 @@ Machine Verification Plan:
 
 Human Verification Requirement: true
 - use the fixed testing-phase handoff from the contract once machine verification and review-cycle are done
+- validate the live `Status window` and the git-backed context-drop red-flag behavior, not just the landed/attention wording
 
 9. Required Artifact Updates
 
@@ -75,3 +77,13 @@ Human Verification Requirement: true
 - merge-ready state is not completion
 - final completion happens only after merge-queue records merge success truthfully
 - Brain/project-status write uses docs-only fallback unless a real approved Brain write path is available in this runtime
+
+11. Change Request 01 - Evidence-Normalized CEO Surface And Git Verification
+
+Human feedback showed that the original plan was too narrow for the real CEO-facing route.
+
+Bounded deviation added in this slice:
+- keep the internal 4-section brief for parity proof
+- let the live CEO-facing render use a scan-friendly executive shape with `Status window`, landed work, standout notes, and attention items
+- verify recent git activity since the previous COO status update and surface a red flag when a recently touched feature slice is missing from the current COO report
+- keep the broader context-gathering tool untouched; this git check is local to the live COO status route

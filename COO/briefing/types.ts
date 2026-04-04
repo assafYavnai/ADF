@@ -38,6 +38,10 @@ export interface BriefFeatureSnapshot {
   sourceFamilies?: BriefSourceFamily[];
   /** Expected families that were missing while building this snapshot */
   missingSourceFamilies?: BriefSourceFamily[];
+  /** Evidence metadata for this feature snapshot */
+  evidence?: BriefFeatureEvidence;
+  /** Completion-only evidence for landed work when available */
+  completion?: BriefCompletionEvidence | null;
 }
 
 export interface BriefOpenDecision {
@@ -73,6 +77,57 @@ export interface BriefSourceAvailability {
   itemCount: number;
   collectedAt: string;
   freshnessAgeMs: number;
+}
+
+export type BriefClaimQualification =
+  | "direct_source"
+  | "derived_from_sources"
+  | "fallback_missing_source"
+  | "ambiguous"
+  | "unavailable";
+
+export type BriefConfidence = "high" | "medium" | "low";
+
+export type BriefFreshness = "fresh" | "stale" | "unknown";
+
+export interface BriefFeatureEvidence {
+  qualification: BriefClaimQualification;
+  confidence: BriefConfidence;
+  freshnessAgeMs: number | null;
+  freshness: BriefFreshness;
+  sourceFamilies: BriefSourceFamily[];
+  missingSourceFamilies: BriefSourceFamily[];
+  notes: string[];
+}
+
+export interface BriefEvidenceField<T> {
+  value: T | null;
+  qualification: BriefClaimQualification;
+  note: string;
+}
+
+export type BriefTimingKind =
+  | "active_work"
+  | "elapsed_lifecycle"
+  | "waiting_or_queue"
+  | "unknown"
+  | "unavailable";
+
+export interface BriefTimingEvidence {
+  kind: BriefTimingKind;
+  durationMs: number | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  qualification: BriefClaimQualification;
+  note: string;
+}
+
+export interface BriefCompletionEvidence {
+  mergedAt: string | null;
+  timing: BriefTimingEvidence;
+  reviewCycles: BriefEvidenceField<number>;
+  tokenCostTokens: BriefEvidenceField<number>;
+  keyIssue: BriefEvidenceField<string>;
 }
 
 // ---------------------------------------------------------------------------

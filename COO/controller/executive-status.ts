@@ -2,13 +2,26 @@ import { emit } from "../../shared/telemetry/collector.js";
 import { createSystemProvenance } from "../../shared/provenance/types.js";
 import { buildExecutiveBrief } from "../briefing/builder.js";
 import {
+  applyGitStatusWindowToSurface,
+  normalizeLiveExecutiveSurface,
+  renderLiveExecutiveSurface,
+  type LiveExecutiveSurface,
+} from "../briefing/live-executive-surface.js";
+import {
   loadLiveBriefSourceFacts,
   type BriefRequirementReader,
   type LiveBriefDiagnostics,
 } from "../briefing/live-source-adapter.js";
-import { renderExecutiveBrief } from "../briefing/renderer.js";
 import type { ExecutiveBrief, BriefSourceFacts } from "../briefing/types.js";
 import type { FileSystemThreadStore } from "./thread.js";
+import {
+  inspectGitStatusWindow as inspectGitStatusWindowDefault,
+  loadStatusUpdateAnchor as loadStatusUpdateAnchorDefault,
+  saveStatusUpdateAnchor as saveStatusUpdateAnchorDefault,
+  type GitStatusWindow,
+  type GitStatusWindowOptions,
+  type StatusUpdateAnchor,
+} from "./status-window.js";
 
 export interface LiveExecutiveStatusOptions {
   projectRoot: string;
@@ -18,6 +31,9 @@ export interface LiveExecutiveStatusOptions {
   telemetryContext?: Record<string, unknown>;
   now?: Date;
   threadStore?: Pick<FileSystemThreadStore, "list" | "get">;
+  loadStatusUpdateAnchor?: (projectRoot: string) => Promise<StatusUpdateAnchor | null>;
+  inspectGitStatusWindow?: (options: GitStatusWindowOptions) => Promise<GitStatusWindow>;
+  saveStatusUpdateAnchor?: (projectRoot: string, anchor: StatusUpdateAnchor) => Promise<void>;
 }
 
 export interface LiveExecutiveStatusMetrics {
@@ -31,6 +47,8 @@ export interface LiveExecutiveStatusMetrics {
 export interface LiveExecutiveStatusResult {
   facts: BriefSourceFacts;
   brief: ExecutiveBrief;
+  surface: LiveExecutiveSurface;
+  statusWindow: GitStatusWindow | null;
   rendered: string;
   output: string;
   diagnostics: LiveBriefDiagnostics;
@@ -74,11 +92,16 @@ export async function buildLiveExecutiveStatus(
   const buildLatencyMs = Date.now() - buildStartedAt;
 
   const renderStartedAt = Date.now();
+  let surface: LiveExecutiveSurface;
+  let statusWindow: GitStatusWindow | null = null;
   let rendered: string;
   let output: string;
   try {
-    rendered = renderExecutiveBrief(brief);
-    output = renderLiveExecutiveStatusOutput(rendered, diagnostics, facts);
+    surface = normalizeLiveExecutiveSurface(facts, brief, diagnostics);
+    statusWindow = await resolveStatusWindow(options, facts, surface);
+    surface = applyGitStatusWindowToSurface(surface, statusWindow);
+    rendered = renderLiveExecutiveSurface(surface);
+    output = renderLiveExecutiveStatusOutput(rendered);
   } catch (error) {
     const renderLatencyMs = Date.now() - renderStartedAt;
     emitBuildMetrics(buildLatencyMs, true, facts, diagnostics, options.telemetryContext);
@@ -101,6 +124,8 @@ export async function buildLiveExecutiveStatus(
     table_count: brief.onTheTable.length,
     in_motion_count: brief.inMotion.length,
     next_count: brief.whatsNext.length,
+    git_commits_since_previous_status: statusWindow?.commitsSincePrevious ?? 0,
+    git_context_red_flag: statusWindow?.redFlag ?? false,
     ...options.telemetryContext,
   });
   emitStatusMetric("live_source_adapter_missing_source_count", 0, true, {
@@ -123,6 +148,8 @@ export async function buildLiveExecutiveStatus(
   return {
     facts,
     brief,
+    surface,
+    statusWindow,
     rendered,
     output,
     diagnostics,
@@ -138,58 +165,8 @@ export async function buildLiveExecutiveStatus(
 
 export function renderLiveExecutiveStatusOutput(
   renderedBrief: string,
-  diagnostics: LiveBriefDiagnostics,
-  facts?: BriefSourceFacts,
 ): string {
-  const lines = ["# COO Executive Status"];
-  const statusNotes = [
-    ...diagnostics.degradationNotes,
-    ...buildRecentCompletionNotes(facts),
-  ];
-
-  if (statusNotes.length > 0) {
-    lines.push("");
-    lines.push("Status notes:");
-    for (const note of statusNotes) {
-      lines.push(`- ${note}`);
-    }
-  }
-
-  lines.push("");
-  lines.push(renderedBrief);
-
-  return lines.join("\n");
-}
-
-function buildRecentCompletionNotes(facts?: BriefSourceFacts): string[] {
-  if (!facts) {
-    return [];
-  }
-
-  const collectedAtMs = Date.parse(facts.collectedAt);
-  if (Number.isNaN(collectedAtMs)) {
-    return [];
-  }
-
-  return facts.features
-    .filter((feature) => feature.isFinalized || feature.briefingState === "closeout")
-    .filter((feature) => {
-      const activityMs = Date.parse(feature.lastActivityAt);
-      if (Number.isNaN(activityMs)) {
-        return false;
-      }
-      return collectedAtMs - activityMs <= 7 * 24 * 60 * 60 * 1_000;
-    })
-    .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt))
-    .slice(0, 3)
-    .map((feature) => `Recently finished: ${feature.label} - ${describeRecentCompletion(feature)}`);
-}
-
-function describeRecentCompletion(feature: BriefSourceFacts["features"][number]): string {
-  if (feature.isFinalized) {
-    return "completed and merged";
-  }
-  return "completed and awaiting final closeout";
+  return ["# COO Executive Status", "", renderedBrief].join("\n");
 }
 
 function emitBuildMetrics(
@@ -247,4 +224,63 @@ function emitStatusMetric(
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function collectSurfacedFeatureIds(surface: LiveExecutiveSurface): string[] {
+  return [
+    ...surface.landed.map((item) => item.featureId),
+    ...surface.moving.map((item) => item.featureId),
+    ...surface.attention.map((item) => item.featureId),
+  ];
+}
+
+async function resolveStatusWindow(
+  options: LiveExecutiveStatusOptions,
+  facts: BriefSourceFacts,
+  surface: LiveExecutiveSurface,
+): Promise<GitStatusWindow | null> {
+  const loadStatusUpdateAnchor = options.loadStatusUpdateAnchor ?? loadStatusUpdateAnchorDefault;
+  const inspectGitStatusWindow = options.inspectGitStatusWindow ?? inspectGitStatusWindowDefault;
+  const saveStatusUpdateAnchor = options.saveStatusUpdateAnchor ?? saveStatusUpdateAnchorDefault;
+
+  try {
+    const previousAnchor = await loadStatusUpdateAnchor(options.projectRoot);
+    const statusWindow = await inspectGitStatusWindow({
+      projectRoot: options.projectRoot,
+      currentRenderedAt: facts.collectedAt,
+      previousAnchor,
+      surfacedFeatureIds: collectSurfacedFeatureIds(surface),
+    });
+
+    try {
+      await saveStatusUpdateAnchor(options.projectRoot, {
+        renderedAt: facts.collectedAt,
+        headCommit: statusWindow.currentHeadCommit,
+      });
+    } catch {
+      return {
+        ...statusWindow,
+        verificationNotes: [
+          ...statusWindow.verificationNotes,
+          "The current COO status rendered, but the runtime could not record this update as the next comparison baseline.",
+        ],
+      };
+    }
+
+    return statusWindow;
+  } catch {
+    return {
+      currentRenderedAt: facts.collectedAt,
+      previousRenderedAt: null,
+      previousHeadCommit: null,
+      currentHeadCommit: null,
+      verificationBasis: "unavailable",
+      gitAvailable: false,
+      commitsSincePrevious: 0,
+      changedFeatureSlugs: [],
+      droppedFeatureSlugs: [],
+      verificationNotes: ["Git-backed status-window verification is unavailable in this runtime, so context-drop checks could not run."],
+      redFlag: false,
+    };
+  }
 }

@@ -92,27 +92,29 @@ Machine Verification Plan:
 
 Human Verification Plan:
 - Required: true
-- Reason: this slice creates a real CEO-facing runtime surface and should be checked for usefulness and readability
+- Reason: this slice creates a real CEO-facing runtime surface and should be checked for usefulness, readability, and evidence framing
 - IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
 - Executive summary of implemented behavior:
-  - the COO startup/status surface renders a live 4-section executive brief derived from active threads, finalized requirements, CTO-admission truth when present, and implement-plan truth when present
+  - the COO startup/status surface renders a live executive update derived from active threads, finalized requirements, CTO-admission truth when present, implement-plan truth when present, and a bounded git comparison against the previous COO status update
   - missing source families degrade gracefully and remain visibly distinguishable from empty-state results
 - IMPLEMENTATION IS READY FOR TESTING
 - Exact testing sequence:
-  - launch the COO through the normal CLI path
-  - inspect the startup summary and the status command output
-  - confirm the four sections appear in this order: `Issues That Need Your Attention`, `On The Table`, `In Motion`, `What's Next`
-  - confirm blocked work appears in `Issues`, unresolved shaping or awaiting-decision work appears in `On The Table`, active live work appears in `In Motion`, and concise forward-looking work appears in `What's Next`
+  - run `./adf.sh -- --status --scope-path assafyavnai/adf/phase1` from the feature worktree
+  - read the opening paragraph, `Status window`, `What landed`, optional `What is moving`, optional `What stands out`, and `What needs your attention now`
+  - if there is no previous status baseline yet, run the same command a second time so the COO can compare against the prior update
+  - verify the `Status window` exposes current update time, previous update time when available, git coverage basis, and any red-flag note about dropped context
+  - verify landed items remain scan-friendly and carry timing, review, token, key-issue, and evidence lines
   - confirm the output stays business-level and does not dump raw state or JSON
   - confirm missing CTO-admission truth does not break the surface and that shaping plus implementation truth still render cleanly
 - Expected results:
   - the brief is readable, concise, and useful for CEO triage
-  - the four sections stay ordered and populated appropriately for the live state
+  - the comparison frame is understandable and explicit
   - the surface remains stable when one or more source families are missing
 - Evidence to report back:
   - whether the brief was understandable and decision-useful
-  - any section that felt misleading, noisy, or incomplete
-  - whether any blocked item, table item, in-motion item, or next-step item was missing or misplaced
+  - whether the status window made the time frame and git verification basis clear
+  - any section or landed item that felt misleading, noisy, or incomplete
+  - whether any recent git-touched feature work appeared to be missing from the current COO surface
 - Response contract:
   - `APPROVED`
   - `REJECTED: <comments>`
@@ -153,3 +155,13 @@ Human Verification Plan:
 - `C:/ADF/docs/v0/architecture.md`
 - `C:/ADF/docs/v0/kpi-instrumentation-requirement.md`
 - `C:/ADF/docs/PHASE1_MASTER_PLAN.md`
+
+11. Change Request 01 - Evidence-Normalized CEO Surface And Git Verification
+
+Human verification showed that the original live-route contract was too narrow.
+
+Approved bounded deviation:
+- keep the internal 4-section brief as parity truth
+- render the CEO-facing live surface with an explicit `Status window`, landed work, standout notes, and attention items
+- compare recent git activity since the previous COO status update and raise a red flag when a recently touched feature slice is missing from the current COO surface
+- keep the broader context-gathering tool unchanged; this comparison is limited to the live COO status route and stores only runtime baseline state under `.codex/runtime/`
