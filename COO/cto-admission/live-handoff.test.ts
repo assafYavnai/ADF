@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
@@ -88,6 +88,15 @@ async function readJson<T>(projectRoot: string, relativePath: string): Promise<T
   return JSON.parse(raw) as T;
 }
 
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 test("handoff persists CTO admission artifacts and records pending-decision truth", async () => {
   const projectRoot = await createProjectRoot("adf-cto-admission-live-pending-");
   const result = await handoffFinalizedRequirementToCtoAdmission({
@@ -143,6 +152,33 @@ test("handoff persists CTO admission artifacts and records pending-decision trut
   assert.match(summary, /\*\*Decision:\*\* pending/);
 });
 
+test("handoff derives the feature root from scope path when the topic text differs", async () => {
+  const projectRoot = await createProjectRoot("adf-cto-admission-live-scope-slug-");
+  const baseArtifact = buildRequirementArtifact();
+  const result = await handoffFinalizedRequirementToCtoAdmission({
+    projectRoot,
+    scopePath: "assafyavnai/adf/coo-live-executive-status-wiring",
+    requirementArtifact: buildRequirementArtifact({
+      human_scope: {
+        ...baseArtifact.human_scope,
+        topic: "Live COO Executive Status Wiring",
+      },
+    }),
+    finalizedRequirementMemoryId: BASE_MEMORY_ID,
+    partition: "production",
+  });
+
+  assert.equal(result.state.feature_slug, "coo-live-executive-status-wiring");
+  assert.equal(result.state.artifact_paths.feature_root, "docs/phase1/coo-live-executive-status-wiring");
+  assert.equal(
+    result.state.artifact_paths.request_json,
+    "docs/phase1/coo-live-executive-status-wiring/cto-admission-request.json",
+  );
+
+  const request = await readJson<Record<string, unknown>>(projectRoot, result.state.artifact_paths.request_json!);
+  assert.equal(request.feature_slug, "coo-live-executive-status-wiring");
+});
+
 test("handoff surfaces build_failed when the generated packet input is invalid", async () => {
   const projectRoot = await createProjectRoot("adf-cto-admission-live-build-failed-");
   const result = await handoffFinalizedRequirementToCtoAdmission({
@@ -163,6 +199,38 @@ test("handoff surfaces build_failed when the generated packet input is invalid",
   assert.match(result.state.last_error ?? "", /claimed_scope_paths|required/i);
   assert.equal(result.receipts[0]?.kind, "cto_admission_build");
   assert.equal(result.receipts[0]?.success, false);
+});
+
+test("proof handoff fails closed on a real ADF checkout root", async () => {
+  const projectRoot = await createProjectRoot("adf-cto-admission-live-proof-root-");
+  await writeFile(join(projectRoot, "AGENTS.md"), "# test\n", "utf-8");
+  await mkdir(join(projectRoot, "COO"), { recursive: true });
+  await writeFile(join(projectRoot, "COO", "package.json"), "{\n  \"name\": \"coo\"\n}\n", "utf-8");
+  await mkdir(join(projectRoot, "components", "memory-engine"), { recursive: true });
+  await writeFile(
+    join(projectRoot, "components", "memory-engine", "package.json"),
+    "{\n  \"name\": \"memory-engine\"\n}\n",
+    "utf-8",
+  );
+
+  const result = await handoffFinalizedRequirementToCtoAdmission({
+    projectRoot,
+    scopePath: "assafyavnai/adf/coo-freeze-to-cto-admission-wiring",
+    requirementArtifact: buildRequirementArtifact(),
+    finalizedRequirementMemoryId: BASE_MEMORY_ID,
+    partition: "proof",
+  });
+
+  assert.equal(result.state.status, "admission_build_failed");
+  assert.equal(result.state.outcome, "admitted");
+  assert.match(result.state.last_error ?? "", /isolated temp project root/i);
+  assert.equal(result.state.artifact_paths.request_json, null);
+  assert.equal(result.state.kpi.admission_artifact_persist_failure_count, 1);
+  assert.equal(result.receipts.at(-1)?.action, "enforce_proof_root_isolation");
+  assert.equal(
+    await pathExists(resolve(projectRoot, "docs", "phase1", "coo-freeze-to-cto-admission-wiring", "cto-admission-request.json")),
+    false,
+  );
 });
 
 test("handoff counts artifact persist failures and does not fail silently", async () => {

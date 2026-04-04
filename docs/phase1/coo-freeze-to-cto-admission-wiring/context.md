@@ -35,6 +35,8 @@ This slice makes the live COO freeze path produce real CTO-admission artifacts f
   - `decision=null` means `admission_pending_decision`, even when the packet builder returns `outcome="admitted"`
   - explicit `admit`, `defer`, and `block` decisions are separate from the packet-builder outcome
   - artifact-persist failures fail closed as `admission_build_failed` while preserving the original packet-builder outcome in `outcome`
+- The deterministic CTO-admission feature root resolves from the live scope-path slug when a scope path exists. Topic slugification is only a fallback for scope-less proof helpers, so human wording changes cannot redirect artifacts away from the real feature folder.
+- Proof partition persistence fails closed on repo-like ADF checkout or worktree roots. Proof artifacts are only allowed under isolated temp roots so proof runs cannot overwrite live `docs/phase1/<feature-slug>/cto-admission-*` truth.
 - When a previously frozen onion scope reopens, the old CTO-admission state is reset to `admission_not_started` instead of remaining falsely current.
 - The minimal decision-update seam rewrites the persisted `cto-admission-decision.template.json` and `cto-admission-summary.md`, then updates the durable COO-owned admission state and counters.
 - Controller serialization now exposes CTO-admission status, decision, outcome, and artifact paths so downstream readers can see the live handoff truth without reopening raw JSON.

@@ -2,10 +2,10 @@
 
 ## Current Slice Status
 - Implementation status: code complete in the dedicated implement-plan worktree
-- Machine verification status: passing for the targeted slice tests
-- Review-cycle status: not run in this turn
+- Machine verification status: passing for the targeted slice tests after the cycle-01 route fix pass
+- Review-cycle status: cycle-01 audit, review, fix, and verification complete locally; commit/push closeout is the remaining review-cycle step
 - Merge-queue status: not run in this turn
-- Final feature status: active, implementation verified locally, not complete until review-cycle and merge-queue close out truthfully
+- Final feature status: active, reviewed and machine-verified, not complete until merge-queue lands the approved commit and implement-plan records merge truthfully
 
 ## What Changed
 - Wired the live finalized-requirement freeze path into `COO/cto-admission/**` after durable finalized-requirement publication.
@@ -22,6 +22,9 @@
   - `cto-admission-summary.md`
 - Added a minimal decision-update seam that rewrites the decision template and summary for explicit `admit`, `defer`, and `block` updates.
 - Exposed CTO-admission truth in controller serialization and onion turn records.
+- Tightened the persistence contract so:
+  - the deterministic feature root resolves from the live scope-path slug when available
+  - proof partition persistence fails closed on repo-like ADF checkout/worktree roots instead of writing into live `docs/phase1/<feature-slug>/`
 
 ## Files Updated
 - `COO/cto-admission/index.ts`
@@ -39,8 +42,7 @@
 - `docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md`
 
 ## Verification Run
-- `npx.cmd tsx --test cto-admission/live-handoff.test.ts requirements-gathering/live/onion-live.test.ts controller/thread.test.ts`
-- `npx.cmd tsx --test requirements-gathering/onion-lane.test.ts`
+- `npx.cmd tsx --test cto-admission/live-handoff.test.ts requirements-gathering/live/onion-live.test.ts controller/thread.test.ts requirements-gathering/onion-lane.test.ts`
 
 ## KPI / Audit Evidence Added
 - `finalized_requirement_to_admission_latency_ms` samples with persisted `p50`, `p95`, `p99`
@@ -56,12 +58,14 @@
 - `requirement_to_admission_artifact_parity_count`
 - `admission_status_write_completeness_rate`
 - production/proof handoff counters proving partition separation
+- negative proof that proof-mode handoffs fail closed on repo-like roots
+- positive proof that scope/topic mismatch still persists under the scope-derived feature root
 
 ## Brain / Status Note
 - Brain project-status note: docs-only fallback used
 - Reason: the runtime preflight reported Brain availability, but the normal Brain write MCP tool surface was not exposed in this Codex runtime, so no fake status write was attempted
 
 ## Remaining Governance Closeout
-- Review-cycle has not been run from this turn.
+- Review-cycle `cycle-01` is complete locally and awaiting git closeout plus merge handoff.
 - Merge-queue has not been run from this turn.
-- `implement-plan` feature index still shows this slice as `active/context_ready`, so the slice is not marked complete yet.
+- `implement-plan` feature index still shows this slice as active and not merged, so the slice is not marked complete yet.

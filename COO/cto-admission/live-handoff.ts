@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { RequirementArtifact } from "../requirements-gathering/contracts/onion-artifact.js";
 import { buildAdmissionPacket } from "./build-packet.js";
@@ -26,6 +26,11 @@ const FEATURE_PHASE_ROOT = join("docs", "phase1");
 const REQUEST_FILE_NAME = "cto-admission-request.json";
 const DECISION_TEMPLATE_FILE_NAME = "cto-admission-decision.template.json";
 const SUMMARY_FILE_NAME = "cto-admission-summary.md";
+const REPO_ROOT_MARKERS = [
+  "AGENTS.md",
+  join("COO", "package.json"),
+  join("components", "memory-engine", "package.json"),
+] as const;
 
 export interface AdmissionPersistenceReceipt {
   kind: "cto_admission_build" | "cto_admission_artifact_persist" | "cto_admission_decision_update";
@@ -122,7 +127,10 @@ export async function handoffFinalizedRequirementToCtoAdmission(
   const projectRoot = resolveProjectRoot(input.projectRoot);
   const nowFactory = input.now ?? (() => new Date());
   const startedAtMs = input.startedAtMs ?? Date.now();
-  const featureSlug = slugifyFeatureSlug(input.requirementArtifact.human_scope.topic);
+  const featureSlug = resolveFeatureSlug({
+    scopePath: input.scopePath,
+    topic: input.requirementArtifact.human_scope.topic,
+  });
   const featureRootRelative = toPosixPath(join(FEATURE_PHASE_ROOT, featureSlug));
   const featureRootAbsolute = resolve(projectRoot, featureRootRelative);
   const fallbackArtifactPaths = {
@@ -207,8 +215,10 @@ export async function handoffFinalizedRequirementToCtoAdmission(
     }
 
     const persistedArtifacts = await persistAdmissionArtifacts({
+      projectRootAbsolute: projectRoot,
       featureRootAbsolute,
       featureRootRelative,
+      partition,
       request: buildResult.request,
       decisionTemplate: buildResult.decision_template,
       summaryMd: buildResult.summary_md,
@@ -471,8 +481,10 @@ function buildLiveAdmissionInput(input: {
 }
 
 async function persistAdmissionArtifacts(input: {
+  projectRootAbsolute: string;
   featureRootAbsolute: string;
   featureRootRelative: string;
+  partition: AdmissionPartition;
   request: CtoAdmissionRequest;
   decisionTemplate: CtoAdmissionDecisionTemplate;
   summaryMd: string;
@@ -495,6 +507,31 @@ async function persistAdmissionArtifacts(input: {
   };
   const receipts: AdmissionPersistenceReceipt[] = [];
   const errors: string[] = [];
+
+  const proofIsolationMessage = await validateProofArtifactIsolation({
+    projectRootAbsolute: input.projectRootAbsolute,
+    partition: input.partition,
+  });
+  if (proofIsolationMessage) {
+    return {
+      success: false,
+      paths,
+      receipts: [
+        createReceipt({
+          kind: "cto_admission_artifact_persist",
+          status: "failed",
+          artifactKind: "cto_admission_feature_root",
+          action: "enforce_proof_root_isolation",
+          scopePath: input.featureRootRelative,
+          recordId: input.featureRootRelative,
+          durationMs: 0,
+          success: false,
+          message: proofIsolationMessage,
+        }),
+      ],
+      errorMessage: proofIsolationMessage,
+    };
+  }
 
   const featureRootCreateStartedAt = Date.now();
   try {
@@ -851,6 +888,36 @@ function resolveAdmissionPartition(partition?: AdmissionPartition): AdmissionPar
   return process.env.ADF_COO_TEST_PARSER_UPDATES_FILE?.trim() ? "proof" : "production";
 }
 
+function resolveFeatureSlug(input: {
+  scopePath: string | null | undefined;
+  topic: string;
+}): string {
+  const scopeDerivedSlug = resolveFeatureSlugFromScopePath(input.scopePath);
+  if (scopeDerivedSlug) {
+    return scopeDerivedSlug;
+  }
+  return slugifyFeatureSlug(input.topic);
+}
+
+function resolveFeatureSlugFromScopePath(scopePath: string | null | undefined): string | null {
+  if (!scopePath) {
+    return null;
+  }
+  const segments = scopePath
+    .split(/[\\/]+/g)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+  const candidate = segments.at(-1);
+  if (!candidate) {
+    return null;
+  }
+  if (/^[a-z0-9._-]+$/i.test(candidate)) {
+    return candidate.toLowerCase();
+  }
+  const slug = slugifyFeatureSlug(candidate);
+  return slug.length > 0 ? slug : null;
+}
+
 function slugifyFeatureSlug(value: string): string {
   const slug = value
     .trim()
@@ -871,4 +938,34 @@ function toJson(value: unknown): string {
 
 function formatFailureMessage(messages: string[], fallback: string): string {
   return messages.length > 0 ? messages.join(" | ") : fallback;
+}
+
+async function validateProofArtifactIsolation(input: {
+  projectRootAbsolute: string;
+  partition: AdmissionPartition;
+}): Promise<string | null> {
+  if (input.partition !== "proof") {
+    return null;
+  }
+  const isCheckoutRoot = await looksLikeAdfCheckoutRoot(input.projectRootAbsolute);
+  if (!isCheckoutRoot) {
+    return null;
+  }
+  return "Proof CTO admission persistence requires an isolated temp project root and cannot write into a real ADF checkout or worktree root.";
+}
+
+async function looksLikeAdfCheckoutRoot(projectRootAbsolute: string): Promise<boolean> {
+  const markerChecks = await Promise.all(
+    REPO_ROOT_MARKERS.map(async (relativePath) => pathExists(resolve(projectRootAbsolute, relativePath))),
+  );
+  return markerChecks.every(Boolean);
+}
+
+async function pathExists(absolutePath: string): Promise<boolean> {
+  try {
+    await access(absolutePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
