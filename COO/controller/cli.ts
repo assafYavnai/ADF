@@ -28,6 +28,7 @@ async function main() {
   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
   const args = parseCliArgs(process.argv.slice(2));
   assertProofInvokerIsolation(args);
+  const configuredScope = args.scopePath ?? null;
   const onionEnabled = resolveOnionGate(args);
   const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
   const promptsDir = resolveRuntimeDir(process.env.ADF_COO_PROMPTS_DIR, resolve(projectRoot, "COO/intelligence"));
@@ -70,6 +71,7 @@ async function main() {
   }
 
   let brainClient: MemoryEngineClient | null = null;
+  let replayedMetrics = 0;
   try {
     const brainConnectStartedAt = Date.now();
     brainClient = await MemoryEngineClient.connect(projectRoot, {
@@ -124,7 +126,7 @@ async function main() {
       },
     });
     const replayStartedAt = Date.now();
-    const replayedMetrics = await replayPersistedMetrics();
+    replayedMetrics = await replayPersistedMetrics();
     emit({
       provenance: createSystemProvenance("COO/controller/cli/telemetry-replay"),
       category: "system",
@@ -136,7 +138,7 @@ async function main() {
         replay_status: replayedMetrics > 0 ? "replayed" : "empty",
       },
     });
-    if (replayedMetrics > 0) {
+    if (replayedMetrics > 0 && !args.statusOnly) {
       console.log(`Recovered ${replayedMetrics} persisted telemetry event(s) from the local outbox.`);
     }
     emit({
@@ -151,7 +153,7 @@ async function main() {
         cli_mode: cliMode,
         onion_enabled: onionEnabled,
         proof_mode: Boolean(args.testProofMode),
-        configured_scope: args.scopePath ?? null,
+        configured_scope: configuredScope,
       },
     });
   } catch (err) {
@@ -168,7 +170,7 @@ async function main() {
         cli_mode: cliMode,
         onion_enabled: onionEnabled,
         proof_mode: Boolean(args.testProofMode),
-        configured_scope: args.scopePath ?? null,
+        configured_scope: configuredScope,
       },
     });
     await closeTelemetry({ timeoutMs: 1 }).catch(() => {});
@@ -176,11 +178,25 @@ async function main() {
     throw err;
   }
 
+  if (args.statusOnly) {
+    await printExecutiveStatus(projectRoot, threadsDir, brainClient, statusTelemetryContext, telemetryPartition);
+    await shutdownCli(brainClient, {
+      ...runtimeTelemetryContext,
+      cli_mode: cliMode,
+      configured_scope: configuredScope,
+      proof_mode: Boolean(args.testProofMode),
+      shutdown_path: "status_only",
+      replayed_events: replayedMetrics,
+    }, {
+      announceSessionEnded: false,
+    });
+    return;
+  }
+
   console.log("ADF COO - Interactive CLI");
   console.log("Brain MCP: connected");
   console.log("Type your message, press Enter. Type 'exit' to quit.\n");
 
-  const configuredScope = args.scopePath ?? null;
   const resumeLookupStartedAt = Date.now();
   let threadId = await resolveStartingThreadId(args, config.threadsDir);
   emit({
@@ -207,18 +223,6 @@ async function main() {
   console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.");
   console.log("Status surface: type /status or launch with --status.\n");
 
-  if (args.statusOnly) {
-    await printExecutiveStatus(projectRoot, threadsDir, brainClient, statusTelemetryContext, telemetryPartition);
-    await shutdownCli(brainClient, {
-      ...runtimeTelemetryContext,
-      cli_mode: cliMode,
-      configured_scope: configuredScope,
-      proof_mode: Boolean(args.testProofMode),
-      shutdown_path: "status_only",
-    });
-    return;
-  }
-
   if (!process.stdin.isTTY) {
     await runScriptedSession(config, brainClient, threadId, configuredScope, projectRoot, threadsDir, {
       ...runtimeTelemetryContext,
@@ -237,6 +241,7 @@ async function main() {
   });
 
   let isProcessing = false;
+  let isClosing = false;
   let multilineMode = false;
   const multilineBuffer: string[] = [];
   let spinner: NodeJS.Timeout | null = null;
@@ -244,6 +249,9 @@ async function main() {
   const spinnerFrames = ["|", "/", "-", "\\"];
 
   const renderPrompt = (): void => {
+    if (isClosing) {
+      return;
+    }
     rl.setPrompt(multilineMode ? "... " : "CEO> ");
     rl.prompt();
   };
@@ -276,6 +284,7 @@ async function main() {
     }
 
     if (input.toLowerCase() === "exit") {
+      isClosing = true;
       rl.close();
       return;
     }
@@ -341,7 +350,9 @@ async function main() {
       console.error("Error:", err);
     } finally {
       isProcessing = false;
-      rl.resume();
+      if (!isClosing) {
+        rl.resume();
+      }
     }
   };
 
@@ -363,10 +374,13 @@ async function main() {
     }
 
     await processInput(line);
-    renderPrompt();
+    if (!isClosing) {
+      renderPrompt();
+    }
   });
 
   rl.on("close", () => {
+    isClosing = true;
     stopThinkingIndicator();
     void shutdownCli(brainClient, {
       ...runtimeTelemetryContext,
@@ -688,6 +702,9 @@ async function runScriptedSession(
 async function shutdownCli(
   brainClient: MemoryEngineClient | null,
   metadata: Record<string, unknown> = {},
+  options: {
+    announceSessionEnded?: boolean;
+  } = {},
 ): Promise<void> {
   if (shuttingDown) {
     return;
@@ -730,7 +747,9 @@ async function shutdownCli(
       await appendPersistedMetrics([shutdownEvent]);
     }
     await brainClient?.close();
-    console.log("\nSession ended.");
+    if (options.announceSessionEnded ?? true) {
+      console.log("\nSession ended.");
+    }
     process.exit(0);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

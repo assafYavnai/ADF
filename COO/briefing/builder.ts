@@ -153,8 +153,7 @@ function buildWhatsNext(features: BriefFeatureSnapshot[]): BriefWhatsNextItem[] 
   const items: BriefWhatsNextItem[] = [];
 
   for (const f of features) {
-    if (isCompleted(f) && f.isFinalized) continue;
-    if (isBlocked(f)) continue;
+    if (!isWhatsNextCandidate(f)) continue;
 
     let nextAction: string;
     if (typeof f.nextAction === "string" && f.nextAction.trim().length > 0) {
@@ -184,6 +183,28 @@ function buildWhatsNext(features: BriefFeatureSnapshot[]): BriefWhatsNextItem[] 
   return items;
 }
 
+function isWhatsNextCandidate(f: BriefFeatureSnapshot): boolean {
+  if (isCompleted(f) && f.isFinalized) return false;
+  if (isBlocked(f)) return false;
+
+  if (!f.briefingState) {
+    return true;
+  }
+
+  if (f.briefingState === "ready_to_start" || f.briefingState === "closeout") {
+    return true;
+  }
+
+  if (f.briefingState !== "implementation_active") {
+    return false;
+  }
+
+  const nextAction = typeof f.nextAction === "string" ? f.nextAction.trim() : "";
+  return nextAction.length > 0
+    && nextAction !== "Keep the implementation moving through the current execution step."
+    && nextAction !== "Live work is active.";
+}
+
 function computeParity(
   features: BriefFeatureSnapshot[],
   globalOpenLoops: string[],
@@ -196,9 +217,7 @@ function computeParity(
   const tableCount = features.filter(isOnTheTableCandidate).length;
   const activeCount = features.filter(isInMotionCandidate).length;
   const nextCount = features.filter((f) => {
-    if (isCompleted(f) && f.isFinalized) return false;
-    if (isBlocked(f)) return false;
-    return true;
+    return isWhatsNextCandidate(f);
   }).length;
 
   return {

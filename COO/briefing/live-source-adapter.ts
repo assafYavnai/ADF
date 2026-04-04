@@ -427,8 +427,21 @@ function correlateSources(input: {
   }
 
   return Array.from(correlated.values())
+    .filter(shouldSurfaceCorrelatedItem)
     .map((item) => toBriefFeatureSnapshot(item, input.availability, input.fallbackCollectedAt))
     .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt));
+}
+
+function shouldSurfaceCorrelatedItem(item: CorrelatedBriefItem): boolean {
+  if (item.thread || item.requirement || item.admission) {
+    return true;
+  }
+
+  if (!item.plan) {
+    return false;
+  }
+
+  return isPlanInMotion(item.plan) || isPlanCompleted(item.plan) || Boolean(item.plan.lastError);
 }
 
 function toBriefFeatureSnapshot(
@@ -750,7 +763,7 @@ function buildDegradationNotes(
     notes.push("Active COO thread truth is unavailable, so shaping coverage may be understated.");
   }
   if (rawNotes.length > 0) {
-    notes.push("Some live status inputs could not be read cleanly, so the remaining source truth is being used.");
+    notes.push("A few status inputs were incomplete, so this brief is using the clean live sources that were available.");
   }
 
   return uniqueStrings(notes);
@@ -766,7 +779,7 @@ function adaptThread(thread: Thread): ThreadSignal {
   const label = firstMeaningfulText(
     approvedSnapshot?.topic,
     onion?.state.topic,
-    thread.scopePath,
+    thread.scopePath ? humanizeFeatureId(normalizeFeatureId(thread.scopePath)) : null,
   ) ?? "Active COO work";
 
   return {
@@ -952,7 +965,22 @@ function humanizeStatus(value: string): string {
 }
 
 function normalizeFeatureId(value: string): string {
-  return value.replace(/\\/g, "/").trim();
+  const normalized = value.replace(/\\/g, "/").trim();
+  const segments = normalized
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+  const candidate = segments.at(-1);
+
+  if (candidate && /^[a-z0-9._-]+$/i.test(candidate)) {
+    return candidate.toLowerCase();
+  }
+
+  if (/^[a-z0-9._-]+$/i.test(normalized)) {
+    return normalized.toLowerCase();
+  }
+
+  return normalized;
 }
 
 function normalizeStringArray(value: unknown): string[] {

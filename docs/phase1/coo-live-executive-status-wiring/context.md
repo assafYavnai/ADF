@@ -31,3 +31,9 @@ This slice makes the merged `COO/briefing/**` package visible in the live COO ru
 
 ## Dependency Note
 This slice should run after the freeze-to-admission wiring slice if possible, so the live status surface can read real admission-state truth. It should still degrade gracefully if admission artifacts are not present yet.
+
+## 2026-04-04 Design Decisions
+- Human verification exposed that one-shot `--status` output cannot share the interactive CLI banner and footer; the status route now bypasses that chrome so the CEO sees the brief itself rather than an interactive bootstrap transcript.
+- Live source correlation now resolves feature identity from the final slug-like scope-path segment, mirroring the freeze-to-admission route contract from commit `597f32c`, so full scope paths can join cleanly with requirement, CTO-admission, and implement-plan truth.
+- The executive surface suppresses plan-index-only features that are merely context-ready or closeout bookkeeping. Pure implement-plan truth can surface without thread/admission companions only when it represents active implementation, a completed-but-not-landed outcome, or an explicit error worth attention.
+- The interactive `exit` path must fail closed without prompting again after `readline.close()`. Prompt rendering and resume logic now guard against shutdown state so the CLI exits cleanly instead of throwing `ERR_USE_AFTER_CLOSE`.

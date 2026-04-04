@@ -2,7 +2,7 @@
 
 Implementation is complete in the feature worktree and the bounded machine-verification suite is passing.
 
-This slice is not yet fully closed. Cycle-01 review approval is now recorded, but required human verification for the CEO-facing runtime surface and any later merge-queue handoff are still pending.
+This slice is not yet fully closed. Human verification started and exposed follow-up defects in the CEO-facing runtime surface. Those defects were fixed and reverified locally, so refreshed human verification is now pending. Because code changed after Cycle-01 approval, a follow-up review-cycle pass is also still required before merge-queue.
 
 2. Deliverables Produced
 
@@ -29,8 +29,10 @@ This slice is not yet fully closed. Cycle-01 review approval is now recorded, bu
   - added exact finalized-requirement reads through `requirements_manage` `get`
 - `COO/controller/executive-status.test.ts`
   - added proof coverage for full, partial, empty, derived-only, and partitioned live status rendering
+- `COO/controller/executive-status.test.ts`
+  - extended proof coverage so full scope paths collapse to feature slugs cleanly and plan-index-only framework slices do not leak into the executive brief
 - `docs/phase1/coo-live-executive-status-wiring/context.md`
-  - recorded the implementation decisions that shaped the adapter and status route
+  - recorded the implementation decisions that shaped the adapter, post-test filtering, and the clean status-only/exit behavior
 
 4. Verification Evidence
 
@@ -45,6 +47,17 @@ Machine Verification
   - parity counters and missing-source counters
   - slow-bucket telemetry fields over `1s`, `10s`, and `60s`
   - mixed source-partition vs proof telemetry-partition isolation
+
+Runtime Smoke
+- Passed: `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd controller\cli.ts --scope assafyavnai/adf --enable-onion --status --scope-path assafyavnai/adf/phase1`
+- Result:
+  - renders only the executive report from the COO CLI path
+  - no longer prints the interactive COO banner before the one-shot status report
+  - current live output suppresses plan-index-only framework slices and raw full scope-path labels
+- Passed: `'exit' | C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd controller\cli.ts --scope assafyavnai/adf --enable-onion`
+- Result:
+  - scripted exit closes cleanly with no `ERR_USE_AFTER_CLOSE`
+  - interactive exit still requires final human confirmation because the original defect was TTY-specific
 
 KPI / Audit Evidence Added
 - `live_status_invocation_count`
@@ -65,21 +78,32 @@ Human Verification Requirement
 - Required: true
 
 Human Verification Status
-- Not started in this turn
-- CEO-facing usability validation is the next required gate
+- Started
+- First live pass found two defects:
+  - one-shot `--status` still printed the interactive COO startup banner and footer
+  - interactive `exit` threw `ERR_USE_AFTER_CLOSE`
+- Follow-up fixes applied:
+  - one-shot status now bypasses interactive banner/footer chrome
+  - prompt/render shutdown now guards the `readline` close path
+  - full scope paths now normalize to feature slugs for cleaner feature labels and source correlation
+  - context-ready and closeout-only plan-index framework slices no longer leak into the executive brief
+- Refreshed CEO-facing approval is still pending
 
 Review-Cycle Status
-- Cycle-01 approved and closed in this turn
+- Cycle-01 approved and closed for the pre-fix head in this turn
 - Review artifacts:
   - `docs/phase1/coo-live-executive-status-wiring/cycle-01/audit-findings.md`
   - `docs/phase1/coo-live-executive-status-wiring/cycle-01/review-findings.md`
   - `docs/phase1/coo-live-executive-status-wiring/cycle-01/fix-plan.md`
   - `docs/phase1/coo-live-executive-status-wiring/cycle-01/fix-report.md`
   - `docs/phase1/coo-live-executive-status-wiring/cycle-01/verification-evidence.md`
+- Current truth:
+  - Cycle-01 approval is stale after the post-human-verification fixes above
+  - a follow-up review-cycle pass is required before merge-queue
 
 Merge Status
 - Not started
-- merge-queue handoff now waits only for human approval
+- merge-queue handoff now waits for refreshed human approval and the follow-up review-cycle pass
 
 Local Target Sync Status
 - Not started
@@ -104,6 +128,6 @@ Reason:
 
 Implemented and machine-verified on `implement-plan/phase1/coo-live-executive-status-wiring`.
 
-Review-cycled and machine-verified on `implement-plan/phase1/coo-live-executive-status-wiring`.
+Post-human-test fixes are machine-verified on `implement-plan/phase1/coo-live-executive-status-wiring`.
 
-Not yet human-approved, not yet merge-queued, and not complete under the governed route.
+Refreshed human approval is still pending. After that, the current head still needs a follow-up review-cycle pass, then merge-queue, before the slice can be marked complete truthfully.

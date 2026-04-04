@@ -64,6 +64,15 @@ test("live executive status renders all four sections from live sources and emit
   assert.ok(result.output.includes("Feature Moving"));
   assert.ok(result.output.includes("Kick off implementation against the prepared feature branch."));
   assert.ok(!result.output.includes("featureStatus"), "status surface must stay business-level");
+  assert.ok(!result.output.includes("assafyavnai/adf/feature-moving"), "status surface must not leak raw scope paths");
+  assert.ok(
+    !result.output.includes("Implement Plan Review Cycle Kpi Enforcement"),
+    "plan-only framework work must not leak into the executive brief",
+  );
+  assert.ok(
+    !result.output.includes("Company Table Queue Read Model"),
+    "context-ready plan-only work must not appear without live executive truth",
+  );
 
   assert.equal(result.diagnostics.missingSourceCount, 0);
 
@@ -200,7 +209,7 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
   const nextId = "33333333-3333-4333-8333-333333333333";
 
   await writeThread(threadsDir, makeOnionThread({
-    scopePath: "feature-blocked",
+    scopePath: "assafyavnai/adf/feature-blocked",
     topic: "Feature Blocked",
     lifecycleStatus: "blocked",
     currentLayer: "goal",
@@ -212,7 +221,7 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
     finalizedRequirementMemoryId: blockedId,
   }));
   await writeThread(threadsDir, makeOnionThread({
-    scopePath: "feature-table",
+    scopePath: "assafyavnai/adf/feature-table",
     topic: "Feature Table",
     lifecycleStatus: "awaiting_freeze_approval",
     currentLayer: "whole_onion_freeze",
@@ -224,7 +233,7 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
     finalizedRequirementMemoryId: null,
   }));
   await writeThread(threadsDir, makeOnionThread({
-    scopePath: "feature-moving",
+    scopePath: "assafyavnai/adf/feature-moving",
     topic: "Feature Moving",
     lifecycleStatus: "handoff_ready",
     currentLayer: "approved",
@@ -234,7 +243,7 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
     finalizedRequirementMemoryId: movingId,
   }));
   await writeThread(threadsDir, makeOnionThread({
-    scopePath: "feature-next",
+    scopePath: "assafyavnai/adf/feature-next",
     topic: "Feature Next",
     lifecycleStatus: "handoff_ready",
     currentLayer: "approved",
@@ -267,6 +276,26 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
         last_completed_step: "context_collected",
         updated_at: "2026-04-03T16:01:00.000Z",
         feature_branch: "implement-plan/phase1/feature-next",
+      },
+      "phase1/implement-plan-review-cycle-kpi-enforcement": {
+        phase_number: 1,
+        feature_slug: "implement-plan-review-cycle-kpi-enforcement",
+        feature_status: "active",
+        active_run_status: "closeout_pending",
+        merge_status: "not_ready",
+        last_completed_step: "completion_summary_written",
+        updated_at: "2026-04-03T16:02:00.000Z",
+        feature_branch: "implement-plan/phase1/implement-plan-review-cycle-kpi-enforcement",
+      },
+      "phase1/company-table-queue-read-model": {
+        phase_number: 1,
+        feature_slug: "company-table-queue-read-model",
+        feature_status: "active",
+        active_run_status: "context_ready",
+        merge_status: "not_ready",
+        last_completed_step: "context_collected",
+        updated_at: "2026-04-03T16:03:00.000Z",
+        feature_branch: "implement-plan/phase1/company-table-queue-read-model",
       },
     },
   });
