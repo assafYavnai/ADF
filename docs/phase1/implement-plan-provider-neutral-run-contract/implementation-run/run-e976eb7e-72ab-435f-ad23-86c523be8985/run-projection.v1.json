@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "projection_kind": "implement-plan-run-projection",
+  "feature_registry_key": "phase1/implement-plan-provider-neutral-run-contract",
+  "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+  "run_mode": "normal",
+  "updated_at": "2026-04-04T22:36:29.006Z",
+  "artifacts": {
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+    "event_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/events/attempt-002"
+  },
+  "run": {
+    "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+    "run_mode": "normal",
+    "lifecycle_status": "blocked",
+    "terminal_status": "blocked",
+    "contract_schema_version": 1,
+    "contract_revision": 4,
+    "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+    "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+    "run_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
+    "benchmark_context": {
+      "benchmark_run_id": null,
+      "benchmark_suite_id": null,
+      "lane_id": null,
+      "lane_label": null
+    },
+    "worker_keys": [
+      "implementor/default"
+    ],
+    "current_attempt_id": "attempt-002",
+    "attempt_counter": 2,
+    "attempts": {
+      "attempt-001": {
+        "attempt_id": "attempt-001",
+        "attempt_number": 1,
+        "status": "superseded",
+        "terminal_status": "reset",
+        "started_at": "2026-04-04T22:16:33.500Z",
+        "updated_at": "2026-04-04T22:16:36.089Z",
+        "reset_at": "2026-04-04T22:16:36.089Z",
+        "reset_reason": null,
+        "superseded_by_attempt_id": "attempt-002",
+        "resume_checkpoint": {
+          "step": "implementation",
+          "status": "completed",
+          "reason": "Structured step transition recorded for implementation.",
+          "updated_at": "2026-04-04T22:16:35.795Z"
+        },
+        "step_status": {
+          "implementation": {
+            "status": "completed",
+            "started_at": "2026-04-04T22:16:35.554Z",
+            "completed_at": "2026-04-04T22:16:35.739Z",
+            "duration_seconds": 0,
+            "note": "Smoke: implementation completed."
+          },
+          "machine_verification": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "review_cycle": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "human_testing": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "merge_queue": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          }
+        },
+        "governance_calls": [
+          {
+            "call_id": "gov-call-1a77dfdb-d9b2-4516-bfa6-e87ba1e5ebee",
+            "role": "review-cycle",
+            "kind": "smoke-governance-call",
+            "provider": "codex",
+            "runtime": "codex_cli_exec",
+            "model": "gpt-5.4",
+            "reasoning_effort": "xhigh",
+            "started_at": "2026-04-04T22:16:33.8169415Z",
+            "ended_at": "2026-04-04T22:16:35.8237333Z",
+            "duration_ms": 2000,
+            "estimated_prompt_tokens": 1200,
+            "estimated_completion_tokens": 400,
+            "estimated_total_tokens": 1600,
+            "estimated_cost_usd": 0.12
+          }
+        ],
+        "governance_metrics": {
+          "call_count": 1,
+          "total_duration_ms": 2000,
+          "total_estimated_cost_usd": 0.12,
+          "total_prompt_tokens_estimated": 1200,
+          "total_completion_tokens_estimated": 400,
+          "total_tokens_estimated": 1600
+        },
+        "verification_outcomes": [
+          {
+            "verification_id": "verification-7f1336dc-83b8-43dd-824e-ab22c3e15824",
+            "kind": "machine",
+            "status": "passed",
+            "review_cycle_number": 1,
+            "self_fix_cycle_number": 0,
+            "note": "Smoke verification outcome recorded.",
+            "recorded_at": "2026-04-04T22:16:35.980Z"
+          }
+        ],
+        "review_cycle_count": 1,
+        "self_fix_cycle_count": 0,
+        "blockers": [],
+        "worker_bindings": {
+          "implementor/default": {
+            "worker_id": "implementor/default",
+            "lane_id": null,
+            "role": "implementor",
+            "provider": "codex",
+            "runtime": "codex_cli_exec",
+            "model": "gpt-5.4",
+            "reasoning_effort": "xhigh",
+            "access_mode": "codex_cli_full_auto_bypass",
+            "execution_id": "cached-implementor-001",
+            "bound_at": "2026-04-04T22:16:33.500Z",
+            "selection_source": {
+              "provider": "invoker_inheritance",
+              "runtime": "invoker_inheritance",
+              "access_mode": "invoker_inheritance",
+              "model": "invoker_inheritance",
+              "reasoning_effort": "invoker_inheritance"
+            },
+            "recreated_due_to_access": false
+          }
+        },
+        "last_checkpoint_at": "2026-04-04T22:16:35.795Z",
+        "last_event_at": "2026-04-04T22:16:35.980Z"
+      },
+      "attempt-002": {
+        "attempt_id": "attempt-002",
+        "attempt_number": 2,
+        "status": "blocked",
+        "terminal_status": "blocked",
+        "started_at": "2026-04-04T22:16:36.089Z",
+        "updated_at": "2026-04-04T22:36:29.000Z",
+        "reset_at": null,
+        "reset_reason": "Smoke reset after structured events.",
+        "superseded_by_attempt_id": null,
+        "resume_checkpoint": {
+          "step": "implementation",
+          "status": "blocked",
+          "reason": "Benchmarking contract blocked at integrity gate.",
+          "updated_at": "2026-04-04T22:36:29.000Z"
+        },
+        "step_status": {
+          "implementation": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "machine_verification": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "review_cycle": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "human_testing": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "merge_queue": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          }
+        },
+        "governance_calls": [],
+        "governance_metrics": {
+          "call_count": 0,
+          "total_duration_ms": 0,
+          "total_estimated_cost_usd": 0,
+          "total_prompt_tokens_estimated": 0,
+          "total_completion_tokens_estimated": 0,
+          "total_tokens_estimated": 0
+        },
+        "verification_outcomes": [],
+        "review_cycle_count": 0,
+        "self_fix_cycle_count": 0,
+        "blockers": [],
+        "worker_bindings": {
+          "implementor/default": {
+            "worker_id": "implementor/default",
+            "lane_id": null,
+            "role": "implementor",
+            "provider": "codex",
+            "runtime": "codex_cli_exec",
+            "model": "gpt-5.4",
+            "reasoning_effort": "xhigh",
+            "access_mode": "codex_cli_full_auto_bypass",
+            "execution_id": "cached-implementor-001",
+            "bound_at": "2026-04-04T22:16:36.089Z",
+            "selection_source": {
+              "provider": "invoker_inheritance",
+              "runtime": "invoker_inheritance",
+              "access_mode": "invoker_inheritance",
+              "model": "invoker_inheritance",
+              "reasoning_effort": "invoker_inheritance"
+            },
+            "recreated_due_to_access": false
+          }
+        },
+        "last_checkpoint_at": "2026-04-04T22:36:29.000Z",
+        "last_event_at": "2026-04-04T22:36:29.005Z"
+      }
+    },
+    "created_at": "2026-04-04T22:16:33.500Z",
+    "updated_at": "2026-04-04T22:36:29.003Z",
+    "last_event_at": "2026-04-04T22:36:29.005Z",
+    "kpi_projection": {
+      "terminal_status": "blocked",
+      "per_step_timing": {
+        "implementation": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": 0
+        },
+        "machine_verification": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": 0
+        },
+        "review_cycle": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": 0
+        },
+        "human_testing": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": 0
+        },
+        "merge_queue": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": 0
+        }
+      },
+      "governance_call_metrics": {
+        "call_count": 0,
+        "total_duration_ms": 0,
+        "total_estimated_cost_usd": 0,
+        "total_prompt_tokens_estimated": 0,
+        "total_completion_tokens_estimated": 0,
+        "total_tokens_estimated": 0
+      },
+      "verification_outcomes": [],
+      "review_cycle_count": 0,
+      "self_fix_cycle_count": 0,
+      "blocker_history": []
+    }
+  }
+}

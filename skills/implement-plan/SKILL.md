@@ -45,6 +45,12 @@ Optional inputs:
 
 - `scope_hint`
 - `non_goals`
+- `run_mode` with allowed values `normal` or `benchmarking`; default `normal`
+- `worker_provider`
+- `worker_runtime`
+- `worker_access_mode`
+- `worker_model`
+- `worker_reasoning_effort`
 - `implementor_model`
 - `implementor_reasoning_effort`
 - `feature_status_override` only when explicitly reopening or administratively correcting state
@@ -52,6 +58,10 @@ Optional inputs:
 - `post_send_for_review` deprecated compatibility alias for `post_send_to_review`
 - `review_until_complete` default `false`; only valid when `post_send_to_review=true`
 - `review_max_cycles` optional positive integer; only valid when `review_until_complete=true`
+- `benchmark_run_id`
+- `benchmark_suite_id`
+- `benchmark_lane_id`
+- `benchmark_lane_label`
 
 ## Review handoff flags
 
@@ -72,6 +82,21 @@ Rules:
 - `feature_slug` must be a safe slash-separated feature-stream slug.
 - Reject path traversal, empty segments, `.` or `..`, leading slash, trailing slash, and backslash-based escaping.
 - Normalize all important paths from variables, not from hardcoded repo assumptions.
+- Only runtime/policy knobs may vary through normal-mode overrides; the governed route itself must not become operator-shortcuttable.
+
+## Run-Mode Rule
+
+`implement-plan` now uses one versioned JSON-first execution contract for both supported modes:
+
+- `normal`
+- `benchmarking`
+
+Rules:
+
+- `normal` remains the governed production route
+- `benchmarking` in this slice only prepares the shared substrate and must not execute a supervisor
+- both modes use the same contract schema, identity model, and event/projection substrate
+- benchmarking fields must not weaken normal-mode behavior
 
 ## Path variables
 
@@ -101,10 +126,13 @@ Resolve and surface at minimum:
    - feature path resolution
    - setup validity
    - feature lifecycle status
+   - stable execution contract path and run-scoped projection paths
+   - run identity, attempt identity, worker identity, and lane identity
    - context/input pack normalization
    - integrity precheck findings
+   - worker-selection defaults, overrides, and inheritance
    - implementor reuse vs recreation requirement
-   - resumable state and closeout status
+   - resumable state, reset semantics, and closeout status
 9. Print the detected-status summary before taking action.
 
 ## Transparent setup rule
@@ -147,7 +175,7 @@ The main skill must:
 - push back when the implementation slice is weak or unsafe
 - create or reuse the feature worktree and feature branch before serious implementation work begins
 - create the implementor brief only when integrity passes
-- spawn or resume the implementation worker under the strongest truthful worker mode
+- in normal mode, spawn or resume the implementation worker under the strongest truthful worker mode
 - wait for completion
 - verify outputs
 - write completion artifacts
@@ -158,6 +186,20 @@ The main skill must:
 - mark the implementation slice completed only after `merge-queue` lands the merge successfully and sync state is recorded truthfully
 
 Do not delegate orchestration responsibility to the worker.
+
+## Execution Contract Rule
+
+The helper owns the deterministic execution contract and runtime substrate.
+
+The main skill must treat the helper result as authoritative for:
+
+- `implement-plan-execution-contract.v1.json` at the feature root
+- the run-scoped contract snapshot under `implementation-run/<run-id>/execution-contract.v1.json`
+- the mutable run projection under `implementation-run/<run-id>/run-projection.v1.json`
+- append-only attempt event files under `implementation-run/<run-id>/events/<attempt-id>/`
+- the current `run_id`, `attempt_id`, `worker_id`, and benchmarking lane identity when applicable
+
+`implement-plan-state.json` remains an important compatibility projection, but it is no longer the only execution truth.
 
 ## Integrity gate rule
 
@@ -222,10 +264,12 @@ When integrity passes, use the strongest truthful autonomous worker mode availab
 
 Rules:
 
+- worker selection must stay provider-neutral
 - keep worker runtime distinct from control-plane runtime
+- when override knobs are absent, inherit truthful invoker/runtime defaults
 - if native worker access is weaker than CLI full-auto bypass, prefer CLI worker mode and record why
 - default implementor target is `GPT-5.4` with `xhigh` reasoning, or the strongest truthful equivalent in the current runtime
-- persist which worker runtime, access mode, model, and reasoning effort were actually used
+- persist which provider, worker runtime, access mode, model, and reasoning effort were actually used
 
 ## Action behavior
 
@@ -235,12 +279,14 @@ Rules:
 - normalize the context/input pack
 - run integrity verification
 - if weak, write the pushback artifact and stop
-- if solid, write the normalized contract and implementation brief and stop before worker spawn
+- if solid, materialize the execution contract, run projection, and implementation brief
+- in `run_mode=normal`, stop before worker spawn when the caller asked only for `prepare`
+- in `run_mode=benchmarking`, stop after the shared contract/substrate is prepared; do not execute a supervisor in this slice
 
 `action=run`
 
 - do everything from `prepare`
-- spawn or resume the implementor when integrity passes
+- in `run_mode=normal`, spawn or resume the implementor when integrity passes
 - wait for completion
 - run the machine-verification loop until it passes or blocks
 - verify outputs
@@ -256,6 +302,7 @@ Rules:
 - if a post-approval sanity fix changes approved human-facing behavior, treat the human approval as stale and return to human testing instead of silently closing
 - after the approval gates are satisfied, enqueue the exact approved commit into `merge-queue`
 - do not mark the feature completed until `merge-queue` reports merge success and truthful local target sync status
+- in `run_mode=benchmarking`, stop at contract/substrate preparation in this slice and report that supervisor orchestration is deferred
 
 `action=mark-complete`
 
@@ -274,6 +321,7 @@ Use the helper scripts for deterministic local state:
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs prepare ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs update-state ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs record-event ...`
+- `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs reset-attempt ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs mark-complete ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs completion-summary ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-setup-helper.mjs write-setup ...`
@@ -285,6 +333,7 @@ When an implementation slice succeeds, end by showing:
 
 - the feature artifact tree
 - the feature worktree path, base branch, and feature branch
+- the stable execution contract path and the active run projection path
 - the saved implementor execution identifier if available
 - the resolved worker and control-plane runtime/access mode summary
 - the completion summary
