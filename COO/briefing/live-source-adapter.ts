@@ -45,6 +45,16 @@ export interface LiveBriefSourceFactsResult {
   diagnostics: LiveBriefDiagnostics;
 }
 
+interface RequirementSignal {
+  id: string;
+  label: string;
+  summary: string;
+  blockers: string[];
+  openDecisions: BriefOpenDecision[];
+  derivationStatus: "ready" | "blocked";
+  lastActivityAt: string;
+}
+
 interface ThreadSignal {
   id: string;
   label: string;
@@ -59,16 +69,7 @@ interface ThreadSignal {
   hasApprovedSnapshot: boolean;
   hasFinalizedRequirement: boolean;
   finalizedRequirementMemoryId: string | null;
-}
-
-interface RequirementSignal {
-  id: string;
-  label: string;
-  summary: string;
-  blockers: string[];
-  openDecisions: BriefOpenDecision[];
-  derivationStatus: "ready" | "blocked";
-  lastActivityAt: string;
+  embeddedRequirement: RequirementSignal | null;
 }
 
 interface AdmissionSignal {
@@ -227,13 +228,18 @@ async function loadRequirementSignals(
   const targets = threads.filter(
     (thread) => typeof thread.finalizedRequirementMemoryId === "string" && thread.finalizedRequirementMemoryId.length > 0 && thread.scopePath,
   );
+  const fallbackRequirements = dedupeRequirementSignals(
+    threads.flatMap((thread) => thread.embeddedRequirement ? [thread.embeddedRequirement] : []),
+  );
 
   if (!brainClient) {
     return {
-      available: false,
-      items: [],
+      available: fallbackRequirements.length > 0,
+      items: fallbackRequirements,
       notes: targets.length > 0
-        ? ["Finalized requirement truth is unavailable because the Brain read path is not available."]
+        ? fallbackRequirements.length > 0
+          ? ["Brain requirement reads are unavailable, so this brief is using the finalized requirement artifact carried on the live COO thread."]
+          : ["Finalized requirement truth is unavailable because the Brain read path is not available."]
         : [],
     };
   }
@@ -258,10 +264,20 @@ async function loadRequirementSignals(
 
   const items: RequirementSignal[] = [];
   const notes: string[] = [];
+  const fallbackById = new Map(fallbackRequirements.map((requirement) => [requirement.id, requirement]));
 
-  for (const result of settled) {
+  for (let index = 0; index < settled.length; index++) {
+    const result = settled[index];
+    const target = targets[index];
     if (result.status === "fulfilled") {
       items.push(result.value);
+      continue;
+    }
+
+    const fallback = target ? fallbackById.get(target.id) ?? target.embeddedRequirement : null;
+    if (fallback) {
+      items.push(fallback);
+      notes.push("A finalized requirement artifact could not be read from Brain, so the live thread-carried finalized artifact was used instead.");
       continue;
     }
 
@@ -269,8 +285,8 @@ async function loadRequirementSignals(
   }
 
   return {
-    available: true,
-    items,
+    available: items.length > 0 || fallbackRequirements.length > 0,
+    items: dedupeRequirementSignals([...items, ...fallbackRequirements]),
     notes,
   };
 }
@@ -408,22 +424,26 @@ function correlateSources(input: {
 
   for (const thread of input.threads) {
     const item = ensure(thread.id, thread.label);
-    item.thread = thread;
+    item.thread = item.thread ? mergeThreadSignals(item.thread, thread) : thread;
+    item.label = resolveCorrelatedLabel(item);
   }
 
   for (const requirement of input.requirements) {
     const item = ensure(requirement.id, requirement.label);
     item.requirement = requirement;
+    item.label = resolveCorrelatedLabel(item);
   }
 
   for (const admission of input.admissions) {
     const item = ensure(admission.id, humanizeFeatureId(admission.id));
     item.admission = admission;
+    item.label = resolveCorrelatedLabel(item);
   }
 
   for (const plan of input.plans) {
     const item = ensure(plan.id, humanizeFeatureId(plan.id));
     item.plan = plan;
+    item.label = resolveCorrelatedLabel(item);
   }
 
   return Array.from(correlated.values())
@@ -442,6 +462,109 @@ function shouldSurfaceCorrelatedItem(item: CorrelatedBriefItem): boolean {
   }
 
   return isPlanInMotion(item.plan) || isPlanCompleted(item.plan) || Boolean(item.plan.lastError);
+}
+
+function mergeThreadSignals(existing: ThreadSignal, incoming: ThreadSignal): ThreadSignal {
+  const primary = compareThreadSignals(existing, incoming) >= 0 ? existing : incoming;
+  const secondary = primary === existing ? incoming : existing;
+
+  return {
+    id: primary.id,
+    label: chooseThreadLabel(primary, secondary),
+    scopePath: primary.scopePath ?? secondary.scopePath,
+    status: primary.status,
+    currentLayer: primary.currentLayer ?? secondary.currentLayer,
+    blockers: uniqueStrings([...existing.blockers, ...incoming.blockers]),
+    openLoops: uniqueStrings([...existing.openLoops, ...incoming.openLoops]),
+    openDecisions: dedupeOpenDecisions([...existing.openDecisions, ...incoming.openDecisions]),
+    progressSummary: chooseThreadProgressSummary(primary, secondary),
+    lastActivityAt: maxIsoTimestamp([existing.lastActivityAt, incoming.lastActivityAt]) ?? primary.lastActivityAt,
+    hasApprovedSnapshot: existing.hasApprovedSnapshot || incoming.hasApprovedSnapshot,
+    hasFinalizedRequirement: existing.hasFinalizedRequirement || incoming.hasFinalizedRequirement,
+    finalizedRequirementMemoryId: primary.finalizedRequirementMemoryId ?? secondary.finalizedRequirementMemoryId,
+  };
+}
+
+function compareThreadSignals(left: ThreadSignal, right: ThreadSignal): number {
+  const scoreDifference = threadSignalScore(left) - threadSignalScore(right);
+  if (scoreDifference !== 0) {
+    return scoreDifference;
+  }
+
+  const leftTime = Date.parse(left.lastActivityAt);
+  const rightTime = Date.parse(right.lastActivityAt);
+  return (Number.isNaN(leftTime) ? 0 : leftTime) - (Number.isNaN(rightTime) ? 0 : rightTime);
+}
+
+function threadSignalScore(thread: ThreadSignal): number {
+  let score = statusSignalScore(thread.status);
+
+  if (thread.hasFinalizedRequirement) score += 200;
+  if (thread.hasApprovedSnapshot) score += 150;
+  if (thread.currentLayer) score += 25;
+  score += thread.blockers.length * 10;
+  score += thread.openDecisions.length * 5;
+  score += thread.openLoops.length * 2;
+  if (!isGenericThreadLabel(thread)) score += 10;
+  if (!isGenericProgressSummary(thread.progressSummary)) score += 10;
+
+  return score;
+}
+
+function statusSignalScore(status: ThreadSignal["status"]): number {
+  switch (status) {
+    case "handoff_ready":
+      return 80;
+    case "approved":
+      return 70;
+    case "awaiting_freeze_approval":
+      return 60;
+    case "blocked":
+      return 50;
+    case "completed":
+      return 40;
+    case "active":
+    default:
+      return 30;
+  }
+}
+
+function chooseThreadLabel(primary: ThreadSignal, secondary: ThreadSignal): string {
+  if (!isGenericThreadLabel(primary)) {
+    return primary.label;
+  }
+  if (!isGenericThreadLabel(secondary)) {
+    return secondary.label;
+  }
+  return primary.label;
+}
+
+function chooseThreadProgressSummary(primary: ThreadSignal, secondary: ThreadSignal): string {
+  if (!isGenericProgressSummary(primary.progressSummary)) {
+    return primary.progressSummary;
+  }
+  if (!isGenericProgressSummary(secondary.progressSummary)) {
+    return secondary.progressSummary;
+  }
+  return primary.progressSummary;
+}
+
+function resolveCorrelatedLabel(item: CorrelatedBriefItem): string {
+  const labels = [
+    item.thread?.label ?? null,
+    item.requirement?.label ?? null,
+    item.label,
+    humanizeFeatureId(item.id),
+  ];
+
+  for (const label of labels) {
+    const trimmed = label?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+
+  return humanizeFeatureId(item.id);
 }
 
 function toBriefFeatureSnapshot(
@@ -800,6 +923,11 @@ function adaptThread(thread: Thread): ThreadSignal {
     hasApprovedSnapshot: Boolean(approvedSnapshot),
     hasFinalizedRequirement: Boolean(onion?.finalized_requirement_memory_id),
     finalizedRequirementMemoryId: onion?.finalized_requirement_memory_id ?? null,
+    embeddedRequirement: adaptEmbeddedRequirement(onion?.requirement_artifact, {
+      featureId: normalizeFeatureId(thread.scopePath ?? thread.id),
+      label,
+      fallbackTimestamp: thread.updatedAt,
+    }),
   };
 }
 
@@ -892,6 +1020,55 @@ function adaptRequirementRecord(
   };
 }
 
+function adaptEmbeddedRequirement(
+  artifact: unknown,
+  target: {
+    featureId: string;
+    label: string;
+    fallbackTimestamp: string;
+  },
+): RequirementSignal | null {
+  const requirement = asRecord(artifact);
+  if (Object.keys(requirement).length === 0) {
+    return null;
+  }
+
+  const humanScope = asRecord(requirement.human_scope);
+  const featureId = normalizeFeatureId(
+    asNonEmptyString(requirement.feature_slug)
+      ?? target.featureId,
+  );
+  const openDecisionSource = asArray(requirement.open_business_decisions).length > 0
+    ? asArray(requirement.open_business_decisions)
+    : asArray(humanScope.open_decisions);
+  const summary = firstMeaningfulText(
+    asNonEmptyString(requirement.requirement_summary),
+    asNonEmptyString(humanScope.goal),
+    asNonEmptyString(humanScope.expected_result),
+    target.label,
+  );
+
+  return {
+    id: featureId,
+    label: firstMeaningfulText(asNonEmptyString(humanScope.topic), target.label, humanizeFeatureId(featureId)) ?? humanizeFeatureId(featureId),
+    summary: summary ?? "Finalized requirement is ready for admission.",
+    blockers: normalizeStringArray(requirement.blockers),
+    openDecisions: openDecisionSource.map((decision) => {
+      const recordDecision = asRecord(decision);
+      return {
+        question: asNonEmptyString(recordDecision.question) ?? "Open decision",
+        impact: asNonEmptyString(recordDecision.impact) ?? "business scope",
+        status: asNonEmptyString(recordDecision.status) === "resolved" ? "resolved" : "open",
+      };
+    }),
+    derivationStatus: asNonEmptyString(requirement.derivation_status) === "blocked" ? "blocked" : "ready",
+    lastActivityAt: firstMeaningfulText(
+      asNonEmptyString(humanScope.approved_at),
+      target.fallbackTimestamp,
+    ) ?? target.fallbackTimestamp,
+  };
+}
+
 function isPlanInMotion(plan: PlanSignal): boolean {
   return PLAN_IN_MOTION_STATUSES.has(plan.activeRunStatus);
 }
@@ -949,6 +1126,17 @@ function dedupeOpenDecisions(decisions: BriefOpenDecision[]): BriefOpenDecision[
   return deduped;
 }
 
+function dedupeRequirementSignals(requirements: RequirementSignal[]): RequirementSignal[] {
+  const deduped = new Map<string, RequirementSignal>();
+  for (const requirement of requirements) {
+    const existing = deduped.get(requirement.id);
+    if (!existing || requirement.lastActivityAt.localeCompare(existing.lastActivityAt) > 0) {
+      deduped.set(requirement.id, requirement);
+    }
+  }
+  return Array.from(deduped.values());
+}
+
 function humanizeFeatureId(value: string): string {
   const words = value
     .split(/[\/_-]+/)
@@ -962,6 +1150,19 @@ function humanizeStatus(value: string): string {
     .split(/[_-]+/)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function isGenericThreadLabel(thread: ThreadSignal): boolean {
+  const fallbackLabel = thread.scopePath
+    ? humanizeFeatureId(normalizeFeatureId(thread.scopePath))
+    : humanizeFeatureId(thread.id);
+  return thread.label === "Active COO work" || thread.label === fallbackLabel;
+}
+
+function isGenericProgressSummary(value: string): boolean {
+  return value === "The COO is actively shaping this work."
+    || value === "The COO thread has completed its latest work."
+    || value === "Live work is active.";
 }
 
 function normalizeFeatureId(value: string): string {

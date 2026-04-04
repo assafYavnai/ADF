@@ -119,6 +119,213 @@ test("live executive status degrades cleanly when CTO admission artifacts are mi
   assert.ok(Number(missingEvent.metadata?.count ?? 0) >= 1);
 });
 
+test("live executive status keeps the richest same-scope thread and surfaces the admission next step", async () => {
+  const threadsDir = join(tempRoot, "threads");
+  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
+  await mkdir(implementPlanRoot, { recursive: true });
+
+  const finalizedRequirementId = "44444444-4444-4444-8444-444444444444";
+  const richThread = makeOnionThread({
+    scopePath: "assafyavnai/shippingagent",
+    topic: "/status command in the COO CLI",
+    lifecycleStatus: "handoff_ready",
+    currentLayer: "approved",
+    blockers: [],
+    openDecisions: [],
+    openLoops: [],
+    finalizedRequirementMemoryId: finalizedRequirementId,
+  });
+  richThread.updatedAt = "2026-04-03T16:00:00.000Z";
+  await writeThread(threadsDir, richThread);
+
+  const thinThread = createThread("assafyavnai/shippingagent");
+  thinThread.updatedAt = "2026-04-03T16:05:00.000Z";
+  thinThread.workflowState = {
+    active_workflow: null,
+    onion: null,
+  };
+  thinThread.events.push(createEvent("error", {
+    source: "controller",
+    message: "synthetic recoverable error",
+    recoverable: true,
+    attemptNumber: 1,
+  }));
+  await writeThread(threadsDir, thinThread);
+
+  await writeJson(join(implementPlanRoot, "features-index.json"), {
+    version: 1,
+    updated_at: "2026-04-03T16:06:00.000Z",
+    features: {},
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir,
+    brainClient: {
+      async getRequirement(memoryId: string): Promise<Record<string, unknown>> {
+        assert.equal(memoryId, finalizedRequirementId);
+        return {
+          content: {
+            feature_slug: "shippingagent",
+            requirement_summary: "The finalized requirement is ready for technical admission.",
+            open_business_decisions: [],
+            blockers: [],
+            derivation_status: "ready",
+          },
+          updated_at: "2026-04-03T16:00:00.000Z",
+        };
+      },
+    },
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("**/status command in the COO CLI**"));
+  assert.ok(result.output.includes("Review the finalized requirement for technical admission."));
+  assert.ok(!result.output.includes("No pending next actions."));
+  assert.ok(!result.output.includes("- **Shippingagent**: Shaping - The COO is actively shaping this work."));
+});
+
+test("live executive status falls back to the thread-carried finalized requirement when the Brain read fails", async () => {
+  const threadsDir = join(tempRoot, "threads");
+  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
+  await mkdir(implementPlanRoot, { recursive: true });
+
+  const richThread = makeOnionThread({
+    scopePath: "assafyavnai/shippingagent",
+    topic: "/status command in the COO CLI",
+    lifecycleStatus: "handoff_ready",
+    currentLayer: "approved",
+    blockers: [],
+    openDecisions: [],
+    openLoops: [],
+    finalizedRequirementMemoryId: "55555555-5555-4555-8555-555555555555",
+  });
+  richThread.updatedAt = "2026-04-03T16:00:00.000Z";
+  await writeThread(threadsDir, richThread);
+
+  await writeJson(join(implementPlanRoot, "features-index.json"), {
+    version: 1,
+    updated_at: "2026-04-03T16:06:00.000Z",
+    features: {},
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir,
+    brainClient: {
+      async getRequirement(): Promise<Record<string, unknown>> {
+        throw new Error("synthetic Brain read failure");
+      },
+    },
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(!result.output.includes("Finalized requirement truth is unavailable"));
+  assert.ok(result.output.includes("Review the finalized requirement for technical admission."));
+  assert.ok(result.output.includes("## On The Table"));
+  assert.ok(result.output.includes("Awaiting decision -"));
+});
+
+test("live executive status tolerates legacy onion events missing layer metrics", async () => {
+  const threadsDir = join(tempRoot, "threads");
+  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
+  await mkdir(implementPlanRoot, { recursive: true });
+
+  const thread = makeOnionThread({
+    scopePath: "assafyavnai/legacy-feature",
+    topic: "Legacy Feature",
+    lifecycleStatus: "handoff_ready",
+    currentLayer: "approved",
+    blockers: [],
+    openDecisions: [],
+    openLoops: [],
+    finalizedRequirementMemoryId: "66666666-6666-4666-8666-666666666666",
+  });
+  thread.events.push(createEvent("onion_turn_result", {
+    trace_id: "legacy-trace",
+    turn_id: "legacy-turn",
+    lifecycle_status: "handoff_ready",
+    current_layer: "approved",
+    state: thread.workflowState.onion!.state,
+    working_artifact: thread.workflowState.onion!.working_artifact,
+    requirement_artifact: thread.workflowState.onion!.requirement_artifact,
+    finalized_requirement_memory_id: thread.workflowState.onion!.finalized_requirement_memory_id,
+    workflow_trace: thread.workflowState.onion!.latest_audit_trace,
+    operation_records: [],
+    llm_calls: [],
+    state_commit_summary: "Legacy onion event without layer metrics.",
+    open_loops: [],
+  } as never));
+  await writeThread(threadsDir, thread);
+
+  await writeJson(join(implementPlanRoot, "features-index.json"), {
+    version: 1,
+    updated_at: "2026-04-03T16:06:00.000Z",
+    features: {},
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir,
+    brainClient: {
+      async getRequirement(): Promise<Record<string, unknown>> {
+        throw new Error("synthetic Brain read failure");
+      },
+    },
+    sourcePartition: "proof",
+  });
+  await drain();
+
+  assert.ok(result.output.includes("Legacy Feature"));
+  assert.ok(result.output.includes("Review the finalized requirement for technical admission."));
+});
+
+test("live executive status shows recently finished merged work in status notes", async () => {
+  const threadsDir = join(tempRoot, "threads");
+  const implementPlanRoot = join(tempRoot, ".codex", "implement-plan");
+  await mkdir(threadsDir, { recursive: true });
+  await mkdir(join(tempRoot, "docs", "phase1"), { recursive: true });
+  await mkdir(implementPlanRoot, { recursive: true });
+
+  await writeJson(join(implementPlanRoot, "features-index.json"), {
+    version: 1,
+    updated_at: "2026-04-03T16:06:00.000Z",
+    features: {
+      "phase1/finished-feature": {
+        phase_number: 1,
+        feature_slug: "finished-feature",
+        feature_status: "completed",
+        active_run_status: "completed",
+        merge_status: "merged",
+        last_completed_step: "marked_complete",
+        updated_at: "2026-04-03T16:04:00.000Z",
+      },
+    },
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir,
+    brainClient: null,
+    sourcePartition: "proof",
+    now: new Date("2026-04-04T12:00:00.000Z"),
+  });
+  await drain();
+
+  assert.ok(result.output.includes("Status notes:"));
+  assert.ok(result.output.includes("Recently finished: Finished Feature - completed and merged"));
+  assert.ok(result.output.includes("## Issues That Need Your Attention"));
+  assert.ok(result.output.includes("## What's Next"));
+});
+
 test("live executive status renders the four sections cleanly for an empty source set", async () => {
   const threadsDir = join(tempRoot, "threads");
   await mkdir(threadsDir, { recursive: true });
@@ -440,6 +647,27 @@ function makeOnionThread(input: {
   if (input.lifecycleStatus === "approved" || input.lifecycleStatus === "handoff_ready") {
     state.approved_snapshot = createApprovedOnionSnapshot(state, "turn-001", timestamp);
   }
+  const requirementArtifact = state.approved_snapshot && input.finalizedRequirementMemoryId
+    ? {
+        schema_version: "1.0" as const,
+        artifact_kind: "requirement_list" as const,
+        artifact_id: `artifact::${input.scopePath}`,
+        source_approval_turn_id: "turn-001",
+        human_scope: state.approved_snapshot,
+        requirement_items: [{
+          id: "scope-anchor",
+          title: "Feature outcome",
+          detail: `${state.goal}\n${state.expected_result}`,
+          source_refs: ["goal", "expected_result"],
+          meaning_preservation: "verbatim_from_approved_snapshot" as const,
+        }],
+        explicit_boundaries: state.boundaries,
+        open_business_decisions: state.open_decisions,
+        derivation_status: "ready" as const,
+        blockers: input.blockers,
+        derivation_notes: ["Derived from approved snapshot."],
+      }
+    : null;
 
   thread.updatedAt = timestamp;
   thread.workflowState = {
@@ -468,7 +696,7 @@ function makeOnionThread(input: {
         approved_snapshot: state.approved_snapshot,
         scope_summary: [`Topic: ${state.topic}`, `Goal: ${state.goal}`],
       },
-      requirement_artifact: null,
+      requirement_artifact: requirementArtifact,
       finalized_requirement_memory_id: input.finalizedRequirementMemoryId,
       latest_audit_trace: {
         trace_id: `trace-${input.scopePath}`,

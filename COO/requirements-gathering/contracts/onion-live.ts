@@ -75,6 +75,12 @@ export const OnionTurnResultRecord = z.object({
     clarification_turn_count_total: z.number().int().nonnegative(),
     freeze_blocker_count: z.number().int().nonnegative(),
     open_decision_count: z.number().int().nonnegative(),
+  }).default({
+    turns_in_current_layer: 0,
+    time_in_current_layer_ms: 0,
+    clarification_turn_count_total: 0,
+    freeze_blocker_count: 0,
+    open_decision_count: 0,
   }),
   state: OnionState,
   working_artifact: WorkingScopeArtifact,

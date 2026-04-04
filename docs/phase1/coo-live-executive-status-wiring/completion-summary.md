@@ -31,8 +31,12 @@ This slice is not yet fully closed. Human verification started and exposed follo
   - added proof coverage for full, partial, empty, derived-only, and partitioned live status rendering
 - `COO/controller/executive-status.test.ts`
   - extended proof coverage so full scope paths collapse to feature slugs cleanly and plan-index-only framework slices do not leak into the executive brief
+- `COO/controller/executive-status.ts`
+  - added recent-completion status notes so freshly merged implementation work remains visible without adding a fifth executive section
+- `COO/requirements-gathering/contracts/onion-live.ts`
+  - made legacy onion turn records tolerate missing `layer_metrics` so historic threads still feed the live status surface
 - `docs/phase1/coo-live-executive-status-wiring/context.md`
-  - recorded the implementation decisions that shaped the adapter, post-test filtering, and the clean status-only/exit behavior
+  - recorded the implementation decisions that shaped the adapter, post-test filtering, duplicate-thread resolution, recent-completion notes, legacy compatibility, and the clean status-only/exit behavior
 
 4. Verification Evidence
 
@@ -54,6 +58,9 @@ Runtime Smoke
   - renders only the executive report from the COO CLI path
   - no longer prints the interactive COO banner before the one-shot status report
   - current live output suppresses plan-index-only framework slices and raw full scope-path labels
+  - current live output shows the live admission-pending `shippingagent` work on `On The Table`
+  - current live output shows a concrete admission next step on `What's Next`
+  - current live output shows recently merged work in `Status notes`
 - Passed: `'exit' | C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd controller\cli.ts --scope assafyavnai/adf --enable-onion`
 - Result:
   - scripted exit closes cleanly with no `ERR_USE_AFTER_CLOSE`
@@ -87,6 +94,11 @@ Human Verification Status
   - prompt/render shutdown now guards the `readline` close path
   - full scope paths now normalize to feature slugs for cleaner feature labels and source correlation
   - context-ready and closeout-only plan-index framework slices no longer leak into the executive brief
+  - duplicate same-scope threads now merge by richest live signal instead of last-write-wins overwrite
+  - admission-pending work can contribute a concrete `What's Next` action
+  - recent merged implementations now surface in `Status notes`
+  - legacy onion thread records missing `layer_metrics` now remain readable
+  - finalized requirement enrichment now falls back to the thread-carried `requirement_artifact` when the Brain read path does not provide it
 - Refreshed CEO-facing approval is still pending
 
 Review-Cycle Status

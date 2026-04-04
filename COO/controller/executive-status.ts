@@ -78,7 +78,7 @@ export async function buildLiveExecutiveStatus(
   let output: string;
   try {
     rendered = renderExecutiveBrief(brief);
-    output = renderLiveExecutiveStatusOutput(rendered, diagnostics);
+    output = renderLiveExecutiveStatusOutput(rendered, diagnostics, facts);
   } catch (error) {
     const renderLatencyMs = Date.now() - renderStartedAt;
     emitBuildMetrics(buildLatencyMs, true, facts, diagnostics, options.telemetryContext);
@@ -139,13 +139,18 @@ export async function buildLiveExecutiveStatus(
 export function renderLiveExecutiveStatusOutput(
   renderedBrief: string,
   diagnostics: LiveBriefDiagnostics,
+  facts?: BriefSourceFacts,
 ): string {
   const lines = ["# COO Executive Status"];
+  const statusNotes = [
+    ...diagnostics.degradationNotes,
+    ...buildRecentCompletionNotes(facts),
+  ];
 
-  if (diagnostics.degradationNotes.length > 0) {
+  if (statusNotes.length > 0) {
     lines.push("");
     lines.push("Status notes:");
-    for (const note of diagnostics.degradationNotes) {
+    for (const note of statusNotes) {
       lines.push(`- ${note}`);
     }
   }
@@ -154,6 +159,37 @@ export function renderLiveExecutiveStatusOutput(
   lines.push(renderedBrief);
 
   return lines.join("\n");
+}
+
+function buildRecentCompletionNotes(facts?: BriefSourceFacts): string[] {
+  if (!facts) {
+    return [];
+  }
+
+  const collectedAtMs = Date.parse(facts.collectedAt);
+  if (Number.isNaN(collectedAtMs)) {
+    return [];
+  }
+
+  return facts.features
+    .filter((feature) => feature.isFinalized || feature.briefingState === "closeout")
+    .filter((feature) => {
+      const activityMs = Date.parse(feature.lastActivityAt);
+      if (Number.isNaN(activityMs)) {
+        return false;
+      }
+      return collectedAtMs - activityMs <= 7 * 24 * 60 * 60 * 1_000;
+    })
+    .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt))
+    .slice(0, 3)
+    .map((feature) => `Recently finished: ${feature.label} - ${describeRecentCompletion(feature)}`);
+}
+
+function describeRecentCompletion(feature: BriefSourceFacts["features"][number]): string {
+  if (feature.isFinalized) {
+    return "completed and merged";
+  }
+  return "completed and awaiting final closeout";
 }
 
 function emitBuildMetrics(

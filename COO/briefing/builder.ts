@@ -18,7 +18,7 @@ import type {
 
 const BLOCKED_STATUSES = new Set(["blocked"]);
 const ACTIVE_STATUSES = new Set(["active", "awaiting_freeze_approval"]);
-const COMPLETED_STATUSES = new Set(["completed", "closed", "approved", "handoff_ready"]);
+const COMPLETED_STATUSES = new Set(["completed", "closed"]);
 
 function isBlocked(f: BriefFeatureSnapshot): boolean {
   return BLOCKED_STATUSES.has(f.status) || f.blockers.length > 0;
@@ -53,6 +53,9 @@ function isInMotionCandidate(f: BriefFeatureSnapshot): boolean {
 }
 
 function isCompleted(f: BriefFeatureSnapshot): boolean {
+  if (f.briefingState) {
+    return f.briefingState === "closeout";
+  }
   return COMPLETED_STATUSES.has(f.status);
 }
 
@@ -191,7 +194,11 @@ function isWhatsNextCandidate(f: BriefFeatureSnapshot): boolean {
     return true;
   }
 
-  if (f.briefingState === "ready_to_start" || f.briefingState === "closeout") {
+  if (
+    f.briefingState === "ready_to_start"
+    || f.briefingState === "closeout"
+    || f.briefingState === "admission_pending"
+  ) {
     return true;
   }
 
