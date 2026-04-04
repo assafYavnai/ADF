@@ -40,6 +40,69 @@ export const PERSISTENT_EXECUTION_STRATEGIES = new Set([
   "artifact_continuity_only"
 ]);
 
+export const IMPLEMENT_PLAN_RUN_MODES = new Set([
+  "normal",
+  "benchmarking"
+]);
+
+export const BENCHMARK_LANE_STATUSES = new Set([
+  "provisioning",
+  "running",
+  "verification_pending",
+  "review_pending",
+  "succeeded",
+  "failed",
+  "blocked",
+  "stopped",
+  "max_cycles_exhausted",
+  "global_cutoff_reached",
+  "suite_stopped",
+  "provider_stopped",
+  "lane_stopped"
+]);
+
+export const BENCHMARK_SUITE_STATUSES = new Set([
+  "initializing",
+  "running",
+  "completing",
+  "completed",
+  "stopped",
+  "failed"
+]);
+
+export const BENCHMARK_EVENTS = new Set([
+  "suite-started",
+  "lane-provisioning",
+  "lane-started",
+  "lane-cycle-started",
+  "lane-cycle-completed",
+  "lane-verification-passed",
+  "lane-verification-failed",
+  "lane-review-started",
+  "lane-review-completed",
+  "lane-blocked",
+  "lane-stopped",
+  "lane-completed",
+  "lane-failed",
+  "lane-reset",
+  "suite-progress",
+  "suite-completed",
+  "suite-stopped",
+  "suite-failed",
+  "global-failure"
+]);
+
+export const BENCHMARK_TERMINAL_LANE_STATUSES = new Set([
+  "succeeded",
+  "failed",
+  "blocked",
+  "max_cycles_exhausted",
+  "global_cutoff_reached",
+  "suite_stopped",
+  "provider_stopped",
+  "lane_stopped"
+]);
+
 export const FEATURE_STATUSES = new Set([
   "active",
   "blocked",
