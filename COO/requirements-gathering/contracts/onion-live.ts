@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CtoAdmissionThreadState } from "../../cto-admission/live-state.js";
 import { RequirementArtifact, WorkingScopeArtifact } from "./onion-artifact.js";
 import {
   OnionLlmCallRecord,
@@ -14,8 +15,11 @@ export const OnionPersistenceReceipt = z.object({
     "finalized_requirement_lock",
     "provisional_finalized_requirement_retire",
     "superseded_requirement_retire",
+    "cto_admission_build",
+    "cto_admission_artifact_persist",
+    "cto_admission_decision_update",
   ]),
-  target: z.enum(["thread", "memory_engine"]),
+  target: z.enum(["thread", "memory_engine", "filesystem"]),
   status: z.enum(["stored", "created", "locked", "archived", "superseded", "skipped", "failed"]),
   artifact_kind: z.string(),
   action: z.string(),
@@ -47,6 +51,7 @@ export const OnionWorkflowThreadState = z.object({
   working_artifact: WorkingScopeArtifact,
   requirement_artifact: RequirementArtifact.nullable(),
   finalized_requirement_memory_id: z.string().uuid().nullable().default(null),
+  cto_admission: CtoAdmissionThreadState.nullable().default(null),
   latest_audit_trace: OnionWorkflowAuditTrace,
   latest_llm_calls: z.array(OnionLlmCallRecord).default([]),
   latest_persistence_receipts: z.array(OnionPersistenceReceipt).default([]),
@@ -80,6 +85,7 @@ export const OnionTurnResultRecord = z.object({
   working_artifact: WorkingScopeArtifact,
   requirement_artifact: RequirementArtifact.nullable(),
   finalized_requirement_memory_id: z.string().uuid().nullable().default(null),
+  cto_admission: CtoAdmissionThreadState.nullable().default(null),
   workflow_trace: OnionWorkflowAuditTrace,
   operation_records: z.array(OnionOperationRecord),
   llm_calls: z.array(OnionLlmCallRecord).default([]),

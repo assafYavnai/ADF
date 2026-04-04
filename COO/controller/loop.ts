@@ -33,6 +33,7 @@ export interface ControllerConfig {
   threadsDir: string;
   promptsDir: string;
   memoryDir: string;
+  telemetryPartition?: "production" | "proof";
   classifierParams: Omit<InvocationParams, "prompt" | "source_path">;
   intelligenceParams: Omit<InvocationParams, "prompt" | "source_path">;
   brainSearch?: (
