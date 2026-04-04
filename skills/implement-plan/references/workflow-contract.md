@@ -278,8 +278,10 @@ The stable contract file and the run-scoped snapshot share the same schema:
   "invoker_runtime": {},
   "worker_selection": {
     "defaults": {},
+    "continuity": {},
     "overrides": {},
     "resolved": {},
+    "resolved_sources": {},
     "inheritance": {}
   },
   "route_policy": {
@@ -343,6 +345,7 @@ Rules:
 - the feature-root contract is the canonical repo-owned path for the active run/attempt
 - the run-scoped contract snapshot preserves the same schema within the run root
 - the contract may contain benchmarking fields in both modes, but normal mode behavior must not weaken
+- `worker_selection.defaults` must stay reserved for current invoker/runtime defaults, while persisted feature-local reuse must be surfaced separately under `worker_selection.continuity`
 
 ## Run Projection Schema
 
@@ -426,6 +429,7 @@ Rules:
 - event files must be append-only
 - event writes may use a narrow per-feature lock in this slice
 - future benchmark-driven review-cycle parallelism must be able to reduce from the event stream and run projections without depending only on one whole-feature JSON file
+- `terminal-status-recorded` must not create normal-mode completion truth until the guarded `mark-complete` route has already frozen merge-backed closeout evidence
 
 ## Run-Mode Rules
 
@@ -462,9 +466,11 @@ Resolution order:
 The helper must surface:
 
 - `defaults`
+- `continuity`
 - `overrides`
 - `resolved`
-- `inheritance` flags that show which values were inherited
+- `resolved_sources` with per-field values `explicit_override`, `persisted_continuity`, or `invoker_inheritance`
+- `inheritance` flags that show which values were inherited directly from the current invoker/runtime defaults
 
 ## Resume And Reset Rules
 
@@ -498,7 +504,8 @@ Rules:
 
 - approval on the feature branch is merge-ready, not completed
 - do not claim completion if merge evidence is missing
-- `mark-complete` must fail closed unless merge truth and completion-summary evidence exist
+- do not treat `local_target_sync_status=not_started` as truthful closeout evidence
+- `mark-complete` must fail closed unless merge truth, recorded local target sync truth, and completion-summary evidence exist
 
 ## KPI Rules
 
@@ -545,7 +552,7 @@ Do not introduce a benchmark-only scoring subsystem in this slice.
 
 `action=mark-complete`
 
-- require merge success evidence and a valid `completion-summary.md`
+- require merge success evidence, recorded local target sync truth, and a valid `completion-summary.md`
 - update both the compatibility state and the active normal execution projection
 - append terminal completion evidence
 

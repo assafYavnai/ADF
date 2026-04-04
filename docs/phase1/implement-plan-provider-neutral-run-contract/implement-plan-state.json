@@ -39,7 +39,7 @@
   "last_commit_sha": null,
   "active_run_status": "closeout_pending",
   "created_at": "2026-04-04T22:16:33.486Z",
-  "updated_at": "2026-04-04T23:01:17.532Z",
+  "updated_at": "2026-04-04T23:42:51.765Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-04T22:16:34.941Z",
     "worktree_prepared_at": "2026-04-04T22:16:34.941Z",
@@ -53,8 +53,7 @@
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": null,
-    "closeout_finished_at": null,
-    "completion_summary_written_at": "2026-04-04T23:01:17.471Z"
+    "closeout_finished_at": null
   },
   "event_log": [
     {
@@ -314,6 +313,42 @@
       "attempt_id": "attempt-003",
       "timestamp": "2026-04-04T23:01:17.471Z",
       "note": "completion-summary.md written for truthful implementor-lane closeout."
+    },
+    {
+      "event_id": "event-b9c56294-2bcb-4e30-b672-c9f8a5d13ef9",
+      "event_type": "state-patched",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-04T23:30:33.992Z",
+      "note": null
+    },
+    {
+      "event_id": "event-38b336bc-164a-4298-895c-1a1f9407cd7c",
+      "event_type": "state-patched",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-04T23:33:25.564Z",
+      "note": null
+    },
+    {
+      "event_id": "event-d5a500d2-e029-48b8-889b-8ae6bc51e148",
+      "event_type": "contract-materialized",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-04T23:41:02.265Z",
+      "note": null
+    },
+    {
+      "event_id": "event-5762e42c-8f14-47c1-8c29-0f37dd0e1489",
+      "event_type": "state-patched",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-04T23:42:51.765Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -345,7 +380,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 6,
+        "contract_revision": 7,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
@@ -574,18 +609,18 @@
           "attempt-003": {
             "attempt_id": "attempt-003",
             "attempt_number": 3,
-            "status": "ready_for_implementation",
+            "status": "closeout_pending",
             "terminal_status": null,
             "started_at": "2026-04-04T22:49:27.098Z",
-            "updated_at": "2026-04-04T23:01:17.529Z",
+            "updated_at": "2026-04-04T23:42:51.765Z",
             "reset_at": null,
             "reset_reason": "Reset fake cached execution id before governed implement-plan run.",
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
-              "status": "ready",
+              "step": "machine_verification",
+              "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-04T23:01:17.529Z"
+              "updated_at": "2026-04-04T23:42:51.765Z"
             },
             "step_status": {
               "implementation": {
@@ -660,22 +695,22 @@
                 "execution_id": null,
                 "bound_at": "2026-04-04T22:49:27.098Z",
                 "selection_source": {
-                  "provider": "invoker_inheritance",
-                  "runtime": "invoker_inheritance",
-                  "access_mode": "invoker_inheritance",
-                  "model": "invoker_inheritance",
-                  "reasoning_effort": "invoker_inheritance"
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
                 },
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-04T23:01:17.529Z",
-            "last_event_at": "2026-04-04T23:01:17.471Z"
+            "last_checkpoint_at": "2026-04-04T23:42:51.765Z",
+            "last_event_at": "2026-04-04T23:42:51.765Z"
           }
         },
         "created_at": "2026-04-04T22:16:33.500Z",
-        "updated_at": "2026-04-04T23:01:17.529Z",
-        "last_event_at": "2026-04-04T23:01:17.471Z",
+        "updated_at": "2026-04-04T23:42:51.765Z",
+        "last_event_at": "2026-04-04T23:42:51.765Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {

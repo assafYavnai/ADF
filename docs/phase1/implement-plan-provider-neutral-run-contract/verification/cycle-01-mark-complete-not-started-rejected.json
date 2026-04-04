@@ -1,0 +1,939 @@
+{
+  "setup": {
+    "command": "update-state",
+    "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+    "state": {
+      "state_schema_version": 2,
+      "phase_number": 1,
+      "feature_slug": "implement-plan-provider-neutral-run-contract",
+      "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+      "feature_registry_key": "phase1/implement-plan-provider-neutral-run-contract",
+      "feature_status": "active",
+      "implementor_execution_id": null,
+      "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
+      "implementor_execution_runtime": "codex_cli_exec",
+      "implementor_provider": "codex",
+      "implementor_model": "gpt-5.4",
+      "implementor_reasoning_effort": "xhigh",
+      "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+      "resolved_runtime_capabilities": {
+        "native_agent_spawning_available": false,
+        "native_agent_access_configurable": false,
+        "native_agent_inherits_runtime_access": false,
+        "native_agent_resume_available": false,
+        "native_agent_send_input_available": false,
+        "native_agent_wait_available": false,
+        "native_parallel_wait_available": false,
+        "codex_cli_available": true,
+        "codex_cli_full_auto_supported": true,
+        "codex_cli_bypass_supported": true
+      },
+      "current_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+      "base_branch": "main",
+      "feature_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+      "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+      "worktree_status": "ready",
+      "merge_required": true,
+      "merge_status": "merged",
+      "approved_commit_sha": null,
+      "merge_commit_sha": "1111111111111111111111111111111111111111",
+      "merge_queue_request_id": null,
+      "local_target_sync_status": "not_started",
+      "last_completed_step": "merge_finished",
+      "last_commit_sha": "1111111111111111111111111111111111111111",
+      "active_run_status": "closeout_pending",
+      "created_at": "2026-04-04T22:16:33.486Z",
+      "updated_at": "2026-04-04T23:28:52.690Z",
+      "run_timestamps": {
+        "context_collected_at": "2026-04-04T22:16:34.941Z",
+        "worktree_prepared_at": "2026-04-04T22:16:34.941Z",
+        "integrity_passed_at": null,
+        "integrity_failed_at": null,
+        "brief_written_at": "2026-04-04T22:51:14.560Z",
+        "implementor_started_at": "2026-04-04T22:51:22.824Z",
+        "implementor_finished_at": "2026-04-04T22:58:35.996Z",
+        "verification_finished_at": "2026-04-04T22:58:36.323Z",
+        "review_requested_at": null,
+        "human_verification_requested_at": null,
+        "merge_started_at": null,
+        "merge_finished_at": null,
+        "closeout_finished_at": null
+      },
+      "event_log": [
+        {
+          "event_id": "event-2a9c1a75-01ea-486a-b4ca-449f43064f3c",
+          "event_type": "run-initialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:34.944Z",
+          "note": "Created a new normal execution run."
+        },
+        {
+          "event_id": "event-880891ec-b0b4-4511-a9a2-9f8de6106854",
+          "event_type": "attempt-started",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:34.946Z",
+          "note": "Created the first attempt for this execution run."
+        },
+        {
+          "event_id": "event-557c1472-f186-4ab4-8737-3874749f634e",
+          "event_type": "worker-bound",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:34.947Z",
+          "note": null
+        },
+        {
+          "event_id": "event-67a6a01b-197b-4993-a212-d4f6a846cf15",
+          "event_type": "contract-materialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:34.948Z",
+          "note": null
+        },
+        {
+          "event_id": "event-94cffd07-2d5e-4b3d-8ff4-7a1eee1a3711",
+          "event_type": "run-initialized",
+          "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+          "run_mode": "benchmarking",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.147Z",
+          "note": "Created a new benchmarking execution run."
+        },
+        {
+          "event_id": "event-db812b11-7815-4a6b-a1af-93311adb9b03",
+          "event_type": "attempt-started",
+          "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+          "run_mode": "benchmarking",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.149Z",
+          "note": "Created the first attempt for this execution run."
+        },
+        {
+          "event_id": "event-cc53bbee-d3a2-4550-aefd-366d71dbc19f",
+          "event_type": "worker-bound",
+          "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+          "run_mode": "benchmarking",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.150Z",
+          "note": null
+        },
+        {
+          "event_id": "event-220a89bb-4ad7-49d1-8ea0-02526c4d7855",
+          "event_type": "contract-materialized",
+          "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+          "run_mode": "benchmarking",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.150Z",
+          "note": null
+        },
+        {
+          "event_id": "event-f05ea40a-bb1a-4a85-9780-f81870be4d16",
+          "event_type": "state-patched",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.287Z",
+          "note": null
+        },
+        {
+          "event_id": "event-fa34703e-cd24-4351-9a8c-857b6ef7b700",
+          "event_type": "contract-materialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.486Z",
+          "note": null
+        },
+        {
+          "event_id": "event-99a52fd6-eca8-43b2-a29b-0ce921e82146",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.554Z",
+          "note": "Smoke: implementation started."
+        },
+        {
+          "event_id": "event-6d5b646e-9ad8-469b-a130-583793593457",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.739Z",
+          "note": "Smoke: implementation completed."
+        },
+        {
+          "event_id": "event-05c5842b-1434-4453-aa57-27d3d401fe3d",
+          "event_type": "governance-call-recorded",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.868Z",
+          "note": null
+        },
+        {
+          "event_id": "event-07518959-500a-4b7a-a676-fb0246294216",
+          "event_type": "verification-recorded",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-001",
+          "timestamp": "2026-04-04T22:16:35.980Z",
+          "note": "Smoke verification outcome recorded."
+        },
+        {
+          "event_id": "event-6e9d67a9-7057-4952-9d4e-4cc4da5b7c03",
+          "event_type": "attempt-reset",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-002",
+          "timestamp": "2026-04-04T22:16:36.089Z",
+          "note": "Smoke reset after structured events."
+        },
+        {
+          "event_id": "event-32e8e744-d5ea-4cb1-8fe5-b5fff4495ca4",
+          "event_type": "contract-materialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-002",
+          "timestamp": "2026-04-04T22:16:36.310Z",
+          "note": null
+        },
+        {
+          "event_id": "event-d382acdf-6f07-4087-9bcb-c484e7971e74",
+          "event_type": "contract-materialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-002",
+          "timestamp": "2026-04-04T22:36:29.005Z",
+          "note": null
+        },
+        {
+          "event_id": "event-773dabe2-72fa-4d45-9dd1-a485e7931a37",
+          "event_type": "attempt-reset",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:49:27.098Z",
+          "note": "Reset fake cached execution id before governed implement-plan run."
+        },
+        {
+          "event_id": "event-b19f4254-ffbb-4553-8579-4aedc6938a71",
+          "event_type": "contract-materialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:49:30.805Z",
+          "note": null
+        },
+        {
+          "event_id": "event-87456430-bcbe-45c9-9d31-91d38ec952f8",
+          "event_type": "state-patched",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:50:03.184Z",
+          "note": null
+        },
+        {
+          "event_id": "event-2f8af55b-d824-46cb-91d6-5dfe7462ed29",
+          "event_type": "contract-materialized",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:50:22.794Z",
+          "note": null
+        },
+        {
+          "event": "brief-written",
+          "timestamp": "2026-04-04T22:51:14.560Z",
+          "note": "implement-plan-brief.md written for truthful worker spawn."
+        },
+        {
+          "event_id": "event-c77ffda0-12c0-4604-b67f-850359cd3eb4",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:51:14.560Z",
+          "note": "implement-plan-brief.md written for truthful worker spawn."
+        },
+        {
+          "event": "implementor-started",
+          "timestamp": "2026-04-04T22:51:22.824Z",
+          "note": "Spawning fresh CLI implementor for attempt-003."
+        },
+        {
+          "event_id": "event-36f60eb8-7a50-42ff-9b39-893979b35e1f",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:51:22.824Z",
+          "note": "Spawning fresh CLI implementor for attempt-003."
+        },
+        {
+          "event_id": "event-aec36efd-2f40-4682-97bc-e4d9a5b46001",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:58:35.996Z",
+          "note": "Validated the existing Spec 1 implementation and applied the minimal helper truthfulness repair."
+        },
+        {
+          "event_id": "event-b301c9bf-7d1f-4ff7-a565-5d7f5d74d551",
+          "event_type": "verification-recorded",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:58:36.146Z",
+          "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003."
+        },
+        {
+          "event_id": "event-5c0a9a16-a612-4a78-b4cb-8855bb6b9933",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T22:58:36.323Z",
+          "note": "Required machine verification passed for the bounded Spec 1 slice."
+        },
+        {
+          "event": "completion-summary-written",
+          "timestamp": "2026-04-04T23:01:17.471Z",
+          "note": "completion-summary.md written for truthful implementor-lane closeout."
+        },
+        {
+          "event_id": "event-65ef4334-bd08-49dc-9d8f-33eb1f7420ca",
+          "event_type": "step-transition",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T23:01:17.471Z",
+          "note": "completion-summary.md written for truthful implementor-lane closeout."
+        },
+        {
+          "event_id": "event-b680d190-8531-4144-bf5b-b961dcd156a4",
+          "event_type": "state-patched",
+          "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "run_mode": "normal",
+          "attempt_id": "attempt-003",
+          "timestamp": "2026-04-04T23:28:52.690Z",
+          "note": null
+        }
+      ],
+      "artifacts": {
+        "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/README.md",
+        "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/context.md",
+        "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md",
+        "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+        "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+        "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+        "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-pushback.md",
+        "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-brief.md",
+        "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md",
+        "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run",
+        "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract"
+      },
+      "last_error": null,
+      "current_run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "current_attempt_id": "attempt-003",
+      "execution_runs": {
+        "active_by_mode": {
+          "normal": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+          "benchmarking": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a"
+        },
+        "runs": {
+          "run-e976eb7e-72ab-435f-ad23-86c523be8985": {
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "lifecycle_status": "active",
+            "terminal_status": null,
+            "contract_schema_version": 1,
+            "contract_revision": 6,
+            "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+            "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+            "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+            "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "benchmark_context": {
+              "benchmark_run_id": null,
+              "benchmark_suite_id": null,
+              "lane_id": null,
+              "lane_label": null
+            },
+            "worker_keys": [
+              "implementor/default"
+            ],
+            "current_attempt_id": "attempt-003",
+            "attempt_counter": 3,
+            "attempts": {
+              "attempt-001": {
+                "attempt_id": "attempt-001",
+                "attempt_number": 1,
+                "status": "superseded",
+                "terminal_status": "reset",
+                "started_at": "2026-04-04T22:16:33.500Z",
+                "updated_at": "2026-04-04T22:16:36.089Z",
+                "reset_at": "2026-04-04T22:16:36.089Z",
+                "reset_reason": null,
+                "superseded_by_attempt_id": "attempt-002",
+                "resume_checkpoint": {
+                  "step": "implementation",
+                  "status": "completed",
+                  "reason": "Structured step transition recorded for implementation.",
+                  "updated_at": "2026-04-04T22:16:35.795Z"
+                },
+                "step_status": {
+                  "implementation": {
+                    "status": "completed",
+                    "started_at": "2026-04-04T22:16:35.554Z",
+                    "completed_at": "2026-04-04T22:16:35.739Z",
+                    "duration_seconds": 0,
+                    "note": "Smoke: implementation completed."
+                  },
+                  "machine_verification": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "review_cycle": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "human_testing": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "merge_queue": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  }
+                },
+                "governance_calls": [
+                  {
+                    "call_id": "gov-call-1a77dfdb-d9b2-4516-bfa6-e87ba1e5ebee",
+                    "role": "review-cycle",
+                    "kind": "smoke-governance-call",
+                    "provider": "codex",
+                    "runtime": "codex_cli_exec",
+                    "model": "gpt-5.4",
+                    "reasoning_effort": "xhigh",
+                    "started_at": "2026-04-04T22:16:33.8169415Z",
+                    "ended_at": "2026-04-04T22:16:35.8237333Z",
+                    "duration_ms": 2000,
+                    "estimated_prompt_tokens": 1200,
+                    "estimated_completion_tokens": 400,
+                    "estimated_total_tokens": 1600,
+                    "estimated_cost_usd": 0.12
+                  }
+                ],
+                "governance_metrics": {
+                  "call_count": 1,
+                  "total_duration_ms": 2000,
+                  "total_estimated_cost_usd": 0.12,
+                  "total_prompt_tokens_estimated": 1200,
+                  "total_completion_tokens_estimated": 400,
+                  "total_tokens_estimated": 1600
+                },
+                "verification_outcomes": [
+                  {
+                    "verification_id": "verification-7f1336dc-83b8-43dd-824e-ab22c3e15824",
+                    "kind": "machine",
+                    "status": "passed",
+                    "review_cycle_number": 1,
+                    "self_fix_cycle_number": 0,
+                    "note": "Smoke verification outcome recorded.",
+                    "recorded_at": "2026-04-04T22:16:35.980Z"
+                  }
+                ],
+                "review_cycle_count": 1,
+                "self_fix_cycle_count": 0,
+                "blockers": [],
+                "worker_bindings": {
+                  "implementor/default": {
+                    "worker_id": "implementor/default",
+                    "lane_id": null,
+                    "role": "implementor",
+                    "provider": "codex",
+                    "runtime": "codex_cli_exec",
+                    "model": "gpt-5.4",
+                    "reasoning_effort": "xhigh",
+                    "access_mode": "codex_cli_full_auto_bypass",
+                    "execution_id": "cached-implementor-001",
+                    "bound_at": "2026-04-04T22:16:33.500Z",
+                    "selection_source": {
+                      "provider": "invoker_inheritance",
+                      "runtime": "invoker_inheritance",
+                      "access_mode": "invoker_inheritance",
+                      "model": "invoker_inheritance",
+                      "reasoning_effort": "invoker_inheritance"
+                    },
+                    "recreated_due_to_access": false
+                  }
+                },
+                "last_checkpoint_at": "2026-04-04T22:16:35.795Z",
+                "last_event_at": "2026-04-04T22:16:35.980Z"
+              },
+              "attempt-002": {
+                "attempt_id": "attempt-002",
+                "attempt_number": 2,
+                "status": "superseded",
+                "terminal_status": "reset",
+                "started_at": "2026-04-04T22:16:36.089Z",
+                "updated_at": "2026-04-04T22:49:27.098Z",
+                "reset_at": "2026-04-04T22:49:27.098Z",
+                "reset_reason": "Smoke reset after structured events.",
+                "superseded_by_attempt_id": "attempt-003",
+                "resume_checkpoint": {
+                  "step": "implementation",
+                  "status": "blocked",
+                  "reason": "Benchmarking contract blocked at integrity gate.",
+                  "updated_at": "2026-04-04T22:36:29.000Z"
+                },
+                "step_status": {
+                  "implementation": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "machine_verification": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "review_cycle": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "human_testing": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "merge_queue": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  }
+                },
+                "governance_calls": [],
+                "governance_metrics": {
+                  "call_count": 0,
+                  "total_duration_ms": 0,
+                  "total_estimated_cost_usd": 0,
+                  "total_prompt_tokens_estimated": 0,
+                  "total_completion_tokens_estimated": 0,
+                  "total_tokens_estimated": 0
+                },
+                "verification_outcomes": [],
+                "review_cycle_count": 0,
+                "self_fix_cycle_count": 0,
+                "blockers": [],
+                "worker_bindings": {
+                  "implementor/default": {
+                    "worker_id": "implementor/default",
+                    "lane_id": null,
+                    "role": "implementor",
+                    "provider": "codex",
+                    "runtime": "codex_cli_exec",
+                    "model": "gpt-5.4",
+                    "reasoning_effort": "xhigh",
+                    "access_mode": "codex_cli_full_auto_bypass",
+                    "execution_id": "cached-implementor-001",
+                    "bound_at": "2026-04-04T22:16:36.089Z",
+                    "selection_source": {
+                      "provider": "invoker_inheritance",
+                      "runtime": "invoker_inheritance",
+                      "access_mode": "invoker_inheritance",
+                      "model": "invoker_inheritance",
+                      "reasoning_effort": "invoker_inheritance"
+                    },
+                    "recreated_due_to_access": false
+                  }
+                },
+                "last_checkpoint_at": "2026-04-04T22:36:29.000Z",
+                "last_event_at": "2026-04-04T22:36:29.005Z"
+              },
+              "attempt-003": {
+                "attempt_id": "attempt-003",
+                "attempt_number": 3,
+                "status": "closeout_pending",
+                "terminal_status": null,
+                "started_at": "2026-04-04T22:49:27.098Z",
+                "updated_at": "2026-04-04T23:28:52.690Z",
+                "reset_at": null,
+                "reset_reason": "Reset fake cached execution id before governed implement-plan run.",
+                "superseded_by_attempt_id": null,
+                "resume_checkpoint": {
+                  "step": "merge_queue",
+                  "status": "completed",
+                  "reason": "Resume from the last truthful normal-mode checkpoint.",
+                  "updated_at": "2026-04-04T23:28:52.690Z"
+                },
+                "step_status": {
+                  "implementation": {
+                    "status": "completed",
+                    "started_at": "2026-04-04T22:51:22.824Z",
+                    "completed_at": "2026-04-04T22:58:35.996Z",
+                    "duration_seconds": 433,
+                    "note": null
+                  },
+                  "machine_verification": {
+                    "status": "completed",
+                    "started_at": "2026-04-04T22:58:35.996Z",
+                    "completed_at": "2026-04-04T22:58:36.323Z",
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "review_cycle": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null,
+                    "note": null
+                  },
+                  "human_testing": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null,
+                    "note": null
+                  },
+                  "merge_queue": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null,
+                    "note": null
+                  }
+                },
+                "governance_calls": [],
+                "governance_metrics": {
+                  "call_count": 0,
+                  "total_duration_ms": 0,
+                  "total_estimated_cost_usd": 0,
+                  "total_prompt_tokens_estimated": 0,
+                  "total_completion_tokens_estimated": 0,
+                  "total_tokens_estimated": 0
+                },
+                "verification_outcomes": [
+                  {
+                    "verification_id": "verification-fdfbf918-8653-4f4c-8def-03d24b08e996",
+                    "kind": "machine",
+                    "status": "passed",
+                    "review_cycle_number": 0,
+                    "self_fix_cycle_number": 0,
+                    "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.",
+                    "recorded_at": "2026-04-04T22:58:36.146Z"
+                  }
+                ],
+                "review_cycle_count": 0,
+                "self_fix_cycle_count": 0,
+                "blockers": [],
+                "worker_bindings": {
+                  "implementor/default": {
+                    "worker_id": "implementor/default",
+                    "lane_id": null,
+                    "role": "implementor",
+                    "provider": "codex",
+                    "runtime": "codex_cli_exec",
+                    "model": "gpt-5.4",
+                    "reasoning_effort": "xhigh",
+                    "access_mode": "codex_cli_full_auto_bypass",
+                    "execution_id": null,
+                    "bound_at": "2026-04-04T22:49:27.098Z",
+                    "selection_source": {
+                      "provider": "persisted_continuity",
+                      "runtime": "persisted_continuity",
+                      "access_mode": "persisted_continuity",
+                      "model": "persisted_continuity",
+                      "reasoning_effort": "persisted_continuity"
+                    },
+                    "recreated_due_to_access": false
+                  }
+                },
+                "last_checkpoint_at": "2026-04-04T23:28:52.690Z",
+                "last_event_at": "2026-04-04T23:28:52.690Z"
+              }
+            },
+            "created_at": "2026-04-04T22:16:33.500Z",
+            "updated_at": "2026-04-04T23:28:52.690Z",
+            "last_event_at": "2026-04-04T23:28:52.690Z",
+            "kpi_projection": {
+              "terminal_status": null,
+              "per_step_timing": {
+                "implementation": {
+                  "status": "completed",
+                  "started_at": "2026-04-04T22:51:22.824Z",
+                  "completed_at": "2026-04-04T22:58:35.996Z",
+                  "duration_seconds": 433
+                },
+                "machine_verification": {
+                  "status": "completed",
+                  "started_at": "2026-04-04T22:58:35.996Z",
+                  "completed_at": "2026-04-04T22:58:36.323Z",
+                  "duration_seconds": 0
+                },
+                "review_cycle": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                },
+                "human_testing": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                },
+                "merge_queue": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                }
+              },
+              "governance_call_metrics": {
+                "call_count": 0,
+                "total_duration_ms": 0,
+                "total_estimated_cost_usd": 0,
+                "total_prompt_tokens_estimated": 0,
+                "total_completion_tokens_estimated": 0,
+                "total_tokens_estimated": 0
+              },
+              "verification_outcomes": [
+                {
+                  "verification_id": "verification-fdfbf918-8653-4f4c-8def-03d24b08e996",
+                  "kind": "machine",
+                  "status": "passed",
+                  "review_cycle_number": 0,
+                  "self_fix_cycle_number": 0,
+                  "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.",
+                  "recorded_at": "2026-04-04T22:58:36.146Z"
+                }
+              ],
+              "review_cycle_count": 0,
+              "self_fix_cycle_count": 0,
+              "blocker_history": []
+            }
+          },
+          "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a": {
+            "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+            "run_mode": "benchmarking",
+            "lifecycle_status": "supervisor_deferred",
+            "terminal_status": null,
+            "contract_schema_version": 1,
+            "contract_revision": 2,
+            "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+            "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/execution-contract.v1.json",
+            "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/run-projection.v1.json",
+            "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+            "benchmark_context": {
+              "benchmark_run_id": "bench-smoke-001",
+              "benchmark_suite_id": "suite-smoke",
+              "lane_id": "lane-a",
+              "lane_label": "Lane A"
+            },
+            "worker_keys": [
+              "implementor/lane-a"
+            ],
+            "current_attempt_id": "attempt-001",
+            "attempt_counter": 1,
+            "attempts": {
+              "attempt-001": {
+                "attempt_id": "attempt-001",
+                "attempt_number": 1,
+                "status": "supervisor_deferred",
+                "terminal_status": null,
+                "started_at": "2026-04-04T22:16:35.142Z",
+                "updated_at": "2026-04-04T22:16:35.143Z",
+                "reset_at": null,
+                "reset_reason": null,
+                "superseded_by_attempt_id": null,
+                "resume_checkpoint": {
+                  "step": "implementation",
+                  "status": "ready",
+                  "reason": "Benchmarking contract materialized. External supervisor is deferred to Spec 2.",
+                  "updated_at": "2026-04-04T22:16:35.143Z"
+                },
+                "step_status": {
+                  "implementation": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "machine_verification": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "review_cycle": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "human_testing": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  },
+                  "merge_queue": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": 0,
+                    "note": null
+                  }
+                },
+                "governance_calls": [],
+                "governance_metrics": {
+                  "call_count": 0,
+                  "total_duration_ms": 0,
+                  "total_estimated_cost_usd": 0,
+                  "total_prompt_tokens_estimated": 0,
+                  "total_completion_tokens_estimated": 0,
+                  "total_tokens_estimated": 0
+                },
+                "verification_outcomes": [],
+                "review_cycle_count": 0,
+                "self_fix_cycle_count": 0,
+                "blockers": [],
+                "worker_bindings": {
+                  "implementor/lane-a": {
+                    "worker_id": "implementor/lane-a",
+                    "lane_id": "lane-a",
+                    "role": "implementor",
+                    "provider": "codex",
+                    "runtime": "codex_cli_exec",
+                    "model": "gpt-5.4",
+                    "reasoning_effort": "high",
+                    "access_mode": "codex_cli_full_auto_bypass",
+                    "execution_id": null,
+                    "bound_at": "2026-04-04T22:16:35.142Z",
+                    "selection_source": {
+                      "provider": "explicit_override",
+                      "runtime": "explicit_override",
+                      "access_mode": "explicit_override",
+                      "model": "explicit_override",
+                      "reasoning_effort": "explicit_override"
+                    },
+                    "recreated_due_to_access": false
+                  }
+                },
+                "last_checkpoint_at": "2026-04-04T22:16:35.143Z",
+                "last_event_at": "2026-04-04T22:16:35.150Z"
+              }
+            },
+            "created_at": "2026-04-04T22:16:35.142Z",
+            "updated_at": "2026-04-04T22:16:35.146Z",
+            "last_event_at": "2026-04-04T22:16:35.150Z",
+            "kpi_projection": {
+              "terminal_status": null,
+              "per_step_timing": {
+                "implementation": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                },
+                "machine_verification": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                },
+                "review_cycle": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                },
+                "human_testing": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                },
+                "merge_queue": {
+                  "status": "not_started",
+                  "started_at": null,
+                  "completed_at": null,
+                  "duration_seconds": null
+                }
+              },
+              "governance_call_metrics": {
+                "call_count": 0,
+                "total_duration_ms": 0,
+                "total_estimated_cost_usd": 0,
+                "total_prompt_tokens_estimated": 0,
+                "total_completion_tokens_estimated": 0,
+                "total_tokens_estimated": 0
+              },
+              "verification_outcomes": [],
+              "review_cycle_count": 0,
+              "self_fix_cycle_count": 0,
+              "blocker_history": []
+            }
+          }
+        }
+      }
+    }
+  },
+  "result": {
+    "command": "mark-complete",
+    "args": [
+      "--project-root",
+      "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+      "--phase-number",
+      "1",
+      "--feature-slug",
+      "implement-plan-provider-neutral-run-contract",
+      "--last-commit-sha",
+      "1111111111111111111111111111111111111111",
+      "--completion-note",
+      "negative proof for unresolved local target sync state"
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": "Refusing to mark complete because local_target_sync_status is 'not_started'. A recorded local target sync outcome is required before completion.",
+    "json": null
+  }
+}

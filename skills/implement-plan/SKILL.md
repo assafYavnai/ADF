@@ -130,7 +130,7 @@ Resolve and surface at minimum:
    - run identity, attempt identity, worker identity, and lane identity
    - context/input pack normalization
    - integrity precheck findings
-   - worker-selection defaults, overrides, and inheritance
+   - worker-selection defaults, persisted continuity, overrides, resolved values, and provenance
    - implementor reuse vs recreation requirement
    - resumable state, reset semantics, and closeout status
 9. Print the detected-status summary before taking action.
@@ -162,6 +162,7 @@ Rules:
 - `action=run` must fail clearly for `completed` or `closed` features
 - the failure must tell the invoker that the feature is no longer active and must be reopened or cloned to continue
 - `action=mark-complete` must update both feature-local state and the project-level features index
+- `action=mark-complete` must fail closed unless merge success, valid completion-summary evidence, and recorded local-target sync truth already exist
 
 ## Full-loop ownership rule
 
@@ -266,7 +267,7 @@ Rules:
 
 - worker selection must stay provider-neutral
 - keep worker runtime distinct from control-plane runtime
-- when override knobs are absent, inherit truthful invoker/runtime defaults
+- when override knobs are absent, inherit truthful invoker/runtime defaults unless persisted worker continuity is being reused, and surface that continuity explicitly
 - if native worker access is weaker than CLI full-auto bypass, prefer CLI worker mode and record why
 - default implementor target is `GPT-5.4` with `xhigh` reasoning, or the strongest truthful equivalent in the current runtime
 - persist which provider, worker runtime, access mode, model, and reasoning effort were actually used

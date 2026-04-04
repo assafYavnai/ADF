@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 6,
-  "prepared_at": "2026-04-04T22:50:22.787Z",
+  "contract_revision": 7,
+  "prepared_at": "2026-04-04T23:41:02.260Z",
   "feature_identity": {
     "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
     "phase_number": 1,
@@ -30,6 +30,13 @@
   },
   "worker_selection": {
     "defaults": {
+      "provider": null,
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh"
+    },
+    "continuity": {
       "provider": "codex",
       "runtime": "codex_cli_exec",
       "access_mode": "codex_cli_full_auto_bypass",
@@ -50,12 +57,19 @@
       "model": "gpt-5.4",
       "reasoning_effort": "xhigh"
     },
+    "resolved_sources": {
+      "provider": "persisted_continuity",
+      "runtime": "persisted_continuity",
+      "access_mode": "persisted_continuity",
+      "model": "persisted_continuity",
+      "reasoning_effort": "persisted_continuity"
+    },
     "inheritance": {
-      "provider": true,
-      "runtime": true,
-      "access_mode": true,
-      "model": true,
-      "reasoning_effort": true
+      "provider": false,
+      "runtime": false,
+      "access_mode": false,
+      "model": false,
+      "reasoning_effort": false
     }
   },
   "route_policy": {
@@ -74,9 +88,9 @@
     "normal_mode_shortcuts_allowed": false
   },
   "review_handoff": {
-    "post_send_to_review": true,
-    "review_until_complete": true,
-    "review_max_cycles": 5,
+    "post_send_to_review": false,
+    "review_until_complete": false,
+    "review_max_cycles": null,
     "review_required_by_human_plan": false
   },
   "benchmarking": {
@@ -95,7 +109,7 @@
       "step": "implementation",
       "status": "ready",
       "reason": "Resume from the last truthful normal-mode checkpoint.",
-      "updated_at": "2026-04-04T22:50:22.787Z"
+      "updated_at": "2026-04-04T23:41:02.260Z"
     }
   },
   "reset_policy": {

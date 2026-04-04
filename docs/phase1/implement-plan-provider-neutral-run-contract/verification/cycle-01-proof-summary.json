@@ -1,0 +1,35 @@
+{
+  "kpi_applicability": "not required",
+  "proofs": {
+    "fresh_prepare": {
+      "path": "cycle-01-prepare-fresh-provenance.json",
+      "route": "prepare -> resolveWorkerSelection -> buildWorkerBinding/buildExecutionContract",
+      "assertion": "all worker-selection fields resolve from invoker_inheritance when persisted continuity and explicit overrides are absent"
+    },
+    "override_prepare": {
+      "path": "cycle-01-prepare-override-provenance.json",
+      "route": "prepare -> resolveWorkerSelection -> buildWorkerBinding/buildExecutionContract",
+      "assertion": "all worker-selection fields resolve from explicit_override when override knobs are provided"
+    },
+    "closeout_resync": {
+      "path": "cycle-01-closeout-pending-resync.json",
+      "route": "update-state(closeout_pending) -> syncNormalRunProjectionFromState",
+      "assertion": "attempt status remains closeout_pending and resume checkpoint remains machine_verification/completed"
+    },
+    "terminal_completion_negative": {
+      "path": "cycle-01-terminal-completion-rejected.json",
+      "route": "record-event -> terminal-status-recorded",
+      "assertion": "normal-mode terminal completion is rejected before guarded merge-backed closeout evidence exists"
+    },
+    "mark_complete_negative": {
+      "path": "cycle-01-mark-complete-not-started-rejected.json",
+      "route": "merge_queue -> update-state(local_target_sync_status=not_started) -> mark-complete",
+      "assertion": "completion fails closed when local target sync truth is unresolved"
+    },
+    "mark_complete_positive": {
+      "path": "cycle-01-mark-complete-recorded-sync-passes.json",
+      "route": "merge_queue -> update-state(local_target_sync_status=fetched_only) -> mark-complete",
+      "assertion": "completion still succeeds when merge truth and a recorded sync outcome both exist"
+    }
+  }
+}

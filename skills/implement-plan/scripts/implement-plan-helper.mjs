@@ -192,6 +192,13 @@ const NORMAL_ROUTE_STEP_ORDER = [
   "merge_queue"
 ];
 const EXECUTION_STEP_NAMES = new Set(NORMAL_ROUTE_STEP_ORDER);
+const WORKER_SELECTION_FIELDS = [
+  "provider",
+  "runtime",
+  "access_mode",
+  "model",
+  "reasoning_effort"
+];
 const STEP_OUTCOME_STATUSES = new Set([
   "not_started",
   "ready",
@@ -539,18 +546,6 @@ async function prepareFeature(input) {
       const setupCapabilities = setup.data.detected_runtime_capabilities ?? {};
       if (JSON.stringify(nextState.resolved_runtime_capabilities ?? {}) !== JSON.stringify(setupCapabilities)) {
         nextState.resolved_runtime_capabilities = setupCapabilities;
-        changed = true;
-      }
-      if (!nextState.implementor_model) {
-        nextState.implementor_model = input.implementorModel ?? setup.data.preferred_implementor_model ?? "gpt-5.4";
-        changed = true;
-      }
-      if (!nextState.implementor_reasoning_effort) {
-        nextState.implementor_reasoning_effort = input.implementorReasoningEffort ?? setup.data.preferred_implementor_reasoning_effort ?? "xhigh";
-        changed = true;
-      }
-      if (!nextState.implementor_execution_runtime && setup.data.preferred_execution_runtime) {
-        nextState.implementor_execution_runtime = setup.data.preferred_execution_runtime;
         changed = true;
       }
     }
@@ -1064,7 +1059,13 @@ async function updateState(input) {
               reasoning_effort: next.implementor_reasoning_effort ?? null
             },
             overrides: { provider: null, runtime: null, access_mode: null, model: null, reasoning_effort: null },
-            inheritance: { provider: true, runtime: true, access_mode: true, model: true, reasoning_effort: true }
+            resolved_sources: {
+              provider: "persisted_continuity",
+              runtime: "persisted_continuity",
+              access_mode: "persisted_continuity",
+              model: "persisted_continuity",
+              reasoning_effort: "persisted_continuity"
+            }
           })),
           provider: next.implementor_provider ?? null,
           runtime: next.implementor_execution_runtime ?? null,
@@ -1430,6 +1431,9 @@ async function markComplete(input) {
     }
     if (next.merge_required === true && next.merge_status !== "merged") {
       fail("Refusing to mark complete because merge_status is '" + (next.merge_status ?? "unknown") + "' instead of 'merged'.");
+    }
+    if (!hasRecordedLocalTargetSyncStatus(next.local_target_sync_status)) {
+      fail("Refusing to mark complete because local_target_sync_status is '" + (next.local_target_sync_status ?? "unknown") + "'. A recorded local target sync outcome is required before completion.");
     }
 
     next.feature_status = "completed";
@@ -2411,7 +2415,7 @@ function buildLegacyAttemptSummary(state, workerKey) {
   attempt.last_event_at = state.updated_at ?? nowIso();
   attempt.resume_checkpoint = {
     step: legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status),
-    status: state.active_run_status === "implementation_running" ? "in_progress" : state.active_run_status === "completed" ? "completed" : "ready",
+    status: legacyResumeCheckpointStatus(state.active_run_status),
     reason: "Recovered from legacy single-state projection.",
     updated_at: state.updated_at ?? nowIso()
   };
@@ -2487,6 +2491,8 @@ function legacyActiveRunStatusToAttemptStatus(activeRunStatus) {
       return "implementation_running";
     case "verification_pending":
       return "verification_pending";
+    case "closeout_pending":
+      return "closeout_pending";
     case "review_pending":
       return "review_pending";
     case "human_verification_pending":
@@ -2511,6 +2517,11 @@ function legacyActiveRunStatusToAttemptStatus(activeRunStatus) {
 function legacyLastCompletedStepToResumeStep(lastCompletedStep, activeRunStatus) {
   if (activeRunStatus === "implementation_running") return "implementation";
   if (activeRunStatus === "verification_pending") return "machine_verification";
+  if (activeRunStatus === "closeout_pending") {
+    return String(lastCompletedStep ?? "").includes("merge")
+      ? "merge_queue"
+      : "machine_verification";
+  }
   if (activeRunStatus === "review_pending") return "review_cycle";
   if (activeRunStatus === "human_verification_pending") return "human_testing";
   if (["merge_ready", "merge_queued", "merge_in_progress", "merge_blocked"].includes(activeRunStatus)) return "merge_queue";
@@ -2519,6 +2530,23 @@ function legacyLastCompletedStepToResumeStep(lastCompletedStep, activeRunStatus)
   if (String(lastCompletedStep ?? "").includes("review")) return "review_cycle";
   if (String(lastCompletedStep ?? "").includes("verification")) return "machine_verification";
   return "implementation";
+}
+
+function legacyResumeCheckpointStatus(activeRunStatus) {
+  switch (activeRunStatus) {
+    case "implementation_running":
+    case "merge_in_progress":
+      return "in_progress";
+    case "blocked":
+    case "merge_blocked":
+    case "integrity_failed":
+      return "blocked";
+    case "closeout_pending":
+    case "completed":
+      return "completed";
+    default:
+      return "ready";
+  }
 }
 
 function detectInvokerProvider() {
@@ -2556,11 +2584,19 @@ function resolveWorkerSelection({ setup, state, input }) {
   const reasoningOverride = input.workerReasoningEffort ?? input.implementorReasoningEffort ?? null;
 
   const defaults = {
-    provider: state.implementor_provider ?? invokerRuntime.provider,
-    runtime: state.implementor_execution_runtime ?? invokerRuntime.execution_runtime,
-    access_mode: state.implementor_execution_access_mode ?? invokerRuntime.access_mode,
-    model: state.implementor_model ?? invokerRuntime.model,
-    reasoning_effort: state.implementor_reasoning_effort ?? invokerRuntime.reasoning_effort
+    provider: invokerRuntime.provider,
+    runtime: invokerRuntime.execution_runtime,
+    access_mode: invokerRuntime.access_mode,
+    model: invokerRuntime.model,
+    reasoning_effort: invokerRuntime.reasoning_effort
+  };
+
+  const continuity = {
+    provider: state.implementor_provider ?? null,
+    runtime: state.implementor_execution_runtime ?? null,
+    access_mode: state.implementor_execution_access_mode ?? null,
+    model: state.implementor_model ?? null,
+    reasoning_effort: state.implementor_reasoning_effort ?? null
   };
 
   const overrides = {
@@ -2571,26 +2607,33 @@ function resolveWorkerSelection({ setup, state, input }) {
     reasoning_effort: reasoningOverride ?? null
   };
 
-  const resolved = {
-    provider: overrides.provider ?? defaults.provider,
-    runtime: overrides.runtime ?? defaults.runtime,
-    access_mode: overrides.access_mode ?? defaults.access_mode,
-    model: overrides.model ?? defaults.model,
-    reasoning_effort: overrides.reasoning_effort ?? defaults.reasoning_effort
-  };
+  const resolved = {};
+  const resolvedSources = {};
+  const inheritance = {};
+  for (const field of WORKER_SELECTION_FIELDS) {
+    if (overrides[field] !== null) {
+      resolved[field] = overrides[field];
+      resolvedSources[field] = "explicit_override";
+      inheritance[field] = false;
+    } else if (continuity[field] !== null) {
+      resolved[field] = continuity[field];
+      resolvedSources[field] = "persisted_continuity";
+      inheritance[field] = false;
+    } else {
+      resolved[field] = defaults[field] ?? null;
+      resolvedSources[field] = "invoker_inheritance";
+      inheritance[field] = true;
+    }
+  }
 
   return {
     invoker_runtime: invokerRuntime,
     defaults,
+    continuity,
     overrides,
     resolved,
-    inheritance: {
-      provider: overrides.provider === null,
-      runtime: overrides.runtime === null,
-      access_mode: overrides.access_mode === null,
-      model: overrides.model === null,
-      reasoning_effort: overrides.reasoning_effort === null
-    }
+    resolved_sources: resolvedSources,
+    inheritance
   };
 }
 
@@ -2641,6 +2684,13 @@ function createExecutionRunSummary({ paths, input, workerSelection }) {
 
 function buildWorkerBinding(workerKey, workerSelection) {
   const laneSegment = workerKey.includes("/") ? workerKey.split("/").slice(1).join("/") : null;
+  const selectionSource = {};
+  for (const field of WORKER_SELECTION_FIELDS) {
+    selectionSource[field] = workerSelection?.resolved_sources?.[field]
+      ?? (workerSelection?.inheritance?.[field] === true ? "invoker_inheritance" : null)
+      ?? (workerSelection?.overrides?.[field] !== null && workerSelection?.overrides?.[field] !== undefined ? "explicit_override" : null)
+      ?? "persisted_continuity";
+  }
   return {
     worker_id: workerKey,
     lane_id: laneSegment && laneSegment !== "default" ? laneSegment : null,
@@ -2652,13 +2702,7 @@ function buildWorkerBinding(workerKey, workerSelection) {
     access_mode: workerSelection.resolved.access_mode ?? null,
     execution_id: null,
     bound_at: nowIso(),
-    selection_source: {
-      provider: workerSelection.inheritance.provider ? "invoker_inheritance" : "explicit_override",
-      runtime: workerSelection.inheritance.runtime ? "invoker_inheritance" : "explicit_override",
-      access_mode: workerSelection.inheritance.access_mode ? "invoker_inheritance" : "explicit_override",
-      model: workerSelection.inheritance.model ? "invoker_inheritance" : "explicit_override",
-      reasoning_effort: workerSelection.inheritance.reasoning_effort ? "invoker_inheritance" : "explicit_override"
-    },
+    selection_source: selectionSource,
     recreated_due_to_access: false
   };
 }
@@ -2693,13 +2737,18 @@ function ensureExecutionRunContext({ state, paths, input, workerSelection }) {
     const workerKey = run.worker_keys[0] ?? buildWorkerKey("implementor", run.benchmark_context?.lane_id ?? null);
     run.worker_keys = [workerKey];
     const attempt = run.attempts[run.current_attempt_id];
+    const previousBinding = attempt.worker_bindings?.[workerKey] ?? buildWorkerBinding(workerKey, workerSelection);
     attempt.worker_bindings[workerKey] = {
-      ...(attempt.worker_bindings?.[workerKey] ?? buildWorkerBinding(workerKey, workerSelection)),
+      ...previousBinding,
       provider: workerSelection.resolved.provider ?? null,
       runtime: workerSelection.resolved.runtime ?? null,
       model: workerSelection.resolved.model ?? null,
       reasoning_effort: workerSelection.resolved.reasoning_effort ?? null,
-      access_mode: workerSelection.resolved.access_mode ?? null
+      access_mode: workerSelection.resolved.access_mode ?? null,
+      selection_source: {
+        ...(isPlainObject(previousBinding.selection_source) ? previousBinding.selection_source : {}),
+        ...buildWorkerBinding(workerKey, workerSelection).selection_source
+      }
     };
     run.updated_at = nowIso();
   }
@@ -2741,8 +2790,10 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
     invoker_runtime: workerSelection.invoker_runtime,
     worker_selection: {
       defaults: workerSelection.defaults,
+      continuity: workerSelection.continuity,
       overrides: workerSelection.overrides,
       resolved: workerSelection.resolved,
+      resolved_sources: workerSelection.resolved_sources,
       inheritance: workerSelection.inheritance
     },
     route_policy: {
@@ -2922,19 +2973,24 @@ function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, work
     safeInteger(attempt.review_cycle_count, 0),
     (state.run_timestamps?.review_requested_at ? 1 : 0)
   );
+  const existingBinding = attempt.worker_bindings?.[workerKey] ?? buildWorkerBinding(workerKey, workerSelection);
   attempt.worker_bindings[workerKey] = {
-    ...(attempt.worker_bindings?.[workerKey] ?? buildWorkerBinding(workerKey, workerSelection)),
+    ...existingBinding,
     provider: state.implementor_provider ?? workerSelection.resolved.provider ?? null,
     runtime: state.implementor_execution_runtime ?? workerSelection.resolved.runtime ?? null,
     model: state.implementor_model ?? workerSelection.resolved.model ?? null,
     reasoning_effort: state.implementor_reasoning_effort ?? workerSelection.resolved.reasoning_effort ?? null,
     access_mode: state.implementor_execution_access_mode ?? workerSelection.resolved.access_mode ?? null,
-    execution_id: state.implementor_execution_id ?? null
+    execution_id: state.implementor_execution_id ?? null,
+    selection_source: {
+      ...(isPlainObject(existingBinding.selection_source) ? existingBinding.selection_source : {}),
+      ...buildWorkerBinding(workerKey, workerSelection).selection_source
+    }
   };
   updateAttemptCheckpoint(
     attempt,
     legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status),
-    state.active_run_status === "implementation_running" ? "in_progress" : state.active_run_status === "completed" ? "completed" : "ready",
+    legacyResumeCheckpointStatus(state.active_run_status),
     "Resume from the last truthful normal-mode checkpoint."
   );
   run.lifecycle_status = state.active_run_status === "completed"
@@ -3114,6 +3170,20 @@ function deriveLegacyMergeStatusFromAttempt(attempt, fallbackMergeStatus) {
   return fallbackMergeStatus ?? "not_ready";
 }
 
+function hasRecordedLocalTargetSyncStatus(localTargetSyncStatus) {
+  return isFilled(localTargetSyncStatus) && localTargetSyncStatus !== "not_started";
+}
+
+function hasGuardedNormalCompletionEvidence(state) {
+  const completionCommit = emptyToNull(state.merge_commit_sha ?? state.last_commit_sha ?? null);
+  return state.feature_status === "completed"
+    && state.active_run_status === "completed"
+    && state.last_completed_step === "marked_complete"
+    && state.merge_status === "merged"
+    && isFilled(completionCommit)
+    && hasRecordedLocalTargetSyncStatus(state.local_target_sync_status);
+}
+
 function resolveRunForMutation(state, runMode = "normal", explicitRunId = null) {
   const runId = explicitRunId
     ?? (runMode ? state.execution_runs?.active_by_mode?.[runMode] ?? null : null)
@@ -3246,6 +3316,9 @@ function applyStructuredExecutionEvent({ state, run, attempt, eventType, payload
     }
     case "terminal-status-recorded": {
       const terminalStatus = emptyToNull(payload.terminal_status) ?? "completed";
+      if (run.run_mode === "normal" && terminalStatus === "completed" && !hasGuardedNormalCompletionEvidence(state)) {
+        fail("Refusing to record terminal completion for the normal-mode route before guarded merge-backed closeout evidence exists.");
+      }
       attempt.terminal_status = terminalStatus;
       attempt.status = terminalStatus === "blocked" ? "blocked" : terminalStatus === "completed" ? "completed" : attempt.status;
       run.terminal_status = terminalStatus;
