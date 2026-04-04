@@ -1165,6 +1165,9 @@ async function recordEvent(input) {
         },
         occurredAt: timestamp
       });
+      if (run.run_mode === "normal") {
+        syncLegacyNormalStateFromRun({ state: next, run });
+      }
       await appendExecutionAuditEvent({
         paths,
         state: next,
@@ -2127,10 +2130,10 @@ function normalizeExecutionRunsState({ state, paths }) {
     run.terminal_status = emptyToNull(run.terminal_status);
     run.contract_schema_version = safeInteger(run.contract_schema_version, EXECUTION_CONTRACT_SCHEMA_VERSION);
     run.contract_revision = Math.max(safeInteger(run.contract_revision, 1), 1);
-    run.contract_path = emptyToNull(run.contract_path) ?? normalizeSlashes(resolveRunContractPath(paths, run.run_id));
-    run.feature_contract_path = emptyToNull(run.feature_contract_path) ?? normalizeSlashes(paths.executionContractPath);
-    run.projection_path = emptyToNull(run.projection_path) ?? normalizeSlashes(resolveRunProjectionPath(paths, run.run_id));
-    run.run_root = emptyToNull(run.run_root) ?? normalizeSlashes(resolveRunRootPath(paths, run.run_id));
+    run.contract_path = normalizeSlashes(resolveRunContractPath(paths, run.run_id));
+    run.feature_contract_path = normalizeSlashes(paths.executionContractPath);
+    run.projection_path = normalizeSlashes(resolveRunProjectionPath(paths, run.run_id));
+    run.run_root = normalizeSlashes(resolveRunRootPath(paths, run.run_id));
     run.benchmark_context = isPlainObject(run.benchmark_context)
       ? {
           benchmark_run_id: emptyToNull(run.benchmark_context.benchmark_run_id),
@@ -3079,7 +3082,12 @@ function deriveLegacyLastCompletedStepFromAttempt(attempt, activeRunStatus) {
   if (activeRunStatus === "merge_in_progress" || activeRunStatus === "merge_ready") return "merge_ready";
   if (activeRunStatus === "review_pending") return "review_requested";
   if (activeRunStatus === "human_verification_pending") return "human_verification_requested";
-  if (activeRunStatus === "verification_pending" || activeRunStatus === "closeout_pending") return "verification_finished";
+  if (activeRunStatus === "verification_pending") {
+    return attempt.step_status?.machine_verification?.status === "completed"
+      ? "verification_finished"
+      : "implementor_finished";
+  }
+  if (activeRunStatus === "closeout_pending") return "verification_finished";
   if (activeRunStatus === "implementation_running") return "implementor_started";
 
   const ordered = [

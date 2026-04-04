@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 4,
-  "prepared_at": "2026-04-04T22:36:29.000Z",
+  "contract_revision": 6,
+  "prepared_at": "2026-04-04T22:50:22.787Z",
   "feature_identity": {
     "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
     "phase_number": 1,
@@ -13,19 +13,19 @@
   "run_identity": {
     "run_mode": "normal",
     "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
-    "attempt_id": "attempt-002",
-    "attempt_number": 2,
+    "attempt_id": "attempt-003",
+    "attempt_number": 3,
     "lane_id": null,
     "worker_id": "implementor/default"
   },
   "invoker_runtime": {
     "provider": null,
-    "execution_runtime": null,
-    "control_plane_runtime": null,
-    "access_mode": null,
+    "execution_runtime": "codex_cli_exec",
+    "control_plane_runtime": "codex_cli_exec",
+    "access_mode": "codex_cli_full_auto_bypass",
     "model": "gpt-5.4",
     "reasoning_effort": "xhigh",
-    "runtime_permission_model": null,
+    "runtime_permission_model": "codex_cli_explicit_full_auto",
     "selection_source": "invoker_runtime_defaults"
   },
   "worker_selection": {
@@ -74,9 +74,9 @@
     "normal_mode_shortcuts_allowed": false
   },
   "review_handoff": {
-    "post_send_to_review": false,
-    "review_until_complete": false,
-    "review_max_cycles": null,
+    "post_send_to_review": true,
+    "review_until_complete": true,
+    "review_max_cycles": 5,
     "review_required_by_human_plan": false
   },
   "benchmarking": {
@@ -93,15 +93,15 @@
     "recreate_workers_when_invalid": true,
     "last_truthful_checkpoint": {
       "step": "implementation",
-      "status": "blocked",
-      "reason": "Benchmarking contract blocked at integrity gate.",
-      "updated_at": "2026-04-04T22:36:29.000Z"
+      "status": "ready",
+      "reason": "Resume from the last truthful normal-mode checkpoint.",
+      "updated_at": "2026-04-04T22:50:22.787Z"
     }
   },
   "reset_policy": {
     "supported": true,
     "behavior": "new_attempt_from_implementation_preserving_history",
-    "next_attempt_number": 3
+    "next_attempt_number": 4
   },
   "kpi_policy": {
     "source": "governed_production_flow",
@@ -113,11 +113,9 @@
     "terminal_status_enabled": true
   },
   "integrity": {
-    "blocking_issue_count": 1,
-    "blocking_issue_classes": [
-      "setup-incomplete"
-    ],
-    "next_safe_move": "write pushback and stop"
+    "blocking_issue_count": 0,
+    "blocking_issue_classes": [],
+    "next_safe_move": "proceed to implementor brief"
   },
   "artifacts": {
     "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
@@ -126,7 +124,7 @@
     "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
     "run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
     "execution_run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
-    "event_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/events/attempt-002",
+    "event_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/events/attempt-003",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract"
   }
 }
