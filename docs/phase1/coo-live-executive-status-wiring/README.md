@@ -85,6 +85,23 @@ Audit rules:
 - the live status surface must not silently drop blocked or attention-worthy items
 
 ## Acceptance Gates
+- KPI Applicability: required
+- KPI Route / Touched Path: `CLI/startup summary/status surface -> COO/controller live status wiring -> COO/briefing live source-facts adapter -> executive brief renderer -> KPI emission`
+- KPI Raw-Truth Source: shared telemetry rows emitted by the real COO CLI/status path for production and proof partitions, plus deterministic proof tests for source adaptation/render parity
+- KPI Coverage / Proof:
+  - prove the live status surface through the real COO CLI/status entry surface and its startup/status rendering path
+  - prove full-source, partial-source, and empty-source rendering
+  - prove parity counters, missing-source counters, latency buckets, and freshness age reporting
+  - prove production/proof isolation when proof inputs coexist with production inputs
+- KPI Production / Proof Partition:
+  - production invocations must emit production-partition telemetry
+  - proof and test invocations must emit proof-partition telemetry
+  - rollups and closeout evidence must keep proof truth distinguishable from production truth
+- KPI Non-Applicability Rationale: not applicable because KPI instrumentation is required for this live CEO-facing status surface
+- KPI Exception Owner: none
+- KPI Exception Expiry: none
+- KPI Exception Production Status: none
+- KPI Compensating Control: none
 - the COO runtime can render the executive brief from live data
 - the 4 sections always appear in the correct order
 - the status surface stays business-level and concise
@@ -101,6 +118,30 @@ Audit rules:
 ## Human Verification Plan
 - Required: true
 - Reason: this slice creates a real CEO-facing runtime surface and should be checked for usefulness and readability
+- IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
+- Executive summary of implemented behavior:
+  - the COO startup/status surface renders a live 4-section executive brief derived from active threads, finalized requirements, CTO-admission truth when present, and implement-plan truth when present
+  - missing source families degrade gracefully and remain visibly distinguishable from truly empty-state results
+- IMPLEMENTATION IS READY FOR TESTING
+- Exact testing sequence:
+  - launch the COO through the normal CLI path
+  - inspect the startup summary and the status command output
+  - confirm the four sections appear in this order: `Issues That Need Your Attention`, `On The Table`, `In Motion`, `What's Next`
+  - confirm blocked work appears in `Issues`, unresolved shaping or awaiting-decision work appears in `On The Table`, active live work appears in `In Motion`, and the forward-looking concise items appear in `What's Next`
+  - confirm the output stays business-level and does not dump raw state objects
+  - confirm missing CTO-admission inputs do not break the surface and that shaping/implementation truth still renders cleanly
+- Expected results:
+  - the surface is readable, concise, and useful for CEO triage
+  - the surface remains stable when some source families are missing
+  - the output reflects live runtime truth instead of static fixtures
+- Evidence to report back:
+  - whether the brief was understandable and decision-useful
+  - any section that felt misleading, noisy, or incomplete
+  - whether any blocked item, table item, live work item, or next-step item was missing or misplaced
+- Response contract:
+  - `APPROVED`
+  - `REJECTED: <comments>`
+- IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
 
 ## Non-Goals
 - no full queue manager

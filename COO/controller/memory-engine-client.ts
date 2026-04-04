@@ -172,6 +172,24 @@ export class MemoryEngineClient {
     }, telemetryContext);
   }
 
+  async getRequirement(
+    memoryId: string,
+    scope: string,
+    provenance: Provenance,
+    options?: {
+      include_legacy?: boolean;
+      telemetry_context?: Record<string, unknown>;
+    },
+  ): Promise<Record<string, unknown>> {
+    return this.callJsonTool("requirements_manage", {
+      action: "get",
+      id: memoryId,
+      scope,
+      include_legacy: options?.include_legacy ?? false,
+      provenance,
+    }, options?.telemetry_context);
+  }
+
   async manageOpenLoops(
     action: "list" | "get" | "create" | "search",
     args: Record<string, unknown>,

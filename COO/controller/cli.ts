@@ -19,6 +19,7 @@ import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationU
 import { createLLMProvenance } from "../../shared/provenance/types.js";
 import { MemoryEngineClient } from "./memory-engine-client.js";
 import { createSystemProvenance } from "../../shared/provenance/types.js";
+import { buildLiveExecutiveStatus } from "./executive-status.js";
 
 let shuttingDown = false;
 
@@ -40,6 +41,10 @@ async function main() {
     proof_mode: Boolean(args.testProofMode),
     cli_mode: cliMode,
     onion_enabled: onionEnabled,
+  };
+  const statusTelemetryContext = {
+    ...runtimeTelemetryContext,
+    status_surface: "coo_cli_status",
   };
   configurePersistence({
     outboxPath: telemetryOutboxPath,
@@ -199,14 +204,28 @@ async function main() {
   }
   console.log(`Requirements-gathering onion: ${onionEnabled ? "enabled (feature gate)" : "disabled"}`);
   console.log(`LLM invoker: ${args.testProofMode ? "test-proof-mode (guarded)" : "live"}`);
-  console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.\n");
+  console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.");
+  console.log("Status surface: type /status or launch with --status.\n");
 
-  if (!process.stdin.isTTY) {
-    await runScriptedSession(config, brainClient, threadId, configuredScope, {
+  if (args.statusOnly) {
+    await printExecutiveStatus(projectRoot, threadsDir, brainClient, statusTelemetryContext, telemetryPartition);
+    await shutdownCli(brainClient, {
       ...runtimeTelemetryContext,
       cli_mode: cliMode,
       configured_scope: configuredScope,
       proof_mode: Boolean(args.testProofMode),
+      shutdown_path: "status_only",
+    });
+    return;
+  }
+
+  if (!process.stdin.isTTY) {
+    await runScriptedSession(config, brainClient, threadId, configuredScope, projectRoot, threadsDir, {
+      ...runtimeTelemetryContext,
+      cli_mode: cliMode,
+      configured_scope: configuredScope,
+      proof_mode: Boolean(args.testProofMode),
+      status_surface: "coo_cli_status",
     });
     return;
   }
@@ -258,6 +277,14 @@ async function main() {
 
     if (input.toLowerCase() === "exit") {
       rl.close();
+      return;
+    }
+
+    if (input === "/status") {
+      await printExecutiveStatus(projectRoot, threadsDir, brainClient, {
+        ...statusTelemetryContext,
+        current_thread_id: threadId,
+      }, telemetryPartition);
       return;
     }
 
@@ -349,6 +376,27 @@ async function main() {
       shutdown_path: "interactive_close",
     });
   });
+}
+
+async function printExecutiveStatus(
+  projectRoot: string,
+  threadsDir: string,
+  brainClient: MemoryEngineClient | null,
+  telemetryContext: Record<string, unknown>,
+  sourcePartition: "production" | "proof" | "mixed",
+): Promise<void> {
+  try {
+    const status = await buildLiveExecutiveStatus({
+      projectRoot,
+      threadsDir,
+      brainClient,
+      sourcePartition,
+      telemetryContext,
+    });
+    console.log(`\n${status.output}\n`);
+  } catch (error) {
+    console.error(`Executive status failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 function resolveRuntimeDir(overridePath: string | undefined, fallbackPath: string): string {
@@ -501,12 +549,14 @@ function parseCliArgs(argv: string[]): {
   scopePath?: string;
   enableOnion?: boolean;
   testProofMode?: boolean;
+  statusOnly: boolean;
 } {
   let threadId: string | undefined;
   let resumeLast = false;
   let scopePath: string | undefined;
   let enableOnion: boolean | undefined;
   let testProofMode: boolean | undefined;
+  let statusOnly = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -524,6 +574,8 @@ function parseCliArgs(argv: string[]): {
       enableOnion = false;
     } else if (arg === "--test-proof-mode") {
       testProofMode = true;
+    } else if (arg === "--status") {
+      statusOnly = true;
     }
   }
 
@@ -533,6 +585,7 @@ function parseCliArgs(argv: string[]): {
     scopePath,
     enableOnion,
     testProofMode,
+    statusOnly,
   };
 }
 
@@ -587,6 +640,8 @@ async function runScriptedSession(
   brainClient: MemoryEngineClient | null,
   threadId: string | null,
   configuredScope: string | null,
+  projectRoot: string,
+  threadsDir: string,
   shutdownMetadata: Record<string, unknown>,
 ): Promise<void> {
   const rl = createInterface({
@@ -602,6 +657,14 @@ async function runScriptedSession(
       }
       if (input.toLowerCase() === "exit") {
         break;
+      }
+
+      if (input === "/status") {
+        await printExecutiveStatus(projectRoot, threadsDir, brainClient, {
+          ...shutdownMetadata,
+          current_thread_id: threadId,
+        }, String(shutdownMetadata.telemetry_partition ?? "production") === "proof" ? "proof" : "production");
+        continue;
       }
 
       try {

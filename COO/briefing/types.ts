@@ -30,6 +30,14 @@ export interface BriefFeatureSnapshot {
   blockers: string[];
   /** Whether this feature has been finalized / handed off */
   isFinalized: boolean;
+  /** Live executive-state classification when the source adapter can infer it */
+  briefingState?: "shaping" | "admission_pending" | "ready_to_start" | "implementation_active" | "closeout";
+  /** Source-derived next action when the live adapter can provide one */
+  nextAction?: string | null;
+  /** Source families that contributed to this feature snapshot */
+  sourceFamilies?: BriefSourceFamily[];
+  /** Expected families that were missing while building this snapshot */
+  missingSourceFamilies?: BriefSourceFamily[];
 }
 
 export interface BriefOpenDecision {
@@ -47,6 +55,24 @@ export interface BriefSourceFacts {
   globalOpenLoops: string[];
   /** Source system identifier for isolation/partition proof */
   sourcePartition: "production" | "proof" | "mixed";
+  /** Per-family source availability for graceful-degradation proof */
+  sourceAvailability?: BriefSourceAvailability[];
+  /** Age of the freshest underlying source truth, in ms */
+  sourceFreshnessAgeMs?: number;
+}
+
+export type BriefSourceFamily =
+  | "thread_onion"
+  | "finalized_requirement"
+  | "cto_admission"
+  | "implement_plan";
+
+export interface BriefSourceAvailability {
+  family: BriefSourceFamily;
+  available: boolean;
+  itemCount: number;
+  collectedAt: string;
+  freshnessAgeMs: number;
 }
 
 // ---------------------------------------------------------------------------
