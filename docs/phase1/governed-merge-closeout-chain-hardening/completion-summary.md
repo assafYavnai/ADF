@@ -4,17 +4,18 @@ Closed the governed merge-closeout chain so valid approved features can land and
 
 2. Deliverables Produced
 
-- Helper-owned `normalize-completion-summary` command that rewrites malformed summaries to the exact 7-heading contract
-- Helper-owned `validate-closeout-readiness` command that checks summary validity and feature state before merge
+- Helper-owned `normalize-completion-summary` command in implement-plan-helper.mjs that rewrites malformed summaries to the exact 7-heading contract
+- Helper-owned `validate-closeout-readiness` command in implement-plan-helper.mjs that checks summary validity and feature state before merge
 - Pre-merge closeout-readiness gate in `merge-queue process-next` that blocks before merge/push when closeout is invalid
-- `review-cycle` contract wiring that mandates normalization during approval closeout before the final approved commit
-- `implement-plan` contract wiring that mandates normalization after writing completion-summary and before commit
+- Automatic normalization in `review-cycle-helper.mjs`: `record-event closeout-finished` calls `normalize-completion-summary` via spawnSync when both review lanes approved
+- Standalone `normalize-closeout-artifacts` command in review-cycle-helper.mjs for explicit invocation
 - Updated authoritative docs/contracts for `implement-plan`, `review-cycle`, and `merge-queue`
 
 3. Files Changed And Why
 
-- `skills/implement-plan/scripts/implement-plan-helper.mjs` — added `normalize-completion-summary` and `validate-closeout-readiness` commands, updated help/command list
-- `skills/merge-queue/scripts/merge-queue-helper.mjs` — added `validateCloseoutReadinessBeforeMerge()` gate in `processNext()`, blocks on invalid closeout
+- `skills/implement-plan/scripts/implement-plan-helper.mjs` — added `normalize-completion-summary` and `validate-closeout-readiness` commands
+- `skills/merge-queue/scripts/merge-queue-helper.mjs` — added `validateCloseoutReadinessBeforeMerge()` gate in `processNext()`
+- `skills/review-cycle/scripts/review-cycle-helper.mjs` — wired `record-event closeout-finished` to auto-call normalization on approval; added `normalize-closeout-artifacts` command; added `runCloseoutNormalization()` and `resolveWorktreeRoot()` helpers
 - `skills/implement-plan/SKILL.md` — documented new helper commands, added normalization directive to run action
 - `skills/implement-plan/references/workflow-contract.md` — documented normalization and validation rules
 - `skills/merge-queue/SKILL.md` — documented pre-merge closeout-readiness validation rule
@@ -32,7 +33,8 @@ Closed the governed merge-closeout chain so valid approved features can land and
 - Review-Cycle Status: pending
 - Merge Status: pending
 - Local Target Sync Status: pending
-- `normalize-completion-summary` converts malformed `5. Review-Cycle Status` to `5. Feature Artifacts Updated` and returns `validation.valid: true`
+- `record-event closeout-finished` with both lanes approved automatically called normalization: `success: true, normalized: true` — converted `5. Review-Cycle Status` to `5. Feature Artifacts Updated`
+- `normalize-closeout-artifacts` skips correctly when cycle is not an approval: `skipped: true`
 - `validate-closeout-readiness` returns `closeout_ready: false` with explicit blockers for invalid/missing completion summaries
 - `mark-complete` returns exit code 1 with "Refusing to mark complete without last_commit_sha evidence" when prerequisites are missing
 - `merge-queue process-next` merge command at line 383 still uses `selected.approved_commit_sha` — exact approved SHA preserved
@@ -52,4 +54,4 @@ Closed the governed merge-closeout chain so valid approved features can land and
 7. Remaining Non-Goals / Debt
 
 - No broad merge-queue redesign, worker-selection redesign, or product/runtime behavior changes.
-- The normalization directives in `review-cycle` and `implement-plan` are contract-level (invoker instructions) not helper-script-level automation. The invoker (LLM agent) must follow the contract. The `merge-queue` pre-merge gate provides defense-in-depth if the invoker fails to normalize.
+- No auto-rewriting of already-approved commits after merge starts.

@@ -102,14 +102,14 @@ Four layers close the failure class end to end:
 
 2. **merge-queue-helper.mjs** (commit `50df5e8`): Added a pre-merge closeout-readiness gate in `processNext` that calls `validate-closeout-readiness` before the merge worktree is created. Invalid closeout blocks the request before merge/push with an explicit blocker message. This is defense-in-depth.
 
-3. **review-cycle contract wiring** (this commit): Updated `review-cycle/SKILL.md` and `review-cycle/references/workflow-contract.md` to mandate that the invoker calls `normalize-completion-summary` during approval closeout, before the final approved commit on the feature branch. This ensures the approved commit SHA carries a contract-valid summary.
+3. **review-cycle-helper.mjs runtime wiring** (this commit): Wired `record-event closeout-finished` to automatically call `normalize-completion-summary` via `spawnSync` when both review lanes approved. This runs inside the helper process itself — not dependent on the invoker remembering to call it. Also added a standalone `normalize-closeout-artifacts` command for explicit invocation. Updated SKILL.md and workflow-contract.md contracts to match.
 
-4. **implement-plan contract wiring** (this commit): Updated `implement-plan/SKILL.md` to mandate calling `normalize-completion-summary` after writing `completion-summary.md` and before commit, so the summary is contract-valid even before `review-cycle` runs.
+4. **implement-plan contract wiring** (commit `da3168f`): Updated `implement-plan/SKILL.md` to mandate calling `normalize-completion-summary` after writing `completion-summary.md` and before commit, so the summary is contract-valid even before `review-cycle` runs.
 
 ## Route Ownership Preserved
 
 - `implement-plan` normalizes the summary before handing to `review-cycle`, and owns completion truth via `mark-complete` (which remains fail-closed).
-- `review-cycle` normalizes the summary again during approval closeout before the final approved commit. It owns approved feature-branch closeout.
+- `review-cycle` **automatically** normalizes the summary when `closeout-finished` is recorded with both lanes approved. This is enforced inside `review-cycle-helper.mjs`, not just in invoker instructions.
 - `merge-queue` validates (not generates) closeout readiness before merge as defense-in-depth. It owns merge landing. It still lands the exact approved commit SHA.
 - No silent mutation of approved commits.
 
