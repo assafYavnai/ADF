@@ -1,0 +1,22 @@
+Summary:
+Implemented the `coo-live-executive-status-wiring` slice by adding live source-facts adaptation, live executive status build/render orchestration, live KPI tracking, and CLI `/status` wiring (interactive + scripted). Added the required integration proof and completion summary. Human testing was intentionally skipped per benchmark policy.
+
+Changed files:
+- COO/briefing/live-source-adapter.ts
+- COO/briefing/live-status.ts
+- COO/briefing/kpi.ts
+- COO/controller/cli.ts
+- tests/integration/coo-live-executive-status-wiring.test.ts
+- docs/phase1/coo-live-executive-status-wiring/completion-summary.md
+
+Verification commands:
+- npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts
+
+Verification outcome:
+- Pass
+- 39/39 tests passed
+- 0 failed, 0 skipped
+
+Open risks:
+- Live source mapping is schema-tolerant/heuristic; if upstream artifact schemas drift significantly, section classification may need tightening.
+- Cross-family feature identity is currently source-prefixed (thread/finalized/admission/plan) rather than fully reconciled to a single canonical feature ID.

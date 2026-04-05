@@ -1,0 +1,68 @@
+{
+  "provenance": {
+    "invocation_id": "3882de49-a655-4d1b-8a4b-29064fbfd672",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.4-baseline/cycle-01",
+    "timestamp": "2026-04-04T18:14:30.207Z"
+  },
+  "response": "Summary\n\nImplemented the live executive status wiring locally in this worktree. The new path builds the executive brief from live `threads/*.json` onion truth plus `docs/phase1/*/implement-plan-state.json` truth, keeps missing families visible as cross-cutting issues instead of failing, and exposes the brief through `status`, `/status`, and `--status` in the COO CLI. I also tightened the briefing builder so `approved` and `handoff_ready` work stays on the table instead of being treated as closeout.\n\nChanged files\n\n- `COO/briefing/builder.ts`\n- `COO/briefing/executive-brief.test.ts`\n- `COO/briefing/live-status.ts`\n- `COO/controller/cli.ts`\n- `COO/controller/live-status.ts`\n- `docs/phase1/coo-live-executive-status-wiring/context.md`\n- `docs/phase1/coo-live-executive-status-wiring/completion-summary.md`\n- `tests/integration/coo-live-executive-status-wiring.test.ts`\n\nVerification commands\n\n- `npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts`\n\nVerification outcome\n\n- Pass\n- `39` tests passed, `0` failed\n- Separate repo-wide `npx.cmd tsc --noEmit -p COO/tsconfig.json` remains red on pre-existing missing Node type definitions across the repo, so I did not treat that as a blocker for this slice\n\nOpen risks\n\n- Finalized-requirement and CTO-admission families are read from live onion thread state; standalone stores outside that route are not part of this status surface yet.\n- Runtime preflight left untracked `.codex/runtime/install-state.json` in the worktree; I left it untouched and kept the slice changes separate.",
+  "latency_ms": 961553,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "019d59a5-7d4d-7eb1-a50e-342b1ce2ed76",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 3304,
+    "response_chars": 1597,
+    "tokens_in_estimated": 826,
+    "tokens_out_estimated": 400,
+    "estimated_cost_usd": 0.01013,
+    "token_estimation_basis": "char_heuristic_v1",
+    "cost_estimation_basis": "configured_model_rate_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "3882de49-a655-4d1b-8a4b-29064fbfd672",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.4-baseline/cycle-01",
+        "timestamp": "2026-04-04T18:14:30.207Z"
+      },
+      "latency_ms": 961553,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 3304,
+        "response_chars": 1597,
+        "tokens_in_estimated": 826,
+        "tokens_out_estimated": 400,
+        "estimated_cost_usd": 0.01013,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "codex-gpt-5.4-baseline",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

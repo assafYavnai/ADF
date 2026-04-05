@@ -1,0 +1,56 @@
+You are participating in a controlled multi-engine implementation benchmark for the ADF implement-plan workflow.
+Every lane runs inside its own isolated git worktree from the same base snapshot.
+
+<benchmark>
+id: coo-freeze-to-cto-admission-wiring
+description: Parallel isolated implementation benchmark for the live finalized-requirement to CTO-admission wiring slice.
+target_slug: coo-freeze-to-cto-admission-wiring
+base_ref: HEAD
+</benchmark>
+
+<execution_policy>
+max_review_cycles: 6
+skip_human_testing: true
+</execution_policy>
+
+<task_summary>
+Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.
+</task_summary>
+
+<instructions>
+Inside the current worktree:
+1. Read docs/phase1/coo-freeze-to-cto-admission-wiring/README.md and docs/phase1/coo-freeze-to-cto-admission-wiring/context.md.
+2. Implement the slice in code, staying within the allowed-edit surface defined by the plan.
+3. Run the tightest machine verification needed for the changed route.
+4. Do not push, merge, or modify merge-queue / implement-plan / review-cycle unless the plan explicitly requires it.
+5. Leave the worktree in its final benchmark state for later inspection.
+Return a concise report with: summary, changed files, verification commands, verification outcome, and open risks.
+</instructions>
+
+<machine_verification>
+The harness will run these machine checks after each review cycle:
+- freeze wiring integration tests: npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts (cwd=., timeout_ms=600000, optional=false)
+- onion route runtime proof: npx.cmd tsx tests/integration/onion-route.runtime-proof.ts (cwd=., timeout_ms=900000, optional=false)
+</machine_verification>
+
+<artifact_policy>
+required_paths: docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md, tests/integration/coo-freeze-to-cto-admission-wiring.test.ts
+required_changed_prefixes: COO/requirements-gathering/live/, docs/phase1/coo-freeze-to-cto-admission-wiring/, tests/integration/
+allowed_edit_prefixes: COO/cto-admission/, COO/requirements-gathering/live/, COO/requirements-gathering/contracts/, COO/controller/, docs/phase1/coo-freeze-to-cto-admission-wiring/, tests/integration/
+</artifact_policy>
+
+<response_requirements>
+Return only the benchmark lane report. Do not include markdown fences. Keep it concise and factual.
+</response_requirements>
+
+Return only your substantive answer for this benchmark run.
+
+<lane_execution>
+lane_id: codex-gpt-5.3-codex-spark
+provider: codex
+model: gpt-5.3-codex-spark
+review_cycle: 1 of 6
+Work directly in the current git worktree. Make the code and test changes yourself.
+Do not ask for approval. Do not merge, push, or perform human testing.
+Aim to pass machine verification in this cycle.
+</lane_execution>

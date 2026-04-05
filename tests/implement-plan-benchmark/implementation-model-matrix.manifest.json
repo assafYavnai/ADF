@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "implementation-model-matrix",
+  "description": "Parallel implementation benchmark matrix across Codex, Claude, and Gemini model tiers.",
+  "task_summary": "Run the same implementation-oriented prompt across a cross-provider model matrix and compare outcome quality, speed, and cost.",
+  "instructions": "Respond as if you are the implementation engine for one benchmark lane.\nReturn substantive output only for the provided task.\nAssume this benchmark compares implementation quality across providers and models.\nDo not mention hidden benchmark internals unless the task explicitly asks for them.",
+  "response_requirements": "Return only the lane's substantive implementation/planning output.",
+  "execution_policy": {
+    "max_review_cycles": 6,
+    "skip_human_testing": true
+  },
+  "engines": [
+    {
+      "id": "codex-gpt-5.4-baseline",
+      "display_name": "Codex GPT-5.4 xhigh (Baseline)",
+      "cli": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "xhigh",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "codex-gpt-5.3-codex-spark",
+      "display_name": "Codex GPT-5.3 Codex Spark",
+      "cli": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "reasoning": "medium",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "codex-gpt-5.4-mini",
+      "display_name": "Codex GPT-5.4 Mini",
+      "cli": "codex",
+      "model": "gpt-5.4-mini",
+      "reasoning": "high",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "codex-gpt-5.3-codex",
+      "display_name": "Codex GPT-5.3 Codex",
+      "cli": "codex",
+      "model": "gpt-5.3-codex",
+      "reasoning": "xhigh",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "claude-opus-4.6",
+      "display_name": "Claude Opus 4.6",
+      "cli": "claude",
+      "model": "opus-4.6",
+      "effort": "max",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "claude-sonnet-4.6",
+      "display_name": "Claude Sonnet 4.6",
+      "cli": "claude",
+      "model": "sonnet-4.6",
+      "effort": "high",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "gemini-3.1-pro",
+      "display_name": "Gemini 3.1 Pro",
+      "cli": "gemini",
+      "model": "gemini-3.1-pro",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "gemini-3-flash",
+      "display_name": "Gemini 3 Flash",
+      "cli": "gemini",
+      "model": "gemini-3-flash",
+      "bypass": true,
+      "timeout_ms": 120000
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+diff --git a/COO/briefing/types.ts b/COO/briefing/types.ts
+index bd16f35..5e4fd87 100644
+--- a/COO/briefing/types.ts
++++ b/COO/briefing/types.ts
+@@ -47,6 +47,20 @@ export interface BriefSourceFacts {
+   globalOpenLoops: string[];
+   /** Source system identifier for isolation/partition proof */
+   sourcePartition: "production" | "proof" | "mixed";
++  /** Source-family availability to distinguish missing source vs empty state */
++  sourceAvailability?: BriefSourceAvailability[];
++}
++
++export type BriefSourceFamily =
++  | "thread_onion"
++  | "finalized_requirement"
++  | "cto_admission"
++  | "implement_plan";
++
++export interface BriefSourceAvailability {
++  family: BriefSourceFamily;
++  available: boolean;
++  itemCount: number;
+ }
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/COO/controller/cli.ts b/COO/controller/cli.ts
+index 020bdcf..dbe17b5 100644
+--- a/COO/controller/cli.ts
++++ b/COO/controller/cli.ts
+@@ -19,9 +19,19 @@ import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationU
+ import { createLLMProvenance } from "../../shared/provenance/types.js";
+ import { MemoryEngineClient } from "./memory-engine-client.js";
+ import { createSystemProvenance } from "../../shared/provenance/types.js";
++import { buildLiveExecutiveStatus } from "../briefing/live-status.js";
+ 
+ let shuttingDown = false;
+ 
++interface CliArgs {
++  threadId?: string;
++  resumeLast: boolean;
++  scopePath?: string;
++  enableOnion?: boolean;
++  testProofMode?: boolean;
++  statusOnly: boolean;
++}
++
+ async function main() {
+   const startupStartedAt = Date.now();
+   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
+@@ -172,10 +182,6 @@ async function main() {
+     throw err;
+   }
+ 
+-  console.log("ADF COO - Interactive CLI");
+-  console.log("Brain MCP: connected");
+-  console.log("Type your message, press Enter. Type 'exit' to quit.\n");
+-
+   const configuredScope = args.scopePath ?? null;
+   const resumeLookupStartedAt = Date.now();
+   let threadId = await resolveStartingThreadId(args, config.threadsDir);
+@@ -193,6 +199,32 @@ async function main() {
+     },
+   });
+ 
++  const printLiveExecutiveStatus = async (): Promise<void> => {
++    const status = await buildLiveExecutiveStatus({
++      projectRoot,
++      threadsDir: config.threadsDir,
++      scopePath: configuredScope,
++      sourcePartition: telemetryPartition,
++    });
++    console.log(`\n${status.rendered}\n`);
++  };
++
++  if (args.statusOnly) {
++    await printLiveExecutiveStatus();
++    await shutdownCli(brainClient, {
++      ...runtimeTelemetryContext,
++      cli_mode: cliMode,
++      configured_scope: configuredScope,
++      proof_mode: Boolean(args.testProofMode),
++      shutdown_path: "status_flag",
++    });
++    return;
++  }
++
++  console.log("ADF COO - Interactive CLI");
++  console.log("Brain MCP: connected");
++  console.log("Type your message, press Enter. Type 'exit' to quit.\n");
++
+   if (configuredScope) {
+     console.log(`Scope: ${configuredScope}`);
+   } else {
+@@ -203,7 +235,7 @@ async function main() {
+   console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.\n");
+ 
+   if (!process.stdin.isTTY) {
+-    await runScriptedSession(config, brainClient, threadId, configuredScope, {
++    await runScriptedSession(config, brainClient, threadId, configuredScope, printLiveExecutiveStatus, {
+       ...runtimeTelemetryContext,
+       cli_mode: cliMode,
+       configured_scope: configuredScope,
+@@ -262,6 +294,11 @@ async function main() {
+       return;
+     }
+ 
++    if (input === "/status") {
++      await printLiveExecutiveStatus();
++      return;
++    }
++
+     if (input === "/multi") {
+       multilineMode = true;
+       multilineBuffer.length = 0;
+@@ -359,7 +396,7 @@ function resolveRuntimeDir(overridePath: string | undefined, fallbackPath: strin
+   return resolve(overridePath);
+ }
+ 
+-function assertProofInvokerIsolation(args: { testProofMode?: boolean }): void {
++function assertProofInvokerIsolation(args: Pick<CliArgs, "testProofMode">): void {
+   const parserUpdatePath = process.env.ADF_COO_TEST_PARSER_UPDATES_FILE?.trim();
+   if (parserUpdatePath && !args.testProofMode) {
+     throw new Error(
+@@ -369,7 +406,7 @@ function assertProofInvokerIsolation(args: { testProofMode?: boolean }): void {
+ }
+ 
+ async function createTestProofInvokerFromEnv(
+-  args: { testProofMode?: boolean }
++  args: Pick<CliArgs, "testProofMode">
+ ): Promise<ControllerConfig["invokeLLM"] | undefined> {
+   const parserUpdatePath = process.env.ADF_COO_TEST_PARSER_UPDATES_FILE?.trim();
+   if (!args.testProofMode) {
+@@ -496,18 +533,13 @@ function estimateUsage(prompt: string, response: string): InvocationUsageEstimat
+   };
+ }
+ 
+-function parseCliArgs(argv: string[]): {
+-  threadId?: string;
+-  resumeLast: boolean;
+-  scopePath?: string;
+-  enableOnion?: boolean;
+-  testProofMode?: boolean;
+-} {
++function parseCliArgs(argv: string[]): CliArgs {
+   let threadId: string | undefined;
+   let resumeLast = false;
+   let scopePath: string | undefined;
+   let enableOnion: boolean | undefined;
+   let testProofMode: boolean | undefined;
++  let statusOnly = false;
+ 
+   for (let i = 0; i < argv.length; i++) {
+     const arg = argv[i];
+@@ -525,6 +557,8 @@ function parseCliArgs(argv: string[]): {
+       enableOnion = false;
+     } else if (arg === "--test-proof-mode") {
+       testProofMode = true;
++    } else if (arg === "--status") {
++      statusOnly = true;
+     }
+   }
+ 
+@@ -534,10 +568,11 @@ function parseCliArgs(argv: string[]): {
+     scopePath,
+     enableOnion,
+     testProofMode,
++    statusOnly,
+   };
+ }
+ 
+-function resolveOnionGate(args: { enableOnion?: boolean }): boolean {
++function resolveOnionGate(args: Pick<CliArgs, "enableOnion">): boolean {
+   if (args.enableOnion !== undefined) {
+     return args.enableOnion;
+   }
+@@ -567,7 +602,7 @@ async function findLatestThreadId(threadsDir: string): Promise<string | null> {
+ }
+ 
+ async function resolveStartingThreadId(
+-  args: { threadId?: string; resumeLast: boolean },
++  args: Pick<CliArgs, "threadId" | "resumeLast">,
+   threadsDir: string
+ ): Promise<string | null> {
+   let threadId: string | null = args.threadId ?? null;
+@@ -588,6 +623,7 @@ async function runScriptedSession(
+   brainClient: MemoryEngineClient | null,
+   threadId: string | null,
+   configuredScope: string | null,
++  printLiveExecutiveStatus: () => Promise<void>,
+   shutdownMetadata: Record<string, unknown>,
+ ): Promise<void> {
+   const rl = createInterface({
+@@ -604,6 +640,14 @@ async function runScriptedSession(
+       if (input.toLowerCase() === "exit") {
+         break;
+       }
++      if (input === "/status") {
++        try {
++          await printLiveExecutiveStatus();
++        } catch (err) {
++          console.error("Error:", err);
++        }
++        continue;
++      }
+ 
+       try {
+         const result = await handleTurn(threadId, input, config, configuredScope);

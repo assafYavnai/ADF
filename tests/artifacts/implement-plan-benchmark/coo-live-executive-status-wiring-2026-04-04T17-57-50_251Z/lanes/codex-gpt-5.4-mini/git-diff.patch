@@ -1,0 +1,368 @@
+diff --git a/COO/briefing/kpi.ts b/COO/briefing/kpi.ts
+index a12ae58..2dac14b 100644
+--- a/COO/briefing/kpi.ts
++++ b/COO/briefing/kpi.ts
+@@ -25,6 +25,28 @@ export interface BriefKpiReport {
+   buildLatency: { p50: number; p95: number; p99: number };
+   /** Slow-bucket counts */
+   slowBuckets: { over1s: number; over10s: number; over60s: number };
++  /** Live alias for build latency percentiles */
++  liveExecBriefBuildLatencyMs: { p50: number; p95: number; p99: number };
++  /** Live alias for slow status-build buckets */
++  slowStatusBuildBuckets: { over1s: number; over10s: number; over60s: number };
++  /** Live render success count */
++  liveExecBriefRenderSuccessCount: number;
++  /** Live render failure count */
++  liveExecBriefRenderFailureCount: number;
++  /** Total live status invocations observed */
++  liveStatusInvocationCount: number;
++  /** Latest live adapter missing-source count */
++  liveSourceAdapterMissingSourceCount: number;
++  /** Latest visible issue count parity snapshot */
++  issuesVisibilityParityCount: number;
++  /** Latest visible table count parity snapshot */
++  tableVisibilityParityCount: number;
++  /** Latest visible in-motion count parity snapshot */
++  inMotionVisibilityParityCount: number;
++  /** Latest visible next-step count parity snapshot */
++  nextVisibilityParityCount: number;
++  /** Latest source freshness age in ms */
++  liveSourceFreshnessAgeMs: number;
+   /** Average source metadata completeness across all builds */
+   avgSourceMetadataCompletenessRate: number;
+   /** Latest parity snapshot */
+@@ -57,6 +79,17 @@ export function getKpiReport(): BriefKpiReport {
+       renderFailureCount: 0,
+       buildLatency: { p50: 0, p95: 0, p99: 0 },
+       slowBuckets: { over1s: 0, over10s: 0, over60s: 0 },
++      liveExecBriefBuildLatencyMs: { p50: 0, p95: 0, p99: 0 },
++      slowStatusBuildBuckets: { over1s: 0, over10s: 0, over60s: 0 },
++      liveExecBriefRenderSuccessCount: 0,
++      liveExecBriefRenderFailureCount: 0,
++      liveStatusInvocationCount: 0,
++      liveSourceAdapterMissingSourceCount: 0,
++      issuesVisibilityParityCount: 0,
++      tableVisibilityParityCount: 0,
++      inMotionVisibilityParityCount: 0,
++      nextVisibilityParityCount: 0,
++      liveSourceFreshnessAgeMs: 0,
+       avgSourceMetadataCompletenessRate: 0,
+       latestParity: null,
+       latestSourceAgeMs: null,
+@@ -86,6 +119,25 @@ export function getKpiReport(): BriefKpiReport {
+       over10s: latencies.filter((l) => l > SLOW_THRESHOLDS_MS[1]).length,
+       over60s: latencies.filter((l) => l > SLOW_THRESHOLDS_MS[2]).length,
+     },
++    liveExecBriefBuildLatencyMs: {
++      p50: percentile(latencies, 0.50),
++      p95: percentile(latencies, 0.95),
++      p99: percentile(latencies, 0.99),
++    },
++    slowStatusBuildBuckets: {
++      over1s: latencies.filter((l) => l > SLOW_THRESHOLDS_MS[0]).length,
++      over10s: latencies.filter((l) => l > SLOW_THRESHOLDS_MS[1]).length,
++      over60s: latencies.filter((l) => l > SLOW_THRESHOLDS_MS[2]).length,
++    },
++    liveExecBriefRenderSuccessCount: successes.length,
++    liveExecBriefRenderFailureCount: failures.length,
++    liveStatusInvocationCount: records.reduce((sum, r) => sum + r.liveStatusInvocationCount, 0),
++    liveSourceAdapterMissingSourceCount: latest.liveSourceAdapterMissingSourceCount,
++    issuesVisibilityParityCount: latest.issuesVisibilityParityCount,
++    tableVisibilityParityCount: latest.tableVisibilityParityCount,
++    inMotionVisibilityParityCount: latest.inMotionVisibilityParityCount,
++    nextVisibilityParityCount: latest.nextVisibilityParityCount,
++    liveSourceFreshnessAgeMs: latest.liveSourceFreshnessAgeMs,
+     avgSourceMetadataCompletenessRate: totalCompleteness / records.length,
+     latestParity: latest.parity,
+     latestSourceAgeMs: latest.sourceAgeMs,
+@@ -118,6 +170,7 @@ export function buildAndRenderWithKpi(facts: BriefSourceFacts): InstrumentedBrie
+   let brief: ExecutiveBrief;
+   let rendered: string;
+   let success = true;
++  const liveSummary = summarizeLiveSourceFacts(facts);
+ 
+   try {
+     brief = buildExecutiveBrief(facts);
+@@ -133,6 +186,13 @@ export function buildAndRenderWithKpi(facts: BriefSourceFacts): InstrumentedBrie
+       sourceAgeMs: Date.now() - new Date(facts.collectedAt).getTime(),
+       sourceMetadataCompletenessRate: 0,
+       parity: { issuesExpected: 0, issuesActual: 0, tableExpected: 0, tableActual: 0, inMotionExpected: 0, inMotionActual: 0, whatsNextExpected: 0, whatsNextActual: 0 },
++      liveStatusInvocationCount: 1,
++      liveSourceAdapterMissingSourceCount: liveSummary.missingSourceCount,
++      issuesVisibilityParityCount: 0,
++      tableVisibilityParityCount: 0,
++      inMotionVisibilityParityCount: 0,
++      nextVisibilityParityCount: 0,
++      liveSourceFreshnessAgeMs: liveSummary.liveSourceFreshnessAgeMs,
+     };
+     recordBriefMetrics(metrics);
+     throw err;
+@@ -156,6 +216,13 @@ export function buildAndRenderWithKpi(facts: BriefSourceFacts): InstrumentedBrie
+       sourceAgeMs: brief.sourceAgeMs,
+       sourceMetadataCompletenessRate: brief.sourceMetadataCompletenessRate,
+       parity: brief.parity,
++      liveStatusInvocationCount: 1,
++      liveSourceAdapterMissingSourceCount: liveSummary.missingSourceCount,
++      issuesVisibilityParityCount: brief.parity.issuesActual,
++      tableVisibilityParityCount: brief.parity.tableActual,
++      inMotionVisibilityParityCount: brief.parity.inMotionActual,
++      nextVisibilityParityCount: brief.parity.whatsNextActual,
++      liveSourceFreshnessAgeMs: liveSummary.liveSourceFreshnessAgeMs,
+     };
+     recordBriefMetrics(metrics);
+     throw err;
+@@ -172,8 +239,38 @@ export function buildAndRenderWithKpi(facts: BriefSourceFacts): InstrumentedBrie
+     sourceAgeMs: brief.sourceAgeMs,
+     sourceMetadataCompletenessRate: brief.sourceMetadataCompletenessRate,
+     parity: brief.parity,
++    liveStatusInvocationCount: 1,
++    liveSourceAdapterMissingSourceCount: liveSummary.missingSourceCount,
++    issuesVisibilityParityCount: brief.parity.issuesActual,
++    tableVisibilityParityCount: brief.parity.tableActual,
++    inMotionVisibilityParityCount: brief.parity.inMotionActual,
++    nextVisibilityParityCount: brief.parity.whatsNextActual,
++    liveSourceFreshnessAgeMs: liveSummary.liveSourceFreshnessAgeMs,
+   };
+   recordBriefMetrics(metrics);
+ 
+   return { brief, rendered, metrics };
+ }
++
++function summarizeLiveSourceFacts(facts: BriefSourceFacts): {
++  missingSourceCount: number;
++  liveSourceFreshnessAgeMs: number;
++} {
++  const sourceFamilies = facts.sourceFamilies ?? [];
++  if (sourceFamilies.length === 0) {
++    return {
++      missingSourceCount: 0,
++      liveSourceFreshnessAgeMs: Date.now() - new Date(facts.collectedAt).getTime(),
++    };
++  }
++
++  const missingSourceCount = sourceFamilies.filter((family) => !family.available).length;
++  const liveSourceFreshnessAgeMs = sourceFamilies
++    .filter((family) => family.available)
++    .reduce((max, family) => Math.max(max, family.freshnessAgeMs), 0);
++
++  return {
++    missingSourceCount,
++    liveSourceFreshnessAgeMs,
++  };
++}
+diff --git a/COO/briefing/types.ts b/COO/briefing/types.ts
+index bd16f35..740c7bb 100644
+--- a/COO/briefing/types.ts
++++ b/COO/briefing/types.ts
+@@ -38,6 +38,13 @@ export interface BriefOpenDecision {
+   status: "open" | "resolved";
+ }
+ 
++export interface BriefSourceFamilySnapshot {
++  family: "thread_onion" | "finalized_requirement" | "cto_admission" | "implement_plan";
++  available: boolean;
++  itemCount: number;
++  freshnessAgeMs: number;
++}
++
+ export interface BriefSourceFacts {
+   /** When these facts were collected (ISO-8601) */
+   collectedAt: string;
+@@ -47,6 +54,8 @@ export interface BriefSourceFacts {
+   globalOpenLoops: string[];
+   /** Source system identifier for isolation/partition proof */
+   sourcePartition: "production" | "proof" | "mixed";
++  /** Optional live source family diagnostics for KPI/reporting surfaces */
++  sourceFamilies?: BriefSourceFamilySnapshot[];
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -128,4 +137,11 @@ export interface BriefBuildMetrics {
+   sourceAgeMs: number;
+   sourceMetadataCompletenessRate: number;
+   parity: BriefParityCounts;
++  liveStatusInvocationCount: number;
++  liveSourceAdapterMissingSourceCount: number;
++  issuesVisibilityParityCount: number;
++  tableVisibilityParityCount: number;
++  inMotionVisibilityParityCount: number;
++  nextVisibilityParityCount: number;
++  liveSourceFreshnessAgeMs: number;
+ }
+diff --git a/COO/controller/cli.ts b/COO/controller/cli.ts
+index 020bdcf..ed19c0a 100644
+--- a/COO/controller/cli.ts
++++ b/COO/controller/cli.ts
+@@ -5,6 +5,7 @@ import { constants } from "node:fs";
+ import { randomUUID } from "node:crypto";
+ import { handleTurn, DEFAULT_CLASSIFIER_PARAMS, DEFAULT_INTELLIGENCE_PARAMS } from "./loop.js";
+ import type { ControllerConfig } from "./loop.js";
++import { renderLiveExecutiveStatus } from "./live-status.js";
+ import { emitInvocationTelemetry } from "../../shared/llm-invoker/invoker.js";
+ import {
+   appendPersistedMetrics,
+@@ -172,6 +173,40 @@ async function main() {
+     throw err;
+   }
+ 
++  if (args.status) {
++    const liveStatus = await renderLiveExecutiveStatus({
++      projectRoot,
++      threadsDir,
++      sourcePartition: telemetryPartition,
++    });
++    emit({
++      provenance: createSystemProvenance("COO/controller/cli/live-status"),
++      category: "system",
++      operation: "live_exec_brief_render",
++      latency_ms: liveStatus.metrics.buildLatencyMs + liveStatus.metrics.renderLatencyMs,
++      success: true,
++      metadata: {
++        live_status_invocation_count: liveStatus.metrics.liveStatusInvocationCount,
++        live_source_adapter_missing_source_count: liveStatus.metrics.liveSourceAdapterMissingSourceCount,
++        live_source_freshness_age_ms: liveStatus.metrics.liveSourceFreshnessAgeMs,
++        issues_visibility_parity_count: liveStatus.metrics.issuesVisibilityParityCount,
++        table_visibility_parity_count: liveStatus.metrics.tableVisibilityParityCount,
++        in_motion_visibility_parity_count: liveStatus.metrics.inMotionVisibilityParityCount,
++        next_visibility_parity_count: liveStatus.metrics.nextVisibilityParityCount,
++        source_partition: liveStatus.brief.sourcePartition,
++      },
++    });
++    console.log(liveStatus.rendered);
++    await shutdownCli(brainClient, {
++      ...runtimeTelemetryContext,
++      cli_mode: cliMode,
++      configured_scope: args.scopePath ?? null,
++      proof_mode: Boolean(args.testProofMode),
++      shutdown_path: "status_command",
++    }, { printSessionEnded: false });
++    return;
++  }
++
+   console.log("ADF COO - Interactive CLI");
+   console.log("Brain MCP: connected");
+   console.log("Type your message, press Enter. Type 'exit' to quit.\n");
+@@ -269,6 +304,33 @@ async function main() {
+       return;
+     }
+ 
++    if (input === "/status") {
++      const liveStatus = await renderLiveExecutiveStatus({
++        projectRoot,
++        threadsDir,
++        sourcePartition: telemetryPartition,
++      });
++      emit({
++        provenance: createSystemProvenance("COO/controller/cli/live-status"),
++        category: "system",
++        operation: "live_exec_brief_render",
++        latency_ms: liveStatus.metrics.buildLatencyMs + liveStatus.metrics.renderLatencyMs,
++        success: true,
++        metadata: {
++          live_status_invocation_count: liveStatus.metrics.liveStatusInvocationCount,
++          live_source_adapter_missing_source_count: liveStatus.metrics.liveSourceAdapterMissingSourceCount,
++          live_source_freshness_age_ms: liveStatus.metrics.liveSourceFreshnessAgeMs,
++          issues_visibility_parity_count: liveStatus.metrics.issuesVisibilityParityCount,
++          table_visibility_parity_count: liveStatus.metrics.tableVisibilityParityCount,
++          in_motion_visibility_parity_count: liveStatus.metrics.inMotionVisibilityParityCount,
++          next_visibility_parity_count: liveStatus.metrics.nextVisibilityParityCount,
++          source_partition: liveStatus.brief.sourcePartition,
++        },
++      });
++      console.log(`\n${liveStatus.rendered}\n`);
++      return;
++    }
++
+     if (multilineMode) {
+       if (input === "/cancel") {
+         multilineMode = false;
+@@ -502,12 +564,14 @@ function parseCliArgs(argv: string[]): {
+   scopePath?: string;
+   enableOnion?: boolean;
+   testProofMode?: boolean;
++  status?: boolean;
+ } {
+   let threadId: string | undefined;
+   let resumeLast = false;
+   let scopePath: string | undefined;
+   let enableOnion: boolean | undefined;
+   let testProofMode: boolean | undefined;
++  let status: boolean | undefined;
+ 
+   for (let i = 0; i < argv.length; i++) {
+     const arg = argv[i];
+@@ -525,6 +589,8 @@ function parseCliArgs(argv: string[]): {
+       enableOnion = false;
+     } else if (arg === "--test-proof-mode") {
+       testProofMode = true;
++    } else if (arg === "--status") {
++      status = true;
+     }
+   }
+ 
+@@ -534,6 +600,7 @@ function parseCliArgs(argv: string[]): {
+     scopePath,
+     enableOnion,
+     testProofMode,
++    status,
+   };
+ }
+ 
+@@ -626,6 +693,7 @@ async function runScriptedSession(
+ async function shutdownCli(
+   brainClient: MemoryEngineClient | null,
+   metadata: Record<string, unknown> = {},
++  options: { printSessionEnded?: boolean } = {},
+ ): Promise<void> {
+   if (shuttingDown) {
+     return;
+@@ -668,7 +736,9 @@ async function shutdownCli(
+       await appendPersistedMetrics([shutdownEvent]);
+     }
+     await brainClient?.close();
+-    console.log("\nSession ended.");
++    if (options.printSessionEnded !== false) {
++      console.log("\nSession ended.");
++    }
+     process.exit(0);
+   } catch (err) {
+     const message = err instanceof Error ? err.message : String(err);
+diff --git a/docs/phase1/coo-live-executive-status-wiring/context.md b/docs/phase1/coo-live-executive-status-wiring/context.md
+index ac826e1..67621b0 100644
+--- a/docs/phase1/coo-live-executive-status-wiring/context.md
++++ b/docs/phase1/coo-live-executive-status-wiring/context.md
+@@ -1,18 +1,21 @@
+-# coo-live-executive-status-wiring — Context
++# coo-live-executive-status-wiring - Context
+ 
+ ## Purpose
+-This slice makes the merged `COO/briefing/**` package visible in the live COO runtime so the CEO can get a real executive status surface.
++Wire the merged `COO/briefing/**` executive brief into the live COO runtime so the CEO can ask for a business-level status surface without getting a raw state dump.
+ 
+-## Why It Exists
+-- The briefing package exists but is still standalone.
+-- Phase 1 still lacks a strong live answer to "what is on our table?"
+-- The live status surface should consume admission truth when present and degrade gracefully when it is not.
++## Implementation Shape
++- The briefing package stays derived-only.
++- Live source collection lives in `COO/controller/live-status.ts`.
++- The adapter reads current COO threads plus phase1 implement-plan state from the filesystem, then derives `BriefSourceFacts`.
++- The CLI exposes the surface through `--status` and the same render path is reused for interactive `/status`.
+ 
+-## Key Constraints
+-- Keep the briefing layer derived-only.
+-- Do not mutate source truth while building the brief.
+-- Keep the output business-level and concise.
+-- Human verification is required because this becomes a real CEO-facing surface.
++## Source Families
++- Active COO threads / onion state
++- Finalized requirement truth from live onion state when present
++- CTO-admission truth from live onion state when present
++- Implement-plan truth from `docs/phase1/*/implement-plan-state.json`
+ 
+-## Dependency Note
+-This slice should run after the freeze-to-admission wiring slice if possible, so the live status surface can read real admission-state truth. It should still degrade gracefully if admission artifacts are not present yet.
++## Notes
++- Missing source families degrade to an empty/business-level brief instead of throwing.
++- KPI reporting was extended so live status invocations can surface source missingness, freshness, and section parity counts.
++- The benchmark run skips human verification even though the slice plan calls for it in normal execution.

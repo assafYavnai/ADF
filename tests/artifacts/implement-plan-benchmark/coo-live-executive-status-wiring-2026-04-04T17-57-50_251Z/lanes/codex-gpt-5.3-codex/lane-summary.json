@@ -1,0 +1,87 @@
+{
+  "lane_id": "codex-gpt-5.3-codex",
+  "display_name": "Codex GPT-5.3 Codex",
+  "cli": "codex",
+  "model": "gpt-5.3-codex",
+  "reasoning": "xhigh",
+  "effort": null,
+  "isolation_mode": "git_worktree",
+  "working_directory": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-live-executive-status-wiring\\codex-gpt-5.3-codex",
+  "worktree_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-live-executive-status-wiring\\codex-gpt-5.3-codex",
+  "base_ref": "HEAD",
+  "starting_head_sha": "c978b84464a812e6f8a63c3427cde578fbfce5dc",
+  "status": "succeeded",
+  "cycle_wall_clock_ms": 967180,
+  "total_llm_latency_ms": 945032,
+  "review_cycle_count": 1,
+  "invocation_attempt_count": 1,
+  "verification_status": "passed",
+  "blocker_kind": null,
+  "blocker_reason": null,
+  "error_message": null,
+  "estimated_cost_usd": null,
+  "prompt_tokens_estimated": 827,
+  "response_tokens_estimated": 370,
+  "total_tokens_estimated": 1197,
+  "final_response_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\cycle-01\\response.txt",
+  "final_result_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\cycle-01\\result.json",
+  "final_request_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\cycle-01\\request.json",
+  "final_verification_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\cycle-01\\verification.json",
+  "lane_summary_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\lane-summary.json",
+  "cycles_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\cycles.json",
+  "git_status_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\git-status.txt",
+  "diff_stat_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\git-diff-stat.txt",
+  "diff_patch_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\git-diff.patch",
+  "changed_paths_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.3-codex\\changed-paths.json",
+  "changed_paths": [
+    ".codex/runtime/install-state.json",
+    "COO/briefing/live-source-adapter.ts",
+    "COO/briefing/live-status.ts",
+    "COO/briefing/types.ts",
+    "COO/controller/cli.ts",
+    "docs/phase1/coo-live-executive-status-wiring/completion-summary.md",
+    "tests/integration/coo-live-executive-status-wiring.test.ts"
+  ],
+  "verification_failures": [],
+  "latest_session_handle": {
+    "provider": "codex",
+    "model": "gpt-5.3-codex",
+    "session_id": "019d59a5-7b54-7222-bb0a-22e6458b6e13",
+    "source": "provider_returned"
+  },
+  "resume_supported": true,
+  "phase_metrics": {
+    "workspace_preparation_ms": 19941,
+    "implementation_invocation_ms": 945032,
+    "machine_verification_ms": 1174,
+    "self_fix_cycle_count": 0,
+    "self_fix_wall_clock_ms": 0,
+    "self_fix_invocation_ms": 0,
+    "self_fix_verification_ms": 0,
+    "audit_ms": null,
+    "review_ms": null,
+    "human_testing_ms": null,
+    "human_testing_skipped": true,
+    "time_to_first_green_ms": 966950
+  },
+  "artifact_quality": {
+    "score": 90,
+    "rating": "strong",
+    "rubric_version": "heuristic_v1",
+    "notes": [
+      "Touched paths outside allowed edit surface: .codex/runtime/install-state.json"
+    ],
+    "signals": {
+      "verification_passed": true,
+      "changed_file_count": 7,
+      "required_paths_total": 2,
+      "required_paths_present": 2,
+      "required_changed_prefixes_total": 3,
+      "required_changed_prefixes_satisfied": 3,
+      "allowed_surface_violations": [
+        ".codex/runtime/install-state.json"
+      ],
+      "forbidden_surface_violations": []
+    }
+  }
+}

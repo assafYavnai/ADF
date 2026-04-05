@@ -1,0 +1,56 @@
+{
+  "provenance": {
+    "invocation_id": "ac27f0d9-6cab-4a99-8fba-0c4c17b4c223",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/smoke/codex-default",
+    "timestamp": "2026-04-03T15:11:31.270Z"
+  },
+  "response": "{\"provider_ready\":true,\"benchmark_note\":\"Smoke benchmark acknowledged; compact JSON response confirmed.\",\"repo_acknowledged\":true}",
+  "latency_ms": 11610,
+  "session": null,
+  "usage": {
+    "prompt_chars": 702,
+    "response_chars": 130,
+    "tokens_in_estimated": 176,
+    "tokens_out_estimated": 33,
+    "estimated_cost_usd": 0.001375,
+    "token_estimation_basis": "char_heuristic_v1",
+    "cost_estimation_basis": "configured_model_rate_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "ac27f0d9-6cab-4a99-8fba-0c4c17b4c223",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/smoke/codex-default",
+        "timestamp": "2026-04-03T15:11:31.270Z"
+      },
+      "latency_ms": 11610,
+      "success": true,
+      "session_status": "none",
+      "usage": {
+        "prompt_chars": 702,
+        "response_chars": 130,
+        "tokens_in_estimated": 176,
+        "tokens_out_estimated": 33,
+        "estimated_cost_usd": 0.001375,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "smoke",
+        "benchmark_lane_id": "codex-default",
+        "benchmark_task_summary": "Verify that each configured provider can read one shared prompt and return compact JSON.",
+        "benchmark_target_slug": null,
+        "benchmark_isolation_mode": "none",
+        "benchmark_base_ref": null
+      }
+    }
+  ]
+}

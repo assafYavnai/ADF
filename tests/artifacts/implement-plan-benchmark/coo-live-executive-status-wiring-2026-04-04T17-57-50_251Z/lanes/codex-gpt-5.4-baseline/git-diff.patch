@@ -1,0 +1,175 @@
+diff --git a/COO/briefing/builder.ts b/COO/briefing/builder.ts
+index 986c7ce..712f9be 100644
+--- a/COO/briefing/builder.ts
++++ b/COO/briefing/builder.ts
+@@ -18,7 +18,7 @@ import type {
+ 
+ const BLOCKED_STATUSES = new Set(["blocked"]);
+ const ACTIVE_STATUSES = new Set(["active", "awaiting_freeze_approval"]);
+-const COMPLETED_STATUSES = new Set(["completed", "closed", "approved", "handoff_ready"]);
++const COMPLETED_STATUSES = new Set(["completed", "closed"]);
+ 
+ function isBlocked(f: BriefFeatureSnapshot): boolean {
+   return BLOCKED_STATUSES.has(f.status) || f.blockers.length > 0;
+diff --git a/COO/briefing/executive-brief.test.ts b/COO/briefing/executive-brief.test.ts
+index 2e49f6b..0ffb7bf 100644
+--- a/COO/briefing/executive-brief.test.ts
++++ b/COO/briefing/executive-brief.test.ts
+@@ -208,6 +208,39 @@ test("closeout: deterministic rendering", () => {
+   assertDeterministic(postCompletionCloseoutFacts);
+ });
+ 
++test("handoff-ready: pending admission work stays on the table and next, not closeout", () => {
++  const handoffReadyFacts: BriefSourceFacts = {
++    collectedAt: new Date().toISOString(),
++    sourcePartition: "proof",
++    globalOpenLoops: [],
++    features: [
++      {
++        id: "feat-live-status",
++        label: "Live Executive Status",
++        status: "handoff_ready",
++        lastActivityAt: new Date().toISOString(),
++        openLoops: [],
++        openDecisions: [
++          {
++            question: "Admit, defer, or block implementation?",
++            impact: "Determines whether implementation can start",
++            status: "open",
++          },
++        ],
++        currentLayer: null,
++        progressSummary: "CTO admission decision is pending",
++        blockers: [],
++        isFinalized: false,
++      },
++    ],
++  };
++
++  const brief = buildExecutiveBrief(handoffReadyFacts);
++  assert.equal(brief.onTheTable.length, 1);
++  assert.equal(brief.whatsNext.length, 1);
++  assert.match(brief.whatsNext[0].nextAction, /Resolve:/);
++});
++
+ // ---------------------------------------------------------------------------
+ // KPI instrumentation proof
+ // ---------------------------------------------------------------------------
+diff --git a/COO/controller/cli.ts b/COO/controller/cli.ts
+index 020bdcf..f7c91b5 100644
+--- a/COO/controller/cli.ts
++++ b/COO/controller/cli.ts
+@@ -5,6 +5,7 @@ import { constants } from "node:fs";
+ import { randomUUID } from "node:crypto";
+ import { handleTurn, DEFAULT_CLASSIFIER_PARAMS, DEFAULT_INTELLIGENCE_PARAMS } from "./loop.js";
+ import type { ControllerConfig } from "./loop.js";
++import { buildLiveStatusCommandOutput, isLiveStatusCommand } from "./live-status.js";
+ import { emitInvocationTelemetry } from "../../shared/llm-invoker/invoker.js";
+ import {
+   appendPersistedMetrics,
+@@ -64,6 +65,15 @@ async function main() {
+   if (testInvoker) {
+     config.invokeLLM = testInvoker;
+   }
++  if (args.statusOnce) {
++    const rendered = await buildLiveStatusCommandOutput({
++      projectRoot,
++      threadsDir,
++      telemetryPartition,
++    });
++    console.log(rendered);
++    return;
++  }
+ 
+   let brainClient: MemoryEngineClient | null = null;
+   try {
+@@ -174,7 +184,8 @@ async function main() {
+ 
+   console.log("ADF COO - Interactive CLI");
+   console.log("Brain MCP: connected");
+-  console.log("Type your message, press Enter. Type 'exit' to quit.\n");
++  console.log("Type your message, press Enter. Type 'exit' to quit.");
++  console.log("Type 'status' or '/status' for the live executive brief.\n");
+ 
+   const configuredScope = args.scopePath ?? null;
+   const resumeLookupStartedAt = Date.now();
+@@ -262,6 +273,16 @@ async function main() {
+       return;
+     }
+ 
++    if (isLiveStatusCommand(input)) {
++      const rendered = await buildLiveStatusCommandOutput({
++        projectRoot: config.projectRoot,
++        threadsDir: config.threadsDir,
++        telemetryPartition,
++      });
++      console.log(`\nCOO>\n${rendered}\n`);
++      return;
++    }
++
+     if (input === "/multi") {
+       multilineMode = true;
+       multilineBuffer.length = 0;
+@@ -502,12 +523,14 @@ function parseCliArgs(argv: string[]): {
+   scopePath?: string;
+   enableOnion?: boolean;
+   testProofMode?: boolean;
++  statusOnce?: boolean;
+ } {
+   let threadId: string | undefined;
+   let resumeLast = false;
+   let scopePath: string | undefined;
+   let enableOnion: boolean | undefined;
+   let testProofMode: boolean | undefined;
++  let statusOnce = false;
+ 
+   for (let i = 0; i < argv.length; i++) {
+     const arg = argv[i];
+@@ -525,6 +548,8 @@ function parseCliArgs(argv: string[]): {
+       enableOnion = false;
+     } else if (arg === "--test-proof-mode") {
+       testProofMode = true;
++    } else if (arg === "--status") {
++      statusOnce = true;
+     }
+   }
+ 
+@@ -534,6 +559,7 @@ function parseCliArgs(argv: string[]): {
+     scopePath,
+     enableOnion,
+     testProofMode,
++    statusOnce,
+   };
+ }
+ 
+@@ -605,6 +631,16 @@ async function runScriptedSession(
+         break;
+       }
+ 
++      if (isLiveStatusCommand(input)) {
++        const rendered = await buildLiveStatusCommandOutput({
++          projectRoot: config.projectRoot,
++          threadsDir: config.threadsDir,
++          telemetryPartition: config.telemetryPartition,
++        });
++        console.log(`\nCOO>\n${rendered}\n`);
++        continue;
++      }
++
+       try {
+         const result = await handleTurn(threadId, input, config, configuredScope);
+         threadId = result.threadId;
+diff --git a/docs/phase1/coo-live-executive-status-wiring/context.md b/docs/phase1/coo-live-executive-status-wiring/context.md
+index ac826e1..fbba059 100644
+--- a/docs/phase1/coo-live-executive-status-wiring/context.md
++++ b/docs/phase1/coo-live-executive-status-wiring/context.md
+@@ -16,3 +16,9 @@ This slice makes the merged `COO/briefing/**` package visible in the live COO ru
+ 
+ ## Dependency Note
+ This slice should run after the freeze-to-admission wiring slice if possible, so the live status surface can read real admission-state truth. It should still degrade gracefully if admission artifacts are not present yet.
++
++## Wiring Decisions
++- The live adapter reads thread/onion truth from `threads/*.json` and phase implementation truth from `docs/phase1/*/implement-plan-state.json`.
++- Finalized-requirement and CTO-admission source families are derived from the live onion thread state so the status surface can stay read-only and avoid new persistence paths.
++- Missing or unreadable source families are surfaced as cross-cutting attention items instead of failing the whole brief.
++- The CLI surface now exposes the live brief on `status`, `/status`, and `--status` without routing that request through the LLM turn loop.

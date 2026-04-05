@@ -1,0 +1,64 @@
+{
+  "provenance": {
+    "invocation_id": "5b38e005-9597-4577-9e23-80079b6f76f1",
+    "provider": "codex",
+    "model": "gpt-5.3-codex",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.3-codex/cycle-01",
+    "timestamp": "2026-04-03T16:02:06.448Z"
+  },
+  "response": "Summary:\nImplemented the `coo-live-executive-status-wiring` slice by adding live source-facts adaptation, live executive status build/render orchestration, live KPI tracking, and CLI `/status` wiring (interactive + scripted). Added the required integration proof and completion summary. Human testing was intentionally skipped per benchmark policy.\n\nChanged files:\n- COO/briefing/live-source-adapter.ts\n- COO/briefing/live-status.ts\n- COO/briefing/kpi.ts\n- COO/controller/cli.ts\n- tests/integration/coo-live-executive-status-wiring.test.ts\n- docs/phase1/coo-live-executive-status-wiring/completion-summary.md\n\nVerification commands:\n- npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts\n\nVerification outcome:\n- Pass\n- 39/39 tests passed\n- 0 failed, 0 skipped\n\nOpen risks:\n- Live source mapping is schema-tolerant/heuristic; if upstream artifact schemas drift significantly, section classification may need tightening.\n- Cross-family feature identity is currently source-prefixed (thread/finalized/admission/plan) rather than fully reconciled to a single canonical feature ID.",
+  "latency_ms": 943504,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex",
+      "session_id": "019d5406-3236-7d00-8a2b-287a77acea6d",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 2805,
+    "response_chars": 1139,
+    "tokens_in_estimated": 702,
+    "tokens_out_estimated": 285,
+    "token_estimation_basis": "char_heuristic_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "5b38e005-9597-4577-9e23-80079b6f76f1",
+        "provider": "codex",
+        "model": "gpt-5.3-codex",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.3-codex/cycle-01",
+        "timestamp": "2026-04-03T16:02:06.448Z"
+      },
+      "latency_ms": 943504,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 2805,
+        "response_chars": 1139,
+        "tokens_in_estimated": 702,
+        "tokens_out_estimated": 285,
+        "token_estimation_basis": "char_heuristic_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "codex-gpt-5.3-codex",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

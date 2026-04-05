@@ -1,0 +1,29 @@
+Summary
+
+Implemented the live executive status wiring locally in this worktree. The new path builds the executive brief from live `threads/*.json` onion truth plus `docs/phase1/*/implement-plan-state.json` truth, keeps missing families visible as cross-cutting issues instead of failing, and exposes the brief through `status`, `/status`, and `--status` in the COO CLI. I also tightened the briefing builder so `approved` and `handoff_ready` work stays on the table instead of being treated as closeout.
+
+Changed files
+
+- `COO/briefing/builder.ts`
+- `COO/briefing/executive-brief.test.ts`
+- `COO/briefing/live-status.ts`
+- `COO/controller/cli.ts`
+- `COO/controller/live-status.ts`
+- `docs/phase1/coo-live-executive-status-wiring/context.md`
+- `docs/phase1/coo-live-executive-status-wiring/completion-summary.md`
+- `tests/integration/coo-live-executive-status-wiring.test.ts`
+
+Verification commands
+
+- `npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts`
+
+Verification outcome
+
+- Pass
+- `39` tests passed, `0` failed
+- Separate repo-wide `npx.cmd tsc --noEmit -p COO/tsconfig.json` remains red on pre-existing missing Node type definitions across the repo, so I did not treat that as a blocker for this slice
+
+Open risks
+
+- Finalized-requirement and CTO-admission families are read from live onion thread state; standalone stores outside that route are not part of this status surface yet.
+- Runtime preflight left untracked `.codex/runtime/install-state.json` in the worktree; I left it untouched and kept the slice changes separate.

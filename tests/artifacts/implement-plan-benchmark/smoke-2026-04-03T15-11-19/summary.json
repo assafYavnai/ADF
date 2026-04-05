@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "smoke",
+  "description": "Minimal harness smoke run for parallel provider benchmarking.",
+  "task_summary": "Verify that each configured provider can read one shared prompt and return compact JSON.",
+  "started_at": "2026-04-03T15:11:19.569Z",
+  "finished_at": "2026-04-03T15:11:31.272Z",
+  "run_root": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19",
+  "manifest_path": "C:\\ADF\\tests\\implement-plan-benchmark\\sample.manifest.json",
+  "prompt_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\prompt.txt",
+  "prompt_chars": 702,
+  "isolation": {
+    "mode": "none",
+    "target_slug": null,
+    "base_ref": null,
+    "worktree_root": null
+  },
+  "lanes": [
+    {
+      "lane_id": "codex-default",
+      "display_name": null,
+      "cli": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "xhigh",
+      "effort": null,
+      "isolation_mode": "none",
+      "working_directory": "C:\\ADF",
+      "worktree_path": null,
+      "base_ref": null,
+      "status": "succeeded",
+      "latency_ms": 11610,
+      "attempt_count": 1,
+      "estimated_cost_usd": 0.001375,
+      "prompt_chars": 702,
+      "response_chars": 130,
+      "prompt_tokens_estimated": 176,
+      "response_tokens_estimated": 33,
+      "total_tokens_estimated": 209,
+      "response_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\lanes\\codex-default\\response.txt",
+      "result_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\lanes\\codex-default\\result.json",
+      "request_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\lanes\\codex-default\\request.json"
+    },
+    {
+      "lane_id": "claude-opus",
+      "display_name": null,
+      "cli": "claude",
+      "model": "opus",
+      "reasoning": null,
+      "effort": "max",
+      "isolation_mode": "none",
+      "working_directory": "C:\\ADF",
+      "worktree_path": null,
+      "base_ref": null,
+      "status": "succeeded",
+      "latency_ms": 5126,
+      "attempt_count": 1,
+      "estimated_cost_usd": null,
+      "prompt_chars": 702,
+      "response_chars": 164,
+      "prompt_tokens_estimated": 176,
+      "response_tokens_estimated": 41,
+      "total_tokens_estimated": 217,
+      "response_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\lanes\\claude-opus\\response.txt",
+      "result_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\lanes\\claude-opus\\result.json",
+      "request_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\smoke-2026-04-03T15-11-19\\lanes\\claude-opus\\request.json"
+    }
+  ],
+  "totals": {
+    "lane_count": 2,
+    "success_count": 2,
+    "failure_count": 0,
+    "total_estimated_cost_usd": 0.001375,
+    "total_prompt_tokens_estimated": 352,
+    "total_response_tokens_estimated": 74,
+    "total_tokens_estimated": 426
+  },
+  "rankings": {
+    "fastest_success_lane_id": "claude-opus",
+    "lowest_cost_success_lane_id": "codex-default"
+  }
+}

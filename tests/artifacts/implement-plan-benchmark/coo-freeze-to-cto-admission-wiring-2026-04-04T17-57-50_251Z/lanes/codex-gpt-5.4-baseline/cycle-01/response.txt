@@ -1,0 +1,18 @@
+Summary:
+The snapshot already contained the live freeze-to-CTO-admission wiring. This lane added the missing benchmark integration entrypoint, added a live onion regression proof that scope-derived feature roots win over topic text, and refreshed the slice completion summary. No production module changes were needed in this worktree.
+
+Changed files:
+- [COO/requirements-gathering/live/onion-live.test.ts](C:/ADF/tests/artifacts/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z/worktrees/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/COO/requirements-gathering/live/onion-live.test.ts)
+- [docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md](C:/ADF/tests/artifacts/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z/worktrees/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md)
+- [tests/integration/coo-freeze-to-cto-admission-wiring.test.ts](C:/ADF/tests/artifacts/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z/worktrees/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/tests/integration/coo-freeze-to-cto-admission-wiring.test.ts)
+
+Verification commands:
+- `npx.cmd tsx --test COO/requirements-gathering/live/onion-live.test.ts`
+- `npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts`
+- `npx.cmd tsx tests/integration/onion-route.runtime-proof.ts`
+
+Verification outcome:
+All commands passed. `COO/requirements-gathering/live/onion-live.test.ts` passed 3/3, the integration suite passed 32/32, and `tests/integration/onion-route.runtime-proof.ts` exited 0.
+
+Open risks:
+- The `project-brain` MCP write surface was not exposed in this runtime, so Brain capture remained docs-only in the slice files.

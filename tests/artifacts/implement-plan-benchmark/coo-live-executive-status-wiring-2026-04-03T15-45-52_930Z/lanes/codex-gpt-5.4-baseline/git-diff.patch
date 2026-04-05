@@ -1,0 +1,65 @@
+diff --git a/COO/controller/cli.ts b/COO/controller/cli.ts
+index c6e7700..6383475 100644
+--- a/COO/controller/cli.ts
++++ b/COO/controller/cli.ts
+@@ -19,6 +19,7 @@ import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationU
+ import { createLLMProvenance } from "../../shared/provenance/types.js";
+ import { MemoryEngineClient } from "./memory-engine-client.js";
+ import { createSystemProvenance } from "../../shared/provenance/types.js";
++import { buildExecutiveStatusCommand } from "./status-command.js";
+ 
+ let shuttingDown = false;
+ 
+@@ -26,9 +27,19 @@ async function main() {
+   const startupStartedAt = Date.now();
+   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
+   const args = parseCliArgs(process.argv.slice(2));
++  const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
++  const phase1DocsDir = resolveRuntimeDir(process.env.ADF_COO_PHASE1_DOCS_DIR, resolve(projectRoot, "docs", "phase1"));
++  if (args.status) {
++    const status = await buildExecutiveStatusCommand({
++      threadsDir,
++      phase1DocsDir,
++      sourcePartition: args.testProofMode ? "proof" : "production",
++    });
++    console.log(status.rendered);
++    return;
++  }
+   assertProofInvokerIsolation(args);
+   const onionEnabled = resolveOnionGate(args);
+-  const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
+   const promptsDir = resolveRuntimeDir(process.env.ADF_COO_PROMPTS_DIR, resolve(projectRoot, "COO/intelligence"));
+   const memoryDir = resolveRuntimeDir(process.env.ADF_COO_MEMORY_DIR, resolve(projectRoot, "memory"));
+   const telemetryOutboxPath = resolve(memoryDir, "telemetry-outbox.json");
+@@ -501,12 +512,14 @@ function parseCliArgs(argv: string[]): {
+   scopePath?: string;
+   enableOnion?: boolean;
+   testProofMode?: boolean;
++  status: boolean;
+ } {
+   let threadId: string | undefined;
+   let resumeLast = false;
+   let scopePath: string | undefined;
+   let enableOnion: boolean | undefined;
+   let testProofMode: boolean | undefined;
++  let status = false;
+ 
+   for (let i = 0; i < argv.length; i++) {
+     const arg = argv[i];
+@@ -524,6 +537,8 @@ function parseCliArgs(argv: string[]): {
+       enableOnion = false;
+     } else if (arg === "--test-proof-mode") {
+       testProofMode = true;
++    } else if (arg === "--status") {
++      status = true;
+     }
+   }
+ 
+@@ -533,6 +548,7 @@ function parseCliArgs(argv: string[]): {
+     scopePath,
+     enableOnion,
+     testProofMode,
++    status,
+   };
+ }
+ 

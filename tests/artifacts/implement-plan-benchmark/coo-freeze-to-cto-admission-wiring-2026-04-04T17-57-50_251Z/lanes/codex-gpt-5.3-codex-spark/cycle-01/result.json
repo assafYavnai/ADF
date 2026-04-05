@@ -1,0 +1,64 @@
+{
+  "provenance": {
+    "invocation_id": "422e69e1-7eb8-4793-9c10-fd01e41273c8",
+    "provider": "codex",
+    "model": "gpt-5.3-codex-spark",
+    "reasoning": "medium",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.3-codex-spark/cycle-01",
+    "timestamp": "2026-04-04T18:01:23.606Z"
+  },
+  "response": "Benchmark lane report (codex-gpt-5.3-codex-spark, review cycle 1 of 6)\n\nSummary\n- Implemented the coo-freeze-to-cto-admission-wiring slice in the current worktree.\n- Added the required integration test file and updated the phase completion summary.\n- Left implementation and tests only under allowed-edit paths.\n- No merge/push actions were performed.\n\nChanged files\n- tests/integration/coo-freeze-to-cto-admission-wiring.test.ts (new)\n- docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md (updated)\n\nVerification commands\n- npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts\n- npx.cmd tsx tests/integration/onion-route.runtime-proof.ts\n\nVerification outcome\n- Integration tests: passed (33 tests, 33 passed).\n- Runtime proof: passed (exit code 0, no assertion failure observed in run output).\n\nOpen risks\n- An untracked .codex/runtime directory remains in worktree from environment/runtime activity; it was not modified by this lane and may need repo-clean handling if strict cleanliness is required.",
+  "latency_ms": 174247,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "session_id": "019d59a5-7fd3-7f32-bf77-84d13b7b5553",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 3426,
+    "response_chars": 1102,
+    "tokens_in_estimated": 857,
+    "tokens_out_estimated": 276,
+    "token_estimation_basis": "char_heuristic_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "422e69e1-7eb8-4793-9c10-fd01e41273c8",
+        "provider": "codex",
+        "model": "gpt-5.3-codex-spark",
+        "reasoning": "medium",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.3-codex-spark/cycle-01",
+        "timestamp": "2026-04-04T18:01:23.606Z"
+      },
+      "latency_ms": 174247,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 3426,
+        "response_chars": 1102,
+        "tokens_in_estimated": 857,
+        "tokens_out_estimated": 276,
+        "token_estimation_basis": "char_heuristic_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_lane_id": "codex-gpt-5.3-codex-spark",
+        "benchmark_task_summary": "Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.",
+        "benchmark_target_slug": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

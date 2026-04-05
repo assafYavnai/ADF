@@ -1,0 +1,23 @@
+Summary: Wired the live COO executive-status slice into the runtime. The briefing layer now reads live thread, requirement, CTO-admission, and implement-plan sources without `zod`, the CLI renders the executive brief at startup and via `/status`, and the benchmark integration test covers full and mixed-partition cases.
+
+Changed files:
+- `COO/briefing/types.ts`
+- `COO/briefing/index.ts`
+- `COO/briefing/live-source-facts.ts`
+- `COO/briefing/live-status.ts`
+- `COO/controller/cli.ts`
+- `tests/integration/coo-live-executive-status-wiring.test.ts`
+- `docs/phase1/coo-live-executive-status-wiring/completion-summary.md`
+
+Verification:
+- `npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts`
+
+Outcome:
+- Passed: 38 tests
+- The live executive brief renders all four sections in the correct order
+- Missing source families remain distinguishable from empty bundles
+- KPI metrics are recorded on the live status path
+
+Open risks:
+- The live collector uses best-effort JSON shape parsing, so future source-shape drift may require parser updates
+- Startup `/status` wiring was machine-verified only in this benchmark; no human readability check was run

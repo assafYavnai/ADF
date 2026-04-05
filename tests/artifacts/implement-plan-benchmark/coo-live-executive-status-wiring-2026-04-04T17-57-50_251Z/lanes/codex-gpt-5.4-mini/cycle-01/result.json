@@ -1,0 +1,68 @@
+{
+  "provenance": {
+    "invocation_id": "f4252224-0ec2-4b21-969a-0145695d0343",
+    "provider": "codex",
+    "model": "gpt-5.4-mini",
+    "reasoning": "high",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.4-mini/cycle-01",
+    "timestamp": "2026-04-04T18:11:04.251Z"
+  },
+  "response": "Summary\n- Implemented the live executive status wiring slice by adding a controller-side live adapter, extending briefing KPI support for live source diagnostics, and exposing the brief through `COO/controller/cli.ts` via `--status`.\n- The runtime now renders the 4 business sections from live filesystem state, degrades gracefully for partial/empty sources, and stays derived-only.\n- No push, merge, or human verification was performed, per benchmark rules.\n\nChanged files\n- `COO/controller/live-status.ts`\n- `COO/controller/cli.ts`\n- `COO/briefing/types.ts`\n- `COO/briefing/kpi.ts`\n- `tests/integration/coo-live-executive-status-wiring.test.ts`\n- `docs/phase1/coo-live-executive-status-wiring/context.md`\n- `docs/phase1/coo-live-executive-status-wiring/completion-summary.md`\n\nVerification commands\n- `npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts`\n- `npx.cmd tsx COO/controller/cli.ts --status`\n\nVerification outcome\n- Passed: `39` tests total, `39` passed, `0` failed.\n- CLI smoke passed and rendered a business-level executive brief from live state.\n- Mixed, partial, and empty source scenarios were covered; source mutation proof also passed.\n\nOpen risks\n- Human verification was intentionally skipped for this benchmark run.\n- The live adapter currently covers filesystem-backed COO threads plus phase1 implement-plan truth; any new live source family will need another wiring pass.",
+  "latency_ms": 755023,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.4-mini",
+      "session_id": "019d59a5-7f07-7ab2-8bf0-aff78fd19ab0",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 3305,
+    "response_chars": 1458,
+    "tokens_in_estimated": 827,
+    "tokens_out_estimated": 365,
+    "estimated_cost_usd": 0.00961,
+    "token_estimation_basis": "char_heuristic_v1",
+    "cost_estimation_basis": "configured_model_rate_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "f4252224-0ec2-4b21-969a-0145695d0343",
+        "provider": "codex",
+        "model": "gpt-5.4-mini",
+        "reasoning": "high",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.4-mini/cycle-01",
+        "timestamp": "2026-04-04T18:11:04.251Z"
+      },
+      "latency_ms": 755023,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 3305,
+        "response_chars": 1458,
+        "tokens_in_estimated": 827,
+        "tokens_out_estimated": 365,
+        "estimated_cost_usd": 0.00961,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "codex-gpt-5.4-mini",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

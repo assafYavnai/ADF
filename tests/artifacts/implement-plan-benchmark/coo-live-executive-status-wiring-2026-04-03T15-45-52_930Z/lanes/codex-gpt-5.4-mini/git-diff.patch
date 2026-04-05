@@ -1,0 +1,97 @@
+diff --git a/COO/briefing/types.ts b/COO/briefing/types.ts
+index bd16f35..4b56826 100644
+--- a/COO/briefing/types.ts
++++ b/COO/briefing/types.ts
+@@ -38,6 +38,16 @@ export interface BriefOpenDecision {
+   status: "open" | "resolved";
+ }
+ 
++export type BriefSourceFamily = "thread_onion" | "finalized_requirement" | "cto_admission" | "implement_plan";
++
++export interface BriefSourceFamilyAvailability {
++  family: BriefSourceFamily;
++  available: boolean;
++  itemCount: number;
++  collectedAt: string;
++  freshnessAgeMs: number;
++}
++
+ export interface BriefSourceFacts {
+   /** When these facts were collected (ISO-8601) */
+   collectedAt: string;
+@@ -47,6 +57,12 @@ export interface BriefSourceFacts {
+   globalOpenLoops: string[];
+   /** Source system identifier for isolation/partition proof */
+   sourcePartition: "production" | "proof" | "mixed";
++  /** Optional source-family availability for live collectors */
++  sourceAvailability?: BriefSourceFamilyAvailability[];
++  /** Optional age of the freshest live source family */
++  sourceFreshnessAgeMs?: number;
++  /** Optional count of missing live source families */
++  sourceAdapterMissingSourceCount?: number;
+ }
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/COO/controller/cli.ts b/COO/controller/cli.ts
+index c6e7700..2a24e29 100644
+--- a/COO/controller/cli.ts
++++ b/COO/controller/cli.ts
+@@ -19,6 +19,7 @@ import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationU
+ import { createLLMProvenance } from "../../shared/provenance/types.js";
+ import { MemoryEngineClient } from "./memory-engine-client.js";
+ import { createSystemProvenance } from "../../shared/provenance/types.js";
++import { collectAndBuildLiveExecutiveStatus } from "../briefing/index.js";
+ 
+ let shuttingDown = false;
+ 
+@@ -201,6 +202,10 @@ async function main() {
+   console.log(`LLM invoker: ${args.testProofMode ? "test-proof-mode (guarded)" : "live"}`);
+   console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.\n");
+ 
++  if (process.stdin.isTTY) {
++    await renderLiveExecutiveStatus(projectRoot, threadsDir, args.testProofMode ? "proof" : "production");
++  }
++
+   if (!process.stdin.isTTY) {
+     await runScriptedSession(config, brainClient, threadId, configuredScope, {
+       ...runtimeTelemetryContext,
+@@ -268,6 +273,11 @@ async function main() {
+       return;
+     }
+ 
++    if (input === "/status") {
++      await renderLiveExecutiveStatus(projectRoot, threadsDir, args.testProofMode ? "proof" : "production");
++      return;
++    }
++
+     if (multilineMode) {
+       if (input === "/cancel") {
+         multilineMode = false;
+@@ -545,6 +555,27 @@ function resolveOnionGate(args: { enableOnion?: boolean }): boolean {
+   return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+ }
+ 
++async function renderLiveExecutiveStatus(
++  projectRoot: string,
++  threadsDir: string,
++  sourcePartition: "production" | "proof",
++): Promise<void> {
++  try {
++    const result = await collectAndBuildLiveExecutiveStatus({
++      projectRoot,
++      threadsDir,
++      docsPhase1Dir: resolve(projectRoot, "docs", "phase1"),
++      sourcePartition,
++    });
++    console.log("\nLive COO executive status:\n");
++    console.log(result.rendered);
++    console.log("");
++  } catch (err) {
++    const message = err instanceof Error ? err.message : String(err);
++    console.error(`Live COO executive status unavailable: ${message}`);
++  }
++}
++
+ async function findLatestThreadId(threadsDir: string): Promise<string | null> {
+   try {
+     const entries = await readdir(threadsDir);

@@ -1,0 +1,51 @@
+{
+  "lane": {
+    "id": "claude-sonnet-4.6",
+    "display_name": "Claude Sonnet 4.6",
+    "cli": "claude",
+    "model": "sonnet-4.6",
+    "effort": "high",
+    "bypass": true,
+    "timeout_ms": 1200000
+  },
+  "cycle_number": 1,
+  "error_message": "claude failed (exit 1): ",
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "1a235648-0395-438f-86ce-0de6cdc1b024",
+        "provider": "claude",
+        "model": "sonnet-4.6",
+        "reasoning": "high",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/claude-sonnet-4.6/cycle-01",
+        "timestamp": "2026-04-04T17:58:35.447Z"
+      },
+      "latency_ms": 5835,
+      "success": false,
+      "session_status": "fresh",
+      "error_message": "claude failed (exit 1): ",
+      "usage": {
+        "prompt_chars": 3303,
+        "response_chars": 0,
+        "tokens_in_estimated": 826,
+        "tokens_out_estimated": 1,
+        "estimated_cost_usd": 0.002493,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "claude-sonnet-4.6",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+summary:
+- Completed the slice in this lane by adding the required integration wiring test and extending live onion proof coverage for reopened-scope reset behavior.
+- Updated slice documentation with this benchmark cycle delta.
+
+changed files:
+- COO/requirements-gathering/live/onion-live.test.ts
+- tests/integration/coo-freeze-to-cto-admission-wiring.test.ts
+- docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md
+
+verification commands:
+- npx.cmd tsx --test COO/requirements-gathering/live/onion-live.test.ts tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts
+- npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts
+- npx.cmd tsx tests/integration/onion-route.runtime-proof.ts
+
+verification outcome:
+- Pass. All commands exited with code 0.
+- Combined targeted test run: 33 passed, 0 failed.
+- Harness freeze wiring integration run: 30 passed, 0 failed.
+- Onion route runtime proof completed successfully (report emitted, no command failure).
+
+open risks:
+- New integration coverage is focused on wiring/status truth paths; it does not re-assert every KPI field at onion-route level (existing route/runtime proofs still cover KPI surfaces).
+- `project-brain` MCP tool calls were not available in this Codex runtime, so Brain context/memory capture via MCP could not be executed in-lane.

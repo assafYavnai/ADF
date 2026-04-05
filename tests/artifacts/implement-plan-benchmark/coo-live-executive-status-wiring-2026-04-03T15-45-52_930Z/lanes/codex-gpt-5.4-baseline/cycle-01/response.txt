@@ -1,0 +1,17 @@
+Summary: Wired the executive brief into a live repo-backed status surface. Added a filesystem source adapter for thread/onion, finalized-requirement, CTO-admission, and implement-plan artifacts; added a bounded `--status` CLI route with freshness/coverage notes; added integration proof that mixed-source rendering works, missing sources are distinguishable from empty state, and source files are not mutated.
+
+Changed files:
+- COO/briefing/live-source-facts.ts
+- COO/controller/status-command.ts
+- COO/controller/cli.ts
+- tests/integration/coo-live-executive-status-wiring.test.ts
+- docs/phase1/coo-live-executive-status-wiring/completion-summary.md
+
+Verification commands:
+- npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts
+
+Verification outcome: Pass. 38/38 tests passed, including the required live executive status harness test.
+
+Open risks:
+- Cross-source correlation is best-effort and currently depends on feature slug, scope-path tail, or topic slug alignment.
+- Runtime preflight still reports a blocked Brain MCP route, and `adf.cmd --install` fails in this worktree with `memory_engine_needs_build` / `coo_needs_build`, so the live status route is repo-file-backed rather than Brain-backed for finalized-requirement truth.

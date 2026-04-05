@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "results": [
+    {
+      "id": "live-exec-status-tests",
+      "label": "live executive status tests",
+      "command": "npx.cmd",
+      "args": [
+        "tsx",
+        "--test",
+        "COO/briefing/executive-brief.test.ts",
+        "tests/integration/coo-live-executive-status-wiring.test.ts"
+      ],
+      "cwd": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-live-executive-status-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-live-executive-status-wiring\\codex-gpt-5.4-mini",
+      "optional": false,
+      "status": "passed",
+      "exit_code": 0,
+      "latency_ms": 870,
+      "stdout": "✔ normal in-flight: renders all 4 sections (1.0742ms)\n✔ normal in-flight: no issues (nothing blocked) (0.1308ms)\n✔ normal in-flight: one feature on the table (has open decisions) (0.091ms)\n✔ normal in-flight: two features in motion (0.0887ms)\n✔ normal in-flight: whats next includes both active features (0.0989ms)\n✔ normal in-flight: parity matches (0.1102ms)\n✔ normal in-flight: deterministic rendering (0.0962ms)\n✔ blocked: issues section surfaces blocked feature concretely (0.1252ms)\n✔ blocked: global open loop appears in issues (0.1476ms)\n✔ blocked: blocked feature does not appear in motion (0.1412ms)\n✔ blocked: blocked feature does not appear in whats next (0.0747ms)\n✔ blocked: healthy feature still in motion (0.0723ms)\n✔ blocked: rendered output includes blocker details not generic status (0.058ms)\n✔ blocked: parity matches (0.054ms)\n✔ blocked: deterministic rendering (0.0914ms)\n✔ empty: renders all 4 sections with empty-state text (0.0564ms)\n✔ empty: all sections have zero items (0.0366ms)\n✔ empty: metadata completeness is 1 for zero features (0.1052ms)\n✔ empty: parity matches (0.0511ms)\n✔ empty: deterministic rendering (0.0366ms)\n✔ closeout: finalized feature absent from whats next (0.0529ms)\n✔ closeout: not-finalized completed feature appears in whats next (0.0512ms)\n✔ closeout: completed features not in motion (0.0333ms)\n✔ closeout: no issues in quiet closeout state (0.0279ms)\n✔ closeout: parity matches (0.0266ms)\n✔ closeout: deterministic rendering (0.0485ms)\n✔ kpi: buildAndRenderWithKpi records metrics (0.2301ms)\n✔ kpi: report aggregates after multiple builds (0.2779ms)\n✔ kpi: slow buckets are zero for fast builds (0.0794ms)\n✔ partition: proof partition is preserved in output (0.0379ms)\n✔ partition: production partition is preserved when set (0.0376ms)\n✔ partition: mixed partition coexistence (0.0313ms)\n✔ parity detection: would detect missing issue if blocker not surfaced (0.0599ms)\n✔ parity detection: table parity for normal in-flight (0.0478ms)\n✔ parity detection: in-motion parity for blocked scenario (0.0338ms)\n✔ parity detection: whats-next parity for closeout (0.0352ms)\n✔ live executive status: renders mixed live sources without leaking internal state (15.1901ms)\n✔ live executive status: partial sources degrade gracefully (2.5207ms)\n✔ live executive status: empty sources still render all sections (0.6006ms)\nℹ tests 39\nℹ suites 0\nℹ pass 39\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 254.8285",
+      "stderr": "",
+      "error_message": null,
+      "blocker_kind": null
+    }
+  ],
+  "failures": [],
+  "blocker_kind": null,
+  "blocker_reason": null
+}
