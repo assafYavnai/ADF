@@ -1,18 +1,24 @@
-# coo-live-executive-status-wiring — Context
+# coo-live-executive-status-wiring - Context
 
 ## Purpose
-This slice makes the merged `COO/briefing/**` package visible in the live COO runtime so the CEO can get a real executive status surface.
+Make the COO runtime expose one live leadership status surface built from the merged `COO/briefing/**` and `COO/table/**` packages.
 
 ## Why It Exists
-- The briefing package exists but is still standalone.
-- Phase 1 still lacks a strong live answer to "what is on our table?"
-- The live status surface should consume admission truth when present and degrade gracefully when it is not.
+
+- The briefing package is merged but still standalone.
+- The company-table package exists but is not yet the live runtime answer.
+- The CEO still cannot ask the live COO for a trustworthy business-level status surface.
 
 ## Key Constraints
+
 - Keep the briefing layer derived-only.
-- Do not mutate source truth while building the brief.
+- Keep the table layer derived-only.
+- Do not mutate source truth while building the live surface.
 - Keep the output business-level and concise.
 - Human verification is required because this becomes a real CEO-facing surface.
 
+## Execution Note
+Treat `company-table-queue-read-model` as upstream substrate, not as a second runtime-wiring project. This slice owns the live wiring path and must consume the table package rather than duplicating or replacing it.
+
 ## Dependency Note
-This slice should run after the freeze-to-admission wiring slice if possible, so the live status surface can read real admission-state truth. It should still degrade gracefully if admission artifacts are not present yet.
+This slice should read real CTO-admission truth when present, especially from the already-merged freeze-to-admission wiring path. It must still degrade gracefully if admission artifacts are missing or partially available.

@@ -3,7 +3,13 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { governedStateWrite } from "../../governed-feature-runtime.mjs";
+
+const __scriptPath = fileURLToPath(import.meta.url);
+const __skillRoot = dirname(dirname(__scriptPath));
+const __skillsRoot = dirname(__skillRoot);
+const __implementPlanHelperPath = join(__skillsRoot, "implement-plan", "scripts", "implement-plan-helper.mjs");
 
 const REQUIRED_ARTIFACTS = [
   "audit-findings.md",
@@ -80,6 +86,7 @@ const ACCESS_MODES = new Set([
   "native_full_access",
   "native_elevated_permissions",
   "codex_cli_full_auto_bypass",
+  "claude_code_skip_permissions",
   "inherits_current_runtime_access",
   "interactive_fallback"
 ]);
@@ -88,6 +95,7 @@ const ACCESS_MODE_RANK = {
   native_full_access: 50,
   native_elevated_permissions: 40,
   codex_cli_full_auto_bypass: 30,
+  claude_code_skip_permissions: 30,
   inherits_current_runtime_access: 20,
   interactive_fallback: 10
 };
@@ -95,6 +103,7 @@ const ACCESS_MODE_RANK = {
 const RUNTIME_PERMISSION_MODELS = new Set([
   "native_explicit_full_access",
   "codex_cli_explicit_full_auto",
+  "claude_code_skip_permissions",
   "native_inherited_access_only",
   "interactive_or_limited"
 ]);
@@ -102,6 +111,7 @@ const RUNTIME_PERMISSION_MODELS = new Set([
 const EXECUTION_RUNTIMES = new Set([
   "native_agent_tools",
   "codex_cli_exec",
+  "claude_code_exec",
   "artifact_continuity_only"
 ]);
 
@@ -264,7 +274,16 @@ async function main() {
     return;
   }
 
-  fail("Unknown command '" + command + "'. Use 'help', 'get-settings', 'list-features', 'prepare', 'update-state', 'record-event', or 'cycle-summary'.");
+  if (command === "normalize-closeout-artifacts") {
+    printJson(await normalizeCloseoutArtifacts({
+      phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
+      featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug")),
+      repoRoot: normalizeRepoRoot(args.values["repo-root"] ?? "C:/ADF")
+    }));
+    return;
+  }
+
+  fail("Unknown command '" + command + "'. Use 'help', 'get-settings', 'list-features', 'prepare', 'update-state', 'record-event', 'cycle-summary', or 'normalize-closeout-artifacts'.");
 }
 
 async function renderHelp(input) {
@@ -803,6 +822,17 @@ async function recordEvent(input) {
     note: input.note
   });
 
+  // When closeout-finished is recorded and both lanes approved,
+  // automatically normalize completion-summary.md before state is saved.
+  let closeoutNormalization = null;
+  if (input.event === "closeout-finished") {
+    const auditorVerdict = synced.cycle_runtime?.lane_verdicts?.auditor ?? "unknown";
+    const reviewerVerdict = synced.cycle_runtime?.lane_verdicts?.reviewer ?? "unknown";
+    if (auditorVerdict === "approve" && reviewerVerdict === "approve") {
+      closeoutNormalization = await runCloseoutNormalization(input.repoRoot, input.phaseNumber, input.featureSlug);
+    }
+  }
+
   if (input.currentBranch !== null) synced.current_branch = emptyToNull(input.currentBranch);
   if (input.lastCommitSha !== null) synced.last_commit_sha = emptyToNull(input.lastCommitSha);
 
@@ -822,7 +852,8 @@ async function recordEvent(input) {
     cycle_dir: normalizeSlashes(cycleDir),
     state: synced,
     registry_entry: registrySync.entry,
-    state_repairs: existing.repairs
+    state_repairs: existing.repairs,
+    closeout_normalization: closeoutNormalization
   };
 }
 
@@ -910,6 +941,155 @@ async function cycleSummary(input) {
     split_review_continuity: stateLoad.state.split_review_continuity,
     state_repairs: stateLoad.repairs
   };
+}
+
+async function runCloseoutNormalization(repoRoot, phaseNumber, featureSlug) {
+  const worktreeRoot = resolveWorktreeRoot(repoRoot, phaseNumber, featureSlug);
+  const projectRootForHelper = (await pathExists(resolve(worktreeRoot, ".git")))
+    ? worktreeRoot
+    : repoRoot;
+
+  const result = spawnSync("node", [
+    __implementPlanHelperPath,
+    "normalize-completion-summary",
+    "--project-root", projectRootForHelper,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug
+  ], {
+    cwd: projectRootForHelper,
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 60000
+  });
+
+  if (result.status !== 0) {
+    return {
+      success: false,
+      error: (result.stderr || result.stdout || "normalize-completion-summary failed.").trim()
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(result.stdout);
+    return {
+      success: parsed.validation?.valid === true,
+      already_valid: parsed.already_valid ?? false,
+      normalized: parsed.normalized ?? false,
+      completion_summary_path: parsed.completion_summary_path ?? null,
+      error: parsed.validation?.valid === true ? null : (parsed.validation?.error ?? "Unknown normalization failure.")
+    };
+  } catch {
+    return {
+      success: false,
+      error: "Failed to parse normalize-completion-summary output."
+    };
+  }
+}
+
+async function normalizeCloseoutArtifacts(input) {
+  const featureRoot = await resolveWorktreeAwareFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
+  const statePath = join(featureRoot, "review-cycle-state.json");
+  const registryLoad = await loadRegistry(input.repoRoot);
+  const registryKey = buildRegistryKey(input.phaseNumber, input.featureSlug);
+  const registryEntry = registryLoad.registry.features[registryKey] ?? null;
+
+  const stateLoad = await loadOrInitializeState({
+    statePath,
+    phaseNumber: input.phaseNumber,
+    featureSlug: input.featureSlug,
+    repoRoot: input.repoRoot,
+    auditorModel: null,
+    reviewerModel: null,
+    auditorReasoningEffort: null,
+    reviewerReasoningEffort: null,
+    currentBranch: null,
+    registryKey,
+    registryEntry
+  });
+
+  const state = stateLoad.state;
+  const runtime = state.cycle_runtime;
+  const auditorVerdict = runtime?.lane_verdicts?.auditor ?? "unknown";
+  const reviewerVerdict = runtime?.lane_verdicts?.reviewer ?? "unknown";
+  const isApproval = auditorVerdict === "approve" && reviewerVerdict === "approve";
+
+  if (!isApproval) {
+    return {
+      command: "normalize-closeout-artifacts",
+      feature_root: normalizeSlashes(featureRoot),
+      skipped: true,
+      reason: "Current cycle is not an approval (auditor=" + auditorVerdict + ", reviewer=" + reviewerVerdict + "). Normalization is only required for approval closeout.",
+      normalization_result: null
+    };
+  }
+
+  const worktreeRoot = resolveWorktreeRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
+  const projectRootForHelper = (await pathExists(resolve(worktreeRoot, ".git")))
+    ? worktreeRoot
+    : input.repoRoot;
+
+  const result = spawnSync("node", [
+    __implementPlanHelperPath,
+    "normalize-completion-summary",
+    "--project-root", projectRootForHelper,
+    "--phase-number", String(input.phaseNumber),
+    "--feature-slug", input.featureSlug
+  ], {
+    cwd: projectRootForHelper,
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 60000
+  });
+
+  if (result.status !== 0) {
+    const errorMessage = (result.stderr || result.stdout || "normalize-completion-summary failed.").trim();
+    return {
+      command: "normalize-closeout-artifacts",
+      feature_root: normalizeSlashes(featureRoot),
+      skipped: false,
+      reason: null,
+      normalization_result: {
+        success: false,
+        error: errorMessage
+      }
+    };
+  }
+
+  let parsed = null;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch {
+    return {
+      command: "normalize-closeout-artifacts",
+      feature_root: normalizeSlashes(featureRoot),
+      skipped: false,
+      reason: null,
+      normalization_result: {
+        success: false,
+        error: "Failed to parse normalize-completion-summary output."
+      }
+    };
+  }
+
+  return {
+    command: "normalize-closeout-artifacts",
+    feature_root: normalizeSlashes(featureRoot),
+    skipped: false,
+    reason: null,
+    normalization_result: {
+      success: parsed.validation?.valid === true,
+      already_valid: parsed.already_valid ?? false,
+      normalized: parsed.normalized ?? false,
+      completion_summary_path: parsed.completion_summary_path ?? null,
+      validation: parsed.validation ?? null,
+      error: parsed.validation?.valid === true ? null : (parsed.validation?.error ?? "Unknown normalization failure.")
+    }
+  };
+}
+
+function resolveWorktreeRoot(repoRoot, phaseNumber, featureSlug) {
+  const slugSegments = featureSlug.split("/").map((s) => sanitizePathSegmentLocal(s));
+  return resolve(repoRoot, ".codex", "implement-plan", "worktrees", "phase" + phaseNumber, ...slugSegments);
 }
 
 function applyEvent(input) {
@@ -1666,6 +1846,10 @@ function validateSetupData(data, repoRoot) {
   if (normalized.preferred_execution_access_mode === "codex_cli_full_auto_bypass"
     && normalized.preferred_execution_runtime !== "codex_cli_exec") {
     errors.push("preferred_execution_runtime must be 'codex_cli_exec' when preferred_execution_access_mode is 'codex_cli_full_auto_bypass'.");
+  }
+  if (normalized.preferred_execution_access_mode === "claude_code_skip_permissions"
+    && normalized.preferred_execution_runtime !== "claude_code_exec") {
+    errors.push("preferred_execution_runtime must be 'claude_code_exec' when preferred_execution_access_mode is 'claude_code_skip_permissions'.");
   }
 
   if (!Array.isArray(normalized.project_specific_permission_rules)) {

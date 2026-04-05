@@ -9,6 +9,7 @@ export const ACCESS_MODES = new Set([
   "native_full_access",
   "native_elevated_permissions",
   "codex_cli_full_auto_bypass",
+  "claude_code_skip_permissions",
   "inherits_current_runtime_access",
   "interactive_fallback"
 ]);
@@ -17,6 +18,7 @@ export const ACCESS_MODE_RANK = {
   native_full_access: 50,
   native_elevated_permissions: 40,
   codex_cli_full_auto_bypass: 30,
+  claude_code_skip_permissions: 30,
   inherits_current_runtime_access: 20,
   interactive_fallback: 10
 };
@@ -24,6 +26,7 @@ export const ACCESS_MODE_RANK = {
 export const RUNTIME_PERMISSION_MODELS = new Set([
   "native_explicit_full_access",
   "codex_cli_explicit_full_auto",
+  "claude_code_skip_permissions",
   "native_inherited_access_only",
   "interactive_or_limited"
 ]);
@@ -31,6 +34,7 @@ export const RUNTIME_PERMISSION_MODELS = new Set([
 export const EXECUTION_RUNTIMES = new Set([
   "native_agent_tools",
   "codex_cli_exec",
+  "claude_code_exec",
   "artifact_continuity_only"
 ]);
 

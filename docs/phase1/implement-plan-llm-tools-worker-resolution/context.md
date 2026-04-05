@@ -48,6 +48,23 @@ The contract should say: "To spawn a non-default worker, use `bash -c '<autonomo
 
 The prepare output should include `available_workers` at the top level so the orchestrator can inspect it before deciding which tool to use.
 
+### Provider-specific reasoning metadata must stay truthful
+
+- `reasoning_effort` is currently modeled as shared worker-selection metadata, but Claude lanes do not use the Codex `xhigh` vocabulary.
+- The helper must not carry Codex-style reasoning metadata into a Claude worker through persisted continuity or setup defaults.
+- Invalid bare-flag values such as `"true"` must normalize away instead of persisting into feature continuity.
+
+### Provider truth must come from selected worker configuration on first run
+
+- A fresh helper run cannot rely only on current-shell environment markers to know which worker provider is selected.
+- When runtime, access mode, or model already identify the worker target, provider truth must be derived from that selected worker configuration on the first prepare/live-contract pass.
+- Persisted continuity may reinforce provider truth later, but it must not be the first source of truth for a fresh Claude-targeted route.
+
+### Shared validator surfaces must stay aligned
+
+- The shared governed runtime, implement-plan helper surfaces, review-cycle validator surfaces, and repo-owned setup/workflow contracts must agree on the accepted access-mode/runtime enum set.
+- When Claude-specific worker/runtime values are accepted in code, the same values must be accepted by sibling validators and listed in authoritative contracts in the same cycle.
+
 ## Discovered Authorities
 
 - [preflight] C:/ADF/tools/agent-runtime-preflight.mjs (llm_tools section)

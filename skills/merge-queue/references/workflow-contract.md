@@ -52,6 +52,8 @@ Rules:
 - fetch before merge
 - land the exact approved commit into a temporary merge worktree based on the latest target branch reference
 - re-check the approved branch delta before merge and block the request if `.codex/*/setup.json` is added or modified
+- validate closeout readiness before merge: `completion-summary.md` must exist and satisfy the required heading contract, and the feature must not already be completed
+- block the request before merge/push when closeout readiness is invalid
 - do not start a queued request on a `base_branch` lane while another request in that same lane is already `in_progress`
 - push only after a clean merge
 - on success, update implement-plan merge state, attempt safe local target sync, and mark the feature completed
