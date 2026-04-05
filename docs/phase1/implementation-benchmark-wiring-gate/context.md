@@ -10,11 +10,11 @@
 
 ## Task Summary
 
-Implement Spec 3: create the wiring and compatibility gate that proves Spec 1 and Spec 2 speak the same contract, preserve the same runtime semantics, and can be integrated without hidden bridge logic.
+Implement Spec 3: create the strict post-merge compatibility audit/remediation gate that verifies whether Spec 1 and Spec 2 — both already on main — speak the same contract, preserve the same runtime semantics, and are integrated without hidden bridge logic. Spec 2 was originally intended to remain off main until Spec 3 passed; since Spec 2 already landed, Spec 3 now audits the current repo state. If compatibility fails, the truthful outcome is remediation or rollback decision, not silent acceptance.
 
 ## Scope Hint
 
-A narrow compatibility/validation layer plus the feature artifacts needed to drive governed implementation and fail-closed dry-run checks.
+A narrow compatibility/validation layer plus the feature artifacts needed to drive governed implementation and fail-closed dry-run checks against the Spec 1 + Spec 2 combination already on main.
 
 ## Non-Goals
 

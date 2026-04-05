@@ -42,9 +42,9 @@ Machine Verification:
 
 Human Verification Requirement: false
 Human Verification Status: not required
-Review-Cycle Status: pending (post_send_to_review=true, review_until_complete=true, max_cycles=5)
-Merge Status: not_ready (pending review-cycle completion)
-Local Target Sync Status: not_started
+Review-Cycle Status: completed (cycle-01 approved)
+Merge Status: merged (merge commit 5373b2094df6d2160787c79f5513800cd2a6396e on main)
+Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
@@ -54,7 +54,10 @@ Local Target Sync Status: not_started
 
 6. Commit And Push Result
 
-Pending — commit and push will follow this artifact write.
+- Approved feature commit: d62a9a0
+- Merge commit: 5373b2094df6d2160787c79f5513800cd2a6396e
+- Push: success to origin/main
+- Note: Spec 2 is already on main. The original intended sequence was for Spec 2 to stay off main until Spec 3 passed. Since Spec 2 landed first, Spec 3 now acts as the compatibility/wiring gate for current repo readiness, not as a historical pre-merge gate for Spec 2. Future production reliance on the benchmark path remains gated by Spec 3 results.
 
 7. Remaining Non-Goals / Debt
 

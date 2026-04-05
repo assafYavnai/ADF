@@ -1,10 +1,18 @@
 1. Implementation Objective
 
-Create the required wiring and compatibility gate that proves the upgraded `implement-plan` path and the new benchmarking skill speak the same contract, support the same runtime semantics, and can be integrated without ad hoc bridge logic.
+Create the required wiring and compatibility gate that proves the upgraded `implement-plan` path (Spec 1) and the new benchmarking skill (Spec 2) speak the same contract, support the same runtime semantics, and can be integrated without ad hoc bridge logic.
+
+Sequencing Note:
+- Original intended sequence: Spec 2 was intended to remain off main until Spec 3 passed.
+- Current repo state: Spec 2 is already merged on main (merge commit 5373b2094df6d2160787c79f5513800cd2a6396e).
+- Therefore Spec 3 now acts as a strict post-merge compatibility audit/remediation gate for the current repo state, not as a historical pre-merge gate for the already-landed Spec 2.
+- If Spec 3 fails, the truthful outcome is remediation, compatibility gap reporting, or a rollback decision — not silent acceptance.
+- If Spec 3 passes, the benchmark path can be treated as compatibility-cleared for production use.
+- The fail-closed posture and prohibition on hidden bridge logic remain unchanged regardless of merge order.
 
 2. Slice Scope
 
-- This slice is the merger gate. It must dry-run and hard-verify contract/version compatibility, mode behavior, event/KPI semantics, resume/reset semantics, and stop conditions before benchmark wiring is allowed to land on `master`.
+- This slice is the compatibility gate. It must dry-run and hard-verify contract/version compatibility, mode behavior, event/KPI semantics, resume/reset semantics, and stop conditions for the Spec 1 + Spec 2 combination that is already on main.
 - Keep normal mode and benchmarking mode inside one contract vocabulary rather than splitting into separate incompatible schemas.
 - Keep the slice bounded to repo-owned workflow/runtime authorities and this feature root.
 - Preserve the current governed route truths already established in `implement-plan`, `review-cycle`, and `merge-queue`.
@@ -16,7 +24,7 @@ Create the required wiring and compatibility gate that proves the upgraded `impl
 - Dry-run compatibility checks that prove the benchmark skill can consume Spec 1 contracts, that required live push channels can open when requested, that lane planning works, and that KPI or Brain sink policy is enforced truthfully.
 - Hard-stop reporting when either side is missing a required capability or when either side makes incompatible assumptions.
 - No hidden bridge logic: the wiring slice may verify and report, but it may not quietly reinterpret incompatible contracts.
-- A merge gate decision model that allows integration only when Spec 1 is on `master`, Spec 2 implements its required behavior, and compatibility checks all pass.
+- A compatibility gate decision model that determines whether the Spec 1 + Spec 2 combination already on main is truly production-compatible. If compatibility checks all pass, the benchmark path is cleared for production reliance. If any check fails, the gate produces exact remediation requirements or rollback evidence — it does not excuse incompatibility because Spec 2 already landed.
 
 4. Allowed Edits
 
@@ -56,11 +64,11 @@ Human Verification Plan
 
 - Compatibility reports must name each checked capability, pass/fail result, and exact mismatch cause.
 - Dry-run artifacts must be easy to inspect and must clearly separate contract mismatch from environment/bootstrap mismatch.
-- The final gate result must say whether merge is allowed now, blocked pending Spec 1 work, or blocked pending Spec 2 work.
+- The final gate result must say whether the Spec 1 + Spec 2 combination on main is production-compatible now, requires remediation pending Spec 1 work, or requires remediation pending Spec 2 work.
 
 8. Dependencies / Constraints
 
-- This slice is the merger gate, not a repair layer.
+- This slice is the compatibility gate, not a repair layer.
 - Keep it fail-closed and machine-checkable.
 - Reuse the same contract vocabulary and terminal statuses rather than inventing compatibility-only synonyms.
 
