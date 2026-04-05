@@ -155,6 +155,7 @@ Additional setup rules:
 - `preferred_execution_runtime` is the runtime of the worker execution itself
 - `preferred_control_plane_runtime` is the runtime that may orchestrate those workers
 - if `preferred_execution_access_mode` is `codex_cli_full_auto_bypass`, then `preferred_execution_runtime` must be `codex_cli_exec`
+- if `preferred_execution_access_mode` is `claude_code_skip_permissions`, then `preferred_execution_runtime` must be `claude_code_exec`
 - `detected_runtime_capabilities` must be an object
 - `project_specific_permission_rules` must be an array
 - setup must be treated as incomplete if it is missing, unparsable, or internally inconsistent
@@ -165,6 +166,7 @@ Runtime-permission-model values:
 
 - `native_explicit_full_access`
 - `codex_cli_explicit_full_auto`
+- `claude_code_skip_permissions`
 - `native_inherited_access_only`
 - `interactive_or_limited`
 
@@ -173,6 +175,7 @@ Access-mode values:
 - `native_full_access`
 - `native_elevated_permissions`
 - `codex_cli_full_auto_bypass`
+- `claude_code_skip_permissions`
 - `inherits_current_runtime_access`
 - `interactive_fallback`
 
@@ -180,6 +183,7 @@ Execution-runtime values:
 
 - `native_agent_tools`
 - `codex_cli_exec`
+- `claude_code_exec`
 - `artifact_continuity_only`
 
 Persistent-execution-strategy values:
