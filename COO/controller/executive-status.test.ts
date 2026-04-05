@@ -411,6 +411,7 @@ test("live status can hand the evidence pack to the COO agent instead of using t
   assert.match(capturedPrompt, /"tracked_findings"/);
   assert.match(capturedPrompt, /"landed_recently"/);
   assert.match(capturedPrompt, /"rendered_fallback_surface"/);
+  assert.match(capturedPrompt, /Formatting rules:/);
 });
 
 test("tracked issues persist both Brain-backed findings and local ready handoffs for crash continuity", async () => {
@@ -448,6 +449,8 @@ test("tracked issues persist both Brain-backed findings and local ready handoffs
   assert.ok(persistedIssue);
   assert.equal(persistedIssue.readyHandoff.status, "ready_if_approved");
   assert.match(persistedIssue.readyHandoff.id, /^handoff:/);
+  assert.match(persistedIssue.rootCause, /closeout[- ](projection|route) gap/i);
+  assert.match(persistedIssue.systemFix, /(persist run\.kpi_projection token totals|token totals survive into durable closeout truth)/i);
 
   const second = await buildLiveExecutiveStatus({
     projectRoot: tempRoot,

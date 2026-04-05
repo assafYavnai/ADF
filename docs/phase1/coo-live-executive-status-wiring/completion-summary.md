@@ -132,6 +132,8 @@ Smoke observations:
 - the 4 executive sections were present
 - Brain hard-stop did not trigger
 - deep-audit notes, landed-route judgments, missing-source visibility, handoff readiness, and operational footer rendered as expected
+- the KPI issue now lands as a system closeout-route diagnosis, not as a shallow per-feature symptom
+- the current strongest root-cause evidence is that implement-plan computes KPI totals during execution but the closeout projection does not persist them into durable feature truth for some post-rollout landings
 
 7. What Was Intentionally Deferred
 

@@ -50,6 +50,9 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - suspicious route failure
   - contradicted or not provable
 - The implicated worker, component, or route should be identified when failure is real.
+- For KPI gaps, the COO now cross-checks workspace route code against landed slice closeout truth.
+- In the current repo shape, that investigation showed a specific route fault: implement-plan computes KPI totals in `run.kpi_projection`, but some landed feature closeout truth does not persist that projection into durable `implement-plan-state.json`.
+- That means the CEO-facing report should frame the problem as a system closeout-route gap, not as a feature-delivery failure.
 
 ## Deep-Audit Decision - 2026-04-05
 - First run performs a deep audit when no prior valid baseline exists.

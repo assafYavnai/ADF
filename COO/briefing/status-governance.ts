@@ -92,6 +92,8 @@ export interface GovernanceLandedAssessment {
   timingAssessmentLine: string | null;
   cooReadLine: string;
   recommendation: string | null;
+  rootCause: string | null;
+  systemFix: string | null;
   implicatedSubjects: string[];
 }
 
@@ -102,6 +104,8 @@ export interface GovernanceItem {
   summary: string;
   recommendation: string;
   evidenceLine: string;
+  rootCause: string | null;
+  systemFix: string | null;
   classification: GovernanceClassification;
   implicatedSubjects: string[];
 }
@@ -201,6 +205,8 @@ interface TrackedIssueState {
   summary: string;
   recommendation: string;
   evidenceLine: string;
+  rootCause: string | null;
+  systemFix: string | null;
   implicatedSubjects: string[];
   brainFindingId: string | null;
   brainOpenLoopId: string | null;
@@ -248,6 +254,9 @@ interface FeatureGovernanceEvidence {
   implementorModel: string | null;
   implementorRuntime: string | null;
   implementorAccessMode: string | null;
+  statePath: string | null;
+  closeoutHasKpiProjection: boolean;
+  closeoutHasTokenTotals: boolean;
 }
 
 interface DraftFinding {
@@ -257,6 +266,8 @@ interface DraftFinding {
   summary: string;
   recommendation: string;
   evidenceLine: string;
+  rootCause: string | null;
+  systemFix: string | null;
   classification: GovernanceClassification;
   implicatedSubjects: string[];
   severity: "attention" | "table";
@@ -647,6 +658,8 @@ function asTrackedIssues(
       summary: asNonEmptyString(record.summary) ?? "Tracked COO issue.",
       recommendation: asNonEmptyString(record.recommendation) ?? "Review the tracked issue.",
       evidenceLine: asNonEmptyString(record.evidenceLine) ?? "Evidence: derived from sources; freshness unknown; medium confidence.",
+      rootCause: asNonEmptyString(record.rootCause),
+      systemFix: asNonEmptyString(record.systemFix),
       implicatedSubjects: normalizeStringArray(record.implicatedSubjects),
       brainFindingId: asNonEmptyString(record.brainFindingId),
       brainOpenLoopId: asNonEmptyString(record.brainOpenLoopId),
@@ -749,6 +762,9 @@ async function assessLandedFeature(
     governanceEvidence,
   );
   const timingEvaluation = classifyTimingEvidence(completion);
+  const kpiInvestigation = tokenEvaluation.classification === "suspicious"
+    ? await investigateKpiCloseoutGap(projectRoot, feature.id, governanceEvidence)
+    : null;
   const primaryConcern = pickPrimaryConcern(reviewEvaluation, tokenEvaluation, timingEvaluation);
   const classification = pickWorstClassification([
     reviewEvaluation.classification,
@@ -774,6 +790,8 @@ async function assessLandedFeature(
       tokenEvaluation.recommendation,
       timingEvaluation.recommendation,
     ),
+    rootCause: kpiInvestigation?.rootCause ?? null,
+    systemFix: kpiInvestigation?.systemFix ?? null,
     implicatedSubjects: uniqueStrings([
       ...reviewEvaluation.implicatedSubjects,
       ...tokenEvaluation.implicatedSubjects,
@@ -895,7 +913,7 @@ function classifyTokenEvidence(
       classification: "suspicious",
       concern: "kpi",
       line: "KPI check: token cost is unavailable even though KPI capture was already live when this feature landed. This points to a gap in the durable closeout evidence, not a delivery blocker.",
-      recommendation: "Severity: medium. Priority: this week. Fix action: restore token totals from the implement-plan KPI projection into durable closeout truth for post-rollout landings.",
+      recommendation: "Severity: medium. Priority: this week. Fix action: patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
       implicatedSubjects: subjects,
     };
   }
@@ -1037,9 +1055,11 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
       key: `landed:kpi-closeout-gap:${assessment.featureId}`,
       featureId: assessment.featureId,
       featureLabel: assessment.featureLabel,
-      summary: "Recent landed work is missing post-rollout token totals in durable closeout truth.",
-      recommendation: assessment.recommendation ?? "Severity: medium. Priority: this week. Fix action: restore token totals from the implement-plan KPI projection into durable closeout truth for post-rollout landings.",
+      summary: "The implement-plan closeout route is dropping post-rollout KPI token totals from durable closeout truth.",
+      recommendation: assessment.recommendation ?? "Severity: medium. Priority: this week. Fix action: patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
       evidenceLine: "Basis: direct closeout evidence plus KPI rollout timing; fresh; high confidence.",
+      rootCause: assessment.rootCause,
+      systemFix: assessment.systemFix,
       classification: assessment.classification,
       implicatedSubjects: assessment.implicatedSubjects,
       severity: "attention",
@@ -1054,6 +1074,8 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
       summary: "A landed feature appears to have skipped required review governance.",
       recommendation: assessment.recommendation ?? "Severity: high. Priority: now. Fix action: inspect the review-cycle handoff and confirm why required review governance was skipped.",
       evidenceLine: "Basis: direct closeout evidence plus review-governance timing; fresh; high confidence.",
+      rootCause: assessment.rootCause,
+      systemFix: assessment.systemFix,
       classification: assessment.classification,
       implicatedSubjects: assessment.implicatedSubjects,
       severity: "attention",
@@ -1069,6 +1091,8 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
     evidenceLine: `Basis: implement-plan closeout plus slice governance evidence; fresh; ${
       assessment.classification === "suspicious" || assessment.classification === "contradicted" ? "high" : "medium"
     } confidence.`,
+    rootCause: assessment.rootCause,
+    systemFix: assessment.systemFix,
     classification: assessment.classification,
     implicatedSubjects: assessment.implicatedSubjects,
     severity: assessment.classification === "suspicious" || assessment.classification === "contradicted"
@@ -1086,6 +1110,8 @@ function buildContradictionFinding(feature: BriefFeatureSnapshot): DraftFinding 
       summary: "The feature is classified as blocked, but no concrete blocker is present in source truth.",
       recommendation: "Inspect the route that marked this feature blocked before treating it as a real blocker.",
       evidenceLine: "Evidence: derived from sources; fresh; medium confidence. The surfaced status and blocker payload disagree.",
+      rootCause: null,
+      systemFix: null,
       classification: "contradicted",
       implicatedSubjects: ["route:coo-status"],
       severity: "attention",
@@ -1100,6 +1126,8 @@ function buildContradictionFinding(feature: BriefFeatureSnapshot): DraftFinding 
       summary: "The current COO view had to resolve conflicting source evidence for this item.",
       recommendation: "Treat this item carefully until the underlying source disagreement is resolved.",
       evidenceLine: `Evidence: ambiguous; ${feature.evidence.freshness}; ${feature.evidence.confidence} confidence. ${feature.evidence.notes.join(" ")}`,
+      rootCause: null,
+      systemFix: null,
       classification: "missing_not_provable",
       implicatedSubjects: ["route:coo-status"],
       severity: "table",
@@ -1114,6 +1142,8 @@ function buildContradictionFinding(feature: BriefFeatureSnapshot): DraftFinding 
       summary: `This item is being carried with fallback evidence because ${humanizeFeatureSlugList(feature.missingSourceFamilies ?? [])} is missing.`,
       recommendation: "Treat the current conclusion as provisional until the missing source family becomes readable.",
       evidenceLine: `Evidence: fallback because a source is missing; ${feature.evidence?.freshness ?? "unknown freshness"}; ${feature.evidence?.confidence ?? "medium"} confidence.`,
+      rootCause: null,
+      systemFix: null,
       classification: "missing_not_provable",
       implicatedSubjects: ["route:coo-status"],
       severity: "table",
@@ -1416,6 +1446,8 @@ async function persistTrackedIssue(
         classification: finding.classification,
         summary: finding.summary,
         recommendation: finding.recommendation,
+        root_cause: finding.rootCause,
+        system_fix: finding.systemFix,
         implicated_subjects: finding.implicatedSubjects,
         ready_handoff: readyHandoff,
       },
@@ -1441,6 +1473,8 @@ async function persistTrackedIssue(
     summary: finding.summary,
     recommendation: finding.recommendation,
     evidenceLine: finding.evidenceLine,
+    rootCause: finding.rootCause,
+    systemFix: finding.systemFix,
     implicatedSubjects: finding.implicatedSubjects,
     brainFindingId,
     brainOpenLoopId: null,
@@ -1464,6 +1498,8 @@ function toGovernanceItem(issue: TrackedIssueState): GovernanceItem {
     summary: issue.summary,
     recommendation: `${issue.recommendation} COO handoff is already prepared as ${issue.readyHandoff.id} and can move to implement-plan immediately if approved.`,
     evidenceLine: `${issue.evidenceLine} Ready handoff: ${issue.readyHandoff.id}.`,
+    rootCause: issue.rootCause,
+    systemFix: issue.systemFix,
     classification: issue.classification,
     implicatedSubjects: issue.implicatedSubjects,
   };
@@ -1494,6 +1530,33 @@ function deriveTaskSummary(finding: DraftFinding): string {
   return actionText.length > 0 ? actionText : finding.summary;
 }
 
+async function investigateKpiCloseoutGap(
+  projectRoot: string,
+  featureId: string,
+  governanceEvidence: FeatureGovernanceEvidence,
+): Promise<{ rootCause: string; systemFix: string }> {
+  const helperPath = resolve(projectRoot, "skills", "implement-plan", "scripts", "implement-plan-helper.mjs");
+  const helperRaw = await tryReadFile(helperPath);
+  const helperTracksKpiProjection = Boolean(
+    helperRaw
+    && /function buildRunKpiProjection/i.test(helperRaw)
+    && /governance_call_metrics:\s*attempt\.governance_metrics/i.test(helperRaw)
+    && /total_tokens_estimated/i.test(helperRaw),
+  );
+
+  if (helperTracksKpiProjection && !governanceEvidence.closeoutHasKpiProjection && !governanceEvidence.closeoutHasTokenTotals) {
+    return {
+      rootCause: `The implement-plan runtime already computes KPI totals during execution, but ${featureId} closeout truth does not persist that projection. This points to a closeout projection gap in the implement-plan route, not to bad planning or bad implementation on the feature itself.`,
+      systemFix: "Patch the implement-plan closeout projection so post-rollout landings persist run.kpi_projection token totals into durable closeout truth, then backfill the affected landed slices.",
+    };
+  }
+
+  return {
+    rootCause: "Post-rollout KPI totals are missing from durable closeout truth. The strongest current evidence still points to a closeout-route gap rather than a delivery failure, but the exact loss point is not yet fully provable from this slice alone.",
+    systemFix: "Audit and patch the implement-plan closeout route so token totals survive into durable closeout truth, then backfill the affected landed slices.",
+  };
+}
+
 function toTrustGovernanceItem(note: TrustMaterialNote): GovernanceItem {
   return {
     key: note.subjectId,
@@ -1502,6 +1565,8 @@ function toTrustGovernanceItem(note: TrustMaterialNote): GovernanceItem {
     summary: note.summary,
     recommendation: note.recommendation,
     evidenceLine: note.evidenceLine,
+    rootCause: null,
+    systemFix: null,
     classification: "confirmed",
     implicatedSubjects: [note.subjectId],
   };
@@ -1612,17 +1677,24 @@ async function loadFeatureGovernanceEvidence(
       implementorModel: null,
       implementorRuntime: null,
       implementorAccessMode: null,
+      statePath: null,
+      closeoutHasKpiProjection: false,
+      closeoutHasTokenTotals: false,
     };
   }
 
   try {
-    const record = asRecord(await parseJsonFile<Record<string, unknown>>(statePath));
+    const raw = await readFile(statePath, "utf-8");
+    const record = asRecord(JSON.parse(raw) as Record<string, unknown>);
     const timestamps = asRecord(record.run_timestamps);
     return {
       closeoutFinishedAt: asNonEmptyString(timestamps.closeout_finished_at) ?? asNonEmptyString(record.updated_at),
       implementorModel: asNonEmptyString(record.implementor_model),
       implementorRuntime: asNonEmptyString(record.implementor_execution_runtime),
       implementorAccessMode: asNonEmptyString(record.implementor_execution_access_mode),
+      statePath,
+      closeoutHasKpiProjection: /"kpi_projection"\s*:/i.test(raw),
+      closeoutHasTokenTotals: /"total_tokens_estimated"\s*:/i.test(raw),
     };
   } catch {
     return {
@@ -1630,6 +1702,9 @@ async function loadFeatureGovernanceEvidence(
       implementorModel: null,
       implementorRuntime: null,
       implementorAccessMode: null,
+      statePath,
+      closeoutHasKpiProjection: false,
+      closeoutHasTokenTotals: false,
     };
   }
 }
@@ -1929,6 +2004,14 @@ function uniqueStrings(values: Array<string | null | undefined>): string[] {
 async function parseJsonFile<T>(path: string): Promise<T> {
   const raw = await readFile(path, "utf-8");
   return JSON.parse(raw) as T;
+}
+
+async function tryReadFile(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, "utf-8");
+  } catch {
+    return null;
+  }
 }
 
 async function pathExists(path: string): Promise<boolean> {
