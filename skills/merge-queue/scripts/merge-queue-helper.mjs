@@ -3,7 +3,7 @@
 import { mkdir, rm } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import {
   ACCESS_MODES,
   EXECUTION_RUNTIMES,
@@ -29,6 +29,7 @@ import {
   printJson,
   readJson,
   requiredArg,
+  resolveCanonicalGitProjectRoot,
   resolveFeatureRoot,
   resolveSkillStateRoot,
   sanitizePathSegment,
@@ -39,7 +40,8 @@ import {
 
 const scriptPath = fileURLToPath(import.meta.url);
 const skillRoot = dirname(dirname(scriptPath));
-const implementPlanHelperPath = "C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs";
+const skillsRoot = dirname(skillRoot);
+const implementPlanHelperPath = join(skillsRoot, "implement-plan", "scripts", "implement-plan-helper.mjs");
 
 const REQUIRED_SETUP_FIELDS = [
   "preferred_execution_access_mode",
@@ -108,12 +110,14 @@ async function main() {
 }
 
 async function renderHelp(args) {
-  const projectRoot = normalizeProjectRoot(args.values["project-root"] ?? process.cwd());
-  const settings = await getSettingsCore(projectRoot);
-  const status = await getStatusCore(projectRoot);
+  const requestedProjectRoot = normalizeProjectRoot(args.values["project-root"] ?? process.cwd());
+  const controlProjectRoot = resolveControlProjectRoot(requestedProjectRoot);
+  const settings = await getSettingsCore(controlProjectRoot);
+  const status = await getStatusCore(controlProjectRoot);
   return {
     command: "help",
-    project_root: projectRoot,
+    project_root: controlProjectRoot,
+    requested_project_root: requestedProjectRoot === controlProjectRoot ? undefined : requestedProjectRoot,
     purpose: "Queue and land approved feature merges FIFO per target branch using isolated merge worktrees and truthful completion handoff.",
     actions: ["help", "get-settings", "status", "enqueue", "process-next"],
     required_inputs_for_enqueue: ["project_root", "phase_number", "feature_slug"],
@@ -125,8 +129,13 @@ async function renderHelp(args) {
 }
 
 async function getSettings(args) {
-  const projectRoot = normalizeProjectRoot(args.values["project-root"] ?? process.cwd());
-  return getSettingsCore(projectRoot);
+  const requestedProjectRoot = normalizeProjectRoot(args.values["project-root"] ?? process.cwd());
+  const controlProjectRoot = resolveControlProjectRoot(requestedProjectRoot);
+  const settings = await getSettingsCore(controlProjectRoot);
+  return {
+    ...settings,
+    requested_project_root: requestedProjectRoot === controlProjectRoot ? undefined : requestedProjectRoot
+  };
 }
 
 async function getSettingsCore(projectRoot) {
@@ -153,8 +162,13 @@ async function getSettingsCore(projectRoot) {
 }
 
 async function getStatus(args) {
-  const projectRoot = normalizeProjectRoot(args.values["project-root"] ?? process.cwd());
-  return getStatusCore(projectRoot);
+  const requestedProjectRoot = normalizeProjectRoot(args.values["project-root"] ?? process.cwd());
+  const controlProjectRoot = resolveControlProjectRoot(requestedProjectRoot);
+  const status = await getStatusCore(controlProjectRoot);
+  return {
+    ...status,
+    requested_project_root: requestedProjectRoot === controlProjectRoot ? undefined : requestedProjectRoot
+  };
 }
 
 async function getStatusCore(projectRoot) {
@@ -177,8 +191,9 @@ async function getStatusCore(projectRoot) {
 }
 
 async function enqueueRequest(input) {
-  const paths = buildPaths(input.projectRoot);
-  const setup = await loadSetup(input.projectRoot);
+  const controlProjectRoot = resolveControlProjectRoot(input.projectRoot);
+  const paths = buildPaths(controlProjectRoot);
+  const setup = await loadSetup(controlProjectRoot);
   if (!setup.complete) {
     fail("merge-queue setup is missing or invalid. Refresh setup before enqueue.");
   }
@@ -190,7 +205,7 @@ async function enqueueRequest(input) {
   }
   const baseBranch = input.baseBranch
     ?? implementPlanState?.base_branch
-    ?? detectDefaultBaseBranch(input.projectRoot);
+    ?? detectDefaultBaseBranch(controlProjectRoot);
   const featureBranch = input.featureBranch
     ?? implementPlanState?.feature_branch
     ?? "implement-plan/phase" + input.phaseNumber + "/" + input.featureSlug.replace(/\//g, "-");
@@ -213,7 +228,7 @@ async function enqueueRequest(input) {
   const requestId = "merge-" + sanitizePathSegment(baseBranch) + "-" + input.phaseNumber + "-" + sanitizePathSegment(input.featureSlug) + "-" + Date.now();
 
   const result = await withLock(paths.projectLocksRoot, "queue", async () => {
-    const current = await loadQueue(input.projectRoot);
+    const current = await loadQueue(controlProjectRoot);
     const next = current.data;
     const lane = next.lanes[laneKey] ?? { base_branch: baseBranch, requests: [] };
     lane.base_branch = baseBranch;
@@ -234,6 +249,7 @@ async function enqueueRequest(input) {
       feature_registry_key: registryKey,
       feature_root: normalizeSlashes(featureRoot),
       project_root: normalizeSlashes(input.projectRoot),
+      control_project_root: normalizeSlashes(controlProjectRoot),
       base_branch: baseBranch,
       feature_branch: featureBranch,
       worktree_path: worktreePath,
@@ -269,6 +285,7 @@ async function enqueueRequest(input) {
   return {
     command: "enqueue",
     project_root: input.projectRoot,
+    control_project_root: controlProjectRoot,
     queue_path: normalizeSlashes(paths.queuePath),
     created: result.created,
     request: result.request
@@ -276,14 +293,15 @@ async function enqueueRequest(input) {
 }
 
 async function processNext(input) {
-  const paths = buildPaths(input.projectRoot);
-  const setup = await loadSetup(input.projectRoot);
+  const controlProjectRoot = resolveControlProjectRoot(input.projectRoot);
+  const paths = buildPaths(controlProjectRoot);
+  const setup = await loadSetup(controlProjectRoot);
   if (!setup.complete) {
     fail("merge-queue setup is missing or invalid. Refresh setup before processing merges.");
   }
 
   const selected = await withLock(paths.projectLocksRoot, "queue", async () => {
-    const queue = await loadQueue(input.projectRoot);
+    const queue = await loadQueue(controlProjectRoot);
     const request = selectNextQueuedRequest(queue.data, input.baseBranch);
     if (!request) {
       return null;
@@ -299,13 +317,14 @@ async function processNext(input) {
   if (!selected) {
     return {
       command: "process-next",
-      project_root: input.projectRoot,
+      project_root: controlProjectRoot,
       processed: false,
       reason: "No queued merge requests were found."
     };
   }
 
-  await updateImplementPlanFeatureState(input.projectRoot, selected.phase_number, selected.feature_slug, {
+  const featureProjectRoot = resolveRequestFeatureProjectRoot(selected, input.projectRoot);
+  await updateImplementPlanFeatureState(featureProjectRoot, selected.phase_number, selected.feature_slug, {
     merge_status: "in_progress",
     merge_required: "true",
     merge_queue_request_id: selected.request_id,
@@ -318,73 +337,97 @@ async function processNext(input) {
   const mergeWorktreePath = join(paths.mergeWorktreesRoot, sanitizePathSegment(selected.base_branch), sanitizePathSegment(selected.request_id));
   await mkdir(join(paths.mergeWorktreesRoot, sanitizePathSegment(selected.base_branch)), { recursive: true });
 
-  const baseRef = gitRefExists(input.projectRoot, "refs/remotes/origin/" + selected.base_branch)
+  const baseRef = gitRefExists(controlProjectRoot, "refs/remotes/origin/" + selected.base_branch)
     ? "origin/" + selected.base_branch
     : selected.base_branch;
 
-  const fetchResult = gitRun(input.projectRoot, ["fetch", "--prune", "origin", selected.base_branch], { timeoutMs: 30000 });
-  if (fetchResult.status !== 0 && !gitRefExists(input.projectRoot, "refs/heads/" + selected.base_branch)) {
-    return await failQueuedRequest(input.projectRoot, paths.queuePath, selected.request_id, selected, "Failed to fetch base branch '" + selected.base_branch + "': " + (fetchResult.stderr || fetchResult.stdout || "unknown error"));
+  const fetchResult = gitRun(controlProjectRoot, ["fetch", "--prune", "origin", selected.base_branch], { timeoutMs: 30000 });
+  if (fetchResult.status !== 0 && !gitRefExists(controlProjectRoot, "refs/heads/" + selected.base_branch)) {
+    return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Failed to fetch base branch '" + selected.base_branch + "': " + (fetchResult.stderr || fetchResult.stdout || "unknown error"));
   }
 
-  const addResult = gitRun(input.projectRoot, ["worktree", "add", "--detach", mergeWorktreePath, baseRef], { timeoutMs: 30000 });
+  const addResult = gitRun(controlProjectRoot, ["worktree", "add", "--detach", mergeWorktreePath, baseRef], { timeoutMs: 30000 });
   if (addResult.status !== 0) {
-    return await failQueuedRequest(input.projectRoot, paths.queuePath, selected.request_id, selected, "Failed to create merge worktree: " + (addResult.stderr || addResult.stdout || "unknown error"));
+    return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Failed to create merge worktree: " + (addResult.stderr || addResult.stdout || "unknown error"));
   }
 
   let cleanupError = null;
+  let preserveMergeWorktree = false;
   try {
     const mergeResult = gitRun(mergeWorktreePath, ["merge", "--no-ff", "--no-edit", selected.approved_commit_sha], { timeoutMs: 30000 });
     if (mergeResult.status !== 0) {
       gitRun(mergeWorktreePath, ["merge", "--abort"], { timeoutMs: 10000 });
-      return await failQueuedRequest(input.projectRoot, paths.queuePath, selected.request_id, selected, "Merge failed: " + (mergeResult.stderr || mergeResult.stdout || "unknown error"));
+      return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Merge failed: " + (mergeResult.stderr || mergeResult.stdout || "unknown error"));
     }
 
     const mergeCommitSha = gitRun(mergeWorktreePath, ["rev-parse", "HEAD"]).stdout || null;
     if (!mergeCommitSha) {
-      return await failQueuedRequest(input.projectRoot, paths.queuePath, selected.request_id, selected, "Merge succeeded but merge commit SHA could not be resolved.");
+      return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Merge succeeded but merge commit SHA could not be resolved.");
     }
 
     const pushResult = gitRun(mergeWorktreePath, ["push", "origin", "HEAD:refs/heads/" + selected.base_branch], { timeoutMs: 30000 });
     if (pushResult.status !== 0) {
-      return await failQueuedRequest(input.projectRoot, paths.queuePath, selected.request_id, selected, "Push failed: " + (pushResult.stderr || pushResult.stdout || "unknown error"));
+      return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Push failed: " + (pushResult.stderr || pushResult.stdout || "unknown error"));
     }
 
     const sync = input.syncLocalTarget
-      ? syncLocalTargetBranch(input.projectRoot, selected.base_branch)
+      ? syncLocalTargetBranch(controlProjectRoot, selected.base_branch)
       : { status: "not_started", detail: "sync-local-target was disabled." };
 
-    await markRequestMerged(input.projectRoot, paths.queuePath, selected.request_id, mergeCommitSha, sync.status);
-    await updateImplementPlanFeatureState(input.projectRoot, selected.phase_number, selected.feature_slug, {
-      merge_status: "merged",
-      merge_required: "true",
-      merge_commit_sha: mergeCommitSha,
-      approved_commit_sha: selected.approved_commit_sha,
-      merge_queue_request_id: selected.request_id,
-      local_target_sync_status: sync.status,
-      active_run_status: "closeout_pending",
-      last_completed_step: "merge_finished",
-      last_commit_sha: mergeCommitSha,
-      current_branch: selected.base_branch,
-      last_error: sync.detail && sync.status === "failed" ? sync.detail : ""
-    });
-    await markImplementPlanComplete(input.projectRoot, selected.phase_number, selected.feature_slug, mergeCommitSha);
+    await markRequestMerged(controlProjectRoot, paths.queuePath, selected.request_id, mergeCommitSha, sync.status);
+
+    const closeoutProjectRoot = chooseCloseoutProjectRoot(controlProjectRoot, mergeWorktreePath, sync.status);
+    let closeoutResult;
+    try {
+      closeoutResult = await persistMergedFeatureCloseout({
+        closeoutProjectRoot,
+        canonicalProjectRoot: controlProjectRoot,
+        phaseNumber: selected.phase_number,
+        featureSlug: selected.feature_slug,
+        baseBranch: selected.base_branch,
+        approvedCommitSha: selected.approved_commit_sha,
+        mergeCommitSha,
+        requestId: selected.request_id,
+        localTargetSyncStatus: sync.status,
+        closeoutErrorDetail: sync.detail && sync.status === "failed" ? sync.detail : ""
+      });
+    } catch (error) {
+      preserveMergeWorktree = closeoutProjectRoot === mergeWorktreePath;
+      return {
+        command: "process-next",
+        project_root: controlProjectRoot,
+        processed: true,
+        request_id: selected.request_id,
+        feature_registry_key: selected.feature_registry_key,
+        merge_commit_sha: mergeCommitSha,
+        closeout_persisted: false,
+        closeout_error: describeError(error),
+        recovery_merge_worktree_path: preserveMergeWorktree ? normalizeSlashes(mergeWorktreePath) : null,
+        local_target_sync_status: sync.status,
+        local_target_sync_detail: sync.detail
+      };
+    }
 
     return {
       command: "process-next",
-      project_root: input.projectRoot,
+      project_root: controlProjectRoot,
       processed: true,
       request_id: selected.request_id,
       feature_registry_key: selected.feature_registry_key,
       merge_commit_sha: mergeCommitSha,
+      closeout_commit_sha: closeoutResult.closeout_commit_sha,
+      closeout_project_root: closeoutResult.closeout_project_root,
+      closeout_changes_persisted: closeoutResult.closeout_changes_persisted,
       local_target_sync_status: sync.status,
       local_target_sync_detail: sync.detail
     };
   } finally {
-    const removeResult = gitRun(input.projectRoot, ["worktree", "remove", "--force", mergeWorktreePath], { timeoutMs: 30000 });
-    if (removeResult.status !== 0 && (await pathExists(mergeWorktreePath))) {
-      cleanupError = removeResult.stderr || removeResult.stdout || "Failed to remove merge worktree.";
-      await rm(mergeWorktreePath, { recursive: true, force: true });
+    if (!preserveMergeWorktree) {
+      const removeResult = gitRun(controlProjectRoot, ["worktree", "remove", "--force", mergeWorktreePath], { timeoutMs: 30000 });
+      if (removeResult.status !== 0 && (await pathExists(mergeWorktreePath))) {
+        cleanupError = removeResult.stderr || removeResult.stdout || "Failed to remove merge worktree.";
+        await rm(mergeWorktreePath, { recursive: true, force: true });
+      }
     }
     if (cleanupError) {
       process.stderr.write(cleanupError + "\n");
@@ -431,9 +474,56 @@ function syncLocalTargetBranch(projectRoot, baseBranch) {
   };
 }
 
+function resolveControlProjectRoot(projectRoot) {
+  return resolveCanonicalGitProjectRoot(projectRoot);
+}
+
+function resolveRequestFeatureProjectRoot(request, fallbackProjectRoot) {
+  const candidate = request?.project_root ?? request?.worktree_path ?? fallbackProjectRoot;
+  return normalizeProjectRoot(candidate);
+}
+
+function chooseCloseoutProjectRoot(controlProjectRoot, mergeWorktreePath, localTargetSyncStatus) {
+  return localTargetSyncStatus === "fast_forwarded" ? controlProjectRoot : mergeWorktreePath;
+}
+
+async function persistMergedFeatureCloseout({
+  closeoutProjectRoot,
+  canonicalProjectRoot,
+  phaseNumber,
+  featureSlug,
+  baseBranch,
+  approvedCommitSha,
+  mergeCommitSha,
+  requestId,
+  localTargetSyncStatus,
+  closeoutErrorDetail
+}) {
+  await updateImplementPlanFeatureState(closeoutProjectRoot, phaseNumber, featureSlug, {
+    merge_status: "merged",
+    merge_required: "true",
+    merge_commit_sha: mergeCommitSha,
+    approved_commit_sha: approvedCommitSha,
+    merge_queue_request_id: requestId,
+    local_target_sync_status: localTargetSyncStatus,
+    active_run_status: "closeout_pending",
+    last_completed_step: "merge_finished",
+    last_commit_sha: mergeCommitSha,
+    current_branch: baseBranch,
+    last_error: closeoutErrorDetail
+  }, { canonicalProjectRoot });
+  await markImplementPlanComplete(closeoutProjectRoot, phaseNumber, featureSlug, mergeCommitSha, canonicalProjectRoot);
+  const closeoutCommitSha = await commitAndPushFeatureCloseout(closeoutProjectRoot, phaseNumber, featureSlug, baseBranch);
+  return {
+    closeout_project_root: normalizeSlashes(closeoutProjectRoot),
+    closeout_commit_sha: closeoutCommitSha,
+    closeout_changes_persisted: closeoutCommitSha !== null
+  };
+}
+
 async function failQueuedRequest(projectRoot, queuePath, requestId, request, message) {
   await markRequestBlocked(projectRoot, queuePath, requestId, message);
-  await updateImplementPlanFeatureState(projectRoot, request.phase_number, request.feature_slug, {
+  await updateImplementPlanFeatureState(resolveRequestFeatureProjectRoot(request, projectRoot), request.phase_number, request.feature_slug, {
     merge_status: "blocked",
     merge_required: "true",
     merge_queue_request_id: requestId,
@@ -450,6 +540,41 @@ async function failQueuedRequest(projectRoot, queuePath, requestId, request, mes
     feature_registry_key: request.feature_registry_key,
     error: message
   };
+}
+
+async function commitAndPushFeatureCloseout(projectRoot, phaseNumber, featureSlug, baseBranch) {
+  const featureRoot = resolveFeatureRoot(projectRoot, phaseNumber, featureSlug);
+  const relativeFeatureRoot = relative(projectRoot, featureRoot) || ".";
+  const statusResult = gitRun(projectRoot, ["status", "--porcelain", "--", relativeFeatureRoot], { timeoutMs: 30000 });
+  if (statusResult.status !== 0) {
+    fail("Failed to inspect closeout changes: " + (statusResult.stderr || statusResult.stdout || "unknown error"));
+  }
+  if (!String(statusResult.stdout ?? "").trim()) {
+    return null;
+  }
+
+  const addResult = gitRun(projectRoot, ["add", "--all", "--", relativeFeatureRoot], { timeoutMs: 30000 });
+  if (addResult.status !== 0) {
+    fail("Failed to stage closeout artifacts: " + (addResult.stderr || addResult.stdout || "unknown error"));
+  }
+
+  const commitMessage = "docs(" + featureSlug.replace(/\//g, "-") + "): finalize merge closeout truth";
+  const commitResult = gitRun(projectRoot, ["commit", "-m", commitMessage], { timeoutMs: 30000 });
+  if (commitResult.status !== 0) {
+    fail("Failed to commit closeout artifacts: " + (commitResult.stderr || commitResult.stdout || "unknown error"));
+  }
+
+  const closeoutCommitSha = gitRun(projectRoot, ["rev-parse", "HEAD"], { timeoutMs: 10000 }).stdout || null;
+  if (!closeoutCommitSha) {
+    fail("Closeout commit succeeded but HEAD could not be resolved.");
+  }
+
+  const pushResult = gitRun(projectRoot, ["push", "origin", "HEAD:refs/heads/" + baseBranch], { timeoutMs: 30000 });
+  if (pushResult.status !== 0) {
+    fail("Failed to push closeout artifacts: " + (pushResult.stderr || pushResult.stdout || "unknown error"));
+  }
+
+  return closeoutCommitSha;
 }
 
 async function markRequestMerged(projectRoot, queuePath, requestId, mergeCommitSha, localTargetSyncStatus) {
@@ -657,8 +782,9 @@ async function readImplementPlanState(featureRoot) {
   }
 }
 
-async function updateImplementPlanFeatureState(projectRoot, phaseNumber, featureSlug, fields) {
+async function updateImplementPlanFeatureState(projectRoot, phaseNumber, featureSlug, fields, options = {}) {
   const args = ["update-state", "--project-root", projectRoot, "--phase-number", String(phaseNumber), "--feature-slug", featureSlug];
+  appendOptionalArg(args, "canonical-project-root", options.canonicalProjectRoot);
   appendOptionalArg(args, "feature-status", fields.feature_status);
   appendOptionalArg(args, "current-branch", fields.current_branch);
   appendOptionalArg(args, "base-branch", fields.base_branch);
@@ -678,10 +804,11 @@ async function updateImplementPlanFeatureState(projectRoot, phaseNumber, feature
   await runNodeHelper(implementPlanHelperPath, args, projectRoot);
 }
 
-async function markImplementPlanComplete(projectRoot, phaseNumber, featureSlug, mergeCommitSha) {
+async function markImplementPlanComplete(projectRoot, phaseNumber, featureSlug, mergeCommitSha, canonicalProjectRoot = null) {
   await runNodeHelper(implementPlanHelperPath, [
     "mark-complete",
     "--project-root", projectRoot,
+    ...(isFilled(canonicalProjectRoot) ? ["--canonical-project-root", canonicalProjectRoot] : []),
     "--phase-number", String(phaseNumber),
     "--feature-slug", featureSlug,
     "--last-commit-sha", mergeCommitSha,

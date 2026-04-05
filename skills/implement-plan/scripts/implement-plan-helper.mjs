@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { mkdir } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   ACCESS_MODES,
   EXECUTION_RUNTIMES,
@@ -51,6 +52,9 @@ import {
   writeTextAtomic,
   fail
 } from "../../governed-feature-runtime.mjs";
+
+const scriptPath = fileURLToPath(import.meta.url);
+const skillRoot = dirname(dirname(scriptPath));
 
 const KNOWN_FEATURE_FILES = new Set([
   "README.md",
@@ -306,6 +310,7 @@ async function main() {
   if (command === "update-state") {
     printJson(await updateState({
       projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      canonicalProjectRoot: normalizeOptionalProjectRoot(args.values["canonical-project-root"]),
       phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
       featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug")),
       implementorExecutionId: args.values["implementor-execution-id"],
@@ -342,6 +347,7 @@ async function main() {
   if (command === "record-event") {
     printJson(await recordEvent({
       projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      canonicalProjectRoot: normalizeOptionalProjectRoot(args.values["canonical-project-root"]),
       phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
       featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug")),
       event: requiredArg(args, "event"),
@@ -363,6 +369,7 @@ async function main() {
   if (command === "reset-attempt") {
     printJson(await resetAttempt({
       projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      canonicalProjectRoot: normalizeOptionalProjectRoot(args.values["canonical-project-root"]),
       phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
       featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug")),
       runMode: parseRunMode(args.values["run-mode"] ?? "normal"),
@@ -376,6 +383,7 @@ async function main() {
   if (command === "mark-complete") {
     printJson(await markComplete({
       projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      canonicalProjectRoot: normalizeOptionalProjectRoot(args.values["canonical-project-root"]),
       phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
       featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug")),
       completionNote: emptyToNull(args.values["completion-note"]),
@@ -706,7 +714,8 @@ async function prepareFeature(input) {
     });
     let runProjectionPath = await writeRunProjection({
       paths,
-      run: executionContext.run
+      run: executionContext.run,
+      state: nextState
     });
 
     if (executionContext.created_run) {
@@ -758,7 +767,8 @@ async function prepareFeature(input) {
     }
     runProjectionPath = await writeRunProjection({
       paths,
-      run: executionContext.run
+      run: executionContext.run,
+      state: nextState
     });
 
     nextState.artifacts = {
@@ -1122,7 +1132,8 @@ async function updateState(input) {
     } else if (targetRun) {
       await writeRunProjection({
         paths,
-        run: targetRun
+        run: targetRun,
+        state: next
       });
     }
     await writeJsonAtomic(paths.statePath, next);
@@ -1249,7 +1260,8 @@ async function recordEvent(input) {
     } else if (run) {
       await writeRunProjection({
         paths,
-        run
+        run,
+        state: next
       });
     }
     await writeJsonAtomic(paths.statePath, next);
@@ -1343,6 +1355,7 @@ async function resetAttempt(input) {
       };
     }
 
+    const artifactPaths = buildArtifactPaths(paths, next);
     for (const contractPath of [paths.executionContractPath, resolveRunContractPath(paths, run.run_id)]) {
       if (!(await pathExists(contractPath))) {
         continue;
@@ -1360,10 +1373,10 @@ async function resetAttempt(input) {
           },
           artifacts: {
             ...(contract.artifacts ?? {}),
-            execution_contract_path: normalizeSlashes(paths.executionContractPath),
-            run_contract_path: normalizeSlashes(resolveRunContractPath(paths, run.run_id)),
-            run_projection_path: normalizeSlashes(resolveRunProjectionPath(paths, run.run_id)),
-            event_root: normalizeSlashes(resolveAttemptEventsRoot(paths, run.run_id, nextAttemptId))
+            execution_contract_path: normalizeSlashes(artifactPaths.executionContractPath),
+            run_contract_path: normalizeSlashes(resolveRunContractPath(artifactPaths, run.run_id)),
+            run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
+            event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, nextAttemptId))
           },
           resume_policy: {
             ...(contract.resume_policy ?? {}),
@@ -1396,7 +1409,8 @@ async function resetAttempt(input) {
 
     await writeRunProjection({
       paths,
-      run
+      run,
+      state: next
     });
     next.updated_at = timestamp;
     await writeJsonAtomic(paths.statePath, next);
@@ -1434,10 +1448,7 @@ async function markComplete(input) {
     const existing = await loadOrInitializeState({ paths, input, registryEntry: null, indexEntry: null, currentBranch });
     const next = { ...existing.state };
     const timestamp = nowIso();
-
-    if (next.feature_status === "completed") {
-      return next;
-    }
+    const alreadyCompleted = next.feature_status === "completed" && next.active_run_status === "completed";
 
     const commitSha = input.lastCommitSha ?? next.last_commit_sha ?? null;
     if (!commitSha) {
@@ -1462,7 +1473,7 @@ async function markComplete(input) {
       merge_finished_at: next.run_timestamps?.merge_finished_at ?? timestamp,
       closeout_finished_at: next.run_timestamps?.closeout_finished_at ?? timestamp
     };
-    next.last_error = input.completionNote ?? next.last_error ?? null;
+    next.last_error = null;
     next.updated_at = timestamp;
 
     const run = resolveRunForMutation(next, "normal", null);
@@ -1483,31 +1494,33 @@ async function markComplete(input) {
           }
         }
       });
-      applyStructuredExecutionEvent({
-        state: next,
-        run,
-        attempt,
-        eventType: "terminal-status-recorded",
-        payload: {
-          terminal_status: "completed",
-          step: "merge_queue",
-          note: input.completionNote ?? "Feature completion was recorded after truthful merge success."
-        },
-        occurredAt: timestamp
-      });
-      await appendExecutionAuditEvent({
-        paths,
-        state: next,
-        run,
-        attempt,
-        eventType: "terminal-status-recorded",
-        payload: {
-          terminal_status: "completed",
-          step: "merge_queue",
-          note: input.completionNote ?? "Feature completion was recorded after truthful merge success."
-        },
-        occurredAt: timestamp
-      });
+      if (!alreadyCompleted) {
+        applyStructuredExecutionEvent({
+          state: next,
+          run,
+          attempt,
+          eventType: "terminal-status-recorded",
+          payload: {
+            terminal_status: "completed",
+            step: "merge_queue",
+            note: input.completionNote ?? "Feature completion was recorded after truthful merge success."
+          },
+          occurredAt: timestamp
+        });
+        await appendExecutionAuditEvent({
+          paths,
+          state: next,
+          run,
+          attempt,
+          eventType: "terminal-status-recorded",
+          payload: {
+            terminal_status: "completed",
+            step: "merge_queue",
+            note: input.completionNote ?? "Feature completion was recorded after truthful merge success."
+          },
+          occurredAt: timestamp
+        });
+      }
       await syncLiveNormalExecutionArtifacts({
         paths,
         state: next,
@@ -1516,6 +1529,17 @@ async function markComplete(input) {
         workerKey: run.worker_keys?.[0] ?? buildWorkerKey("implementor", run.benchmark_context?.lane_id ?? null)
       });
     }
+
+    await writeTextAtomic(
+      paths.completionSummaryPath,
+      await finalizeCompletionSummary({
+        paths,
+        state: next,
+        existingText: completionText,
+        mergeCommitSha: next.merge_commit_sha ?? commitSha,
+        completionNote: input.completionNote ?? null
+      })
+    );
 
     await writeJsonAtomic(paths.statePath, next);
     return next;
@@ -1535,6 +1559,91 @@ async function markComplete(input) {
     current_run_id: state.current_run_id ?? null,
     current_attempt_id: state.current_attempt_id ?? null
   };
+}
+
+async function finalizeCompletionSummary({ paths, state, existingText, mergeCommitSha, completionNote }) {
+  const sections = extractCompletionSections(existingText);
+  const reviewState = await loadJsonIfExists(join(paths.featureRoot, "review-cycle-state.json"));
+  const objectiveSection = normalizeSection(
+    buildFinalObjectiveSection({
+      existingSection: sections["1. Objective Completed"],
+      reviewState,
+      mergeCommitSha
+    })
+  );
+  const deliverablesSection = normalizeSection(
+    buildFinalDeliverablesSection({
+      existingSection: sections["2. Deliverables Produced"]
+    })
+  );
+  const verificationSection = normalizeSection(
+    buildFinalVerificationSection({
+      existingSection: sections["4. Verification Evidence"],
+      state,
+      reviewState,
+      mergeCommitSha
+    })
+  );
+  const artifactsSection = normalizeSection(
+    buildFinalArtifactsSection({
+      existingSection: sections["5. Feature Artifacts Updated"],
+      paths
+    })
+  );
+  const commitSection = normalizeSection(
+    buildFinalCommitSection({
+      state,
+      mergeCommitSha,
+      completionNote
+    })
+  );
+  const debtSection = normalizeSection(
+    buildFinalDebtSection({
+      existingSection: sections["7. Remaining Non-Goals / Debt"],
+      state
+    })
+  );
+
+  const resolvedSections = {
+    "1. Objective Completed": objectiveSection,
+    "2. Deliverables Produced": deliverablesSection,
+    "3. Files Changed And Why": normalizeSection(sections["3. Files Changed And Why"] || "- See the committed feature diff for the final changed-file set."),
+    "4. Verification Evidence": verificationSection,
+    "5. Feature Artifacts Updated": artifactsSection,
+    "6. Commit And Push Result": commitSection,
+    "7. Remaining Non-Goals / Debt": debtSection
+  };
+
+  return COMPLETION_HEADINGS
+    .map((heading) => heading + "\n\n" + resolvedSections[heading])
+    .join("\n\n");
+}
+
+function buildFinalObjectiveSection({ existingSection, reviewState, mergeCommitSha }) {
+  const preservedLines = filterSectionLines(existingSection, [
+    /implementor lane/i,
+    /without .*review-cycle.*merge-queue/i,
+    /review-cycle.*not run/i,
+    /merge-queue.*not run/i
+  ]);
+  const lines = uniqueLines([
+    ...preservedLines,
+    "- Repo-owned completion truth now matches the approved review and merged feature lifecycle.",
+    "- Final closeout reflects " + buildReviewCycleStatusSummary(reviewState) + " and merge commit " + (mergeCommitSha ?? "unknown") + "."
+  ]);
+  return lines.join("\n");
+}
+
+function buildFinalDeliverablesSection({ existingSection }) {
+  const preservedLines = filterSectionLines(existingSection, [
+    /governed implementor-lane closeout/i,
+    /without running review-cycle or merge-queue/i
+  ]);
+  const lines = uniqueLines([
+    ...preservedLines,
+    "- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth."
+  ]);
+  return lines.join("\n");
 }
 
 async function buildCompletionSummary(input) {
@@ -1667,9 +1776,29 @@ function buildPaths(projectRoot, phaseNumber, featureSlug) {
     briefPath: join(featureRoot, "implement-plan-brief.md"),
     completionSummaryPath: join(featureRoot, "completion-summary.md"),
     implementationRunDir: join(featureRoot, "implementation-run"),
-    templatesRoot: "C:/ADF/skills/implement-plan",
-    referencesRoot: "C:/ADF/skills/implement-plan/references"
+    templatesRoot: normalizeSlashes(skillRoot),
+    referencesRoot: normalizeSlashes(join(skillRoot, "references"))
   };
+}
+
+function normalizeOptionalProjectRoot(value) {
+  const normalized = emptyToNull(value);
+  return normalized ? normalizeProjectRoot(normalized) : null;
+}
+
+function resolveArtifactProjectRoot(paths, state, explicitProjectRoot = null) {
+  const candidate = explicitProjectRoot
+    ?? state?.project_root
+    ?? paths.projectRoot;
+  return normalizeProjectRoot(candidate);
+}
+
+function buildArtifactPaths(paths, state, explicitProjectRoot = null) {
+  const artifactProjectRoot = resolveArtifactProjectRoot(paths, state, explicitProjectRoot);
+  if (artifactProjectRoot === paths.projectRoot) {
+    return paths;
+  }
+  return buildPaths(artifactProjectRoot, paths.phaseNumber, paths.featureSlug);
 }
 
 function buildFeatureBranchName(phaseNumber, featureSlug) {
@@ -1892,6 +2021,7 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
   const repairs = [];
   let state;
   let created = false;
+  const artifactProjectRoot = resolveArtifactProjectRoot(paths, null, input.canonicalProjectRoot ?? input.projectRoot);
 
   if (await pathExists(paths.statePath)) {
     try {
@@ -1917,7 +2047,7 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
 
   state.phase_number = input.phaseNumber;
   state.feature_slug = input.featureSlug;
-  state.project_root = input.projectRoot;
+  state.project_root = artifactProjectRoot;
   state.feature_registry_key = paths.registryKey;
   state.current_branch = state.current_branch ?? currentBranch ?? null;
   state.base_branch = state.base_branch ?? detectDefaultBaseBranch(input.projectRoot);
@@ -2000,11 +2130,12 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
 }
 
 function buildInitialState(paths, input, registryEntry, indexEntry, currentBranch) {
+  const artifactProjectRoot = resolveArtifactProjectRoot(paths, null, input.canonicalProjectRoot ?? input.projectRoot);
   return {
     state_schema_version: IMPLEMENT_PLAN_STATE_SCHEMA_VERSION,
     phase_number: input.phaseNumber,
     feature_slug: input.featureSlug,
-    project_root: input.projectRoot,
+    project_root: artifactProjectRoot,
     feature_registry_key: paths.registryKey,
     feature_status: input.featureStatusOverride ?? indexEntry?.feature_status ?? "active",
     implementor_execution_id: registryEntry?.implementor_execution_id ?? null,
@@ -2120,6 +2251,7 @@ function resolveAttemptEventsRoot(paths, runId, attemptId) {
 
 function normalizeExecutionRunsState({ state, paths }) {
   const repairs = [];
+  const artifactPaths = buildArtifactPaths(paths, state);
   const normalized = isPlainObject(state.execution_runs) ? { ...state.execution_runs } : defaultExecutionRunsState();
   normalized.active_by_mode = isPlainObject(normalized.active_by_mode)
     ? {
@@ -2154,10 +2286,10 @@ function normalizeExecutionRunsState({ state, paths }) {
     run.terminal_status = emptyToNull(run.terminal_status);
     run.contract_schema_version = safeInteger(run.contract_schema_version, EXECUTION_CONTRACT_SCHEMA_VERSION);
     run.contract_revision = Math.max(safeInteger(run.contract_revision, 1), 1);
-    run.contract_path = normalizeSlashes(resolveRunContractPath(paths, run.run_id));
-    run.feature_contract_path = normalizeSlashes(paths.executionContractPath);
-    run.projection_path = normalizeSlashes(resolveRunProjectionPath(paths, run.run_id));
-    run.run_root = normalizeSlashes(resolveRunRootPath(paths, run.run_id));
+    run.contract_path = normalizeSlashes(resolveRunContractPath(artifactPaths, run.run_id));
+    run.feature_contract_path = normalizeSlashes(artifactPaths.executionContractPath);
+    run.projection_path = normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id));
+    run.run_root = normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id));
     run.benchmark_context = isPlainObject(run.benchmark_context)
       ? {
           benchmark_run_id: emptyToNull(run.benchmark_context.benchmark_run_id),
@@ -2398,6 +2530,7 @@ function hasLegacyExecutionSignal(state) {
 }
 
 function buildLegacyExecutionRunSummary({ state, paths }) {
+  const artifactPaths = buildArtifactPaths(paths, state);
   const runId = "legacy-normal-" + sanitizePathSegment(paths.registryKey) + "-" + sanitizePathSegment(state.created_at ?? nowIso());
   const attemptId = buildAttemptId(1);
   const workerKey = buildWorkerKey("implementor", null);
@@ -2408,10 +2541,10 @@ function buildLegacyExecutionRunSummary({ state, paths }) {
     terminal_status: state.active_run_status === "completed" ? "completed" : state.active_run_status === "blocked" ? "blocked" : null,
     contract_schema_version: EXECUTION_CONTRACT_SCHEMA_VERSION,
     contract_revision: 1,
-    feature_contract_path: normalizeSlashes(paths.executionContractPath),
-    contract_path: normalizeSlashes(resolveRunContractPath(paths, runId)),
-    projection_path: normalizeSlashes(resolveRunProjectionPath(paths, runId)),
-    run_root: normalizeSlashes(resolveRunRootPath(paths, runId)),
+    feature_contract_path: normalizeSlashes(artifactPaths.executionContractPath),
+    contract_path: normalizeSlashes(resolveRunContractPath(artifactPaths, runId)),
+    projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, runId)),
+    run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, runId)),
     benchmark_context: emptyBenchmarkContext(),
     worker_keys: [workerKey],
     current_attempt_id: attemptId,
@@ -2684,6 +2817,9 @@ function resolveWorkerSelection({ setup, state, input }) {
 }
 
 function createExecutionRunSummary({ paths, input, workerSelection }) {
+  const artifactPaths = buildArtifactPaths(paths, {
+    project_root: input.canonicalProjectRoot ?? input.projectRoot
+  });
   const runId = createOpaqueId(input.runMode === "benchmarking" ? "bench-run" : "run");
   const attemptId = buildAttemptId(1);
   const workerKey = buildWorkerKey("implementor", input.runMode === "benchmarking" ? input.benchmarkLaneId : null);
@@ -2706,10 +2842,10 @@ function createExecutionRunSummary({ paths, input, workerSelection }) {
     terminal_status: null,
     contract_schema_version: EXECUTION_CONTRACT_SCHEMA_VERSION,
     contract_revision: 1,
-    feature_contract_path: normalizeSlashes(paths.executionContractPath),
-    contract_path: normalizeSlashes(resolveRunContractPath(paths, runId)),
-    projection_path: normalizeSlashes(resolveRunProjectionPath(paths, runId)),
-    run_root: normalizeSlashes(resolveRunRootPath(paths, runId)),
+    feature_contract_path: normalizeSlashes(artifactPaths.executionContractPath),
+    contract_path: normalizeSlashes(resolveRunContractPath(artifactPaths, runId)),
+    projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, runId)),
+    run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, runId)),
     benchmark_context: {
       benchmark_run_id: input.benchmarkRunId ?? null,
       benchmark_suite_id: input.benchmarkSuiteId ?? null,
@@ -2811,6 +2947,7 @@ function ensureExecutionRunContext({ state, paths, input, workerSelection }) {
 }
 
 function buildExecutionContract({ paths, state, input, setup, integrity, workerSelection, run, attempt, workerKey, verificationPlanState }) {
+  const artifactPaths = buildArtifactPaths(paths, state, input.canonicalProjectRoot ?? input.projectRoot);
   const reviewRequiredByHumanPlan = verificationPlanState.human_required === true;
   const effectiveReviewMaxCycles = input.postSendToReview && input.reviewUntilComplete ? (input.reviewMaxCycles ?? 5) : null;
   return {
@@ -2819,11 +2956,11 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
     contract_revision: run.contract_revision,
     prepared_at: nowIso(),
     feature_identity: {
-      project_root: input.projectRoot,
+      project_root: resolveArtifactProjectRoot(paths, state, input.canonicalProjectRoot ?? input.projectRoot),
       phase_number: input.phaseNumber,
       feature_slug: input.featureSlug,
       feature_registry_key: paths.registryKey,
-      feature_root: normalizeSlashes(paths.featureRoot)
+      feature_root: normalizeSlashes(artifactPaths.featureRoot)
     },
     run_identity: {
       run_mode: input.runMode,
@@ -2891,22 +3028,23 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
       next_safe_move: integrity.next_safe_move
     },
     artifacts: {
-      state_path: normalizeSlashes(paths.statePath),
-      markdown_contract_path: normalizeSlashes(paths.contractPath),
-      execution_contract_path: normalizeSlashes(paths.executionContractPath),
-      run_contract_path: normalizeSlashes(resolveRunContractPath(paths, run.run_id)),
-      run_projection_path: normalizeSlashes(resolveRunProjectionPath(paths, run.run_id)),
-      execution_run_root: normalizeSlashes(resolveRunRootPath(paths, run.run_id)),
-      event_root: normalizeSlashes(resolveAttemptEventsRoot(paths, run.run_id, attempt.attempt_id)),
+      state_path: normalizeSlashes(artifactPaths.statePath),
+      markdown_contract_path: normalizeSlashes(artifactPaths.contractPath),
+      execution_contract_path: normalizeSlashes(artifactPaths.executionContractPath),
+      run_contract_path: normalizeSlashes(resolveRunContractPath(artifactPaths, run.run_id)),
+      run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
+      execution_run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id)),
+      event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, attempt.attempt_id)),
       worktree_path: state.worktree_path ?? null
     }
   };
 }
 
-async function writeExecutionContract({ paths, run, contract }) {
+async function writeExecutionContract({ paths, artifactPaths = null, run, contract }) {
   const contractPath = resolveRunContractPath(paths, run.run_id);
   const featureContractPath = paths.executionContractPath;
   await mkdir(resolveRunRootPath(paths, run.run_id), { recursive: true });
+  const resolvedArtifactPaths = artifactPaths ?? buildArtifactPaths(paths, null);
 
   let revision = 1;
   if (await pathExists(featureContractPath)) {
@@ -2929,8 +3067,9 @@ async function writeExecutionContract({ paths, run, contract }) {
   await writeJsonAtomic(featureContractPath, next);
   await writeJsonAtomic(contractPath, next);
   run.contract_revision = revision;
-  run.contract_path = normalizeSlashes(contractPath);
-  run.feature_contract_path = normalizeSlashes(featureContractPath);
+  run.contract_path = normalizeSlashes(resolveRunContractPath(resolvedArtifactPaths, run.run_id));
+  run.feature_contract_path = normalizeSlashes(resolvedArtifactPaths.executionContractPath);
+  run.run_root = normalizeSlashes(resolveRunRootPath(resolvedArtifactPaths, run.run_id));
   run.updated_at = nowIso();
   return next;
 }
@@ -3002,6 +3141,7 @@ function buildLiveContractWorkerSelection(existingContract, state) {
 }
 
 function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, existingContract }) {
+  const artifactPaths = buildArtifactPaths(paths, state);
   const featureIdentity = isPlainObject(existingContract?.feature_identity) ? existingContract.feature_identity : {};
   const routePolicy = isPlainObject(existingContract?.route_policy) ? existingContract.route_policy : {};
   const reviewHandoff = isPlainObject(existingContract?.review_handoff) ? existingContract.review_handoff : {};
@@ -3025,7 +3165,7 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
       phase_number: state.phase_number,
       feature_slug: state.feature_slug,
       feature_registry_key: paths.registryKey,
-      feature_root: normalizeSlashes(paths.featureRoot)
+      feature_root: normalizeSlashes(artifactPaths.featureRoot)
     },
     run_identity: {
       ...(isPlainObject(existingContract?.run_identity) ? existingContract.run_identity : {}),
@@ -3096,13 +3236,13 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
     integrity,
     artifacts: {
       ...artifacts,
-      state_path: normalizeSlashes(paths.statePath),
-      markdown_contract_path: normalizeSlashes(paths.contractPath),
-      execution_contract_path: normalizeSlashes(paths.executionContractPath),
-      run_contract_path: normalizeSlashes(resolveRunContractPath(paths, run.run_id)),
-      run_projection_path: normalizeSlashes(resolveRunProjectionPath(paths, run.run_id)),
-      execution_run_root: normalizeSlashes(resolveRunRootPath(paths, run.run_id)),
-      event_root: normalizeSlashes(resolveAttemptEventsRoot(paths, run.run_id, attempt.attempt_id)),
+      state_path: normalizeSlashes(artifactPaths.statePath),
+      markdown_contract_path: normalizeSlashes(artifactPaths.contractPath),
+      execution_contract_path: normalizeSlashes(artifactPaths.executionContractPath),
+      run_contract_path: normalizeSlashes(resolveRunContractPath(artifactPaths, run.run_id)),
+      run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
+      execution_run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id)),
+      event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, attempt.attempt_id)),
       worktree_path: state.worktree_path ?? null
     }
   };
@@ -3112,9 +3252,11 @@ async function syncLiveNormalExecutionArtifacts({ paths, state, run, attempt, wo
   if (!run || !attempt || run.run_mode !== "normal") {
     return null;
   }
+  const artifactPaths = buildArtifactPaths(paths, state);
 
   const executionContract = await writeExecutionContract({
     paths,
+    artifactPaths,
     run,
     contract: buildLiveExecutionContract({
       paths,
@@ -3125,12 +3267,21 @@ async function syncLiveNormalExecutionArtifacts({ paths, state, run, attempt, wo
       existingContract: await loadLiveExecutionContractSeed(paths, run)
     })
   });
-  const runProjectionPath = await writeRunProjection({ paths, run });
+  const runProjectionPath = await writeRunProjection({ paths, artifactPaths, run, state });
   state.artifacts = {
     ...(state.artifacts ?? {}),
+    readme_path: normalizeSlashes(artifactPaths.readmePath),
+    context_path: normalizeSlashes(artifactPaths.contextPath),
+    state_path: normalizeSlashes(artifactPaths.statePath),
+    contract_path: normalizeSlashes(artifactPaths.contractPath),
     execution_contract_path: executionContract.artifacts.execution_contract_path,
     execution_run_contract_path: executionContract.artifacts.run_contract_path,
-    execution_run_projection_path: runProjectionPath
+    execution_run_projection_path: runProjectionPath,
+    pushback_path: normalizeSlashes(artifactPaths.pushbackPath),
+    brief_path: normalizeSlashes(artifactPaths.briefPath),
+    completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
+    implementation_run_dir: normalizeSlashes(artifactPaths.implementationRunDir),
+    worktree_path: state.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths))
   };
   return {
     executionContract,
@@ -3176,7 +3327,8 @@ async function appendExecutionAuditEvent({ paths, state, run, attempt, eventType
   return result;
 }
 
-function buildRunProjection(paths, run) {
+function buildRunProjection(paths, run, state = null, artifactPaths = null) {
+  const resolvedArtifactPaths = artifactPaths ?? buildArtifactPaths(paths, state);
   const currentAttempt = run.attempts?.[run.current_attempt_id] ?? null;
   return {
     schema_version: RUN_PROJECTION_SCHEMA_VERSION,
@@ -3186,21 +3338,23 @@ function buildRunProjection(paths, run) {
     run_mode: run.run_mode,
     updated_at: nowIso(),
     artifacts: {
-      execution_contract_path: normalizeSlashes(paths.executionContractPath),
-      run_contract_path: normalizeSlashes(resolveRunContractPath(paths, run.run_id)),
-      run_projection_path: normalizeSlashes(resolveRunProjectionPath(paths, run.run_id)),
-      event_root: normalizeSlashes(resolveAttemptEventsRoot(paths, run.run_id, currentAttempt?.attempt_id ?? run.current_attempt_id))
+      execution_contract_path: normalizeSlashes(resolvedArtifactPaths.executionContractPath),
+      run_contract_path: normalizeSlashes(resolveRunContractPath(resolvedArtifactPaths, run.run_id)),
+      run_projection_path: normalizeSlashes(resolveRunProjectionPath(resolvedArtifactPaths, run.run_id)),
+      event_root: normalizeSlashes(resolveAttemptEventsRoot(resolvedArtifactPaths, run.run_id, currentAttempt?.attempt_id ?? run.current_attempt_id))
     },
     run
   };
 }
 
-async function writeRunProjection({ paths, run }) {
+async function writeRunProjection({ paths, artifactPaths = null, run, state = null }) {
   const projectionPath = resolveRunProjectionPath(paths, run.run_id);
   await mkdir(resolveRunRootPath(paths, run.run_id), { recursive: true });
-  await writeJsonAtomic(projectionPath, buildRunProjection(paths, run));
-  run.projection_path = normalizeSlashes(projectionPath);
-  return normalizeSlashes(projectionPath);
+  const resolvedArtifactPaths = artifactPaths ?? buildArtifactPaths(paths, state);
+  await writeJsonAtomic(projectionPath, buildRunProjection(paths, run, state, resolvedArtifactPaths));
+  run.projection_path = normalizeSlashes(resolveRunProjectionPath(resolvedArtifactPaths, run.run_id));
+  run.run_root = normalizeSlashes(resolveRunRootPath(resolvedArtifactPaths, run.run_id));
+  return normalizeSlashes(resolveRunProjectionPath(resolvedArtifactPaths, run.run_id));
 }
 
 function updateAttemptCheckpoint(attempt, step, status, reason) {
@@ -4249,11 +4403,155 @@ function extractHeadingSection(text, heading) {
   return lines.slice(start + 1, end).join("\n").trim();
 }
 
+function extractCompletionSections(text) {
+  const sections = {};
+  for (const heading of COMPLETION_HEADINGS) {
+    sections[heading] = extractHeadingSection(text, heading);
+  }
+  return sections;
+}
+
 function extractLabeledValue(text, label) {
   if (!text) return null;
   const expression = new RegExp("^" + escapeRegex(label) + "\\s*:\\s*(.+)$", "im");
   const match = expression.exec(text);
   return match ? match[1].trim() : null;
+}
+
+async function loadJsonIfExists(targetPath) {
+  if (!(await pathExists(targetPath))) {
+    return null;
+  }
+  try {
+    return await readJson(targetPath);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSection(text) {
+  return String(text ?? "").trim() || "- None.";
+}
+
+function filterSectionLines(section, patterns) {
+  return String(section ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+$/, ""))
+    .filter((line) => !patterns.some((pattern) => pattern.test(line.trim())));
+}
+
+function uniqueLines(lines) {
+  const result = [];
+  const seen = new Set();
+  for (const line of lines) {
+    const normalized = line.trim();
+    if (!normalized) continue;
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(line);
+  }
+  return result;
+}
+
+function buildFinalVerificationSection({ existingSection, state, reviewState, mergeCommitSha }) {
+  const preservedLines = filterSectionLines(existingSection, [
+    /^(?:-\s*)?Review-Cycle Status\s*:/i,
+    /^(?:-\s*)?Merge Status\s*:/i,
+    /^(?:-\s*)?Local Target Sync Status\s*:/i,
+    /^(?:-\s*)?Execution Contract \/ Run Projection Proof\s*:/i,
+    /^(?:-\s*)?Approved(?: feature)? commit\s*:/i,
+    /^(?:-\s*)?Merge commit\s*:/i,
+    /^(?:-\s*)?Final closeout commit\s*:/i,
+    /^(?:-\s*)?Push\s*:/i
+  ]);
+  const lines = uniqueLines([
+    ...preservedLines,
+    "- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.",
+    "- Review-Cycle Status: " + buildReviewCycleStatusSummary(reviewState),
+    "- Merge Status: " + buildMergeStatusSummary(state, mergeCommitSha),
+    "- Local Target Sync Status: " + (state.local_target_sync_status ?? "unknown")
+  ]);
+  return lines.join("\n");
+}
+
+function buildFinalArtifactsSection({ existingSection, paths }) {
+  const lines = uniqueLines([
+    ...String(existingSection ?? "").split(/\r?\n/),
+    "- `docs/phase" + paths.phaseNumber + "/" + paths.featureSlug + "/completion-summary.md`",
+    "- `docs/phase" + paths.phaseNumber + "/" + paths.featureSlug + "/implement-plan-state.json`",
+    "- `docs/phase" + paths.phaseNumber + "/" + paths.featureSlug + "/implementation-run/`"
+  ]);
+  return lines.join("\n");
+}
+
+function buildFinalCommitSection({ state, mergeCommitSha, completionNote }) {
+  const lines = [];
+  if (state.approved_commit_sha) {
+    lines.push("- Approved feature commit: " + state.approved_commit_sha);
+  }
+  if (mergeCommitSha) {
+    lines.push("- Merge commit: " + mergeCommitSha);
+  }
+  if (state.last_commit_sha && state.last_commit_sha !== mergeCommitSha) {
+    lines.push("- Final closeout commit: " + state.last_commit_sha);
+  }
+  lines.push("- Push: success to origin/" + (state.base_branch ?? "main"));
+  if (completionNote) {
+    lines.push("- Closeout note: " + completionNote);
+  }
+  return lines.join("\n");
+}
+
+function buildFinalDebtSection({ existingSection, state }) {
+  const preservedLines = filterSectionLines(existingSection, [
+    /review-cycle.*deferred/i,
+    /merge-queue.*deferred/i,
+    /feature remains unmerged/i,
+    /feature is not marked completed/i
+  ]);
+  if (preservedLines.some((line) => line.trim())) {
+    return preservedLines.join("\n");
+  }
+  if (state.feature_status === "completed") {
+    return "- No remaining route debt for this feature closeout.";
+  }
+  return "- Remaining route debt is recorded in the active feature state.";
+}
+
+function buildReviewCycleStatusSummary(reviewState) {
+  if (!isPlainObject(reviewState)) {
+    return "not run";
+  }
+  const cycleNumber = safeInteger(reviewState.last_completed_cycle ?? reviewState.active_cycle_number, null);
+  const cycleName = cycleNumber ? "cycle-" + String(cycleNumber).padStart(2, "0") : reviewState.cycle_runtime?.cycle_name ?? "review-cycle";
+  const cycleStatus = reviewState.cycle_runtime?.status ?? null;
+  const laneVerdicts = isPlainObject(reviewState.cycle_runtime?.lane_verdicts) ? reviewState.cycle_runtime.lane_verdicts : {};
+  if (cycleStatus === "completed" && laneVerdicts.auditor === "approve" && laneVerdicts.reviewer === "approve") {
+    return cycleName + " approved and closed";
+  }
+  if (cycleStatus === "completed") {
+    return cycleName + " completed";
+  }
+  return cycleName + " " + (cycleStatus ?? "pending");
+}
+
+function buildMergeStatusSummary(state, mergeCommitSha) {
+  if (state.merge_status === "merged") {
+    return "merged via merge-queue (merge commit " + (mergeCommitSha ?? state.merge_commit_sha ?? state.last_commit_sha ?? "unknown") + ")";
+  }
+  if (state.merge_status === "blocked") {
+    return "blocked";
+  }
+  if (state.merge_status === "ready_to_queue") {
+    return "ready_to_queue";
+  }
+  if (state.merge_status === "queued") {
+    return "queued";
+  }
+  if (state.merge_status === "in_progress") {
+    return "in_progress";
+  }
+  return state.merge_status ?? "unknown";
 }
 
 function escapeRegex(value) {
