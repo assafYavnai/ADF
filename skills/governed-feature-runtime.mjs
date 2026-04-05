@@ -383,6 +383,61 @@ export async function writeJsonAtomic(filePath, value) {
   await writeTextAtomic(filePath, JSON.stringify(value, null, 2) + "\n");
 }
 
+export async function governedStateWrite({ statePath, featureSlug, mutator, skipLock = false }) {
+  if (typeof mutator !== "function") {
+    throw new Error("governedStateWrite: mutator must be a function.");
+  }
+  if (!isFilled(statePath)) {
+    throw new Error("governedStateWrite: statePath is required.");
+  }
+  if (!isFilled(featureSlug)) {
+    throw new Error("governedStateWrite: featureSlug is required.");
+  }
+
+  const lockRoot = join(dirname(statePath), ".gsw-locks");
+  const lockKey = "gsw-" + sanitizeLockName(featureSlug);
+
+  const doWrite = async () => {
+    let currentState = null;
+    let currentRevision = 0;
+
+    if (await pathExists(statePath)) {
+      const raw = await readFile(statePath, "utf8");
+      currentState = JSON.parse(raw);
+      currentRevision = typeof currentState?.__gsw_revision === "number" ? currentState.__gsw_revision : 0;
+    }
+
+    const nextState = await mutator(currentState);
+
+    if (!isPlainObject(nextState)) {
+      throw new Error("governedStateWrite: mutator must return a plain object.");
+    }
+
+    const writeId = "gsw-" + randomUUID();
+    const nextRevision = currentRevision + 1;
+    const timestamp = nowIso();
+
+    nextState.__gsw_revision = nextRevision;
+    nextState.__gsw_write_id = writeId;
+    nextState.__gsw_timestamp = timestamp;
+
+    await writeJsonAtomic(statePath, nextState);
+
+    return {
+      status: "committed",
+      state: nextState,
+      write_id: writeId,
+      revision: nextRevision
+    };
+  };
+
+  if (skipLock) {
+    return doWrite();
+  }
+
+  return withLock(lockRoot, lockKey, doWrite);
+}
+
 export function createOpaqueId(prefix) {
   return sanitizePathSegment(prefix) + "-" + randomUUID();
 }

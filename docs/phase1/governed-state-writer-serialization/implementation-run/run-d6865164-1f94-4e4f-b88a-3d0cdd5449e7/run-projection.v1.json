@@ -4,12 +4,12 @@
   "feature_registry_key": "phase1/governed-state-writer-serialization",
   "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
   "run_mode": "normal",
-  "updated_at": "2026-04-05T12:02:31.076Z",
+  "updated_at": "2026-04-05T17:37:29.325Z",
   "artifacts": {
-    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
-    "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
-    "run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
-    "event_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/events/attempt-001"
+    "execution_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
+    "event_root": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/events/attempt-001"
   },
   "run": {
     "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
@@ -17,11 +17,11 @@
     "lifecycle_status": "active",
     "terminal_status": null,
     "contract_schema_version": 1,
-    "contract_revision": 11,
-    "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
-    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
-    "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
-    "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+    "contract_revision": 22,
+    "feature_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
+    "contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
+    "projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
+    "run_root": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
     "benchmark_context": {
       "benchmark_run_id": null,
       "benchmark_suite_id": null,
@@ -37,18 +37,18 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "ready_for_implementation",
+        "status": "blocked",
         "terminal_status": null,
         "started_at": "2026-04-05T11:13:28.291Z",
-        "updated_at": "2026-04-05T12:02:31.067Z",
+        "updated_at": "2026-04-05T17:37:29.318Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "implementation",
-          "status": "ready",
+          "step": "merge_queue",
+          "status": "blocked",
           "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-05T12:02:31.067Z"
+          "updated_at": "2026-04-05T17:37:29.318Z"
         },
         "step_status": {
           "implementation": {
@@ -80,7 +80,7 @@
             "note": null
           },
           "merge_queue": {
-            "status": "not_started",
+            "status": "blocked",
             "started_at": null,
             "completed_at": null,
             "duration_seconds": null,
@@ -117,18 +117,18 @@
               "runtime": "persisted_continuity",
               "access_mode": "persisted_continuity",
               "model": "persisted_continuity",
-              "reasoning_effort": "unsupported_for_resolved_worker"
+              "reasoning_effort": "persisted_continuity"
             },
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-05T12:02:31.067Z",
-        "last_event_at": "2026-04-05T12:02:31.074Z"
+        "last_checkpoint_at": "2026-04-05T17:37:29.318Z",
+        "last_event_at": "2026-04-05T17:37:29.318Z"
       }
     },
     "created_at": "2026-04-05T11:13:28.291Z",
-    "updated_at": "2026-04-05T12:02:31.071Z",
-    "last_event_at": "2026-04-05T12:02:31.074Z",
+    "updated_at": "2026-04-05T17:37:29.324Z",
+    "last_event_at": "2026-04-05T17:37:29.318Z",
     "kpi_projection": {
       "terminal_status": null,
       "per_step_timing": {
@@ -157,7 +157,7 @@
           "duration_seconds": null
         },
         "merge_queue": {
-          "status": "not_started",
+          "status": "blocked",
           "started_at": null,
           "completed_at": null,
           "duration_seconds": null
