@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "contract_kind": "implement-plan-execution",
+  "contract_revision": 2,
+  "prepared_at": "2026-04-05T07:08:18.629Z",
+  "feature_identity": {
+    "project_root": "C:/ADF",
+    "phase_number": 1,
+    "feature_slug": "merge-queue-closeout-repo-truth",
+    "feature_registry_key": "phase1/merge-queue-closeout-repo-truth",
+    "feature_root": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth"
+  },
+  "run_identity": {
+    "run_mode": "normal",
+    "run_id": "run-c929fd48-5202-4591-ad5a-949fb46d0079",
+    "attempt_id": "attempt-001",
+    "attempt_number": 1,
+    "lane_id": null,
+    "worker_id": "implementor/default"
+  },
+  "invoker_runtime": {
+    "provider": null,
+    "execution_runtime": "codex_cli_exec",
+    "control_plane_runtime": "codex_cli_exec",
+    "access_mode": "codex_cli_full_auto_bypass",
+    "model": "gpt-5.4",
+    "reasoning_effort": "xhigh",
+    "runtime_permission_model": "codex_cli_explicit_full_auto",
+    "selection_source": "invoker_runtime_defaults"
+  },
+  "worker_selection": {
+    "defaults": {
+      "provider": null,
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh"
+    },
+    "continuity": {
+      "provider": null,
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh"
+    },
+    "overrides": {
+      "provider": null,
+      "runtime": null,
+      "access_mode": null,
+      "model": null,
+      "reasoning_effort": null
+    },
+    "resolved": {
+      "provider": null,
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh"
+    },
+    "resolved_sources": {
+      "provider": "invoker_inheritance",
+      "runtime": "persisted_continuity",
+      "access_mode": "persisted_continuity",
+      "model": "persisted_continuity",
+      "reasoning_effort": "persisted_continuity"
+    },
+    "inheritance": {
+      "provider": true,
+      "runtime": false,
+      "access_mode": false,
+      "model": false,
+      "reasoning_effort": false
+    }
+  },
+  "route_policy": {
+    "normal_mode_governed_flow": [
+      "implementation",
+      "machine_verification",
+      "review_cycle",
+      "human_testing",
+      "merge_queue"
+    ],
+    "normal_mode_requires_review_cycle_when_requested": true,
+    "human_testing_requires_route_level_review_gate": true,
+    "merge_completion_required_for_terminal_completion": true,
+    "supported_operator_stop_surface": false,
+    "supported_reset_surface": "helper-reset-attempt",
+    "normal_mode_shortcuts_allowed": false
+  },
+  "review_handoff": {
+    "post_send_to_review": false,
+    "review_until_complete": false,
+    "review_max_cycles": null,
+    "review_required_by_human_plan": false
+  },
+  "benchmarking": {
+    "enabled": false,
+    "supervisor_status": "not_applicable",
+    "benchmark_run_id": null,
+    "benchmark_suite_id": null,
+    "lane_id": null,
+    "lane_label": null
+  },
+  "resume_policy": {
+    "resumable_after_crash_or_kill": true,
+    "reuse_cached_workers_when_valid": true,
+    "recreate_workers_when_invalid": true,
+    "last_truthful_checkpoint": {
+      "step": "implementation",
+      "status": "ready",
+      "reason": "Resume from the last truthful normal-mode checkpoint.",
+      "updated_at": "2026-04-05T07:08:18.628Z"
+    }
+  },
+  "reset_policy": {
+    "supported": true,
+    "behavior": "new_attempt_from_implementation_preserving_history",
+    "next_attempt_number": 2
+  },
+  "kpi_policy": {
+    "source": "governed_production_flow",
+    "step_timing_enabled": true,
+    "governance_call_timing_enabled": true,
+    "verification_outcomes_enabled": true,
+    "review_and_self_fix_counts_enabled": true,
+    "blocker_classification_enabled": true,
+    "terminal_status_enabled": true
+  },
+  "integrity": {
+    "blocking_issue_count": 0,
+    "blocking_issue_classes": [],
+    "next_safe_move": "proceed to implementor brief"
+  },
+  "artifacts": {
+    "state_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implement-plan-state.json",
+    "markdown_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/run-projection.v1.json",
+    "execution_run_root": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079",
+    "event_root": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/events/attempt-001",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/merge-queue-closeout-repo-truth"
+  }
+}
