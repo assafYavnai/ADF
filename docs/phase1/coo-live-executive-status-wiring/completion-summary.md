@@ -7,8 +7,8 @@ Current truth:
 - machine verification is green
 - direct CLI smoke is green on the rebased COO route
 - the live `/status` route now renders through the COO model from a strict evidence pack instead of a hardcoded prose surface
-- refreshed human verification is still required
-- follow-up review-cycle on the rebased head is still required
+- human verification was accepted as "good enough for now" with further polish deferred to later slices
+- review-cycle is now closed through cycle-06 final regression_sanity
 - merge-queue and final merge have not run yet
 
 2. What Was Reused
@@ -181,23 +181,21 @@ Deferred to the next phase or next slice:
 8. Human / Review / Merge Status
 
 Human verification:
-- required
-- not yet refreshed on the rebased head
+- completed
+- CEO accepted the current surface as good enough for this slice, with wording/format refinement deferred to later slices
 
 Review-cycle:
-- previous approval on an older head is stale
-- cycle-05 is now in progress with split-review continuity:
-  - reviewer approved
-  - auditor found one narrower prompt-backed issue-source parity defect
-  - that defect is now fixed locally and verified, but the rejecting auditor lane has not rerun on the repaired head yet
+- cycle-05 closed the final prompt-backed issue-source parity defect on the repaired head
+- cycle-06 final regression_sanity then approved the carried-forward reviewer lane on the same repaired route
+- the review stream is now closed on the feature branch
 
 Merge-queue:
 - not started
 
 Final feature status:
 - implemented and machine-verified
-- not yet review-refreshed
-- not yet human-approved
+- review-refreshed
+- human-approved for this slice scope
 - not yet merge-queued
 - not yet complete under the governed route
 
@@ -222,4 +220,4 @@ Belongs to the next phase rather than this slice:
 
 Governance/doc cleanup still worth doing after land:
 - align any remaining Phase 1 planning references that still talk about the COO surface as only status compression
-- refresh governed review artifacts on the rebased head after human verification and review-cycle complete
+- clean up the helper race around parallel `review-cycle-state.json` writes so future review loops do not need manual repair after concurrent event recording
