@@ -49,21 +49,20 @@ export async function renderStatusWithAgent(
     "- When you mention recent landings, include whether approval before merge is proved when that evidence is available. If a merged landing lacks approval proof, that belongs in issues, not as a normal landing note.",
     "- Approval evidence here means durable pre-merge approval proof such as an approved commit record. Do not call it CEO approval unless the evidence explicitly says CEO approval.",
     "- If a trust or audit note does not require a CEO decision right now, keep it brief and out of the main attention bullets.",
-    "You must keep these 4 executive section headings exactly once:",
+    "Use these section headings exactly once in the final status body:",
     "## Issues That Need Your Attention",
     "## On The Table",
     "## In Motion",
-    "## What's Next",
-    "Before those sections, you may write a short opening paragraph and a short landed/context summary when useful.",
-    "Inside `## What's Next`, do not repeat the final choice prompt.",
-    "Use `## What's Next` only for the COO's short recommendation or immediate next move.",
-    "If focus options exist, `## What's Next` should be a single short bullet or one short paragraph, not a numbered list.",
-    "Do not restate the alternatives there. Save the alternatives for the final call for action.",
-    "Order `## What's Next` by urgency and business importance, not by source-file order.",
+    "Do not render a separate `## What's Next` section in the final status body.",
+    "Before those sections, write a short opening paragraph and then a `**Recent landings:**` block when recent landed work exists.",
+    "In `**Recent landings:**`, use flat bullets in this style: `- Feature Name (review status, approval status, optional note)`.",
+    "If review was not required, include the short reason why that is acceptable.",
+    "If a landing has a suspicious review, approval, or KPI gap, you may still list it in `Recent landings`, but add a short `see issue below` note instead of pretending it is clean.",
+    "Do not create a separate numbered list before the final call for action.",
     "If the evidence pack includes clear focus options, end the message with a short natural call for action.",
     "When you provide that final call for action:",
+    "- put the COO recommendation as a short sentence immediately before the numbered options",
     "- include the COO recommendation inline, for example `(Recommended)` on the preferred option",
-    "- do not duplicate the same wording already used in `## What's Next`",
     "- keep the numbered list only at the end",
     "- include a third option that says the CEO can type a different task or priority directly",
     "- prefer exactly 3 options: recommended option, second concrete option, and `Other - type what you need`",
@@ -103,6 +102,7 @@ function buildStatusEvidencePack(
   const landedFeatures = facts.features
     .filter((feature) => feature.completion)
     .map((feature) => toLandedEvidence(feature, governance));
+  const recentLandingsCompact = buildRecentLandingSummaries(landedFeatures);
   const groupedAttention = buildGovernanceCards(governance.additionalAttention, governance);
   const groupedTable = buildGovernanceCards(governance.additionalTable, governance);
   const groupedNext = buildNextCards(brief, governance);
@@ -143,6 +143,7 @@ function buildStatusEvidencePack(
     status_notes: governance.statusNotes,
     company_performance: buildCompanyPerformance(landedFeatures),
     landed_recently: landedFeatures,
+    recent_landings_compact: recentLandingsCompact,
     executive_sections: {
       issues: groupedAttention,
       on_the_table: [
@@ -168,6 +169,7 @@ function buildStatusEvidencePack(
     },
     focus_options: focusOptions,
     coo_recommendation: focusOptions.find((item) => Boolean(item.recommended)) ?? null,
+    coo_recommendation_summary: buildRecommendationSummary(focusOptions),
     current_thread_context: {
       thread_id: governance.currentThread.threadId,
       active_workflow: governance.currentThread.activeWorkflow,
@@ -236,6 +238,91 @@ function buildCompanyPerformance(
       ? "Delivery confidence is mostly strong, but company cost auditability is incomplete because durable token totals are missing on recent post-rollout work."
       : "Recent delivery auditability looks stable from the available review and KPI evidence.",
   };
+}
+
+function buildRecentLandingSummaries(
+  landedFeatures: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  return landedFeatures.map((landed) => {
+    const featureLabel = String(landed.feature_label ?? "Feature");
+    const assessment = asRecord(landed.governance_assessment);
+    const classification = String(assessment.classification ?? "confirmed");
+    const primaryConcern = String(assessment.primary_concern ?? "");
+    const reviewSummary = summarizeReviewStatus(String(assessment.review_assessment ?? ""));
+    const approvalSummary = summarizeApprovalStatus(String(assessment.approval_assessment ?? ""));
+    const landingNotes = summarizeLandingNotes(
+      classification,
+      primaryConcern,
+      String(assessment.token_assessment ?? ""),
+    );
+
+    return {
+      feature_label: featureLabel,
+      review_status: reviewSummary,
+      approval_status: approvalSummary,
+      landing_note: landingNotes,
+      compact_line: [reviewSummary, approvalSummary, landingNotes].filter(Boolean).join(", "),
+      suspicious: classification === "suspicious" || classification === "contradicted",
+    };
+  });
+}
+
+function summarizeReviewStatus(reviewLine: string): string {
+  const reviewCycleMatch = reviewLine.match(/Review check:\s*(\d+)\s+completed review cycles?/i);
+  if (reviewCycleMatch) {
+    const count = Number(reviewCycleMatch[1]);
+    return count === 1 ? "1 review cycle" : `${count} review cycles`;
+  }
+
+  if (/review-cycle was not required/i.test(reviewLine)) {
+    return "no review required - route timing accepted";
+  }
+
+  if (/predate the enforced review-governance route/i.test(reviewLine)) {
+    return "no review required - landed before review governance";
+  }
+
+  if (/review governance should have applied/i.test(reviewLine)) {
+    return "required review missing - see issue below";
+  }
+
+  if (/does not prove review governance/i.test(reviewLine)) {
+    return "review proof incomplete - see issue below";
+  }
+
+  return "review status unclear";
+}
+
+function summarizeApprovalStatus(approvalLine: string): string {
+  if (/approved commit is recorded/i.test(approvalLine)) {
+    return "approval before merge proved";
+  }
+
+  if (/does not prove which approved commit/i.test(approvalLine)) {
+    return "approval proof missing - see issue below";
+  }
+
+  return "approval status not proved";
+}
+
+function summarizeLandingNotes(
+  classification: string,
+  primaryConcern: string,
+  tokenLine: string,
+): string | null {
+  if (classification === "suspicious" && primaryConcern === "kpi") {
+    return "cost data missing - see issue below";
+  }
+
+  if (/rollout slice itself/i.test(tokenLine)) {
+    return "cost telemetry gap is acceptable on the KPI rollout slice itself";
+  }
+
+  if (/predates the KPI capture rollout/i.test(tokenLine)) {
+    return "cost data gap is historical";
+  }
+
+  return null;
 }
 
 function buildGovernanceCards(
@@ -365,6 +452,20 @@ function buildFocusOptions(
   return options.slice(0, 2);
 }
 
+function buildRecommendationSummary(
+  focusOptions: Array<Record<string, unknown>>,
+): string | null {
+  const recommended = focusOptions.find((item) => Boolean(item.recommended));
+  if (!recommended) {
+    return null;
+  }
+  const title = String(recommended.title ?? "the recommended item");
+  const whyNow = String(recommended.why_now ?? "").trim();
+  return whyNow.length > 0
+    ? `My recommendation is to focus on ${title} first because ${lowercaseFirst(whyNow)}`
+    : `My recommendation is to focus on ${title} first.`;
+}
+
 function toLandedEvidence(
   feature: BriefFeatureSnapshot,
   governance: GovernedStatusContext,
@@ -406,6 +507,13 @@ function stripStatusTitle(value: string): string {
   return value
     .replace(/^# COO Executive Status\s*/i, "")
     .trim();
+}
+
+function lowercaseFirst(value: string): string {
+  if (!value) {
+    return value;
+  }
+  return value.charAt(0).toLowerCase() + value.slice(1);
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

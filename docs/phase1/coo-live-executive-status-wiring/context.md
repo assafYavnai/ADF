@@ -108,6 +108,14 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - urgency-based ordering in `What's Next`
   - a closing choice prompt when there are clear prepared options
 - The CLI now shows a status-loading cue while the COO gathers notes so the CEO does not see an apparently frozen terminal.
+- The landed-work summary now uses a compact `Recent landings` bullet list instead of dense prose.
+- Each landing should surface:
+  - review status
+  - pre-merge approval-proof status when provable
+  - a short note when a gap is acceptable legacy
+  - `see issue below` when the landing carries a suspicious route gap
+- If a landing is merged but durable closeout truth does not prove the approved commit before merge, the COO must raise that as an issue instead of silently treating the landing as normal.
+- The separate `What's Next` section is dropped from the live CEO-facing status. The COO recommendation now appears as the summary line immediately above the final focus-choice options.
 
 ## Launcher Note - 2026-04-05
 - The worktree launcher surfaced real shell errors because `adf.sh` called `coo_needs_build` and `memory_engine_needs_build` without defining them.

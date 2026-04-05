@@ -38,6 +38,7 @@ New runtime capability added in this pass:
   - builds the strict status evidence pack
   - groups duplicate route findings before briefing
   - carries route-chain, impact, urgency, KPI/auditability summary, and prepared focus options into the evidence pack
+  - carries compact `Recent landings` summaries with review status, approval-proof status, and legacy-gap explanations
   - calls the COO model for the final CEO-facing wording
   - keeps the deterministic surface only as fallback/proof truth
 - company-first live render that keeps the 4 executive sections while adding:
@@ -47,6 +48,9 @@ New runtime capability added in this pass:
   - what landed section
   - compact operational footer
   - closing call-for-action options when there is a clear next focus
+- later live UX adjustment:
+  - the final CEO-facing status now drops a separate `What's Next` section
+  - the COO recommendation is surfaced directly above the numbered focus options instead
 - investigation behavior for suspicious surfaced facts such as `0 review cycles`
 - bounded local runtime continuity under `.codex/runtime/` for:
   - COO operating state
@@ -58,7 +62,7 @@ New runtime capability added in this pass:
 4. Files Changed And Why
 
 - `COO/briefing/status-governance.ts`
-  - new bounded governance layer for evidence cross-checking, deep audit, trust, Brain hard-stop enforcement, and ready-to-handoff tracked issues
+  - new bounded governance layer for evidence cross-checking, deep audit, trust, Brain hard-stop enforcement, ready-to-handoff tracked issues, and merged-landing approval-proof checks
 - `COO/briefing/status-render-agent.ts`
   - new live status render path that hands grouped source evidence to the COO model instead of hardcoding final prose
 - `COO/briefing/live-executive-surface.ts`
@@ -141,6 +145,7 @@ Smoke observations:
 - deep-audit notes, landed-route judgments, missing-source visibility, handoff readiness, and operational footer rendered as expected
 - the KPI issue now lands as a system closeout-route diagnosis, not as a shallow per-feature symptom
 - the live wording now surfaces why / impact / fix / priority more explicitly and ends with a natural next-focus choice
+- recent landed items now also tell the CEO whether review and pre-merge approval proof are actually present, or why a missing check is acceptable legacy
 - the current strongest root-cause evidence is that implement-plan computes KPI totals during execution but the closeout projection does not persist them into durable feature truth for some post-rollout landings
 
 7. What Was Intentionally Deferred

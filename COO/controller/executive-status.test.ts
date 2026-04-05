@@ -439,8 +439,10 @@ test("live status can hand the evidence pack to the COO agent instead of using t
   assert.match(capturedPrompt, /<status_evidence>/);
   assert.match(capturedPrompt, /"tracked_findings"/);
   assert.match(capturedPrompt, /"landed_recently"/);
+  assert.match(capturedPrompt, /"recent_landings_compact"/);
   assert.match(capturedPrompt, /"company_performance"/);
   assert.match(capturedPrompt, /"focus_options"/);
+  assert.match(capturedPrompt, /"coo_recommendation_summary"/);
   assert.match(capturedPrompt, /route_chain/);
   assert.match(capturedPrompt, /Formatting rules:/);
 });
