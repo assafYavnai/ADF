@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Hardened the governed merge-closeout chain so valid approved features can land and mark complete automatically without manual cleanup, while invalid closeout artifacts are blocked before merge.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects cycle-01 approved and closed and merge commit 8149950de39cef285f3972215281fdfc6a244747.
 
 2. Deliverables Produced
 
@@ -10,6 +12,7 @@ Hardened the governed merge-closeout chain so valid approved features can land a
 - Automatic normalization in review-cycle-helper.mjs: `record-event closeout-finished` calls `normalize-completion-summary` via spawnSync when both review lanes approved
 - `normalize-closeout-artifacts` command in review-cycle-helper.mjs for explicit invocation
 - Updated SKILL.md and workflow-contract.md for implement-plan, review-cycle, and merge-queue
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -28,15 +31,16 @@ Hardened the governed merge-closeout chain so valid approved features can land a
 - Machine Verification: `node --check` passed on all 7 helper/runtime scripts
 - Human Verification Requirement: not required
 - Human Verification Status: not applicable
-- Review-Cycle Status: pending governed review-cycle
-- Merge Status: pending governed merge-queue
-- Local Target Sync Status: pending
 - normalize-completion-summary converts malformed heading to contract-valid: `normalized: true, valid: true`
 - validate-closeout-readiness blocks invalid: `closeout_ready: false, blockers: [Missing required headings]`
 - mark-complete fails closed: exit 1, "merge_status is not_ready instead of merged"
 - merge-queue merge command at line 383 uses `selected.approved_commit_sha` unchanged
 - review-cycle record-event closeout-finished auto-normalizes on approval: `success: true, normalized: true`
 - pre-merge gate exists at merge-queue-helper.mjs line 364
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: cycle-01 approved and closed
+- Merge Status: merged via merge-queue (merge commit 8149950de39cef285f3972215281fdfc6a244747)
+- Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
@@ -44,11 +48,14 @@ Hardened the governed merge-closeout chain so valid approved features can land a
 - `docs/phase1/governed-merge-closeout-chain-hardening/context.md`
 - `docs/phase1/governed-merge-closeout-chain-hardening/README.md`
 - `docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-state.json`
+- `docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/`
 
 6. Commit And Push Result
 
-- Feature branch: implement-plan/phase1/governed-merge-closeout-chain-hardening
-- Push: pending
+- Approved feature commit: 328083c
+- Merge commit: 8149950de39cef285f3972215281fdfc6a244747
+- Push: success to origin/main
+- Closeout note: Merged via merge-queue after approval.
 
 7. Remaining Non-Goals / Debt
 
