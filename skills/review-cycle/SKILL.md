@@ -67,6 +67,7 @@ If a required input is missing, ask only for the missing field.
 5. For `action=run`, read [references/prompt-templates.md](references/prompt-templates.md).
 6. Load `<repo_root>/.codex/review-cycle/setup.json`.
 7. If setup is missing, incomplete, unparsable, or internally inconsistent, read [references/setup-contract.md](references/setup-contract.md) and run the internal setup helper before continuing.
+   Treat `setup.json` as local operational state. It may be auto-created or refreshed locally, but it must not be committed as a source artifact.
 8. Run `node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs prepare ...`.
 9. Treat the helper JSON as the source of truth for:
    - active cycle selection
