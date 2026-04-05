@@ -2,18 +2,21 @@ import { emit } from "../../shared/telemetry/collector.js";
 import { createSystemProvenance } from "../../shared/provenance/types.js";
 import { buildExecutiveBrief } from "../briefing/builder.js";
 import {
-  applyGitStatusWindowToSurface,
   normalizeLiveExecutiveSurface,
   renderLiveExecutiveSurface,
   type LiveExecutiveSurface,
 } from "../briefing/live-executive-surface.js";
 import {
   loadLiveBriefSourceFacts,
-  type BriefRequirementReader,
   type LiveBriefDiagnostics,
 } from "../briefing/live-source-adapter.js";
 import type { ExecutiveBrief, BriefSourceFacts } from "../briefing/types.js";
-import type { FileSystemThreadStore } from "./thread.js";
+import {
+  type LiveStatusBrainClient,
+  prepareGovernedStatusContext,
+  type GovernedStatusContext,
+} from "../briefing/status-governance.js";
+import { FileSystemThreadStore, type FileSystemThreadStore as FileSystemThreadStoreType } from "./thread.js";
 import {
   inspectGitStatusWindow as inspectGitStatusWindowDefault,
   loadStatusUpdateAnchor as loadStatusUpdateAnchorDefault,
@@ -26,11 +29,13 @@ import {
 export interface LiveExecutiveStatusOptions {
   projectRoot: string;
   threadsDir: string;
-  brainClient?: BriefRequirementReader | null;
+  brainClient?: LiveStatusBrainClient | null;
   sourcePartition?: "production" | "proof" | "mixed";
   telemetryContext?: Record<string, unknown>;
   now?: Date;
-  threadStore?: Pick<FileSystemThreadStore, "list" | "get">;
+  statusScopePath?: string | null;
+  currentThreadId?: string | null;
+  threadStore?: Pick<FileSystemThreadStoreType, "list" | "get">;
   loadStatusUpdateAnchor?: (projectRoot: string) => Promise<StatusUpdateAnchor | null>;
   inspectGitStatusWindow?: (options: GitStatusWindowOptions) => Promise<GitStatusWindow>;
   saveStatusUpdateAnchor?: (projectRoot: string, anchor: StatusUpdateAnchor) => Promise<void>;
@@ -47,6 +52,7 @@ export interface LiveExecutiveStatusMetrics {
 export interface LiveExecutiveStatusResult {
   facts: BriefSourceFacts;
   brief: ExecutiveBrief;
+  governance: GovernedStatusContext;
   surface: LiveExecutiveSurface;
   statusWindow: GitStatusWindow | null;
   rendered: string;
@@ -59,6 +65,7 @@ export async function buildLiveExecutiveStatus(
   options: LiveExecutiveStatusOptions,
 ): Promise<LiveExecutiveStatusResult> {
   const invocationStartedAt = Date.now();
+  const threadStore = options.threadStore ?? new FileSystemThreadStore(options.threadsDir);
   emitStatusMetric("live_status_invocation_count", 0, true, {
     count: 1,
     source_partition: options.sourcePartition ?? "production",
@@ -71,7 +78,7 @@ export async function buildLiveExecutiveStatus(
     brainClient: options.brainClient ?? null,
     sourcePartition: options.sourcePartition,
     now: options.now,
-    threadStore: options.threadStore,
+    threadStore,
   });
 
   const buildStartedAt = Date.now();
@@ -93,13 +100,25 @@ export async function buildLiveExecutiveStatus(
 
   const renderStartedAt = Date.now();
   let surface: LiveExecutiveSurface;
+  let governance!: GovernedStatusContext;
   let statusWindow: GitStatusWindow | null = null;
   let rendered: string;
   let output: string;
   try {
-    surface = normalizeLiveExecutiveSurface(facts, brief, diagnostics);
-    statusWindow = await resolveStatusWindow(options, facts, surface);
-    surface = applyGitStatusWindowToSurface(surface, statusWindow);
+    statusWindow = await resolveStatusWindow(options, facts, brief);
+    governance = await prepareGovernedStatusContext({
+      projectRoot: options.projectRoot,
+      facts,
+      diagnostics,
+      statusWindow,
+      brainClient: options.brainClient ?? null,
+      statusScopePath: options.statusScopePath ?? null,
+      currentThreadId: options.currentThreadId ?? null,
+      threadStore,
+      now: options.now ?? new Date(),
+      telemetryContext: options.telemetryContext,
+    });
+    surface = normalizeLiveExecutiveSurface(facts, brief, diagnostics, governance, statusWindow);
     rendered = renderLiveExecutiveSurface(surface);
     output = renderLiveExecutiveStatusOutput(rendered);
   } catch (error) {
@@ -148,6 +167,7 @@ export async function buildLiveExecutiveStatus(
   return {
     facts,
     brief,
+    governance,
     surface,
     statusWindow,
     rendered,
@@ -226,18 +246,23 @@ function formatError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function collectSurfacedFeatureIds(surface: LiveExecutiveSurface): string[] {
-  return [
-    ...surface.landed.map((item) => item.featureId),
-    ...surface.moving.map((item) => item.featureId),
-    ...surface.attention.map((item) => item.featureId),
-  ];
+function collectSurfacedFeatureIds(
+  facts: BriefSourceFacts,
+  brief: ExecutiveBrief,
+): string[] {
+  return Array.from(new Set([
+    ...facts.features.filter((feature) => feature.completion).map((feature) => feature.id),
+    ...brief.issues.map((item) => item.featureId),
+    ...brief.onTheTable.map((item) => item.featureId),
+    ...brief.inMotion.map((item) => item.featureId),
+    ...brief.whatsNext.map((item) => item.featureId),
+  ]));
 }
 
 async function resolveStatusWindow(
   options: LiveExecutiveStatusOptions,
   facts: BriefSourceFacts,
-  surface: LiveExecutiveSurface,
+  brief: ExecutiveBrief,
 ): Promise<GitStatusWindow | null> {
   const loadStatusUpdateAnchor = options.loadStatusUpdateAnchor ?? loadStatusUpdateAnchorDefault;
   const inspectGitStatusWindow = options.inspectGitStatusWindow ?? inspectGitStatusWindowDefault;
@@ -249,7 +274,7 @@ async function resolveStatusWindow(
       projectRoot: options.projectRoot,
       currentRenderedAt: facts.collectedAt,
       previousAnchor,
-      surfacedFeatureIds: collectSurfacedFeatureIds(surface),
+      surfacedFeatureIds: collectSurfacedFeatureIds(facts, brief),
     });
 
     try {

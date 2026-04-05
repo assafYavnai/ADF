@@ -1,149 +1,181 @@
 1. Objective Status
 
-Implementation is complete in the feature worktree and the bounded machine-verification suite is passing.
+The slice has been rebased and implemented as a bounded Phase 1 COO operating surface.
 
-This slice is not fully closed yet. Human verification previously found CEO-surface defects, the route was tightened again in this pass, and refreshed human verification plus a follow-up review-cycle pass are still required before merge-queue.
+Current truth:
+- implementation is complete on the feature branch
+- machine verification is green
+- direct CLI smoke is green on the rebased COO route
+- refreshed human verification is still required
+- follow-up review-cycle on the rebased head is still required
+- merge-queue and final merge have not run yet
 
-2. Deliverables Produced
+2. What Was Reused
 
-- Live `BriefSourceFacts` adapter in `COO/briefing/live-source-adapter.ts`
-- Live evidence-normalization and CEO-facing render layer in `COO/briefing/live-executive-surface.ts`
-- Live executive status controller in `COO/controller/executive-status.ts`
-- Runtime-only last-status / git-verification helper in `COO/controller/status-window.ts`
-- COO CLI wiring for `--status` and `/status`
-- Brain requirement read helper in `COO/controller/memory-engine-client.ts`
-- Proof tests for full-source, partial-source, empty-state, blocked, stale, ambiguous-timing, provenance, no-mutation, parity, KPI, status-window persistence, git red-flag behavior, review-cycle governance explanation, and partition behavior in `COO/controller/executive-status.test.ts`
-- Updated slice context in `docs/phase1/coo-live-executive-status-wiring/context.md`
-- Updated integration note in `COO/briefing/INTEGRATION.md`
+The rebased slice did not restart architecture. It reused:
+- the stabilized COO runtime and CLI entrypoints
+- the existing live executive-status controller path
+- the merged `COO/briefing/**` read-model foundation
+- the live source-facts adapter and provenance/freshness plumbing
+- the existing CTO-admission artifact seam
+- the existing telemetry/proof partition model
+- the bounded git status-window foundation already added to this slice
 
-3. Files Changed And Why
+3. What Was Added
 
-- `COO/briefing/types.ts`
-  - added evidence, freshness, confidence, and completion metadata needed by the live route
-- `COO/briefing/live-source-adapter.ts`
-  - tightened live evidence gathering
-  - added plan-state detail loading from feature-local `implement-plan-state.json` / `review-cycle-state.json`
-  - classified per-feature provenance / freshness / confidence
-  - stopped treating historical plan errors as active blockers after completion
-  - stopped downgrading completed work just because a live thread is absent when implement-plan closeout truth is sufficient
+New runtime capability added in this pass:
+- `COO/briefing/status-governance.ts`
+  - Brain hard stop
+  - landed-route assessment
+  - anomaly classification
+  - tracked COO issues
+  - bounded deep-audit decisions
+  - bounded trust state updates
+  - derived operating continuity
+- company-first live render that keeps the 4 executive sections while adding:
+  - opening summary
+  - status window
+  - status notes
+  - landed-recently section
+  - compact operational footer
+- investigation behavior for suspicious surfaced facts such as `0 review cycles`
+- bounded local runtime continuity under `.codex/runtime/` for:
+  - COO operating state
+  - status-window comparison anchor
+- updated COO operating prompt and Phase 1 wording so the docs match the rebased COO role
+
+4. Files Changed And Why
+
+- `COO/briefing/status-governance.ts`
+  - new bounded governance layer for evidence cross-checking, deep audit, trust, and Brain hard-stop enforcement
 - `COO/briefing/live-executive-surface.ts`
-  - added the normalization layer between raw live facts and the CEO-facing render
-  - renders landed / moving / standout / attention sections with evidence notes
-  - renders the `Status window` with current update time, previous update time, and git coverage notes
-  - keeps elapsed lifecycle time distinct from active work time
+  - keeps the 4 executive sections visible and adds scan-friendly supporting context
 - `COO/controller/executive-status.ts`
-  - now renders the normalized live executive surface instead of directly dumping the internal 4-section brief
-  - keeps the internal 4-section brief for parity / KPI proof
-  - records the previous COO status update baseline and verifies recent git activity against the current surfaced feature set
-- `COO/briefing/live-source-adapter.ts`
-  - now inspects slice-folder review-cycle artifacts and completion summaries so landed items explain whether review-cycle was recorded, explicitly not invoked, derived from slice artifacts, or not provable
-- `COO/controller/status-window.ts`
-  - stores the last COO status update anchor under runtime state
-  - inspects git history since the prior update
-  - raises a bounded red flag when recent feature-slice work is missing from the current COO surface
+  - wires the governed status context into the live route
+- `COO/controller/cli.ts`
+  - surfaces the rebased status route and explicit Brain hard-stop messaging
 - `COO/controller/executive-status.test.ts`
-  - now proves the live route through full-source, partial-source, empty-state, blocked, stale, ambiguous-timing, provenance, no-mutation, parity, last-status persistence, and git red-flag scenarios
+  - adds proof for deep audit, Brain hard stop, anomaly investigation, trust downgrade, full-trust proposal, company-first status, and no-source-mutation behavior
+- `COO/intelligence/prompt.md`
+  - redefines the COO as an evidence-first executive operator
 - `COO/briefing/INTEGRATION.md`
-  - updated to describe the live route as currently implemented
+  - documents the rebased route
 - `docs/phase1/coo-live-executive-status-wiring/README.md`
-  - updated to reflect the stronger evidence-normalized live render contract
+  - rebaselines the slice contract
 - `docs/phase1/coo-live-executive-status-wiring/context.md`
-  - recorded the new route-truth design decisions
+  - records the rebased design decisions
+- `docs/phase1/coo-live-executive-status-wiring/implement-plan-contract.md`
+  - records the rebased contract and compatibility gate
+- `docs/phase1/coo-live-executive-status-wiring/implement-plan-brief.md`
+  - records the rebased implementation brief
+- `docs/phase1/adf-phase1-current-gap-closure-plan.md`
+  - clarifies that the COO gap is evidence-validated operational judgment, not only status compression
+- `docs/phase1/adf-phase1-coo-completion-plan.md`
+  - updates the active COO completion path to include the rebased operating surface
 
-4. Verification Evidence
+5. Brain Rules / Entries
 
-Machine Verification
-- Passed:
-  - `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd --test briefing\executive-brief.test.ts controller\executive-status.test.ts`
-- Result:
-  - `50` tests passed
-  - `0` failed
-- Proof coverage includes:
-  - full-source happy path
-  - partial-source path with missing source family
-  - empty-state path
-  - blocked-item path
-  - stale-source path
-  - ambiguous timing path where elapsed lifecycle time is not presented as active work
-  - provenance path for direct / derived / fallback distinctions
-  - derived-only no-source-mutation proof
-  - parity / visibility proof so blocked or attention-worthy items do not disappear silently
-  - last-status-update persistence proof so the next COO status run has a comparison frame
-  - git-backed context-drop red-flag proof when recent feature-slice work is missing from the current COO surface
-  - landed-item proof for explicit `review-cycle not invoked` and for missing review governance artifacts in slice folders
-  - KPI and production/proof partition isolation
+Runtime Brain rules and writes now implemented:
+- ensure the COO records the `Phase 1 COO evidence-first operating rule`
+- write deep-audit findings
+- write trust changes
+- write tracked COO issues
+- write trigger-tuning changes when bounded sensitivity tuning occurs
 
-Runtime Smoke
-- Passed:
-  - `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd controller\cli.ts --scope assafyavnai/adf --enable-onion --status --scope-path assafyavnai/adf/phase1`
-- Result:
-  - first run establishes the status-window baseline and shows that no previous COO update is recorded yet
-  - second run shows the previous COO update time, the previous HEAD, and a zero-commit git comparison window
-  - renders the new CEO-facing live surface with `Status window`, `What landed`, and `What needs your attention now`
-  - does not print the interactive CLI chrome before the one-shot status output
-  - surfaces elapsed lifecycle timing as ambiguous instead of pretending it is active implementation time
-  - keeps missing CTO-admission truth visible as fallback rather than collapsing it into calm empty output
-  - no longer promotes historical plan errors from already-landed work into the current attention section
+Implementation-time limitation:
+- the `project-brain` MCP tool surface was not available in this Codex runtime
+- direct Brain-side inspection from tools was therefore not possible here
 
-KPI / Audit Evidence Added
-- `live_status_invocation_count`
-- `live_exec_brief_build_latency_ms`
-  - raw latency rows for downstream p50 / p95 / p99 rollups
-  - slow-bucket flags `over_1s`, `over_10s`, and `over_60s`
-- `live_exec_brief_render_success_count`
-- `live_exec_brief_render_failure_count`
-- `live_source_adapter_missing_source_count`
-- `issues_visibility_parity_count`
-- `table_visibility_parity_count`
-- `in_motion_visibility_parity_count`
-- `next_visibility_parity_count`
-- `live_source_freshness_age_ms`
-- proof coverage for production/proof isolation when proof inputs coexist
+Truthful evidence available anyway:
+- the live direct CLI smoke ran against a Brain-connected COO route
+- the rebased route did not hard stop
+- the route reported first-run/company deep-audit behavior and then later suspicious-finding deep-audit behavior
+- because the rebased runtime fails closed on Brain write failure for these paths, the successful smoke is strong route-level evidence that the Brain-backed write path executed successfully
+- direct Brain-side verification still remains unavailable from this implementation runtime
 
-Human Verification Requirement
-- Required: true
+6. Verification Evidence
 
-Human Verification Status
-- Not yet refreshed after the evidence-route patch in this pass
+Machine verification passed:
+- `C:\ADF\wt\COO\node_modules\.bin\tsx.cmd --test COO/controller/executive-status.test.ts COO/briefing/executive-brief.test.ts`
+- result: `45 passed, 0 failed`
 
-Review-Cycle Status
-- Cycle-01 approval exists for an earlier head
-- Current truth:
-  - that approval is stale after the follow-up human-readability and evidence-route fixes
-  - a follow-up review-cycle pass is still required before merge-queue
+Proof coverage now includes:
+- first-run deep audit
+- Brain hard stop
+- acceptable-legacy vs suspicious review-cycle investigation
+- targeted-to-company deep-audit escalation
+- immediate trust downgrade
+- full-trust proposal path
+- company-first `/status`
+- tracked COO issue creation
+- no silent fallback / no source mutation
+- parity / visibility proof
+- proof/production partition proof
 
-Merge Status
-- Not started
+Direct runtime smoke passed:
+- `C:\ADF\wt\COO\node_modules\.bin\tsx.cmd controller/cli.ts --scope assafyavnai/adf --enable-onion --status --scope-path assafyavnai/adf/phase1`
 
-Local Target Sync Status
-- Not started
+Smoke observations:
+- the rebased COO rendered successfully
+- the 4 executive sections were present
+- Brain hard-stop did not trigger
+- deep-audit notes, landed-route judgments, missing-source visibility, and operational footer rendered as expected
+- duplicate same-feature items in `On The Table` were removed in the final pass
 
-5. Brain / Project-Status Note
+7. What Was Intentionally Deferred
 
-Docs-only fallback was used.
+Still deferred by design:
+- autonomous execution launch
+- queue scheduler buildout
+- second canonical company database
+- broader Brain redesign
+- later-phase staffing/department expansion
+- always-on background audit daemon
 
-Reason:
-- the required ADF Brain/project-brain MCP write path was not exposed in this runtime
-- runtime preflight reported Brain route availability as `doctor_required`
-- no Brain write was faked through code imports or ad-hoc workarounds
+Deferred to the next phase or next slice:
+- broader launcher/preflight cleanup outside the direct COO CLI path
+- richer CEO-facing phrasing polish after human verification feedback
+- explicit CEO approval UX around full-trust proposals beyond the current bounded surfaced recommendation
 
-6. Commit And Push Result
+8. Human / Review / Merge Status
 
-- Current head:
-  - `4b6548f` - `Strengthen COO live status evidence verification`
-- Push status:
-  - pushed to `origin/implement-plan/phase1/coo-live-executive-status-wiring`
+Human verification:
+- required
+- not yet refreshed on the rebased head
 
-7. Current Feature Status
+Review-cycle:
+- previous approval on an older head is stale
+- follow-up review-cycle is still required
 
-Implemented and machine-verified on `implement-plan/phase1/coo-live-executive-status-wiring`.
+Merge-queue:
+- not started
 
-The live status route now:
-- gathers evidence before concluding
-- carries provenance / freshness / confidence into the CEO-facing surface
-- renders scan-friendly landed / moving / standout / attention sections
-- records the last COO status update and checks git history since that frame for dropped feature-slice context
-- explains landed-item review governance from slice-folder evidence instead of flattening `0` or missing review cycles into plain `unavailable`
-- keeps ambiguous timing and missing-source truth visible
+Final feature status:
+- implemented and machine-verified
+- not yet review-refreshed
+- not yet human-approved
+- not yet merge-queued
+- not yet complete under the governed route
 
-Refreshed human approval is still pending. After that, the current head still needs a follow-up review-cycle pass, then merge-queue, before the slice can be marked complete truthfully.
+9. Postmortem
+
+Repo / doc contradictions discovered:
+- the original slice docs still described the work as only live executive-brief wiring
+- the real CEO expectation and Phase 1 gap-closure intent required a stronger COO role: evidence cross-checking, anomaly investigation, and bounded trust-aware judgment
+
+Assumptions made:
+- direct workspace/thread truth and canonical lifecycle artifacts are stronger than worker-reported summary fields
+- feature-local `implement-plan-state.json`, `review-cycle-state.json`, `completion-summary.md`, and `cycle-*` artifacts are sufficient canonical evidence for the bounded landed-route investigation in this slice
+
+Repo-shape compromises:
+- no direct `project-brain` MCP tool path was exposed to Codex during implementation, so Brain-side verification had to be inferred through the live fail-closed runtime path rather than direct tool inspection
+- Windows wrapper/preflight behavior was noisy from this shell, so the final runtime smoke used the direct `tsx` CLI entrypoint that the wrapper ultimately launches
+
+Belongs to the next phase rather than this slice:
+- broader trust-governance UX and richer CEO interaction around trust proposals
+- more nuanced prioritization and narrative compression after fresh human verification
+- any expansion from bounded Phase 1 COO governance into later-phase autonomous company behavior
+
+Governance/doc cleanup still worth doing after land:
+- align any remaining Phase 1 planning references that still talk about the COO surface as only status compression
+- refresh governed review artifacts on the rebased head after human verification and review-cycle complete

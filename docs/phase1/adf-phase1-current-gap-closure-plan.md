@@ -4,6 +4,19 @@ Status: active current gap analysis
 Last updated: 2026-04-03  
 Purpose: replace stale next-step thinking with the current implementation gap view aligned to `docs/VISION.md`, `docs/PHASE1_VISION.md`, and `docs/PHASE1_MASTER_PLAN.md`.
 
+## Update - 2026-04-05
+
+The COO gap is now explicitly wider than "status compression."
+
+Active authority for the COO gap:
+- the COO must build situational awareness from evidence
+- the COO must cross-check reported truth against workspace reality
+- the COO must investigate anomalies before briefing upward
+- the COO must keep a bounded operating table and trust-aware judgment layer
+- the COO must fail closed when Brain-backed continuity is unavailable
+
+This is still in Phase 1 scope because it is bounded COO governance and operating visibility, not autonomous company execution or a second canonical company database.
+
 ## Why This File Exists
 
 The stale part is no longer the Phase 1 mission itself.
@@ -79,7 +92,7 @@ Materially closed enough to stop treating implementation as the main missing unk
 
 ## Current Remaining Gaps Against Vision And Master Plan
 
-### Gap A. CEO-facing COO executive briefing is still not live enough
+### Gap A. CEO-facing COO executive briefing is still not operational enough
 
 Why it matters:
 
@@ -94,14 +107,16 @@ Current reality:
 
 - the onion lane exists
 - the implementation lane exists
-- but the business-level compression layer for the CEO is still missing or not yet live enough
+- but the COO still needs to act as an evidence-validating operator, not only a summarizer of surfaced state
 
 Required closure:
 
 - executive brief read model
-- table summary / current-state compression
+- company-first operating-table summary
+- anomaly investigation before CEO briefing
 - blocked-item visibility
-- later startup/status surface wiring
+- trust-aware judgment on suspicious route facts
+- live startup/status surface wiring
 
 ### Gap B. COO -> CTO admission is still the thinnest missing seam
 
@@ -137,6 +152,7 @@ Required closure:
 
 - table/backlog read model
 - admitted vs active vs blocked vs shaping states
+- tracked COO issues and trust-sensitive risks
 - current focus and queue visibility
 
 ### Gap D. Parallel implementation safety is still partly manual
@@ -164,7 +180,7 @@ Why it matters:
 The fuller feature flow still wants:
 
 - design
-n- planning
+- planning
 - setup-analysis
 - richer technical queue decisions
 
@@ -203,13 +219,13 @@ Goal:
 
 - a frozen requirement artifact should be able to move into technical admission without manual reinterpretation
 
-### Step 3. Wire the executive brief into a real COO surface
+### Step 3. Rebase the executive brief into a real COO operating surface
 
 After the executive-brief slice lands, wire it into the COO-visible startup/status surface.
 
 Goal:
 
-- the CEO can ask what is on our table and get a real compressed answer
+- the CEO can ask what is on our table and get a real evidence-validated answer
 
 ### Step 4. Add table / queue state aggregation
 
@@ -221,7 +237,7 @@ Build the minimum company-level state compression that answers:
 - blocked
 - next
 
-This closes the operational meaning of "what is on our table?"
+This closes the operational meaning of "what is on our table?" and gives the COO a bounded operating table instead of a flat report.
 
 ### Step 5. Add parallel-run safety only as needed
 

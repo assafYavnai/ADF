@@ -4,6 +4,23 @@ Date: 2026-03-31
 Status: working replacement plan
 Purpose: preserve the current recommended path for turning the COO into a solid, mature Phase 1 component without depending on the chat thread.
 
+Update: 2026-04-05 (rebased COO operating surface)
+
+The active COO completion path is no longer just:
+- stabilized runtime
+- live onion lane
+- downstream finalized-requirement consumption
+
+It now explicitly includes:
+- company-first executive briefing
+- evidence cross-checking
+- anomaly investigation
+- bounded operating-table continuity
+- bounded trust and deep-audit behavior
+- Brain hard-stop enforcement
+
+This is a Phase 1 bounded-governance expansion, not an architecture restart and not a later-phase autonomous COO.
+
 Update: 2026-04-01 (live onion integration)
 
 The COO now supports the requirements-gathering onion lane on the supported runtime behind the explicit feature gate `ADF_ENABLE_REQUIREMENTS_GATHERING_ONION` / `--enable-onion`.

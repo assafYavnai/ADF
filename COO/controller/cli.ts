@@ -20,6 +20,7 @@ import { createLLMProvenance } from "../../shared/provenance/types.js";
 import { MemoryEngineClient } from "./memory-engine-client.js";
 import { createSystemProvenance } from "../../shared/provenance/types.js";
 import { buildLiveExecutiveStatus } from "./executive-status.js";
+import { BrainHardStopError } from "../briefing/status-governance.js";
 
 let shuttingDown = false;
 
@@ -174,12 +175,22 @@ async function main() {
       },
     });
     await closeTelemetry({ timeoutMs: 1 }).catch(() => {});
-    console.error(`Memory engine MCP connection failed: ${message}`);
+    console.error("COO hard stop: Brain durable memory is unavailable.");
+    console.error(`Reason: ${message}`);
+    console.error("Immediate fix: repair the memory-engine MCP route, then rerun the COO.");
     throw err;
   }
 
   if (args.statusOnly) {
-    await printExecutiveStatus(projectRoot, threadsDir, brainClient, statusTelemetryContext, telemetryPartition);
+    await printExecutiveStatus(
+      projectRoot,
+      threadsDir,
+      brainClient,
+      configuredScope,
+      null,
+      statusTelemetryContext,
+      telemetryPartition,
+    );
     await shutdownCli(brainClient, {
       ...runtimeTelemetryContext,
       cli_mode: cliMode,
@@ -290,7 +301,7 @@ async function main() {
     }
 
     if (input === "/status") {
-      await printExecutiveStatus(projectRoot, threadsDir, brainClient, {
+      await printExecutiveStatus(projectRoot, threadsDir, brainClient, configuredScope, threadId, {
         ...statusTelemetryContext,
         current_thread_id: threadId,
       }, telemetryPartition);
@@ -396,6 +407,8 @@ async function printExecutiveStatus(
   projectRoot: string,
   threadsDir: string,
   brainClient: MemoryEngineClient | null,
+  statusScopePath: string | null,
+  currentThreadId: string | null,
   telemetryContext: Record<string, unknown>,
   sourcePartition: "production" | "proof" | "mixed",
 ): Promise<void> {
@@ -406,9 +419,17 @@ async function printExecutiveStatus(
       brainClient,
       sourcePartition,
       telemetryContext,
+      statusScopePath,
+      currentThreadId,
     });
     console.log(`\n${status.output}\n`);
   } catch (error) {
+    if (error instanceof BrainHardStopError) {
+      console.error("\n# COO Executive Status\n");
+      console.error(`Hard stop: ${error.message}`);
+      console.error(`Immediate fix: ${error.immediateFix}`);
+      return;
+    }
     console.error(`Executive status failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -582,6 +603,9 @@ function parseCliArgs(argv: string[]): {
     } else if (arg === "--scope") {
       scopePath = argv[i + 1];
       i++;
+    } else if (arg === "--scope-path") {
+      scopePath = argv[i + 1];
+      i++;
     } else if (arg === "--enable-onion") {
       enableOnion = true;
     } else if (arg === "--disable-onion") {
@@ -674,7 +698,7 @@ async function runScriptedSession(
       }
 
       if (input === "/status") {
-        await printExecutiveStatus(projectRoot, threadsDir, brainClient, {
+        await printExecutiveStatus(projectRoot, threadsDir, brainClient, configuredScope, threadId, {
           ...shutdownMetadata,
           current_thread_id: threadId,
         }, String(shutdownMetadata.telemetry_partition ?? "production") === "proof" ? "proof" : "production");

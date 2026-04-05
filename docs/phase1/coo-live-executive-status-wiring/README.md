@@ -1,79 +1,137 @@
 # coo-live-executive-status-wiring
 
-## Target Local Folder
-C:/ADF/docs/phase1/coo-live-executive-status-wiring/README.md
+## Objective
+Rebaseline the existing live-status slice into a bounded Phase 1 COO operator that is:
+- company-first
+- evidence-first
+- Brain-backed
+- investigation-capable
+- trust-aware
+- CEO-facing in language
 
-## Feature Goal
-Wire the merged `COO/briefing/**` executive-brief read model into the live COO runtime so the CEO can get a real business-level status surface that answers what needs attention, what is on the table, what is moving, and what is next.
+This slice does not restart the COO architecture. It extends the stabilized COO runtime and the existing live executive-status foundation.
 
-## Why This Slice Exists Now
-- The executive-brief package is merged, but it is still not wired into the active COO runtime, CLI, or controller.
-- Phase 1 still lacks a strong live answer to "what is on our table?"
-- The user should be able to ask for live COO status without receiving an internal-state dump.
+## Why This Slice Exists
+- Wiring the briefing package into `/status` was necessary, but not sufficient.
+- The CEO needs a COO that cross-checks evidence before briefing upward, not a surface-value reporter.
+- Phase 1 still needs a company-level operating table, anomaly investigation, and bounded trust judgment without widening into a later-phase autonomous COO.
 
-## Requested Scope
-Build the live executive/status surface around the merged briefing package.
+## Rebased Product Contract
+This slice now owns the bounded Phase 1 COO status route that:
+- gathers evidence from workspace reality, canonical lifecycle artifacts, Brain, and supporting docs before concluding
+- cross-checks suspicious surfaced facts instead of repeating them raw
+- investigates whether anomalies are acceptable legacy gaps, suspicious, contradicted, or not provable
+- maintains a lightweight derived operating table for active decisions, risks, blocked handoffs, recurring issues, and CEO-attention items
+- maintains a bounded derived trust layer for workers, components, and routes
+- records deep-audit findings, trust changes, and tracked COO issues through Brain-backed runtime writes
+- fails closed when Brain is unavailable
 
-This slice must:
-- create a live source-facts adapter that reads current COO state into `BriefSourceFacts`
-- consume at least these source families when present:
-  - active COO threads / onion state
-  - finalized requirement artifacts
-  - CTO-admission artifacts when present
-  - implement-plan feature truth when present
-- keep the internal 4 briefing sections from live data for parity truth:
-  - Issues That Need Your Attention
-  - On The Table
-  - In Motion
-  - What's Next
-- keep the internal 4-section brief as derived parity truth, but allow the CEO-facing live surface to normalize that internal brief into a more scan-friendly executive shape when the live route needs stronger provenance/freshness/confidence exposure
-- add a bounded status window that records the last COO status update and verifies recent feature-slice activity in git since that window
-- expose the live brief through the COO surface:
-  - startup summary and/or status command, following existing CLI conventions
-- keep the briefing layer derived-only; do not write back into source truth
-- degrade gracefully when one source family is missing, instead of failing the whole status surface
+## Current Runtime Responsibilities
+
+### 1. Live executive brief wiring
+- the merged `COO/briefing/**` package is wired into the real COO runtime
+- the live COO surface keeps the 4 executive sections:
+  - `Issues That Need Your Attention`
+  - `On The Table`
+  - `In Motion`
+  - `What's Next`
+- the live CEO-facing surface may add scan-friendly context around those sections:
+  - opening summary
+  - `Status window`
+  - `Status notes`
+  - `What landed recently`
+  - operational footer
+
+### 2. Evidence gathering and cross-checking
+- gathers evidence from:
+  - direct workspace/thread reality
+  - finalized requirement truth
+  - CTO-admission truth when present
+  - implement-plan truth
+  - git comparison since the previous COO status update
+- classifies claims as:
+  - `direct_source`
+  - `derived_from_sources`
+  - `fallback_missing_source`
+  - `ambiguous`
+  - `unavailable`
+- does not collapse missing source into empty state
+
+### 3. Investigation and anomaly handling
+- suspicious facts are investigated before briefing upward
+- example: `0 review cycles` is interpreted against route timing and slice-folder governance evidence
+- elapsed lifecycle timestamps are never flattened into active implementation time unless proven
+- git-touched feature-slice work missing from the current COO surface raises a red flag
+
+### 4. Company operating table
+- the route is company-first by default
+- current thread is shown as context, not as the whole answer
+- shaping, awaiting decision, admitted, blocked, in motion, next, and tracked COO issues are derived from evidence rather than hand-maintained as primary truth
+
+### 5. Deep audit and trust
+- first run performs a deep audit when no valid baseline exists
+- later deep audits trigger on bounded signals such as suspicious findings, git red flags, staleness pressure, and trust transitions
+- trust applies to workers, components, and routes
+- trust only changes how much suspicion/checking pressure the COO applies; it never overrides stronger evidence
+- nothing is exempt from spot checks or later deep audits
+
+### 6. Brain hard-stop rule
+- Brain is the primary durable memory for this rebased COO path
+- if Brain is unavailable, the COO must hard stop
+- no warning-only degraded status, trust, or audit conclusion is allowed on the rebased path
+
+## Evidence Hierarchy
+When sources disagree, trust in this order:
+1. direct workspace reality
+2. canonical lifecycle artifacts
+3. docs and Brain
+4. worker claims, summaries, and KPI surfaces
+5. derived trust ledger
+
+The trust ledger guides suspicion. It never outranks stronger evidence.
 
 ## Allowed Edits
-- COO/briefing/**
-- COO/controller/** where the live status surface must be wired
-- COO/requirements-gathering/** only for read-shape helpers or additive adapters
-- docs/phase1/coo-live-executive-status-wiring/**
+- `COO/briefing/**`
+- `COO/controller/**`
+- `COO/requirements-gathering/**` only for additive read-shape helpers
+- `docs/phase1/coo-live-executive-status-wiring/**`
 - tightly scoped tests for the above
 
 ## Forbidden Edits
-- no implement-plan changes
-- no review-cycle changes
-- no merge-queue changes
-- no queue scheduler buildout
-- no unrelated onion-behavior redesign
-- no broad memory-engine redesign
-- no edits to other slice folders
+- implement-plan changes
+- review-cycle changes
+- merge-queue changes
+- queue scheduler buildout
+- unrelated onion redesign
+- broad memory-engine redesign
+- edits to other slice folders
 
 ## Required Deliverables
-- a live `BriefSourceFacts` adapter for the COO runtime
-- a real status/startup surface that renders the executive brief from live state
-- a runtime-only last-status-update / git-verification window for the COO live surface
-- graceful handling of partial/missing sources
-- proof tests for the internal 4-section parity path and the CEO-facing live status window
-- context.md
-- completion-summary.md
+- rebased runtime implementation on top of the existing slice
+- company-first CEO-facing `/status` and status-only startup surface
+- derived operating-table layer
+- bounded deep-audit / trust / tracked-issue layer
+- Brain-backed runtime persistence for rebased COO findings and trust changes
+- Brain hard-stop enforcement
+- updated COO prompt and Phase 1 wording
+- proof/tests
+- truthful `completion-summary.md`
 
 ## Status Surface Rules
-- the output must stay business-level, not a raw state dump
-- the CEO-facing live render must stay scan-friendly instead of collapsing into dense prose or raw section dumps
-- every material CEO-facing claim must make provenance, freshness, and confidence visible enough to distinguish direct truth from derived, fallback, ambiguous, or unavailable conclusions
-- the COO surface must show the current status update time, the previous status update time when known, and whether git comparison since that prior update is available
-- if git shows recent feature-slice activity since the previous COO update and that work is absent from the current surface, the COO must raise a red flag instead of silently dropping it
-- blocked items must appear in `Issues That Need Your Attention`
-- `On The Table` must include unresolved work that is shaping or awaiting decision
-- `In Motion` must reflect active live work
-- `What's Next` must stay concise and forward-looking
-- if CTO-admission artifacts are not present yet, the surface must still render shaping and implementation truth cleanly
+- keep the output business-level
+- keep the 4 executive sections visible
+- preserve graceful degradation for partial source families
+- make provenance, freshness, and confidence visible enough for leadership judgment
+- blocked items must surface in `Issues`
+- unresolved shaping / governance / decision items must surface in `On The Table`
+- active live work must surface in `In Motion`
+- concise forward moves must surface in `What's Next`
+- trust and audit details should stay exception-first, not a permanent dump
+- current thread, workflow, onion layer, scope path, and last state commit belong in a compact operational footer
 
-## Production KPI / Audit Matrix Requirements
-Define explicit KPIs for this slice:
-- `live_exec_brief_build_latency_ms` with p50, p95, p99
-- slow status-build buckets over 1s, 10s, and 60s
+## KPI / Audit Matrix
+Required telemetry:
+- `live_exec_brief_build_latency_ms`
 - `live_exec_brief_render_success_count`
 - `live_exec_brief_render_failure_count`
 - `live_status_invocation_count`
@@ -83,118 +141,55 @@ Define explicit KPIs for this slice:
 - `in_motion_visibility_parity_count`
 - `next_visibility_parity_count`
 - `live_source_freshness_age_ms`
-- partition/isolation proof when production and proof inputs coexist
 
 Audit rules:
-- the executive brief remains derived-only
-- parity mismatches must be visible and countable
-- missing-source cases must remain distinguishable from empty-state cases
-- the live status surface must not silently drop blocked or attention-worthy items
+- executive brief, operating table, baseline, and trust stay derived-only
+- missing-source cases stay distinguishable from empty state
+- blocked or attention-worthy items cannot disappear silently
+- no fake Brain-backed conclusion is allowed
 
-## Acceptance Gates
-- KPI Applicability: required
-- KPI Route / Touched Path: `CLI/startup summary/status surface -> COO/controller live status wiring -> COO/briefing live source-facts adapter -> executive brief renderer -> KPI emission`
-- KPI Raw-Truth Source: shared telemetry rows emitted by the real COO CLI/status path for production and proof partitions, plus deterministic proof tests for source adaptation/render parity
-- KPI Coverage / Proof:
-  - prove the live status surface through the real COO CLI/status entry surface and its startup/status rendering path
-  - prove full-source, partial-source, and empty-source rendering
-  - prove parity counters, missing-source counters, latency buckets, and freshness age reporting
-  - prove production/proof isolation when proof inputs coexist with production inputs
-- KPI Production / Proof Partition:
-  - production invocations must emit production-partition telemetry
-  - proof and test invocations must emit proof-partition telemetry
-  - rollups and closeout evidence must keep proof truth distinguishable from production truth
-- KPI Non-Applicability Rationale: not applicable because KPI instrumentation is required for this live CEO-facing status surface
-- KPI Exception Owner: none
-- KPI Exception Expiry: none
-- KPI Exception Production Status: none
-- KPI Compensating Control: none
-- the COO runtime can render the executive brief from live data
-- the internal 4-section brief remains available in the correct order for parity proof, while the CEO-facing live render may normalize that brief into a more human-scannable shape
-- the status surface stays business-level and concise
-- blocked items surface concretely in `Issues`
-- missing source families degrade gracefully instead of crashing the surface
-- tests prove rendering across mixed live-state scenarios
+## Human Verification
+Required: true
 
-## Machine Verification Plan
-- run targeted tests for live source adaptation and status rendering
-- validate that the surface works with full sources, partial sources, and empty sources
-- validate parity counters and freshness metrics
-- validate that no source mutation occurs during brief generation
-- validate that the last-status window persists between runs and that git-backed context-drop red flags surface when expected
+Test from the feature worktree:
+```bash
+./adf.sh -- --status --scope-path assafyavnai/adf/phase1
+```
 
-## Human Verification Plan
-- Required: true
-- Reason: this slice creates a real CEO-facing runtime surface and should be checked for usefulness and readability
-- IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
-- Executive summary of implemented behavior:
-  - the COO startup/status surface renders a live executive update derived from active threads, finalized requirements, CTO-admission truth when present, implement-plan truth when present, and a bounded git comparison against the previous COO status update
-  - missing source families degrade gracefully and remain visibly distinguishable from truly empty-state results
-- IMPLEMENTATION IS READY FOR TESTING
-- Exact testing sequence:
-  - run `./adf.sh -- --status --scope-path assafyavnai/adf/phase1` from the feature worktree
-  - read the opening paragraph, then the `Status window`, then `What landed`, optional `What is moving`, optional `What stands out`, and `What needs your attention now`
-  - if this is the first status run in that worktree, run the same command a second time so the COO has a previous-status baseline to compare against
-  - confirm the `Status window` shows:
-    - the current COO update time
-    - the previous COO update time when available
-    - whether the git coverage check is derived from commit history, timestamp fallback, or unavailable
-    - whether any red-flag note is raised about recent git-touched feature work missing from the current COO surface
-  - confirm each landed item remains easy to scan and includes timing, review count, token cost, key issue, and an evidence note
-  - confirm the output stays business-level and does not dump raw state objects or internal field names
-  - confirm missing CTO-admission inputs do not break the surface and that shaping/implementation truth still renders cleanly
-- Expected results:
-  - the surface is readable, concise, and useful for CEO triage
-  - the status window makes it clear what time frame the COO checked and whether git-backed context verification succeeded
-  - the surface remains stable when some source families are missing
-  - the output reflects live runtime truth instead of static fixtures
-- Evidence to report back:
-  - whether the brief was understandable and decision-useful
-  - any section or landed item that felt misleading, noisy, or incomplete
-  - whether the status window was understandable and whether it exposed enough provenance for the comparison frame
-  - whether any recent git-touched feature work appeared to be missing from the current COO surface
-- Response contract:
-  - `APPROVED`
-  - `REJECTED: <comments>`
-- IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
+Verify:
+- the COO speaks in business language
+- the 4 executive sections are present
+- landed items are easy to scan
+- missing or fallback evidence stays visible
+- Brain hard-stop behavior is explicit if Brain is unavailable
+- any git-backed dropped-context red flag is easy to understand
+
+## Change Request 01
+Previously approved in this slice:
+- keep the internal 4-section brief as parity truth
+- allow a scan-friendly live executive render around that brief
+- add a bounded git/status window for dropped-context detection
+
+## Change Request 02
+Rebased in this slice:
+- the COO live-status route is no longer just status compression
+- it now owns bounded situational awareness, anomaly investigation, operating-table continuity, trust-aware briefing, and Brain hard-stop enforcement
+- this remains bounded to Phase 1 COO governance and does not create a second canonical company database
 
 ## Non-Goals
-- no full queue manager
-- no CTO admission generation in this slice
-- no downstream implementation orchestration changes
-- no adaptive personalization engine beyond what is minimally needed for the live surface
+- no architecture restart
+- no second canonical company truth system
+- no full autonomous COO
+- no auto-launch into execution
+- no queue scheduler buildout
+- no broad company staffing/department expansion
+- no broad dashboard product work
 
-## Scope Claim
-This slice owns only:
-- COO/briefing/**
-- the minimum controller/runtime wiring needed for a real live status surface
-- docs/phase1/coo-live-executive-status-wiring/**
-- tightly scoped tests for the same path
-
-## Execution Route Update
-This slice must run through the full governed path:
+## Execution Route
 - implement-plan prepares or reuses the dedicated feature worktree
-- implementation runs on the feature branch inside that worktree
+- implementation happens on the feature branch in that worktree
 - machine verification passes
-- review-cycle runs when configured
-- human verification runs because this is a real CEO-facing surface
-- the approved feature-branch commit is handed to merge-queue
-- the slice is marked complete only after merge-queue records merge success truthfully
-
-## Change Request 01 - Evidence-Normalized CEO Surface And Git Verification
-
-Human verification showed that the original live-route plan was too narrow in two ways:
-- it assumed the CEO-facing surface could stay as a direct 4-section render
-- it did not verify whether context had drifted since the previous COO status update
-
-This slice now carries the following bounded deviation:
-- the internal 4-section brief remains the parity and audit truth
-- the live CEO-facing surface uses a scan-friendly executive shape with an explicit `Status window`
-- the controller compares recent git activity since the previous COO status update and raises a red flag when a recently touched feature slice is missing from the current COO surface
-- the comparison baseline is stored only in runtime state under `.codex/runtime/`; the broader context-gathering tool remains unchanged in this slice
-
-## Commit Rules
-- commit only slice-local changes
-- push only the feature-branch changes produced by implement-plan
-- do not manually merge to main or master
-- final completion is allowed only after merge-queue lands the approved commit and implement-plan marks the slice complete truthfully
+- human verification passes
+- review-cycle reruns on the rebased head
+- merge-queue lands the approved branch
+- only then can the slice be marked complete truthfully
