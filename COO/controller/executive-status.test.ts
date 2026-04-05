@@ -219,6 +219,34 @@ test("0 review cycles after review governance is active is treated as suspicious
   assert.ok(fixture.brainClient.captured.some((entry) => entry.tags.includes("tracked-issue")));
 });
 
+test("merged landing without approved-commit proof is treated as suspicious and raised in issues", async () => {
+  const fixture = await createFixture({ includeAdmissions: false });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-approval-gap",
+    updatedAt: "2026-04-05T16:04:00.000Z",
+    contextCollectedAt: "2026-04-05T14:00:00.000Z",
+    closeoutFinishedAt: "2026-04-05T16:04:00.000Z",
+    reviewCycles: 1,
+    completionSummary: "Token cost unavailable.",
+    reviewFinding: null,
+    approvedCommitSha: null,
+  });
+
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    statusScopePath: "assafyavnai/adf/phase1",
+  });
+
+  assert.ok(result.output.includes("approved commit"));
+  assert.ok(result.governance.additionalAttention.some((item) => item.featureId === "feature-approval-gap"));
+  assert.ok(fixture.brainClient.captured.some((entry) =>
+    entry.tags.includes("tracked-issue") && JSON.stringify(entry.content).includes("approved commit"),
+  ));
+});
+
 test("deep audit escalates from targeted to company scope when multiple suspicious findings exist", async () => {
   const fixture = await createFixture({ includeAdmissions: false });
   await writeCompletedFeatureTruth({
@@ -639,6 +667,8 @@ async function writeCompletedFeatureTruth(input: {
   reviewCycles: number;
   completionSummary: string;
   reviewFinding: string | null;
+  mergeStatus?: string;
+  approvedCommitSha?: string | null;
 }): Promise<void> {
   const featureRoot = join(tempRoot, "docs", "phase1", input.featureSlug);
   await mkdir(featureRoot, { recursive: true });
@@ -647,12 +677,12 @@ async function writeCompletedFeatureTruth(input: {
     feature_slug: input.featureSlug,
     feature_status: "completed",
     active_run_status: "completed",
-    merge_status: "merged",
+    merge_status: input.mergeStatus ?? "merged",
     last_completed_step: "marked_complete",
     updated_at: input.updatedAt,
     created_at: input.contextCollectedAt,
     merge_commit_sha: "merge-commit-sha",
-    approved_commit_sha: "approved-commit-sha",
+    approved_commit_sha: input.approvedCommitSha === undefined ? "approved-commit-sha" : input.approvedCommitSha,
     run_timestamps: {
       context_collected_at: input.contextCollectedAt,
       closeout_finished_at: input.closeoutFinishedAt,

@@ -46,6 +46,8 @@ export async function renderStatusWithAgent(
     "- If an issue is already investigated and handoff-ready, say what the root problem is and what fix can start immediately if approved.",
     "- If the evidence pack includes a route_chain, compress it into a short plain-language explanation of where the failure starts and how it reaches the CEO-facing symptom.",
     "- If the evidence pack includes company performance or KPI auditability counts, summarize them briefly near the top in CEO language.",
+    "- When you mention recent landings, include whether approval before merge is proved when that evidence is available. If a merged landing lacks approval proof, that belongs in issues, not as a normal landing note.",
+    "- Approval evidence here means durable pre-merge approval proof such as an approved commit record. Do not call it CEO approval unless the evidence explicitly says CEO approval.",
     "- If a trust or audit note does not require a CEO decision right now, keep it brief and out of the main attention bullets.",
     "You must keep these 4 executive section headings exactly once:",
     "## Issues That Need Your Attention",
@@ -53,8 +55,18 @@ export async function renderStatusWithAgent(
     "## In Motion",
     "## What's Next",
     "Before those sections, you may write a short opening paragraph and a short landed/context summary when useful.",
-    "Inside `## What's Next`, order items by urgency and business importance, not by source-file order.",
-    "If the evidence pack includes clear focus options, end the message with a short natural call for action and up to 2 numbered options.",
+    "Inside `## What's Next`, do not repeat the final choice prompt.",
+    "Use `## What's Next` only for the COO's short recommendation or immediate next move.",
+    "If focus options exist, `## What's Next` should be a single short bullet or one short paragraph, not a numbered list.",
+    "Do not restate the alternatives there. Save the alternatives for the final call for action.",
+    "Order `## What's Next` by urgency and business importance, not by source-file order.",
+    "If the evidence pack includes clear focus options, end the message with a short natural call for action.",
+    "When you provide that final call for action:",
+    "- include the COO recommendation inline, for example `(Recommended)` on the preferred option",
+    "- do not duplicate the same wording already used in `## What's Next`",
+    "- keep the numbered list only at the end",
+    "- include a third option that says the CEO can type a different task or priority directly",
+    "- prefer exactly 3 options: recommended option, second concrete option, and `Other - type what you need`",
     "Use the evidence pack to distinguish direct truth, derived judgment, fallback, ambiguity, and missing proof.",
     "Do not expose raw JSON, internal ids, schema names, or route internals unless they are necessary to explain a real business-impacting issue.",
     "If the evidence shows a route/control problem, explain it plainly and suggest the concrete fix action, impact, severity, and priority.",
@@ -94,6 +106,7 @@ function buildStatusEvidencePack(
   const groupedAttention = buildGovernanceCards(governance.additionalAttention, governance);
   const groupedTable = buildGovernanceCards(governance.additionalTable, governance);
   const groupedNext = buildNextCards(brief, governance);
+  const focusOptions = buildFocusOptions(groupedAttention, groupedNext);
 
   return {
     company: {
@@ -153,7 +166,8 @@ function buildStatusEvidencePack(
       table: groupedTable,
       next: groupedNext,
     },
-    focus_options: buildFocusOptions(groupedAttention, groupedNext),
+    focus_options: focusOptions,
+    coo_recommendation: focusOptions.find((item) => Boolean(item.recommended)) ?? null,
     current_thread_context: {
       thread_id: governance.currentThread.threadId,
       active_workflow: governance.currentThread.activeWorkflow,
@@ -170,6 +184,8 @@ function buildCompanyPerformance(
   const recentCount = landedFeatures.length;
   let reviewEvidencedCount = 0;
   let reviewLegacyAcceptedCount = 0;
+  let approvalProvedCount = 0;
+  let approvalGapCount = 0;
   let suspiciousCostGapCount = 0;
   let acceptableLegacyCostGapCount = 0;
   let durableTokenCostCount = 0;
@@ -177,12 +193,19 @@ function buildCompanyPerformance(
   for (const landed of landedFeatures) {
     const assessment = asRecord(landed.governance_assessment);
     const reviewLine = String(assessment.review_assessment ?? "");
+    const approvalLine = String(assessment.approval_assessment ?? "");
     const tokenLine = String(assessment.token_assessment ?? "");
 
     if (/review governance is evidenced/i.test(reviewLine)) {
       reviewEvidencedCount += 1;
     } else if (/acceptable/i.test(reviewLine) || /predate/i.test(reviewLine)) {
       reviewLegacyAcceptedCount += 1;
+    }
+
+    if (/approved commit is recorded/i.test(approvalLine)) {
+      approvalProvedCount += 1;
+    } else if (/does not prove which approved commit|missing durable proof/i.test(approvalLine)) {
+      approvalGapCount += 1;
     }
 
     if (/recorded at/i.test(tokenLine)) {
@@ -199,6 +222,10 @@ function buildCompanyPerformance(
     review_governance: {
       evidenced_count: reviewEvidencedCount,
       acceptable_legacy_count: reviewLegacyAcceptedCount,
+    },
+    merge_approval: {
+      proved_count: approvalProvedCount,
+      suspicious_gap_count: approvalGapCount,
     },
     cost_visibility: {
       durable_token_totals_recorded_count: durableTokenCostCount,
@@ -361,6 +388,7 @@ function toLandedEvidence(
       classification: assessment.classification,
       primary_concern: assessment.primaryConcern,
       review_assessment: assessment.reviewAssessmentLine,
+      approval_assessment: assessment.approvalAssessmentLine,
       token_assessment: assessment.tokenAssessmentLine,
       timing_assessment: assessment.timingAssessmentLine,
       coo_read_fallback: assessment.cooReadLine,

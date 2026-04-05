@@ -83,7 +83,7 @@ export type GovernanceClassification =
 export type BusinessSeverity = "critical" | "high" | "medium" | "low";
 export type BusinessPriority = "now" | "this_week" | "monitor";
 
-type GovernanceConcern = "review" | "kpi" | "timing" | "mixed";
+type GovernanceConcern = "review" | "kpi" | "timing" | "approval" | "mixed";
 
 export interface GovernanceLandedAssessment {
   featureId: string;
@@ -91,6 +91,7 @@ export interface GovernanceLandedAssessment {
   classification: GovernanceClassification;
   primaryConcern: GovernanceConcern;
   reviewAssessmentLine: string;
+  approvalAssessmentLine: string;
   tokenAssessmentLine: string;
   timingAssessmentLine: string | null;
   cooReadLine: string;
@@ -270,6 +271,8 @@ interface FeatureGovernanceEvidence {
   implementorRuntime: string | null;
   implementorAccessMode: string | null;
   statePath: string | null;
+  mergeStatus: string | null;
+  approvedCommitSha: string | null;
   closeoutHasKpiProjection: boolean;
   closeoutHasTokenTotals: boolean;
 }
@@ -827,6 +830,7 @@ async function assessLandedFeature(
     reviewGateApplies,
     governanceEvidence,
   );
+  const approvalEvaluation = classifyMergeApprovalEvidence(governanceEvidence);
   const tokenEvaluation = classifyTokenEvidence(
     feature.id,
     completion,
@@ -837,9 +841,10 @@ async function assessLandedFeature(
   const kpiInvestigation = tokenEvaluation.classification === "suspicious"
     ? await investigateKpiCloseoutGap(projectRoot, feature.id, governanceEvidence)
     : null;
-  const primaryConcern = pickPrimaryConcern(reviewEvaluation, tokenEvaluation, timingEvaluation);
+  const primaryConcern = pickPrimaryConcern(reviewEvaluation, approvalEvaluation, tokenEvaluation, timingEvaluation);
   const classification = pickWorstClassification([
     reviewEvaluation.classification,
+    approvalEvaluation.classification,
     tokenEvaluation.classification,
     timingEvaluation.classification,
   ]);
@@ -850,6 +855,7 @@ async function assessLandedFeature(
     classification,
     primaryConcern,
     reviewAssessmentLine: reviewEvaluation.line,
+    approvalAssessmentLine: approvalEvaluation.line,
     tokenAssessmentLine: tokenEvaluation.line,
     timingAssessmentLine: timingEvaluation.line,
     cooReadLine: buildCooReadLine(
@@ -859,17 +865,23 @@ async function assessLandedFeature(
     ),
     recommendation: firstMeaningfulText(
       reviewEvaluation.recommendation,
+      approvalEvaluation.recommendation,
       tokenEvaluation.recommendation,
       timingEvaluation.recommendation,
     ),
-    rootCause: kpiInvestigation?.rootCause ?? null,
-    systemFix: kpiInvestigation?.systemFix ?? null,
+    rootCause: primaryConcern === "approval"
+      ? "The merge-closeout route records the landing as merged but does not preserve durable proof of the approved commit that cleared before merge."
+      : kpiInvestigation?.rootCause ?? null,
+    systemFix: primaryConcern === "approval"
+      ? "Patch the approval/merge-closeout route so merged landings always persist the approved commit SHA and any required approval evidence before merge is recorded as durable truth."
+      : kpiInvestigation?.systemFix ?? null,
     businessImpact: deriveAssessmentImpact(classification, primaryConcern),
     businessSeverity: deriveAssessmentSeverity(classification, primaryConcern),
     businessPriority: deriveAssessmentPriority(classification, primaryConcern),
     routeChain: deriveAssessmentRouteChain(primaryConcern, kpiInvestigation),
     implicatedSubjects: uniqueStrings([
       ...reviewEvaluation.implicatedSubjects,
+      ...approvalEvaluation.implicatedSubjects,
       ...tokenEvaluation.implicatedSubjects,
       ...timingEvaluation.implicatedSubjects,
     ]),
@@ -880,6 +892,9 @@ function deriveAssessmentImpact(
   classification: GovernanceClassification,
   primaryConcern: GovernanceConcern,
 ): string | null {
+  if (classification === "suspicious" && primaryConcern === "approval") {
+    return "Without durable pre-merge approval proof, the company cannot show that governed merge discipline was actually followed for that landing.";
+  }
   if (classification === "suspicious" && primaryConcern === "kpi") {
     return "Without durable token totals on post-rollout landings, the COO cannot fully audit delivery cost or compare company efficiency across recent work.";
   }
@@ -896,6 +911,9 @@ function deriveAssessmentSeverity(
   classification: GovernanceClassification,
   primaryConcern: GovernanceConcern,
 ): BusinessSeverity | null {
+  if (classification === "suspicious" && primaryConcern === "approval") {
+    return "high";
+  }
   if (classification === "suspicious" && primaryConcern === "review") {
     return "high";
   }
@@ -918,6 +936,9 @@ function deriveAssessmentPriority(
   classification: GovernanceClassification,
   primaryConcern: GovernanceConcern,
 ): BusinessPriority | null {
+  if (classification === "suspicious" && primaryConcern === "approval") {
+    return "now";
+  }
   if (classification === "suspicious" && (primaryConcern === "review" || primaryConcern === "kpi")) {
     return "now";
   }
@@ -931,6 +952,13 @@ function deriveAssessmentRouteChain(
   primaryConcern: GovernanceConcern,
   kpiInvestigation: { rootCause: string; systemFix: string; routeChain: string[] } | null,
 ): string[] {
+  if (primaryConcern === "approval") {
+    return [
+      "The landing is marked merged in durable closeout truth.",
+      "The same closeout truth does not prove which approved commit cleared before merge.",
+      "The approval or merge-closeout route needs repair before this landing can count as fully governed history.",
+    ];
+  }
   if (primaryConcern === "kpi" && kpiInvestigation?.routeChain?.length) {
     return kpiInvestigation.routeChain;
   }
@@ -1009,6 +1037,45 @@ function classifyReviewEvidence(
     classification: "acceptable_legacy_gap",
     concern: "review",
     line: "Review check: review-cycle proof is missing, but this feature appears to predate the enforced review-governance route.",
+    recommendation: null,
+    implicatedSubjects: subjects,
+  };
+}
+
+function classifyMergeApprovalEvidence(
+  governanceEvidence: FeatureGovernanceEvidence,
+): {
+  classification: GovernanceClassification;
+  concern: GovernanceConcern;
+  line: string;
+  recommendation: string | null;
+  implicatedSubjects: string[];
+} {
+  const subjects = ["route:implement-plan-approval", "route:merge-queue"];
+  if (governanceEvidence.mergeStatus === "merged" && governanceEvidence.approvedCommitSha) {
+    return {
+      classification: "confirmed",
+      concern: "approval",
+      line: "Approval check: the approved commit is recorded in durable closeout truth before merge, so pre-merge approval is proved.",
+      recommendation: null,
+      implicatedSubjects: subjects,
+    };
+  }
+
+  if (governanceEvidence.mergeStatus === "merged") {
+    return {
+      classification: "suspicious",
+      concern: "approval",
+      line: "Approval check: the feature is marked merged, but durable closeout truth does not prove which approved commit was cleared before merge.",
+      recommendation: "Severity: high. Priority: now. Fix action: inspect the implement-plan approval and merge-closeout route for this landing, then restore durable pre-merge approval proof before relying on it as governed history.",
+      implicatedSubjects: subjects,
+    };
+  }
+
+  return {
+    classification: "acceptable_legacy_gap",
+    concern: "approval",
+    line: "Approval check: merge approval is not being evaluated here because this landing is not yet proved as merged in durable closeout truth.",
     recommendation: null,
     implicatedSubjects: subjects,
   };
@@ -1120,6 +1187,9 @@ function buildCooReadLine(
   if (classification === "suspicious" && primaryConcern === "review") {
     return `COO read: ${featureLabel} landed without the review governance that should have applied. This is a real route-control problem.`;
   }
+  if (classification === "suspicious" && primaryConcern === "approval") {
+    return `COO read: ${featureLabel} may be merged, but the route does not prove which approved commit cleared before merge. That is a governed-history problem, not just missing metadata.`;
+  }
   if (classification === "missing_not_provable" && primaryConcern === "timing") {
     return `COO read: ${featureLabel} appears landed, but elapsed lifecycle time is all the route can prove. Do not read this as active implementation duration.`;
   }
@@ -1141,10 +1211,11 @@ function buildCooReadLine(
 
 function pickPrimaryConcern(
   reviewEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
+  approvalEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
   tokenEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
   timingEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
 ): GovernanceConcern {
-  const ranked = [reviewEvaluation, tokenEvaluation, timingEvaluation]
+  const ranked = [reviewEvaluation, approvalEvaluation, tokenEvaluation, timingEvaluation]
     .sort((left, right) => classificationPriority(right.classification) - classificationPriority(left.classification));
   const top = ranked[0];
   if (!top) {
@@ -1222,6 +1293,26 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
       summary: "A landed feature appears to have skipped required review governance.",
       recommendation: assessment.recommendation ?? "Severity: high. Priority: now. Fix action: inspect the review-cycle handoff and confirm why required review governance was skipped.",
       evidenceLine: "Basis: direct closeout evidence plus review-governance timing; fresh; high confidence.",
+      rootCause: assessment.rootCause,
+      systemFix: assessment.systemFix,
+      businessImpact: assessment.businessImpact,
+      businessSeverity: assessment.businessSeverity,
+      businessPriority: assessment.businessPriority,
+      routeChain: assessment.routeChain,
+      classification: assessment.classification,
+      implicatedSubjects: assessment.implicatedSubjects,
+      severity: "attention",
+    };
+  }
+
+  if (assessment.classification === "suspicious" && assessment.primaryConcern === "approval") {
+    return {
+      key: `landed:approval-route-gap:${assessment.featureId}`,
+      featureId: assessment.featureId,
+      featureLabel: assessment.featureLabel,
+      summary: "A merged landing is missing durable proof that an approved commit was cleared before merge.",
+      recommendation: assessment.recommendation ?? "Severity: high. Priority: now. Fix action: inspect the approval and merge-closeout route for this landing, then restore durable pre-merge approval proof.",
+      evidenceLine: "Basis: direct merge closeout evidence; fresh; high confidence.",
       rootCause: assessment.rootCause,
       systemFix: assessment.systemFix,
       businessImpact: assessment.businessImpact,
@@ -1876,6 +1967,8 @@ async function loadFeatureGovernanceEvidence(
       implementorRuntime: null,
       implementorAccessMode: null,
       statePath: null,
+      mergeStatus: null,
+      approvedCommitSha: null,
       closeoutHasKpiProjection: false,
       closeoutHasTokenTotals: false,
     };
@@ -1891,6 +1984,8 @@ async function loadFeatureGovernanceEvidence(
       implementorRuntime: asNonEmptyString(record.implementor_execution_runtime),
       implementorAccessMode: asNonEmptyString(record.implementor_execution_access_mode),
       statePath,
+      mergeStatus: asNonEmptyString(record.merge_status),
+      approvedCommitSha: asNonEmptyString(record.approved_commit_sha),
       closeoutHasKpiProjection: /"kpi_projection"\s*:/i.test(raw),
       closeoutHasTokenTotals: /"total_tokens_estimated"\s*:/i.test(raw),
     };
@@ -1901,6 +1996,8 @@ async function loadFeatureGovernanceEvidence(
       implementorRuntime: null,
       implementorAccessMode: null,
       statePath,
+      mergeStatus: null,
+      approvedCommitSha: null,
       closeoutHasKpiProjection: false,
       closeoutHasTokenTotals: false,
     };
