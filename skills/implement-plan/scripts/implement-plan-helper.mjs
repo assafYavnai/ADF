@@ -401,7 +401,25 @@ async function main() {
     return;
   }
 
-  fail("Unknown command '" + command + "'. Use 'help', 'get-settings', 'list-features', 'prepare', 'update-state', 'record-event', 'reset-attempt', 'mark-complete', or 'completion-summary'.");
+  if (command === "normalize-completion-summary") {
+    printJson(await normalizeCompletionSummary({
+      projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
+      featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug"))
+    }));
+    return;
+  }
+
+  if (command === "validate-closeout-readiness") {
+    printJson(await validateCloseoutReadiness({
+      projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      phaseNumber: parsePositiveInteger(requiredArg(args, "phase-number"), "phase-number"),
+      featureSlug: normalizeFeatureSlug(requiredArg(args, "feature-slug"))
+    }));
+    return;
+  }
+
+  fail("Unknown command '" + command + "'. Use 'help', 'get-settings', 'list-features', 'prepare', 'update-state', 'record-event', 'reset-attempt', 'mark-complete', 'completion-summary', 'normalize-completion-summary', or 'validate-closeout-readiness'.");
 }
 
 async function renderHelp(args) {
@@ -414,7 +432,7 @@ async function renderHelp(args) {
     project_root: projectRoot,
     purpose: "Govern bounded feature implementation slices by validating setup, checking plan integrity, preparing isolated worktrees, producing pushback or a strong implementor brief, and handing approved commits to merge closeout truthfully.",
     actions: ["help", "get-settings", "list-features", "prepare", "run", "mark-complete"],
-    internal_helper_commands: ["update-state", "record-event", "reset-attempt", "completion-summary"],
+    internal_helper_commands: ["update-state", "record-event", "reset-attempt", "completion-summary", "normalize-completion-summary", "validate-closeout-readiness"],
     required_inputs_for_run: ["project_root", "phase_number", "feature_slug", "task_summary"],
     optional_inputs: [
       "run_mode (normal|benchmarking; default normal)",
@@ -1876,6 +1894,117 @@ async function buildCompletionSummary(input) {
           local_target_sync_status: null,
           remaining_debt: []
         }
+  };
+}
+
+async function normalizeCompletionSummary(input) {
+  const paths = buildPaths(input.projectRoot, input.phaseNumber, input.featureSlug);
+
+  const worktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+  const worktreeExists = detectCurrentBranch(worktreePath) !== null;
+  const artifactPaths = worktreeExists
+    ? buildPaths(worktreePath, input.phaseNumber, input.featureSlug)
+    : paths;
+
+  const existingText = await readTextIfExists(artifactPaths.completionSummaryPath);
+  if (!existingText) {
+    fail("Cannot normalize completion-summary.md because the file does not exist at " + artifactPaths.completionSummaryPath);
+  }
+
+  const preValidation = validateHeadingContract(existingText, COMPLETION_HEADINGS);
+  if (preValidation.valid) {
+    return {
+      command: "normalize-completion-summary",
+      project_root: input.projectRoot,
+      feature_root: normalizeSlashes(artifactPaths.featureRoot),
+      completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
+      already_valid: true,
+      normalized: false,
+      validation: preValidation
+    };
+  }
+
+  let stateLoadPaths = artifactPaths;
+  if (worktreeExists && !(await pathExists(artifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+    stateLoadPaths = paths;
+  }
+  const state = await loadStateIfExists(stateLoadPaths.statePath);
+  if (!state) {
+    fail("Cannot normalize completion-summary.md because implement-plan-state.json does not exist.");
+  }
+
+  const normalizedText = await finalizeCompletionSummary({
+    paths: artifactPaths,
+    state,
+    existingText,
+    mergeCommitSha: state.merge_commit_sha ?? state.last_commit_sha ?? null,
+    completionNote: null
+  });
+
+  await writeTextAtomic(artifactPaths.completionSummaryPath, normalizedText);
+
+  const postValidation = validateHeadingContract(normalizedText, COMPLETION_HEADINGS);
+
+  return {
+    command: "normalize-completion-summary",
+    project_root: input.projectRoot,
+    feature_root: normalizeSlashes(artifactPaths.featureRoot),
+    completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
+    already_valid: false,
+    normalized: true,
+    validation: postValidation
+  };
+}
+
+async function validateCloseoutReadiness(input) {
+  const paths = buildPaths(input.projectRoot, input.phaseNumber, input.featureSlug);
+
+  const worktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+  const worktreeExists = detectCurrentBranch(worktreePath) !== null;
+  const artifactPaths = worktreeExists
+    ? buildPaths(worktreePath, input.phaseNumber, input.featureSlug)
+    : paths;
+
+  const completionText = await readTextIfExists(artifactPaths.completionSummaryPath);
+  const completionValidation = completionText
+    ? validateHeadingContract(completionText, COMPLETION_HEADINGS)
+    : { valid: false, error: "completion-summary.md is missing." };
+
+  let stateLoadPaths = artifactPaths;
+  if (worktreeExists && !(await pathExists(artifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+    stateLoadPaths = paths;
+  }
+  const state = await loadStateIfExists(stateLoadPaths.statePath);
+
+  const blockers = [];
+
+  if (!completionValidation.valid) {
+    blockers.push("completion-summary.md is missing or invalid: " + completionValidation.error);
+  }
+
+  if (!state) {
+    blockers.push("implement-plan-state.json does not exist for this feature stream.");
+  } else {
+    if (state.feature_status === "completed") {
+      blockers.push("Feature is already marked completed.");
+    }
+    const commitSha = state.last_commit_sha ?? null;
+    if (!commitSha) {
+      blockers.push("No last_commit_sha evidence in feature state.");
+    }
+  }
+
+  const ready = blockers.length === 0;
+
+  return {
+    command: "validate-closeout-readiness",
+    project_root: input.projectRoot,
+    feature_root: normalizeSlashes(artifactPaths.featureRoot),
+    completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
+    closeout_ready: ready,
+    blockers: blockers.length > 0 ? blockers : null,
+    completion_summary_valid: completionValidation.valid,
+    completion_summary_error: completionValidation.error
   };
 }
 

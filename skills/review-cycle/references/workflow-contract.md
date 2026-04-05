@@ -735,6 +735,19 @@ Rules:
 - separate status, findings, and next actions instead of blending them together
 - reference long evidence instead of pasting giant text blocks unless exact text is required
 
+## Completion-summary normalization rule
+
+When the review cycle reaches approval closeout (both required review lanes satisfied), the invoker must call `normalize-completion-summary` on the feature's `completion-summary.md` before the final approved commit. This rewrites the summary to the exact required 7-heading contract so that `merge-queue` and `mark-complete` can succeed without manual cleanup.
+
+Call: `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs normalize-completion-summary --project-root <repo_root_or_worktree> --phase-number <phase_number> --feature-slug <feature_slug>`
+
+Rules:
+
+- call after all review work is finished and before the final approval commit and push
+- if the summary is already valid, no changes are made
+- if the summary is missing, treat it as a blocker
+- include any normalization changes in the same approval commit
+
 ## Git closeout rules
 
 Each cycle commit must include:
@@ -742,6 +755,7 @@ Each cycle commit must include:
 - code changes
 - cycle artifacts
 - related documentation updates
+- completion-summary normalization changes when the cycle is an approval closeout
 
 Do not commit local operational setup artifacts such as `.codex/*/setup.json`, even when they were refreshed during the cycle.
 

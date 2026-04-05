@@ -325,6 +325,28 @@ Use the helper scripts for deterministic local state:
 
 Use the helper as the deterministic state machine. The Codex agent still owns actual prompting, waiting, verification, documentation updates, and git closeout.
 
+## Completion-summary normalization rule
+
+When the review cycle reaches approval closeout (both required review lanes satisfied), the invoker must normalize `completion-summary.md` before the final approved commit on the feature branch.
+
+Call:
+
+```bash
+node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs normalize-completion-summary \
+  --project-root <repo_root_or_worktree> \
+  --phase-number <phase_number> \
+  --feature-slug <feature_slug>
+```
+
+Rules:
+
+- call this after all review work is finished and before the final approval commit and push
+- the command rewrites the completion summary to satisfy the required 7-heading contract
+- if the summary is already valid, the command returns `already_valid: true` and makes no changes
+- if the summary is missing, the command fails — this is a blocker that must be surfaced
+- include any normalization changes in the same approval commit
+- this ensures the approved commit SHA carries a contract-valid completion summary so `merge-queue` and `mark-complete` can succeed without manual cleanup
+
 ## Closeout
 
 End each invocation by displaying:
