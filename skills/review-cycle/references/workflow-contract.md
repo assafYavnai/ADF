@@ -130,6 +130,7 @@ Persist this object under `<repo_root>/.codex/review-cycle/setup.json`:
   "requires_project_specific_permission_rules": false,
   "project_specific_permission_rules": [],
   "detected_runtime_capabilities": {},
+  "llm_tools": {},
   "setup_schema_version": 2,
   "created_at": "ISO-8601",
   "updated_at": "ISO-8601"
@@ -391,6 +392,22 @@ If `resume_agent` or equivalent execution reuse fails at runtime:
 - recreate only the failed execution lane
 - keep the other healthy lanes
 - persist the new identifier immediately before continuing
+
+## Worker spawn pattern
+
+To spawn a non-default worker for auditor, reviewer, or implementor roles, use the `autonomous_invoke` from `setup.json` `llm_tools`:
+
+```bash
+bash -c '<autonomous_invoke> "<prompt_or_file>"'
+```
+
+Where `<autonomous_invoke>` is the full autonomous invocation prefix for the tool (e.g. `codex exec --full-auto --dangerously-auto-approve`, `claude --dangerously-skip-permissions`, `gemini`) and `<prompt_or_file>` is the prompt string or path to the prompt file.
+
+Rules:
+
+- only spawn workers whose `available` is `true` in `llm_tools`
+- use the `autonomous_invoke` value exactly as provided; do not construct invocation strings manually
+- if no non-default workers are available, fall back to the resolved default worker from the access-resolution rules
 
 ## Cycle selection and current-state continuation
 

@@ -124,6 +124,7 @@ Project-level files:
 - `preferred_implementor_model`
 - `preferred_implementor_reasoning_effort`
 - `detected_runtime_capabilities`
+- `llm_tools` — object keyed by tool name, each entry containing `{ command_name, available, path, version, autonomous_invoke }` as detected by preflight; empty object `{}` when preflight is unavailable or detects no tools
 
 ## Identity Model
 
@@ -472,6 +473,22 @@ The helper must surface:
 - `resolved`
 - `resolved_sources` with per-field values `explicit_override`, `persisted_continuity`, or `invoker_inheritance`
 - `inheritance` flags that show which values were inherited directly from the current invoker/runtime defaults
+
+## Worker Spawn Pattern
+
+To spawn a non-default worker, use the `autonomous_invoke` from `available_workers` (returned by `resolveWorkerSelection()` and surfaced at the top level of the prepare output) or from `setup.json` `llm_tools`:
+
+```bash
+bash -c '<autonomous_invoke> "<prompt_or_file>"'
+```
+
+Where `<autonomous_invoke>` is the full autonomous invocation prefix for the tool (e.g. `codex exec --full-auto --dangerously-auto-approve`, `claude --dangerously-skip-permissions`, `gemini`) and `<prompt_or_file>` is the prompt string or path to the prompt file.
+
+Rules:
+
+- only spawn workers whose `available` is `true` in `llm_tools` or that appear in `available_workers`
+- use the `autonomous_invoke` value exactly as provided; do not construct invocation strings manually
+- if no non-default workers are available, fall back to the resolved default worker from `worker_selection`
 
 ## Resume And Reset Rules
 
