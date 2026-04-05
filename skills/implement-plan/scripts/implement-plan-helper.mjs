@@ -300,7 +300,7 @@ async function main() {
       benchmarkLaneId: parseOptionalSafeToken(args.values["benchmark-lane-id"], "benchmark-lane-id"),
       benchmarkLaneLabel: emptyToNull(args.values["benchmark-lane-label"]),
       implementorModel: emptyToNull(args.values["implementor-model"]),
-      implementorReasoningEffort: emptyToNull(args.values["implementor-reasoning-effort"]),
+      implementorReasoningEffort: normalizeReasoningEffortValue(args.values["implementor-reasoning-effort"]),
       featureStatusOverride: parseOptionalFeatureStatus(args.values["feature-status-override"], "feature-status-override"),
       ...postReviewHandoff
     }));
@@ -318,7 +318,7 @@ async function main() {
       implementorExecutionRuntime: args.values["implementor-execution-runtime"],
       implementorProvider: args.values["implementor-provider"],
       implementorModel: args.values["implementor-model"],
-      implementorReasoningEffort: args.values["implementor-reasoning-effort"],
+      implementorReasoningEffort: normalizeReasoningEffortValue(args.values["implementor-reasoning-effort"]),
       resolvedRuntimePermissionModel: args.values["resolved-runtime-permission-model"],
       runMode: args.values["run-mode"],
       runId: args.values["run-id"],
@@ -461,7 +461,11 @@ async function getSettingsCore(projectRoot) {
     preferred_execution_runtime: setup.data.preferred_execution_runtime ?? null,
     preferred_control_plane_runtime: setup.data.preferred_control_plane_runtime ?? null,
     preferred_implementor_model: setup.data.preferred_implementor_model ?? "gpt-5.4",
-    preferred_implementor_reasoning_effort: setup.data.preferred_implementor_reasoning_effort ?? "xhigh",
+    preferred_implementor_reasoning_effort: sanitizeWorkerReasoningEffort(
+      setup.data.preferred_implementor_reasoning_effort ?? defaultReasoningEffortForRuntime(setup.data.preferred_execution_runtime ?? null),
+      null,
+      setup.data.preferred_execution_runtime ?? null
+    ),
     fallback_execution_access_mode: setup.data.fallback_execution_access_mode ?? null,
     runtime_permission_model: setup.data.runtime_permission_model ?? null,
     persistent_execution_strategy: setup.data.persistent_execution_strategy ?? null,
@@ -948,7 +952,13 @@ async function prepareFeature(input) {
       execution_runtime: featureLockResult.workerSelection.resolved.runtime ?? state.implementor_execution_runtime ?? null,
       provider: featureLockResult.workerSelection.resolved.provider ?? state.implementor_provider ?? null,
       model: featureLockResult.workerSelection.resolved.model ?? state.implementor_model ?? settingsSummary.summary.preferred_implementor_model,
-      reasoning_effort: featureLockResult.workerSelection.resolved.reasoning_effort ?? state.implementor_reasoning_effort ?? settingsSummary.summary.preferred_implementor_reasoning_effort,
+      reasoning_effort: sanitizeWorkerReasoningEffort(
+        featureLockResult.workerSelection.resolved.reasoning_effort
+          ?? state.implementor_reasoning_effort
+          ?? settingsSummary.summary.preferred_implementor_reasoning_effort,
+        featureLockResult.workerSelection.resolved.provider ?? state.implementor_provider ?? null,
+        featureLockResult.workerSelection.resolved.runtime ?? state.implementor_execution_runtime ?? null
+      ),
       required_access_mode: featureLockResult.requiredAccessMode,
       recreate_due_to_weaker_access: featureLockResult.recreateDueToWeakerAccess,
       execution_action: executionAction
@@ -1053,7 +1063,11 @@ async function updateState(input) {
       changedFields.push("implementor_model");
     }
     if (input.implementorReasoningEffort !== undefined) {
-      next.implementor_reasoning_effort = emptyToNull(input.implementorReasoningEffort);
+      next.implementor_reasoning_effort = sanitizeWorkerReasoningEffort(
+        input.implementorReasoningEffort,
+        next.implementor_provider,
+        next.implementor_execution_runtime
+      );
       changedFields.push("implementor_reasoning_effort");
     }
     if (input.resolvedRuntimePermissionModel !== undefined) {
@@ -2190,6 +2204,15 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
   state.resolved_runtime_capabilities = isPlainObject(state.resolved_runtime_capabilities) ? state.resolved_runtime_capabilities : {};
   state.state_schema_version = safeInteger(state.state_schema_version, IMPLEMENT_PLAN_STATE_SCHEMA_VERSION);
   state.implementor_provider = emptyToNull(state.implementor_provider);
+  const normalizedStateReasoning = sanitizeWorkerReasoningEffort(
+    state.implementor_reasoning_effort,
+    state.implementor_provider,
+    state.implementor_execution_runtime
+  );
+  if (normalizedStateReasoning !== emptyToNull(state.implementor_reasoning_effort)) {
+    state.implementor_reasoning_effort = normalizedStateReasoning;
+    repairs.push("implementor_reasoning_effort was normalized for the current worker provider/runtime.");
+  }
 
   if (!isFilled(state.implementor_execution_id) && registryEntry?.implementor_execution_id) {
     state.implementor_execution_id = registryEntry.implementor_execution_id;
@@ -2206,8 +2229,13 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
   if (!isFilled(state.implementor_model) && registryEntry?.implementor_model) {
     state.implementor_model = registryEntry.implementor_model;
   }
-  if (!isFilled(state.implementor_reasoning_effort) && registryEntry?.implementor_reasoning_effort) {
-    state.implementor_reasoning_effort = registryEntry.implementor_reasoning_effort;
+  const normalizedRegistryReasoning = sanitizeWorkerReasoningEffort(
+    registryEntry?.implementor_reasoning_effort ?? null,
+    registryEntry?.implementor_provider ?? state.implementor_provider ?? null,
+    registryEntry?.implementor_execution_runtime ?? state.implementor_execution_runtime ?? null
+  );
+  if (!isFilled(state.implementor_reasoning_effort) && normalizedRegistryReasoning) {
+    state.implementor_reasoning_effort = normalizedRegistryReasoning;
   }
   if (!isFilled(state.implementor_provider) && registryEntry?.implementor_provider) {
     state.implementor_provider = registryEntry.implementor_provider;
@@ -2260,7 +2288,9 @@ function buildInitialState(paths, input, registryEntry, indexEntry, currentBranc
     implementor_execution_runtime: registryEntry?.implementor_execution_runtime ?? null,
     implementor_provider: registryEntry?.implementor_provider ?? null,
     implementor_model: input.implementorModel ?? registryEntry?.implementor_model ?? null,
-    implementor_reasoning_effort: input.implementorReasoningEffort ?? registryEntry?.implementor_reasoning_effort ?? null,
+    implementor_reasoning_effort: normalizeReasoningEffortValue(
+      input.implementorReasoningEffort ?? registryEntry?.implementor_reasoning_effort ?? null
+    ),
     resolved_runtime_permission_model: registryEntry?.resolved_runtime_permission_model ?? null,
     resolved_runtime_capabilities: {},
     current_branch: currentBranch ?? null,
@@ -2858,17 +2888,56 @@ function detectInvokerProvider() {
   return null;
 }
 
+function inferProviderFromWorkerSelection({ provider, runtime, accessMode, model, fallbackProvider = null }) {
+  const normalizedProvider = emptyToNull(provider);
+  if (normalizedProvider) return normalizedProvider;
+
+  if (runtime === "claude_code_exec" || accessMode === "claude_code_skip_permissions") {
+    return "claude";
+  }
+  if (runtime === "codex_cli_exec" || accessMode === "codex_cli_full_auto_bypass") {
+    return "codex";
+  }
+
+  const normalizedModel = emptyToNull(model)?.toLowerCase() ?? null;
+  if (normalizedModel?.startsWith("claude")) return "claude";
+  if (normalizedModel?.startsWith("gemini")) return "gemini";
+  if (
+    normalizedModel?.startsWith("gpt-")
+    || normalizedModel?.startsWith("o1")
+    || normalizedModel?.startsWith("o3")
+  ) {
+    return "codex";
+  }
+
+  return emptyToNull(fallbackProvider);
+}
+
 function resolveInvokerRuntimeSummary(setup) {
-  return {
+  const executionRuntime = setup.data.preferred_execution_runtime ?? null;
+  const accessMode = setup.data.preferred_implementor_access_mode
+    ?? setup.data.preferred_execution_access_mode
+    ?? setup.data.fallback_execution_access_mode
+    ?? null;
+  const configuredModel = setup.data.preferred_implementor_model ?? "gpt-5.4";
+  const detectedProvider = inferProviderFromWorkerSelection({
     provider: detectInvokerProvider(),
-    execution_runtime: setup.data.preferred_execution_runtime ?? null,
-    control_plane_runtime: setup.data.preferred_control_plane_runtime ?? setup.data.preferred_execution_runtime ?? null,
-    access_mode: setup.data.preferred_implementor_access_mode
-      ?? setup.data.preferred_execution_access_mode
-      ?? setup.data.fallback_execution_access_mode
-      ?? null,
-    model: setup.data.preferred_implementor_model ?? "gpt-5.4",
-    reasoning_effort: setup.data.preferred_implementor_reasoning_effort ?? "xhigh",
+    runtime: executionRuntime,
+    accessMode,
+    model: configuredModel,
+    fallbackProvider: detectInvokerProvider()
+  });
+  return {
+    provider: detectedProvider,
+    execution_runtime: executionRuntime,
+    control_plane_runtime: setup.data.preferred_control_plane_runtime ?? executionRuntime ?? null,
+    access_mode: accessMode,
+    model: configuredModel,
+    reasoning_effort: sanitizeWorkerReasoningEffort(
+      setup.data.preferred_implementor_reasoning_effort ?? defaultReasoningEffortForRuntime(executionRuntime),
+      detectedProvider,
+      executionRuntime
+    ),
     runtime_permission_model: setup.data.runtime_permission_model ?? null,
     selection_source: "invoker_runtime_defaults"
   };
@@ -2877,26 +2946,46 @@ function resolveInvokerRuntimeSummary(setup) {
 function resolveWorkerSelection({ setup, state, input }) {
   const invokerRuntime = resolveInvokerRuntimeSummary(setup);
   const modelOverride = input.workerModel ?? input.implementorModel ?? null;
-  const reasoningOverride = input.workerReasoningEffort ?? input.implementorReasoningEffort ?? null;
+  const reasoningOverride = normalizeReasoningEffortValue(input.workerReasoningEffort ?? input.implementorReasoningEffort ?? null);
 
   const defaults = {
-    provider: invokerRuntime.provider,
+    provider: inferProviderFromWorkerSelection({
+      provider: invokerRuntime.provider,
+      runtime: invokerRuntime.execution_runtime,
+      accessMode: invokerRuntime.access_mode,
+      model: invokerRuntime.model,
+      fallbackProvider: detectInvokerProvider()
+    }),
     runtime: invokerRuntime.execution_runtime,
     access_mode: invokerRuntime.access_mode,
     model: invokerRuntime.model,
-    reasoning_effort: invokerRuntime.reasoning_effort
+    reasoning_effort: sanitizeWorkerReasoningEffort(
+      invokerRuntime.reasoning_effort,
+      invokerRuntime.provider,
+      invokerRuntime.execution_runtime
+    )
   };
 
   const continuity = {
-    provider: state.implementor_provider ?? null,
+    provider: inferProviderFromWorkerSelection({
+      provider: state.implementor_provider ?? null,
+      runtime: state.implementor_execution_runtime ?? null,
+      accessMode: state.implementor_execution_access_mode ?? null,
+      model: state.implementor_model ?? null
+    }),
     runtime: state.implementor_execution_runtime ?? null,
     access_mode: state.implementor_execution_access_mode ?? null,
     model: state.implementor_model ?? null,
-    reasoning_effort: state.implementor_reasoning_effort ?? null
+    reasoning_effort: normalizeReasoningEffortValue(state.implementor_reasoning_effort ?? null)
   };
 
   const overrides = {
-    provider: input.workerProvider ?? null,
+    provider: inferProviderFromWorkerSelection({
+      provider: input.workerProvider ?? null,
+      runtime: input.workerRuntime ?? null,
+      accessMode: input.workerAccessMode ?? null,
+      model: modelOverride ?? null
+    }),
     runtime: input.workerRuntime ?? null,
     access_mode: input.workerAccessMode ?? null,
     model: modelOverride ?? null,
@@ -2906,7 +2995,7 @@ function resolveWorkerSelection({ setup, state, input }) {
   const resolved = {};
   const resolvedSources = {};
   const inheritance = {};
-  for (const field of WORKER_SELECTION_FIELDS) {
+  for (const field of WORKER_SELECTION_FIELDS.filter((candidate) => candidate !== "reasoning_effort")) {
     if (overrides[field] !== null) {
       resolved[field] = overrides[field];
       resolvedSources[field] = "explicit_override";
@@ -2921,6 +3010,29 @@ function resolveWorkerSelection({ setup, state, input }) {
       inheritance[field] = true;
     }
   }
+
+  const resolvedProviderBeforeInference = resolved.provider ?? null;
+  resolved.provider = inferProviderFromWorkerSelection({
+    provider: resolved.provider,
+    runtime: resolved.runtime,
+    accessMode: resolved.access_mode,
+    model: resolved.model,
+    fallbackProvider: continuity.provider ?? defaults.provider ?? detectInvokerProvider()
+  });
+  if (resolvedProviderBeforeInference !== resolved.provider && resolvedSources.provider !== "explicit_override") {
+    resolvedSources.provider = "derived_from_worker_runtime";
+    inheritance.provider = false;
+  }
+
+  const resolvedReasoning = resolveWorkerReasoningSelection({
+    defaults,
+    continuity,
+    overrides,
+    resolved
+  });
+  resolved.reasoning_effort = resolvedReasoning.value;
+  resolvedSources.reasoning_effort = resolvedReasoning.source;
+  inheritance.reasoning_effort = resolvedReasoning.source === "invoker_inheritance";
 
   const llmTools = setup.data?.llm_tools ?? {};
   const availableWorkers = [];
@@ -3230,7 +3342,7 @@ function buildLiveContractWorkerSelection(existingContract, state) {
   const resolvedSources = {};
   const inheritance = {};
 
-  for (const field of WORKER_SELECTION_FIELDS) {
+  for (const field of WORKER_SELECTION_FIELDS.filter((candidate) => candidate !== "reasoning_effort")) {
     defaults[field] = emptyToNull(existingSelection.defaults?.[field]);
     overrides[field] = emptyToNull(existingSelection.overrides?.[field]);
     if (field === "provider") {
@@ -3260,6 +3372,58 @@ function buildLiveContractWorkerSelection(existingContract, state) {
     }
   }
 
+  defaults.provider = inferProviderFromWorkerSelection({
+    provider: defaults.provider,
+    runtime: defaults.runtime,
+    accessMode: defaults.access_mode,
+    model: defaults.model,
+    fallbackProvider: detectInvokerProvider()
+  });
+  continuity.provider = inferProviderFromWorkerSelection({
+    provider: continuity.provider,
+    runtime: continuity.runtime,
+    accessMode: continuity.access_mode,
+    model: continuity.model
+  });
+  overrides.provider = inferProviderFromWorkerSelection({
+    provider: overrides.provider,
+    runtime: overrides.runtime,
+    accessMode: overrides.access_mode,
+    model: overrides.model
+  });
+  resolved.provider = inferProviderFromWorkerSelection({
+    provider: resolved.provider,
+    runtime: resolved.runtime,
+    accessMode: resolved.access_mode,
+    model: resolved.model,
+    fallbackProvider: continuity.provider ?? defaults.provider ?? detectInvokerProvider()
+  });
+  if (resolvedSources.provider !== "explicit_override" && resolved.provider !== null) {
+    const inheritedProviderSources = new Set(["persisted_continuity", "invoker_inheritance"]);
+    if (!inheritedProviderSources.has(resolvedSources.provider)) {
+      resolvedSources.provider = "derived_from_worker_runtime";
+      inheritance.provider = false;
+    }
+  }
+
+  defaults.reasoning_effort = sanitizeWorkerReasoningEffort(
+    emptyToNull(existingSelection.defaults?.reasoning_effort),
+    defaults.provider,
+    defaults.runtime
+  );
+  overrides.reasoning_effort = normalizeReasoningEffortValue(emptyToNull(existingSelection.overrides?.reasoning_effort));
+  continuity.reasoning_effort = normalizeReasoningEffortValue(state.implementor_reasoning_effort);
+
+  const resolvedReasoning = resolveWorkerReasoningSelection({
+    defaults,
+    continuity,
+    overrides,
+    resolved
+  });
+  resolved.reasoning_effort = resolvedReasoning.value;
+  resolvedSources.reasoning_effort = resolvedReasoning.source;
+  inheritance.reasoning_effort = resolvedReasoning.source === "invoker_inheritance";
+
   return {
     defaults,
     continuity,
@@ -3268,6 +3432,87 @@ function buildLiveContractWorkerSelection(existingContract, state) {
     resolved_sources: resolvedSources,
     inheritance
   };
+}
+
+function resolveWorkerReasoningSelection({ defaults, continuity, overrides, resolved }) {
+  const targetProvider = resolved.provider ?? continuity.provider ?? defaults.provider ?? null;
+  const targetRuntime = resolved.runtime ?? continuity.runtime ?? defaults.runtime ?? null;
+
+  const explicitValue = sanitizeWorkerReasoningEffort(overrides.reasoning_effort, targetProvider, targetRuntime);
+  if (overrides.reasoning_effort !== null) {
+    return {
+      value: explicitValue,
+      source: explicitValue === null ? "unsupported_for_resolved_worker" : "explicit_override"
+    };
+  }
+
+  const continuityMatchesTarget =
+    sameWorkerSelectionTarget(continuity.provider, continuity.runtime, targetProvider, targetRuntime);
+  if (continuityMatchesTarget) {
+    const continuityValue = sanitizeWorkerReasoningEffort(
+      continuity.reasoning_effort,
+      continuity.provider,
+      continuity.runtime
+    );
+    if (continuityValue !== null) {
+      return { value: continuityValue, source: "persisted_continuity" };
+    }
+  }
+
+  const defaultsMatchTarget =
+    sameWorkerSelectionTarget(defaults.provider, defaults.runtime, targetProvider, targetRuntime);
+  if (defaultsMatchTarget) {
+    const defaultValue = sanitizeWorkerReasoningEffort(
+      defaults.reasoning_effort,
+      defaults.provider,
+      defaults.runtime
+    );
+    if (defaultValue !== null) {
+      return { value: defaultValue, source: "invoker_inheritance" };
+    }
+  }
+
+  return { value: null, source: "unsupported_for_resolved_worker" };
+}
+
+function sameWorkerSelectionTarget(leftProvider, leftRuntime, rightProvider, rightRuntime) {
+  return emptyToNull(leftProvider) === emptyToNull(rightProvider)
+    && emptyToNull(leftRuntime) === emptyToNull(rightRuntime);
+}
+
+function defaultReasoningEffortForRuntime(runtime) {
+  if (runtime === "codex_cli_exec" || runtime === "native_agent_tools") {
+    return "xhigh";
+  }
+  return null;
+}
+
+function normalizeReasoningEffortValue(value) {
+  const normalized = emptyToNull(value);
+  if (!isFilled(normalized)) return null;
+  if (/^(true|false)$/i.test(String(normalized).trim())) {
+    return null;
+  }
+  return String(normalized).trim();
+}
+
+function workerSupportsReasoningEffort(provider, runtime) {
+  if (runtime === "codex_cli_exec" || runtime === "native_agent_tools") {
+    return true;
+  }
+  if (provider === "codex") {
+    return true;
+  }
+  return false;
+}
+
+function sanitizeWorkerReasoningEffort(value, provider, runtime) {
+  const normalized = normalizeReasoningEffortValue(value);
+  if (!normalized) return null;
+  if (!workerSupportsReasoningEffort(provider, runtime)) {
+    return null;
+  }
+  return normalized;
 }
 
 function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, existingContract }) {
@@ -3313,7 +3558,11 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
       control_plane_runtime: emptyToNull(invokerRuntime.control_plane_runtime) ?? emptyToNull(invokerRuntime.execution_runtime) ?? workerSelection.defaults.runtime ?? null,
       access_mode: emptyToNull(invokerRuntime.access_mode) ?? workerSelection.defaults.access_mode ?? null,
       model: emptyToNull(invokerRuntime.model) ?? workerSelection.defaults.model ?? null,
-      reasoning_effort: emptyToNull(invokerRuntime.reasoning_effort) ?? workerSelection.defaults.reasoning_effort ?? null,
+      reasoning_effort: sanitizeWorkerReasoningEffort(
+        emptyToNull(invokerRuntime.reasoning_effort) ?? workerSelection.defaults.reasoning_effort ?? null,
+        emptyToNull(invokerRuntime.provider) ?? workerSelection.defaults.provider ?? detectInvokerProvider(),
+        emptyToNull(invokerRuntime.execution_runtime) ?? workerSelection.defaults.runtime ?? null
+      ),
       runtime_permission_model: emptyToNull(invokerRuntime.runtime_permission_model) ?? emptyToNull(state.resolved_runtime_permission_model),
       selection_source: invokerRuntime.selection_source ?? "invoker_runtime_defaults"
     },
@@ -3516,7 +3765,11 @@ function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, work
     provider: state.implementor_provider ?? workerSelection.resolved.provider ?? null,
     runtime: state.implementor_execution_runtime ?? workerSelection.resolved.runtime ?? null,
     model: state.implementor_model ?? workerSelection.resolved.model ?? null,
-    reasoning_effort: state.implementor_reasoning_effort ?? workerSelection.resolved.reasoning_effort ?? null,
+    reasoning_effort: sanitizeWorkerReasoningEffort(
+      state.implementor_reasoning_effort ?? workerSelection.resolved.reasoning_effort ?? null,
+      state.implementor_provider ?? workerSelection.resolved.provider ?? null,
+      state.implementor_execution_runtime ?? workerSelection.resolved.runtime ?? null
+    ),
     access_mode: state.implementor_execution_access_mode ?? workerSelection.resolved.access_mode ?? null,
     execution_id: state.implementor_execution_id ?? null,
     selection_source: {
@@ -3643,7 +3896,11 @@ function syncLegacyNormalStateFromRun({ state, run, preserveFeatureStatus = true
     state.implementor_execution_runtime = workerBinding.runtime ?? state.implementor_execution_runtime ?? null;
     state.implementor_execution_access_mode = workerBinding.access_mode ?? state.implementor_execution_access_mode ?? null;
     state.implementor_model = workerBinding.model ?? state.implementor_model ?? null;
-    state.implementor_reasoning_effort = workerBinding.reasoning_effort ?? state.implementor_reasoning_effort ?? null;
+    state.implementor_reasoning_effort = sanitizeWorkerReasoningEffort(
+      workerBinding.reasoning_effort ?? state.implementor_reasoning_effort ?? null,
+      workerBinding.provider ?? state.implementor_provider ?? null,
+      workerBinding.runtime ?? state.implementor_execution_runtime ?? null
+    );
     state.implementor_execution_id = workerBinding.execution_id ?? state.implementor_execution_id ?? null;
   }
 
@@ -4477,7 +4734,11 @@ async function syncAgentRegistry(paths, state) {
         implementor_execution_runtime: state.implementor_execution_runtime ?? workerBinding?.runtime ?? existing.implementor_execution_runtime ?? null,
         implementor_provider: state.implementor_provider ?? workerBinding?.provider ?? existing.implementor_provider ?? null,
         implementor_model: state.implementor_model ?? workerBinding?.model ?? existing.implementor_model ?? null,
-        implementor_reasoning_effort: state.implementor_reasoning_effort ?? workerBinding?.reasoning_effort ?? existing.implementor_reasoning_effort ?? null,
+        implementor_reasoning_effort: sanitizeWorkerReasoningEffort(
+          state.implementor_reasoning_effort ?? workerBinding?.reasoning_effort ?? existing.implementor_reasoning_effort ?? null,
+          state.implementor_provider ?? workerBinding?.provider ?? existing.implementor_provider ?? null,
+          state.implementor_execution_runtime ?? workerBinding?.runtime ?? existing.implementor_execution_runtime ?? null
+        ),
         resolved_runtime_permission_model: state.resolved_runtime_permission_model ?? existing.resolved_runtime_permission_model ?? null,
         execution_contract_path: state.artifacts?.execution_contract_path ?? existing.execution_contract_path ?? null,
         execution_run_contract_path: state.artifacts?.execution_run_contract_path ?? existing.execution_run_contract_path ?? null,

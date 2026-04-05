@@ -33,10 +33,11 @@ If native tools can orchestrate but not supply the strongest truthful worker acc
   "preferred_control_plane_runtime": "native_agent_tools",
   "persistent_execution_strategy": "per_feature_agent_registry",
   "preferred_implementor_model": "gpt-5.4",
-  "preferred_implementor_reasoning_effort": "xhigh",
+  "preferred_implementor_reasoning_effort": null,
   "requires_project_specific_permission_rules": false,
   "project_specific_permission_rules": [],
   "detected_runtime_capabilities": {},
+  "llm_tools": {},
   "setup_schema_version": 1,
   "created_at": "ISO-8601",
   "updated_at": "ISO-8601"
@@ -61,6 +62,7 @@ Recommended additional fields:
 - `requires_project_specific_permission_rules`
 - `project_specific_permission_rules`
 - `detected_runtime_capabilities`
+- `llm_tools`
 - `setup_schema_version`
 
 ## Allowed values
@@ -69,6 +71,7 @@ Runtime-permission-model values:
 
 - `native_explicit_full_access`
 - `codex_cli_explicit_full_auto`
+- `claude_code_skip_permissions`
 - `native_inherited_access_only`
 - `interactive_or_limited`
 
@@ -77,6 +80,7 @@ Access-mode values:
 - `native_full_access`
 - `native_elevated_permissions`
 - `codex_cli_full_auto_bypass`
+- `claude_code_skip_permissions`
 - `inherits_current_runtime_access`
 - `interactive_fallback`
 
@@ -84,6 +88,7 @@ Execution-runtime values:
 
 - `native_agent_tools`
 - `codex_cli_exec`
+- `claude_code_exec`
 - `artifact_continuity_only`
 
 Persistent-execution-strategy values:
@@ -101,6 +106,7 @@ Treat setup as incomplete if:
 - any enum is unsupported
 - `project_root` does not match the requested root
 - `preferred_execution_access_mode` is `codex_cli_full_auto_bypass` but `preferred_execution_runtime` is not `codex_cli_exec`
+- `preferred_execution_access_mode` is `claude_code_skip_permissions` but `preferred_execution_runtime` is not `claude_code_exec`
 - `detected_runtime_capabilities` is not an object
 - `project_specific_permission_rules` is not an array
 
@@ -119,3 +125,4 @@ Rules:
 - prefer explicit help output or a trustworthy persisted prior detection
 - when support cannot be proven, default to false
 - allow explicit CLI arguments to override automatic detection
+- `preferred_implementor_reasoning_effort` is provider-specific and may be `null` when the selected worker runtime does not expose a truthful reasoning vocabulary

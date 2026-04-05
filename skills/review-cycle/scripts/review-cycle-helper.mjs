@@ -79,6 +79,7 @@ const ACCESS_MODES = new Set([
   "native_full_access",
   "native_elevated_permissions",
   "codex_cli_full_auto_bypass",
+  "claude_code_skip_permissions",
   "inherits_current_runtime_access",
   "interactive_fallback"
 ]);
@@ -87,6 +88,7 @@ const ACCESS_MODE_RANK = {
   native_full_access: 50,
   native_elevated_permissions: 40,
   codex_cli_full_auto_bypass: 30,
+  claude_code_skip_permissions: 30,
   inherits_current_runtime_access: 20,
   interactive_fallback: 10
 };
@@ -94,6 +96,7 @@ const ACCESS_MODE_RANK = {
 const RUNTIME_PERMISSION_MODELS = new Set([
   "native_explicit_full_access",
   "codex_cli_explicit_full_auto",
+  "claude_code_skip_permissions",
   "native_inherited_access_only",
   "interactive_or_limited"
 ]);
@@ -101,6 +104,7 @@ const RUNTIME_PERMISSION_MODELS = new Set([
 const EXECUTION_RUNTIMES = new Set([
   "native_agent_tools",
   "codex_cli_exec",
+  "claude_code_exec",
   "artifact_continuity_only"
 ]);
 
@@ -1669,6 +1673,10 @@ function validateSetupData(data, repoRoot) {
   if (normalized.preferred_execution_access_mode === "codex_cli_full_auto_bypass"
     && normalized.preferred_execution_runtime !== "codex_cli_exec") {
     errors.push("preferred_execution_runtime must be 'codex_cli_exec' when preferred_execution_access_mode is 'codex_cli_full_auto_bypass'.");
+  }
+  if (normalized.preferred_execution_access_mode === "claude_code_skip_permissions"
+    && normalized.preferred_execution_runtime !== "claude_code_exec") {
+    errors.push("preferred_execution_runtime must be 'claude_code_exec' when preferred_execution_access_mode is 'claude_code_skip_permissions'.");
   }
 
   if (!Array.isArray(normalized.project_specific_permission_rules)) {
