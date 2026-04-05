@@ -5,7 +5,8 @@
 - phase_number: 1
 - feature_slug: implement-plan-worktree-artifact-isolation
 - project_root: C:/ADF
-- feature_root: C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation
+- legacy_seed_feature_root: C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation
+- target_feature_local_artifact_root: <worktree_root>/docs/phase1/implement-plan-worktree-artifact-isolation
 - original_seed_commit: 22a9fce
 
 ## Task Summary
