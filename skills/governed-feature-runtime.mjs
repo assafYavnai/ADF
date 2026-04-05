@@ -501,6 +501,21 @@ export function normalizeProjectRoot(value) {
   return normalizeSlashes(resolve(value));
 }
 
+export function resolveCanonicalGitProjectRoot(projectRoot) {
+  const normalizedRoot = normalizeProjectRoot(projectRoot);
+  const commonDirResult = gitRun(normalizedRoot, ["rev-parse", "--path-format=absolute", "--git-common-dir"], { timeoutMs: 5000 });
+  if (commonDirResult.status !== 0) {
+    return normalizedRoot;
+  }
+
+  const commonDir = String(commonDirResult.stdout ?? "").trim();
+  if (!commonDir) {
+    return normalizedRoot;
+  }
+
+  return normalizeProjectRoot(dirname(commonDir));
+}
+
 export function normalizeSlashes(value) {
   return String(value).replace(/\\/g, "/");
 }

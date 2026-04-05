@@ -2,9 +2,9 @@
   "state_schema_version": 2,
   "phase_number": 1,
   "feature_slug": "implement-plan-provider-neutral-run-contract",
-  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+  "project_root": "C:/ADF",
   "feature_registry_key": "phase1/implement-plan-provider-neutral-run-contract",
-  "feature_status": "active",
+  "feature_status": "completed",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
   "implementor_execution_runtime": "codex_cli_exec",
@@ -24,22 +24,22 @@
     "codex_cli_full_auto_supported": true,
     "codex_cli_bypass_supported": true
   },
-  "current_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+  "current_branch": "main",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
-  "merge_commit_sha": null,
-  "merge_queue_request_id": null,
-  "local_target_sync_status": "not_started",
-  "last_completed_step": "completion_summary_written",
-  "last_commit_sha": null,
-  "active_run_status": "closeout_pending",
+  "merge_status": "merged",
+  "approved_commit_sha": "81c062c83b7786b56f07eaa2eef51d3d47a4717f",
+  "merge_commit_sha": "0a10f9dcb318c8d24b8906ad1093e85bb92a33d7",
+  "merge_queue_request_id": "merge-main-1-implement-plan-provider-neutral-run-contract-1775367907007",
+  "local_target_sync_status": "fetched_only",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "0a10f9dcb318c8d24b8906ad1093e85bb92a33d7",
+  "active_run_status": "completed",
   "created_at": "2026-04-04T22:16:33.486Z",
-  "updated_at": "2026-04-05T00:10:20.284Z",
+  "updated_at": "2026-04-05T07:29:14.705Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-04T22:16:34.941Z",
     "worktree_prepared_at": "2026-04-04T22:16:34.941Z",
@@ -51,9 +51,9 @@
     "verification_finished_at": "2026-04-04T22:58:36.323Z",
     "review_requested_at": null,
     "human_verification_requested_at": null,
-    "merge_started_at": null,
-    "merge_finished_at": null,
-    "closeout_finished_at": null
+    "merge_started_at": "2026-04-04T22:58:36.323Z",
+    "merge_finished_at": "2026-04-05T07:17:18.048Z",
+    "closeout_finished_at": "2026-04-05T07:28:44.167Z"
   },
   "event_log": [
     {
@@ -358,20 +358,38 @@
       "attempt_id": "attempt-003",
       "timestamp": "2026-04-05T00:10:20.284Z",
       "note": null
+    },
+    {
+      "event_id": "event-fae02649-58eb-4de3-9e16-97dbab9740a8",
+      "event_type": "state-patched",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-05T07:17:18.064Z",
+      "note": null
+    },
+    {
+      "event_id": "event-e841dd6e-0080-4058-9264-83610a422c3d",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-05T07:17:18.293Z",
+      "note": "Merged via merge-queue after approval."
     }
   ],
   "artifacts": {
-    "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/README.md",
-    "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/context.md",
-    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
-    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
-    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
-    "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
-    "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-pushback.md",
-    "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-brief.md",
-    "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md",
-    "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run",
+    "readme_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/README.md",
+    "context_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/context.md",
+    "state_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract"
   },
   "last_error": null,
@@ -386,14 +404,14 @@
       "run-e976eb7e-72ab-435f-ad23-86c523be8985": {
         "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
         "run_mode": "normal",
-        "lifecycle_status": "active",
-        "terminal_status": null,
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 8,
-        "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
-        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
-        "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
-        "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
+        "contract_revision": 13,
+        "feature_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
         "benchmark_context": {
           "benchmark_run_id": null,
           "benchmark_suite_id": null,
@@ -618,18 +636,18 @@
           "attempt-003": {
             "attempt_id": "attempt-003",
             "attempt_number": 3,
-            "status": "closeout_pending",
-            "terminal_status": null,
+            "status": "completed",
+            "terminal_status": "completed",
             "started_at": "2026-04-04T22:49:27.098Z",
-            "updated_at": "2026-04-05T00:10:20.284Z",
+            "updated_at": "2026-04-05T07:29:14.705Z",
             "reset_at": null,
             "reset_reason": "Reset fake cached execution id before governed implement-plan run.",
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "machine_verification",
+              "step": "merge_queue",
               "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-05T00:10:20.284Z"
+              "updated_at": "2026-04-05T07:29:14.705Z"
             },
             "step_status": {
               "implementation": {
@@ -661,10 +679,10 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
-                "started_at": null,
-                "completed_at": null,
-                "duration_seconds": null,
+                "status": "completed",
+                "started_at": "2026-04-04T22:58:36.323Z",
+                "completed_at": "2026-04-05T07:17:18.048Z",
+                "duration_seconds": 29922,
                 "note": null
               }
             },
@@ -713,15 +731,15 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T00:10:20.284Z",
-            "last_event_at": "2026-04-05T00:10:20.284Z"
+            "last_checkpoint_at": "2026-04-05T07:29:14.705Z",
+            "last_event_at": "2026-04-05T07:17:18.293Z"
           }
         },
         "created_at": "2026-04-04T22:16:33.500Z",
-        "updated_at": "2026-04-05T00:10:20.289Z",
-        "last_event_at": "2026-04-05T00:10:20.284Z",
+        "updated_at": "2026-04-05T07:29:14.710Z",
+        "last_event_at": "2026-04-05T07:17:18.293Z",
         "kpi_projection": {
-          "terminal_status": null,
+          "terminal_status": "completed",
           "per_step_timing": {
             "implementation": {
               "status": "completed",
@@ -748,10 +766,10 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
-              "started_at": null,
-              "completed_at": null,
-              "duration_seconds": null
+              "status": "completed",
+              "started_at": "2026-04-04T22:58:36.323Z",
+              "completed_at": "2026-04-05T07:17:18.048Z",
+              "duration_seconds": 29922
             }
           },
           "governance_call_metrics": {
@@ -785,10 +803,10 @@
         "terminal_status": null,
         "contract_schema_version": 1,
         "contract_revision": 2,
-        "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
-        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/execution-contract.v1.json",
-        "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/run-projection.v1.json",
-        "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+        "feature_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
         "benchmark_context": {
           "benchmark_run_id": "bench-smoke-001",
           "benchmark_suite_id": "suite-smoke",
