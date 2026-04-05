@@ -1041,9 +1041,10 @@ async function updateState(input) {
     }
 
     const targetRun = resolveRunForMutation(next, input.runMode ?? "normal", input.runId ?? null);
+    let targetAttempt = null;
     if (targetRun) {
       next.current_run_id = targetRun.run_id;
-      const targetAttempt = resolveAttemptForMutation(targetRun, input.attemptId ?? null);
+      targetAttempt = resolveAttemptForMutation(targetRun, input.attemptId ?? null);
       if (targetAttempt) {
         next.current_attempt_id = targetAttempt.attempt_id;
         const workerKey = targetRun.worker_keys?.[0] ?? buildWorkerKey("implementor", targetRun.benchmark_context?.lane_id ?? null);
@@ -1110,7 +1111,15 @@ async function updateState(input) {
         }
       });
     }
-    if (targetRun) {
+    if (targetRun?.run_mode === "normal" && targetAttempt) {
+      await syncLiveNormalExecutionArtifacts({
+        paths,
+        state: next,
+        run: targetRun,
+        attempt: targetAttempt,
+        workerKey: targetRun.worker_keys?.[0] ?? buildWorkerKey("implementor", targetRun.benchmark_context?.lane_id ?? null)
+      });
+    } else if (targetRun) {
       await writeRunProjection({
         paths,
         run: targetRun
@@ -1213,7 +1222,7 @@ async function recordEvent(input) {
           attempt,
           eventType: "step-transition",
           payload: {
-            step: legacyLastCompletedStepToResumeStep(next.last_completed_step, next.active_run_status),
+            step: legacyLastCompletedStepToResumeStep(next.last_completed_step, next.active_run_status, next.merge_status),
             status: next.active_run_status === "implementation_running" ? "in_progress" : next.active_run_status === "completed" ? "completed" : "ready",
             note: input.note ?? ("Legacy event mirrored into the execution projection: " + input.event + ".")
           },
@@ -1228,13 +1237,21 @@ async function recordEvent(input) {
     if (input.currentBranch) {
       next.current_branch = input.currentBranch;
     }
-    if (run) {
+    next.updated_at = nowIso();
+    if (run?.run_mode === "normal" && attempt) {
+      await syncLiveNormalExecutionArtifacts({
+        paths,
+        state: next,
+        run,
+        attempt,
+        workerKey: run.worker_keys?.[0] ?? buildWorkerKey("implementor", run.benchmark_context?.lane_id ?? null)
+      });
+    } else if (run) {
       await writeRunProjection({
         paths,
         run
       });
     }
-    next.updated_at = nowIso();
     await writeJsonAtomic(paths.statePath, next);
     return next;
   });
@@ -1491,9 +1508,12 @@ async function markComplete(input) {
         },
         occurredAt: timestamp
       });
-      await writeRunProjection({
+      await syncLiveNormalExecutionArtifacts({
         paths,
-        run
+        state: next,
+        run,
+        attempt,
+        workerKey: run.worker_keys?.[0] ?? buildWorkerKey("implementor", run.benchmark_context?.lane_id ?? null)
       });
     }
 
@@ -2414,12 +2434,16 @@ function buildLegacyAttemptSummary(state, workerKey) {
   attempt.last_checkpoint_at = state.updated_at ?? nowIso();
   attempt.last_event_at = state.updated_at ?? nowIso();
   attempt.resume_checkpoint = {
-    step: legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status),
+    step: legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status, state.merge_status),
     status: legacyResumeCheckpointStatus(state.active_run_status),
     reason: "Recovered from legacy single-state projection.",
     updated_at: state.updated_at ?? nowIso()
   };
-  attempt.step_status = buildLegacyStepStatusMap(state.run_timestamps ?? {}, state.active_run_status);
+  attempt.step_status = buildLegacyStepStatusMap(state.run_timestamps ?? {}, state.active_run_status, {
+    last_completed_step: state.last_completed_step,
+    merge_status: state.merge_status,
+    state_updated_at: state.updated_at ?? nowIso()
+  });
   attempt.worker_bindings[workerKey] = {
     worker_id: workerKey,
     lane_id: null,
@@ -2437,7 +2461,15 @@ function buildLegacyAttemptSummary(state, workerKey) {
   return attempt;
 }
 
-function buildLegacyStepStatusMap(runTimestamps, activeRunStatus) {
+function hasLegacyMergedCloseoutState(lastCompletedStep, activeRunStatus, mergeStatus) {
+  return activeRunStatus === "closeout_pending"
+    && (mergeStatus === "merged" || String(lastCompletedStep ?? "").includes("merge"));
+}
+
+function buildLegacyStepStatusMap(runTimestamps, activeRunStatus, legacyState = {}) {
+  const lastCompletedStep = emptyToNull(legacyState?.last_completed_step);
+  const mergeStatus = emptyToNull(legacyState?.merge_status);
+  const stateUpdatedAt = emptyToNull(legacyState?.state_updated_at);
   const steps = initialStepStatusMap();
   applyLegacyStepTimestamps(steps.implementation, runTimestamps.implementor_started_at, runTimestamps.implementor_finished_at);
   applyLegacyStepTimestamps(steps.machine_verification, runTimestamps.implementor_finished_at, runTimestamps.verification_finished_at);
@@ -2462,6 +2494,20 @@ function buildLegacyStepStatusMap(runTimestamps, activeRunStatus) {
   }
   if (activeRunStatus === "merge_blocked") {
     steps.merge_queue.status = "blocked";
+  }
+  if (hasLegacyMergedCloseoutState(lastCompletedStep, activeRunStatus, mergeStatus) && steps.merge_queue.status !== "completed") {
+    steps.merge_queue.status = "completed";
+    steps.merge_queue.started_at = steps.merge_queue.started_at
+      ?? steps.machine_verification.completed_at
+      ?? steps.implementation.completed_at
+      ?? null;
+    steps.merge_queue.completed_at = steps.merge_queue.completed_at
+      ?? emptyToNull(runTimestamps.merge_finished_at)
+      ?? stateUpdatedAt
+      ?? null;
+    if (steps.merge_queue.started_at && steps.merge_queue.completed_at) {
+      steps.merge_queue.duration_seconds = diffSeconds(steps.merge_queue.started_at, steps.merge_queue.completed_at);
+    }
   }
   if (activeRunStatus === "completed" && steps.merge_queue.status !== "completed") {
     steps.merge_queue.status = "completed";
@@ -2514,11 +2560,11 @@ function legacyActiveRunStatusToAttemptStatus(activeRunStatus) {
   }
 }
 
-function legacyLastCompletedStepToResumeStep(lastCompletedStep, activeRunStatus) {
+function legacyLastCompletedStepToResumeStep(lastCompletedStep, activeRunStatus, mergeStatus = null) {
   if (activeRunStatus === "implementation_running") return "implementation";
   if (activeRunStatus === "verification_pending") return "machine_verification";
   if (activeRunStatus === "closeout_pending") {
-    return String(lastCompletedStep ?? "").includes("merge")
+    return hasLegacyMergedCloseoutState(lastCompletedStep, activeRunStatus, mergeStatus)
       ? "merge_queue"
       : "machine_verification";
   }
@@ -2526,7 +2572,7 @@ function legacyLastCompletedStepToResumeStep(lastCompletedStep, activeRunStatus)
   if (activeRunStatus === "human_verification_pending") return "human_testing";
   if (["merge_ready", "merge_queued", "merge_in_progress", "merge_blocked"].includes(activeRunStatus)) return "merge_queue";
   if (activeRunStatus === "completed") return "merge_queue";
-  if (String(lastCompletedStep ?? "").includes("merge")) return "merge_queue";
+  if (mergeStatus === "merged" || String(lastCompletedStep ?? "").includes("merge")) return "merge_queue";
   if (String(lastCompletedStep ?? "").includes("review")) return "review_cycle";
   if (String(lastCompletedStep ?? "").includes("verification")) return "machine_verification";
   return "implementation";
@@ -2889,6 +2935,209 @@ async function writeExecutionContract({ paths, run, contract }) {
   return next;
 }
 
+async function loadLiveExecutionContractSeed(paths, run) {
+  for (const candidate of [paths.executionContractPath, resolveRunContractPath(paths, run.run_id)]) {
+    if (!(await pathExists(candidate))) {
+      continue;
+    }
+    try {
+      const contract = await readJson(candidate);
+      if (isPlainObject(contract)) {
+        return contract;
+      }
+    } catch {
+      // Ignore malformed stale contract content and fall back to a minimal live snapshot.
+    }
+  }
+  return {};
+}
+
+function buildLiveContractWorkerSelection(existingContract, state) {
+  const existingSelection = isPlainObject(existingContract?.worker_selection) ? existingContract.worker_selection : {};
+  const defaults = {};
+  const overrides = {};
+  const continuity = {};
+  const resolved = {};
+  const resolvedSources = {};
+  const inheritance = {};
+
+  for (const field of WORKER_SELECTION_FIELDS) {
+    defaults[field] = emptyToNull(existingSelection.defaults?.[field]);
+    overrides[field] = emptyToNull(existingSelection.overrides?.[field]);
+    if (field === "provider") {
+      continuity[field] = emptyToNull(state.implementor_provider);
+    } else if (field === "runtime") {
+      continuity[field] = emptyToNull(state.implementor_execution_runtime);
+    } else if (field === "access_mode") {
+      continuity[field] = emptyToNull(state.implementor_execution_access_mode);
+    } else if (field === "model") {
+      continuity[field] = emptyToNull(state.implementor_model);
+    } else if (field === "reasoning_effort") {
+      continuity[field] = emptyToNull(state.implementor_reasoning_effort);
+    }
+
+    if (overrides[field] !== null) {
+      resolved[field] = overrides[field];
+      resolvedSources[field] = "explicit_override";
+      inheritance[field] = false;
+    } else if (continuity[field] !== null) {
+      resolved[field] = continuity[field];
+      resolvedSources[field] = "persisted_continuity";
+      inheritance[field] = false;
+    } else {
+      resolved[field] = defaults[field] ?? null;
+      resolvedSources[field] = "invoker_inheritance";
+      inheritance[field] = true;
+    }
+  }
+
+  return {
+    defaults,
+    continuity,
+    overrides,
+    resolved,
+    resolved_sources: resolvedSources,
+    inheritance
+  };
+}
+
+function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, existingContract }) {
+  const featureIdentity = isPlainObject(existingContract?.feature_identity) ? existingContract.feature_identity : {};
+  const routePolicy = isPlainObject(existingContract?.route_policy) ? existingContract.route_policy : {};
+  const reviewHandoff = isPlainObject(existingContract?.review_handoff) ? existingContract.review_handoff : {};
+  const benchmarking = isPlainObject(existingContract?.benchmarking) ? existingContract.benchmarking : {};
+  const resumePolicy = isPlainObject(existingContract?.resume_policy) ? existingContract.resume_policy : {};
+  const resetPolicy = isPlainObject(existingContract?.reset_policy) ? existingContract.reset_policy : {};
+  const kpiPolicy = isPlainObject(existingContract?.kpi_policy) ? existingContract.kpi_policy : {};
+  const integrity = isPlainObject(existingContract?.integrity) ? existingContract.integrity : {};
+  const artifacts = isPlainObject(existingContract?.artifacts) ? existingContract.artifacts : {};
+  const invokerRuntime = isPlainObject(existingContract?.invoker_runtime) ? existingContract.invoker_runtime : {};
+  const workerSelection = buildLiveContractWorkerSelection(existingContract, state);
+
+  return {
+    schema_version: EXECUTION_CONTRACT_SCHEMA_VERSION,
+    contract_kind: "implement-plan-execution",
+    contract_revision: run.contract_revision,
+    prepared_at: nowIso(),
+    feature_identity: {
+      ...featureIdentity,
+      project_root: normalizeSlashes(state.project_root ?? featureIdentity.project_root ?? null),
+      phase_number: state.phase_number,
+      feature_slug: state.feature_slug,
+      feature_registry_key: paths.registryKey,
+      feature_root: normalizeSlashes(paths.featureRoot)
+    },
+    run_identity: {
+      ...(isPlainObject(existingContract?.run_identity) ? existingContract.run_identity : {}),
+      run_mode: run.run_mode,
+      run_id: run.run_id,
+      attempt_id: attempt.attempt_id,
+      attempt_number: attempt.attempt_number,
+      lane_id: run.benchmark_context?.lane_id ?? null,
+      worker_id: workerKey
+    },
+    invoker_runtime: {
+      ...invokerRuntime,
+      provider: emptyToNull(invokerRuntime.provider) ?? workerSelection.defaults.provider ?? detectInvokerProvider(),
+      execution_runtime: emptyToNull(invokerRuntime.execution_runtime) ?? workerSelection.defaults.runtime ?? null,
+      control_plane_runtime: emptyToNull(invokerRuntime.control_plane_runtime) ?? emptyToNull(invokerRuntime.execution_runtime) ?? workerSelection.defaults.runtime ?? null,
+      access_mode: emptyToNull(invokerRuntime.access_mode) ?? workerSelection.defaults.access_mode ?? null,
+      model: emptyToNull(invokerRuntime.model) ?? workerSelection.defaults.model ?? null,
+      reasoning_effort: emptyToNull(invokerRuntime.reasoning_effort) ?? workerSelection.defaults.reasoning_effort ?? null,
+      runtime_permission_model: emptyToNull(invokerRuntime.runtime_permission_model) ?? emptyToNull(state.resolved_runtime_permission_model),
+      selection_source: invokerRuntime.selection_source ?? "invoker_runtime_defaults"
+    },
+    worker_selection: workerSelection,
+    route_policy: {
+      normal_mode_governed_flow: routePolicy.normal_mode_governed_flow ?? NORMAL_ROUTE_STEP_ORDER,
+      normal_mode_requires_review_cycle_when_requested: routePolicy.normal_mode_requires_review_cycle_when_requested ?? true,
+      human_testing_requires_route_level_review_gate: routePolicy.human_testing_requires_route_level_review_gate ?? true,
+      merge_completion_required_for_terminal_completion: routePolicy.merge_completion_required_for_terminal_completion ?? true,
+      supported_operator_stop_surface: routePolicy.supported_operator_stop_surface ?? false,
+      supported_reset_surface: routePolicy.supported_reset_surface ?? "helper-reset-attempt",
+      normal_mode_shortcuts_allowed: routePolicy.normal_mode_shortcuts_allowed ?? false
+    },
+    review_handoff: {
+      post_send_to_review: reviewHandoff.post_send_to_review ?? false,
+      review_until_complete: reviewHandoff.review_until_complete ?? false,
+      review_max_cycles: reviewHandoff.review_max_cycles ?? null,
+      review_required_by_human_plan: reviewHandoff.review_required_by_human_plan ?? false
+    },
+    benchmarking: {
+      enabled: run.run_mode === "benchmarking",
+      supervisor_status: run.run_mode === "benchmarking"
+        ? (emptyToNull(benchmarking.supervisor_status) ?? "deferred_to_spec_2")
+        : "not_applicable",
+      benchmark_run_id: run.benchmark_context?.benchmark_run_id ?? null,
+      benchmark_suite_id: run.benchmark_context?.benchmark_suite_id ?? null,
+      lane_id: run.benchmark_context?.lane_id ?? null,
+      lane_label: run.benchmark_context?.lane_label ?? null
+    },
+    resume_policy: {
+      resumable_after_crash_or_kill: resumePolicy.resumable_after_crash_or_kill ?? true,
+      reuse_cached_workers_when_valid: resumePolicy.reuse_cached_workers_when_valid ?? true,
+      recreate_workers_when_invalid: resumePolicy.recreate_workers_when_invalid ?? true,
+      last_truthful_checkpoint: attempt.resume_checkpoint
+    },
+    reset_policy: {
+      supported: resetPolicy.supported ?? true,
+      behavior: resetPolicy.behavior ?? "new_attempt_from_implementation_preserving_history",
+      next_attempt_number: run.attempt_counter + 1
+    },
+    kpi_policy: {
+      source: kpiPolicy.source ?? "governed_production_flow",
+      step_timing_enabled: kpiPolicy.step_timing_enabled ?? true,
+      governance_call_timing_enabled: kpiPolicy.governance_call_timing_enabled ?? true,
+      verification_outcomes_enabled: kpiPolicy.verification_outcomes_enabled ?? true,
+      review_and_self_fix_counts_enabled: kpiPolicy.review_and_self_fix_counts_enabled ?? true,
+      blocker_classification_enabled: kpiPolicy.blocker_classification_enabled ?? true,
+      terminal_status_enabled: kpiPolicy.terminal_status_enabled ?? true
+    },
+    integrity,
+    artifacts: {
+      ...artifacts,
+      state_path: normalizeSlashes(paths.statePath),
+      markdown_contract_path: normalizeSlashes(paths.contractPath),
+      execution_contract_path: normalizeSlashes(paths.executionContractPath),
+      run_contract_path: normalizeSlashes(resolveRunContractPath(paths, run.run_id)),
+      run_projection_path: normalizeSlashes(resolveRunProjectionPath(paths, run.run_id)),
+      execution_run_root: normalizeSlashes(resolveRunRootPath(paths, run.run_id)),
+      event_root: normalizeSlashes(resolveAttemptEventsRoot(paths, run.run_id, attempt.attempt_id)),
+      worktree_path: state.worktree_path ?? null
+    }
+  };
+}
+
+async function syncLiveNormalExecutionArtifacts({ paths, state, run, attempt, workerKey }) {
+  if (!run || !attempt || run.run_mode !== "normal") {
+    return null;
+  }
+
+  const executionContract = await writeExecutionContract({
+    paths,
+    run,
+    contract: buildLiveExecutionContract({
+      paths,
+      state,
+      run,
+      attempt,
+      workerKey,
+      existingContract: await loadLiveExecutionContractSeed(paths, run)
+    })
+  });
+  const runProjectionPath = await writeRunProjection({ paths, run });
+  state.artifacts = {
+    ...(state.artifacts ?? {}),
+    execution_contract_path: executionContract.artifacts.execution_contract_path,
+    execution_run_contract_path: executionContract.artifacts.run_contract_path,
+    execution_run_projection_path: runProjectionPath
+  };
+  return {
+    executionContract,
+    runProjectionPath
+  };
+}
+
 function stripExecutionContractRevision(contract) {
   if (!isPlainObject(contract)) {
     return {};
@@ -2968,7 +3217,11 @@ function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, work
   attempt.status = legacyActiveRunStatusToAttemptStatus(state.active_run_status);
   attempt.terminal_status = state.active_run_status === "completed" ? "completed" : state.active_run_status === "blocked" ? "blocked" : null;
   attempt.updated_at = nowIso();
-  attempt.step_status = buildLegacyStepStatusMap(state.run_timestamps ?? {}, state.active_run_status);
+  attempt.step_status = buildLegacyStepStatusMap(state.run_timestamps ?? {}, state.active_run_status, {
+    last_completed_step: state.last_completed_step,
+    merge_status: state.merge_status,
+    state_updated_at: state.updated_at ?? nowIso()
+  });
   attempt.review_cycle_count = Math.max(
     safeInteger(attempt.review_cycle_count, 0),
     (state.run_timestamps?.review_requested_at ? 1 : 0)
@@ -2989,7 +3242,7 @@ function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, work
   };
   updateAttemptCheckpoint(
     attempt,
-    legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status),
+    legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status, state.merge_status),
     legacyResumeCheckpointStatus(state.active_run_status),
     "Resume from the last truthful normal-mode checkpoint."
   );
@@ -3143,7 +3396,11 @@ function deriveLegacyLastCompletedStepFromAttempt(attempt, activeRunStatus) {
       ? "verification_finished"
       : "implementor_finished";
   }
-  if (activeRunStatus === "closeout_pending") return "verification_finished";
+  if (activeRunStatus === "closeout_pending") {
+    return attempt.step_status?.merge_queue?.status === "completed"
+      ? "merge_finished"
+      : "verification_finished";
+  }
   if (activeRunStatus === "implementation_running") return "implementor_started";
 
   const ordered = [

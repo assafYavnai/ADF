@@ -199,6 +199,7 @@ The main skill must treat the helper result as authoritative for:
 - the mutable run projection under `implementation-run/<run-id>/run-projection.v1.json`
 - append-only attempt event files under `implementation-run/<run-id>/events/<attempt-id>/`
 - the current `run_id`, `attempt_id`, `worker_id`, and benchmarking lane identity when applicable
+- any post-prepare normal-mode mutation must keep the feature-root contract, run-scoped contract, run projection, and compatibility state aligned on the active run, attempt, checkpoint, and closeout truth
 
 `implement-plan-state.json` remains an important compatibility projection, but it is no longer the only execution truth.
 
@@ -309,6 +310,7 @@ Rules:
 
 - require a target feature stream
 - persist feature completion in state and index only after merge success evidence exists
+- keep merged-but-not-completed closeout state internally consistent before final completion is recorded
 - remove the feature from active/open output
 - do not silently mark complete if closeout evidence is missing
 

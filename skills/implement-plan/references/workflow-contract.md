@@ -344,6 +344,7 @@ Rules:
 - `contract_revision` increments when the stable contract materially changes
 - the feature-root contract is the canonical repo-owned path for the active run/attempt
 - the run-scoped contract snapshot preserves the same schema within the run root
+- every normal-mode mutator that changes the active run, attempt, resume checkpoint, or closeout state must refresh both contract files so they stay aligned with the compatibility state and the run projection
 - the contract may contain benchmarking fields in both modes, but normal mode behavior must not weaken
 - `worker_selection.defaults` must stay reserved for current invoker/runtime defaults, while persisted feature-local reuse must be surfaced separately under `worker_selection.continuity`
 
@@ -504,6 +505,7 @@ Rules:
 
 - approval on the feature branch is merge-ready, not completed
 - do not claim completion if merge evidence is missing
+- merged-but-not-completed state may keep `active_run_status=closeout_pending`, but `merge_status`, `step_status.merge_queue`, and the resume checkpoint must still agree that merge work already completed
 - do not treat `local_target_sync_status=not_started` as truthful closeout evidence
 - `mark-complete` must fail closed unless merge truth, recorded local target sync truth, and completion-summary evidence exist
 
