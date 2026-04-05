@@ -2060,6 +2060,9 @@ function validateSetupObject(setup, projectRoot) {
   if (setup.preferred_execution_access_mode === "codex_cli_full_auto_bypass" && setup.preferred_execution_runtime !== "codex_cli_exec") {
     errors.push("preferred_execution_runtime must be 'codex_cli_exec' when preferred_execution_access_mode is 'codex_cli_full_auto_bypass'.");
   }
+  if (setup.preferred_execution_access_mode === "claude_code_skip_permissions" && setup.preferred_execution_runtime !== "claude_code_exec") {
+    errors.push("preferred_execution_runtime must be 'claude_code_exec' when preferred_execution_access_mode is 'claude_code_skip_permissions'.");
+  }
   if (!isPlainObject(setup.detected_runtime_capabilities)) {
     errors.push("detected_runtime_capabilities must be an object.");
   }
