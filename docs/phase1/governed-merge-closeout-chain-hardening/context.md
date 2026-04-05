@@ -96,20 +96,22 @@ Out of scope:
 
 ## Implementation Summary
 
-Three targeted changes close the failure class:
+Four layers close the failure class end to end:
 
-1. **implement-plan-helper.mjs**: Added `normalize-completion-summary` command — rewrites a malformed `completion-summary.md` to the exact required heading contract using the existing `finalizeCompletionSummary` path. Added `validate-closeout-readiness` command — checks whether the completion summary exists, is contract-valid, and the feature state supports closeout.
+1. **implement-plan-helper.mjs** (commit `50df5e8`): Added `normalize-completion-summary` command — rewrites a malformed `completion-summary.md` to the exact required 7-heading contract using the existing `finalizeCompletionSummary` path. Added `validate-closeout-readiness` command — checks whether the completion summary exists, is contract-valid, and the feature state supports closeout.
 
-2. **merge-queue-helper.mjs**: Added a pre-merge closeout-readiness gate in `processNext` that calls `validate-closeout-readiness` before the merge worktree is created. Invalid closeout blocks the request before merge/push with an explicit blocker message.
+2. **merge-queue-helper.mjs** (commit `50df5e8`): Added a pre-merge closeout-readiness gate in `processNext` that calls `validate-closeout-readiness` before the merge worktree is created. Invalid closeout blocks the request before merge/push with an explicit blocker message. This is defense-in-depth.
 
-3. **Authoritative docs**: Updated `implement-plan/SKILL.md`, `implement-plan/references/workflow-contract.md`, `merge-queue/SKILL.md`, and `merge-queue/references/workflow-contract.md` to document the new commands and the pre-merge closeout-readiness rule.
+3. **review-cycle contract wiring** (this commit): Updated `review-cycle/SKILL.md` and `review-cycle/references/workflow-contract.md` to mandate that the invoker calls `normalize-completion-summary` during approval closeout, before the final approved commit on the feature branch. This ensures the approved commit SHA carries a contract-valid summary.
+
+4. **implement-plan contract wiring** (this commit): Updated `implement-plan/SKILL.md` to mandate calling `normalize-completion-summary` after writing `completion-summary.md` and before commit, so the summary is contract-valid even before `review-cycle` runs.
 
 ## Route Ownership Preserved
 
-- `review-cycle` still owns final approved feature-branch closeout. It should call `normalize-completion-summary` before the approved commit is frozen.
-- `merge-queue` now validates (not generates) closeout readiness before merge. It blocks or allows based on the validation result.
-- `implement-plan` still owns completion truth via `mark-complete`, which remains fail-closed.
-- The exact approved commit SHA still lands. No silent mutation.
+- `implement-plan` normalizes the summary before handing to `review-cycle`, and owns completion truth via `mark-complete` (which remains fail-closed).
+- `review-cycle` normalizes the summary again during approval closeout before the final approved commit. It owns approved feature-branch closeout.
+- `merge-queue` validates (not generates) closeout readiness before merge as defense-in-depth. It owns merge landing. It still lands the exact approved commit SHA.
+- No silent mutation of approved commits.
 
 ## Notes
 

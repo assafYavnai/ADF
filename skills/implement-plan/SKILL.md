@@ -295,6 +295,7 @@ Rules:
 - run the machine-verification loop until it passes or blocks
 - verify outputs
 - write `completion-summary.md`
+- call `normalize-completion-summary` to ensure the summary satisfies the required 7-heading contract before commit
 - commit and push all code and feature artifacts on the feature branch, not the base branch
 - if `post_send_to_review=false` and human verification is not required, stop at merge-ready state instead of marking the feature completed directly
 - if human verification is required, `post_send_to_review` must be enabled because human testing happens only after the first route-level `review-cycle` gate
