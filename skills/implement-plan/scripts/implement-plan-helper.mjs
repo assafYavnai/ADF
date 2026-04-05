@@ -1004,6 +1004,7 @@ async function prepareFeature(input) {
       effective_review_max_cycles: input.postSendToReview && input.reviewUntilComplete ? (input.reviewMaxCycles ?? 5) : null,
       next_action: nextAction
     },
+    available_workers: featureLockResult.workerSelection.available_workers ?? [],
     current_settings_summary: settingsSummary.summary,
     open_features_summary: summarizeFeatureSections(openFeatures.index)
   };
@@ -2921,6 +2922,18 @@ function resolveWorkerSelection({ setup, state, input }) {
     }
   }
 
+  const llmTools = setup.data?.llm_tools ?? {};
+  const availableWorkers = [];
+  for (const [name, tool] of Object.entries(llmTools)) {
+    if (tool && tool.available === true) {
+      availableWorkers.push({
+        name,
+        autonomous_invoke: tool.autonomous_invoke ?? null,
+        version: tool.version ?? null
+      });
+    }
+  }
+
   return {
     invoker_runtime: invokerRuntime,
     defaults,
@@ -2928,7 +2941,8 @@ function resolveWorkerSelection({ setup, state, input }) {
     overrides,
     resolved,
     resolved_sources: resolvedSources,
-    inheritance
+    inheritance,
+    available_workers: availableWorkers
   };
 }
 

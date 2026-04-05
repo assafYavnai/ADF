@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const REQUIRED_SETUP_FIELDS = [
@@ -90,11 +90,13 @@ async function main() {
   const existing = await loadExistingSetup(projectRoot);
 
   const capabilityDetection = detectCapabilities(args, existing.detected_runtime_capabilities ?? {});
+  const llmTools = detectLlmToolsViaPreflight(projectRoot);
   const derived = deriveSetup({
     args,
     projectRoot,
     existing,
-    capabilityDetection
+    capabilityDetection,
+    llmTools
   });
   const validation = validateSetupObject(derived.setup, projectRoot);
 
@@ -165,6 +167,26 @@ function detectCapabilities(args, fallbackCapabilities) {
       codex_cli_probe: cliDetection.metadata
     }
   };
+}
+
+function detectLlmToolsViaPreflight(projectRoot) {
+  try {
+    const preflightScript = join(projectRoot, "tools", "agent-runtime-preflight.mjs");
+    const result = spawnSync("node", [preflightScript, "--repo-root", projectRoot, "--json"], {
+      encoding: "utf8",
+      timeout: 15000,
+      windowsHide: true
+    });
+    if (result.status === 0 && result.stdout) {
+      const report = JSON.parse(result.stdout);
+      if (isPlainObject(report.llm_tools)) {
+        return report.llm_tools;
+      }
+    }
+    return {};
+  } catch {
+    return {};
+  }
 }
 
 function deriveSetup(input) {
@@ -258,6 +280,7 @@ function deriveSetup(input) {
     requires_project_specific_permission_rules: requiresProjectSpecificPermissionRules,
     project_specific_permission_rules: projectSpecificPermissionRules,
     detected_runtime_capabilities: capabilities,
+    llm_tools: input.llmTools ?? input.existing.llm_tools ?? {},
     setup_schema_version: 2,
     created_at: input.existing.created_at ?? nowIso(),
     updated_at: nowIso()
