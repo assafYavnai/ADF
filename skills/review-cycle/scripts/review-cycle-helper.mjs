@@ -405,7 +405,7 @@ async function findStateFiles(rootPath, targetName) {
 }
 
 async function prepareCycle(input) {
-  const featureRoot = resolveFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
+  const featureRoot = await resolveWorktreeAwareFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
   await mkdir(featureRoot, { recursive: true });
 
   const readmePath = join(featureRoot, "README.md");
@@ -652,7 +652,7 @@ async function prepareCycle(input) {
 }
 
 async function updateState(input) {
-  const featureRoot = resolveFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
+  const featureRoot = await resolveWorktreeAwareFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
   const statePath = join(featureRoot, "review-cycle-state.json");
   const registryLoad = await loadRegistry(input.repoRoot);
   const registryKey = buildRegistryKey(input.phaseNumber, input.featureSlug);
@@ -744,7 +744,7 @@ async function updateState(input) {
 }
 
 async function recordEvent(input) {
-  const featureRoot = resolveFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
+  const featureRoot = await resolveWorktreeAwareFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
   const statePath = join(featureRoot, "review-cycle-state.json");
   const registryLoad = await loadRegistry(input.repoRoot);
   const registryKey = buildRegistryKey(input.phaseNumber, input.featureSlug);
@@ -826,7 +826,7 @@ async function recordEvent(input) {
 }
 
 async function cycleSummary(input) {
-  const featureRoot = resolveFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
+  const featureRoot = await resolveWorktreeAwareFeatureRoot(input.repoRoot, input.phaseNumber, input.featureSlug);
   const statePath = join(featureRoot, "review-cycle-state.json");
   const registryLoad = await loadRegistry(input.repoRoot);
   const registryKey = buildRegistryKey(input.phaseNumber, input.featureSlug);
@@ -2066,6 +2066,35 @@ function resolveFeatureRoot(repoRoot, phaseNumber, featureSlug) {
   const target = resolve(phaseRoot, ...featureSlug.split("/"));
   assertPathInside(phaseRoot, target, "feature root");
   return target;
+}
+
+/**
+ * Resolve the feature root, checking the implement-plan worktree first.
+ * If a worktree exists for this feature and contains the feature doc directory,
+ * use it; otherwise fall back to the main checkout.
+ */
+async function resolveWorktreeAwareFeatureRoot(repoRoot, phaseNumber, featureSlug) {
+  const slugSegments = featureSlug.split("/").map((s) => sanitizePathSegmentLocal(s));
+  const worktreeRoot = resolve(repoRoot, ".codex", "implement-plan", "worktrees", "phase" + phaseNumber, ...slugSegments);
+  const worktreeFeatureRoot = resolveFeatureRoot(worktreeRoot, phaseNumber, featureSlug);
+  if (await pathExists(worktreeFeatureRoot)) {
+    return worktreeFeatureRoot;
+  }
+  // Check if the worktree root itself exists (feature docs may not be created yet)
+  if (await pathExists(resolve(worktreeRoot, ".git"))) {
+    return worktreeFeatureRoot;
+  }
+  return resolveFeatureRoot(repoRoot, phaseNumber, featureSlug);
+}
+
+function sanitizePathSegmentLocal(value) {
+  const normalized = String(value ?? "")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^\.+|\.+$/g, "");
+  return normalized || "item";
 }
 
 function assertPathInside(basePath, targetPath, label) {

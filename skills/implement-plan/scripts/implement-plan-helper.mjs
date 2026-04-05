@@ -505,24 +505,102 @@ async function prepareFeature(input) {
   const featuresIndex = await loadFeaturesIndex(input.projectRoot);
 
   const featureLockResult = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
-    await mkdir(paths.featureRoot, { recursive: true });
-    await mkdir(paths.implementationRunDir, { recursive: true });
-
-    const readmeCreated = await ensureFeatureReadme(paths, input);
+    // --- Worktree-first: create or reuse the worktree BEFORE any feature-local writes ---
     const currentBranch = detectCurrentBranch(input.projectRoot);
+    const earlyBaseBranch = detectDefaultBaseBranch(input.projectRoot);
+    const earlyFeatureBranch = buildFeatureBranchName(input.phaseNumber, input.featureSlug);
+    const earlyWorktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+
+    let worktree = null;
+    let artifactPaths = paths;       // feature-local write target (worktree when available)
+    let artifactRootKind = "project"; // observability: "worktree" or "project"
+
+    if (input.runMode === "normal") {
+      worktree = ensureFeatureWorktree(paths, earlyBaseBranch, earlyFeatureBranch, earlyWorktreePath);
+      if (worktree.worktree_status !== "ready") {
+        // Worktree creation failed — stop truthfully, do NOT fall back to main checkout.
+        const failIntegrity = { blocking_issues: [], next_safe_move: "Resolve the worktree error and retry." };
+        failIntegrity.blocking_issues.push(issue(
+          "worktree-not-ready",
+          "The feature worktree could not be prepared for isolated implementation.",
+          [worktree.worktree_path],
+          worktree.message
+        ));
+        await mkdir(paths.featureRoot, { recursive: true });
+        await writePushbackArtifact(paths.pushbackPath, failIntegrity);
+        const failState = buildInitialState(
+          paths, input,
+          registry.index.features[paths.registryKey] ?? null,
+          featuresIndex.index.features[paths.registryKey] ?? null,
+          currentBranch
+        );
+        failState.base_branch = earlyBaseBranch;
+        failState.feature_branch = earlyFeatureBranch;
+        failState.worktree_path = worktree.worktree_path;
+        failState.worktree_status = worktree.worktree_status;
+        failState.active_run_status = failState.feature_status === "blocked" ? "blocked" : "integrity_failed";
+        failState.last_completed_step = "integrity_precheck_failed";
+        failState.last_error = worktree.message;
+        failState.run_timestamps = { integrity_failed_at: nowIso() };
+        failState.updated_at = nowIso();
+        await writeJsonAtomic(paths.statePath, failState);
+        return {
+          readmeCreated: false,
+          contextCreated: false,
+          state: failState,
+          stateCreated: true,
+          stateRepairs: [],
+          integrity: failIntegrity,
+          inputPack: { authorities: [], feature_artifacts: { readme: { exists: false }, context: { exists: false }, contract: { exists: false }, pushback: { exists: false }, brief: { exists: false }, completion_summary: { exists: false } } },
+          recreateDueToWeakerAccess: false,
+          requiredAccessMode: null,
+          workerSelection: { resolved: {} },
+          executionContract: { contract_revision: 0, artifacts: {} },
+          executionRun: { run_id: null, run_mode: input.runMode, lifecycle_status: "blocked", kpi_projection: null, benchmark_context: null },
+          executionAttempt: { attempt_id: null, status: "blocked", resume_checkpoint: null },
+          verificationPlanState: { has_verification_plan: false },
+          artifactRootKind: "project",
+          worktreeResult: worktree
+        };
+      }
+      artifactPaths = buildPaths(worktree.worktree_path, input.phaseNumber, input.featureSlug);
+      artifactRootKind = "worktree";
+    }
+
+    // --- Feature-local artifact writes now target the worktree (or project root for benchmarking) ---
+    await mkdir(artifactPaths.featureRoot, { recursive: true });
+    await mkdir(artifactPaths.implementationRunDir, { recursive: true });
+
+    const readmeCreated = await ensureFeatureReadme(artifactPaths, input);
+
+    // State loading: try worktree path first, fall back to main checkout for legacy reads
+    let stateLoadPaths = artifactPaths;
+    if (artifactRootKind === "worktree" && !(await pathExists(artifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+      stateLoadPaths = paths; // legacy: state still on main checkout
+    }
     const existingState = await loadOrInitializeState({
-      paths,
+      paths: stateLoadPaths,
       input,
       registryEntry: registry.index.features[paths.registryKey] ?? null,
       indexEntry: featuresIndex.index.features[paths.registryKey] ?? null,
       currentBranch
     });
-    const inputPack = await buildInputPack(paths, input);
-    const contextCreated = await ensureFeatureContext(paths, input, inputPack, existingState.state.current_branch ?? currentBranch ?? null);
-    const refreshedInputPack = contextCreated ? await buildInputPack(paths, input) : inputPack;
+    const inputPack = await buildInputPack(artifactPaths, input);
+    const contextCreated = await ensureFeatureContext(artifactPaths, input, inputPack, existingState.state.current_branch ?? currentBranch ?? null);
+    const refreshedInputPack = contextCreated ? await buildInputPack(artifactPaths, input) : inputPack;
 
     let nextState = { ...existingState.state };
     let changed = existingState.changed;
+
+    // When artifacts live in a worktree, record the worktree root as project_root
+    // so that buildArtifactPaths resolves correctly everywhere downstream.
+    if (artifactRootKind === "worktree" && worktree?.worktree_path) {
+      const worktreeProjectRoot = normalizeProjectRoot(worktree.worktree_path);
+      if (nextState.project_root !== worktreeProjectRoot) {
+        nextState.project_root = worktreeProjectRoot;
+        changed = true;
+      }
+    }
 
     if (input.featureStatusOverride && nextState.feature_status !== input.featureStatusOverride) {
       nextState.feature_status = input.featureStatusOverride;
@@ -584,7 +662,7 @@ async function prepareFeature(input) {
 
     const executionContext = ensureExecutionRunContext({
       state: nextState,
-      paths,
+      paths: artifactPaths,
       input,
       workerSelection
     });
@@ -619,8 +697,8 @@ async function prepareFeature(input) {
 
     let finalInputPack = refreshedInputPack;
     if (integrity.blocking_issues.length > 0) {
-      await writePushbackArtifact(paths.pushbackPath, integrity);
-      finalInputPack = await buildInputPack(paths, input);
+      await writePushbackArtifact(artifactPaths.pushbackPath, integrity);
+      finalInputPack = await buildInputPack(artifactPaths, input);
       if (input.runMode === "normal") {
         nextState.active_run_status = nextState.feature_status === "blocked" ? "blocked" : "integrity_failed";
         nextState.last_completed_step = "integrity_precheck_failed";
@@ -637,46 +715,23 @@ async function prepareFeature(input) {
       });
       changed = true;
     } else if (input.runMode === "normal") {
-      const worktree = ensureFeatureWorktree(
-        paths,
-        nextState.base_branch,
-        nextState.feature_branch,
-        nextState.worktree_path
-      );
+      // Worktree was already created before artifact writes (worktree-first).
+      // Apply worktree state from the early creation result.
       nextState.worktree_path = worktree.worktree_path;
       nextState.worktree_status = worktree.worktree_status;
       nextState.merge_required = true;
       nextState.merge_status = nextState.merge_status === "merged" ? "merged" : "not_ready";
       nextState.local_target_sync_status = nextState.local_target_sync_status ?? "not_started";
-      if (worktree.worktree_status !== "ready") {
-        integrity.blocking_issues.push(issue(
-          "worktree-not-ready",
-          "The feature worktree could not be prepared for isolated implementation.",
-          [worktree.worktree_path],
-          worktree.message
-        ));
-        await writePushbackArtifact(paths.pushbackPath, integrity);
-        nextState.active_run_status = nextState.feature_status === "blocked" ? "blocked" : "integrity_failed";
-        nextState.last_completed_step = "integrity_precheck_failed";
-        nextState.last_error = worktree.message;
-        nextState.run_timestamps = {
-          ...(nextState.run_timestamps ?? {}),
-          context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso(),
-          integrity_failed_at: nowIso()
-        };
-        changed = true;
-      } else {
-        nextState.current_branch = nextState.feature_branch;
-        nextState.last_error = null;
-        nextState.active_run_status = "context_ready";
-        nextState.last_completed_step = "context_collected";
-        nextState.run_timestamps = {
-          ...(nextState.run_timestamps ?? {}),
-          context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso(),
-          worktree_prepared_at: nextState.run_timestamps?.worktree_prepared_at ?? nowIso()
-        };
-        changed = true;
-      }
+      nextState.current_branch = nextState.feature_branch;
+      nextState.last_error = null;
+      nextState.active_run_status = "context_ready";
+      nextState.last_completed_step = "context_collected";
+      nextState.run_timestamps = {
+        ...(nextState.run_timestamps ?? {}),
+        context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso(),
+        worktree_prepared_at: nextState.run_timestamps?.worktree_prepared_at ?? nowIso()
+      };
+      changed = true;
       syncNormalRunProjectionFromState({
         state: nextState,
         run: executionContext.run,
@@ -697,10 +752,10 @@ async function prepareFeature(input) {
     executionContext.run.kpi_projection = buildRunKpiProjection(executionContext.run);
     const priorContractRevision = executionContext.run.contract_revision;
     const executionContract = await writeExecutionContract({
-      paths,
+      paths: artifactPaths,
       run: executionContext.run,
       contract: buildExecutionContract({
-        paths,
+        paths: artifactPaths,
         state: nextState,
         input,
         setup,
@@ -713,14 +768,14 @@ async function prepareFeature(input) {
       })
     });
     let runProjectionPath = await writeRunProjection({
-      paths,
+      paths: artifactPaths,
       run: executionContext.run,
       state: nextState
     });
 
     if (executionContext.created_run) {
       await appendExecutionAuditEvent({
-        paths,
+        paths: artifactPaths,
         state: nextState,
         run: executionContext.run,
         attempt: executionContext.attempt,
@@ -731,7 +786,7 @@ async function prepareFeature(input) {
         }
       });
       await appendExecutionAuditEvent({
-        paths,
+        paths: artifactPaths,
         state: nextState,
         run: executionContext.run,
         attempt: executionContext.attempt,
@@ -741,7 +796,7 @@ async function prepareFeature(input) {
         }
       });
       await appendExecutionAuditEvent({
-        paths,
+        paths: artifactPaths,
         state: nextState,
         run: executionContext.run,
         attempt: executionContext.attempt,
@@ -754,7 +809,7 @@ async function prepareFeature(input) {
     }
     if (executionContext.created_run || executionContract.contract_revision !== priorContractRevision) {
       await appendExecutionAuditEvent({
-        paths,
+        paths: artifactPaths,
         state: nextState,
         run: executionContext.run,
         attempt: executionContext.attempt,
@@ -766,30 +821,30 @@ async function prepareFeature(input) {
       });
     }
     runProjectionPath = await writeRunProjection({
-      paths,
+      paths: artifactPaths,
       run: executionContext.run,
       state: nextState
     });
 
     nextState.artifacts = {
       ...(nextState.artifacts ?? {}),
-      readme_path: normalizeSlashes(paths.readmePath),
-      context_path: normalizeSlashes(paths.contextPath),
-      state_path: normalizeSlashes(paths.statePath),
-      contract_path: normalizeSlashes(paths.contractPath),
+      readme_path: normalizeSlashes(artifactPaths.readmePath),
+      context_path: normalizeSlashes(artifactPaths.contextPath),
+      state_path: normalizeSlashes(artifactPaths.statePath),
+      contract_path: normalizeSlashes(artifactPaths.contractPath),
       execution_contract_path: executionContract.artifacts.execution_contract_path,
       execution_run_contract_path: executionContract.artifacts.run_contract_path,
       execution_run_projection_path: runProjectionPath,
-      pushback_path: normalizeSlashes(paths.pushbackPath),
-      brief_path: normalizeSlashes(paths.briefPath),
-      completion_summary_path: normalizeSlashes(paths.completionSummaryPath),
-      implementation_run_dir: normalizeSlashes(paths.implementationRunDir),
+      pushback_path: normalizeSlashes(artifactPaths.pushbackPath),
+      brief_path: normalizeSlashes(artifactPaths.briefPath),
+      completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
+      implementation_run_dir: normalizeSlashes(artifactPaths.implementationRunDir),
       worktree_path: nextState.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths))
     };
 
     if (changed) {
       nextState.updated_at = nowIso();
-      await writeJsonAtomic(paths.statePath, nextState);
+      await writeJsonAtomic(artifactPaths.statePath, nextState);
     }
 
     return {
@@ -806,7 +861,9 @@ async function prepareFeature(input) {
       executionContract,
       executionRun: executionContext.run,
       executionAttempt: executionContext.attempt,
-      verificationPlanState
+      verificationPlanState,
+      artifactRootKind,
+      worktreeResult: worktree
     };
   });
 
@@ -830,12 +887,22 @@ async function prepareFeature(input) {
     runMode: input.runMode
   });
 
+  // Resolve the artifact root used for this prepare (worktree or project)
+  const resultArtifactRootKind = featureLockResult.artifactRootKind ?? "project";
+  const resultWorktreeResult = featureLockResult.worktreeResult ?? null;
+  const resultArtifactPaths = resultArtifactRootKind === "worktree" && resultWorktreeResult?.worktree_path
+    ? buildPaths(resultWorktreeResult.worktree_path, input.phaseNumber, input.featureSlug)
+    : paths;
+
   return {
     command: "prepare",
     project_root: input.projectRoot,
     phase_number: input.phaseNumber,
     feature_slug: input.featureSlug,
-    feature_root: normalizeSlashes(paths.featureRoot),
+    feature_root: normalizeSlashes(resultArtifactPaths.featureRoot),
+    artifact_root: normalizeSlashes(resultArtifactPaths.featureRoot),
+    artifact_root_kind: resultArtifactRootKind,
+    worktree_path: resultWorktreeResult?.worktree_path ?? state.worktree_path ?? null,
     skill_state_root: normalizeSlashes(paths.skillStateRoot),
     worktrees_root: normalizeSlashes(paths.worktreesRoot),
     setup_path: normalizeSlashes(paths.setupPath),
@@ -843,7 +910,7 @@ async function prepareFeature(input) {
     features_index_path: normalizeSlashes(paths.featuresIndexPath),
     templates_root: normalizeSlashes(paths.templatesRoot),
     references_root: normalizeSlashes(paths.referencesRoot),
-    state_path: normalizeSlashes(paths.statePath),
+    state_path: normalizeSlashes(resultArtifactPaths.statePath),
     readme_created: featureLockResult.readmeCreated,
     context_created: featureLockResult.contextCreated,
     state_created: featureLockResult.stateCreated,
@@ -915,7 +982,8 @@ async function prepareFeature(input) {
     integrity_precheck: featureLockResult.integrity,
     detected_status_summary: {
       detected_project_root: input.projectRoot,
-      detected_feature_root: normalizeSlashes(paths.featureRoot),
+      detected_feature_root: normalizeSlashes(resultArtifactPaths.featureRoot),
+      artifact_root_kind: resultArtifactRootKind,
       feature_status: state.feature_status,
       active_run_status: state.active_run_status,
       base_branch: state.base_branch ?? null,
@@ -944,9 +1012,22 @@ async function prepareFeature(input) {
 async function updateState(input) {
   const paths = buildPaths(input.projectRoot, input.phaseNumber, input.featureSlug);
 
+  // Resolve worktree-aware artifact paths for state read/write
+  const updateWorktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+  const updateWorktreeExists = detectCurrentBranch(updateWorktreePath) !== null;
+  const updateArtifactPaths = updateWorktreeExists
+    ? buildPaths(updateWorktreePath, input.phaseNumber, input.featureSlug)
+    : paths;
+
   const featureResult = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
     const currentBranch = detectCurrentBranch(input.projectRoot);
-    const existing = await loadOrInitializeState({ paths, input, registryEntry: null, indexEntry: null, currentBranch });
+
+    // State loading: try worktree path first, fall back to main checkout for legacy
+    let stateLoadPaths = updateArtifactPaths;
+    if (updateWorktreeExists && !(await pathExists(updateArtifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+      stateLoadPaths = paths;
+    }
+    const existing = await loadOrInitializeState({ paths: stateLoadPaths, input, registryEntry: null, indexEntry: null, currentBranch });
     const next = { ...existing.state };
     const changedFields = [];
 
@@ -1111,7 +1192,7 @@ async function updateState(input) {
     const targetAttemptForEvent = resolveAttemptForMutation(targetRunForEvent, input.attemptId ?? null);
     if (targetRunForEvent && targetAttemptForEvent && changedFields.length > 0) {
       await appendExecutionAuditEvent({
-        paths,
+        paths: updateArtifactPaths,
         state: next,
         run: targetRunForEvent,
         attempt: targetAttemptForEvent,
@@ -1123,7 +1204,7 @@ async function updateState(input) {
     }
     if (targetRun?.run_mode === "normal" && targetAttempt) {
       await syncLiveNormalExecutionArtifacts({
-        paths,
+        paths: updateArtifactPaths,
         state: next,
         run: targetRun,
         attempt: targetAttempt,
@@ -1131,12 +1212,12 @@ async function updateState(input) {
       });
     } else if (targetRun) {
       await writeRunProjection({
-        paths,
+        paths: updateArtifactPaths,
         run: targetRun,
         state: next
       });
     }
-    await writeJsonAtomic(paths.statePath, next);
+    await writeJsonAtomic(updateArtifactPaths.statePath, next);
     return next;
   });
 
@@ -1146,7 +1227,7 @@ async function updateState(input) {
   return {
     command: "update-state",
     project_root: input.projectRoot,
-    state_path: normalizeSlashes(paths.statePath),
+    state_path: normalizeSlashes(updateArtifactPaths.statePath),
     state: featureResult
   };
 }
@@ -1160,9 +1241,21 @@ async function recordEvent(input) {
   const timestamp = input.timestamp ?? nowIso();
   const payload = await loadEventPayload(input.payloadFile);
 
+  // Resolve worktree-aware artifact paths
+  const eventWorktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+  const eventWorktreeExists = detectCurrentBranch(eventWorktreePath) !== null;
+  const eventArtifactPaths = eventWorktreeExists
+    ? buildPaths(eventWorktreePath, input.phaseNumber, input.featureSlug)
+    : paths;
+
   const state = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
     const currentBranch = detectCurrentBranch(input.projectRoot);
-    const existing = await loadOrInitializeState({ paths, input, registryEntry: null, indexEntry: null, currentBranch });
+
+    let stateLoadPaths = eventArtifactPaths;
+    if (eventWorktreeExists && !(await pathExists(eventArtifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+      stateLoadPaths = paths;
+    }
+    const existing = await loadOrInitializeState({ paths: stateLoadPaths, input, registryEntry: null, indexEntry: null, currentBranch });
     const next = { ...existing.state };
     next.run_timestamps = { ...(next.run_timestamps ?? {}) };
 
@@ -1190,7 +1283,7 @@ async function recordEvent(input) {
         syncLegacyNormalStateFromRun({ state: next, run });
       }
       await appendExecutionAuditEvent({
-        paths,
+        paths: eventArtifactPaths,
         state: next,
         run,
         attempt,
@@ -1227,7 +1320,7 @@ async function recordEvent(input) {
         });
         run.kpi_projection = buildRunKpiProjection(run);
         await appendExecutionAuditEvent({
-          paths,
+          paths: eventArtifactPaths,
           state: next,
           run,
           attempt,
@@ -1251,7 +1344,7 @@ async function recordEvent(input) {
     next.updated_at = nowIso();
     if (run?.run_mode === "normal" && attempt) {
       await syncLiveNormalExecutionArtifacts({
-        paths,
+        paths: eventArtifactPaths,
         state: next,
         run,
         attempt,
@@ -1259,12 +1352,12 @@ async function recordEvent(input) {
       });
     } else if (run) {
       await writeRunProjection({
-        paths,
+        paths: eventArtifactPaths,
         run,
         state: next
       });
     }
-    await writeJsonAtomic(paths.statePath, next);
+    await writeJsonAtomic(eventArtifactPaths.statePath, next);
     return next;
   });
 
@@ -1274,7 +1367,7 @@ async function recordEvent(input) {
   return {
     command: "record-event",
     project_root: input.projectRoot,
-    feature_root: normalizeSlashes(paths.featureRoot),
+    feature_root: normalizeSlashes(eventArtifactPaths.featureRoot),
     event: input.event,
     timestamp,
     state
@@ -1285,9 +1378,20 @@ async function resetAttempt(input) {
   const paths = buildPaths(input.projectRoot, input.phaseNumber, input.featureSlug);
   const timestamp = nowIso();
 
+  // Resolve worktree-aware artifact paths
+  const resetWorktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+  const resetWorktreeExists = detectCurrentBranch(resetWorktreePath) !== null;
+  const resetArtifactPaths = resetWorktreeExists
+    ? buildPaths(resetWorktreePath, input.phaseNumber, input.featureSlug)
+    : paths;
+
   const result = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
     const currentBranch = detectCurrentBranch(input.projectRoot);
-    const existing = await loadOrInitializeState({ paths, input, registryEntry: null, indexEntry: null, currentBranch });
+    let stateLoadPaths = resetArtifactPaths;
+    if (resetWorktreeExists && !(await pathExists(resetArtifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+      stateLoadPaths = paths;
+    }
+    const existing = await loadOrInitializeState({ paths: stateLoadPaths, input, registryEntry: null, indexEntry: null, currentBranch });
     const next = { ...existing.state };
     const run = resolveRunForMutation(next, input.runMode, input.runId);
     if (!run) {
@@ -1355,8 +1459,8 @@ async function resetAttempt(input) {
       };
     }
 
-    const artifactPaths = buildArtifactPaths(paths, next);
-    for (const contractPath of [paths.executionContractPath, resolveRunContractPath(paths, run.run_id)]) {
+    const artifactPaths = buildArtifactPaths(resetArtifactPaths, next);
+    for (const contractPath of [resetArtifactPaths.executionContractPath, resolveRunContractPath(resetArtifactPaths, run.run_id)]) {
       if (!(await pathExists(contractPath))) {
         continue;
       }
@@ -1394,7 +1498,7 @@ async function resetAttempt(input) {
     }
 
     await appendExecutionAuditEvent({
-      paths,
+      paths: resetArtifactPaths,
       state: next,
       run,
       attempt: nextAttempt,
@@ -1408,12 +1512,12 @@ async function resetAttempt(input) {
     });
 
     await writeRunProjection({
-      paths,
+      paths: resetArtifactPaths,
       run,
       state: next
     });
     next.updated_at = timestamp;
-    await writeJsonAtomic(paths.statePath, next);
+    await writeJsonAtomic(resetArtifactPaths.statePath, next);
     return {
       state: next,
       run,
@@ -1427,8 +1531,8 @@ async function resetAttempt(input) {
   return {
     command: "reset-attempt",
     project_root: input.projectRoot,
-    feature_root: normalizeSlashes(paths.featureRoot),
-    state_path: normalizeSlashes(paths.statePath),
+    feature_root: normalizeSlashes(resetArtifactPaths.featureRoot),
+    state_path: normalizeSlashes(resetArtifactPaths.statePath),
     run_id: result.run.run_id,
     attempt_id: result.attempt.attempt_id,
     run_mode: result.run.run_mode,
@@ -1438,14 +1542,26 @@ async function resetAttempt(input) {
 
 async function markComplete(input) {
   const paths = buildPaths(input.projectRoot, input.phaseNumber, input.featureSlug);
-  const completionText = await readTextIfExists(paths.completionSummaryPath);
+
+  // Resolve worktree-aware artifact paths
+  const completeWorktreePath = normalizeSlashes(resolveFeatureWorktreePath(paths));
+  const completeWorktreeExists = detectCurrentBranch(completeWorktreePath) !== null;
+  const completeArtifactPaths = completeWorktreeExists
+    ? buildPaths(completeWorktreePath, input.phaseNumber, input.featureSlug)
+    : paths;
+
+  const completionText = await readTextIfExists(completeArtifactPaths.completionSummaryPath);
   const completionValidation = completionText
     ? validateHeadingContract(completionText, COMPLETION_HEADINGS)
     : { valid: false, error: "completion-summary.md is missing." };
 
   const state = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
     const currentBranch = detectCurrentBranch(input.projectRoot);
-    const existing = await loadOrInitializeState({ paths, input, registryEntry: null, indexEntry: null, currentBranch });
+    let stateLoadPaths = completeArtifactPaths;
+    if (completeWorktreeExists && !(await pathExists(completeArtifactPaths.statePath)) && (await pathExists(paths.statePath))) {
+      stateLoadPaths = paths;
+    }
+    const existing = await loadOrInitializeState({ paths: stateLoadPaths, input, registryEntry: null, indexEntry: null, currentBranch });
     const next = { ...existing.state };
     const timestamp = nowIso();
     const alreadyCompleted = next.feature_status === "completed" && next.active_run_status === "completed";
@@ -1508,7 +1624,7 @@ async function markComplete(input) {
           occurredAt: timestamp
         });
         await appendExecutionAuditEvent({
-          paths,
+          paths: completeArtifactPaths,
           state: next,
           run,
           attempt,
@@ -1522,7 +1638,7 @@ async function markComplete(input) {
         });
       }
       await syncLiveNormalExecutionArtifacts({
-        paths,
+        paths: completeArtifactPaths,
         state: next,
         run,
         attempt,
@@ -1531,9 +1647,9 @@ async function markComplete(input) {
     }
 
     await writeTextAtomic(
-      paths.completionSummaryPath,
+      completeArtifactPaths.completionSummaryPath,
       await finalizeCompletionSummary({
-        paths,
+        paths: completeArtifactPaths,
         state: next,
         existingText: completionText,
         mergeCommitSha: next.merge_commit_sha ?? commitSha,
@@ -1541,7 +1657,7 @@ async function markComplete(input) {
       })
     );
 
-    await writeJsonAtomic(paths.statePath, next);
+    await writeJsonAtomic(completeArtifactPaths.statePath, next);
     return next;
   });
 
@@ -1551,8 +1667,8 @@ async function markComplete(input) {
   return {
     command: "mark-complete",
     project_root: input.projectRoot,
-    feature_root: normalizeSlashes(paths.featureRoot),
-    completion_summary_path: normalizeSlashes(paths.completionSummaryPath),
+    feature_root: normalizeSlashes(completeArtifactPaths.featureRoot),
+    completion_summary_path: normalizeSlashes(completeArtifactPaths.completionSummaryPath),
     last_commit_sha: state.last_commit_sha,
     feature_status: state.feature_status,
     active_run_status: state.active_run_status,
