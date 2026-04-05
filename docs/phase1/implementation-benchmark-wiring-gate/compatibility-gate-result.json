@@ -1,0 +1,640 @@
+{
+  "gate": "implementation-benchmark-wiring-gate",
+  "spec3_version": "post-merge-audit-v1",
+  "run_at": "2026-04-05T12:43:22.400Z",
+  "implementation_runtime": {
+    "provider": "anthropic",
+    "model": "claude-opus-4-6[1m]",
+    "runtime": "claude_code_exec"
+  },
+  "verdict": "production-compatible",
+  "blocked_by": null,
+  "summary": {
+    "total_checks": 58,
+    "passed": 58,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "enum-run-modes",
+      "category": "contract_compatibility",
+      "description": "IMPLEMENT_PLAN_RUN_MODES contains normal and benchmarking",
+      "result": "PASS",
+      "evidence": {
+        "values": [
+          "normal",
+          "benchmarking"
+        ]
+      }
+    },
+    {
+      "id": "enum-lane-statuses",
+      "category": "contract_compatibility",
+      "description": "BENCHMARK_LANE_STATUSES exported and non-empty",
+      "result": "PASS",
+      "evidence": {
+        "size": 13,
+        "values": [
+          "provisioning",
+          "running",
+          "verification_pending",
+          "review_pending",
+          "succeeded",
+          "failed",
+          "blocked",
+          "stopped",
+          "max_cycles_exhausted",
+          "global_cutoff_reached",
+          "suite_stopped",
+          "provider_stopped",
+          "lane_stopped"
+        ]
+      }
+    },
+    {
+      "id": "enum-suite-statuses",
+      "category": "contract_compatibility",
+      "description": "BENCHMARK_SUITE_STATUSES exported and non-empty",
+      "result": "PASS",
+      "evidence": {
+        "size": 6,
+        "values": [
+          "initializing",
+          "running",
+          "completing",
+          "completed",
+          "stopped",
+          "failed"
+        ]
+      }
+    },
+    {
+      "id": "enum-events",
+      "category": "contract_compatibility",
+      "description": "BENCHMARK_EVENTS exported and non-empty",
+      "result": "PASS",
+      "evidence": {
+        "size": 19,
+        "values": [
+          "suite-started",
+          "lane-provisioning",
+          "lane-started",
+          "lane-cycle-started",
+          "lane-cycle-completed",
+          "lane-verification-passed",
+          "lane-verification-failed",
+          "lane-review-started",
+          "lane-review-completed",
+          "lane-blocked",
+          "lane-stopped",
+          "lane-completed",
+          "lane-failed",
+          "lane-reset",
+          "suite-progress",
+          "suite-completed",
+          "suite-stopped",
+          "suite-failed",
+          "global-failure"
+        ]
+      }
+    },
+    {
+      "id": "enum-terminal-subset",
+      "category": "contract_compatibility",
+      "description": "BENCHMARK_TERMINAL_LANE_STATUSES ⊆ BENCHMARK_LANE_STATUSES",
+      "result": "PASS",
+      "evidence": {
+        "terminal": [
+          "succeeded",
+          "failed",
+          "blocked",
+          "max_cycles_exhausted",
+          "global_cutoff_reached",
+          "suite_stopped",
+          "provider_stopped",
+          "lane_stopped"
+        ],
+        "lane": [
+          "provisioning",
+          "running",
+          "verification_pending",
+          "review_pending",
+          "succeeded",
+          "failed",
+          "blocked",
+          "stopped",
+          "max_cycles_exhausted",
+          "global_cutoff_reached",
+          "suite_stopped",
+          "provider_stopped",
+          "lane_stopped"
+        ]
+      }
+    },
+    {
+      "id": "enum-feature-statuses",
+      "category": "contract_compatibility",
+      "description": "FEATURE_STATUSES contains active/blocked/completed/closed",
+      "result": "PASS",
+      "evidence": {
+        "values": [
+          "active",
+          "blocked",
+          "completed",
+          "closed"
+        ]
+      }
+    },
+    {
+      "id": "enum-spec2-events-covered",
+      "category": "contract_compatibility",
+      "description": "All Spec 2 documented event names exist in BENCHMARK_EVENTS",
+      "result": "PASS",
+      "evidence": {
+        "checked": 17,
+        "registered": 19
+      }
+    },
+    {
+      "id": "enum-spec1-events-covered",
+      "category": "contract_compatibility",
+      "description": "All Spec 1 documented event names exist in IMPLEMENT_PLAN_EVENTS",
+      "result": "PASS",
+      "evidence": {
+        "checked": 19,
+        "registered": 19
+      }
+    },
+    {
+      "id": "file-spec1-skills-governed-feature-runtime-mjs",
+      "category": "file_presence",
+      "description": "Spec 1 file exists: skills/governed-feature-runtime.mjs",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/governed-feature-runtime.mjs"
+      }
+    },
+    {
+      "id": "file-spec1-skills-implement-plan-SKILL-md",
+      "category": "file_presence",
+      "description": "Spec 1 file exists: skills/implement-plan/SKILL.md",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/implement-plan/SKILL.md"
+      }
+    },
+    {
+      "id": "file-spec1-skills-implement-plan-references-workflow-contract-md",
+      "category": "file_presence",
+      "description": "Spec 1 file exists: skills/implement-plan/references/workflow-contract.md",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/implement-plan/references/workflow-contract.md"
+      }
+    },
+    {
+      "id": "file-spec1-skills-implement-plan-scripts-implement-plan-helper-mjs",
+      "category": "file_presence",
+      "description": "Spec 1 file exists: skills/implement-plan/scripts/implement-plan-helper.mjs",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/implement-plan/scripts/implement-plan-helper.mjs"
+      }
+    },
+    {
+      "id": "file-spec1-skills-implement-plan-scripts-implement-plan-setup-helper-mjs",
+      "category": "file_presence",
+      "description": "Spec 1 file exists: skills/implement-plan/scripts/implement-plan-setup-helper.mjs",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/implement-plan/scripts/implement-plan-setup-helper.mjs"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-runtime-mjs",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-runtime.mjs",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-runtime.mjs"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-SKILL-md",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/SKILL.md",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/SKILL.md"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-scripts-benchmark-suite-helper-mjs",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/scripts/benchmark-suite-helper.mjs",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/scripts/benchmark-suite-helper.mjs"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-scripts-benchmark-suite-setup-helper-mjs",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/scripts/benchmark-suite-setup-helper.mjs",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/scripts/benchmark-suite-setup-helper.mjs"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-references-workflow-contract-md",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/references/workflow-contract.md",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/references/workflow-contract.md"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-references-setup-contract-md",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/references/setup-contract.md",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/references/setup-contract.md"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-references-prompt-templates-md",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/references/prompt-templates.md",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/references/prompt-templates.md"
+      }
+    },
+    {
+      "id": "file-spec2-skills-benchmark-suite-agents-openai-yaml",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/benchmark-suite/agents/openai.yaml",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/benchmark-suite/agents/openai.yaml"
+      }
+    },
+    {
+      "id": "file-spec2-skills-manifest-json",
+      "category": "file_presence",
+      "description": "Spec 2 file exists: skills/manifest.json",
+      "result": "PASS",
+      "evidence": {
+        "path": "skills/manifest.json"
+      }
+    },
+    {
+      "id": "import-benchmark-runtime-to-governed",
+      "category": "behavioral_compatibility",
+      "description": "benchmark-runtime.mjs imports from governed-feature-runtime.mjs (no shim)",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "import-benchmark-runtime-enums",
+      "category": "behavioral_compatibility",
+      "description": "benchmark-runtime.mjs imports all 4 benchmark enum sets from governed-feature-runtime.mjs",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "import-suite-helper-to-governed",
+      "category": "behavioral_compatibility",
+      "description": "benchmark-suite-helper.mjs imports from governed-feature-runtime.mjs (no shim)",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "import-suite-helper-to-benchmark-runtime",
+      "category": "behavioral_compatibility",
+      "description": "benchmark-suite-helper.mjs imports from benchmark-runtime.mjs (no shim)",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "import-suite-helper-benchmark-enums",
+      "category": "behavioral_compatibility",
+      "description": "benchmark-suite-helper.mjs imports all 4 benchmark enum sets",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "import-helper-run-modes",
+      "category": "behavioral_compatibility",
+      "description": "implement-plan-helper.mjs uses IMPLEMENT_PLAN_RUN_MODES (shared vocabulary)",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "helper-benchmarking-prepare",
+      "category": "behavioral_compatibility",
+      "description": "implement-plan-helper.mjs emits benchmark_contract_ready in prepare output",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "helper-supervisor-deferred",
+      "category": "behavioral_compatibility",
+      "description": "implement-plan-helper.mjs uses supervisor_deferred / deferred_to_spec_2 status for benchmarking mode",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-benchmarking-section",
+      "category": "contract_compatibility",
+      "description": "Execution contract schema includes benchmarking section with enabled + supervisor_status fields",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-lane-identity",
+      "category": "contract_compatibility",
+      "description": "Execution contract schema includes lane_id and lane_label identity fields",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-run-mode",
+      "category": "contract_compatibility",
+      "description": "Execution contract schema includes run_mode field",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-worker-selection",
+      "category": "contract_compatibility",
+      "description": "Execution contract includes worker_selection with resolved + resolved_sources",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-kpi-policy",
+      "category": "contract_compatibility",
+      "description": "Execution contract includes kpi_policy section",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-resume-policy",
+      "category": "contract_compatibility",
+      "description": "Execution contract includes resume_policy section",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-reset-policy",
+      "category": "contract_compatibility",
+      "description": "Execution contract includes reset_policy with correct behavior string",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "schema-route-policy",
+      "category": "contract_compatibility",
+      "description": "Execution contract includes route_policy with normal_mode_governed_flow",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "mode-normal-run-allowed",
+      "category": "mode_semantics",
+      "description": "Normal mode prepare can emit run_allowed flag",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "mode-benchmarking-deferred",
+      "category": "mode_semantics",
+      "description": "Benchmarking mode defers supervisor (does not execute governed flow itself)",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "mode-shared-schema-version",
+      "category": "mode_semantics",
+      "description": "Both modes use shared EXECUTION_CONTRACT_SCHEMA_VERSION constant",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "manifest-benchmark-suite",
+      "category": "contract_compatibility",
+      "description": "benchmark-suite registered in manifest.json",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "manifest-shared-runtime",
+      "category": "contract_compatibility",
+      "description": "governed-feature-runtime.mjs listed in manifest.json shared_files",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "manifest-all-skills",
+      "category": "contract_compatibility",
+      "description": "All 4 skills registered in manifest",
+      "result": "PASS",
+      "evidence": {
+        "registered": [
+          "review-cycle",
+          "implement-plan",
+          "merge-queue",
+          "benchmark-suite"
+        ],
+        "expected": [
+          "review-cycle",
+          "implement-plan",
+          "merge-queue",
+          "benchmark-suite"
+        ]
+      }
+    },
+    {
+      "id": "no-bridge-benchmark-to-plan-helper",
+      "category": "no_hidden_bridge",
+      "description": "benchmark-runtime.mjs does not directly import implement-plan-helper (no hidden shim)",
+      "result": "PASS",
+      "evidence": {
+        "imports_plan_helper": false
+      }
+    },
+    {
+      "id": "no-bridge-suite-to-plan-helper",
+      "category": "no_hidden_bridge",
+      "description": "benchmark-suite-helper.mjs does not directly import implement-plan-helper (no hidden shim)",
+      "result": "PASS",
+      "evidence": {
+        "imports_plan_helper": false
+      }
+    },
+    {
+      "id": "no-bridge-enum-synonyms",
+      "category": "no_hidden_bridge",
+      "description": "No synonym remapping of enum sets in benchmark-suite-helper",
+      "result": "PASS",
+      "evidence": {
+        "uses_original_names": true
+      }
+    },
+    {
+      "id": "no-bridge-reverse-dependency",
+      "category": "no_hidden_bridge",
+      "description": "governed-feature-runtime.mjs does not import benchmark-runtime.mjs (correct dependency direction)",
+      "result": "PASS",
+      "evidence": {
+        "reverse_import": false
+      }
+    },
+    {
+      "id": "brain-summary-builder",
+      "category": "brain_sink_semantics",
+      "description": "benchmark-runtime.mjs exports buildBrainSummaryMarkdown",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "brain-suite-uses-summary",
+      "category": "brain_sink_semantics",
+      "description": "benchmark-suite-helper.mjs uses Brain summary builder",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "stop-signals-implemented",
+      "category": "stop_behavior",
+      "description": "Stop signal create/check/clear implemented in benchmark-runtime.mjs",
+      "result": "PASS",
+      "evidence": {
+        "create": true,
+        "check": true,
+        "clear": true
+      }
+    },
+    {
+      "id": "stop-normal-mode-no-surface",
+      "category": "stop_behavior",
+      "description": "Normal mode has no supported operator stop surface (stop is benchmark-only)",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "resume-reset-attempt",
+      "category": "resume_reset_semantics",
+      "description": "implement-plan-helper supports reset-attempt command",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "resume-preserves-history",
+      "category": "resume_reset_semantics",
+      "description": "Reset preserves prior attempt history",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "resume-benchmark-reset-lane",
+      "category": "resume_reset_semantics",
+      "description": "benchmark-suite-helper supports reset-lane command",
+      "result": "PASS",
+      "evidence": {
+        "found": true
+      }
+    },
+    {
+      "id": "kpi-benchmark-captures",
+      "category": "kpi_semantics",
+      "description": "benchmark-suite-helper captures KPI primitives: latency, verification, cycles, cost",
+      "result": "PASS",
+      "evidence": {
+        "llm_latency_ms": true,
+        "verification_status": true,
+        "cycle_number": true,
+        "estimated_cost_usd": true
+      }
+    },
+    {
+      "id": "override-worker-fields",
+      "category": "provider_override",
+      "description": "implement-plan-helper supports provider-neutral worker override fields",
+      "result": "PASS",
+      "evidence": {
+        "worker_provider": true,
+        "worker_runtime": true,
+        "worker_model": true,
+        "worker_reasoning_effort": true,
+        "worker_access_mode": true
+      }
+    },
+    {
+      "id": "override-engine-fields",
+      "category": "provider_override",
+      "description": "benchmark-suite-helper config engines have provider and model fields",
+      "result": "PASS",
+      "evidence": {
+        "provider": true,
+        "model": true
+      }
+    }
+  ]
+}
