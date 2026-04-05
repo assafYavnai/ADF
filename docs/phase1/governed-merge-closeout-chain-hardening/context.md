@@ -94,6 +94,23 @@ Out of scope:
 - `C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs`
 - `C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/completion-summary.md`
 
+## Implementation Summary
+
+Three targeted changes close the failure class:
+
+1. **implement-plan-helper.mjs**: Added `normalize-completion-summary` command — rewrites a malformed `completion-summary.md` to the exact required heading contract using the existing `finalizeCompletionSummary` path. Added `validate-closeout-readiness` command — checks whether the completion summary exists, is contract-valid, and the feature state supports closeout.
+
+2. **merge-queue-helper.mjs**: Added a pre-merge closeout-readiness gate in `processNext` that calls `validate-closeout-readiness` before the merge worktree is created. Invalid closeout blocks the request before merge/push with an explicit blocker message.
+
+3. **Authoritative docs**: Updated `implement-plan/SKILL.md`, `implement-plan/references/workflow-contract.md`, `merge-queue/SKILL.md`, and `merge-queue/references/workflow-contract.md` to document the new commands and the pre-merge closeout-readiness rule.
+
+## Route Ownership Preserved
+
+- `review-cycle` still owns final approved feature-branch closeout. It should call `normalize-completion-summary` before the approved commit is frozen.
+- `merge-queue` now validates (not generates) closeout readiness before merge. It blocks or allows based on the validation result.
+- `implement-plan` still owns completion truth via `mark-complete`, which remains fail-closed.
+- The exact approved commit SHA still lands. No silent mutation.
+
 ## Notes
 
 - The helper echoed a malformed worktree path during the first `prepare`, but the actual dedicated worktree exists and is on the correct feature branch.

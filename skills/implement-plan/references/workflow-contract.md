@@ -585,3 +585,7 @@ Do not introduce a benchmark-only scoring subsystem in this slice.
 - review-cycle status
 - merge status
 - local target sync status
+
+The helper owns a `normalize-completion-summary` command that rewrites an existing (possibly malformed) `completion-summary.md` to satisfy the exact required heading contract. This must be called before merge to ensure closeout truth is contract-valid.
+
+The helper owns a `validate-closeout-readiness` command that checks whether `completion-summary.md` exists and satisfies the heading contract. `merge-queue` must call this before merge and block when readiness is invalid.

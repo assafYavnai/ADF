@@ -361,6 +361,17 @@ async function processNext(input) {
     );
   }
 
+  const closeoutReadiness = await validateCloseoutReadinessBeforeMerge(featureProjectRoot, selected.phase_number, selected.feature_slug);
+  if (!closeoutReadiness.ready) {
+    return await failQueuedRequest(
+      controlProjectRoot,
+      paths.queuePath,
+      selected.request_id,
+      selected,
+      "Pre-merge closeout readiness failed: " + closeoutReadiness.blockers.join("; ")
+    );
+  }
+
   const addResult = gitRun(controlProjectRoot, ["worktree", "add", "--detach", mergeWorktreePath, baseRef], { timeoutMs: 30000 });
   if (addResult.status !== 0) {
     return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Failed to create merge worktree: " + (addResult.stderr || addResult.stdout || "unknown error"));
@@ -888,6 +899,27 @@ async function markImplementPlanComplete(projectRoot, phaseNumber, featureSlug, 
     "--last-commit-sha", mergeCommitSha,
     "--completion-note", "Merged via merge-queue after approval."
   ], projectRoot);
+}
+
+async function validateCloseoutReadinessBeforeMerge(projectRoot, phaseNumber, featureSlug) {
+  try {
+    const output = await runNodeHelper(implementPlanHelperPath, [
+      "validate-closeout-readiness",
+      "--project-root", projectRoot,
+      "--phase-number", String(phaseNumber),
+      "--feature-slug", featureSlug
+    ], projectRoot);
+    const result = JSON.parse(output);
+    return {
+      ready: result.closeout_ready === true,
+      blockers: result.blockers ?? []
+    };
+  } catch (error) {
+    return {
+      ready: false,
+      blockers: ["Closeout readiness check failed: " + describeError(error)]
+    };
+  }
 }
 
 async function runNodeHelper(scriptPath, args, workdir) {

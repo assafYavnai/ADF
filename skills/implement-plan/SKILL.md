@@ -329,6 +329,8 @@ Use the helper scripts for deterministic local state:
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs reset-attempt ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs mark-complete ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs completion-summary ...`
+- `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs normalize-completion-summary ...`
+- `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs validate-closeout-readiness ...`
 - `node C:/ADF/skills/implement-plan/scripts/implement-plan-setup-helper.mjs write-setup ...`
 - `node C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs enqueue ...`
 
