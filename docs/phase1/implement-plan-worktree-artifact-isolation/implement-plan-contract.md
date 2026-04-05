@@ -103,18 +103,8 @@ Compatibility Evidence: The bug was discovered during the implement-plan-review-
 
 ## Human Verification Plan
 
-- Required: true
-- Reason: this changes the artifact write path for every future governed feature stream. A path-resolution bug here would break all governed implementation. Must not self-certify without explicit CEO approval.
-- Executive summary of implemented behavior: After this fix, implement-plan-helper.mjs creates the feature worktree at the start of prepare (before any artifact writes) and resolves all feature-local paths from the worktree root. review-cycle-helper.mjs follows the same rule. The main checkout remains clean. Project-level shared state stays in `.codex/`. Worktree-creation failure is a hard stop.
-- Testing instructions:
-  1. Run `implement-plan prepare` for a new test feature and verify `git status` on main shows no new files under `docs/phase1/`
-  2. Verify the test feature's README.md, context.md, and state.json exist inside the worktree path at `<worktree_root>/docs/phase1/<test_slug>/`
-  3. Verify the prepare output JSON includes `artifact_root_kind: "worktree"` and the correct `artifact_root` path
-  4. Verify setup.json and features-index.json are still under `.codex/implement-plan/`
-  5. Clean up the test feature
-- Expected results: main checkout stays clean, all feature artifacts in worktree, observability fields present
-- Evidence to report back: git status output before and after prepare, prepare output JSON showing artifact_root fields, file locations
-- Response format: `APPROVED` or `REJECTED: <comments>`
+- Required: false
+- Reason: CEO waived human verification for this slice. Machine verification plus governed review-cycle with codex reviewers is sufficient. The fix is structural path-resolution logic that is fully provable through smoke checks.
 
 # 7. Observability / Audit
 
