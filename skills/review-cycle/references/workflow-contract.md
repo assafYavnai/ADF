@@ -80,6 +80,12 @@ Project-level setup artifact:
 
 - `<repo_root>/.codex/review-cycle/setup.json`
 
+Rules:
+
+- this file is local operational state for the current checkout or worktree
+- it may be auto-created or refreshed whenever setup is missing or invalid
+- it must not be committed as mergeable source history
+
 Project-level persistent execution registry:
 
 - `<repo_root>/.codex/review-cycle/agent-registry.json`
@@ -715,7 +721,8 @@ Each cycle commit must include:
 - code changes
 - cycle artifacts
 - related documentation updates
-- setup artifacts if they changed
+
+Do not commit local operational setup artifacts such as `.codex/*/setup.json`, even when they were refreshed during the cycle.
 
 Commit or push failure rules:
 

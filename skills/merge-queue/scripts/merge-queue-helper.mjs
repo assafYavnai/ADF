@@ -51,6 +51,7 @@ const REQUIRED_SETUP_FIELDS = [
 ];
 
 const REQUEST_STATUSES = new Set(["queued", "in_progress", "merged", "blocked"]);
+const LOCAL_OPERATIONAL_SETUP_PATH = /^\.codex\/[^/]+\/setup\.json$/i;
 const LOCAL_SYNC_STATUSES = new Set([
   "not_started",
   "fetched_only",
@@ -206,6 +207,10 @@ async function enqueueRequest(input) {
   if (!approvedCommitSha) {
     fail("Cannot enqueue merge without an approved commit SHA.");
   }
+  const forbiddenSetupChanges = detectForbiddenLocalOperationalSetupChanges(input.projectRoot, baseBranch, approvedCommitSha);
+  if (forbiddenSetupChanges.length > 0) {
+    fail(buildForbiddenLocalOperationalSetupMessage(baseBranch, approvedCommitSha, forbiddenSetupChanges));
+  }
 
   const registryKey = buildFeatureRegistryKey(input.phaseNumber, input.featureSlug);
   const now = nowIso();
@@ -326,6 +331,16 @@ async function processNext(input) {
   if (fetchResult.status !== 0 && !gitRefExists(input.projectRoot, "refs/heads/" + selected.base_branch)) {
     return await failQueuedRequest(input.projectRoot, paths.queuePath, selected.request_id, selected, "Failed to fetch base branch '" + selected.base_branch + "': " + (fetchResult.stderr || fetchResult.stdout || "unknown error"));
   }
+  const forbiddenSetupChanges = detectForbiddenLocalOperationalSetupChanges(input.projectRoot, selected.base_branch, selected.approved_commit_sha);
+  if (forbiddenSetupChanges.length > 0) {
+    return await failQueuedRequest(
+      input.projectRoot,
+      paths.queuePath,
+      selected.request_id,
+      selected,
+      buildForbiddenLocalOperationalSetupMessage(selected.base_branch, selected.approved_commit_sha, forbiddenSetupChanges)
+    );
+  }
 
   const addResult = gitRun(input.projectRoot, ["worktree", "add", "--detach", mergeWorktreePath, baseRef], { timeoutMs: 30000 });
   if (addResult.status !== 0) {
@@ -429,6 +444,65 @@ function syncLocalTargetBranch(projectRoot, baseBranch) {
     status: "fast_forwarded",
     detail: "Fetched and fast-forwarded the local '" + baseBranch + "' checkout."
   };
+}
+
+function detectForbiddenLocalOperationalSetupChanges(projectRoot, baseBranch, approvedCommitSha) {
+  const comparisonRef = resolveComparisonBaseRef(projectRoot, baseBranch);
+  if (!comparisonRef) {
+    fail("Cannot inspect approved commit '" + approvedCommitSha + "' because base branch '" + baseBranch + "' is not available locally.");
+  }
+
+  const mergeBaseResult = gitRun(projectRoot, ["merge-base", comparisonRef, approvedCommitSha], { timeoutMs: 30000 });
+  if (mergeBaseResult.status !== 0 || !mergeBaseResult.stdout) {
+    fail("Cannot inspect approved commit '" + approvedCommitSha + "' against '" + comparisonRef + "': " + (mergeBaseResult.stderr || mergeBaseResult.stdout || "merge-base failed"));
+  }
+
+  const mergeBase = mergeBaseResult.stdout;
+  const diffResult = gitRun(projectRoot, ["diff", "--name-status", mergeBase, approvedCommitSha, "--", ".codex"], { timeoutMs: 30000 });
+  if (diffResult.status !== 0) {
+    fail("Cannot inspect approved commit '" + approvedCommitSha + "' for local operational setup changes: " + (diffResult.stderr || diffResult.stdout || "git diff failed"));
+  }
+
+  return String(diffResult.stdout ?? "")
+    .split(/\r?\n/)
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map(parseNameStatusRecord)
+    .filter((value) => value !== null)
+    .filter((value) => value.status !== "D")
+    .filter((value) => LOCAL_OPERATIONAL_SETUP_PATH.test(value.path))
+    .sort((left, right) => left.path.localeCompare(right.path));
+}
+
+function resolveComparisonBaseRef(projectRoot, baseBranch) {
+  if (gitRefExists(projectRoot, "refs/remotes/origin/" + baseBranch)) {
+    return "origin/" + baseBranch;
+  }
+  if (gitRefExists(projectRoot, "refs/heads/" + baseBranch)) {
+    return baseBranch;
+  }
+  return null;
+}
+
+function buildForbiddenLocalOperationalSetupMessage(baseBranch, approvedCommitSha, changes) {
+  return "Cannot merge approved commit '" + approvedCommitSha
+    + "' because its branch delta against '" + baseBranch
+    + "' adds or modifies local operational setup files that must not be committed: "
+    + changes.map((entry) => entry.path + " [" + entry.status + "]").join(", ")
+    + ". Remove them from the approved branch and let the workflow recreate setup locally.";
+}
+
+function parseNameStatusRecord(line) {
+  const parts = line.split("\t").filter(Boolean);
+  if (parts.length < 2) {
+    return null;
+  }
+  const status = parts[0].trim().toUpperCase();
+  const path = parts[parts.length - 1].trim().replace(/\\/g, "/");
+  if (!status || !path) {
+    return null;
+  }
+  return { status, path };
 }
 
 async function failQueuedRequest(projectRoot, queuePath, requestId, request, message) {

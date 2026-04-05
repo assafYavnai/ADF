@@ -2,6 +2,7 @@
 
 Use this file to create or refresh `<project_root>/.codex/review-cycle/setup.json`.
 This contract is used internally by `review-cycle`; it is not a separate public skill surface.
+`setup.json` is local operational state for the active checkout or worktree and must not be committed as source history.
 
 ## Detection order
 
