@@ -78,11 +78,12 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - On The Table
   - In Motion
   - What's Next
+- The runtime should gather and normalize the evidence deterministically, but the final CEO-facing wording should come from the COO model, not from hardcoded slot-filled prose.
 - Supporting context is allowed around those sections:
   - opening summary
   - status window
   - status notes
-  - landed recently
+  - what landed
   - operational footer
 
 ## Timing Truth Decision - 2026-04-05
@@ -100,6 +101,14 @@ These files are:
 - derived
 - secondary to stronger evidence
 - not a second canonical company database
+
+Tracked COO issues inside the operating state now also carry:
+- a prepared handoff id
+- a task summary
+- implicated subjects
+- an evidence digest
+
+This keeps the COO ready to move directly into implement-plan after approval without reopening the same investigation after a crash or restart.
 
 ## Open Constraint
 - This slice does not widen into autonomous execution launch.

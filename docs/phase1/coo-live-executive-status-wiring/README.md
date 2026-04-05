@@ -35,11 +35,12 @@ This slice now owns the bounded Phase 1 COO status route that:
   - `On The Table`
   - `In Motion`
   - `What's Next`
+- the live CEO-facing surface now uses a strict evidence pack plus the COO model for final wording rather than a hardcoded prose template
 - the live CEO-facing surface may add scan-friendly context around those sections:
   - opening summary
   - `Status window`
   - `Status notes`
-  - `What landed recently`
+  - `What landed`
   - operational footer
 
 ### 2. Evidence gathering and cross-checking
@@ -67,6 +68,7 @@ This slice now owns the bounded Phase 1 COO status route that:
 - the route is company-first by default
 - current thread is shown as context, not as the whole answer
 - shaping, awaiting decision, admitted, blocked, in motion, next, and tracked COO issues are derived from evidence rather than hand-maintained as primary truth
+- tracked COO issues also carry a prepared handoff id and task summary so the COO can move straight into implement-plan after approval without reopening the same investigation
 
 ### 5. Deep audit and trust
 - first run performs a deep audit when no valid baseline exists
@@ -122,6 +124,7 @@ The trust ledger guides suspicion. It never outranks stronger evidence.
 - keep the 4 executive sections visible
 - preserve graceful degradation for partial source families
 - make provenance, freshness, and confidence visible enough for leadership judgment
+- let the COO model formulate the briefing naturally from strict evidence rather than slot-filled prose
 - blocked items must surface in `Issues`
 - unresolved shaping / governance / decision items must surface in `On The Table`
 - active live work must surface in `In Motion`
@@ -147,6 +150,7 @@ Audit rules:
 - missing-source cases stay distinguishable from empty state
 - blocked or attention-worthy items cannot disappear silently
 - no fake Brain-backed conclusion is allowed
+- tracked COO issues and ready handoffs must survive restart through Brain-backed writes plus local derived continuity
 
 ## Human Verification
 Required: true

@@ -185,7 +185,10 @@ async function main() {
     await printExecutiveStatus(
       projectRoot,
       threadsDir,
+      promptsDir,
       brainClient,
+      config.intelligenceParams,
+      config.invokeLLM,
       configuredScope,
       null,
       statusTelemetryContext,
@@ -301,7 +304,7 @@ async function main() {
     }
 
     if (input === "/status") {
-      await printExecutiveStatus(projectRoot, threadsDir, brainClient, configuredScope, threadId, {
+      await printExecutiveStatus(projectRoot, threadsDir, promptsDir, brainClient, config.intelligenceParams, config.invokeLLM, configuredScope, threadId, {
         ...statusTelemetryContext,
         current_thread_id: threadId,
       }, telemetryPartition);
@@ -406,7 +409,10 @@ async function main() {
 async function printExecutiveStatus(
   projectRoot: string,
   threadsDir: string,
+  promptsDir: string,
   brainClient: MemoryEngineClient | null,
+  intelligenceParams: ControllerConfig["intelligenceParams"],
+  invokeLLM: ControllerConfig["invokeLLM"] | undefined,
   statusScopePath: string | null,
   currentThreadId: string | null,
   telemetryContext: Record<string, unknown>,
@@ -421,6 +427,9 @@ async function printExecutiveStatus(
       telemetryContext,
       statusScopePath,
       currentThreadId,
+      promptsDir,
+      intelligenceParams,
+      invokeLLM,
     });
     console.log(`\n${status.output}\n`);
   } catch (error) {
@@ -698,7 +707,7 @@ async function runScriptedSession(
       }
 
       if (input === "/status") {
-        await printExecutiveStatus(projectRoot, threadsDir, brainClient, configuredScope, threadId, {
+        await printExecutiveStatus(projectRoot, threadsDir, promptsDir, brainClient, config.intelligenceParams, config.invokeLLM, configuredScope, threadId, {
           ...shutdownMetadata,
           current_thread_id: threadId,
         }, String(shutdownMetadata.telemetry_partition ?? "production") === "proof" ? "proof" : "production");

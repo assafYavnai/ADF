@@ -44,6 +44,9 @@ export interface LiveExecutiveSectionItem {
   featureLabel: string;
   summary: string;
   recommendation: string | null;
+  severity: string | null;
+  priority: string | null;
+  actionLabel: string | null;
   evidenceLine: string;
 }
 
@@ -51,12 +54,10 @@ export interface LiveExecutiveLandedItem {
   featureId: string;
   featureLabel: string;
   outcome: string;
-  timingLine: string;
-  reviewLine: string;
-  tokenLine: string;
-  cooReadLine: string;
-  recommendationLine: string | null;
-  evidenceLine: string;
+  metricsLine: string;
+  cooReadLine: string | null;
+  actionLine: string | null;
+  basisLine: string;
 }
 
 export interface LiveExecutiveOperationalFooter {
@@ -77,7 +78,7 @@ export function normalizeLiveExecutiveSurface(
   const featuresById = new Map(facts.features.map((feature) => [feature.id, feature]));
 
   return {
-    opening: buildOpening(facts, brief, diagnostics),
+    opening: buildOpening(facts, brief, diagnostics, governance),
     statusWindow: statusWindow ? {
       currentRenderedAt: statusWindow.currentRenderedAt,
       previousRenderedAt: statusWindow.previousRenderedAt,
@@ -90,43 +91,26 @@ export function normalizeLiveExecutiveSurface(
     statusNotes: governance.statusNotes,
     landed: facts.features
       .filter((feature) => isRecentLandedFeature(facts.collectedAt, feature))
-      .map((feature) => toLandedItem(feature, governance.landedAssessments.get(feature.id)))
-      .sort((left, right) => right.featureLabel.localeCompare(left.featureLabel)),
+      .map((feature) => ({
+        feature,
+        assessment: governance.landedAssessments.get(feature.id),
+      }))
+      .sort((left, right) => compareLandedItems(left.feature, right.feature, left.assessment, right.assessment))
+      .map(({ feature, assessment }) => toLandedItem(feature, assessment)),
     issues: dedupeSectionItems([
       ...brief.issues.map((item) => toIssueItem(item, featuresById.get(item.featureId))),
-      ...governance.additionalAttention.map((item) => ({
-        key: item.key,
-        featureId: item.featureId,
-        featureLabel: item.featureLabel,
-        summary: item.summary,
-        recommendation: item.recommendation,
-        evidenceLine: item.evidenceLine,
-      })),
+      ...governance.additionalAttention.map((item) => toGovernanceSectionItem(item, "attention")),
     ]),
     onTheTable: dedupeSectionItems([
       ...brief.onTheTable.map((item) => toTableItem(item, featuresById.get(item.featureId))),
-      ...governance.additionalTable.map((item) => ({
-        key: item.key,
-        featureId: item.featureId,
-        featureLabel: item.featureLabel,
-        summary: item.summary,
-        recommendation: item.recommendation,
-        evidenceLine: item.evidenceLine,
-      })),
+      ...governance.additionalTable.map((item) => toGovernanceSectionItem(item, "table")),
     ]),
     inMotion: dedupeSectionItems(
       brief.inMotion.map((item) => toMotionItem(item, featuresById.get(item.featureId))),
     ),
     whatsNext: dedupeSectionItems([
       ...brief.whatsNext.map((item) => toNextItem(item, featuresById.get(item.featureId))),
-      ...governance.additionalNext.map((item) => ({
-        key: item.key,
-        featureId: item.featureId,
-        featureLabel: item.featureLabel,
-        summary: item.summary,
-        recommendation: item.recommendation,
-        evidenceLine: item.evidenceLine,
-      })),
+      ...governance.additionalNext.map((item) => toGovernanceSectionItem(item, "next")),
     ]),
     operationalFooter: {
       currentThreadId: governance.currentThread.threadId,
@@ -162,20 +146,20 @@ export function renderLiveExecutiveSurface(surface: LiveExecutiveSurface): strin
   }
 
   lines.push("");
-  lines.push("What landed recently:");
+  lines.push("What landed:");
   if (surface.landed.length === 0) {
     lines.push("No recent landed work is visible in the current evidence.");
   } else {
     for (const [index, item] of surface.landed.entries()) {
-      lines.push(`${index + 1}. **${item.featureLabel}** - ${item.outcome}`);
-      lines.push(`   ${item.timingLine}`);
-      lines.push(`   ${item.reviewLine}`);
-      lines.push(`   ${item.tokenLine}`);
-      lines.push(`   ${item.cooReadLine}`);
-      if (item.recommendationLine) {
-        lines.push(`   ${item.recommendationLine}`);
+      lines.push(`${index + 1}. **${item.featureLabel}** - ${item.outcome}.`);
+      lines.push(`   ${item.metricsLine}`);
+      if (item.cooReadLine) {
+        lines.push(`   ${item.cooReadLine}`);
       }
-      lines.push(`   ${item.evidenceLine}`);
+      if (item.actionLine) {
+        lines.push(`   ${item.actionLine}`);
+      }
+      lines.push(`   ${item.basisLine}`);
     }
   }
 
@@ -201,32 +185,37 @@ function buildOpening(
   facts: BriefSourceFacts,
   brief: ExecutiveBrief,
   diagnostics: LiveBriefDiagnostics,
+  governance: GovernedStatusContext,
 ): string {
+  const landedCount = facts.features.filter((feature) => isRecentLandedFeature(facts.collectedAt, feature)).length;
+  const investigatedAttentionCount = governance.additionalAttention.length + brief.issues.length;
   const parts: string[] = [];
 
-  if (brief.issues.length === 0) {
-    parts.push("Overall, nothing is blocked right now.");
-  } else if (brief.issues.length === 1) {
-    parts.push("Overall, one item needs attention right now.");
-  } else {
-    parts.push(`Overall, ${brief.issues.length} items need attention right now.`);
-  }
+  parts.push(
+    investigatedAttentionCount === 0
+      ? "Overall, the company looks steady and nothing is blocked right now."
+      : `Overall, work is controlled, but ${investigatedAttentionCount} item${investigatedAttentionCount === 1 ? "" : "s"} need a decision or follow-up.`,
+  );
 
-  if (brief.inMotion.length === 0) {
-    parts.push("The company is not actively moving work right now.");
-  } else if (brief.inMotion.length === 1) {
-    parts.push("One item is actively moving.");
-  } else {
-    parts.push(`${brief.inMotion.length} items are actively moving.`);
-  }
+  parts.push(
+    brief.inMotion.length === 0
+      ? "Nothing is actively in motion at the moment."
+      : `${brief.inMotion.length} item${brief.inMotion.length === 1 ? " is" : "s are"} actively moving.`,
+  );
 
-  const landedCount = facts.features.filter((feature) => isRecentLandedFeature(facts.collectedAt, feature)).length;
   if (landedCount > 0) {
     parts.push(`${landedCount} recent item${landedCount === 1 ? "" : "s"} landed.`);
   }
 
+  const mainAttention = governance.additionalAttention[0];
+  if (mainAttention) {
+    parts.push(`The main operating concern is ${decapitalize(mainAttention.summary)}.`);
+  } else if (brief.onTheTable.length > 0) {
+    parts.push(`The main decision on the table is ${brief.onTheTable[0].featureLabel}.`);
+  }
+
   if (diagnostics.unavailableFamilies.length > 0) {
-    parts.push(`Some source truth is missing (${diagnostics.unavailableFamilies.map(humanizeSourceFamily).join(", ")}), so affected conclusions stay explicitly qualified.`);
+    parts.push(`Some source truth is still missing (${diagnostics.unavailableFamilies.map(humanizeSourceFamily).join(", ")}), so the affected conclusions stay provisional.`);
   }
 
   return parts.join(" ");
@@ -246,9 +235,12 @@ function renderSection(
   }
 
   for (const item of items) {
-    lines.push(`- **${item.featureLabel}**: ${item.summary}`);
+    lines.push(`- **${item.featureLabel}** - ${item.summary}`);
     if (item.recommendation) {
-      lines.push(`  Recommendation: ${item.recommendation}`);
+      lines.push(`  ${item.actionLabel ?? "Next move"}: ${item.recommendation}`);
+    }
+    if (item.severity || item.priority) {
+      lines.push(`  Severity: ${item.severity ?? "n/a"} | Priority: ${item.priority ?? "n/a"}.`);
     }
     lines.push(`  ${item.evidenceLine}`);
   }
@@ -264,6 +256,9 @@ function toIssueItem(
     featureLabel: item.featureLabel,
     summary: item.headline,
     recommendation: feature?.nextAction ?? firstDetailRecommendation(item.details),
+    severity: "high",
+    priority: "now",
+    actionLabel: "Fix action",
     evidenceLine: renderEvidenceLine(
       feature?.evidence,
       "The blocker comes directly from live COO thread/onion truth.",
@@ -282,6 +277,9 @@ function toTableItem(
     featureLabel: item.featureLabel,
     summary: item.summary,
     recommendation: feature?.nextAction ?? "Resolve the open decision before moving forward.",
+    severity: "medium",
+    priority: "next",
+    actionLabel: "Next move",
     evidenceLine: renderEvidenceLine(feature?.evidence),
   };
 }
@@ -296,6 +294,9 @@ function toMotionItem(
     featureLabel: item.featureLabel,
     summary: item.progressSummary,
     recommendation: null,
+    severity: null,
+    priority: null,
+    actionLabel: null,
     evidenceLine: renderEvidenceLine(feature?.evidence),
   };
 }
@@ -310,6 +311,9 @@ function toNextItem(
     featureLabel: item.featureLabel,
     summary: item.nextAction,
     recommendation: null,
+    severity: null,
+    priority: null,
+    actionLabel: null,
     evidenceLine: renderEvidenceLine(feature?.evidence),
   };
 }
@@ -318,32 +322,53 @@ function toLandedItem(
   feature: BriefFeatureSnapshot,
   assessment: GovernanceLandedAssessment | undefined,
 ): LiveExecutiveLandedItem {
+  const action = parseRecommendationEnvelope(assessment?.recommendation ?? null);
   const completion = feature.completion;
+  const metricParts = [
+    compactMetric(renderTimingLine(completion)),
+    compactMetric(assessment?.reviewAssessmentLine ?? "Review check: unavailable."),
+    compactMetric(assessment?.tokenAssessmentLine ?? "KPI check: token cost is unavailable."),
+  ];
   return {
     featureId: feature.id,
     featureLabel: feature.label,
     outcome: completion?.mergedAt ? "completed and merged" : "completed and awaiting final closeout truth",
-    timingLine: renderTimingLine(completion),
-    reviewLine: assessment?.reviewAssessmentLine ?? "Review check: unavailable.",
-    tokenLine: assessment?.tokenAssessmentLine ?? "KPI check: token cost is unavailable.",
-    cooReadLine: assessment?.cooReadLine ?? "COO read: landed evidence is incomplete.",
-    recommendationLine: assessment?.recommendation ? `Recommendation: ${assessment.recommendation}` : null,
-    evidenceLine: renderEvidenceLine(feature.evidence),
+    metricsLine: metricParts.join(" | "),
+    cooReadLine: assessment?.cooReadLine,
+    actionLine: formatRecommendationLine(action),
+    basisLine: renderCompactConfidenceLine(feature.evidence),
   };
 }
 
 function dedupeSectionItems(items: LiveExecutiveSectionItem[]): LiveExecutiveSectionItem[] {
-  const seen = new Set<string>();
-  const deduped: LiveExecutiveSectionItem[] = [];
+  const featureSeen = new Set<string>();
+  const grouped = new Map<string, LiveExecutiveSectionItem>();
+
   for (const item of items) {
-    const dedupeKey = item.featureId ? `feature:${item.featureId}` : item.key;
-    if (seen.has(dedupeKey)) {
+    if (item.featureId) {
+      const featureKey = `feature:${item.featureId}`;
+      if (featureSeen.has(featureKey)) {
+        continue;
+      }
+      featureSeen.add(featureKey);
+    }
+
+    const groupKey = `${item.summary}::${item.recommendation ?? ""}::${item.severity ?? ""}::${item.priority ?? ""}`;
+    const existing = grouped.get(groupKey);
+    if (!existing) {
+      grouped.set(groupKey, { ...item });
       continue;
     }
-    seen.add(dedupeKey);
-    deduped.push(item);
+
+    existing.featureLabel = mergeFeatureLabels(existing.featureLabel, item.featureLabel);
+    if (!existing.evidenceLine.includes("Affected features:")) {
+      existing.evidenceLine = `${existing.evidenceLine} Affected features: ${existing.featureLabel}.`;
+    } else {
+      existing.evidenceLine = existing.evidenceLine.replace(/Affected features:\s.+$/, `Affected features: ${existing.featureLabel}.`);
+    }
   }
-  return deduped;
+
+  return Array.from(grouped.values());
 }
 
 function buildStatusWindowVerificationLine(statusWindow: GitStatusWindow): string {
@@ -373,6 +398,24 @@ function buildStatusWindowComparisonLine(statusWindow: GitStatusWindow): string 
   return `${statusWindow.commitsSincePrevious} commit(s) checked since the previous COO update.`;
 }
 
+function toGovernanceSectionItem(
+  item: GovernedStatusContext["additionalAttention"][number],
+  section: "attention" | "table" | "next",
+): LiveExecutiveSectionItem {
+  const parsed = parseRecommendationEnvelope(item.recommendation);
+  return {
+    key: item.key,
+    featureId: item.featureId,
+    featureLabel: item.featureLabel,
+    summary: item.summary,
+    recommendation: parsed.actionText,
+    severity: parsed.severity ?? defaultSeverity(item.classification, section),
+    priority: parsed.priority ?? defaultPriority(item.classification, section),
+    actionLabel: parsed.actionLabel ?? defaultActionLabel(section),
+    evidenceLine: item.evidenceLine,
+  };
+}
+
 function renderTimingLine(completion: BriefCompletionEvidence | null | undefined): string {
   if (!completion) {
     return "Timing: unavailable.";
@@ -395,7 +438,7 @@ function renderEvidenceLine(
   overrideQualification?: BriefClaimQualification,
 ): string {
   if (!evidence) {
-    return "Evidence: unavailable; unknown freshness; low confidence. Evidence metadata is unavailable for this item.";
+    return "Confidence: low. Basis: unavailable.";
   }
 
   const qualification = overrideQualification ?? evidence.qualification;
@@ -404,7 +447,14 @@ function renderEvidenceLine(
     : evidence.freshness === "stale"
       ? `stale (${formatAge(evidence.freshnessAgeMs)} old)`
       : "fresh";
-  return `Evidence: ${humanizeQualification(qualification)}; ${freshness}; ${evidence.confidence} confidence. ${overrideNote ?? evidence.notes[0] ?? "Source evidence was available."}`;
+  const detail = overrideNote ?? (
+    qualification !== "direct_source" || evidence.freshness !== "fresh"
+      ? (evidence.notes[0] ?? null)
+      : null
+  );
+  return detail
+    ? `Confidence: ${evidence.confidence}. Basis: ${humanizeQualification(qualification)}, ${freshness}. ${detail}`
+    : `Confidence: ${evidence.confidence}. Basis: ${humanizeQualification(qualification)}, ${freshness}.`;
 }
 
 function firstDetailRecommendation(details: string[]): string | null {
@@ -500,4 +550,162 @@ function formatStatusTimestamp(value: string): string {
 
 function shortCommit(value: string): string {
   return value.slice(0, 7);
+}
+
+function compactMetric(value: string): string {
+  return value
+    .replace(/^Timing:\s*/i, "Timing: ")
+    .replace(/^Review check:\s*/i, "Reviews: ")
+    .replace(/^KPI check:\s*/i, "Cost: ")
+    .replace(/\.\s*$/i, "")
+    .trim();
+}
+
+function mergeFeatureLabels(left: string, right: string): string {
+  const labels = Array.from(new Set([left, right].flatMap((value) => value.split(/\s*,\s*/)).map((value) => value.trim()).filter(Boolean)));
+  return labels.join(", ");
+}
+
+function compareLandedItems(
+  left: BriefFeatureSnapshot,
+  right: BriefFeatureSnapshot,
+  leftAssessment: GovernanceLandedAssessment | undefined,
+  rightAssessment: GovernanceLandedAssessment | undefined,
+): number {
+  const concernDelta = classificationRank(rightAssessment?.classification) - classificationRank(leftAssessment?.classification);
+  if (concernDelta !== 0) {
+    return concernDelta;
+  }
+
+  const rightTime = Date.parse(right.lastActivityAt);
+  const leftTime = Date.parse(left.lastActivityAt);
+  if (!Number.isNaN(leftTime) && !Number.isNaN(rightTime) && rightTime !== leftTime) {
+    return rightTime - leftTime;
+  }
+
+  return left.label.localeCompare(right.label);
+}
+
+function classificationRank(value: GovernanceLandedAssessment["classification"] | undefined): number {
+  switch (value) {
+    case "contradicted":
+      return 5;
+    case "suspicious":
+      return 4;
+    case "missing_not_provable":
+      return 3;
+    case "acceptable_legacy_gap":
+      return 2;
+    case "confirmed":
+    default:
+      return 1;
+  }
+}
+
+function parseRecommendationEnvelope(value: string | null): {
+  actionText: string | null;
+  severity: string | null;
+  priority: string | null;
+  actionLabel: string | null;
+} {
+  if (!value) {
+    return {
+      actionText: null,
+      severity: null,
+      priority: null,
+      actionLabel: null,
+    };
+  }
+
+  const match = value.match(/Severity:\s*([^.;]+)\.\s*Priority:\s*([^.;]+)\.\s*(Fix action|Next move):\s*(.+)$/i);
+  if (match) {
+    return {
+      severity: match[1].trim().toLowerCase(),
+      priority: match[2].trim().toLowerCase(),
+      actionLabel: match[3].trim(),
+      actionText: trimTrailingPunctuation(match[4]),
+    };
+  }
+
+  return {
+    actionText: trimTrailingPunctuation(value),
+    severity: null,
+    priority: null,
+    actionLabel: null,
+  };
+}
+
+function formatRecommendationLine(parsed: {
+  actionText: string | null;
+  severity: string | null;
+  priority: string | null;
+  actionLabel: string | null;
+}): string | null {
+  if (!parsed.actionText) {
+    return null;
+  }
+
+  const qualifiers = [parsed.severity, parsed.priority].filter(Boolean).join(", ");
+  return `${parsed.actionLabel ?? "Next move"}: ${parsed.actionText}${qualifiers ? ` (${qualifiers})` : ""}.`;
+}
+
+function renderCompactConfidenceLine(evidence: BriefFeatureEvidence | undefined): string {
+  if (!evidence) {
+    return "Confidence: low. Basis: unavailable.";
+  }
+
+  const freshness = evidence.freshness === "unknown"
+    ? "unknown freshness"
+    : evidence.freshness === "stale"
+      ? `stale (${formatAge(evidence.freshnessAgeMs)} old)`
+      : "fresh";
+  return `Confidence: ${evidence.confidence}. Basis: ${humanizeQualification(evidence.qualification)}, ${freshness}.`;
+}
+
+function defaultSeverity(
+  classification: GovernedStatusContext["additionalAttention"][number]["classification"],
+  section: "attention" | "table" | "next",
+): string | null {
+  if (section === "next") {
+    return null;
+  }
+  if (classification === "contradicted") {
+    return "high";
+  }
+  return section === "attention" ? "medium" : "medium";
+}
+
+function defaultPriority(
+  classification: GovernedStatusContext["additionalAttention"][number]["classification"],
+  section: "attention" | "table" | "next",
+): string | null {
+  if (section === "next") {
+    return null;
+  }
+  if (classification === "contradicted") {
+    return "now";
+  }
+  return section === "attention" ? "this week" : "next";
+}
+
+function defaultActionLabel(section: "attention" | "table" | "next"): string | null {
+  if (section === "attention") {
+    return "Fix action";
+  }
+  if (section === "table" || section === "next") {
+    return "Next move";
+  }
+  return null;
+}
+
+function trimTrailingPunctuation(value: string): string {
+  return value.trim().replace(/[.]+$/, "");
+}
+
+function decapitalize(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return trimmed;
+  }
+  return trimmed.charAt(0).toLowerCase() + trimmed.slice(1);
 }

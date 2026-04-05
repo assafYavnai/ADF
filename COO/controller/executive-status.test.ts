@@ -366,6 +366,105 @@ test("company-first /status keeps the 4 sections and moves current-thread truth 
   assert.ok(result.output.includes("Scope path: assafyavnai/adf/feature-"));
 });
 
+test("live status can hand the evidence pack to the COO agent instead of using the deterministic fallback voice", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+  await writeGovernanceMilestones();
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  let capturedPrompt = "";
+  const result = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    statusScopePath: "assafyavnai/adf/phase1",
+    promptsDir,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async (params) => {
+      capturedPrompt = params.prompt;
+      return {
+        provenance: {
+          type: "llm",
+          invocation_id: "status-agent",
+          provider: "codex",
+          model: "gpt-5.4",
+          reasoning: "medium",
+          source_path: "test",
+        },
+        response: "Overall, the company is steady.\n\n## Issues That Need Your Attention\nNo immediate issues.\n\n## On The Table\nOne pending decision.\n\n## In Motion\nNo active work.\n\n## What's Next\nMove the pending decision forward.",
+        latency_ms: 1,
+        attempts: [],
+      };
+    },
+  });
+
+  assert.ok(result.output.includes("Overall, the company is steady."));
+  assert.match(capturedPrompt, /<status_evidence>/);
+  assert.match(capturedPrompt, /"tracked_findings"/);
+  assert.match(capturedPrompt, /"landed_recently"/);
+  assert.match(capturedPrompt, /"rendered_fallback_surface"/);
+});
+
+test("tracked issues persist both Brain-backed findings and local ready handoffs for crash continuity", async () => {
+  const fixture = await createFixture({ includeAdmissions: false });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-kpi-gap",
+    updatedAt: "2026-04-05T16:04:00.000Z",
+    contextCollectedAt: "2026-04-05T14:00:00.000Z",
+    closeoutFinishedAt: "2026-04-05T16:04:00.000Z",
+    reviewCycles: 1,
+    completionSummary: "Token cost unavailable.",
+    reviewFinding: "Closeout evidence missed KPI totals",
+  });
+  await writeJson(join(tempRoot, "docs", "phase1", "coo-kpi-instrumentation", "implement-plan-state.json"), {
+    updated_at: "2026-04-05T12:00:00.000Z",
+    run_timestamps: {
+      closeout_finished_at: "2026-04-05T12:00:00.000Z",
+    },
+  });
+
+  const first = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    statusScopePath: "assafyavnai/adf/phase1",
+  });
+
+  const trackedIssue = fixture.brainClient.captured.find((entry) => entry.tags.includes("tracked-issue"));
+  assert.ok(trackedIssue);
+  assert.match(JSON.stringify(trackedIssue?.content), /ready_handoff/i);
+
+  const persisted = JSON.parse(await readFile(join(tempRoot, ".codex", "runtime", "coo-operating-state.json"), "utf-8"));
+  const persistedIssue = persisted.trackedIssues["landed:kpi-closeout-gap:feature-kpi-gap"];
+  assert.ok(persistedIssue);
+  assert.equal(persistedIssue.readyHandoff.status, "ready_if_approved");
+  assert.match(persistedIssue.readyHandoff.id, /^handoff:/);
+
+  const second = await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    statusScopePath: "assafyavnai/adf/phase1",
+  });
+
+  assert.ok(second.governance.operatingState.trackedIssues["landed:kpi-closeout-gap:feature-kpi-gap"]);
+  assert.equal(
+    second.governance.operatingState.trackedIssues["landed:kpi-closeout-gap:feature-kpi-gap"].readyHandoff.status,
+    "ready_if_approved",
+  );
+  assert.ok(first.governance.additionalAttention.some((item) => item.featureId === "feature-kpi-gap"));
+});
+
 test("missing-source fallback stays explicit and source files are not mutated", async () => {
   const fixture = await createFixture({ includeAdmissions: false });
   const watchedPaths = [
@@ -572,7 +671,7 @@ async function writeGovernanceMilestones(): Promise<void> {
       closeout_finished_at: "2026-04-04T12:00:00.000Z",
     },
   });
-  await writeJson(join(tempRoot, "docs", "phase1", "implement-plan-review-cycle-kpi-enforcement", "implement-plan-state.json"), {
+  await writeJson(join(tempRoot, "docs", "phase1", "coo-kpi-instrumentation", "implement-plan-state.json"), {
     updated_at: "2026-04-04T12:00:00.000Z",
     run_timestamps: {
       closeout_finished_at: "2026-04-04T12:00:00.000Z",

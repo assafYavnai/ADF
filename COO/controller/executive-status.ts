@@ -6,6 +6,7 @@ import {
   renderLiveExecutiveSurface,
   type LiveExecutiveSurface,
 } from "../briefing/live-executive-surface.js";
+import { renderStatusWithAgent } from "../briefing/status-render-agent.js";
 import {
   loadLiveBriefSourceFacts,
   type LiveBriefDiagnostics,
@@ -25,6 +26,7 @@ import {
   type GitStatusWindowOptions,
   type StatusUpdateAnchor,
 } from "./status-window.js";
+import type { InvocationParams, InvocationResult } from "../../shared/llm-invoker/types.js";
 
 export interface LiveExecutiveStatusOptions {
   projectRoot: string;
@@ -35,6 +37,9 @@ export interface LiveExecutiveStatusOptions {
   now?: Date;
   statusScopePath?: string | null;
   currentThreadId?: string | null;
+  promptsDir?: string;
+  intelligenceParams?: Omit<InvocationParams, "prompt" | "source_path">;
+  invokeLLM?: (params: InvocationParams) => Promise<InvocationResult>;
   threadStore?: Pick<FileSystemThreadStoreType, "list" | "get">;
   loadStatusUpdateAnchor?: (projectRoot: string) => Promise<StatusUpdateAnchor | null>;
   inspectGitStatusWindow?: (options: GitStatusWindowOptions) => Promise<GitStatusWindow>;
@@ -119,7 +124,19 @@ export async function buildLiveExecutiveStatus(
       telemetryContext: options.telemetryContext,
     });
     surface = normalizeLiveExecutiveSurface(facts, brief, diagnostics, governance, statusWindow);
-    rendered = renderLiveExecutiveSurface(surface);
+    rendered = options.promptsDir && options.intelligenceParams
+      ? await renderStatusWithAgent({
+        projectRoot: options.projectRoot,
+        promptsDir: options.promptsDir,
+        facts,
+        brief,
+        governance,
+        surface,
+        statusWindow,
+        intelligenceParams: options.intelligenceParams,
+        invokeLLM: options.invokeLLM,
+      })
+      : renderLiveExecutiveSurface(surface);
     output = renderLiveExecutiveStatusOutput(rendered);
   } catch (error) {
     const renderLatencyMs = Date.now() - renderStartedAt;

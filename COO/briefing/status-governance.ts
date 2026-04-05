@@ -80,10 +80,13 @@ export type GovernanceClassification =
   | "contradicted"
   | "missing_not_provable";
 
+type GovernanceConcern = "review" | "kpi" | "timing" | "mixed";
+
 export interface GovernanceLandedAssessment {
   featureId: string;
   featureLabel: string;
   classification: GovernanceClassification;
+  primaryConcern: GovernanceConcern;
   reviewAssessmentLine: string;
   tokenAssessmentLine: string;
   timingAssessmentLine: string | null;
@@ -204,6 +207,17 @@ interface TrackedIssueState {
   status: "open" | "monitoring";
   firstSeenAt: string;
   lastSeenAt: string;
+  readyHandoff: ReadyHandoffState;
+}
+
+interface ReadyHandoffState {
+  id: string;
+  taskSummary: string;
+  scopePath: string;
+  preparedAt: string;
+  evidenceDigest: string;
+  implicatedSubjects: string[];
+  status: "ready_if_approved";
 }
 
 interface TriggerTuningChange {
@@ -269,7 +283,7 @@ const DEFAULT_THRESHOLDS: GovernanceThresholds = {
   guardedScore: 40,
 };
 const REVIEW_GATE_SLUG = "implement-plan-verification-and-approval-flow";
-const KPI_GATE_SLUG = "implement-plan-review-cycle-kpi-enforcement";
+const KPI_GATE_SLUG = "coo-kpi-instrumentation";
 
 export async function prepareGovernedStatusContext(
   options: StatusGovernanceOptions,
@@ -443,8 +457,8 @@ export async function prepareGovernedStatusContext(
     ),
     landedAssessments,
     additionalAttention: [
-      ...materialAttentionTrustItems,
       ...persistedIssues.filter((item) => item.classification === "suspicious" || item.classification === "contradicted"),
+      ...materialAttentionTrustItems,
     ],
     additionalTable: [
       ...materialTableTrustItems,
@@ -639,9 +653,26 @@ function asTrackedIssues(
       status: asNonEmptyString(record.status) === "monitoring" ? "monitoring" : "open",
       firstSeenAt: asNonEmptyString(record.firstSeenAt) ?? now.toISOString(),
       lastSeenAt: asNonEmptyString(record.lastSeenAt) ?? now.toISOString(),
+      readyHandoff: asReadyHandoff(asRecord(record.readyHandoff), key, now),
     };
   }
   return entries;
+}
+
+function asReadyHandoff(
+  value: Record<string, unknown>,
+  issueKey: string,
+  now: Date,
+): ReadyHandoffState {
+  return {
+    id: asNonEmptyString(value.id) ?? `handoff:${issueKey}`,
+    taskSummary: asNonEmptyString(value.taskSummary) ?? "Investigate and fix the tracked COO issue.",
+    scopePath: asNonEmptyString(value.scopePath) ?? "assafyavnai/adf/phase1",
+    preparedAt: asNonEmptyString(value.preparedAt) ?? now.toISOString(),
+    evidenceDigest: asNonEmptyString(value.evidenceDigest) ?? "Tracked COO issue derived from evidence-first status governance.",
+    implicatedSubjects: normalizeStringArray(value.implicatedSubjects),
+    status: "ready_if_approved",
+  };
 }
 
 async function ensureRebasedRule(
@@ -712,29 +743,30 @@ async function assessLandedFeature(
     governanceEvidence,
   );
   const tokenEvaluation = classifyTokenEvidence(
+    feature.id,
     completion,
     kpiGateApplies,
     governanceEvidence,
   );
   const timingEvaluation = classifyTimingEvidence(completion);
+  const primaryConcern = pickPrimaryConcern(reviewEvaluation, tokenEvaluation, timingEvaluation);
+  const classification = pickWorstClassification([
+    reviewEvaluation.classification,
+    tokenEvaluation.classification,
+    timingEvaluation.classification,
+  ]);
 
   return {
     featureId: feature.id,
     featureLabel: feature.label,
-    classification: pickWorstClassification([
-      reviewEvaluation.classification,
-      tokenEvaluation.classification,
-      timingEvaluation.classification,
-    ]),
+    classification,
+    primaryConcern,
     reviewAssessmentLine: reviewEvaluation.line,
     tokenAssessmentLine: tokenEvaluation.line,
     timingAssessmentLine: timingEvaluation.line,
     cooReadLine: buildCooReadLine(
-      pickWorstClassification([
-        reviewEvaluation.classification,
-        tokenEvaluation.classification,
-        timingEvaluation.classification,
-      ]),
+      classification,
+      primaryConcern,
       feature.label,
     ),
     recommendation: firstMeaningfulText(
@@ -756,6 +788,7 @@ function classifyReviewEvidence(
   governanceEvidence: FeatureGovernanceEvidence,
 ): {
   classification: GovernanceClassification;
+  concern: GovernanceConcern;
   line: string;
   recommendation: string | null;
   implicatedSubjects: string[];
@@ -771,6 +804,7 @@ function classifyReviewEvidence(
   if (reviewValue !== null && reviewValue > 0) {
     return {
       classification: "confirmed",
+      concern: "review",
       line: reviewValue === 1
         ? "Review check: 1 completed review cycle is recorded, so review governance is evidenced for this landing."
         : `Review check: ${reviewValue} completed review cycles are recorded, so review governance is evidenced for this landing.`,
@@ -783,6 +817,7 @@ function classifyReviewEvidence(
     if (!reviewGateApplies || /not invoked/i.test(note)) {
       return {
         classification: "acceptable_legacy_gap",
+        concern: "review",
         line: "Review check: 0 review cycles are recorded, and the slice evidence says review-cycle was not required for this landing. That looks acceptable for the route timing rather than a current failure.",
         recommendation: null,
         implicatedSubjects: subjects,
@@ -791,8 +826,9 @@ function classifyReviewEvidence(
 
     return {
       classification: "suspicious",
+      concern: "review",
       line: "Review check: 0 review cycles are recorded even though review governance should have applied by the time this feature landed.",
-      recommendation: "Investigate the review-cycle route for this slice before trusting the closeout quality.",
+      recommendation: "Severity: high. Priority: now. Fix action: inspect the review-cycle handoff for this landing and confirm why required review governance was skipped.",
       implicatedSubjects: subjects,
     };
   }
@@ -800,14 +836,16 @@ function classifyReviewEvidence(
   if (reviewGateApplies) {
     return {
       classification: "missing_not_provable",
+      concern: "review",
       line: `Review check: the slice does not prove review governance for this landing. ${note}`,
-      recommendation: "Check why review-cycle truth is missing for this landed item.",
+      recommendation: "Severity: medium. Priority: this week. Fix action: restore review-cycle evidence for this landing before treating the closeout as fully audited.",
       implicatedSubjects: subjects,
     };
   }
 
   return {
     classification: "acceptable_legacy_gap",
+    concern: "review",
     line: "Review check: review-cycle proof is missing, but this feature appears to predate the enforced review-governance route.",
     recommendation: null,
     implicatedSubjects: subjects,
@@ -815,16 +853,18 @@ function classifyReviewEvidence(
 }
 
 function classifyTokenEvidence(
+  featureId: string,
   completion: BriefCompletionEvidence,
   kpiGateApplies: boolean,
   governanceEvidence: FeatureGovernanceEvidence,
 ): {
   classification: GovernanceClassification;
+  concern: GovernanceConcern;
   line: string;
   recommendation: string | null;
   implicatedSubjects: string[];
 } {
-  const subjects = ["component:kpi-telemetry", "route:implement-plan"];
+  const subjects = ["component:kpi-telemetry", "route:implement-plan-closeout"];
   const workerSubject = buildWorkerSubject(governanceEvidence);
   if (workerSubject) {
     subjects.push(workerSubject);
@@ -833,7 +873,18 @@ function classifyTokenEvidence(
   if (completion.tokenCostTokens.value !== null) {
     return {
       classification: "confirmed",
+      concern: "kpi",
       line: `KPI check: token cost is recorded at ${completion.tokenCostTokens.value.toLocaleString("en-US")} tokens.`,
+      recommendation: null,
+      implicatedSubjects: subjects,
+    };
+  }
+
+  if (featureId === "coo-kpi-instrumentation") {
+    return {
+      classification: "acceptable_legacy_gap",
+      concern: "kpi",
+      line: "KPI check: token cost is unavailable on the KPI rollout slice itself. That is acceptable legacy coverage for the feature that introduced this route.",
       recommendation: null,
       implicatedSubjects: subjects,
     };
@@ -842,15 +893,17 @@ function classifyTokenEvidence(
   if (kpiGateApplies) {
     return {
       classification: "suspicious",
-      line: "KPI check: token cost is unavailable even though KPI enforcement should have applied by the time this feature landed.",
-      recommendation: "Check the KPI/telemetry route for this feature closeout before trusting cost coverage.",
+      concern: "kpi",
+      line: "KPI check: token cost is unavailable even though KPI capture was already live when this feature landed. This points to a gap in the durable closeout evidence, not a delivery blocker.",
+      recommendation: "Severity: medium. Priority: this week. Fix action: restore token totals from the implement-plan KPI projection into durable closeout truth for post-rollout landings.",
       implicatedSubjects: subjects,
     };
   }
 
   return {
     classification: "acceptable_legacy_gap",
-    line: "KPI check: token cost is unavailable, but this landing appears to predate the enforced KPI route.",
+    concern: "kpi",
+    line: "KPI check: token cost is unavailable, but this landing predates the KPI capture rollout, so the gap looks historical rather than current.",
     recommendation: null,
     implicatedSubjects: subjects,
   };
@@ -860,6 +913,7 @@ function classifyTimingEvidence(
   completion: BriefCompletionEvidence,
 ): {
   classification: GovernanceClassification;
+  concern: GovernanceConcern;
   line: string | null;
   recommendation: string | null;
   implicatedSubjects: string[];
@@ -867,8 +921,9 @@ function classifyTimingEvidence(
   if (completion.timing.durationMs === null) {
     return {
       classification: "missing_not_provable",
+      concern: "timing",
       line: `Timing check: ${completion.timing.note}`,
-      recommendation: "Do not treat this landing as duration-proven until closeout timing improves.",
+      recommendation: null,
       implicatedSubjects: ["route:implement-plan"],
     };
   }
@@ -876,6 +931,7 @@ function classifyTimingEvidence(
   if (completion.timing.kind === "elapsed_lifecycle" || completion.timing.qualification === "ambiguous") {
     return {
       classification: "missing_not_provable",
+      concern: "timing",
       line: `Timing check: the route only proves about ${formatDuration(completion.timing.durationMs)} of elapsed lifecycle time. Active implementation time remains unknown.`,
       recommendation: null,
       implicatedSubjects: ["route:implement-plan"],
@@ -884,6 +940,7 @@ function classifyTimingEvidence(
 
   return {
     classification: "confirmed",
+    concern: "timing",
     line: `Timing check: the route has specific timing evidence for about ${formatDuration(completion.timing.durationMs)} of active work.`,
     recommendation: null,
     implicatedSubjects: ["route:implement-plan"],
@@ -892,13 +949,23 @@ function classifyTimingEvidence(
 
 function buildCooReadLine(
   classification: GovernanceClassification,
+  primaryConcern: GovernanceConcern,
   featureLabel: string,
 ): string {
+  if (classification === "suspicious" && primaryConcern === "kpi") {
+    return `COO read: ${featureLabel} appears to have landed cleanly, but post-rollout cost telemetry is missing. This weakens cost visibility more than delivery confidence.`;
+  }
+  if (classification === "suspicious" && primaryConcern === "review") {
+    return `COO read: ${featureLabel} landed without the review governance that should have applied. This is a real route-control problem.`;
+  }
+  if (classification === "missing_not_provable" && primaryConcern === "timing") {
+    return `COO read: ${featureLabel} appears landed, but elapsed lifecycle time is all the route can prove. Do not read this as active implementation duration.`;
+  }
   switch (classification) {
     case "confirmed":
       return `COO read: ${featureLabel} lands with enough route evidence to trust the closeout at face value.`;
     case "acceptable_legacy_gap":
-      return "COO read: the missing governance detail looks like acceptable route timing or legacy shape, not a live process failure.";
+      return "COO read: the gap looks like acceptable legacy timing, not a current operating failure.";
     case "missing_not_provable":
       return "COO read: the landing is only partly provable from current evidence, so treat it as informational rather than fully audited.";
     case "suspicious":
@@ -910,34 +977,87 @@ function buildCooReadLine(
   }
 }
 
+function pickPrimaryConcern(
+  reviewEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
+  tokenEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
+  timingEvaluation: { classification: GovernanceClassification; concern: GovernanceConcern },
+): GovernanceConcern {
+  const ranked = [reviewEvaluation, tokenEvaluation, timingEvaluation]
+    .sort((left, right) => classificationPriority(right.classification) - classificationPriority(left.classification));
+  const top = ranked[0];
+  if (!top) {
+    return "mixed";
+  }
+  const tied = ranked.filter((entry) => classificationPriority(entry.classification) === classificationPriority(top.classification));
+  if (tied.length > 1) {
+    const distinctConcerns = new Set(tied.map((entry) => entry.concern));
+    if (distinctConcerns.size > 1) {
+      return "mixed";
+    }
+  }
+  return top.concern;
+}
+
 function pickWorstClassification(
   classifications: GovernanceClassification[],
 ): GovernanceClassification {
-  const priority = (classification: GovernanceClassification): number => {
-    switch (classification) {
-      case "contradicted":
-        return 5;
-      case "suspicious":
-        return 4;
-      case "missing_not_provable":
-        return 3;
-      case "acceptable_legacy_gap":
-        return 2;
-      case "confirmed":
-      default:
-        return 1;
-    }
-  };
-
   return classifications.reduce<GovernanceClassification>(
-    (worst, current) => priority(current) > priority(worst) ? current : worst,
+    (worst, current) => classificationPriority(current) > classificationPriority(worst) ? current : worst,
     "confirmed",
   );
 }
 
+function classificationPriority(classification: GovernanceClassification): number {
+  switch (classification) {
+    case "contradicted":
+      return 5;
+    case "suspicious":
+      return 4;
+    case "missing_not_provable":
+      return 3;
+    case "acceptable_legacy_gap":
+      return 2;
+    case "confirmed":
+    default:
+      return 1;
+  }
+}
+
 function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | null {
-  if (assessment.classification === "confirmed") {
+  if (
+    assessment.classification === "confirmed"
+    || assessment.classification === "acceptable_legacy_gap"
+    || (assessment.classification === "missing_not_provable" && assessment.primaryConcern === "timing")
+  ) {
     return null;
+  }
+
+  if (assessment.classification === "suspicious" && assessment.primaryConcern === "kpi") {
+    return {
+      key: `landed:kpi-closeout-gap:${assessment.featureId}`,
+      featureId: assessment.featureId,
+      featureLabel: assessment.featureLabel,
+      summary: "Recent landed work is missing post-rollout token totals in durable closeout truth.",
+      recommendation: assessment.recommendation ?? "Severity: medium. Priority: this week. Fix action: restore token totals from the implement-plan KPI projection into durable closeout truth for post-rollout landings.",
+      evidenceLine: "Basis: direct closeout evidence plus KPI rollout timing; fresh; high confidence.",
+      classification: assessment.classification,
+      implicatedSubjects: assessment.implicatedSubjects,
+      severity: "attention",
+    };
+  }
+
+  if (assessment.classification === "suspicious" && assessment.primaryConcern === "review") {
+    return {
+      key: `landed:review-route-gap:${assessment.featureId}`,
+      featureId: assessment.featureId,
+      featureLabel: assessment.featureLabel,
+      summary: "A landed feature appears to have skipped required review governance.",
+      recommendation: assessment.recommendation ?? "Severity: high. Priority: now. Fix action: inspect the review-cycle handoff and confirm why required review governance was skipped.",
+      evidenceLine: "Basis: direct closeout evidence plus review-governance timing; fresh; high confidence.",
+      classification: assessment.classification,
+      implicatedSubjects: assessment.implicatedSubjects,
+      severity: "attention",
+    };
   }
 
   return {
@@ -946,9 +1066,9 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
     featureLabel: assessment.featureLabel,
     summary: assessment.cooReadLine.replace(/^COO read:\s*/i, ""),
     recommendation: assessment.recommendation ?? "Review the landed-route evidence before relying on this closeout.",
-    evidenceLine: `Evidence: derived from sources; fresh; ${
+    evidenceLine: `Basis: implement-plan closeout plus slice governance evidence; fresh; ${
       assessment.classification === "suspicious" || assessment.classification === "contradicted" ? "high" : "medium"
-    } confidence. ${assessment.reviewAssessmentLine}${assessment.tokenAssessmentLine ? ` ${assessment.tokenAssessmentLine}` : ""}${assessment.timingAssessmentLine ? ` ${assessment.timingAssessmentLine}` : ""}`,
+    } confidence.`,
     classification: assessment.classification,
     implicatedSubjects: assessment.implicatedSubjects,
     severity: assessment.classification === "suspicious" || assessment.classification === "contradicted"
@@ -1163,8 +1283,8 @@ async function updateTrustState(
       if (subject.state === "guarded" && previousState !== "guarded") {
         materialNotes.push({
           subjectId,
-          summary: `${subject.label} dropped to guarded trust after credible drift or route failure evidence.`,
-          recommendation: "Increase cross-checking and treat new claims from this subject with extra suspicion until a fresh deep audit clears it.",
+          summary: `Confidence in ${subject.label} has been lowered to guarded trust because recent evidence did not match what this route was expected to prove.`,
+          recommendation: "Keep stronger cross-checking on this route until a fresh deep audit clears the mismatch.",
           evidenceLine: "Evidence: derived from sources; fresh; high confidence. Trust was downgraded because current evidence disagreed with expected route truth.",
           severity: "attention",
         });
@@ -1272,6 +1392,7 @@ async function persistTrackedIssue(
   telemetryContext?: Record<string, unknown>,
 ): Promise<PersistTrackedIssueResult> {
   const existing = operatingState.trackedIssues[finding.key];
+  const readyHandoff = buildReadyHandoff(finding, scope, now);
   if (existing) {
     existing.lastSeenAt = now.toISOString();
     existing.summary = finding.summary;
@@ -1279,6 +1400,7 @@ async function persistTrackedIssue(
     existing.evidenceLine = finding.evidenceLine;
     existing.classification = finding.classification;
     existing.implicatedSubjects = finding.implicatedSubjects;
+    existing.readyHandoff = readyHandoff;
     return {
       state: existing,
       persistedNewRecord: 0,
@@ -1295,6 +1417,7 @@ async function persistTrackedIssue(
         summary: finding.summary,
         recommendation: finding.recommendation,
         implicated_subjects: finding.implicatedSubjects,
+        ready_handoff: readyHandoff,
       },
       "finding",
       ["coo", "phase1", "tracked-issue", finding.classification],
@@ -1324,6 +1447,7 @@ async function persistTrackedIssue(
     status: "open",
     firstSeenAt: now.toISOString(),
     lastSeenAt: now.toISOString(),
+    readyHandoff,
   };
   operatingState.trackedIssues[finding.key] = state;
   return {
@@ -1338,11 +1462,36 @@ function toGovernanceItem(issue: TrackedIssueState): GovernanceItem {
     featureId: issue.featureId,
     featureLabel: issue.featureLabel,
     summary: issue.summary,
-    recommendation: issue.recommendation,
-    evidenceLine: issue.evidenceLine,
+    recommendation: `${issue.recommendation} COO handoff is already prepared as ${issue.readyHandoff.id} and can move to implement-plan immediately if approved.`,
+    evidenceLine: `${issue.evidenceLine} Ready handoff: ${issue.readyHandoff.id}.`,
     classification: issue.classification,
     implicatedSubjects: issue.implicatedSubjects,
   };
+}
+
+function buildReadyHandoff(
+  finding: DraftFinding,
+  scope: string,
+  now: Date,
+): ReadyHandoffState {
+  return {
+    id: `handoff:${finding.key}`,
+    taskSummary: deriveTaskSummary(finding),
+    scopePath: scope,
+    preparedAt: now.toISOString(),
+    evidenceDigest: `${finding.summary} ${finding.evidenceLine}`.trim(),
+    implicatedSubjects: finding.implicatedSubjects,
+    status: "ready_if_approved",
+  };
+}
+
+function deriveTaskSummary(finding: DraftFinding): string {
+  const actionText = finding.recommendation
+    .replace(/Severity:\s*[^.]+\.\s*/i, "")
+    .replace(/Priority:\s*[^.]+\.\s*/i, "")
+    .replace(/Fix action:\s*/i, "")
+    .trim();
+  return actionText.length > 0 ? actionText : finding.summary;
 }
 
 function toTrustGovernanceItem(note: TrustMaterialNote): GovernanceItem {
@@ -1386,10 +1535,6 @@ function buildStatusNotes(
 
   if (tuningNote) {
     notes.push(tuningNote);
-  }
-
-  for (const milestoneNote of milestones.notes) {
-    notes.push(milestoneNote);
   }
 
   for (const trustNote of trustNotes.filter((note) => note.severity !== "next")) {

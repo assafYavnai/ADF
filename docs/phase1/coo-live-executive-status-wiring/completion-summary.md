@@ -6,6 +6,7 @@ Current truth:
 - implementation is complete on the feature branch
 - machine verification is green
 - direct CLI smoke is green on the rebased COO route
+- the live `/status` route now renders through the COO model from a strict evidence pack instead of a hardcoded prose surface
 - refreshed human verification is still required
 - follow-up review-cycle on the rebased head is still required
 - merge-queue and final merge have not run yet
@@ -29,14 +30,19 @@ New runtime capability added in this pass:
   - landed-route assessment
   - anomaly classification
   - tracked COO issues
+  - ready-to-handoff issue packets for immediate implement-plan routing after approval
   - bounded deep-audit decisions
   - bounded trust state updates
   - derived operating continuity
+- `COO/briefing/status-render-agent.ts`
+  - builds the strict status evidence pack
+  - calls the COO model for the final CEO-facing wording
+  - keeps the deterministic surface only as fallback/proof truth
 - company-first live render that keeps the 4 executive sections while adding:
   - opening summary
   - status window
   - status notes
-  - landed-recently section
+  - what landed section
   - compact operational footer
 - investigation behavior for suspicious surfaced facts such as `0 review cycles`
 - bounded local runtime continuity under `.codex/runtime/` for:
@@ -47,13 +53,15 @@ New runtime capability added in this pass:
 4. Files Changed And Why
 
 - `COO/briefing/status-governance.ts`
-  - new bounded governance layer for evidence cross-checking, deep audit, trust, and Brain hard-stop enforcement
+  - new bounded governance layer for evidence cross-checking, deep audit, trust, Brain hard-stop enforcement, and ready-to-handoff tracked issues
+- `COO/briefing/status-render-agent.ts`
+  - new live status render path that hands the evidence pack to the COO model instead of hardcoding final prose
 - `COO/briefing/live-executive-surface.ts`
-  - keeps the 4 executive sections visible and adds scan-friendly supporting context
+  - keeps the 4 executive sections visible and acts as the normalized fallback/proof surface
 - `COO/controller/executive-status.ts`
-  - wires the governed status context into the live route
+  - wires the governed status context into the live route and switches live wording to the COO model when intelligence config is present
 - `COO/controller/cli.ts`
-  - surfaces the rebased status route and explicit Brain hard-stop messaging
+  - surfaces the rebased status route, explicit Brain hard-stop messaging, and the live model-rendered `/status` path
 - `COO/controller/executive-status.test.ts`
   - adds proof for deep audit, Brain hard stop, anomaly investigation, trust downgrade, full-trust proposal, company-first status, and no-source-mutation behavior
 - `COO/intelligence/prompt.md`
@@ -80,6 +88,7 @@ Runtime Brain rules and writes now implemented:
 - write deep-audit findings
 - write trust changes
 - write tracked COO issues
+- write tracked COO issue handoff packets so a restarted COO instance can move straight into implement-plan after approval
 - write trigger-tuning changes when bounded sensitivity tuning occurs
 
 Implementation-time limitation:
@@ -97,7 +106,7 @@ Truthful evidence available anyway:
 
 Machine verification passed:
 - `C:\ADF\wt\COO\node_modules\.bin\tsx.cmd --test COO/controller/executive-status.test.ts COO/briefing/executive-brief.test.ts`
-- result: `45 passed, 0 failed`
+- result: `47 passed, 0 failed`
 
 Proof coverage now includes:
 - first-run deep audit
@@ -107,7 +116,9 @@ Proof coverage now includes:
 - immediate trust downgrade
 - full-trust proposal path
 - company-first `/status`
+- live agent-rendered `/status` from a strict evidence pack
 - tracked COO issue creation
+- tracked COO issue crash continuity through Brain-backed capture plus local derived state
 - no silent fallback / no source mutation
 - parity / visibility proof
 - proof/production partition proof
@@ -117,10 +128,10 @@ Direct runtime smoke passed:
 
 Smoke observations:
 - the rebased COO rendered successfully
+- the final wording came from the COO model over a strict evidence pack
 - the 4 executive sections were present
 - Brain hard-stop did not trigger
-- deep-audit notes, landed-route judgments, missing-source visibility, and operational footer rendered as expected
-- duplicate same-feature items in `On The Table` were removed in the final pass
+- deep-audit notes, landed-route judgments, missing-source visibility, handoff readiness, and operational footer rendered as expected
 
 7. What Was Intentionally Deferred
 
