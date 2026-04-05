@@ -24,7 +24,7 @@
     "codex_cli_full_auto_supported": true,
     "codex_cli_bypass_supported": true
   },
-  "current_branch": "main",
+  "current_branch": "implement-plan/phase1/governed-merge-closeout-chain-hardening",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/governed-merge-closeout-chain-hardening",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
@@ -35,11 +35,11 @@
   "merge_commit_sha": "e508003",
   "merge_queue_request_id": null,
   "local_target_sync_status": "fast_forwarded",
-  "last_completed_step": "context_collected",
+  "last_completed_step": "implementation_finished",
   "last_commit_sha": "e508003",
-  "active_run_status": "context_ready",
+  "active_run_status": "verification_pending",
   "created_at": "2026-04-05T12:39:15.958Z",
-  "updated_at": "2026-04-05T16:14:24.466Z",
+  "updated_at": "2026-04-05T16:21:30.309Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T12:39:16.023Z",
     "worktree_prepared_at": "2026-04-05T12:44:27.282Z",
@@ -53,7 +53,7 @@
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": "2026-04-05T15:57:24.955Z",
-    "closeout_finished_at": "2026-04-05T15:58:06.866Z"
+    "closeout_finished_at": null
   },
   "event_log": [
     {
@@ -127,6 +127,33 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T16:14:24.466Z",
       "note": null
+    },
+    {
+      "event_id": "event-b316bbe6-6a94-47f4-b949-b118fb1513d5",
+      "event_type": "contract-materialized",
+      "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T16:15:38.323Z",
+      "note": null
+    },
+    {
+      "event_id": "event-13129807-6be8-4190-8d8d-e2b81f9bcf36",
+      "event_type": "contract-materialized",
+      "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T16:15:51.170Z",
+      "note": null
+    },
+    {
+      "event_id": "event-cb09f5bd-c80b-4658-bc7d-fe65cc3b2f80",
+      "event_type": "state-patched",
+      "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T16:21:30.309Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -143,7 +170,7 @@
     "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening"
   },
-  "last_error": "true",
+  "last_error": null,
   "current_run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
   "current_attempt_id": "attempt-001",
   "execution_runs": {
@@ -158,7 +185,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 5,
+        "contract_revision": 8,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/run-projection.v1.json",
@@ -178,18 +205,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "ready_for_implementation",
+            "status": "verification_pending",
             "terminal_status": null,
             "started_at": "2026-04-05T12:39:16.002Z",
-            "updated_at": "2026-04-05T16:14:24.465Z",
+            "updated_at": "2026-04-05T16:21:30.308Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
+              "step": "machine_verification",
               "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-05T16:14:24.465Z"
+              "updated_at": "2026-04-05T16:21:30.309Z"
             },
             "step_status": {
               "implementation": {
@@ -263,13 +290,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T16:14:24.465Z",
-            "last_event_at": "2026-04-05T16:14:24.466Z"
+            "last_checkpoint_at": "2026-04-05T16:21:30.309Z",
+            "last_event_at": "2026-04-05T16:21:30.309Z"
           }
         },
         "created_at": "2026-04-05T12:39:16.003Z",
-        "updated_at": "2026-04-05T16:14:24.471Z",
-        "last_event_at": "2026-04-05T16:14:24.466Z",
+        "updated_at": "2026-04-05T16:21:30.314Z",
+        "last_event_at": "2026-04-05T16:21:30.309Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
