@@ -33,6 +33,7 @@ interface StatusEvidenceContext {
   facts: BriefSourceFacts;
   brief: ExecutiveBrief;
   governance: GovernedStatusContext;
+  surface: LiveExecutiveSurface;
   statusWindow: GitStatusWindow | null;
 }
 
@@ -143,17 +144,18 @@ async function loadStatusPrompt(promptsDir: string): Promise<string> {
 function buildStatusEvidencePack(
   options: StatusEvidenceContext,
 ): Record<string, unknown> {
-  const { facts, brief, governance, statusWindow } = options;
+  const { facts, brief, governance, statusWindow, surface } = options;
   const landedFeatures = facts.features
     .filter((feature) => isRecentLandedFeature(facts.collectedAt, feature))
     .filter((feature) => feature.completion)
     .map((feature) => toLandedEvidence(feature, governance));
   const recentLandingsCompact = buildRecentLandingSummaries(landedFeatures);
   const groupedAttention = buildGovernanceCards(governance.additionalAttention, governance);
+  const issueCards = buildIssueCards(surface, groupedAttention);
   const groupedTable = buildGovernanceCards(governance.additionalTable, governance);
   const groupedNext = buildNextCards(brief, governance);
   const tableCards = buildTableCards(brief, groupedTable);
-  const focusOptions = buildFocusOptions(groupedAttention, tableCards, groupedNext);
+  const focusOptions = buildFocusOptions(issueCards, tableCards, groupedNext);
 
   return {
     company: {
@@ -205,7 +207,7 @@ function buildStatusEvidencePack(
       expected_focus_option_count: focusOptions.length >= 2 ? 3 : 0,
     },
     executive_sections: {
-      issues: groupedAttention,
+      issues: issueCards,
       on_the_table: [
         ...groupedTable,
         ...brief.onTheTable.map((item) => ({
@@ -223,7 +225,7 @@ function buildStatusEvidencePack(
       whats_next: groupedNext,
     },
     tracked_findings: {
-      attention: groupedAttention,
+      attention: issueCards,
       table: groupedTable,
       next: groupedNext,
     },
@@ -467,6 +469,50 @@ function buildGovernanceCards(
   }
 
   return [...grouped.values()];
+}
+
+function buildIssueCards(
+  surface: LiveExecutiveSurface,
+  groupedAttention: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  const cards = [...groupedAttention];
+  const seen = new Set(cards.map((card) => buildIssueCardKey(card)));
+
+  for (const item of surface.issues) {
+    const card = {
+      title: item.summary,
+      affected_feature_labels: item.featureLabel ? [item.featureLabel] : [],
+      classification: "confirmed",
+      evidence: item.evidenceLine,
+      why: null,
+      impact: null,
+      system_fix: item.recommendation,
+      severity: item.severity,
+      priority: item.priority,
+      route_chain: [],
+      recommendation: item.recommendation,
+      implicated_subjects: [],
+      ready_handoffs: [],
+    };
+
+    const key = buildIssueCardKey(card);
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    cards.push(card);
+  }
+
+  return cards;
+}
+
+function buildIssueCardKey(card: Record<string, unknown>): string {
+  const title = String(card.title ?? "").trim();
+  const affected = asArray(card.affected_feature_labels)
+    .map((entry) => String(entry).trim())
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
+  return `${title}|${affected.join(",")}`;
 }
 
 function buildNextCards(

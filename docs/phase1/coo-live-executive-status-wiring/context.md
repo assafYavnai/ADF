@@ -156,6 +156,14 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
 - Visibility telemetry for the prompt-backed route now measures the final accepted CEO-facing body rather than the internal brief counts.
 - If the model returns copy that is structurally clean but evidence-dropping, the route deterministically falls back to the supported evidence-based body.
 
+## Authoritative Issue-Source Decision - 2026-04-05
+- Review-cycle cycle-05 found one remaining sibling gap inside accepted-body parity: the prompt-backed `Issues` route was still narrower than the normalized live issue surface.
+- The prompt-backed route, deterministic fallback, and issue-parity telemetry must all read from the same authoritative issue source:
+  - brief-derived blocked/open-loop issues
+  - governance-added attention items
+- Governance attention may enrich an issue, but it may not become the only source of truth for prompt-backed `Issues`.
+- This closes the case where `brief.issues` contained a blocked item, `governance.additionalAttention` was empty, and a prompt-backed `No immediate issues.` body could still pass.
+
 ## Launcher Note - 2026-04-05
 - The worktree launcher surfaced real shell errors because `adf.sh` called `coo_needs_build` and `memory_engine_needs_build` without defining them.
 - This slice now restores those missing wrapper functions so the live status route can launch cleanly from the governed worktree path.

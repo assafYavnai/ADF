@@ -43,6 +43,7 @@ New runtime capability added in this pass:
   - validates the model output against the approved live CEO-facing contract and repairs drift through deterministic fallback
   - now enforces exact post-render contract rules for opening-summary presence, required heading order/uniqueness, and the no-fake-options focus-choice policy
   - now enforces accepted-body evidence parity so structurally valid but evidence-dropping live copy is rejected and repaired
+  - now uses the same authoritative issue source as the normalized live surface on the prompt-backed route
 - company-first live render now freezes the approved CEO-facing contract:
   - opening summary
   - optional delivery snapshot
@@ -123,7 +124,7 @@ Truthful evidence available anyway:
 
 Machine verification passed:
 - `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd --test controller/executive-status.test.ts briefing/executive-brief.test.ts`
-- result: `52 passed, 0 failed`
+- result: `53 passed, 0 failed`
 
 Proof coverage now includes:
 - first-run deep audit
@@ -139,6 +140,7 @@ Proof coverage now includes:
 - no silent fallback / no source mutation
 - parity / visibility proof
 - structurally valid but evidence-dropping live-output rejection and deterministic repair
+- prompt-backed blocked/open-loop issue parity when governance attention is empty
 - proof/production partition proof
 
 Direct runtime smoke passed:
@@ -157,6 +159,7 @@ Smoke observations:
 - recent landed items now also tell the CEO whether review and pre-merge approval proof are actually present, or why a missing check is acceptable legacy
 - the live route now repairs malformed model output back to the approved CEO-facing contract instead of trusting partial shape compliance
 - the live route now also repairs structurally valid but evidence-dropping model output back to the approved evidence-faithful contract
+- the prompt-backed route now keeps brief-derived blocked/open-loop issues visible even when governance did not separately echo them
 - the final focus-choice block is now evidence-gated, so the route omits it when fewer than two concrete options are supported
 - the current strongest root-cause evidence is that implement-plan computes KPI totals during execution but the closeout projection does not persist them into durable feature truth for some post-rollout landings
 
@@ -183,9 +186,10 @@ Human verification:
 
 Review-cycle:
 - previous approval on an older head is stale
-- cycle-04 is now in progress with split-review continuity:
+- cycle-05 is now in progress with split-review continuity:
   - reviewer approved
-  - auditor still has one accepted-body parity defect open
+  - auditor found one narrower prompt-backed issue-source parity defect
+  - that defect is now fixed locally and verified, but the rejecting auditor lane has not rerun on the repaired head yet
 
 Merge-queue:
 - not started

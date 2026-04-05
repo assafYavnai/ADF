@@ -42,6 +42,7 @@ This slice now owns the bounded Phase 1 COO status route that:
 - the live CEO-facing surface uses a strict evidence pack plus the COO model for final wording rather than a hardcoded prose template
 - the live route validates that contract after model rendering and falls back deterministically if the model drifts outside it
 - structurally valid but evidence-dropping CEO-facing copy is rejected the same way as malformed copy; accepted-body parity is enforced for `Issues`, `On The Table`, `In Motion`, `Recent landings`, and live focus options
+- the prompt-backed `Issues` path now shares the same authoritative issue source as the normalized live surface, so brief-derived blocked/open-loop issues cannot disappear just because governance did not separately echo them
 - the live route omits the final focus-choice block when the evidence does not support at least two concrete next-focus options, rather than inventing a filler option
 
 ### 2. Evidence gathering and cross-checking

@@ -622,6 +622,53 @@ test("renderStatusWithAgent rejects structurally valid but evidence-dropping liv
         },
       },
     } as any,
+    surface: {
+      opening: "Overall, the company is stable.",
+      statusWindow: null,
+      statusNotes: [],
+      landed: [],
+      issues: [
+        {
+          key: "issue:feature-one",
+          featureId: "feature-one",
+          featureLabel: "Feature One",
+          summary: "Feature One needs a route fix",
+          recommendation: "Patch the closeout route and backfill the affected slices.",
+          severity: "high",
+          priority: "now",
+          actionLabel: "Fix action",
+          evidenceLine: "Direct source; fresh; high confidence.",
+        },
+      ],
+      onTheTable: [
+        {
+          key: "table:feature-table",
+          featureId: "feature-table",
+          featureLabel: "Feature Table",
+          summary: "Feature Table is awaiting a decision.",
+          recommendation: "Review the pending decision.",
+          severity: "medium",
+          priority: "next",
+          actionLabel: "Next move",
+          evidenceLine: "Derived from source evidence.",
+        },
+      ],
+      inMotion: [
+        {
+          key: "motion:feature-moving",
+          featureId: "feature-moving",
+          featureLabel: "Feature Moving",
+          summary: "Feature Moving is actively executing.",
+          recommendation: null,
+          severity: null,
+          priority: null,
+          actionLabel: null,
+          evidenceLine: "Direct source; fresh; high confidence.",
+        },
+      ],
+      whatsNext: [],
+      operationalFooter: null,
+    } as any,
     statusWindow: null,
   };
 
@@ -660,9 +707,7 @@ test("renderStatusWithAgent rejects structurally valid but evidence-dropping liv
     projectRoot: tempRoot,
     promptsDir,
     ...context,
-    surface: {
-      opening: "Overall, the company is stable.",
-    } as any,
+    surface: context.surface,
     intelligenceParams: {
       cli: "codex",
       model: "gpt-5.4",
@@ -700,6 +745,166 @@ test("renderStatusWithAgent rejects structurally valid but evidence-dropping liv
   assert.ok(!output.includes("No immediate issues."));
   assert.ok(!output.includes("No open items."));
   assert.ok(!output.includes("Nothing active."));
+});
+
+test("prompt-backed issue parity includes brief-generated issues even when governance additionalAttention is empty", async () => {
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  const context = {
+    facts: {
+      collectedAt: "2026-04-05T00:00:00.000Z",
+      sourcePartition: "proof",
+      sourceFreshnessAgeMs: 0,
+      sourceAvailability: [],
+      companyScopePath: "assafyavnai/adf/phase1",
+      features: [
+        {
+          id: "feature-blocked",
+          label: "Feature Blocked",
+          status: "blocked",
+          lastActivityAt: "2026-04-05T00:00:00.000Z",
+          missingSourceFamilies: [],
+          evidence: { type: "direct_source" },
+          nextAction: "Unblock the missing dependency before resuming work.",
+        },
+      ],
+    } as any,
+    brief: {
+      issues: [
+        {
+          featureId: "feature-blocked",
+          featureLabel: "Feature Blocked",
+          headline: "Feature Blocked is waiting on an unresolved dependency.",
+          details: ["Unblock the missing dependency before resuming work."],
+        },
+      ],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      diagnostics: {
+        counts: {
+          issuesExpected: 1,
+          issuesActual: 1,
+          onTheTableExpected: 0,
+          onTheTableActual: 0,
+          inMotionExpected: 0,
+          inMotionActual: 0,
+          whatsNextExpected: 0,
+          whatsNextActual: 0,
+        },
+      },
+    } as any,
+    governance: {
+      companyScopePath: "assafyavnai/adf/phase1",
+      statusNotes: [],
+      landedAssessments: new Map(),
+      additionalAttention: [],
+      additionalTable: [],
+      additionalNext: [],
+      deepAudit: null,
+      trustNotes: [],
+      currentThread: {
+        threadId: null,
+        activeWorkflow: null,
+        onionLayer: null,
+        scopePath: "assafyavnai/adf/phase1",
+        lastStateCommitAt: null,
+      },
+      operatingState: {
+        schemaVersion: 1,
+        baselineEstablishedAt: "2026-04-05T00:00:00.000Z",
+        lastDeepAuditAt: null,
+        lastDeepAuditTrigger: null,
+        lastDeepAuditScope: null,
+        lastDeepAuditJustified: null,
+        trackedIssues: {},
+        trustSubjects: {},
+        auditHistory: [],
+        triggerTuning: {
+          contradictionSensitivity: 1,
+          stalePressureDays: 7,
+          companyEscalationThreshold: 2,
+          lastChangedAt: "2026-04-05T00:00:00.000Z",
+          lastChangedReason: null,
+        },
+      },
+    } as any,
+    surface: {
+      opening: "Overall, one blocked item needs attention.",
+      statusWindow: null,
+      statusNotes: [],
+      landed: [],
+      issues: [
+        {
+          key: "issue:feature-blocked",
+          featureId: "feature-blocked",
+          featureLabel: "Feature Blocked",
+          summary: "Feature Blocked is waiting on an unresolved dependency.",
+          recommendation: "Unblock the missing dependency before resuming work.",
+          severity: "high",
+          priority: "now",
+          actionLabel: "Fix action",
+          evidenceLine: "The blocker comes directly from live COO thread/onion truth.",
+        },
+      ],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      operationalFooter: null,
+    } as any,
+    statusWindow: null,
+  };
+
+  const structurallyValidButWrong = [
+    "Overall, everything looks calm.",
+    "",
+    "## Issues That Need Your Attention",
+    "No immediate issues.",
+    "",
+    "## On The Table",
+    "No open items.",
+    "",
+    "## In Motion",
+    "Nothing active.",
+  ].join("\n");
+
+  const assessment = assessSupportedLiveStatusBody(structurallyValidButWrong, context);
+  assert.match(assessment.violations.join(","), /parity:issues/);
+  assert.equal(assessment.visibility.issuesExpected, 1);
+  assert.equal(assessment.visibility.issuesActual, 0);
+
+  const output = await renderStatusWithAgent({
+    projectRoot: tempRoot,
+    promptsDir,
+    ...context,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-brief-issue",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: structurallyValidButWrong,
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  assert.ok(output.includes("Feature Blocked is waiting on an unresolved dependency."));
+  assert.ok(output.includes("Fix: Unblock the missing dependency before resuming work."));
+  assert.ok(!output.includes("No immediate issues."));
 });
 
 test("renderStatusWithAgent omits the final focus-choice block when fewer than two concrete options are evidenced", async () => {
@@ -821,6 +1026,26 @@ test("renderStatusWithAgent omits the final focus-choice block when fewer than t
     } as any,
     surface: {
       opening: "Overall, the company is stable.",
+      statusWindow: null,
+      statusNotes: [],
+      landed: [],
+      issues: [
+        {
+          key: "issue:one-option",
+          featureId: "feature-one",
+          featureLabel: "Feature One",
+          summary: "Feature One needs a route fix",
+          recommendation: "Patch Feature One",
+          severity: "high",
+          priority: "now",
+          actionLabel: "Fix action",
+          evidenceLine: "Derived from source evidence.",
+        },
+      ],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      operationalFooter: null,
     } as any,
     statusWindow: null,
     intelligenceParams: {

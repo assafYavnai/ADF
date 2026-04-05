@@ -157,6 +157,7 @@ export async function buildLiveExecutiveStatus(
         facts,
         brief,
         governance,
+        surface,
         statusWindow,
       }).visibility;
     }
