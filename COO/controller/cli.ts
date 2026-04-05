@@ -238,7 +238,7 @@ async function main() {
   console.log("Status surface: type /status or launch with --status.\n");
 
   if (!process.stdin.isTTY) {
-    await runScriptedSession(config, brainClient, threadId, configuredScope, projectRoot, threadsDir, {
+    await runScriptedSession(config, brainClient, threadId, configuredScope, projectRoot, threadsDir, promptsDir, {
       ...runtimeTelemetryContext,
       cli_mode: cliMode,
       configured_scope: configuredScope,
@@ -418,6 +418,7 @@ async function printExecutiveStatus(
   telemetryContext: Record<string, unknown>,
   sourcePartition: "production" | "proof" | "mixed",
 ): Promise<void> {
+  const stopIndicator = startStatusLoadingIndicator();
   try {
     const status = await buildLiveExecutiveStatus({
       projectRoot,
@@ -431,8 +432,10 @@ async function printExecutiveStatus(
       intelligenceParams,
       invokeLLM,
     });
+    stopIndicator();
     console.log(`\n${status.output}\n`);
   } catch (error) {
+    stopIndicator();
     if (error instanceof BrainHardStopError) {
       console.error("\n# COO Executive Status\n");
       console.error(`Hard stop: ${error.message}`);
@@ -441,6 +444,26 @@ async function printExecutiveStatus(
     }
     console.error(`Executive status failed: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+function startStatusLoadingIndicator(): () => void {
+  if (!process.stdout.isTTY) {
+    return () => {};
+  }
+
+  const frames = ["|", "/", "-", "\\"];
+  const prefix = "COO> Let me get my notes before I tell you our current status... ";
+  let index = 0;
+  process.stdout.write(`\n${prefix}${frames[index]}`);
+  const timer = setInterval(() => {
+    index = (index + 1) % frames.length;
+    process.stdout.write(`\r${prefix}${frames[index]}`);
+  }, 120);
+
+  return () => {
+    clearInterval(timer);
+    process.stdout.write(`\r${" ".repeat(prefix.length + 2)}\r`);
+  };
 }
 
 function resolveRuntimeDir(overridePath: string | undefined, fallbackPath: string): string {
@@ -689,6 +712,7 @@ async function runScriptedSession(
   configuredScope: string | null,
   projectRoot: string,
   threadsDir: string,
+  promptsDir: string,
   shutdownMetadata: Record<string, unknown>,
 ): Promise<void> {
   const rl = createInterface({

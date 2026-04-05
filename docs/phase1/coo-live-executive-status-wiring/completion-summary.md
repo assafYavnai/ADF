@@ -36,6 +36,8 @@ New runtime capability added in this pass:
   - derived operating continuity
 - `COO/briefing/status-render-agent.ts`
   - builds the strict status evidence pack
+  - groups duplicate route findings before briefing
+  - carries route-chain, impact, urgency, KPI/auditability summary, and prepared focus options into the evidence pack
   - calls the COO model for the final CEO-facing wording
   - keeps the deterministic surface only as fallback/proof truth
 - company-first live render that keeps the 4 executive sections while adding:
@@ -44,10 +46,13 @@ New runtime capability added in this pass:
   - status notes
   - what landed section
   - compact operational footer
+  - closing call-for-action options when there is a clear next focus
 - investigation behavior for suspicious surfaced facts such as `0 review cycles`
 - bounded local runtime continuity under `.codex/runtime/` for:
   - COO operating state
   - status-window comparison anchor
+- CLI status-loading cue so the terminal does not look frozen while the COO gathers notes
+- worktree launcher repair for missing `coo_needs_build` / `memory_engine_needs_build` wrappers
 - updated COO operating prompt and Phase 1 wording so the docs match the rebased COO role
 
 4. Files Changed And Why
@@ -55,13 +60,15 @@ New runtime capability added in this pass:
 - `COO/briefing/status-governance.ts`
   - new bounded governance layer for evidence cross-checking, deep audit, trust, Brain hard-stop enforcement, and ready-to-handoff tracked issues
 - `COO/briefing/status-render-agent.ts`
-  - new live status render path that hands the evidence pack to the COO model instead of hardcoding final prose
+  - new live status render path that hands grouped source evidence to the COO model instead of hardcoding final prose
 - `COO/briefing/live-executive-surface.ts`
   - keeps the 4 executive sections visible and acts as the normalized fallback/proof surface
 - `COO/controller/executive-status.ts`
   - wires the governed status context into the live route and switches live wording to the COO model when intelligence config is present
 - `COO/controller/cli.ts`
-  - surfaces the rebased status route, explicit Brain hard-stop messaging, and the live model-rendered `/status` path
+  - surfaces the rebased status route, explicit Brain hard-stop messaging, the status-loading cue, and the live model-rendered `/status` path
+- `adf.sh`
+  - restores missing helper wrappers so worktree startup no longer throws `command not found` before the COO status surface launches
 - `COO/controller/executive-status.test.ts`
   - adds proof for deep audit, Brain hard stop, anomaly investigation, trust downgrade, full-trust proposal, company-first status, and no-source-mutation behavior
 - `COO/intelligence/prompt.md`
@@ -133,6 +140,7 @@ Smoke observations:
 - Brain hard-stop did not trigger
 - deep-audit notes, landed-route judgments, missing-source visibility, handoff readiness, and operational footer rendered as expected
 - the KPI issue now lands as a system closeout-route diagnosis, not as a shallow per-feature symptom
+- the live wording now surfaces why / impact / fix / priority more explicitly and ends with a natural next-focus choice
 - the current strongest root-cause evidence is that implement-plan computes KPI totals during execution but the closeout projection does not persist them into durable feature truth for some post-rollout landings
 
 7. What Was Intentionally Deferred

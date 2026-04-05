@@ -334,7 +334,7 @@ function toLandedItem(
     featureLabel: feature.label,
     outcome: completion?.mergedAt ? "completed and merged" : "completed and awaiting final closeout truth",
     metricsLine: metricParts.join(" | "),
-    cooReadLine: assessment?.cooReadLine,
+    cooReadLine: assessment?.cooReadLine ?? null,
     actionLine: formatRecommendationLine(action),
     basisLine: renderCompactConfidenceLine(feature.evidence),
   };

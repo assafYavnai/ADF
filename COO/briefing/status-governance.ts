@@ -80,6 +80,9 @@ export type GovernanceClassification =
   | "contradicted"
   | "missing_not_provable";
 
+export type BusinessSeverity = "critical" | "high" | "medium" | "low";
+export type BusinessPriority = "now" | "this_week" | "monitor";
+
 type GovernanceConcern = "review" | "kpi" | "timing" | "mixed";
 
 export interface GovernanceLandedAssessment {
@@ -94,6 +97,10 @@ export interface GovernanceLandedAssessment {
   recommendation: string | null;
   rootCause: string | null;
   systemFix: string | null;
+  businessImpact: string | null;
+  businessSeverity: BusinessSeverity | null;
+  businessPriority: BusinessPriority | null;
+  routeChain: string[];
   implicatedSubjects: string[];
 }
 
@@ -106,6 +113,10 @@ export interface GovernanceItem {
   evidenceLine: string;
   rootCause: string | null;
   systemFix: string | null;
+  businessImpact: string | null;
+  businessSeverity: BusinessSeverity | null;
+  businessPriority: BusinessPriority | null;
+  routeChain: string[];
   classification: GovernanceClassification;
   implicatedSubjects: string[];
 }
@@ -207,6 +218,10 @@ interface TrackedIssueState {
   evidenceLine: string;
   rootCause: string | null;
   systemFix: string | null;
+  businessImpact: string | null;
+  businessSeverity: BusinessSeverity | null;
+  businessPriority: BusinessPriority | null;
+  routeChain: string[];
   implicatedSubjects: string[];
   brainFindingId: string | null;
   brainOpenLoopId: string | null;
@@ -268,6 +283,10 @@ interface DraftFinding {
   evidenceLine: string;
   rootCause: string | null;
   systemFix: string | null;
+  businessImpact: string | null;
+  businessSeverity: BusinessSeverity | null;
+  businessPriority: BusinessPriority | null;
+  routeChain: string[];
   classification: GovernanceClassification;
   implicatedSubjects: string[];
   severity: "attention" | "table";
@@ -360,6 +379,16 @@ export async function prepareGovernedStatusContext(
       summary: `Recent git activity on ${humanizeFeatureSlugList(options.statusWindow.droppedFeatureSlugs)} is missing from the current COO surface.`,
       recommendation: "Check the missing slice context before relying on this COO update for prioritization.",
       evidenceLine: "Evidence: direct workspace reality; fresh; high confidence. This coverage warning comes from git commits since the previous COO status update.",
+      rootCause: null,
+      systemFix: null,
+      businessImpact: "If recent git-touched work drops out of COO context, leadership can act on an incomplete company picture.",
+      businessSeverity: "high",
+      businessPriority: "now",
+      routeChain: [
+        "Git shows recent feature activity since the previous COO update.",
+        "The current COO surface did not carry that feature into the visible company picture.",
+        "Context gathering or slice visibility needs repair before this status can be treated as complete.",
+      ],
       classification: "contradicted",
       implicatedSubjects: ["route:coo-status"],
       severity: "attention",
@@ -438,6 +467,7 @@ export async function prepareGovernedStatusContext(
   const deepAuditSummary = deepAuditDecision
     ? {
         ...deepAuditDecision,
+        ran: true,
         findingCount: draftFindings.length,
         brainWriteCount,
         note: deepAuditDecision.scope === "company"
@@ -467,15 +497,15 @@ export async function prepareGovernedStatusContext(
       tuningNote,
     ),
     landedAssessments,
-    additionalAttention: [
+    additionalAttention: sortGovernanceItems([
       ...persistedIssues.filter((item) => item.classification === "suspicious" || item.classification === "contradicted"),
       ...materialAttentionTrustItems,
-    ],
-    additionalTable: [
+    ]),
+    additionalTable: sortGovernanceItems([
       ...materialTableTrustItems,
       ...persistedIssues.filter((item) => item.classification === "acceptable_legacy_gap" || item.classification === "missing_not_provable"),
-    ],
-    additionalNext: materialNextTrustItems,
+    ]),
+    additionalNext: sortGovernanceItems(materialNextTrustItems),
     deepAudit: deepAuditSummary,
     trustNotes: trustContext.materialNotes,
     currentThread,
@@ -486,6 +516,44 @@ export async function prepareGovernedStatusContext(
 function resolveCompanyScopePath(value: string | null): string | null {
   const trimmed = value?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : null;
+}
+
+function sortGovernanceItems(items: GovernanceItem[]): GovernanceItem[] {
+  return [...items].sort((left, right) => governanceItemRank(right) - governanceItemRank(left));
+}
+
+function governanceItemRank(item: GovernanceItem): number {
+  return classificationPriority(item.classification) * 100
+    + businessSeverityRank(item.businessSeverity) * 10
+    + businessPriorityRank(item.businessPriority);
+}
+
+function businessSeverityRank(value: BusinessSeverity | null): number {
+  switch (value) {
+    case "critical":
+      return 4;
+    case "high":
+      return 3;
+    case "medium":
+      return 2;
+    case "low":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function businessPriorityRank(value: BusinessPriority | null): number {
+  switch (value) {
+    case "now":
+      return 3;
+    case "this_week":
+      return 2;
+    case "monitor":
+      return 1;
+    default:
+      return 0;
+  }
 }
 
 async function loadCurrentThreadContext(
@@ -660,6 +728,10 @@ function asTrackedIssues(
       evidenceLine: asNonEmptyString(record.evidenceLine) ?? "Evidence: derived from sources; freshness unknown; medium confidence.",
       rootCause: asNonEmptyString(record.rootCause),
       systemFix: asNonEmptyString(record.systemFix),
+      businessImpact: asNonEmptyString(record.businessImpact),
+      businessSeverity: normalizeBusinessSeverity(asNonEmptyString(record.businessSeverity)),
+      businessPriority: normalizeBusinessPriority(asNonEmptyString(record.businessPriority)),
+      routeChain: normalizeStringArray(record.routeChain),
       implicatedSubjects: normalizeStringArray(record.implicatedSubjects),
       brainFindingId: asNonEmptyString(record.brainFindingId),
       brainOpenLoopId: asNonEmptyString(record.brainOpenLoopId),
@@ -792,12 +864,84 @@ async function assessLandedFeature(
     ),
     rootCause: kpiInvestigation?.rootCause ?? null,
     systemFix: kpiInvestigation?.systemFix ?? null,
+    businessImpact: deriveAssessmentImpact(classification, primaryConcern),
+    businessSeverity: deriveAssessmentSeverity(classification, primaryConcern),
+    businessPriority: deriveAssessmentPriority(classification, primaryConcern),
+    routeChain: deriveAssessmentRouteChain(primaryConcern, kpiInvestigation),
     implicatedSubjects: uniqueStrings([
       ...reviewEvaluation.implicatedSubjects,
       ...tokenEvaluation.implicatedSubjects,
       ...timingEvaluation.implicatedSubjects,
     ]),
   };
+}
+
+function deriveAssessmentImpact(
+  classification: GovernanceClassification,
+  primaryConcern: GovernanceConcern,
+): string | null {
+  if (classification === "suspicious" && primaryConcern === "kpi") {
+    return "Without durable token totals on post-rollout landings, the COO cannot fully audit delivery cost or compare company efficiency across recent work.";
+  }
+  if (classification === "suspicious" && primaryConcern === "review") {
+    return "If required review governance was skipped, delivered quality and process compliance are not fully auditable.";
+  }
+  if (classification === "missing_not_provable" && primaryConcern === "timing") {
+    return "Elapsed lifecycle time is visible, but active implementation effort is not provable from the current route.";
+  }
+  return null;
+}
+
+function deriveAssessmentSeverity(
+  classification: GovernanceClassification,
+  primaryConcern: GovernanceConcern,
+): BusinessSeverity | null {
+  if (classification === "suspicious" && primaryConcern === "review") {
+    return "high";
+  }
+  if (classification === "suspicious" && primaryConcern === "kpi") {
+    return "high";
+  }
+  if (classification === "contradicted") {
+    return "high";
+  }
+  if (classification === "missing_not_provable") {
+    return "medium";
+  }
+  if (classification === "acceptable_legacy_gap") {
+    return "low";
+  }
+  return null;
+}
+
+function deriveAssessmentPriority(
+  classification: GovernanceClassification,
+  primaryConcern: GovernanceConcern,
+): BusinessPriority | null {
+  if (classification === "suspicious" && (primaryConcern === "review" || primaryConcern === "kpi")) {
+    return "now";
+  }
+  if (classification === "contradicted" || classification === "missing_not_provable") {
+    return "this_week";
+  }
+  return null;
+}
+
+function deriveAssessmentRouteChain(
+  primaryConcern: GovernanceConcern,
+  kpiInvestigation: { rootCause: string; systemFix: string; routeChain: string[] } | null,
+): string[] {
+  if (primaryConcern === "kpi" && kpiInvestigation?.routeChain?.length) {
+    return kpiInvestigation.routeChain;
+  }
+  if (primaryConcern === "review") {
+    return [
+      "Landing timing says review governance should already have applied.",
+      "Durable closeout truth shows no completed review cycle for this landing.",
+      "The review-cycle handoff or recording route needs inspection before the landing can be treated as fully governed.",
+    ];
+  }
+  return [];
 }
 
 function classifyReviewEvidence(
@@ -913,7 +1057,7 @@ function classifyTokenEvidence(
       classification: "suspicious",
       concern: "kpi",
       line: "KPI check: token cost is unavailable even though KPI capture was already live when this feature landed. This points to a gap in the durable closeout evidence, not a delivery blocker.",
-      recommendation: "Severity: medium. Priority: this week. Fix action: patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
+      recommendation: "Severity: high. Priority: now. Fix action: patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
       implicatedSubjects: subjects,
     };
   }
@@ -1056,10 +1200,14 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
       featureId: assessment.featureId,
       featureLabel: assessment.featureLabel,
       summary: "The implement-plan closeout route is dropping post-rollout KPI token totals from durable closeout truth.",
-      recommendation: assessment.recommendation ?? "Severity: medium. Priority: this week. Fix action: patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
+      recommendation: assessment.recommendation ?? "Severity: high. Priority: now. Fix action: patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
       evidenceLine: "Basis: direct closeout evidence plus KPI rollout timing; fresh; high confidence.",
       rootCause: assessment.rootCause,
       systemFix: assessment.systemFix,
+      businessImpact: assessment.businessImpact,
+      businessSeverity: assessment.businessSeverity,
+      businessPriority: assessment.businessPriority,
+      routeChain: assessment.routeChain,
       classification: assessment.classification,
       implicatedSubjects: assessment.implicatedSubjects,
       severity: "attention",
@@ -1076,6 +1224,10 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
       evidenceLine: "Basis: direct closeout evidence plus review-governance timing; fresh; high confidence.",
       rootCause: assessment.rootCause,
       systemFix: assessment.systemFix,
+      businessImpact: assessment.businessImpact,
+      businessSeverity: assessment.businessSeverity,
+      businessPriority: assessment.businessPriority,
+      routeChain: assessment.routeChain,
       classification: assessment.classification,
       implicatedSubjects: assessment.implicatedSubjects,
       severity: "attention",
@@ -1093,6 +1245,10 @@ function toDraftFinding(assessment: GovernanceLandedAssessment): DraftFinding | 
     } confidence.`,
     rootCause: assessment.rootCause,
     systemFix: assessment.systemFix,
+    businessImpact: assessment.businessImpact,
+    businessSeverity: assessment.businessSeverity,
+    businessPriority: assessment.businessPriority,
+    routeChain: assessment.routeChain,
     classification: assessment.classification,
     implicatedSubjects: assessment.implicatedSubjects,
     severity: assessment.classification === "suspicious" || assessment.classification === "contradicted"
@@ -1112,6 +1268,14 @@ function buildContradictionFinding(feature: BriefFeatureSnapshot): DraftFinding 
       evidenceLine: "Evidence: derived from sources; fresh; medium confidence. The surfaced status and blocker payload disagree.",
       rootCause: null,
       systemFix: null,
+      businessImpact: "A false blocker can misdirect leadership attention and distort the company table.",
+      businessSeverity: "medium",
+      businessPriority: "this_week",
+      routeChain: [
+        "The surfaced feature status says blocked.",
+        "The blocker payload is empty, so the route has not proved an actual blocker.",
+        "The blocking route needs correction before this item should influence company decisions.",
+      ],
       classification: "contradicted",
       implicatedSubjects: ["route:coo-status"],
       severity: "attention",
@@ -1128,6 +1292,10 @@ function buildContradictionFinding(feature: BriefFeatureSnapshot): DraftFinding 
       evidenceLine: `Evidence: ambiguous; ${feature.evidence.freshness}; ${feature.evidence.confidence} confidence. ${feature.evidence.notes.join(" ")}`,
       rootCause: null,
       systemFix: null,
+      businessImpact: "This item may be real, but the current evidence does not support a confident executive conclusion yet.",
+      businessSeverity: "medium",
+      businessPriority: "this_week",
+      routeChain: [],
       classification: "missing_not_provable",
       implicatedSubjects: ["route:coo-status"],
       severity: "table",
@@ -1144,6 +1312,10 @@ function buildContradictionFinding(feature: BriefFeatureSnapshot): DraftFinding 
       evidenceLine: `Evidence: fallback because a source is missing; ${feature.evidence?.freshness ?? "unknown freshness"}; ${feature.evidence?.confidence ?? "medium"} confidence.`,
       rootCause: null,
       systemFix: null,
+      businessImpact: "The COO can still brief this item, but the conclusion remains provisional until the missing source becomes readable.",
+      businessSeverity: "medium",
+      businessPriority: "this_week",
+      routeChain: [],
       classification: "missing_not_provable",
       implicatedSubjects: ["route:coo-status"],
       severity: "table",
@@ -1448,6 +1620,10 @@ async function persistTrackedIssue(
         recommendation: finding.recommendation,
         root_cause: finding.rootCause,
         system_fix: finding.systemFix,
+        business_impact: finding.businessImpact,
+        business_severity: finding.businessSeverity,
+        business_priority: finding.businessPriority,
+        route_chain: finding.routeChain,
         implicated_subjects: finding.implicatedSubjects,
         ready_handoff: readyHandoff,
       },
@@ -1475,6 +1651,10 @@ async function persistTrackedIssue(
     evidenceLine: finding.evidenceLine,
     rootCause: finding.rootCause,
     systemFix: finding.systemFix,
+    businessImpact: finding.businessImpact,
+    businessSeverity: finding.businessSeverity,
+    businessPriority: finding.businessPriority,
+    routeChain: finding.routeChain,
     implicatedSubjects: finding.implicatedSubjects,
     brainFindingId,
     brainOpenLoopId: null,
@@ -1500,6 +1680,10 @@ function toGovernanceItem(issue: TrackedIssueState): GovernanceItem {
     evidenceLine: `${issue.evidenceLine} Ready handoff: ${issue.readyHandoff.id}.`,
     rootCause: issue.rootCause,
     systemFix: issue.systemFix,
+    businessImpact: issue.businessImpact,
+    businessSeverity: issue.businessSeverity,
+    businessPriority: issue.businessPriority,
+    routeChain: issue.routeChain,
     classification: issue.classification,
     implicatedSubjects: issue.implicatedSubjects,
   };
@@ -1534,7 +1718,7 @@ async function investigateKpiCloseoutGap(
   projectRoot: string,
   featureId: string,
   governanceEvidence: FeatureGovernanceEvidence,
-): Promise<{ rootCause: string; systemFix: string }> {
+): Promise<{ rootCause: string; systemFix: string; routeChain: string[] }> {
   const helperPath = resolve(projectRoot, "skills", "implement-plan", "scripts", "implement-plan-helper.mjs");
   const helperRaw = await tryReadFile(helperPath);
   const helperTracksKpiProjection = Boolean(
@@ -1548,12 +1732,22 @@ async function investigateKpiCloseoutGap(
     return {
       rootCause: `The implement-plan runtime already computes KPI totals during execution, but ${featureId} closeout truth does not persist that projection. This points to a closeout projection gap in the implement-plan route, not to bad planning or bad implementation on the feature itself.`,
       systemFix: "Patch the implement-plan closeout projection so post-rollout landings persist run.kpi_projection token totals into durable closeout truth, then backfill the affected landed slices.",
+      routeChain: [
+        "Execution already computes KPI token totals in the implement-plan run projection.",
+        `${featureId} durable closeout truth does not carry that KPI projection forward after landing.`,
+        "Company cost visibility then breaks at closeout and the COO loses durable audit coverage for post-rollout landings.",
+      ],
     };
   }
 
   return {
     rootCause: "Post-rollout KPI totals are missing from durable closeout truth. The strongest current evidence still points to a closeout-route gap rather than a delivery failure, but the exact loss point is not yet fully provable from this slice alone.",
     systemFix: "Audit and patch the implement-plan closeout route so token totals survive into durable closeout truth, then backfill the affected landed slices.",
+    routeChain: [
+      "Post-rollout execution should produce KPI token totals.",
+      "Durable closeout truth is missing those totals for landed work.",
+      "The route between execution KPI capture and closeout persistence needs repair before company cost auditability is trustworthy.",
+    ],
   };
 }
 
@@ -1567,6 +1761,10 @@ function toTrustGovernanceItem(note: TrustMaterialNote): GovernanceItem {
     evidenceLine: note.evidenceLine,
     rootCause: null,
     systemFix: null,
+    businessImpact: null,
+    businessSeverity: null,
+    businessPriority: null,
+    routeChain: [],
     classification: "confirmed",
     implicatedSubjects: [note.subjectId],
   };
@@ -1767,6 +1965,29 @@ function normalizeClassification(value: string | null): GovernanceClassification
       return value;
     default:
       return "confirmed";
+  }
+}
+
+function normalizeBusinessSeverity(value: string | null): BusinessSeverity | null {
+  switch (value) {
+    case "critical":
+    case "high":
+    case "medium":
+    case "low":
+      return value;
+    default:
+      return null;
+  }
+}
+
+function normalizeBusinessPriority(value: string | null): BusinessPriority | null {
+  switch (value) {
+    case "now":
+    case "this_week":
+    case "monitor":
+      return value;
+    default:
+      return null;
   }
 }
 

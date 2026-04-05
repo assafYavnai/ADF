@@ -392,12 +392,13 @@ test("live status can hand the evidence pack to the COO agent instead of using t
       capturedPrompt = params.prompt;
       return {
         provenance: {
-          type: "llm",
           invocation_id: "status-agent",
           provider: "codex",
           model: "gpt-5.4",
           reasoning: "medium",
+          was_fallback: false,
           source_path: "test",
+          timestamp: "2026-04-05T00:00:00.000Z",
         },
         response: "Overall, the company is steady.\n\n## Issues That Need Your Attention\nNo immediate issues.\n\n## On The Table\nOne pending decision.\n\n## In Motion\nNo active work.\n\n## What's Next\nMove the pending decision forward.",
         latency_ms: 1,
@@ -410,7 +411,9 @@ test("live status can hand the evidence pack to the COO agent instead of using t
   assert.match(capturedPrompt, /<status_evidence>/);
   assert.match(capturedPrompt, /"tracked_findings"/);
   assert.match(capturedPrompt, /"landed_recently"/);
-  assert.match(capturedPrompt, /"rendered_fallback_surface"/);
+  assert.match(capturedPrompt, /"company_performance"/);
+  assert.match(capturedPrompt, /"focus_options"/);
+  assert.match(capturedPrompt, /route_chain/);
   assert.match(capturedPrompt, /Formatting rules:/);
 });
 
@@ -451,6 +454,10 @@ test("tracked issues persist both Brain-backed findings and local ready handoffs
   assert.match(persistedIssue.readyHandoff.id, /^handoff:/);
   assert.match(persistedIssue.rootCause, /closeout[- ](projection|route) gap/i);
   assert.match(persistedIssue.systemFix, /(persist run\.kpi_projection token totals|token totals survive into durable closeout truth)/i);
+  assert.match(persistedIssue.businessImpact, /cannot fully audit delivery cost|cost auditability/i);
+  assert.equal(persistedIssue.businessPriority, "now");
+  assert.ok(Array.isArray(persistedIssue.routeChain));
+  assert.ok(persistedIssue.routeChain.length >= 2);
 
   const second = await buildLiveExecutiveStatus({
     projectRoot: tempRoot,

@@ -210,6 +210,14 @@ needs_coo_build() {
   return 1
 }
 
+coo_needs_build() {
+  needs_coo_build
+}
+
+memory_engine_needs_build() {
+  needs_memory_engine_build
+}
+
 coo_memory_engine_client_artifact() {
   printf '%s' "$COO_DIR/dist/COO/controller/memory-engine-client.js"
 }

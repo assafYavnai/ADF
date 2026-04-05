@@ -88,6 +88,30 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - status notes
   - what landed
   - operational footer
+- The agent should receive a strict evidence pack, not a pre-rendered prose template, so the COO can brief the CEO naturally from source truth instead of echoing a canned surface.
+- Attention items should surface:
+  - the issue title on its own line
+  - why it is happening
+  - business impact
+  - the system fix
+  - urgency / priority
+  - whether a handoff is already prepared
+- The live status should also end with a short call for action when there are clear next-focus options.
+
+## Human-Facing Follow-Up Decision - 2026-04-05
+- The CEO-facing status was still too dense after the first rebased pass.
+- The live evidence pack now groups duplicate route findings, carries business impact plus route-chain diagnosis, and adds a compact company KPI/auditability summary.
+- The live status render instructions now explicitly bias toward:
+  - short bullet lists
+  - separate title lines
+  - plain-language root-cause explanation
+  - urgency-based ordering in `What's Next`
+  - a closing choice prompt when there are clear prepared options
+- The CLI now shows a status-loading cue while the COO gathers notes so the CEO does not see an apparently frozen terminal.
+
+## Launcher Note - 2026-04-05
+- The worktree launcher surfaced real shell errors because `adf.sh` called `coo_needs_build` and `memory_engine_needs_build` without defining them.
+- This slice now restores those missing wrapper functions so the live status route can launch cleanly from the governed worktree path.
 
 ## Timing Truth Decision - 2026-04-05
 - Elapsed lifecycle time is not the same as active implementation time.
