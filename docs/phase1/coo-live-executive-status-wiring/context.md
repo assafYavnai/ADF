@@ -76,19 +76,18 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
 
 ## Status Surface Decision - 2026-04-05
 - The live CEO-facing output must stay readable and business-level.
-- The output keeps the 4 executive sections as the main management view:
+- The internal executive brief keeps the 4 executive sections as derived operating truth.
+- The default live CEO-facing surface is now frozen to the currently human-approved contract:
+  - opening summary
+  - optional delivery snapshot
+  - optional recent landings
   - Issues That Need Your Attention
   - On The Table
   - In Motion
-  - What's Next
+  - recommendation sentence plus final focus options
 - The runtime should gather and normalize the evidence deterministically, but the final CEO-facing wording should come from the COO model, not from hardcoded slot-filled prose.
-- Supporting context is allowed around those sections:
-  - opening summary
-  - status window
-  - status notes
-  - what landed
-  - operational footer
 - The agent should receive a strict evidence pack, not a pre-rendered prose template, so the COO can brief the CEO naturally from source truth instead of echoing a canned surface.
+- The live route now validates the model-rendered output against that frozen contract and falls back to a deterministic version of the same contract if the model drifts.
 - Attention items should surface:
   - the issue title on its own line
   - why it is happening
@@ -105,7 +104,7 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - short bullet lists
   - separate title lines
   - plain-language root-cause explanation
-  - urgency-based ordering in `What's Next`
+  - urgency-based ordering in the final focus options
   - a closing choice prompt when there are clear prepared options
 - The CLI now shows a status-loading cue while the COO gathers notes so the CEO does not see an apparently frozen terminal.
 - The landed-work summary now uses a compact `Recent landings` bullet list instead of dense prose.
@@ -116,6 +115,22 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - `see issue below` when the landing carries a suspicious route gap
 - If a landing is merged but durable closeout truth does not prove the approved commit before merge, the COO must raise that as an issue instead of silently treating the landing as normal.
 - The separate `What's Next` section is dropped from the live CEO-facing status. The COO recommendation now appears as the summary line immediately above the final focus-choice options.
+
+## Review-Cycle Alignment Decision - 2026-04-05
+- Review-cycle cycle-02 found that the live agent path, the deterministic fallback, the tests, and the docs had drifted into conflicting contracts.
+- The chosen bounded fix is to preserve the currently human-approved live CEO-facing contract instead of silently restoring the older 4-section live surface.
+- The internal 4-section executive brief remains derived operating truth, but the supported live CEO-facing route is now:
+  - opening summary
+  - optional delivery snapshot
+  - optional recent landings
+  - Issues That Need Your Attention
+  - On The Table
+  - In Motion
+  - recommendation sentence plus 3 focus options
+- `What's Next` remains internal truth and is merged into the recommendation/focus prompt on the live route.
+- The default live CEO-facing route no longer prints a separate operational footer.
+- The agent evidence pack must reuse the same recent-landings freshness window as the normalized surface.
+- The git comparison anchor must only advance after a successful CEO-visible status render.
 
 ## Launcher Note - 2026-04-05
 - The worktree launcher surfaced real shell errors because `adf.sh` called `coo_needs_build` and `memory_engine_needs_build` without defining them.

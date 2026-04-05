@@ -30,18 +30,17 @@ This slice now owns the bounded Phase 1 COO status route that:
 
 ### 1. Live executive brief wiring
 - the merged `COO/briefing/**` package is wired into the real COO runtime
-- the live COO surface keeps the 4 executive sections:
+- the internal executive brief still keeps the 4 executive sections as derived operating truth
+- the default live CEO-facing surface now freezes the currently approved company-first contract:
+  - opening summary
+  - optional `**Delivery snapshot:**`
+  - optional `**Recent landings:**`
   - `Issues That Need Your Attention`
   - `On The Table`
   - `In Motion`
-  - `What's Next`
-- the live CEO-facing surface now uses a strict evidence pack plus the COO model for final wording rather than a hardcoded prose template
-- the live CEO-facing surface may add scan-friendly context around those sections:
-  - opening summary
-  - `Status window`
-  - `Status notes`
-  - `What landed`
-  - operational footer
+  - recommendation sentence plus final focus options
+- the live CEO-facing surface uses a strict evidence pack plus the COO model for final wording rather than a hardcoded prose template
+- the live route validates that contract after model rendering and falls back deterministically if the model drifts outside it
 
 ### 2. Evidence gathering and cross-checking
 - gathers evidence from:
@@ -121,16 +120,16 @@ The trust ledger guides suspicion. It never outranks stronger evidence.
 
 ## Status Surface Rules
 - keep the output business-level
-- keep the 4 executive sections visible
+- keep the approved live CEO-facing contract visible and stable
 - preserve graceful degradation for partial source families
 - make provenance, freshness, and confidence visible enough for leadership judgment
 - let the COO model formulate the briefing naturally from strict evidence rather than slot-filled prose
 - blocked items must surface in `Issues`
 - unresolved shaping / governance / decision items must surface in `On The Table`
 - active live work must surface in `In Motion`
-- concise forward moves must surface in `What's Next`
+- concise forward moves must surface through the recommendation sentence and final focus options
 - trust and audit details should stay exception-first, not a permanent dump
-- current thread, workflow, onion layer, scope path, and last state commit belong in a compact operational footer
+- the internal 4-section brief and operational context remain available as derived route truth even though the default live CEO-facing surface does not print a separate footer
 
 ## KPI / Audit Matrix
 Required telemetry:
@@ -162,7 +161,11 @@ Test from the feature worktree:
 
 Verify:
 - the COO speaks in business language
-- the 4 executive sections are present
+- the approved live CEO-facing sections are present:
+  - `Issues That Need Your Attention`
+  - `On The Table`
+  - `In Motion`
+  - recommendation sentence plus focus options
 - landed items are easy to scan
 - missing or fallback evidence stays visible
 - Brain hard-stop behavior is explicit if Brain is unavailable

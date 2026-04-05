@@ -3,7 +3,10 @@ import { join } from "node:path";
 import { invoke } from "../../shared/llm-invoker/invoker.js";
 import type { InvocationParams, InvocationResult } from "../../shared/llm-invoker/types.js";
 import type { ExecutiveBrief, BriefSourceFacts, BriefFeatureSnapshot } from "./types.js";
-import type { LiveExecutiveSurface } from "./live-executive-surface.js";
+import {
+  isRecentLandedFeature,
+  type LiveExecutiveSurface,
+} from "./live-executive-surface.js";
 import type { GovernedStatusContext } from "./status-governance.js";
 import type { GitStatusWindow } from "../controller/status-window.js";
 
@@ -17,6 +20,13 @@ export interface StatusRenderAgentOptions {
   statusWindow: GitStatusWindow | null;
   intelligenceParams: Omit<InvocationParams, "prompt" | "source_path">;
   invokeLLM?: (params: InvocationParams) => Promise<InvocationResult>;
+}
+
+interface FocusOptionEvidence {
+  title: string;
+  recommended: boolean;
+  why_now: string | null;
+  action_if_approved: string | null;
 }
 
 export async function renderStatusWithAgent(
@@ -49,11 +59,20 @@ export async function renderStatusWithAgent(
     "- When you mention recent landings, include whether approval before merge is proved when that evidence is available. If a merged landing lacks approval proof, that belongs in issues, not as a normal landing note.",
     "- Approval evidence here means durable pre-merge approval proof such as an approved commit record. Do not call it CEO approval unless the evidence explicitly says CEO approval.",
     "- If a trust or audit note does not require a CEO decision right now, keep it brief and out of the main attention bullets.",
+    "The supported live CEO-facing section contract is:",
+    "- opening paragraph",
+    "- optional `**Delivery snapshot:**`",
+    "- optional `**Recent landings:**`",
+    "- `## Issues That Need Your Attention`",
+    "- `## On The Table`",
+    "- `## In Motion`",
+    "- recommendation sentence plus final focus options",
     "Use these section headings exactly once in the final status body:",
     "## Issues That Need Your Attention",
     "## On The Table",
     "## In Motion",
     "Do not render a separate `## What's Next` section in the final status body.",
+    "Do not render an `Operational context:` block in the final status body.",
     "Before those sections, write a short opening paragraph and then a `**Recent landings:**` block when recent landed work exists.",
     "In `**Recent landings:**`, use flat bullets in this style: `- Feature Name (review status, approval status, optional note)`.",
     "If review was not required, include the short reason why that is acceptable.",
@@ -88,7 +107,7 @@ export async function renderStatusWithAgent(
     },
   });
 
-  return stripStatusTitle(invocation.response);
+  return ensureSupportedLiveStatusBody(stripStatusTitle(invocation.response), options.surface, evidencePack);
 }
 
 async function loadStatusPrompt(promptsDir: string): Promise<string> {
@@ -100,6 +119,7 @@ function buildStatusEvidencePack(
 ): Record<string, unknown> {
   const { facts, brief, governance, statusWindow } = options;
   const landedFeatures = facts.features
+    .filter((feature) => isRecentLandedFeature(facts.collectedAt, feature))
     .filter((feature) => feature.completion)
     .map((feature) => toLandedEvidence(feature, governance));
   const recentLandingsCompact = buildRecentLandingSummaries(landedFeatures);
@@ -144,6 +164,19 @@ function buildStatusEvidencePack(
     company_performance: buildCompanyPerformance(landedFeatures),
     landed_recently: landedFeatures,
     recent_landings_compact: recentLandingsCompact,
+    supported_live_contract: {
+      required_sections: [
+        "## Issues That Need Your Attention",
+        "## On The Table",
+        "## In Motion",
+      ],
+      forbidden_sections: [
+        "## What's Next",
+        "Operational context:",
+      ],
+      final_focus_options_required: focusOptions.length > 0,
+      expected_focus_option_count: focusOptions.length > 0 ? 3 : 0,
+    },
     executive_sections: {
       issues: groupedAttention,
       on_the_table: [
@@ -238,6 +271,19 @@ function buildCompanyPerformance(
       ? "Delivery confidence is mostly strong, but company cost auditability is incomplete because durable token totals are missing on recent post-rollout work."
       : "Recent delivery auditability looks stable from the available review and KPI evidence.",
   };
+}
+
+function ensureSupportedLiveStatusBody(
+  body: string,
+  surface: LiveExecutiveSurface,
+  evidencePack: Record<string, unknown>,
+): string {
+  const violations = collectSupportedLiveStatusViolations(body, evidencePack);
+  if (violations.length === 0) {
+    return body.trim();
+  }
+
+  return renderDeterministicSupportedStatus(surface, evidencePack);
 }
 
 function buildRecentLandingSummaries(
@@ -466,6 +512,123 @@ function buildRecommendationSummary(
     : `My recommendation is to focus on ${title} first.`;
 }
 
+function collectSupportedLiveStatusViolations(
+  body: string,
+  evidencePack: Record<string, unknown>,
+): string[] {
+  const violations: string[] = [];
+  const normalized = body.replace(/\r\n/g, "\n").trim();
+  const requiredHeadings = [
+    "## Issues That Need Your Attention",
+    "## On The Table",
+    "## In Motion",
+  ];
+
+  for (const heading of requiredHeadings) {
+    if (!normalized.includes(heading)) {
+      violations.push(`missing:${heading}`);
+    }
+  }
+
+  if (/\n## What's Next\b/.test(`\n${normalized}`)) {
+    violations.push("forbidden:## What's Next");
+  }
+
+  if (/\nOperational context:\s*/i.test(`\n${normalized}`)) {
+    violations.push("forbidden:Operational context");
+  }
+
+  const recentLandings = asArray(evidencePack.recent_landings_compact);
+  if (recentLandings.length > 0 && !normalized.includes("**Recent landings:**")) {
+    violations.push("missing:recent-landings");
+  }
+
+  const focusOptions = asFocusOptions(evidencePack.focus_options);
+  if (focusOptions.length > 0) {
+    for (const optionNumber of [1, 2, 3]) {
+      if (!new RegExp(`(^|\\n)${optionNumber}\\.\\s`, "m").test(normalized)) {
+        violations.push(`missing:focus-option-${optionNumber}`);
+      }
+    }
+  }
+
+  return violations;
+}
+
+function renderDeterministicSupportedStatus(
+  surface: LiveExecutiveSurface,
+  evidencePack: Record<string, unknown>,
+): string {
+  const lines: string[] = [surface.opening];
+  const deliverySnapshot = renderDeliverySnapshot(evidencePack.company_performance);
+
+  if (deliverySnapshot) {
+    lines.push("");
+    lines.push(`**Delivery snapshot:** ${deliverySnapshot}`);
+  }
+
+  const recentLandings = asArray(evidencePack.recent_landings_compact)
+    .map((entry) => asRecord(entry))
+    .filter((entry) => String(entry.feature_label ?? "").trim().length > 0);
+  if (recentLandings.length > 0) {
+    lines.push("");
+    lines.push("**Recent landings:**");
+    for (const item of recentLandings) {
+      const featureLabel = String(item.feature_label ?? "Feature");
+      const compactLine = String(item.compact_line ?? "").trim();
+      lines.push(compactLine.length > 0
+        ? `- ${featureLabel} (${compactLine})`
+        : `- ${featureLabel}`);
+    }
+  }
+
+  renderEvidenceSection(
+    lines,
+    "Issues That Need Your Attention",
+    asArray(evidencePack.executive_sections && asRecord(evidencePack.executive_sections).issues),
+    "No current blocked item or contradiction requires direct CEO attention.",
+  );
+  renderEvidenceSection(
+    lines,
+    "On The Table",
+    asArray(evidencePack.executive_sections && asRecord(evidencePack.executive_sections).on_the_table),
+    "No unresolved shaping, governance, or decision item is currently on the table.",
+  );
+  renderEvidenceSection(
+    lines,
+    "In Motion",
+    asArray(evidencePack.executive_sections && asRecord(evidencePack.executive_sections).in_motion),
+    "Nothing actively in flight right now.",
+  );
+
+  const recommendation = String(evidencePack.coo_recommendation_summary ?? "").trim();
+  const focusOptions = asFocusOptions(evidencePack.focus_options);
+  if (recommendation.length > 0 || focusOptions.length > 0) {
+    lines.push("");
+    if (recommendation.length > 0) {
+      lines.push(recommendation);
+    }
+    if (focusOptions.length > 0) {
+      lines.push("");
+      lines.push("Where would you like to focus?");
+      lines.push("");
+      for (const [index, option] of focusOptions.entries()) {
+        const title = option.title || `Option ${index + 1}`;
+        const suffix = option.recommended ? " (Recommended)" : "";
+        const whyNow = option.action_if_approved
+          ? ` - ${option.action_if_approved}`
+          : option.why_now
+            ? ` - ${option.why_now}`
+            : "";
+        lines.push(`${index + 1}. **${title}**${suffix}${whyNow}`);
+      }
+      lines.push(`${focusOptions.length + 1}. **Other** - type what you need`);
+    }
+  }
+
+  return lines.join("\n").trim();
+}
+
 function toLandedEvidence(
   feature: BriefFeatureSnapshot,
   governance: GovernedStatusContext,
@@ -503,6 +666,100 @@ function toLandedEvidence(
   };
 }
 
+function renderDeliverySnapshot(companyPerformance: unknown): string | null {
+  const record = asRecord(companyPerformance);
+  const recentCount = Number(record.recent_landed_count ?? 0);
+  const reviewGovernance = asRecord(record.review_governance);
+  const mergeApproval = asRecord(record.merge_approval);
+  const costVisibility = asRecord(record.cost_visibility);
+  const parts: string[] = [];
+
+  if (recentCount > 0) {
+    parts.push(`${recentCount} feature${recentCount === 1 ? "" : "s"} landed recently.`);
+  }
+
+  const reviewEvidencedCount = Number(reviewGovernance.evidenced_count ?? 0);
+  const reviewLegacyCount = Number(reviewGovernance.acceptable_legacy_count ?? 0);
+  if (reviewEvidencedCount > 0 || reviewLegacyCount > 0) {
+    parts.push(`${reviewEvidencedCount} have evidenced review governance, ${reviewLegacyCount} are acceptable legacy.`);
+  }
+
+  const approvalProvedCount = Number(mergeApproval.proved_count ?? 0);
+  if (approvalProvedCount > 0) {
+    parts.push(`${approvalProvedCount} have proved pre-merge approval on record.`);
+  }
+
+  const auditabilityRead = String(record.auditability_read ?? "").trim();
+  if (auditabilityRead.length > 0) {
+    parts.push(auditabilityRead);
+  } else {
+    const suspiciousCostGapCount = Number(costVisibility.suspicious_gap_count ?? 0);
+    if (suspiciousCostGapCount > 0) {
+      parts.push(`${suspiciousCostGapCount} suspicious cost-visibility gap${suspiciousCostGapCount === 1 ? "" : "s"} need follow-up.`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
+function renderEvidenceSection(
+  lines: string[],
+  heading: string,
+  rawItems: unknown[],
+  emptyLine: string,
+): void {
+  lines.push("");
+  lines.push(`## ${heading}`);
+  if (rawItems.length === 0) {
+    lines.push(emptyLine);
+    return;
+  }
+
+  for (const rawItem of rawItems) {
+    const item = asRecord(rawItem);
+    const title = String(item.title ?? item.feature_label ?? "Item").trim();
+    const affected = asArray(item.affected_feature_labels).map((entry) => String(entry)).filter(Boolean);
+    const titleLine = affected.length > 0 && !affected.includes(title)
+      ? `${title} (${affected.join(", ")}):`
+      : `${title}:`;
+    lines.push(`- ${titleLine}`);
+
+    const summary = firstNonEmptyString([
+      item.summary,
+      item.reason,
+      item.progress_summary,
+    ]);
+    if (summary) {
+      lines.push(`  ${summary}`);
+    }
+
+    const why = firstNonEmptyString([item.why]);
+    if (why) {
+      lines.push(`  Why: ${why}`);
+    }
+    const impact = firstNonEmptyString([item.impact]);
+    if (impact) {
+      lines.push(`  Impact: ${impact}`);
+    }
+    const fix = firstNonEmptyString([item.system_fix, item.action, item.recommendation]);
+    if (fix) {
+      lines.push(`  Fix: ${fix}`);
+    }
+
+    const priorityParts = [item.severity, item.priority]
+      .map((entry) => String(entry ?? "").trim())
+      .filter(Boolean);
+    if (priorityParts.length > 0) {
+      lines.push(`  Priority: ${priorityParts.join(" / ")}.`);
+    }
+
+    const evidence = firstNonEmptyString([item.evidence]);
+    if (evidence) {
+      lines.push(`  Evidence: ${evidence}`);
+    }
+  }
+}
+
 function stripStatusTitle(value: string): string {
   return value
     .replace(/^# COO Executive Status\s*/i, "")
@@ -524,4 +781,26 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+function asFocusOptions(value: unknown): FocusOptionEvidence[] {
+  return asArray(value)
+    .map((entry) => asRecord(entry))
+    .map((entry) => ({
+      title: String(entry.title ?? "").trim(),
+      recommended: Boolean(entry.recommended),
+      why_now: typeof entry.why_now === "string" ? entry.why_now : null,
+      action_if_approved: typeof entry.action_if_approved === "string" ? entry.action_if_approved : null,
+    }))
+    .filter((entry) => entry.title.length > 0);
+}
+
+function firstNonEmptyString(values: unknown[]): string | null {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text.length > 0) {
+      return text;
+    }
+  }
+  return null;
 }

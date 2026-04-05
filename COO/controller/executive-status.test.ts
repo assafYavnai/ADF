@@ -372,7 +372,7 @@ test("fresh deep audit plus repeated evidence agreement creates a full-trust pro
   assert.ok(result.governance.additionalNext.length > 0);
 });
 
-test("company-first /status keeps the 4 sections and moves current-thread truth into the footer", async () => {
+test("deterministic fallback surface keeps the internal 4 sections and operational footer when prompts are unavailable", async () => {
   const fixture = await createFixture({ includeAdmissions: true });
   const currentThreadId = await firstThreadId(fixture.threadsDir);
 
@@ -394,7 +394,7 @@ test("company-first /status keeps the 4 sections and moves current-thread truth 
   assert.ok(result.output.includes("Scope path: assafyavnai/adf/feature-"));
 });
 
-test("live status can hand the evidence pack to the COO agent instead of using the deterministic fallback voice", async () => {
+test("live agent route hands the evidence pack to the COO model and repairs forbidden headings back to the supported live contract", async () => {
   const fixture = await createFixture({ includeAdmissions: true });
   await writeGovernanceMilestones();
   const promptsDir = join(tempRoot, "COO", "intelligence");
@@ -435,7 +435,15 @@ test("live status can hand the evidence pack to the COO agent instead of using t
     },
   });
 
-  assert.ok(result.output.includes("Overall, the company is steady."));
+  assert.ok(result.output.includes("## Issues That Need Your Attention"));
+  assert.ok(result.output.includes("## On The Table"));
+  assert.ok(result.output.includes("## In Motion"));
+  assert.ok(!result.output.includes("## What's Next"));
+  assert.ok(!result.output.includes("Operational context:"));
+  assert.ok(result.output.includes("Where would you like to focus?"));
+  assert.ok(result.output.includes("1. **"));
+  assert.ok(result.output.includes("2. **"));
+  assert.match(result.output, /\*\*Other\*\* - type what you need/);
   assert.match(capturedPrompt, /<status_evidence>/);
   assert.match(capturedPrompt, /"tracked_findings"/);
   assert.match(capturedPrompt, /"landed_recently"/);
@@ -443,8 +451,146 @@ test("live status can hand the evidence pack to the COO agent instead of using t
   assert.match(capturedPrompt, /"company_performance"/);
   assert.match(capturedPrompt, /"focus_options"/);
   assert.match(capturedPrompt, /"coo_recommendation_summary"/);
+  assert.match(capturedPrompt, /"supported_live_contract"/);
   assert.match(capturedPrompt, /route_chain/);
   assert.match(capturedPrompt, /Formatting rules:/);
+});
+
+test("live agent evidence pack only marks truly recent landed work as recent", async () => {
+  const fixture = await createFixture({ includeAdmissions: false });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-stale-landed",
+    updatedAt: "2026-03-01T10:00:00.000Z",
+    contextCollectedAt: "2026-03-01T09:00:00.000Z",
+    closeoutFinishedAt: "2026-03-01T10:00:00.000Z",
+    reviewCycles: 1,
+    completionSummary: "Token cost unavailable.",
+    reviewFinding: null,
+  });
+  await writeCompletedFeatureTruth({
+    featureSlug: "feature-recent-landed",
+    updatedAt: "2026-04-05T16:04:00.000Z",
+    contextCollectedAt: "2026-04-05T14:00:00.000Z",
+    closeoutFinishedAt: "2026-04-05T16:04:00.000Z",
+    reviewCycles: 1,
+    completionSummary: "Token cost unavailable.",
+    reviewFinding: null,
+  });
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  let capturedPrompt = "";
+  await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    statusScopePath: "assafyavnai/adf/phase1",
+    promptsDir,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async (params) => {
+      capturedPrompt = params.prompt;
+      return {
+        provenance: {
+          invocation_id: "status-agent-recent",
+          provider: "codex",
+          model: "gpt-5.4",
+          reasoning: "medium",
+          was_fallback: false,
+          source_path: "test",
+          timestamp: "2026-04-05T00:00:00.000Z",
+        },
+        response: "Overall, the company is steady.\n\n**Recent landings:**\n- Feature Recent Landed (1 review cycle, approval before merge proved)\n\n## Issues That Need Your Attention\nNo immediate issues.\n\n## On The Table\nNo open items.\n\n## In Motion\nNothing active.\n\nWhere would you like to focus?\n\n1. **Feature Recent Landed** (Recommended)\n2. **Feature Moving**\n3. **Other** - type what you need",
+        latency_ms: 1,
+        attempts: [],
+      };
+    },
+  });
+
+  const evidence = extractStatusEvidence(capturedPrompt);
+  assert.equal(evidence.company_performance.recent_landed_count, 1);
+  assert.equal(evidence.recent_landings_compact.length, 1);
+  assert.match(JSON.stringify(evidence.recent_landings_compact), /Feature Recent Landed/);
+  assert.doesNotMatch(JSON.stringify(evidence.recent_landings_compact), /Feature Stale Landed/);
+});
+
+test("status-window anchor only advances after a successful status render", async () => {
+  const fixture = await createFixture({ includeAdmissions: true });
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+  const anchorPath = join(tempRoot, ".codex", "runtime", "coo-live-status-window.json");
+  const originalAnchor = {
+    renderedAt: "2026-04-01T00:00:00.000Z",
+    headCommit: "old-head",
+  };
+  await writeJson(anchorPath, originalAnchor);
+
+  await assert.rejects(
+    buildLiveExecutiveStatus({
+      projectRoot: tempRoot,
+      threadsDir: fixture.threadsDir,
+      brainClient: fixture.brainClient,
+      sourcePartition: "proof",
+      statusScopePath: "assafyavnai/adf/phase1",
+      promptsDir,
+      intelligenceParams: {
+        cli: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        bypass: true,
+        timeout_ms: 5_000,
+      },
+      invokeLLM: async () => {
+        throw new Error("synthetic render failure");
+      },
+    }),
+    /synthetic render failure/i,
+  );
+
+  const afterFailure = JSON.parse(await readFile(anchorPath, "utf-8"));
+  assert.deepEqual(afterFailure, originalAnchor);
+
+  await buildLiveExecutiveStatus({
+    projectRoot: tempRoot,
+    threadsDir: fixture.threadsDir,
+    brainClient: fixture.brainClient,
+    sourcePartition: "proof",
+    statusScopePath: "assafyavnai/adf/phase1",
+    promptsDir,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-success",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: "Overall, the company is steady.\n\n## Issues That Need Your Attention\nNo immediate issues.\n\n## On The Table\nNo open items.\n\n## In Motion\nNothing active.\n\nWhere would you like to focus?\n\n1. **Feature Moving** (Recommended)\n2. **Feature Next**\n3. **Other** - type what you need",
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  const afterSuccess = JSON.parse(await readFile(anchorPath, "utf-8"));
+  assert.notDeepEqual(afterSuccess, originalAnchor);
+  assert.ok(typeof afterSuccess.renderedAt === "string");
 });
 
 test("tracked issues persist both Brain-backed findings and local ready handoffs for crash continuity", async () => {
@@ -903,4 +1049,10 @@ function assertEventPresent(operation: string): void {
     capturedEvents.some((event) => event.operation === operation),
     `Expected telemetry event ${operation} to be emitted.`,
   );
+}
+
+function extractStatusEvidence(prompt: string): Record<string, any> {
+  const match = prompt.match(/<status_evidence>\n([\s\S]*?)\n<\/status_evidence>/);
+  assert.ok(match, "Expected a <status_evidence> block in the captured prompt.");
+  return JSON.parse(match[1]);
 }

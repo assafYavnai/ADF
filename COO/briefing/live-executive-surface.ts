@@ -465,7 +465,7 @@ function firstDetailRecommendation(details: string[]): string | null {
   return null;
 }
 
-function isRecentLandedFeature(collectedAt: string, feature: BriefFeatureSnapshot): boolean {
+export function isRecentLandedFeature(collectedAt: string, feature: BriefFeatureSnapshot): boolean {
   if (!feature.completion) {
     return false;
   }

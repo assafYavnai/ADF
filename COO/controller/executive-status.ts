@@ -138,6 +138,7 @@ export async function buildLiveExecutiveStatus(
       })
       : renderLiveExecutiveSurface(surface);
     output = renderLiveExecutiveStatusOutput(rendered);
+    await persistStatusWindowAnchor(options, facts, statusWindow);
   } catch (error) {
     const renderLatencyMs = Date.now() - renderStartedAt;
     emitBuildMetrics(buildLatencyMs, true, facts, diagnostics, options.telemetryContext);
@@ -283,33 +284,15 @@ async function resolveStatusWindow(
 ): Promise<GitStatusWindow | null> {
   const loadStatusUpdateAnchor = options.loadStatusUpdateAnchor ?? loadStatusUpdateAnchorDefault;
   const inspectGitStatusWindow = options.inspectGitStatusWindow ?? inspectGitStatusWindowDefault;
-  const saveStatusUpdateAnchor = options.saveStatusUpdateAnchor ?? saveStatusUpdateAnchorDefault;
 
   try {
     const previousAnchor = await loadStatusUpdateAnchor(options.projectRoot);
-    const statusWindow = await inspectGitStatusWindow({
+    return await inspectGitStatusWindow({
       projectRoot: options.projectRoot,
       currentRenderedAt: facts.collectedAt,
       previousAnchor,
       surfacedFeatureIds: collectSurfacedFeatureIds(facts, brief),
     });
-
-    try {
-      await saveStatusUpdateAnchor(options.projectRoot, {
-        renderedAt: facts.collectedAt,
-        headCommit: statusWindow.currentHeadCommit,
-      });
-    } catch {
-      return {
-        ...statusWindow,
-        verificationNotes: [
-          ...statusWindow.verificationNotes,
-          "The current COO status rendered, but the runtime could not record this update as the next comparison baseline.",
-        ],
-      };
-    }
-
-    return statusWindow;
   } catch {
     return {
       currentRenderedAt: facts.collectedAt,
@@ -325,4 +308,16 @@ async function resolveStatusWindow(
       redFlag: false,
     };
   }
+}
+
+async function persistStatusWindowAnchor(
+  options: LiveExecutiveStatusOptions,
+  facts: BriefSourceFacts,
+  statusWindow: GitStatusWindow | null,
+): Promise<void> {
+  const saveStatusUpdateAnchor = options.saveStatusUpdateAnchor ?? saveStatusUpdateAnchorDefault;
+  await saveStatusUpdateAnchor(options.projectRoot, {
+    renderedAt: facts.collectedAt,
+    headCommit: statusWindow?.currentHeadCommit ?? null,
+  });
 }

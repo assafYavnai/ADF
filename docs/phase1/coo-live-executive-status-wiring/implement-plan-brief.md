@@ -7,7 +7,7 @@ Rebase the existing live COO status slice into a bounded Phase 1 COO operator wi
 - reuse the stabilized COO runtime and live executive-status foundation
 - keep the merged briefing package as the executive read-model base
 - add bounded status governance, operating-table continuity, trust, and deep-audit behavior
-- preserve the 4 executive sections in the CEO-facing surface
+- preserve the internal 4-section executive brief while freezing the currently approved live CEO-facing contract
 
 3. Core Runtime Rules
 

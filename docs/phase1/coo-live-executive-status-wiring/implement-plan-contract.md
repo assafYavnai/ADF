@@ -70,7 +70,11 @@ Verify from the feature worktree:
 
 Check:
 - readable business-level output
-- 4 executive sections present
+- approved live CEO-facing contract present:
+  - `Issues That Need Your Attention`
+  - `On The Table`
+  - `In Motion`
+  - recommendation sentence plus focus options
 - evidence gaps stay visible
 - Brain hard-stop message is explicit if Brain is unavailable
 - any git-backed dropped-context warning is understandable
@@ -109,7 +113,7 @@ Current Gap-Closure Compatibility:
 - The slice closes the active gap around the COO business-level surface by turning it from status compression into evidence-validated operational judgment plus company-table visibility.
 
 Compatibility Evidence:
-- company-first `/status` now renders the 4 executive sections from live evidence
+- company-first `/status` now renders the approved live CEO-facing contract from live evidence while the internal executive brief keeps the 4 operating sections
 - suspicious surfaced facts such as `0 review cycles` are investigated rather than merely repeated
 - deep-audit, trust, tracked-issue, and Brain hard-stop behavior are implemented and tested
 - the route remains bounded and derived-only rather than becoming a second canonical company database

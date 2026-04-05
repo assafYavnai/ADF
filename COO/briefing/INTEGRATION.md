@@ -35,14 +35,16 @@ It now includes:
 
 ### 3. Executive surface rendering
 `COO/briefing/live-executive-surface.ts`:
-- keeps the 4 executive sections visible
-- adds scan-friendly context around them:
+- keeps the internal 4 executive sections available as derived operating truth
+- the default live CEO-facing route now freezes a separate approved contract:
   - opening summary
-  - status window
-  - status notes
-  - what landed recently
-  - operational footer
-- keeps provenance, freshness, and confidence visible in human-facing text
+  - optional delivery snapshot
+  - optional recent landings
+  - `Issues That Need Your Attention`
+  - `On The Table`
+  - `In Motion`
+  - recommendation sentence plus final focus options
+- `COO/briefing/status-render-agent.ts` validates the model output against that live contract and falls back deterministically if the model drifts
 
 ## Derived-Only Rule
 The briefing layer, operating table, and trust continuity remain derived-only.

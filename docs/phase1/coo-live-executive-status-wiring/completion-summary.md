@@ -40,17 +40,20 @@ New runtime capability added in this pass:
   - carries route-chain, impact, urgency, KPI/auditability summary, and prepared focus options into the evidence pack
   - carries compact `Recent landings` summaries with review status, approval-proof status, and legacy-gap explanations
   - calls the COO model for the final CEO-facing wording
-  - keeps the deterministic surface only as fallback/proof truth
-- company-first live render that keeps the 4 executive sections while adding:
+  - validates the model output against the approved live CEO-facing contract and repairs drift through deterministic fallback
+- company-first live render now freezes the approved CEO-facing contract:
   - opening summary
-  - status window
-  - status notes
-  - what landed section
-  - compact operational footer
+  - optional delivery snapshot
+  - optional recent landings
+  - `Issues That Need Your Attention`
+  - `On The Table`
+  - `In Motion`
   - closing call-for-action options when there is a clear next focus
 - later live UX adjustment:
   - the final CEO-facing status now drops a separate `What's Next` section
   - the COO recommendation is surfaced directly above the numbered focus options instead
+- recent-landings freshness is now shared between the normalized surface and the live agent evidence pack
+- the git status-window comparison anchor now advances only after a successful status render
 - investigation behavior for suspicious surfaced facts such as `0 review cycles`
 - bounded local runtime continuity under `.codex/runtime/` for:
   - COO operating state
@@ -66,7 +69,7 @@ New runtime capability added in this pass:
 - `COO/briefing/status-render-agent.ts`
   - new live status render path that hands grouped source evidence to the COO model instead of hardcoding final prose
 - `COO/briefing/live-executive-surface.ts`
-  - keeps the 4 executive sections visible and acts as the normalized fallback/proof surface
+  - keeps the internal 4 executive sections as derived operating truth and provides the shared recent-landings window
 - `COO/controller/executive-status.ts`
   - wires the governed status context into the live route and switches live wording to the COO model when intelligence config is present
 - `COO/controller/cli.ts`
@@ -116,8 +119,8 @@ Truthful evidence available anyway:
 6. Verification Evidence
 
 Machine verification passed:
-- `C:\ADF\wt\COO\node_modules\.bin\tsx.cmd --test COO/controller/executive-status.test.ts COO/briefing/executive-brief.test.ts`
-- result: `47 passed, 0 failed`
+- `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd --test controller/executive-status.test.ts briefing/executive-brief.test.ts`
+- result: `50 passed, 0 failed`
 
 Proof coverage now includes:
 - first-run deep audit
@@ -135,14 +138,16 @@ Proof coverage now includes:
 - proof/production partition proof
 
 Direct runtime smoke passed:
-- `C:\ADF\wt\COO\node_modules\.bin\tsx.cmd controller/cli.ts --scope assafyavnai/adf --enable-onion --status --scope-path assafyavnai/adf/phase1`
+- `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd controller/cli.ts --scope assafyavnai/adf --enable-onion --status --scope-path assafyavnai/adf/phase1`
 
 Smoke observations:
 - the rebased COO rendered successfully
 - the final wording came from the COO model over a strict evidence pack
-- the 4 executive sections were present
+- the approved live CEO-facing contract was present
 - Brain hard-stop did not trigger
-- deep-audit notes, landed-route judgments, missing-source visibility, handoff readiness, and operational footer rendered as expected
+- deep-audit notes, landed-route judgments, missing-source visibility, and handoff readiness rendered as expected
+- the live route no longer labels stale landed work as recent
+- the git comparison anchor now advances only after a successful status render
 - the KPI issue now lands as a system closeout-route diagnosis, not as a shallow per-feature symptom
 - the live wording now surfaces why / impact / fix / priority more explicitly and ends with a natural next-focus choice
 - recent landed items now also tell the CEO whether review and pre-merge approval proof are actually present, or why a missing check is acceptable legacy
