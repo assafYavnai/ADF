@@ -6,7 +6,10 @@ import {
   renderLiveExecutiveSurface,
   type LiveExecutiveSurface,
 } from "../briefing/live-executive-surface.js";
-import { renderStatusWithAgent } from "../briefing/status-render-agent.js";
+import {
+  assessSupportedLiveStatusBody,
+  renderStatusWithAgent,
+} from "../briefing/status-render-agent.js";
 import {
   loadLiveBriefSourceFacts,
   type LiveBriefDiagnostics,
@@ -109,6 +112,18 @@ export async function buildLiveExecutiveStatus(
   let statusWindow: GitStatusWindow | null = null;
   let rendered: string;
   let output: string;
+  let acceptedBodyParity = {
+    issuesExpected: brief.parity.issuesExpected,
+    issuesActual: brief.parity.issuesActual,
+    tableExpected: brief.parity.tableExpected,
+    tableActual: brief.parity.tableActual,
+    inMotionExpected: brief.parity.inMotionExpected,
+    inMotionActual: brief.parity.inMotionActual,
+    nextExpected: brief.parity.whatsNextExpected,
+    nextActual: brief.parity.whatsNextActual,
+    recentLandingsExpected: 0,
+    recentLandingsActual: 0,
+  };
   try {
     statusWindow = await resolveStatusWindow(options, facts, brief);
     governance = await prepareGovernedStatusContext({
@@ -137,6 +152,14 @@ export async function buildLiveExecutiveStatus(
         invokeLLM: options.invokeLLM,
       })
       : renderLiveExecutiveSurface(surface);
+    if (options.promptsDir && options.intelligenceParams) {
+      acceptedBodyParity = assessSupportedLiveStatusBody(rendered, {
+        facts,
+        brief,
+        governance,
+        statusWindow,
+      }).visibility;
+    }
     output = renderLiveExecutiveStatusOutput(rendered);
     await persistStatusWindowAnchor(options, facts, statusWindow);
   } catch (error) {
@@ -172,10 +195,10 @@ export async function buildLiveExecutiveStatus(
     source_partition: facts.sourcePartition,
     ...options.telemetryContext,
   });
-  emitParityMetric("issues_visibility_parity_count", brief.parity.issuesExpected, brief.parity.issuesActual, facts.sourcePartition, options.telemetryContext);
-  emitParityMetric("table_visibility_parity_count", brief.parity.tableExpected, brief.parity.tableActual, facts.sourcePartition, options.telemetryContext);
-  emitParityMetric("in_motion_visibility_parity_count", brief.parity.inMotionExpected, brief.parity.inMotionActual, facts.sourcePartition, options.telemetryContext);
-  emitParityMetric("next_visibility_parity_count", brief.parity.whatsNextExpected, brief.parity.whatsNextActual, facts.sourcePartition, options.telemetryContext);
+  emitParityMetric("issues_visibility_parity_count", acceptedBodyParity.issuesExpected, acceptedBodyParity.issuesActual, facts.sourcePartition, options.telemetryContext);
+  emitParityMetric("table_visibility_parity_count", acceptedBodyParity.tableExpected, acceptedBodyParity.tableActual, facts.sourcePartition, options.telemetryContext);
+  emitParityMetric("in_motion_visibility_parity_count", acceptedBodyParity.inMotionExpected, acceptedBodyParity.inMotionActual, facts.sourcePartition, options.telemetryContext);
+  emitParityMetric("next_visibility_parity_count", acceptedBodyParity.nextExpected, acceptedBodyParity.nextActual, facts.sourcePartition, options.telemetryContext);
   emitStatusMetric("live_source_freshness_age_ms", diagnostics.sourceFreshnessAgeMs, true, {
     count: 1,
     source_partition: facts.sourcePartition,

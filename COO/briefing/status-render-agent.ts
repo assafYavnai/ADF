@@ -29,6 +29,31 @@ interface FocusOptionEvidence {
   action_if_approved: string | null;
 }
 
+interface StatusEvidenceContext {
+  facts: BriefSourceFacts;
+  brief: ExecutiveBrief;
+  governance: GovernedStatusContext;
+  statusWindow: GitStatusWindow | null;
+}
+
+export interface SupportedLiveStatusBodyParity {
+  issuesExpected: number;
+  issuesActual: number;
+  tableExpected: number;
+  tableActual: number;
+  inMotionExpected: number;
+  inMotionActual: number;
+  nextExpected: number;
+  nextActual: number;
+  recentLandingsExpected: number;
+  recentLandingsActual: number;
+}
+
+export interface SupportedLiveStatusBodyAssessment {
+  visibility: SupportedLiveStatusBodyParity;
+  violations: string[];
+}
+
 export async function renderStatusWithAgent(
   options: StatusRenderAgentOptions,
 ): Promise<string> {
@@ -116,7 +141,7 @@ async function loadStatusPrompt(promptsDir: string): Promise<string> {
 }
 
 function buildStatusEvidencePack(
-  options: StatusRenderAgentOptions,
+  options: StatusEvidenceContext,
 ): Record<string, unknown> {
   const { facts, brief, governance, statusWindow } = options;
   const landedFeatures = facts.features
@@ -286,6 +311,14 @@ function ensureSupportedLiveStatusBody(
   }
 
   return renderDeterministicSupportedStatus(surface, evidencePack);
+}
+
+export function assessSupportedLiveStatusBody(
+  body: string,
+  context: StatusEvidenceContext,
+): SupportedLiveStatusBodyAssessment {
+  const evidencePack = buildStatusEvidencePack(context);
+  return assessSupportedLiveStatusBodyAgainstEvidence(body, evidencePack);
 }
 
 function buildRecentLandingSummaries(
@@ -559,6 +592,14 @@ function collectSupportedLiveStatusViolations(
   body: string,
   evidencePack: Record<string, unknown>,
 ): string[] {
+  const violations = assessSupportedLiveStatusBodyAgainstEvidence(body, evidencePack).violations;
+  return [...new Set(violations)];
+}
+
+function assessSupportedLiveStatusBodyAgainstEvidence(
+  body: string,
+  evidencePack: Record<string, unknown>,
+): SupportedLiveStatusBodyAssessment {
   const violations: string[] = [];
   const normalized = body.replace(/\r\n/g, "\n").trim();
   const requiredHeadings = [
@@ -667,7 +708,27 @@ function collectSupportedLiveStatusViolations(
     violations.push("unexpected:focus-options");
   }
 
-  return [...new Set(violations)];
+  const visibility = collectSupportedLiveStatusParity(normalized, evidencePack, headingPositions, requiredHeadings);
+  if (visibility.issuesActual !== visibility.issuesExpected) {
+    violations.push("parity:issues");
+  }
+  if (visibility.tableActual !== visibility.tableExpected) {
+    violations.push("parity:on-the-table");
+  }
+  if (visibility.inMotionActual !== visibility.inMotionExpected) {
+    violations.push("parity:in-motion");
+  }
+  if (visibility.nextActual !== visibility.nextExpected) {
+    violations.push("parity:focus-options");
+  }
+  if (visibility.recentLandingsActual !== visibility.recentLandingsExpected) {
+    violations.push("parity:recent-landings");
+  }
+
+  return {
+    visibility,
+    violations: [...new Set(violations)],
+  };
 }
 
 function collectExactLineMatches(text: string, line: string): number[] {
@@ -675,6 +736,159 @@ function collectExactLineMatches(text: string, line: string): number[] {
   return matches
     .map((match) => match.index)
     .filter((index): index is number => typeof index === "number");
+}
+
+function collectSupportedLiveStatusParity(
+  normalized: string,
+  evidencePack: Record<string, unknown>,
+  headingPositions: Map<string, number[]>,
+  requiredHeadings: string[],
+): SupportedLiveStatusBodyParity {
+  const sections = splitSupportedLiveSections(normalized, headingPositions, requiredHeadings);
+  const executiveSections = asRecord(evidencePack.executive_sections);
+  const recentLandings = asArray(evidencePack.recent_landings_compact)
+    .map((entry) => asRecord(entry))
+    .filter((entry) => String(entry.feature_label ?? "").trim().length > 0);
+  const focusOptions = asFocusOptions(evidencePack.focus_options);
+  const recommendation = String(evidencePack.coo_recommendation_summary ?? "").trim();
+
+  return {
+    issuesExpected: asArray(executiveSections.issues).length,
+    issuesActual: sections
+      ? countVisibleSectionItems(sections.issues, asArray(executiveSections.issues), { requireFixForReadyHandoff: true })
+      : 0,
+    tableExpected: asArray(executiveSections.on_the_table).length,
+    tableActual: sections
+      ? countVisibleSectionItems(sections.onTheTable, asArray(executiveSections.on_the_table))
+      : 0,
+    inMotionExpected: asArray(executiveSections.in_motion).length,
+    inMotionActual: sections
+      ? countVisibleSectionItems(sections.inMotion, asArray(executiveSections.in_motion))
+      : 0,
+    nextExpected: focusOptions.length,
+    nextActual: countVisibleFocusOptions(normalized, focusOptions, recommendation),
+    recentLandingsExpected: recentLandings.length,
+    recentLandingsActual: sections
+      ? countVisibleRecentLandings(sections.preamble, recentLandings)
+      : 0,
+  };
+}
+
+function splitSupportedLiveSections(
+  normalized: string,
+  headingPositions: Map<string, number[]>,
+  requiredHeadings: string[],
+): { preamble: string; issues: string; onTheTable: string; inMotion: string; tail: string } | null {
+  const indexes = requiredHeadings
+    .map((heading) => headingPositions.get(heading)?.[0] ?? -1);
+
+  if (indexes.some((index) => index < 0)) {
+    return null;
+  }
+
+  const [issuesStart, tableStart, inMotionStart] = indexes;
+  const issuesBodyStart = issuesStart + requiredHeadings[0].length;
+  const tableBodyStart = tableStart + requiredHeadings[1].length;
+  const inMotionBodyStart = inMotionStart + requiredHeadings[2].length;
+
+  return {
+    preamble: normalized.slice(0, issuesStart),
+    issues: normalized.slice(issuesBodyStart, tableStart),
+    onTheTable: normalized.slice(tableBodyStart, inMotionStart),
+    inMotion: normalized.slice(inMotionBodyStart),
+    tail: normalized.slice(inMotionBodyStart),
+  };
+}
+
+function countVisibleSectionItems(
+  sectionText: string,
+  rawItems: unknown[],
+  options?: { requireFixForReadyHandoff?: boolean },
+): number {
+  const normalizedSection = normalizeForEvidenceMatch(sectionText);
+
+  return rawItems.reduce<number>((count, rawItem) => {
+    const item = asRecord(rawItem);
+    const title = firstNonEmptyString([item.title, item.feature_label]);
+    if (!title) {
+      return count;
+    }
+
+    if (!normalizedSection.includes(normalizeForEvidenceMatch(title))) {
+      return count;
+    }
+
+    if (options?.requireFixForReadyHandoff) {
+      const readyHandoffs = asArray(item.ready_handoffs);
+      const requiredFix = firstNonEmptyString([item.system_fix, item.action, item.recommendation]);
+      if (readyHandoffs.length > 0 && requiredFix && !normalizedSection.includes(normalizeForEvidenceMatch(requiredFix))) {
+        return count;
+      }
+    }
+
+    return count + 1;
+  }, 0);
+}
+
+function countVisibleRecentLandings(
+  preambleText: string,
+  recentLandings: Array<Record<string, unknown>>,
+): number {
+  const lines = preambleText.split("\n");
+
+  return recentLandings.reduce<number>((count, item) => {
+    const featureLabel = String(item.feature_label ?? "").trim();
+    if (featureLabel.length === 0) {
+      return count;
+    }
+
+    const matchingLine = lines.find((line) => normalizeForEvidenceMatch(line).includes(normalizeForEvidenceMatch(featureLabel)));
+    if (!matchingLine) {
+      return count;
+    }
+
+    const compactLine = String(item.compact_line ?? "");
+    const suspicious = Boolean(item.suspicious) || /see issue below/i.test(compactLine);
+    if (suspicious && !/see issue below/i.test(matchingLine)) {
+      return count;
+    }
+
+    return count + 1;
+  }, 0);
+}
+
+function countVisibleFocusOptions(
+  normalized: string,
+  focusOptions: FocusOptionEvidence[],
+  recommendation: string,
+): number {
+  const focusPromptIndex = normalized.indexOf("Where would you like to focus?");
+  const recommendationRegion = focusPromptIndex >= 0
+    ? normalized.slice(0, focusPromptIndex)
+    : normalized;
+  const optionLines = normalized
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^\d+\.\s/.test(line));
+  const normalizedOptions = optionLines.map((line) => normalizeForEvidenceMatch(line));
+
+  const optionCount = focusOptions.reduce<number>((count, option) => {
+    if (option.title.length === 0) {
+      return count;
+    }
+    return normalizedOptions.some((line) => line.includes(normalizeForEvidenceMatch(option.title)))
+      ? count + 1
+      : count;
+  }, 0);
+
+  const recommended = focusOptions.find((option) => option.recommended);
+  if (!recommended || recommendation.trim().length === 0) {
+    return optionCount;
+  }
+
+  const recommendationPresent = normalizeForEvidenceMatch(recommendationRegion)
+    .includes(normalizeForEvidenceMatch(recommended.title));
+  return recommendationPresent ? optionCount : Math.max(0, optionCount - 1);
 }
 
 function hasOpeningSummary(preamble: string): boolean {
@@ -917,6 +1131,14 @@ function renderEvidenceSection(
 function stripStatusTitle(value: string): string {
   return value
     .replace(/^# COO Executive Status\s*/i, "")
+    .trim();
+}
+
+function normalizeForEvidenceMatch(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[*_`]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 

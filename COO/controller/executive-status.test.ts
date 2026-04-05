@@ -13,6 +13,7 @@ import {
 import type { MetricEvent } from "../../shared/telemetry/types.js";
 import { buildLiveExecutiveStatus } from "./executive-status.js";
 import { renderStatusWithAgent } from "../briefing/status-render-agent.js";
+import { assessSupportedLiveStatusBody } from "../briefing/status-render-agent.js";
 import { BrainHardStopError } from "../briefing/status-governance.js";
 import { createEvent, createThread, type Thread } from "./thread.js";
 import { createApprovedOnionSnapshot, createEmptyOnionState } from "../requirements-gathering/contracts/onion-state.js";
@@ -460,6 +461,245 @@ test("live agent route hands the evidence pack to the COO model and repairs malf
   assert.match(capturedPrompt, /"supported_live_contract"/);
   assert.match(capturedPrompt, /route_chain/);
   assert.match(capturedPrompt, /Formatting rules:/);
+});
+
+test("renderStatusWithAgent rejects structurally valid but evidence-dropping live output and falls back to the evidence-backed body", async () => {
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  const context = {
+    facts: {
+      collectedAt: "2026-04-05T00:00:00.000Z",
+      sourcePartition: "proof",
+      sourceFreshnessAgeMs: 0,
+      sourceAvailability: [],
+      companyScopePath: "assafyavnai/adf/phase1",
+      features: [
+        {
+          id: "feature-landed",
+          label: "Feature Landed",
+          status: "completed",
+          lastActivityAt: "2026-04-05T00:00:00.000Z",
+          missingSourceFamilies: [],
+          evidence: { type: "direct_source" },
+          completion: {
+            mergedAt: "2026-04-05T00:00:00.000Z",
+            reviewCycles: 1,
+            tokenCostTokens: null,
+            timing: null,
+            keyIssue: null,
+          },
+        },
+      ],
+    } as any,
+    brief: {
+      issues: [],
+      onTheTable: [
+        {
+          featureId: "feature-table",
+          featureLabel: "Feature Table",
+          summary: "Feature Table is awaiting a decision.",
+        },
+      ],
+      inMotion: [
+        {
+          featureId: "feature-moving",
+          featureLabel: "Feature Moving",
+          progressSummary: "Feature Moving is actively executing.",
+        },
+      ],
+      whatsNext: [],
+      diagnostics: {
+        counts: {
+          issuesExpected: 0,
+          issuesActual: 0,
+          onTheTableExpected: 1,
+          onTheTableActual: 1,
+          inMotionExpected: 1,
+          inMotionActual: 1,
+          whatsNextExpected: 0,
+          whatsNextActual: 0,
+        },
+      },
+    } as any,
+    governance: {
+      companyScopePath: "assafyavnai/adf/phase1",
+      statusNotes: [],
+      landedAssessments: new Map([
+        ["feature-landed", {
+          classification: "suspicious",
+          primaryConcern: "kpi",
+          reviewAssessmentLine: "Review check: 1 completed review cycle is recorded.",
+          approvalAssessmentLine: "Approval check: approved commit is recorded before merge.",
+          tokenAssessmentLine: "KPI check: token cost is unavailable even though KPI capture was already live when this feature landed.",
+          timingAssessmentLine: "Timing check: route only proves elapsed lifecycle time.",
+          cooReadLine: "This is a route-quality problem.",
+          recommendation: "Patch the closeout route.",
+          businessImpact: "Cost visibility is incomplete.",
+          businessSeverity: "high",
+          businessPriority: "now",
+          routeChain: ["implement-plan", "closeout", "status"],
+          implicatedSubjects: ["route:implement-plan-closeout"],
+        }],
+      ]),
+      additionalAttention: [
+        {
+          key: "issue:feature-one",
+          featureId: "feature-one",
+          featureLabel: "Feature One",
+          classification: "suspicious",
+          summary: "Feature One needs a route fix",
+          recommendation: "Patch the route closeout path.",
+          evidenceLine: "Direct source; fresh; high confidence.",
+          rootCause: "The closeout route is dropping durable evidence.",
+          systemFix: "Patch the closeout route and backfill the affected slices.",
+          businessImpact: "Leadership loses cost visibility.",
+          businessSeverity: "high",
+          businessPriority: "now",
+          routeChain: ["implement-plan", "closeout", "status"],
+          implicatedSubjects: ["route:implement-plan-closeout"],
+        },
+      ],
+      additionalTable: [],
+      additionalNext: [],
+      deepAudit: null,
+      trustNotes: [],
+      currentThread: {
+        threadId: null,
+        activeWorkflow: null,
+        onionLayer: null,
+        scopePath: "assafyavnai/adf/phase1",
+        lastStateCommitAt: null,
+      },
+      operatingState: {
+        schemaVersion: 1,
+        baselineEstablishedAt: "2026-04-05T00:00:00.000Z",
+        lastDeepAuditAt: null,
+        lastDeepAuditTrigger: null,
+        lastDeepAuditScope: null,
+        lastDeepAuditJustified: null,
+        trackedIssues: {
+          "issue:feature-one": {
+            key: "issue:feature-one",
+            featureId: "feature-one",
+            featureLabel: "Feature One",
+            classification: "suspicious",
+            summary: "Feature One needs a route fix",
+            recommendation: "Patch the route closeout path.",
+            evidenceLine: "Direct source; fresh; high confidence.",
+            rootCause: "The closeout route is dropping durable evidence.",
+            systemFix: "Patch the closeout route and backfill the affected slices.",
+            businessImpact: "Leadership loses cost visibility.",
+            businessSeverity: "high",
+            businessPriority: "now",
+            routeChain: ["implement-plan", "closeout", "status"],
+            implicatedSubjects: ["route:implement-plan-closeout"],
+            brainFindingId: null,
+            brainOpenLoopId: null,
+            status: "open",
+            firstSeenAt: "2026-04-05T00:00:00.000Z",
+            lastSeenAt: "2026-04-05T00:00:00.000Z",
+            readyHandoff: {
+              id: "handoff:feature-one",
+              taskSummary: "Patch the closeout route and backfill the affected slices.",
+              scopePath: "assafyavnai/adf/phase1/feature-one",
+              preparedAt: "2026-04-05T00:00:00.000Z",
+              evidenceDigest: "Closeout route gap",
+              implicatedSubjects: ["route:implement-plan-closeout"],
+              status: "ready_if_approved",
+            },
+          },
+        },
+        trustSubjects: {},
+        auditHistory: [],
+        triggerTuning: {
+          contradictionSensitivity: 1,
+          stalePressureDays: 7,
+          companyEscalationThreshold: 2,
+          lastChangedAt: "2026-04-05T00:00:00.000Z",
+          lastChangedReason: null,
+        },
+      },
+    } as any,
+    statusWindow: null,
+  };
+
+  const structurallyValidButWrong = [
+    "Overall, everything looks calm.",
+    "",
+    "**Recent landings:**",
+    "- Feature Landed (1 review cycle, approval before merge proved)",
+    "",
+    "## Issues That Need Your Attention",
+    "No immediate issues.",
+    "",
+    "## On The Table",
+    "No open items.",
+    "",
+    "## In Motion",
+    "Nothing active.",
+    "",
+    "My recommendation is to focus on Unrelated One first.",
+    "",
+    "Where would you like to focus?",
+    "",
+    "1. **Unrelated One** (Recommended)",
+    "2. **Unrelated Two**",
+    "3. **Other** - type what you need",
+  ].join("\n");
+
+  const assessment = assessSupportedLiveStatusBody(structurallyValidButWrong, context);
+  assert.match(assessment.violations.join(","), /parity:issues/);
+  assert.match(assessment.violations.join(","), /parity:on-the-table/);
+  assert.match(assessment.violations.join(","), /parity:in-motion/);
+  assert.match(assessment.violations.join(","), /parity:recent-landings/);
+  assert.match(assessment.violations.join(","), /parity:focus-options/);
+
+  const output = await renderStatusWithAgent({
+    projectRoot: tempRoot,
+    promptsDir,
+    ...context,
+    surface: {
+      opening: "Overall, the company is stable.",
+    } as any,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-structural-drift",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: structurallyValidButWrong,
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  assert.ok(output.includes("## Issues That Need Your Attention"));
+  assert.ok(output.includes("## On The Table"));
+  assert.ok(output.includes("## In Motion"));
+  assert.match(output, /Feature One needs a route fix/);
+  assert.ok(output.includes("Fix: Patch the closeout route and backfill the affected slices."));
+  assert.ok(output.includes("Feature Table:"));
+  assert.ok(output.includes("Feature Moving:"));
+  assert.ok(output.includes("Feature Landed (1 review cycle, approval before merge proved, cost data missing - see issue below)"));
+  assert.ok(output.includes("1. **Feature One needs a route fix** (Recommended)"));
+  assert.ok(output.includes("2. **Feature Table**"));
+  assert.ok(!output.includes("Unrelated One"));
+  assert.ok(!output.includes("No immediate issues."));
+  assert.ok(!output.includes("No open items."));
+  assert.ok(!output.includes("Nothing active."));
 });
 
 test("renderStatusWithAgent omits the final focus-choice block when fewer than two concrete options are evidenced", async () => {

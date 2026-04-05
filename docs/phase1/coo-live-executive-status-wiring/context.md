@@ -145,6 +145,17 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - show it only when at least two concrete next-focus options are evidenced
   - otherwise omit it entirely
 
+## Accepted-Body Parity Decision - 2026-04-05
+- Review-cycle cycle-04 found that structural exactness alone was still too weak.
+- A structurally valid live CEO-facing body can still be wrong if it drops evidenced issues, table items, active work, or recent landing risk notes.
+- The supported live route now treats accepted-body evidence parity as part of the contract:
+  - `Issues`, `On The Table`, `In Motion`, and `Recent landings` must retain the evidenced items when they exist
+  - suspicious recent landings must keep their `see issue below` carry-through
+  - handoff-ready attention items must keep the fix path visible on the accepted CEO-facing body
+  - final focus-option visibility is measured against the accepted CEO-facing body, not the internal brief
+- Visibility telemetry for the prompt-backed route now measures the final accepted CEO-facing body rather than the internal brief counts.
+- If the model returns copy that is structurally clean but evidence-dropping, the route deterministically falls back to the supported evidence-based body.
+
 ## Launcher Note - 2026-04-05
 - The worktree launcher surfaced real shell errors because `adf.sh` called `coo_needs_build` and `memory_engine_needs_build` without defining them.
 - This slice now restores those missing wrapper functions so the live status route can launch cleanly from the governed worktree path.

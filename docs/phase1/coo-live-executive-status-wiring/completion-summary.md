@@ -42,6 +42,7 @@ New runtime capability added in this pass:
   - calls the COO model for the final CEO-facing wording
   - validates the model output against the approved live CEO-facing contract and repairs drift through deterministic fallback
   - now enforces exact post-render contract rules for opening-summary presence, required heading order/uniqueness, and the no-fake-options focus-choice policy
+  - now enforces accepted-body evidence parity so structurally valid but evidence-dropping live copy is rejected and repaired
 - company-first live render now freezes the approved CEO-facing contract:
   - opening summary
   - optional delivery snapshot
@@ -73,6 +74,7 @@ New runtime capability added in this pass:
   - keeps the internal 4 executive sections as derived operating truth and provides the shared recent-landings window
 - `COO/controller/executive-status.ts`
   - wires the governed status context into the live route and switches live wording to the COO model when intelligence config is present
+  - now emits visibility parity telemetry from the accepted CEO-facing body on the prompt-backed route
 - `COO/controller/cli.ts`
   - surfaces the rebased status route, explicit Brain hard-stop messaging, the status-loading cue, and the live model-rendered `/status` path
 - `adf.sh`
@@ -121,7 +123,7 @@ Truthful evidence available anyway:
 
 Machine verification passed:
 - `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd --test controller/executive-status.test.ts briefing/executive-brief.test.ts`
-- result: `51 passed, 0 failed`
+- result: `52 passed, 0 failed`
 
 Proof coverage now includes:
 - first-run deep audit
@@ -136,6 +138,7 @@ Proof coverage now includes:
 - tracked COO issue crash continuity through Brain-backed capture plus local derived state
 - no silent fallback / no source mutation
 - parity / visibility proof
+- structurally valid but evidence-dropping live-output rejection and deterministic repair
 - proof/production partition proof
 
 Direct runtime smoke passed:
@@ -153,6 +156,7 @@ Smoke observations:
 - the live wording now surfaces why / impact / fix / priority more explicitly and ends with a natural next-focus choice
 - recent landed items now also tell the CEO whether review and pre-merge approval proof are actually present, or why a missing check is acceptable legacy
 - the live route now repairs malformed model output back to the approved CEO-facing contract instead of trusting partial shape compliance
+- the live route now also repairs structurally valid but evidence-dropping model output back to the approved evidence-faithful contract
 - the final focus-choice block is now evidence-gated, so the route omits it when fewer than two concrete options are supported
 - the current strongest root-cause evidence is that implement-plan computes KPI totals during execution but the closeout projection does not persist them into durable feature truth for some post-rollout landings
 
@@ -179,7 +183,9 @@ Human verification:
 
 Review-cycle:
 - previous approval on an older head is stale
-- cycle-03 is now in progress on the rebased head
+- cycle-04 is now in progress with split-review continuity:
+  - reviewer approved
+  - auditor still has one accepted-body parity defect open
 
 Merge-queue:
 - not started

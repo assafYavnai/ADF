@@ -41,6 +41,7 @@ This slice now owns the bounded Phase 1 COO status route that:
   - recommendation sentence plus final focus options when at least two concrete options are evidenced
 - the live CEO-facing surface uses a strict evidence pack plus the COO model for final wording rather than a hardcoded prose template
 - the live route validates that contract after model rendering and falls back deterministically if the model drifts outside it
+- structurally valid but evidence-dropping CEO-facing copy is rejected the same way as malformed copy; accepted-body parity is enforced for `Issues`, `On The Table`, `In Motion`, `Recent landings`, and live focus options
 - the live route omits the final focus-choice block when the evidence does not support at least two concrete next-focus options, rather than inventing a filler option
 
 ### 2. Evidence gathering and cross-checking
@@ -149,6 +150,7 @@ Audit rules:
 - executive brief, operating table, baseline, and trust stay derived-only
 - missing-source cases stay distinguishable from empty state
 - blocked or attention-worthy items cannot disappear silently
+- accepted-body visibility telemetry must reflect the final CEO-facing body, not the internal brief counts
 - no fake Brain-backed conclusion is allowed
 - tracked COO issues and ready handoffs must survive restart through Brain-backed writes plus local derived continuity
 
