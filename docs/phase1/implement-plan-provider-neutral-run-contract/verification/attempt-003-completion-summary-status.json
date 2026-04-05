@@ -1,0 +1,142 @@
+{
+  "command": "completion-summary",
+  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+  "feature_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract",
+  "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+  "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md",
+  "completion_summary_exists": true,
+  "completion_summary_valid": true,
+  "completion_summary_error": null,
+  "feature_status": "active",
+  "active_run_status": "closeout_pending",
+  "last_commit_sha": null,
+  "current_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+  "worktree": {
+    "base_branch": "main",
+    "feature_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+    "worktree_status": "ready"
+  },
+  "merge_lifecycle": {
+    "merge_required": true,
+    "merge_status": "not_ready",
+    "approved_commit_sha": null,
+    "merge_commit_sha": null,
+    "merge_queue_request_id": null,
+    "local_target_sync_status": "not_started"
+  },
+  "execution": {
+    "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+    "attempt_id": "attempt-003",
+    "lifecycle_status": "active",
+    "terminal_status": null,
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+    "resume_checkpoint": {
+      "step": "implementation",
+      "status": "ready",
+      "reason": "Resume from the last truthful normal-mode checkpoint.",
+      "updated_at": "2026-04-04T23:01:17.529Z"
+    },
+    "kpi": {
+      "terminal_status": null,
+      "per_step_timing": {
+        "implementation": {
+          "status": "completed",
+          "started_at": "2026-04-04T22:51:22.824Z",
+          "completed_at": "2026-04-04T22:58:35.996Z",
+          "duration_seconds": 433
+        },
+        "machine_verification": {
+          "status": "completed",
+          "started_at": "2026-04-04T22:58:35.996Z",
+          "completed_at": "2026-04-04T22:58:36.323Z",
+          "duration_seconds": 0
+        },
+        "review_cycle": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "human_testing": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "merge_queue": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        }
+      },
+      "governance_call_metrics": {
+        "call_count": 0,
+        "total_duration_ms": 0,
+        "total_estimated_cost_usd": 0,
+        "total_prompt_tokens_estimated": 0,
+        "total_completion_tokens_estimated": 0,
+        "total_tokens_estimated": 0
+      },
+      "verification_outcomes": [
+        {
+          "verification_id": "verification-fdfbf918-8653-4f4c-8def-03d24b08e996",
+          "kind": "machine",
+          "status": "passed",
+          "review_cycle_number": 0,
+          "self_fix_cycle_number": 0,
+          "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.",
+          "recorded_at": "2026-04-04T22:58:36.146Z"
+        }
+      ],
+      "review_cycle_count": 0,
+      "self_fix_cycle_count": 0,
+      "blocker_history": []
+    }
+  },
+  "timing": {
+    "total_seconds": 2683,
+    "total_duration": "44m 43s",
+    "implementation_seconds": 433,
+    "implementation_duration": "7m 13s",
+    "verification_seconds": 0,
+    "verification_duration": "0s",
+    "closeout_seconds": null,
+    "closeout_duration": null
+  },
+  "highlights": {
+    "objective_completed": [
+      "Validated the existing Spec 1 implementation on branch and applied the minimal remaining helper repair so structured execution events resync the compatibility state and stale run artifact roots are repaired to the active worktree.",
+      "Closed the implementor lane at truthful machine-verified closeout for `attempt-003` without widening beyond Spec 1 and without running `review-cycle` or `merge-queue`."
+    ],
+    "deliverables_produced": [
+      "Minimal helper repair in `skills/implement-plan/scripts/implement-plan-helper.mjs`.",
+      "Truthful `attempt-003` state, contract, projection, and append-only event updates for the active normal-mode run.",
+      "Attempt-local verification artifacts under `docs/phase1/implement-plan-provider-neutral-run-contract/verification/`.",
+      "This completion summary for governed implementor-lane closeout."
+    ],
+    "verification_evidence": [
+      "Machine Verification: `node --check skills/governed-feature-runtime.mjs` passed; `node --check skills/implement-plan/scripts/implement-plan-helper.mjs` passed; targeted attempt-003 smoke verification passed and repaired the state/projection to `closeout_pending`; `manage-skills install --target codex` passed; `manage-skills check --target codex` passed; `git diff --check` passed.",
+      "Human Verification Requirement: false.",
+      "Human Verification Status: not required.",
+      "Review-Cycle Status: not run in this implementor-lane attempt because the user explicitly deferred it.",
+      "Merge Status: not run in this implementor-lane attempt; feature remains unmerged and not completed.",
+      "Local Target Sync Status: not started.",
+      "Execution Contract / Run Projection Proof: `verification/attempt-003-post-verification-summary.json` shows worktree-local `run_root` in both state and run projection plus completed `implementation` and `machine_verification` steps with one recorded machine verification outcome."
+    ],
+    "machine_verification": "`node --check skills/governed-feature-runtime.mjs` passed; `node --check skills/implement-plan/scripts/implement-plan-helper.mjs` passed; targeted attempt-003 smoke verification passed and repaired the state/projection to `closeout_pending`; `manage-skills install --target codex` passed; `manage-skills check --target codex` passed; `git diff --check` passed.",
+    "human_verification_requirement": "false.",
+    "human_verification_status": "not required.",
+    "review_cycle_status": "not run in this implementor-lane attempt because the user explicitly deferred it.",
+    "merge_status": "not run in this implementor-lane attempt; feature remains unmerged and not completed.",
+    "local_target_sync_status": "not started.",
+    "remaining_debt": [
+      "`review-cycle` remains deferred by explicit instruction in this attempt.",
+      "`merge-queue` remains deferred by explicit instruction in this attempt.",
+      "The feature is not marked completed because merge success was not attempted or recorded here."
+    ]
+  }
+}

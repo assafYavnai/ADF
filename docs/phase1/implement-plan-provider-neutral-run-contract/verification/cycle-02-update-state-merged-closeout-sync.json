@@ -1,0 +1,1167 @@
+{
+  "command": "update-state",
+  "args": [
+    "update-state",
+    "--project-root",
+    "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+    "--phase-number",
+    "1",
+    "--feature-slug",
+    "implement-plan-provider-neutral-run-contract",
+    "--run-mode",
+    "normal",
+    "--merge-status",
+    "merged",
+    "--merge-commit-sha",
+    "2222222222222222222222222222222222222222",
+    "--local-target-sync-status",
+    "fetched_only",
+    "--last-completed-step",
+    "merge_finished",
+    "--last-commit-sha",
+    "2222222222222222222222222222222222222222",
+    "--active-run-status",
+    "closeout_pending"
+  ],
+  "result": {
+    "command": "node",
+    "helper_args": [
+      "update-state",
+      "--project-root",
+      "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+      "--phase-number",
+      "1",
+      "--feature-slug",
+      "implement-plan-provider-neutral-run-contract",
+      "--run-mode",
+      "normal",
+      "--merge-status",
+      "merged",
+      "--merge-commit-sha",
+      "2222222222222222222222222222222222222222",
+      "--local-target-sync-status",
+      "fetched_only",
+      "--last-completed-step",
+      "merge_finished",
+      "--last-commit-sha",
+      "2222222222222222222222222222222222222222",
+      "--active-run-status",
+      "closeout_pending"
+    ],
+    "status": 0,
+    "stdout": "{\n  \"command\": \"update-state\",\n  \"project_root\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract\",\n  \"state_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json\",\n  \"state\": {\n    \"state_schema_version\": 2,\n    \"phase_number\": 1,\n    \"feature_slug\": \"implement-plan-provider-neutral-run-contract\",\n    \"project_root\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract\",\n    \"feature_registry_key\": \"phase1/implement-plan-provider-neutral-run-contract\",\n    \"feature_status\": \"active\",\n    \"implementor_execution_id\": null,\n    \"implementor_execution_access_mode\": \"codex_cli_full_auto_bypass\",\n    \"implementor_execution_runtime\": \"codex_cli_exec\",\n    \"implementor_provider\": \"codex\",\n    \"implementor_model\": \"gpt-5.4\",\n    \"implementor_reasoning_effort\": \"xhigh\",\n    \"resolved_runtime_permission_model\": \"codex_cli_explicit_full_auto\",\n    \"resolved_runtime_capabilities\": {\n      \"native_agent_spawning_available\": false,\n      \"native_agent_access_configurable\": false,\n      \"native_agent_inherits_runtime_access\": false,\n      \"native_agent_resume_available\": false,\n      \"native_agent_send_input_available\": false,\n      \"native_agent_wait_available\": false,\n      \"native_parallel_wait_available\": false,\n      \"codex_cli_available\": true,\n      \"codex_cli_full_auto_supported\": true,\n      \"codex_cli_bypass_supported\": true\n    },\n    \"current_branch\": \"implement-plan/phase1/implement-plan-provider-neutral-run-contract\",\n    \"base_branch\": \"main\",\n    \"feature_branch\": \"implement-plan/phase1/implement-plan-provider-neutral-run-contract\",\n    \"worktree_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract\",\n    \"worktree_status\": \"ready\",\n    \"merge_required\": true,\n    \"merge_status\": \"merged\",\n    \"approved_commit_sha\": null,\n    \"merge_commit_sha\": \"2222222222222222222222222222222222222222\",\n    \"merge_queue_request_id\": null,\n    \"local_target_sync_status\": \"fetched_only\",\n    \"last_completed_step\": \"merge_finished\",\n    \"last_commit_sha\": \"2222222222222222222222222222222222222222\",\n    \"active_run_status\": \"closeout_pending\",\n    \"created_at\": \"2026-04-04T22:16:33.486Z\",\n    \"updated_at\": \"2026-04-05T00:10:18.939Z\",\n    \"run_timestamps\": {\n      \"context_collected_at\": \"2026-04-04T22:16:34.941Z\",\n      \"worktree_prepared_at\": \"2026-04-04T22:16:34.941Z\",\n      \"integrity_passed_at\": null,\n      \"integrity_failed_at\": null,\n      \"brief_written_at\": \"2026-04-04T22:51:14.560Z\",\n      \"implementor_started_at\": \"2026-04-04T22:51:22.824Z\",\n      \"implementor_finished_at\": \"2026-04-04T22:58:35.996Z\",\n      \"verification_finished_at\": \"2026-04-04T22:58:36.323Z\",\n      \"review_requested_at\": null,\n      \"human_verification_requested_at\": null,\n      \"merge_started_at\": null,\n      \"merge_finished_at\": null,\n      \"closeout_finished_at\": null\n    },\n    \"event_log\": [\n      {\n        \"event_id\": \"event-2a9c1a75-01ea-486a-b4ca-449f43064f3c\",\n        \"event_type\": \"run-initialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:34.944Z\",\n        \"note\": \"Created a new normal execution run.\"\n      },\n      {\n        \"event_id\": \"event-880891ec-b0b4-4511-a9a2-9f8de6106854\",\n        \"event_type\": \"attempt-started\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:34.946Z\",\n        \"note\": \"Created the first attempt for this execution run.\"\n      },\n      {\n        \"event_id\": \"event-557c1472-f186-4ab4-8737-3874749f634e\",\n        \"event_type\": \"worker-bound\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:34.947Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-67a6a01b-197b-4993-a212-d4f6a846cf15\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:34.948Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-94cffd07-2d5e-4b3d-8ff4-7a1eee1a3711\",\n        \"event_type\": \"run-initialized\",\n        \"run_id\": \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\",\n        \"run_mode\": \"benchmarking\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.147Z\",\n        \"note\": \"Created a new benchmarking execution run.\"\n      },\n      {\n        \"event_id\": \"event-db812b11-7815-4a6b-a1af-93311adb9b03\",\n        \"event_type\": \"attempt-started\",\n        \"run_id\": \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\",\n        \"run_mode\": \"benchmarking\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.149Z\",\n        \"note\": \"Created the first attempt for this execution run.\"\n      },\n      {\n        \"event_id\": \"event-cc53bbee-d3a2-4550-aefd-366d71dbc19f\",\n        \"event_type\": \"worker-bound\",\n        \"run_id\": \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\",\n        \"run_mode\": \"benchmarking\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.150Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-220a89bb-4ad7-49d1-8ea0-02526c4d7855\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\",\n        \"run_mode\": \"benchmarking\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.150Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-f05ea40a-bb1a-4a85-9780-f81870be4d16\",\n        \"event_type\": \"state-patched\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.287Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-fa34703e-cd24-4351-9a8c-857b6ef7b700\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.486Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-99a52fd6-eca8-43b2-a29b-0ce921e82146\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.554Z\",\n        \"note\": \"Smoke: implementation started.\"\n      },\n      {\n        \"event_id\": \"event-6d5b646e-9ad8-469b-a130-583793593457\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.739Z\",\n        \"note\": \"Smoke: implementation completed.\"\n      },\n      {\n        \"event_id\": \"event-05c5842b-1434-4453-aa57-27d3d401fe3d\",\n        \"event_type\": \"governance-call-recorded\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.868Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-07518959-500a-4b7a-a676-fb0246294216\",\n        \"event_type\": \"verification-recorded\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-001\",\n        \"timestamp\": \"2026-04-04T22:16:35.980Z\",\n        \"note\": \"Smoke verification outcome recorded.\"\n      },\n      {\n        \"event_id\": \"event-6e9d67a9-7057-4952-9d4e-4cc4da5b7c03\",\n        \"event_type\": \"attempt-reset\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-002\",\n        \"timestamp\": \"2026-04-04T22:16:36.089Z\",\n        \"note\": \"Smoke reset after structured events.\"\n      },\n      {\n        \"event_id\": \"event-32e8e744-d5ea-4cb1-8fe5-b5fff4495ca4\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-002\",\n        \"timestamp\": \"2026-04-04T22:16:36.310Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-d382acdf-6f07-4087-9bcb-c484e7971e74\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-002\",\n        \"timestamp\": \"2026-04-04T22:36:29.005Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-773dabe2-72fa-4d45-9dd1-a485e7931a37\",\n        \"event_type\": \"attempt-reset\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:49:27.098Z\",\n        \"note\": \"Reset fake cached execution id before governed implement-plan run.\"\n      },\n      {\n        \"event_id\": \"event-b19f4254-ffbb-4553-8579-4aedc6938a71\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:49:30.805Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-87456430-bcbe-45c9-9d31-91d38ec952f8\",\n        \"event_type\": \"state-patched\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:50:03.184Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-2f8af55b-d824-46cb-91d6-5dfe7462ed29\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:50:22.794Z\",\n        \"note\": null\n      },\n      {\n        \"event\": \"brief-written\",\n        \"timestamp\": \"2026-04-04T22:51:14.560Z\",\n        \"note\": \"implement-plan-brief.md written for truthful worker spawn.\"\n      },\n      {\n        \"event_id\": \"event-c77ffda0-12c0-4604-b67f-850359cd3eb4\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:51:14.560Z\",\n        \"note\": \"implement-plan-brief.md written for truthful worker spawn.\"\n      },\n      {\n        \"event\": \"implementor-started\",\n        \"timestamp\": \"2026-04-04T22:51:22.824Z\",\n        \"note\": \"Spawning fresh CLI implementor for attempt-003.\"\n      },\n      {\n        \"event_id\": \"event-36f60eb8-7a50-42ff-9b39-893979b35e1f\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:51:22.824Z\",\n        \"note\": \"Spawning fresh CLI implementor for attempt-003.\"\n      },\n      {\n        \"event_id\": \"event-aec36efd-2f40-4682-97bc-e4d9a5b46001\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:58:35.996Z\",\n        \"note\": \"Validated the existing Spec 1 implementation and applied the minimal helper truthfulness repair.\"\n      },\n      {\n        \"event_id\": \"event-b301c9bf-7d1f-4ff7-a565-5d7f5d74d551\",\n        \"event_type\": \"verification-recorded\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:58:36.146Z\",\n        \"note\": \"node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.\"\n      },\n      {\n        \"event_id\": \"event-5c0a9a16-a612-4a78-b4cb-8855bb6b9933\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T22:58:36.323Z\",\n        \"note\": \"Required machine verification passed for the bounded Spec 1 slice.\"\n      },\n      {\n        \"event\": \"completion-summary-written\",\n        \"timestamp\": \"2026-04-04T23:01:17.471Z\",\n        \"note\": \"completion-summary.md written for truthful implementor-lane closeout.\"\n      },\n      {\n        \"event_id\": \"event-65ef4334-bd08-49dc-9d8f-33eb1f7420ca\",\n        \"event_type\": \"step-transition\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T23:01:17.471Z\",\n        \"note\": \"completion-summary.md written for truthful implementor-lane closeout.\"\n      },\n      {\n        \"event_id\": \"event-b9c56294-2bcb-4e30-b672-c9f8a5d13ef9\",\n        \"event_type\": \"state-patched\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T23:30:33.992Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-38b336bc-164a-4298-895c-1a1f9407cd7c\",\n        \"event_type\": \"state-patched\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T23:33:25.564Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-d5a500d2-e029-48b8-889b-8ae6bc51e148\",\n        \"event_type\": \"contract-materialized\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T23:41:02.265Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-5762e42c-8f14-47c1-8c29-0f37dd0e1489\",\n        \"event_type\": \"state-patched\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-04T23:42:51.765Z\",\n        \"note\": null\n      },\n      {\n        \"event_id\": \"event-4467b616-a789-40ed-8a93-1ddfb59fac2d\",\n        \"event_type\": \"state-patched\",\n        \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"run_mode\": \"normal\",\n        \"attempt_id\": \"attempt-003\",\n        \"timestamp\": \"2026-04-05T00:10:18.939Z\",\n        \"note\": null\n      }\n    ],\n    \"artifacts\": {\n      \"readme_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/README.md\",\n      \"context_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/context.md\",\n      \"state_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json\",\n      \"contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md\",\n      \"execution_contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json\",\n      \"execution_run_contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json\",\n      \"execution_run_projection_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json\",\n      \"pushback_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-pushback.md\",\n      \"brief_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-brief.md\",\n      \"completion_summary_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md\",\n      \"implementation_run_dir\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run\",\n      \"worktree_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract\"\n    },\n    \"last_error\": null,\n    \"current_run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n    \"current_attempt_id\": \"attempt-003\",\n    \"execution_runs\": {\n      \"active_by_mode\": {\n        \"normal\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n        \"benchmarking\": \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\"\n      },\n      \"runs\": {\n        \"run-e976eb7e-72ab-435f-ad23-86c523be8985\": {\n          \"run_id\": \"run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n          \"run_mode\": \"normal\",\n          \"lifecycle_status\": \"active\",\n          \"terminal_status\": null,\n          \"contract_schema_version\": 1,\n          \"contract_revision\": 8,\n          \"feature_contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json\",\n          \"contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json\",\n          \"projection_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json\",\n          \"run_root\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985\",\n          \"benchmark_context\": {\n            \"benchmark_run_id\": null,\n            \"benchmark_suite_id\": null,\n            \"lane_id\": null,\n            \"lane_label\": null\n          },\n          \"worker_keys\": [\n            \"implementor/default\"\n          ],\n          \"current_attempt_id\": \"attempt-003\",\n          \"attempt_counter\": 3,\n          \"attempts\": {\n            \"attempt-001\": {\n              \"attempt_id\": \"attempt-001\",\n              \"attempt_number\": 1,\n              \"status\": \"superseded\",\n              \"terminal_status\": \"reset\",\n              \"started_at\": \"2026-04-04T22:16:33.500Z\",\n              \"updated_at\": \"2026-04-04T22:16:36.089Z\",\n              \"reset_at\": \"2026-04-04T22:16:36.089Z\",\n              \"reset_reason\": null,\n              \"superseded_by_attempt_id\": \"attempt-002\",\n              \"resume_checkpoint\": {\n                \"step\": \"implementation\",\n                \"status\": \"completed\",\n                \"reason\": \"Structured step transition recorded for implementation.\",\n                \"updated_at\": \"2026-04-04T22:16:35.795Z\"\n              },\n              \"step_status\": {\n                \"implementation\": {\n                  \"status\": \"completed\",\n                  \"started_at\": \"2026-04-04T22:16:35.554Z\",\n                  \"completed_at\": \"2026-04-04T22:16:35.739Z\",\n                  \"duration_seconds\": 0,\n                  \"note\": \"Smoke: implementation completed.\"\n                },\n                \"machine_verification\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"review_cycle\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"human_testing\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"merge_queue\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                }\n              },\n              \"governance_calls\": [\n                {\n                  \"call_id\": \"gov-call-1a77dfdb-d9b2-4516-bfa6-e87ba1e5ebee\",\n                  \"role\": \"review-cycle\",\n                  \"kind\": \"smoke-governance-call\",\n                  \"provider\": \"codex\",\n                  \"runtime\": \"codex_cli_exec\",\n                  \"model\": \"gpt-5.4\",\n                  \"reasoning_effort\": \"xhigh\",\n                  \"started_at\": \"2026-04-04T22:16:33.8169415Z\",\n                  \"ended_at\": \"2026-04-04T22:16:35.8237333Z\",\n                  \"duration_ms\": 2000,\n                  \"estimated_prompt_tokens\": 1200,\n                  \"estimated_completion_tokens\": 400,\n                  \"estimated_total_tokens\": 1600,\n                  \"estimated_cost_usd\": 0.12\n                }\n              ],\n              \"governance_metrics\": {\n                \"call_count\": 1,\n                \"total_duration_ms\": 2000,\n                \"total_estimated_cost_usd\": 0.12,\n                \"total_prompt_tokens_estimated\": 1200,\n                \"total_completion_tokens_estimated\": 400,\n                \"total_tokens_estimated\": 1600\n              },\n              \"verification_outcomes\": [\n                {\n                  \"verification_id\": \"verification-7f1336dc-83b8-43dd-824e-ab22c3e15824\",\n                  \"kind\": \"machine\",\n                  \"status\": \"passed\",\n                  \"review_cycle_number\": 1,\n                  \"self_fix_cycle_number\": 0,\n                  \"note\": \"Smoke verification outcome recorded.\",\n                  \"recorded_at\": \"2026-04-04T22:16:35.980Z\"\n                }\n              ],\n              \"review_cycle_count\": 1,\n              \"self_fix_cycle_count\": 0,\n              \"blockers\": [],\n              \"worker_bindings\": {\n                \"implementor/default\": {\n                  \"worker_id\": \"implementor/default\",\n                  \"lane_id\": null,\n                  \"role\": \"implementor\",\n                  \"provider\": \"codex\",\n                  \"runtime\": \"codex_cli_exec\",\n                  \"model\": \"gpt-5.4\",\n                  \"reasoning_effort\": \"xhigh\",\n                  \"access_mode\": \"codex_cli_full_auto_bypass\",\n                  \"execution_id\": \"cached-implementor-001\",\n                  \"bound_at\": \"2026-04-04T22:16:33.500Z\",\n                  \"selection_source\": {\n                    \"provider\": \"invoker_inheritance\",\n                    \"runtime\": \"invoker_inheritance\",\n                    \"access_mode\": \"invoker_inheritance\",\n                    \"model\": \"invoker_inheritance\",\n                    \"reasoning_effort\": \"invoker_inheritance\"\n                  },\n                  \"recreated_due_to_access\": false\n                }\n              },\n              \"last_checkpoint_at\": \"2026-04-04T22:16:35.795Z\",\n              \"last_event_at\": \"2026-04-04T22:16:35.980Z\"\n            },\n            \"attempt-002\": {\n              \"attempt_id\": \"attempt-002\",\n              \"attempt_number\": 2,\n              \"status\": \"superseded\",\n              \"terminal_status\": \"reset\",\n              \"started_at\": \"2026-04-04T22:16:36.089Z\",\n              \"updated_at\": \"2026-04-04T22:49:27.098Z\",\n              \"reset_at\": \"2026-04-04T22:49:27.098Z\",\n              \"reset_reason\": \"Smoke reset after structured events.\",\n              \"superseded_by_attempt_id\": \"attempt-003\",\n              \"resume_checkpoint\": {\n                \"step\": \"implementation\",\n                \"status\": \"blocked\",\n                \"reason\": \"Benchmarking contract blocked at integrity gate.\",\n                \"updated_at\": \"2026-04-04T22:36:29.000Z\"\n              },\n              \"step_status\": {\n                \"implementation\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"machine_verification\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"review_cycle\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"human_testing\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"merge_queue\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                }\n              },\n              \"governance_calls\": [],\n              \"governance_metrics\": {\n                \"call_count\": 0,\n                \"total_duration_ms\": 0,\n                \"total_estimated_cost_usd\": 0,\n                \"total_prompt_tokens_estimated\": 0,\n                \"total_completion_tokens_estimated\": 0,\n                \"total_tokens_estimated\": 0\n              },\n              \"verification_outcomes\": [],\n              \"review_cycle_count\": 0,\n              \"self_fix_cycle_count\": 0,\n              \"blockers\": [],\n              \"worker_bindings\": {\n                \"implementor/default\": {\n                  \"worker_id\": \"implementor/default\",\n                  \"lane_id\": null,\n                  \"role\": \"implementor\",\n                  \"provider\": \"codex\",\n                  \"runtime\": \"codex_cli_exec\",\n                  \"model\": \"gpt-5.4\",\n                  \"reasoning_effort\": \"xhigh\",\n                  \"access_mode\": \"codex_cli_full_auto_bypass\",\n                  \"execution_id\": \"cached-implementor-001\",\n                  \"bound_at\": \"2026-04-04T22:16:36.089Z\",\n                  \"selection_source\": {\n                    \"provider\": \"invoker_inheritance\",\n                    \"runtime\": \"invoker_inheritance\",\n                    \"access_mode\": \"invoker_inheritance\",\n                    \"model\": \"invoker_inheritance\",\n                    \"reasoning_effort\": \"invoker_inheritance\"\n                  },\n                  \"recreated_due_to_access\": false\n                }\n              },\n              \"last_checkpoint_at\": \"2026-04-04T22:36:29.000Z\",\n              \"last_event_at\": \"2026-04-04T22:36:29.005Z\"\n            },\n            \"attempt-003\": {\n              \"attempt_id\": \"attempt-003\",\n              \"attempt_number\": 3,\n              \"status\": \"closeout_pending\",\n              \"terminal_status\": null,\n              \"started_at\": \"2026-04-04T22:49:27.098Z\",\n              \"updated_at\": \"2026-04-05T00:10:18.939Z\",\n              \"reset_at\": null,\n              \"reset_reason\": \"Reset fake cached execution id before governed implement-plan run.\",\n              \"superseded_by_attempt_id\": null,\n              \"resume_checkpoint\": {\n                \"step\": \"merge_queue\",\n                \"status\": \"completed\",\n                \"reason\": \"Resume from the last truthful normal-mode checkpoint.\",\n                \"updated_at\": \"2026-04-05T00:10:18.939Z\"\n              },\n              \"step_status\": {\n                \"implementation\": {\n                  \"status\": \"completed\",\n                  \"started_at\": \"2026-04-04T22:51:22.824Z\",\n                  \"completed_at\": \"2026-04-04T22:58:35.996Z\",\n                  \"duration_seconds\": 433,\n                  \"note\": null\n                },\n                \"machine_verification\": {\n                  \"status\": \"completed\",\n                  \"started_at\": \"2026-04-04T22:58:35.996Z\",\n                  \"completed_at\": \"2026-04-04T22:58:36.323Z\",\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"review_cycle\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": null,\n                  \"note\": null\n                },\n                \"human_testing\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": null,\n                  \"note\": null\n                },\n                \"merge_queue\": {\n                  \"status\": \"completed\",\n                  \"started_at\": \"2026-04-04T22:58:36.323Z\",\n                  \"completed_at\": \"2026-04-05T00:10:18.922Z\",\n                  \"duration_seconds\": 4303,\n                  \"note\": null\n                }\n              },\n              \"governance_calls\": [],\n              \"governance_metrics\": {\n                \"call_count\": 0,\n                \"total_duration_ms\": 0,\n                \"total_estimated_cost_usd\": 0,\n                \"total_prompt_tokens_estimated\": 0,\n                \"total_completion_tokens_estimated\": 0,\n                \"total_tokens_estimated\": 0\n              },\n              \"verification_outcomes\": [\n                {\n                  \"verification_id\": \"verification-fdfbf918-8653-4f4c-8def-03d24b08e996\",\n                  \"kind\": \"machine\",\n                  \"status\": \"passed\",\n                  \"review_cycle_number\": 0,\n                  \"self_fix_cycle_number\": 0,\n                  \"note\": \"node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.\",\n                  \"recorded_at\": \"2026-04-04T22:58:36.146Z\"\n                }\n              ],\n              \"review_cycle_count\": 0,\n              \"self_fix_cycle_count\": 0,\n              \"blockers\": [],\n              \"worker_bindings\": {\n                \"implementor/default\": {\n                  \"worker_id\": \"implementor/default\",\n                  \"lane_id\": null,\n                  \"role\": \"implementor\",\n                  \"provider\": \"codex\",\n                  \"runtime\": \"codex_cli_exec\",\n                  \"model\": \"gpt-5.4\",\n                  \"reasoning_effort\": \"xhigh\",\n                  \"access_mode\": \"codex_cli_full_auto_bypass\",\n                  \"execution_id\": null,\n                  \"bound_at\": \"2026-04-04T22:49:27.098Z\",\n                  \"selection_source\": {\n                    \"provider\": \"persisted_continuity\",\n                    \"runtime\": \"persisted_continuity\",\n                    \"access_mode\": \"persisted_continuity\",\n                    \"model\": \"persisted_continuity\",\n                    \"reasoning_effort\": \"persisted_continuity\"\n                  },\n                  \"recreated_due_to_access\": false\n                }\n              },\n              \"last_checkpoint_at\": \"2026-04-05T00:10:18.939Z\",\n              \"last_event_at\": \"2026-04-05T00:10:18.939Z\"\n            }\n          },\n          \"created_at\": \"2026-04-04T22:16:33.500Z\",\n          \"updated_at\": \"2026-04-05T00:10:18.944Z\",\n          \"last_event_at\": \"2026-04-05T00:10:18.939Z\",\n          \"kpi_projection\": {\n            \"terminal_status\": null,\n            \"per_step_timing\": {\n              \"implementation\": {\n                \"status\": \"completed\",\n                \"started_at\": \"2026-04-04T22:51:22.824Z\",\n                \"completed_at\": \"2026-04-04T22:58:35.996Z\",\n                \"duration_seconds\": 433\n              },\n              \"machine_verification\": {\n                \"status\": \"completed\",\n                \"started_at\": \"2026-04-04T22:58:35.996Z\",\n                \"completed_at\": \"2026-04-04T22:58:36.323Z\",\n                \"duration_seconds\": 0\n              },\n              \"review_cycle\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              },\n              \"human_testing\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              },\n              \"merge_queue\": {\n                \"status\": \"completed\",\n                \"started_at\": \"2026-04-04T22:58:36.323Z\",\n                \"completed_at\": \"2026-04-05T00:10:18.922Z\",\n                \"duration_seconds\": 4303\n              }\n            },\n            \"governance_call_metrics\": {\n              \"call_count\": 0,\n              \"total_duration_ms\": 0,\n              \"total_estimated_cost_usd\": 0,\n              \"total_prompt_tokens_estimated\": 0,\n              \"total_completion_tokens_estimated\": 0,\n              \"total_tokens_estimated\": 0\n            },\n            \"verification_outcomes\": [\n              {\n                \"verification_id\": \"verification-fdfbf918-8653-4f4c-8def-03d24b08e996\",\n                \"kind\": \"machine\",\n                \"status\": \"passed\",\n                \"review_cycle_number\": 0,\n                \"self_fix_cycle_number\": 0,\n                \"note\": \"node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.\",\n                \"recorded_at\": \"2026-04-04T22:58:36.146Z\"\n              }\n            ],\n            \"review_cycle_count\": 0,\n            \"self_fix_cycle_count\": 0,\n            \"blocker_history\": []\n          }\n        },\n        \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\": {\n          \"run_id\": \"bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\",\n          \"run_mode\": \"benchmarking\",\n          \"lifecycle_status\": \"supervisor_deferred\",\n          \"terminal_status\": null,\n          \"contract_schema_version\": 1,\n          \"contract_revision\": 2,\n          \"feature_contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json\",\n          \"contract_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/execution-contract.v1.json\",\n          \"projection_path\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/run-projection.v1.json\",\n          \"run_root\": \"C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a\",\n          \"benchmark_context\": {\n            \"benchmark_run_id\": \"bench-smoke-001\",\n            \"benchmark_suite_id\": \"suite-smoke\",\n            \"lane_id\": \"lane-a\",\n            \"lane_label\": \"Lane A\"\n          },\n          \"worker_keys\": [\n            \"implementor/lane-a\"\n          ],\n          \"current_attempt_id\": \"attempt-001\",\n          \"attempt_counter\": 1,\n          \"attempts\": {\n            \"attempt-001\": {\n              \"attempt_id\": \"attempt-001\",\n              \"attempt_number\": 1,\n              \"status\": \"supervisor_deferred\",\n              \"terminal_status\": null,\n              \"started_at\": \"2026-04-04T22:16:35.142Z\",\n              \"updated_at\": \"2026-04-04T22:16:35.143Z\",\n              \"reset_at\": null,\n              \"reset_reason\": null,\n              \"superseded_by_attempt_id\": null,\n              \"resume_checkpoint\": {\n                \"step\": \"implementation\",\n                \"status\": \"ready\",\n                \"reason\": \"Benchmarking contract materialized. External supervisor is deferred to Spec 2.\",\n                \"updated_at\": \"2026-04-04T22:16:35.143Z\"\n              },\n              \"step_status\": {\n                \"implementation\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"machine_verification\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"review_cycle\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"human_testing\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                },\n                \"merge_queue\": {\n                  \"status\": \"not_started\",\n                  \"started_at\": null,\n                  \"completed_at\": null,\n                  \"duration_seconds\": 0,\n                  \"note\": null\n                }\n              },\n              \"governance_calls\": [],\n              \"governance_metrics\": {\n                \"call_count\": 0,\n                \"total_duration_ms\": 0,\n                \"total_estimated_cost_usd\": 0,\n                \"total_prompt_tokens_estimated\": 0,\n                \"total_completion_tokens_estimated\": 0,\n                \"total_tokens_estimated\": 0\n              },\n              \"verification_outcomes\": [],\n              \"review_cycle_count\": 0,\n              \"self_fix_cycle_count\": 0,\n              \"blockers\": [],\n              \"worker_bindings\": {\n                \"implementor/lane-a\": {\n                  \"worker_id\": \"implementor/lane-a\",\n                  \"lane_id\": \"lane-a\",\n                  \"role\": \"implementor\",\n                  \"provider\": \"codex\",\n                  \"runtime\": \"codex_cli_exec\",\n                  \"model\": \"gpt-5.4\",\n                  \"reasoning_effort\": \"high\",\n                  \"access_mode\": \"codex_cli_full_auto_bypass\",\n                  \"execution_id\": null,\n                  \"bound_at\": \"2026-04-04T22:16:35.142Z\",\n                  \"selection_source\": {\n                    \"provider\": \"explicit_override\",\n                    \"runtime\": \"explicit_override\",\n                    \"access_mode\": \"explicit_override\",\n                    \"model\": \"explicit_override\",\n                    \"reasoning_effort\": \"explicit_override\"\n                  },\n                  \"recreated_due_to_access\": false\n                }\n              },\n              \"last_checkpoint_at\": \"2026-04-04T22:16:35.143Z\",\n              \"last_event_at\": \"2026-04-04T22:16:35.150Z\"\n            }\n          },\n          \"created_at\": \"2026-04-04T22:16:35.142Z\",\n          \"updated_at\": \"2026-04-04T22:16:35.146Z\",\n          \"last_event_at\": \"2026-04-04T22:16:35.150Z\",\n          \"kpi_projection\": {\n            \"terminal_status\": null,\n            \"per_step_timing\": {\n              \"implementation\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              },\n              \"machine_verification\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              },\n              \"review_cycle\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              },\n              \"human_testing\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              },\n              \"merge_queue\": {\n                \"status\": \"not_started\",\n                \"started_at\": null,\n                \"completed_at\": null,\n                \"duration_seconds\": null\n              }\n            },\n            \"governance_call_metrics\": {\n              \"call_count\": 0,\n              \"total_duration_ms\": 0,\n              \"total_estimated_cost_usd\": 0,\n              \"total_prompt_tokens_estimated\": 0,\n              \"total_completion_tokens_estimated\": 0,\n              \"total_tokens_estimated\": 0\n            },\n            \"verification_outcomes\": [],\n            \"review_cycle_count\": 0,\n            \"self_fix_cycle_count\": 0,\n            \"blocker_history\": []\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "stderr": "",
+    "json": {
+      "command": "update-state",
+      "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+      "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+      "state": {
+        "state_schema_version": 2,
+        "phase_number": 1,
+        "feature_slug": "implement-plan-provider-neutral-run-contract",
+        "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+        "feature_registry_key": "phase1/implement-plan-provider-neutral-run-contract",
+        "feature_status": "active",
+        "implementor_execution_id": null,
+        "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
+        "implementor_execution_runtime": "codex_cli_exec",
+        "implementor_provider": "codex",
+        "implementor_model": "gpt-5.4",
+        "implementor_reasoning_effort": "xhigh",
+        "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+        "resolved_runtime_capabilities": {
+          "native_agent_spawning_available": false,
+          "native_agent_access_configurable": false,
+          "native_agent_inherits_runtime_access": false,
+          "native_agent_resume_available": false,
+          "native_agent_send_input_available": false,
+          "native_agent_wait_available": false,
+          "native_parallel_wait_available": false,
+          "codex_cli_available": true,
+          "codex_cli_full_auto_supported": true,
+          "codex_cli_bypass_supported": true
+        },
+        "current_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+        "base_branch": "main",
+        "feature_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+        "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+        "worktree_status": "ready",
+        "merge_required": true,
+        "merge_status": "merged",
+        "approved_commit_sha": null,
+        "merge_commit_sha": "2222222222222222222222222222222222222222",
+        "merge_queue_request_id": null,
+        "local_target_sync_status": "fetched_only",
+        "last_completed_step": "merge_finished",
+        "last_commit_sha": "2222222222222222222222222222222222222222",
+        "active_run_status": "closeout_pending",
+        "created_at": "2026-04-04T22:16:33.486Z",
+        "updated_at": "2026-04-05T00:10:18.939Z",
+        "run_timestamps": {
+          "context_collected_at": "2026-04-04T22:16:34.941Z",
+          "worktree_prepared_at": "2026-04-04T22:16:34.941Z",
+          "integrity_passed_at": null,
+          "integrity_failed_at": null,
+          "brief_written_at": "2026-04-04T22:51:14.560Z",
+          "implementor_started_at": "2026-04-04T22:51:22.824Z",
+          "implementor_finished_at": "2026-04-04T22:58:35.996Z",
+          "verification_finished_at": "2026-04-04T22:58:36.323Z",
+          "review_requested_at": null,
+          "human_verification_requested_at": null,
+          "merge_started_at": null,
+          "merge_finished_at": null,
+          "closeout_finished_at": null
+        },
+        "event_log": [
+          {
+            "event_id": "event-2a9c1a75-01ea-486a-b4ca-449f43064f3c",
+            "event_type": "run-initialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:34.944Z",
+            "note": "Created a new normal execution run."
+          },
+          {
+            "event_id": "event-880891ec-b0b4-4511-a9a2-9f8de6106854",
+            "event_type": "attempt-started",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:34.946Z",
+            "note": "Created the first attempt for this execution run."
+          },
+          {
+            "event_id": "event-557c1472-f186-4ab4-8737-3874749f634e",
+            "event_type": "worker-bound",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:34.947Z",
+            "note": null
+          },
+          {
+            "event_id": "event-67a6a01b-197b-4993-a212-d4f6a846cf15",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:34.948Z",
+            "note": null
+          },
+          {
+            "event_id": "event-94cffd07-2d5e-4b3d-8ff4-7a1eee1a3711",
+            "event_type": "run-initialized",
+            "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+            "run_mode": "benchmarking",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.147Z",
+            "note": "Created a new benchmarking execution run."
+          },
+          {
+            "event_id": "event-db812b11-7815-4a6b-a1af-93311adb9b03",
+            "event_type": "attempt-started",
+            "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+            "run_mode": "benchmarking",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.149Z",
+            "note": "Created the first attempt for this execution run."
+          },
+          {
+            "event_id": "event-cc53bbee-d3a2-4550-aefd-366d71dbc19f",
+            "event_type": "worker-bound",
+            "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+            "run_mode": "benchmarking",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.150Z",
+            "note": null
+          },
+          {
+            "event_id": "event-220a89bb-4ad7-49d1-8ea0-02526c4d7855",
+            "event_type": "contract-materialized",
+            "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+            "run_mode": "benchmarking",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.150Z",
+            "note": null
+          },
+          {
+            "event_id": "event-f05ea40a-bb1a-4a85-9780-f81870be4d16",
+            "event_type": "state-patched",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.287Z",
+            "note": null
+          },
+          {
+            "event_id": "event-fa34703e-cd24-4351-9a8c-857b6ef7b700",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.486Z",
+            "note": null
+          },
+          {
+            "event_id": "event-99a52fd6-eca8-43b2-a29b-0ce921e82146",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.554Z",
+            "note": "Smoke: implementation started."
+          },
+          {
+            "event_id": "event-6d5b646e-9ad8-469b-a130-583793593457",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.739Z",
+            "note": "Smoke: implementation completed."
+          },
+          {
+            "event_id": "event-05c5842b-1434-4453-aa57-27d3d401fe3d",
+            "event_type": "governance-call-recorded",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.868Z",
+            "note": null
+          },
+          {
+            "event_id": "event-07518959-500a-4b7a-a676-fb0246294216",
+            "event_type": "verification-recorded",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-001",
+            "timestamp": "2026-04-04T22:16:35.980Z",
+            "note": "Smoke verification outcome recorded."
+          },
+          {
+            "event_id": "event-6e9d67a9-7057-4952-9d4e-4cc4da5b7c03",
+            "event_type": "attempt-reset",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-002",
+            "timestamp": "2026-04-04T22:16:36.089Z",
+            "note": "Smoke reset after structured events."
+          },
+          {
+            "event_id": "event-32e8e744-d5ea-4cb1-8fe5-b5fff4495ca4",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-002",
+            "timestamp": "2026-04-04T22:16:36.310Z",
+            "note": null
+          },
+          {
+            "event_id": "event-d382acdf-6f07-4087-9bcb-c484e7971e74",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-002",
+            "timestamp": "2026-04-04T22:36:29.005Z",
+            "note": null
+          },
+          {
+            "event_id": "event-773dabe2-72fa-4d45-9dd1-a485e7931a37",
+            "event_type": "attempt-reset",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:49:27.098Z",
+            "note": "Reset fake cached execution id before governed implement-plan run."
+          },
+          {
+            "event_id": "event-b19f4254-ffbb-4553-8579-4aedc6938a71",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:49:30.805Z",
+            "note": null
+          },
+          {
+            "event_id": "event-87456430-bcbe-45c9-9d31-91d38ec952f8",
+            "event_type": "state-patched",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:50:03.184Z",
+            "note": null
+          },
+          {
+            "event_id": "event-2f8af55b-d824-46cb-91d6-5dfe7462ed29",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:50:22.794Z",
+            "note": null
+          },
+          {
+            "event": "brief-written",
+            "timestamp": "2026-04-04T22:51:14.560Z",
+            "note": "implement-plan-brief.md written for truthful worker spawn."
+          },
+          {
+            "event_id": "event-c77ffda0-12c0-4604-b67f-850359cd3eb4",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:51:14.560Z",
+            "note": "implement-plan-brief.md written for truthful worker spawn."
+          },
+          {
+            "event": "implementor-started",
+            "timestamp": "2026-04-04T22:51:22.824Z",
+            "note": "Spawning fresh CLI implementor for attempt-003."
+          },
+          {
+            "event_id": "event-36f60eb8-7a50-42ff-9b39-893979b35e1f",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:51:22.824Z",
+            "note": "Spawning fresh CLI implementor for attempt-003."
+          },
+          {
+            "event_id": "event-aec36efd-2f40-4682-97bc-e4d9a5b46001",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:58:35.996Z",
+            "note": "Validated the existing Spec 1 implementation and applied the minimal helper truthfulness repair."
+          },
+          {
+            "event_id": "event-b301c9bf-7d1f-4ff7-a565-5d7f5d74d551",
+            "event_type": "verification-recorded",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:58:36.146Z",
+            "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003."
+          },
+          {
+            "event_id": "event-5c0a9a16-a612-4a78-b4cb-8855bb6b9933",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T22:58:36.323Z",
+            "note": "Required machine verification passed for the bounded Spec 1 slice."
+          },
+          {
+            "event": "completion-summary-written",
+            "timestamp": "2026-04-04T23:01:17.471Z",
+            "note": "completion-summary.md written for truthful implementor-lane closeout."
+          },
+          {
+            "event_id": "event-65ef4334-bd08-49dc-9d8f-33eb1f7420ca",
+            "event_type": "step-transition",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T23:01:17.471Z",
+            "note": "completion-summary.md written for truthful implementor-lane closeout."
+          },
+          {
+            "event_id": "event-b9c56294-2bcb-4e30-b672-c9f8a5d13ef9",
+            "event_type": "state-patched",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T23:30:33.992Z",
+            "note": null
+          },
+          {
+            "event_id": "event-38b336bc-164a-4298-895c-1a1f9407cd7c",
+            "event_type": "state-patched",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T23:33:25.564Z",
+            "note": null
+          },
+          {
+            "event_id": "event-d5a500d2-e029-48b8-889b-8ae6bc51e148",
+            "event_type": "contract-materialized",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T23:41:02.265Z",
+            "note": null
+          },
+          {
+            "event_id": "event-5762e42c-8f14-47c1-8c29-0f37dd0e1489",
+            "event_type": "state-patched",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-04T23:42:51.765Z",
+            "note": null
+          },
+          {
+            "event_id": "event-4467b616-a789-40ed-8a93-1ddfb59fac2d",
+            "event_type": "state-patched",
+            "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "run_mode": "normal",
+            "attempt_id": "attempt-003",
+            "timestamp": "2026-04-05T00:10:18.939Z",
+            "note": null
+          }
+        ],
+        "artifacts": {
+          "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/README.md",
+          "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/context.md",
+          "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+          "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md",
+          "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+          "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+          "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+          "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-pushback.md",
+          "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-brief.md",
+          "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md",
+          "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run",
+          "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract"
+        },
+        "last_error": null,
+        "current_run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+        "current_attempt_id": "attempt-003",
+        "execution_runs": {
+          "active_by_mode": {
+            "normal": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+            "benchmarking": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a"
+          },
+          "runs": {
+            "run-e976eb7e-72ab-435f-ad23-86c523be8985": {
+              "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+              "run_mode": "normal",
+              "lifecycle_status": "active",
+              "terminal_status": null,
+              "contract_schema_version": 1,
+              "contract_revision": 8,
+              "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+              "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+              "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+              "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
+              "benchmark_context": {
+                "benchmark_run_id": null,
+                "benchmark_suite_id": null,
+                "lane_id": null,
+                "lane_label": null
+              },
+              "worker_keys": [
+                "implementor/default"
+              ],
+              "current_attempt_id": "attempt-003",
+              "attempt_counter": 3,
+              "attempts": {
+                "attempt-001": {
+                  "attempt_id": "attempt-001",
+                  "attempt_number": 1,
+                  "status": "superseded",
+                  "terminal_status": "reset",
+                  "started_at": "2026-04-04T22:16:33.500Z",
+                  "updated_at": "2026-04-04T22:16:36.089Z",
+                  "reset_at": "2026-04-04T22:16:36.089Z",
+                  "reset_reason": null,
+                  "superseded_by_attempt_id": "attempt-002",
+                  "resume_checkpoint": {
+                    "step": "implementation",
+                    "status": "completed",
+                    "reason": "Structured step transition recorded for implementation.",
+                    "updated_at": "2026-04-04T22:16:35.795Z"
+                  },
+                  "step_status": {
+                    "implementation": {
+                      "status": "completed",
+                      "started_at": "2026-04-04T22:16:35.554Z",
+                      "completed_at": "2026-04-04T22:16:35.739Z",
+                      "duration_seconds": 0,
+                      "note": "Smoke: implementation completed."
+                    },
+                    "machine_verification": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "review_cycle": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "human_testing": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "merge_queue": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    }
+                  },
+                  "governance_calls": [
+                    {
+                      "call_id": "gov-call-1a77dfdb-d9b2-4516-bfa6-e87ba1e5ebee",
+                      "role": "review-cycle",
+                      "kind": "smoke-governance-call",
+                      "provider": "codex",
+                      "runtime": "codex_cli_exec",
+                      "model": "gpt-5.4",
+                      "reasoning_effort": "xhigh",
+                      "started_at": "2026-04-04T22:16:33.8169415Z",
+                      "ended_at": "2026-04-04T22:16:35.8237333Z",
+                      "duration_ms": 2000,
+                      "estimated_prompt_tokens": 1200,
+                      "estimated_completion_tokens": 400,
+                      "estimated_total_tokens": 1600,
+                      "estimated_cost_usd": 0.12
+                    }
+                  ],
+                  "governance_metrics": {
+                    "call_count": 1,
+                    "total_duration_ms": 2000,
+                    "total_estimated_cost_usd": 0.12,
+                    "total_prompt_tokens_estimated": 1200,
+                    "total_completion_tokens_estimated": 400,
+                    "total_tokens_estimated": 1600
+                  },
+                  "verification_outcomes": [
+                    {
+                      "verification_id": "verification-7f1336dc-83b8-43dd-824e-ab22c3e15824",
+                      "kind": "machine",
+                      "status": "passed",
+                      "review_cycle_number": 1,
+                      "self_fix_cycle_number": 0,
+                      "note": "Smoke verification outcome recorded.",
+                      "recorded_at": "2026-04-04T22:16:35.980Z"
+                    }
+                  ],
+                  "review_cycle_count": 1,
+                  "self_fix_cycle_count": 0,
+                  "blockers": [],
+                  "worker_bindings": {
+                    "implementor/default": {
+                      "worker_id": "implementor/default",
+                      "lane_id": null,
+                      "role": "implementor",
+                      "provider": "codex",
+                      "runtime": "codex_cli_exec",
+                      "model": "gpt-5.4",
+                      "reasoning_effort": "xhigh",
+                      "access_mode": "codex_cli_full_auto_bypass",
+                      "execution_id": "cached-implementor-001",
+                      "bound_at": "2026-04-04T22:16:33.500Z",
+                      "selection_source": {
+                        "provider": "invoker_inheritance",
+                        "runtime": "invoker_inheritance",
+                        "access_mode": "invoker_inheritance",
+                        "model": "invoker_inheritance",
+                        "reasoning_effort": "invoker_inheritance"
+                      },
+                      "recreated_due_to_access": false
+                    }
+                  },
+                  "last_checkpoint_at": "2026-04-04T22:16:35.795Z",
+                  "last_event_at": "2026-04-04T22:16:35.980Z"
+                },
+                "attempt-002": {
+                  "attempt_id": "attempt-002",
+                  "attempt_number": 2,
+                  "status": "superseded",
+                  "terminal_status": "reset",
+                  "started_at": "2026-04-04T22:16:36.089Z",
+                  "updated_at": "2026-04-04T22:49:27.098Z",
+                  "reset_at": "2026-04-04T22:49:27.098Z",
+                  "reset_reason": "Smoke reset after structured events.",
+                  "superseded_by_attempt_id": "attempt-003",
+                  "resume_checkpoint": {
+                    "step": "implementation",
+                    "status": "blocked",
+                    "reason": "Benchmarking contract blocked at integrity gate.",
+                    "updated_at": "2026-04-04T22:36:29.000Z"
+                  },
+                  "step_status": {
+                    "implementation": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "machine_verification": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "review_cycle": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "human_testing": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "merge_queue": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    }
+                  },
+                  "governance_calls": [],
+                  "governance_metrics": {
+                    "call_count": 0,
+                    "total_duration_ms": 0,
+                    "total_estimated_cost_usd": 0,
+                    "total_prompt_tokens_estimated": 0,
+                    "total_completion_tokens_estimated": 0,
+                    "total_tokens_estimated": 0
+                  },
+                  "verification_outcomes": [],
+                  "review_cycle_count": 0,
+                  "self_fix_cycle_count": 0,
+                  "blockers": [],
+                  "worker_bindings": {
+                    "implementor/default": {
+                      "worker_id": "implementor/default",
+                      "lane_id": null,
+                      "role": "implementor",
+                      "provider": "codex",
+                      "runtime": "codex_cli_exec",
+                      "model": "gpt-5.4",
+                      "reasoning_effort": "xhigh",
+                      "access_mode": "codex_cli_full_auto_bypass",
+                      "execution_id": "cached-implementor-001",
+                      "bound_at": "2026-04-04T22:16:36.089Z",
+                      "selection_source": {
+                        "provider": "invoker_inheritance",
+                        "runtime": "invoker_inheritance",
+                        "access_mode": "invoker_inheritance",
+                        "model": "invoker_inheritance",
+                        "reasoning_effort": "invoker_inheritance"
+                      },
+                      "recreated_due_to_access": false
+                    }
+                  },
+                  "last_checkpoint_at": "2026-04-04T22:36:29.000Z",
+                  "last_event_at": "2026-04-04T22:36:29.005Z"
+                },
+                "attempt-003": {
+                  "attempt_id": "attempt-003",
+                  "attempt_number": 3,
+                  "status": "closeout_pending",
+                  "terminal_status": null,
+                  "started_at": "2026-04-04T22:49:27.098Z",
+                  "updated_at": "2026-04-05T00:10:18.939Z",
+                  "reset_at": null,
+                  "reset_reason": "Reset fake cached execution id before governed implement-plan run.",
+                  "superseded_by_attempt_id": null,
+                  "resume_checkpoint": {
+                    "step": "merge_queue",
+                    "status": "completed",
+                    "reason": "Resume from the last truthful normal-mode checkpoint.",
+                    "updated_at": "2026-04-05T00:10:18.939Z"
+                  },
+                  "step_status": {
+                    "implementation": {
+                      "status": "completed",
+                      "started_at": "2026-04-04T22:51:22.824Z",
+                      "completed_at": "2026-04-04T22:58:35.996Z",
+                      "duration_seconds": 433,
+                      "note": null
+                    },
+                    "machine_verification": {
+                      "status": "completed",
+                      "started_at": "2026-04-04T22:58:35.996Z",
+                      "completed_at": "2026-04-04T22:58:36.323Z",
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "review_cycle": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": null,
+                      "note": null
+                    },
+                    "human_testing": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": null,
+                      "note": null
+                    },
+                    "merge_queue": {
+                      "status": "completed",
+                      "started_at": "2026-04-04T22:58:36.323Z",
+                      "completed_at": "2026-04-05T00:10:18.922Z",
+                      "duration_seconds": 4303,
+                      "note": null
+                    }
+                  },
+                  "governance_calls": [],
+                  "governance_metrics": {
+                    "call_count": 0,
+                    "total_duration_ms": 0,
+                    "total_estimated_cost_usd": 0,
+                    "total_prompt_tokens_estimated": 0,
+                    "total_completion_tokens_estimated": 0,
+                    "total_tokens_estimated": 0
+                  },
+                  "verification_outcomes": [
+                    {
+                      "verification_id": "verification-fdfbf918-8653-4f4c-8def-03d24b08e996",
+                      "kind": "machine",
+                      "status": "passed",
+                      "review_cycle_number": 0,
+                      "self_fix_cycle_number": 0,
+                      "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.",
+                      "recorded_at": "2026-04-04T22:58:36.146Z"
+                    }
+                  ],
+                  "review_cycle_count": 0,
+                  "self_fix_cycle_count": 0,
+                  "blockers": [],
+                  "worker_bindings": {
+                    "implementor/default": {
+                      "worker_id": "implementor/default",
+                      "lane_id": null,
+                      "role": "implementor",
+                      "provider": "codex",
+                      "runtime": "codex_cli_exec",
+                      "model": "gpt-5.4",
+                      "reasoning_effort": "xhigh",
+                      "access_mode": "codex_cli_full_auto_bypass",
+                      "execution_id": null,
+                      "bound_at": "2026-04-04T22:49:27.098Z",
+                      "selection_source": {
+                        "provider": "persisted_continuity",
+                        "runtime": "persisted_continuity",
+                        "access_mode": "persisted_continuity",
+                        "model": "persisted_continuity",
+                        "reasoning_effort": "persisted_continuity"
+                      },
+                      "recreated_due_to_access": false
+                    }
+                  },
+                  "last_checkpoint_at": "2026-04-05T00:10:18.939Z",
+                  "last_event_at": "2026-04-05T00:10:18.939Z"
+                }
+              },
+              "created_at": "2026-04-04T22:16:33.500Z",
+              "updated_at": "2026-04-05T00:10:18.944Z",
+              "last_event_at": "2026-04-05T00:10:18.939Z",
+              "kpi_projection": {
+                "terminal_status": null,
+                "per_step_timing": {
+                  "implementation": {
+                    "status": "completed",
+                    "started_at": "2026-04-04T22:51:22.824Z",
+                    "completed_at": "2026-04-04T22:58:35.996Z",
+                    "duration_seconds": 433
+                  },
+                  "machine_verification": {
+                    "status": "completed",
+                    "started_at": "2026-04-04T22:58:35.996Z",
+                    "completed_at": "2026-04-04T22:58:36.323Z",
+                    "duration_seconds": 0
+                  },
+                  "review_cycle": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  },
+                  "human_testing": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  },
+                  "merge_queue": {
+                    "status": "completed",
+                    "started_at": "2026-04-04T22:58:36.323Z",
+                    "completed_at": "2026-04-05T00:10:18.922Z",
+                    "duration_seconds": 4303
+                  }
+                },
+                "governance_call_metrics": {
+                  "call_count": 0,
+                  "total_duration_ms": 0,
+                  "total_estimated_cost_usd": 0,
+                  "total_prompt_tokens_estimated": 0,
+                  "total_completion_tokens_estimated": 0,
+                  "total_tokens_estimated": 0
+                },
+                "verification_outcomes": [
+                  {
+                    "verification_id": "verification-fdfbf918-8653-4f4c-8def-03d24b08e996",
+                    "kind": "machine",
+                    "status": "passed",
+                    "review_cycle_number": 0,
+                    "self_fix_cycle_number": 0,
+                    "note": "node --check, targeted state/projection smoke, and closeout artifact validation passed for attempt-003.",
+                    "recorded_at": "2026-04-04T22:58:36.146Z"
+                  }
+                ],
+                "review_cycle_count": 0,
+                "self_fix_cycle_count": 0,
+                "blocker_history": []
+              }
+            },
+            "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a": {
+              "run_id": "bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+              "run_mode": "benchmarking",
+              "lifecycle_status": "supervisor_deferred",
+              "terminal_status": null,
+              "contract_schema_version": 1,
+              "contract_revision": 2,
+              "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+              "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/execution-contract.v1.json",
+              "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a/run-projection.v1.json",
+              "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/bench-run-b075fb32-ff77-4be3-89ef-9483af62ad7a",
+              "benchmark_context": {
+                "benchmark_run_id": "bench-smoke-001",
+                "benchmark_suite_id": "suite-smoke",
+                "lane_id": "lane-a",
+                "lane_label": "Lane A"
+              },
+              "worker_keys": [
+                "implementor/lane-a"
+              ],
+              "current_attempt_id": "attempt-001",
+              "attempt_counter": 1,
+              "attempts": {
+                "attempt-001": {
+                  "attempt_id": "attempt-001",
+                  "attempt_number": 1,
+                  "status": "supervisor_deferred",
+                  "terminal_status": null,
+                  "started_at": "2026-04-04T22:16:35.142Z",
+                  "updated_at": "2026-04-04T22:16:35.143Z",
+                  "reset_at": null,
+                  "reset_reason": null,
+                  "superseded_by_attempt_id": null,
+                  "resume_checkpoint": {
+                    "step": "implementation",
+                    "status": "ready",
+                    "reason": "Benchmarking contract materialized. External supervisor is deferred to Spec 2.",
+                    "updated_at": "2026-04-04T22:16:35.143Z"
+                  },
+                  "step_status": {
+                    "implementation": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "machine_verification": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "review_cycle": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "human_testing": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    },
+                    "merge_queue": {
+                      "status": "not_started",
+                      "started_at": null,
+                      "completed_at": null,
+                      "duration_seconds": 0,
+                      "note": null
+                    }
+                  },
+                  "governance_calls": [],
+                  "governance_metrics": {
+                    "call_count": 0,
+                    "total_duration_ms": 0,
+                    "total_estimated_cost_usd": 0,
+                    "total_prompt_tokens_estimated": 0,
+                    "total_completion_tokens_estimated": 0,
+                    "total_tokens_estimated": 0
+                  },
+                  "verification_outcomes": [],
+                  "review_cycle_count": 0,
+                  "self_fix_cycle_count": 0,
+                  "blockers": [],
+                  "worker_bindings": {
+                    "implementor/lane-a": {
+                      "worker_id": "implementor/lane-a",
+                      "lane_id": "lane-a",
+                      "role": "implementor",
+                      "provider": "codex",
+                      "runtime": "codex_cli_exec",
+                      "model": "gpt-5.4",
+                      "reasoning_effort": "high",
+                      "access_mode": "codex_cli_full_auto_bypass",
+                      "execution_id": null,
+                      "bound_at": "2026-04-04T22:16:35.142Z",
+                      "selection_source": {
+                        "provider": "explicit_override",
+                        "runtime": "explicit_override",
+                        "access_mode": "explicit_override",
+                        "model": "explicit_override",
+                        "reasoning_effort": "explicit_override"
+                      },
+                      "recreated_due_to_access": false
+                    }
+                  },
+                  "last_checkpoint_at": "2026-04-04T22:16:35.143Z",
+                  "last_event_at": "2026-04-04T22:16:35.150Z"
+                }
+              },
+              "created_at": "2026-04-04T22:16:35.142Z",
+              "updated_at": "2026-04-04T22:16:35.146Z",
+              "last_event_at": "2026-04-04T22:16:35.150Z",
+              "kpi_projection": {
+                "terminal_status": null,
+                "per_step_timing": {
+                  "implementation": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  },
+                  "machine_verification": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  },
+                  "review_cycle": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  },
+                  "human_testing": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  },
+                  "merge_queue": {
+                    "status": "not_started",
+                    "started_at": null,
+                    "completed_at": null,
+                    "duration_seconds": null
+                  }
+                },
+                "governance_call_metrics": {
+                  "call_count": 0,
+                  "total_duration_ms": 0,
+                  "total_estimated_cost_usd": 0,
+                  "total_prompt_tokens_estimated": 0,
+                  "total_completion_tokens_estimated": 0,
+                  "total_tokens_estimated": 0
+                },
+                "verification_outcomes": [],
+                "review_cycle_count": 0,
+                "self_fix_cycle_count": 0,
+                "blocker_history": []
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "snapshot": {
+    "label": "update-state-merged-closeout",
+    "state": {
+      "feature_status": "active",
+      "active_run_status": "closeout_pending",
+      "last_completed_step": "merge_finished",
+      "merge_status": "merged",
+      "local_target_sync_status": "fetched_only",
+      "current_run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "current_attempt_id": "attempt-003",
+      "updated_at": "2026-04-05T00:10:18.939Z"
+    },
+    "feature_contract": {
+      "contract_revision": 8,
+      "run_mode": "normal",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "attempt_id": "attempt-003",
+      "attempt_number": 3,
+      "worker_id": "implementor/default",
+      "checkpoint": {
+        "step": "merge_queue",
+        "status": "completed",
+        "reason": "Resume from the last truthful normal-mode checkpoint.",
+        "updated_at": "2026-04-05T00:10:18.939Z"
+      },
+      "worker_selection": {
+        "defaults": {
+          "provider": null,
+          "runtime": "codex_cli_exec",
+          "access_mode": "codex_cli_full_auto_bypass",
+          "model": "gpt-5.4",
+          "reasoning_effort": "xhigh"
+        },
+        "continuity": {
+          "provider": "codex",
+          "runtime": "codex_cli_exec",
+          "access_mode": "codex_cli_full_auto_bypass",
+          "model": "gpt-5.4",
+          "reasoning_effort": "xhigh"
+        },
+        "overrides": {
+          "provider": null,
+          "runtime": null,
+          "access_mode": null,
+          "model": null,
+          "reasoning_effort": null
+        },
+        "resolved": {
+          "provider": "codex",
+          "runtime": "codex_cli_exec",
+          "access_mode": "codex_cli_full_auto_bypass",
+          "model": "gpt-5.4",
+          "reasoning_effort": "xhigh"
+        },
+        "resolved_sources": {
+          "provider": "persisted_continuity",
+          "runtime": "persisted_continuity",
+          "access_mode": "persisted_continuity",
+          "model": "persisted_continuity",
+          "reasoning_effort": "persisted_continuity"
+        },
+        "inheritance": {
+          "provider": false,
+          "runtime": false,
+          "access_mode": false,
+          "model": false,
+          "reasoning_effort": false
+        }
+      }
+    },
+    "run_contract": {
+      "contract_revision": 8,
+      "run_mode": "normal",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "attempt_id": "attempt-003",
+      "attempt_number": 3,
+      "worker_id": "implementor/default",
+      "checkpoint": {
+        "step": "merge_queue",
+        "status": "completed",
+        "reason": "Resume from the last truthful normal-mode checkpoint.",
+        "updated_at": "2026-04-05T00:10:18.939Z"
+      },
+      "worker_selection": {
+        "defaults": {
+          "provider": null,
+          "runtime": "codex_cli_exec",
+          "access_mode": "codex_cli_full_auto_bypass",
+          "model": "gpt-5.4",
+          "reasoning_effort": "xhigh"
+        },
+        "continuity": {
+          "provider": "codex",
+          "runtime": "codex_cli_exec",
+          "access_mode": "codex_cli_full_auto_bypass",
+          "model": "gpt-5.4",
+          "reasoning_effort": "xhigh"
+        },
+        "overrides": {
+          "provider": null,
+          "runtime": null,
+          "access_mode": null,
+          "model": null,
+          "reasoning_effort": null
+        },
+        "resolved": {
+          "provider": "codex",
+          "runtime": "codex_cli_exec",
+          "access_mode": "codex_cli_full_auto_bypass",
+          "model": "gpt-5.4",
+          "reasoning_effort": "xhigh"
+        },
+        "resolved_sources": {
+          "provider": "persisted_continuity",
+          "runtime": "persisted_continuity",
+          "access_mode": "persisted_continuity",
+          "model": "persisted_continuity",
+          "reasoning_effort": "persisted_continuity"
+        },
+        "inheritance": {
+          "provider": false,
+          "runtime": false,
+          "access_mode": false,
+          "model": false,
+          "reasoning_effort": false
+        }
+      }
+    },
+    "run_projection": {
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "attempt_id": "attempt-003",
+      "lifecycle_status": "active",
+      "terminal_status": null,
+      "attempt_status": "closeout_pending",
+      "checkpoint": {
+        "step": "merge_queue",
+        "status": "completed",
+        "reason": "Resume from the last truthful normal-mode checkpoint.",
+        "updated_at": "2026-04-05T00:10:18.939Z"
+      },
+      "merge_step": {
+        "status": "completed",
+        "started_at": "2026-04-04T22:58:36.323Z",
+        "completed_at": "2026-04-05T00:10:18.922Z",
+        "duration_seconds": 4303,
+        "note": null
+      }
+    },
+    "assertions": {
+      "run_id_aligned": true,
+      "attempt_id_aligned": true,
+      "checkpoint_step_aligned": true,
+      "checkpoint_status_aligned": true,
+      "feature_contract_matches_run_contract": true,
+      "feature_contract_matches_projection": true,
+      "merge_closeout_consistent": true
+    }
+  }
+}

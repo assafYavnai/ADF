@@ -379,6 +379,79 @@ export async function writeJsonAtomic(filePath, value) {
   await writeTextAtomic(filePath, JSON.stringify(value, null, 2) + "\n");
 }
 
+export function createOpaqueId(prefix) {
+  return sanitizePathSegment(prefix) + "-" + randomUUID();
+}
+
+export function timestampForPath(value = nowIso()) {
+  const timestamp = new Date(value);
+  if (!Number.isFinite(timestamp.getTime())) {
+    fail("Invalid timestamp '" + value + "'.");
+  }
+  return timestamp
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.(\d{3})Z$/, "$1Z");
+}
+
+export async function appendJsonEvent(eventRoot, record) {
+  await mkdir(eventRoot, { recursive: true });
+  const occurredAt = record?.occurred_at ?? nowIso();
+  const eventId = record?.event_id ?? createOpaqueId("event");
+  const eventPath = join(eventRoot, timestampForPath(occurredAt) + "-" + eventId + ".json");
+  const payload = {
+    ...record,
+    event_id: eventId,
+    occurred_at: occurredAt
+  };
+  await writeJsonAtomic(eventPath, payload);
+  return {
+    event_id: eventId,
+    event_path: normalizeSlashes(eventPath),
+    payload
+  };
+}
+
+export async function readJsonDirectory(rootPath, options = {}) {
+  const recursive = options.recursive !== false;
+  if (!(await pathExists(rootPath))) {
+    return [];
+  }
+
+  const entries = (await safeReaddir(rootPath)).sort((left, right) => left.name.localeCompare(right.name));
+  const files = [];
+
+  for (const entry of entries) {
+    const targetPath = join(rootPath, entry.name);
+    if (entry.isDirectory()) {
+      if (!recursive) continue;
+      files.push(...(await readJsonDirectory(targetPath, options)));
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.endsWith(".json")) {
+      continue;
+    }
+    try {
+      files.push({
+        path: normalizeSlashes(targetPath),
+        data: await readJson(targetPath),
+        error: null
+      });
+    } catch (error) {
+      if (options.failOnParseError) {
+        throw error;
+      }
+      files.push({
+        path: normalizeSlashes(targetPath),
+        data: null,
+        error: describeError(error)
+      });
+    }
+  }
+
+  return files.sort((left, right) => left.path.localeCompare(right.path));
+}
+
 export async function withLock(lockRoot, key, fn, options = {}) {
   const timeoutMs = options.timeoutMs ?? 15000;
   const staleMs = options.staleMs ?? 120000;

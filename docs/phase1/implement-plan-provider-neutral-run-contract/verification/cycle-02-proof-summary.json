@@ -1,0 +1,30 @@
+{
+  "kpi_applicability": "not required",
+  "proofs": {
+    "update_state_merged_closeout_sync": {
+      "path": "cycle-02-update-state-merged-closeout-sync.json",
+      "route": "update-state -> syncNormalRunProjectionFromState -> writeExecutionContract and writeRunProjection",
+      "assertion": "merged-but-not-completed closeout state keeps the stable contract, run contract, run projection, and compatibility state aligned, including merge_queue or completed checkpoint truth"
+    },
+    "record_event_contract_sync": {
+      "path": "cycle-02-record-event-contract-sync.json",
+      "route": "record-event -> appendExecutionAuditEvent -> writeExecutionContract and writeRunProjection",
+      "assertion": "record-event refreshes the stable feature-root contract instead of leaving it stale behind the live run artifacts"
+    },
+    "mark_complete_negative": {
+      "path": "cycle-02-mark-complete-not-started-rejected.json",
+      "route": "update-state(merged closeout) -> mark-complete",
+      "assertion": "mark-complete still rejects unresolved local-target sync truth while the pre-completion merge step remains internally consistent"
+    },
+    "mark_complete_positive": {
+      "path": "cycle-02-mark-complete-recorded-sync-passes.json",
+      "route": "update-state(merged closeout with recorded sync) -> mark-complete",
+      "assertion": "mark-complete still succeeds once merge truth and recorded sync truth are both present, and all live contract artifacts stay aligned after completion"
+    },
+    "live_resync": {
+      "path": "cycle-02-live-closeout-resync.json",
+      "route": "update-state(current closeout state) -> live contract or projection refresh",
+      "assertion": "the worktree ends with the canonical feature-root contract resynced to the actual live closeout-pending state after the helper fix"
+    }
+  }
+}

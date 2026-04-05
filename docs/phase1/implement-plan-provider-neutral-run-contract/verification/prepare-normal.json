@@ -1,0 +1,970 @@
+{
+  "command": "prepare",
+  "project_root": "C:/ADF",
+  "phase_number": 1,
+  "feature_slug": "implement-plan-provider-neutral-run-contract",
+  "feature_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract",
+  "skill_state_root": "C:/ADF/.codex/implement-plan",
+  "worktrees_root": "C:/ADF/.codex/implement-plan/worktrees",
+  "setup_path": "C:/ADF/.codex/implement-plan/setup.json",
+  "registry_path": "C:/ADF/.codex/implement-plan/agent-registry.json",
+  "features_index_path": "C:/ADF/.codex/implement-plan/features-index.json",
+  "templates_root": "C:/ADF/skills/implement-plan",
+  "references_root": "C:/ADF/skills/implement-plan/references",
+  "state_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+  "readme_created": false,
+  "context_created": false,
+  "state_created": true,
+  "state_repairs": [],
+  "setup_exists": true,
+  "setup_complete": true,
+  "setup_validation_errors": [],
+  "setup_validation_warnings": [],
+  "setup_requires_refresh": false,
+  "feature_status": "active",
+  "feature_status_message": "Feature is active and may run.",
+  "run_mode": "normal",
+  "run_allowed": true,
+  "benchmark_contract_ready": false,
+  "current_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+  "active_run_status": "context_ready",
+  "last_completed_step": "context_collected",
+  "worktree": {
+    "base_branch": "main",
+    "feature_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+    "worktree_status": "ready"
+  },
+  "merge_lifecycle": {
+    "merge_required": true,
+    "merge_status": "not_ready",
+    "approved_commit_sha": null,
+    "merge_commit_sha": null,
+    "merge_queue_request_id": null,
+    "local_target_sync_status": "not_started"
+  },
+  "implementor_lane": {
+    "execution_id": null,
+    "execution_access_mode": "codex_cli_full_auto_bypass",
+    "execution_runtime": "codex_cli_exec",
+    "provider": null,
+    "model": "gpt-5.4",
+    "reasoning_effort": "xhigh",
+    "required_access_mode": "codex_cli_full_auto_bypass",
+    "recreate_due_to_weaker_access": false,
+    "execution_action": "spawn"
+  },
+  "post_review_handoff": {
+    "enabled": false,
+    "compatibility_alias_used": false,
+    "review_until_complete": false,
+    "review_max_cycles": null,
+    "effective_review_cycle_flags": null
+  },
+  "execution_contract": {
+    "schema_version": 1,
+    "contract_kind": "implement-plan-execution",
+    "contract_revision": 1,
+    "prepared_at": "2026-04-04T22:16:34.941Z",
+    "feature_identity": {
+      "project_root": "C:/ADF",
+      "phase_number": 1,
+      "feature_slug": "implement-plan-provider-neutral-run-contract",
+      "feature_registry_key": "phase1/implement-plan-provider-neutral-run-contract",
+      "feature_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract"
+    },
+    "run_identity": {
+      "run_mode": "normal",
+      "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "attempt_id": "attempt-001",
+      "attempt_number": 1,
+      "lane_id": null,
+      "worker_id": "implementor/default"
+    },
+    "invoker_runtime": {
+      "provider": null,
+      "execution_runtime": "codex_cli_exec",
+      "control_plane_runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh",
+      "runtime_permission_model": "codex_cli_explicit_full_auto",
+      "selection_source": "invoker_runtime_defaults"
+    },
+    "worker_selection": {
+      "defaults": {
+        "provider": null,
+        "runtime": "codex_cli_exec",
+        "access_mode": "codex_cli_full_auto_bypass",
+        "model": "gpt-5.4",
+        "reasoning_effort": "xhigh"
+      },
+      "overrides": {
+        "provider": null,
+        "runtime": null,
+        "access_mode": null,
+        "model": null,
+        "reasoning_effort": null
+      },
+      "resolved": {
+        "provider": null,
+        "runtime": "codex_cli_exec",
+        "access_mode": "codex_cli_full_auto_bypass",
+        "model": "gpt-5.4",
+        "reasoning_effort": "xhigh"
+      },
+      "inheritance": {
+        "provider": true,
+        "runtime": true,
+        "access_mode": true,
+        "model": true,
+        "reasoning_effort": true
+      }
+    },
+    "route_policy": {
+      "normal_mode_governed_flow": [
+        "implementation",
+        "machine_verification",
+        "review_cycle",
+        "human_testing",
+        "merge_queue"
+      ],
+      "normal_mode_requires_review_cycle_when_requested": true,
+      "human_testing_requires_route_level_review_gate": true,
+      "merge_completion_required_for_terminal_completion": true,
+      "supported_operator_stop_surface": false,
+      "supported_reset_surface": "helper-reset-attempt",
+      "normal_mode_shortcuts_allowed": false
+    },
+    "review_handoff": {
+      "post_send_to_review": false,
+      "review_until_complete": false,
+      "review_max_cycles": null,
+      "review_required_by_human_plan": false
+    },
+    "benchmarking": {
+      "enabled": false,
+      "supervisor_status": "not_applicable",
+      "benchmark_run_id": null,
+      "benchmark_suite_id": null,
+      "lane_id": null,
+      "lane_label": null
+    },
+    "resume_policy": {
+      "resumable_after_crash_or_kill": true,
+      "reuse_cached_workers_when_valid": true,
+      "recreate_workers_when_invalid": true,
+      "last_truthful_checkpoint": {
+        "step": "implementation",
+        "status": "ready",
+        "reason": "Resume from the last truthful normal-mode checkpoint.",
+        "updated_at": "2026-04-04T22:16:34.941Z"
+      }
+    },
+    "reset_policy": {
+      "supported": true,
+      "behavior": "new_attempt_from_implementation_preserving_history",
+      "next_attempt_number": 2
+    },
+    "kpi_policy": {
+      "source": "governed_production_flow",
+      "step_timing_enabled": true,
+      "governance_call_timing_enabled": true,
+      "verification_outcomes_enabled": true,
+      "review_and_self_fix_counts_enabled": true,
+      "blocker_classification_enabled": true,
+      "terminal_status_enabled": true
+    },
+    "integrity": {
+      "blocking_issue_count": 0,
+      "blocking_issue_classes": [],
+      "next_safe_move": "proceed to implementor brief"
+    },
+    "artifacts": {
+      "state_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+      "markdown_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md",
+      "execution_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+      "run_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+      "run_projection_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+      "execution_run_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985",
+      "event_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/events/attempt-001",
+      "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract"
+    }
+  },
+  "execution_projection": {
+    "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+    "attempt_id": "attempt-001",
+    "run_mode": "normal",
+    "lifecycle_status": "active",
+    "execution_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+    "benchmark_context": {
+      "benchmark_run_id": null,
+      "benchmark_suite_id": null,
+      "lane_id": null,
+      "lane_label": null
+    },
+    "current_attempt_status": "ready_for_implementation",
+    "resume_checkpoint": {
+      "step": "implementation",
+      "status": "ready",
+      "reason": "Resume from the last truthful normal-mode checkpoint.",
+      "updated_at": "2026-04-04T22:16:34.941Z"
+    },
+    "verification_plan_state": {
+      "machine_plan_present": true,
+      "human_plan_present": true,
+      "human_required": false,
+      "testing_phase_language_present": false,
+      "executive_summary_present": false,
+      "test_steps_present": false,
+      "expected_results_present": false,
+      "evidence_guidance_present": false,
+      "response_contract_present": false
+    },
+    "kpi": {
+      "terminal_status": null,
+      "per_step_timing": {
+        "implementation": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "machine_verification": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "review_cycle": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "human_testing": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "merge_queue": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        }
+      },
+      "governance_call_metrics": {
+        "call_count": 0,
+        "total_duration_ms": 0,
+        "total_estimated_cost_usd": 0,
+        "total_prompt_tokens_estimated": 0,
+        "total_completion_tokens_estimated": 0,
+        "total_tokens_estimated": 0
+      },
+      "verification_outcomes": [],
+      "review_cycle_count": 0,
+      "self_fix_cycle_count": 0,
+      "blocker_history": []
+    }
+  },
+  "context_input_pack": {
+    "feature_artifacts": {
+      "readme": {
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/README.md",
+        "exists": true,
+        "valid": true,
+        "validation_error": null,
+        "text": "# implement-plan-provider-neutral-run-contract\n\n## Implementation Objective\n\nUpgrade the repo-owned `implement-plan` path so it exposes one versioned JSON-first execution contract for both `prepare` and `run`, keeps normal mode as the governed production route, and adds the durable identity, resume, reset, event, and KPI substrate required for later benchmarking work without weakening production behavior.\n\n## Requested Scope\n\nImplement Spec 1 only. Unify the runtime contract, worker-selection model, identity model, resumable state, reset semantics, and KPI/event persistence across `implement-plan`, the governed runtime helper, and only the minimal review-cycle references needed to keep routed review integration truthful.\n\n## Non-Goals\n\nDo not build the benchmark supervisor. Do not build Spec 2 or Spec 3. Do not add matrix execution, benchmark stop controls, or any shortcut that lets normal mode bypass machine verification, review-cycle, required human testing, merge-queue, or merge-complete closeout.\n\n## Artifact Map\n\n- context.md\n- implement-plan-state.json\n- implement-plan-contract.md\n- implement-plan-execution-contract.v1.json\n- implement-plan-pushback.md\n- implement-plan-brief.md\n- implementation-run/\n- completion-summary.md\n\n## Lifecycle\n\n- active\n- blocked\n- completed\n- closed\n"
+      },
+      "context": {
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/context.md",
+        "exists": true,
+        "valid": true,
+        "validation_error": null,
+        "text": "# Feature Context\n\n## Feature\n\n- phase_number: 1\n- feature_slug: implement-plan-provider-neutral-run-contract\n- project_root: C:/ADF\n- feature_root: C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract\n- current_branch: main\n\n## Task Summary\n\nImplement Spec 1 for `implement-plan`: one versioned JSON-first execution contract shared by `prepare` and `run`, normal and benchmarking run modes, provider-neutral worker selection, durable resumable state, explicit reset semantics, lane-safe identity, push-capable eventing, and production KPI capture.\n\n## Scope Hint\n\nKeep normal mode as the governed production route. Add only the shared substrate needed for later benchmark supervision. Preserve merge-ready versus completed truth, resume after interruption, and review-cycle / merge-queue route integrity.\n\n## Non-Goals\n\nDo not build the benchmark supervisor, matrix execution, suite/lane stop commands, or a benchmark-only scoring layer. Do not implement Spec 2 or Spec 3 in this slice.\n\n## Discovered Authorities\n\n- [project-doc] C:/ADF/docs/VISION.md\n- [project-doc] C:/ADF/docs/PHASE1_VISION.md\n- [project-doc] C:/ADF/docs/PHASE1_MASTER_PLAN.md\n- [project-doc] C:/ADF/docs/phase1/adf-phase1-current-gap-closure-plan.md\n- [skill-doc] C:/ADF/skills/implement-plan/SKILL.md\n- [skill-doc] C:/ADF/skills/implement-plan/references/workflow-contract.md\n- [skill-doc] C:/ADF/skills/implement-plan/references/prompt-templates.md\n- [skill-doc] C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs\n- [skill-doc] C:/ADF/skills/review-cycle/SKILL.md\n- [skill-doc] C:/ADF/skills/review-cycle/references/workflow-contract.md\n- [skill-doc] C:/ADF/skills/review-cycle/references/prompt-templates.md\n- [skill-doc] C:/ADF/skills/merge-queue/SKILL.md\n- [skill-doc] C:/ADF/skills/governed-feature-runtime.mjs\n\n## Notes\n\n- Runtime preflight is authoritative: host OS is Windows, the workflow shell is bash, and the control-plane entrypoint is `adf.cmd`.\n- Brain capture is required by repo policy, but the Brain MCP tool surface is not exposed in this Codex runtime. Durable decisions for this slice are therefore captured in repo-backed feature artifacts.\n- Review-cycle authority was first aligned to merge commit `9839399` before continuing this implementation pass.\n- Durable design decisions in this slice:\n  - the stable feature-root contract file is `implement-plan-execution-contract.v1.json`\n  - each run also keeps its own run-scoped contract snapshot plus `run-projection.v1.json`\n  - append-only attempt event files under `implementation-run/<run-id>/events/<attempt-id>/` are the durable mutation log\n  - `implement-plan-state.json` remains the compatibility projection, not the only execution truth\n"
+      },
+      "contract": {
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md",
+        "exists": true,
+        "valid": true,
+        "validation_error": null,
+        "text": "1. Implementation Objective\n\nUpgrade the repo-owned `implement-plan` execution path so `prepare` and `run` share one versioned JSON-first execution contract that supports `normal` and `benchmarking` run modes, provider-neutral worker selection, durable resumable identity and state, explicit reset semantics, append-only eventing, and KPI capture from the governed production route itself.\n\n2. Slice Scope\n\n- Strengthen [implement-plan](/C:/ADF/skills/implement-plan) so the helper materializes:\n  - a stable feature-root execution contract at `implement-plan-execution-contract.v1.json`\n  - a run-scoped contract snapshot under `implementation-run/<run-id>/`\n  - a run-scoped mutable projection under `implementation-run/<run-id>/run-projection.v1.json`\n  - append-only attempt event logs under `implementation-run/<run-id>/events/<attempt-id>/`\n- Keep the slice bounded to the repo-owned helper/runtime/contract layer:\n  - [SKILL.md](/C:/ADF/skills/implement-plan/SKILL.md)\n  - [workflow-contract.md](/C:/ADF/skills/implement-plan/references/workflow-contract.md)\n  - [prompt-templates.md](/C:/ADF/skills/implement-plan/references/prompt-templates.md)\n  - [implement-plan-helper.mjs](/C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs)\n  - [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs)\n  - minimal aligned review-cycle reference updates only where routed review integration or resume identity must stay truthful\n- Preserve the existing governed normal route:\n  - implementation\n  - machine verification\n  - review-cycle when required\n  - human testing when required\n  - merge-queue\n  - completed only after truthful merge success\n- Add benchmarking-mode fields only as shared substrate. Do not build supervisor orchestration or benchmark-only execution shortcuts.\n\n3. Required Deliverables\n\n- One versioned JSON execution contract shared by `prepare` and `run`, with a stable repo-owned path plus run-scoped snapshot.\n- `run_mode` support for `normal` and `benchmarking`.\n- Provider-neutral worker-selection resolution with invoker-runtime inheritance and explicit override fields for provider, runtime, model, reasoning effort, and access mode.\n- Durable identity separation for:\n  - feature identity\n  - run identity\n  - attempt identity\n  - worker identity\n  - lane identity when applicable\n- Durable resumable state that can recover from run projections after interruption or feature-state damage.\n- Explicit reset semantics that create a new attempt from implementation while preserving prior attempt history.\n- KPI primitives emitted from the governed normal route itself:\n  - per-step timing\n  - per-governance-call timing\n  - estimated token/cost capture when available\n  - verification outcomes\n  - review/self-fix counts\n  - blocker classification\n  - terminal status\n- Updated workflow authorities and prompt references that truthfully describe the new contract and persistence model.\n- Proof artifacts under this feature stream showing contract materialization, run-mode handling, overrides, resume/reset behavior, KPI/event emission, and failure paths.\n\n4. Allowed Edits\n\n- [SKILL.md](/C:/ADF/skills/implement-plan/SKILL.md)\n- [workflow-contract.md](/C:/ADF/skills/implement-plan/references/workflow-contract.md)\n- [prompt-templates.md](/C:/ADF/skills/implement-plan/references/prompt-templates.md)\n- [implement-plan-helper.mjs](/C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs)\n- [SKILL.md](/C:/ADF/skills/review-cycle/SKILL.md) only where required for routed review truth, resume identity, or benchmark-safe reference alignment\n- [workflow-contract.md](/C:/ADF/skills/review-cycle/references/workflow-contract.md) only where required for routed review truth, resume identity, or benchmark-safe reference alignment\n- [prompt-templates.md](/C:/ADF/skills/review-cycle/references/prompt-templates.md) only where required for routed review integration truth\n- [SKILL.md](/C:/ADF/skills/merge-queue/SKILL.md) only if a minimal wording alignment is required for truthful integration\n- [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs)\n- Minimal aligned shared helper/runtime files under `C:/ADF/skills` that own shared state, locks, events, identity, or setup validation\n- This feature root under [implement-plan-provider-neutral-run-contract](/C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract)\n\n5. Forbidden Edits\n\n- Do not implement the benchmark supervisor, matrix execution, or suite/lane stop commands.\n- Do not create separate incompatible schemas for normal and benchmarking.\n- Do not let normal mode bypass machine verification, route-level review, required human testing, merge-queue, or merge-complete closeout.\n- Do not add a benchmark-only KPI scorer or synthetic score layer.\n- Do not collapse worker runtime into control-plane runtime.\n- Do not redesign merge-queue beyond the minimum needed for truthful integration.\n- Do not weaken the rule that approval on the feature branch is merge-ready, not completed.\n- Do not broaden the slice into COO runtime product work or unrelated workflow redesign.\n\n6. Acceptance Gates\n\nKPI Applicability: not required\nKPI Route / Touched Path: Not applicable for this meta-governance slice. The slice changes repo-owned workflow/runtime contracts rather than a separate product route.\nKPI Raw-Truth Source: Not applicable for a new product KPI route; this slice instead strengthens how `implement-plan` captures KPI truth for governed implementation routes.\nKPI Coverage / Proof: Helper proof artifacts must show the governed route now emits durable step/governance/verification/blocker/terminal KPI primitives.\nKPI Production / Proof Partition: Proof artifacts for this slice may live under this feature stream, but the runtime design must clearly keep future production KPI truth sourced from governed route execution rather than a separate proof-only scorer.\nKPI Non-Applicability Rationale: This slice is repo-owned workflow/runtime governance. It does not itself ship a new product route that requires separate product KPI instrumentation to claim production completeness.\nKPI Exception Owner: Not applicable.\nKPI Exception Expiry: Not applicable.\nKPI Exception Production Status: Not applicable.\nKPI Compensating Control: Not applicable.\nVision Compatibility: This slice strengthens durable execution, governance, resumability, and route truth inside the Phase 1 delivery startup instead of adding a later-company function.\nPhase 1 Compatibility: This slice directly improves the reviewed implementation lane by making execution state, resume, and closeout more machine-consumable and operationally disciplined.\nMaster-Plan Compatibility: This slice reduces operational ambiguity in feature execution, review routing, and completion truth without widening beyond the current Phase 1 mission.\nCurrent Gap-Closure Compatibility: This slice closes the remaining implementation-lane governance gap around durable execution contract/state, provider-neutral worker control, and benchmark-safe persistence substrate.\nLater-Company Check: no\nCompatibility Decision: compatible\nCompatibility Evidence: The current gap plan already states that `implement-plan`, `review-cycle`, and `merge-queue` form the governed implementation route. This slice hardens that route with one machine-consumable execution contract, explicit identity boundaries, event-first persistence, and truthful merge-complete closeout semantics.\n\n1. `prepare` and `run` must share one stable versioned JSON execution contract path at the feature root, with the same schema used for both normal and benchmarking mode.\n2. Normal mode remains the governed production route and must not allow benchmark-style shortcuts.\n3. `benchmarking` fields may exist in the same contract, but this slice must stop short of benchmark supervision or matrix execution.\n4. Worker selection must be provider-neutral and must support explicit overrides for provider, runtime, model, reasoning effort, and access mode.\n5. When overrides are absent, worker selection must inherit truthful invoker/runtime defaults.\n6. Feature identity, run identity, attempt identity, worker identity, and lane identity must remain distinct and durable.\n7. Reset must create a new attempt from implementation and preserve prior attempt history rather than erasing it.\n8. Append-only event files plus run-scoped projections must exist so future benchmark-driven review-cycle parallelism is not dependent on one unsafe shared whole-file mutation path.\n9. The helper must be able to repair/recover execution runs conservatively from run projections when the legacy feature state is missing or damaged.\n10. Completion remains legal only after truthful merge success.\n\nMachine Verification Plan\n- Run `node --check C:/ADF/skills/governed-feature-runtime.mjs`.\n- Run `node --check C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs`.\n- Run `git diff --check` on the changed source set.\n- Run targeted helper smoke verification that proves:\n  - contract parsing and materialization\n  - `run_mode=normal` governed route preparation\n  - `run_mode=benchmarking` contract materialization without supervisor execution\n  - invoker-runtime inheritance\n  - explicit provider/runtime/model/reasoning/access overrides\n  - resume after interruption via persisted run projection / state reuse\n  - reset semantics create a new attempt and preserve prior attempt history\n  - KPI/event emission updates the run projection truthfully\n  - failure paths still push back or fail closed\n- Refresh installed skills with `manage-skills install` / `manage-skills check` if repo-owned source changes materially affect generated installs.\n\nHuman Verification Plan\n- Required: false\n- Reason: this slice changes repo-owned workflow/runtime contracts, helper behavior, and feature artifacts. Closure should be proven through machine verification and governed review rather than a separate manual product-testing handoff.\n\n7. Observability / Audit\n\n- The stable feature-root execution contract must expose the selected route policy, worker-selection policy, identity envelope, benchmarking substrate, and artifact paths.\n- Run projections must expose current attempt state, resume checkpoint, KPI summary, and durable artifact locations without requiring callers to reconstruct everything from the legacy feature-state file.\n- Attempt event logs must be append-only JSON records with run/attempt identity so later reduction is possible without unsafe shared whole-file state mutation.\n- The compatibility feature state remains important for current callers, but it must be treated as a projection/cache rather than the only source of execution truth.\n- Route reports and completion reports must remain human-facing and concise even while the underlying runtime becomes more machine-consumable.\n\n8. Dependencies / Constraints\n\n- Preserve the existing `implement-plan` integrity gate and closeout truths.\n- Preserve routed `review-cycle` integration and merge-queue ownership of truthful merge landing.\n- Preserve worker/runtime truth from [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs).\n- Preserve the review-cycle authority state already aligned to merge commit `9839399`.\n- Keep the control plane distinct from the worker runtime.\n- Brain capture is required by repo policy, but this Codex runtime lacks exposed Brain MCP tools, so durable decisions for this slice must be captured in repo-backed artifacts.\n\n9. Non-Goals\n\n- No benchmark supervisor implementation.\n- No benchmark matrix or suite orchestration.\n- No new operator stop surface for normal mode.\n- No benchmark-only score layer.\n- No merge-queue redesign beyond truthful integration.\n- No unrelated repo-wide workflow rewrite.\n\n10. Source Authorities\n\n- [README.md](/C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/README.md)\n- [context.md](/C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/context.md)\n- [VISION.md](/C:/ADF/docs/VISION.md)\n- [PHASE1_VISION.md](/C:/ADF/docs/PHASE1_VISION.md)\n- [PHASE1_MASTER_PLAN.md](/C:/ADF/docs/PHASE1_MASTER_PLAN.md)\n- [adf-phase1-current-gap-closure-plan.md](/C:/ADF/docs/phase1/adf-phase1-current-gap-closure-plan.md)\n- [SKILL.md](/C:/ADF/skills/implement-plan/SKILL.md)\n- [workflow-contract.md](/C:/ADF/skills/implement-plan/references/workflow-contract.md)\n- [prompt-templates.md](/C:/ADF/skills/implement-plan/references/prompt-templates.md)\n- [implement-plan-helper.mjs](/C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs)\n- [SKILL.md](/C:/ADF/skills/review-cycle/SKILL.md)\n- [workflow-contract.md](/C:/ADF/skills/review-cycle/references/workflow-contract.md)\n- [prompt-templates.md](/C:/ADF/skills/review-cycle/references/prompt-templates.md)\n- [SKILL.md](/C:/ADF/skills/merge-queue/SKILL.md)\n- [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs)\n"
+      },
+      "pushback": {
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-pushback.md",
+        "exists": false,
+        "valid": false,
+        "validation_error": "implement-plan-pushback.md is missing.",
+        "text": ""
+      },
+      "brief": {
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-brief.md",
+        "exists": false,
+        "valid": false,
+        "validation_error": "implement-plan-brief.md is missing.",
+        "text": ""
+      },
+      "completion_summary": {
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/completion-summary.md",
+        "exists": false,
+        "valid": false,
+        "validation_error": "completion-summary.md is missing.",
+        "text": ""
+      }
+    },
+    "review_cycle_artifacts": [],
+    "discovered_feature_docs": [],
+    "discovered_phase_docs": [
+      {
+        "name": "adf-phase-gates-and-next-phase-design-implementation-ready-contract.md",
+        "path": "C:/ADF/docs/phase1/adf-phase-gates-and-next-phase-design-implementation-ready-contract.md",
+        "relative_path": "adf-phase-gates-and-next-phase-design-implementation-ready-contract.md"
+      },
+      {
+        "name": "adf-phase0-readiness-and-phase1-implementation-ready-plan.md",
+        "path": "C:/ADF/docs/phase1/adf-phase0-readiness-and-phase1-implementation-ready-plan.md",
+        "relative_path": "adf-phase0-readiness-and-phase1-implementation-ready-plan.md"
+      },
+      {
+        "name": "adf-phase1-coo-completion-plan.md",
+        "path": "C:/ADF/docs/phase1/adf-phase1-coo-completion-plan.md",
+        "relative_path": "adf-phase1-coo-completion-plan.md"
+      },
+      {
+        "name": "adf-phase1-current-gap-closure-plan.md",
+        "path": "C:/ADF/docs/phase1/adf-phase1-current-gap-closure-plan.md",
+        "relative_path": "adf-phase1-current-gap-closure-plan.md"
+      },
+      {
+        "name": "adf-phase1-discussion-record.md",
+        "path": "C:/ADF/docs/phase1/adf-phase1-discussion-record.md",
+        "relative_path": "adf-phase1-discussion-record.md"
+      },
+      {
+        "name": "adf-phase1-high-level-plan.md",
+        "path": "C:/ADF/docs/phase1/adf-phase1-high-level-plan.md",
+        "relative_path": "adf-phase1-high-level-plan.md"
+      },
+      {
+        "name": "adf-phase1-onion-parallel-build-plan.md",
+        "path": "C:/ADF/docs/phase1/adf-phase1-onion-parallel-build-plan.md",
+        "relative_path": "adf-phase1-onion-parallel-build-plan.md"
+      },
+      {
+        "name": "adf-requirement-to-implementation-high-level-design.md",
+        "path": "C:/ADF/docs/phase1/adf-requirement-to-implementation-high-level-design.md",
+        "relative_path": "adf-requirement-to-implementation-high-level-design.md"
+      },
+      {
+        "name": "completion-summary.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/completion-summary.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/context.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/context.md"
+      },
+      {
+        "name": "audit-findings.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/audit-findings.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/cycle-01/audit-findings.md"
+      },
+      {
+        "name": "fix-plan.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/fix-plan.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/cycle-01/fix-plan.md"
+      },
+      {
+        "name": "fix-report.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/fix-report.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/cycle-01/fix-report.md"
+      },
+      {
+        "name": "review-findings.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/review-findings.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/cycle-01/review-findings.md"
+      },
+      {
+        "name": "implement-plan-brief.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-brief.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/implement-plan-brief.md"
+      },
+      {
+        "name": "implement-plan-contract.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-contract.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/implement-plan-contract.md"
+      },
+      {
+        "name": "README.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/README.md",
+        "relative_path": "adf-runtime-preflight-and-install-split/README.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/context.md",
+        "relative_path": "bash-execution-enforcement/context.md"
+      },
+      {
+        "name": "audit-findings.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/audit-findings.md",
+        "relative_path": "bash-execution-enforcement/cycle-01/audit-findings.md"
+      },
+      {
+        "name": "fix-plan.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/fix-plan.md",
+        "relative_path": "bash-execution-enforcement/cycle-01/fix-plan.md"
+      },
+      {
+        "name": "fix-report.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/fix-report.md",
+        "relative_path": "bash-execution-enforcement/cycle-01/fix-report.md"
+      },
+      {
+        "name": "review-findings.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/review-findings.md",
+        "relative_path": "bash-execution-enforcement/cycle-01/review-findings.md"
+      },
+      {
+        "name": "verification-evidence.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/verification-evidence.md",
+        "relative_path": "bash-execution-enforcement/cycle-01/verification-evidence.md"
+      },
+      {
+        "name": "audit-findings.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-02/audit-findings.md",
+        "relative_path": "bash-execution-enforcement/cycle-02/audit-findings.md"
+      },
+      {
+        "name": "fix-plan.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-02/fix-plan.md",
+        "relative_path": "bash-execution-enforcement/cycle-02/fix-plan.md"
+      }
+    ],
+    "discovered_project_docs": [
+      {
+        "name": "adf-phase-gates-and-next-phase-design-implementation-ready-contract.md",
+        "path": "C:/ADF/docs/phase1/adf-phase-gates-and-next-phase-design-implementation-ready-contract.md",
+        "relative_path": "phase1/adf-phase-gates-and-next-phase-design-implementation-ready-contract.md"
+      },
+      {
+        "name": "adf-requirement-to-implementation-high-level-design.md",
+        "path": "C:/ADF/docs/phase1/adf-requirement-to-implementation-high-level-design.md",
+        "relative_path": "phase1/adf-requirement-to-implementation-high-level-design.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/context.md",
+        "relative_path": "phase1/adf-runtime-preflight-and-install-split/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/context.md",
+        "relative_path": "phase1/bash-execution-enforcement/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/company-table-queue-read-model/context.md",
+        "relative_path": "phase1/company-table-queue-read-model/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-cto-admission-packet-builder/context.md",
+        "relative_path": "phase1/coo-cto-admission-packet-builder/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-executive-brief-read-model/context.md",
+        "relative_path": "phase1/coo-executive-brief-read-model/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/context.md",
+        "relative_path": "phase1/coo-freeze-to-cto-admission-wiring/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-kpi-instrumentation/context.md",
+        "relative_path": "phase1/coo-kpi-instrumentation/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/context.md",
+        "relative_path": "phase1/coo-live-executive-status-wiring/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-natural-conversation-rendering/context.md",
+        "relative_path": "phase1/coo-natural-conversation-rendering/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/coo-stabilization/context.md",
+        "relative_path": "phase1/coo-stabilization/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/implement-plan-benchmark-worktree-stabilization/context.md",
+        "relative_path": "phase1/implement-plan-benchmark-worktree-stabilization/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/implement-plan-review-cycle-kpi-enforcement/context.md",
+        "relative_path": "phase1/implement-plan-review-cycle-kpi-enforcement/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/implement-plan-review-cycle-vision-master-plan-gating/context.md",
+        "relative_path": "phase1/implement-plan-review-cycle-vision-master-plan-gating/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/implement-plan-verification-and-approval-flow/context.md",
+        "relative_path": "phase1/implement-plan-verification-and-approval-flow/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/implement-plan-worktree-merge-queue/context.md",
+        "relative_path": "phase1/implement-plan-worktree-merge-queue/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/llm-skills-repo-migration/context.md",
+        "relative_path": "phase1/llm-skills-repo-migration/context.md"
+      },
+      {
+        "name": "context.md",
+        "path": "C:/ADF/docs/phase1/requirements-gathering/context.md",
+        "relative_path": "phase1/requirements-gathering/context.md"
+      },
+      {
+        "name": "architecture.md",
+        "path": "C:/ADF/docs/v0/architecture.md",
+        "relative_path": "v0/architecture.md"
+      },
+      {
+        "name": "agent-role-builder-governance-v1-frozen-design.md",
+        "path": "C:/ADF/docs/v0/context/agent-role-builder-governance-v1-frozen-design.md",
+        "relative_path": "v0/context/agent-role-builder-governance-v1-frozen-design.md"
+      },
+      {
+        "name": "context-cache-layer-ideas.md",
+        "path": "C:/ADF/docs/v0/context/context-cache-layer-ideas.md",
+        "relative_path": "v0/context/context-cache-layer-ideas.md"
+      },
+      {
+        "name": "review-process-architecture.md",
+        "path": "C:/ADF/docs/v0/review-process-architecture.md",
+        "relative_path": "v0/review-process-architecture.md"
+      }
+    ],
+    "authorities": [
+      {
+        "kind": "feature-readme",
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/README.md"
+      },
+      {
+        "kind": "feature-context",
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/context.md"
+      },
+      {
+        "kind": "implement-plan-contract",
+        "path": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase-gates-and-next-phase-design-implementation-ready-contract.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase0-readiness-and-phase1-implementation-ready-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase1-coo-completion-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase1-current-gap-closure-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase1-discussion-record.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase1-high-level-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-phase1-onion-parallel-build-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-requirement-to-implementation-high-level-design.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/context.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/audit-findings.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/fix-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/fix-report.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-01/review-findings.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-brief.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-contract.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/README.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/context.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/audit-findings.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/fix-plan.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/fix-report.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/review-findings.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-01/verification-evidence.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-02/audit-findings.md"
+      },
+      {
+        "kind": "phase-doc",
+        "path": "C:/ADF/docs/phase1/bash-execution-enforcement/cycle-02/fix-plan.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/company-table-queue-read-model/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-cto-admission-packet-builder/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-executive-brief-read-model/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-kpi-instrumentation/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-natural-conversation-rendering/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/coo-stabilization/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/implement-plan-benchmark-worktree-stabilization/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/implement-plan-review-cycle-kpi-enforcement/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/implement-plan-review-cycle-vision-master-plan-gating/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/implement-plan-verification-and-approval-flow/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/implement-plan-worktree-merge-queue/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/llm-skills-repo-migration/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/phase1/requirements-gathering/context.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/v0/architecture.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/v0/context/agent-role-builder-governance-v1-frozen-design.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/v0/context/context-cache-layer-ideas.md"
+      },
+      {
+        "kind": "project-doc",
+        "path": "C:/ADF/docs/v0/review-process-architecture.md"
+      }
+    ]
+  },
+  "integrity_precheck": {
+    "ready_for_integrity_checker": true,
+    "ready_for_worker": true,
+    "contract_source": {
+      "type": "normalized_contract",
+      "paths": [
+        "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-contract.md"
+      ]
+    },
+    "normalized_contract_required": false,
+    "blocking_issues": [],
+    "warnings": [],
+    "next_safe_move": "proceed to implementor brief"
+  },
+  "detected_status_summary": {
+    "detected_project_root": "C:/ADF",
+    "detected_feature_root": "C:/ADF/docs/phase1/implement-plan-provider-neutral-run-contract",
+    "feature_status": "active",
+    "active_run_status": "context_ready",
+    "base_branch": "main",
+    "feature_branch": "implement-plan/phase1/implement-plan-provider-neutral-run-contract",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract",
+    "worktree_status": "ready",
+    "merge_status": "not_ready",
+    "setup_status": "ready",
+    "execution_run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+    "execution_attempt_id": "attempt-001",
+    "execution_run_mode": "normal",
+    "implementor_execution_id": null,
+    "implementor_access_mode": "codex_cli_full_auto_bypass",
+    "implementor_runtime": "codex_cli_exec",
+    "recreate_due_to_weaker_access": false,
+    "post_review_handoff_enabled": false,
+    "review_until_complete": false,
+    "effective_review_max_cycles": null,
+    "next_action": "spawn_implementor_with_brief"
+  },
+  "current_settings_summary": {
+    "setup_status": "ready",
+    "preferred_execution_access_mode": "codex_cli_full_auto_bypass",
+    "preferred_implementor_access_mode": "codex_cli_full_auto_bypass",
+    "preferred_execution_runtime": "codex_cli_exec",
+    "preferred_control_plane_runtime": "codex_cli_exec",
+    "preferred_implementor_model": "gpt-5.4",
+    "preferred_implementor_reasoning_effort": "xhigh",
+    "fallback_execution_access_mode": "interactive_fallback",
+    "runtime_permission_model": "codex_cli_explicit_full_auto",
+    "persistent_execution_strategy": "per_feature_cli_sessions",
+    "execution_access_notes": "Codex CLI full-auto plus bypass is the strongest truthful non-interactive worker mode available in this feature run. Native agent spawning is not being used for orchestration here, so CLI-backed workers are the authoritative execution lane.",
+    "detected_runtime_capabilities": {
+      "native_agent_spawning_available": false,
+      "native_agent_access_configurable": false,
+      "native_agent_inherits_runtime_access": false,
+      "native_agent_resume_available": false,
+      "native_agent_send_input_available": false,
+      "native_agent_wait_available": false,
+      "native_parallel_wait_available": false,
+      "codex_cli_available": true,
+      "codex_cli_full_auto_supported": true,
+      "codex_cli_bypass_supported": true
+    }
+  },
+  "open_features_summary": {
+    "active": [
+      {
+        "feature_registry_key": "phase1/implement-plan-provider-neutral-run-contract",
+        "phase_number": 1,
+        "feature_slug": "implement-plan-provider-neutral-run-contract",
+        "feature_status": "active",
+        "active_run_status": "context_ready",
+        "merge_status": "not_ready",
+        "last_completed_step": "context_collected",
+        "last_commit_sha": null,
+        "updated_at": "2026-04-04T22:16:34.955Z"
+      },
+      {
+        "feature_registry_key": "phase1/company-table-queue-read-model",
+        "phase_number": 1,
+        "feature_slug": "company-table-queue-read-model",
+        "feature_status": "active",
+        "active_run_status": "context_ready",
+        "merge_status": "not_ready",
+        "last_completed_step": "context_collected",
+        "last_commit_sha": null,
+        "updated_at": "2026-04-04T17:00:26.848Z"
+      },
+      {
+        "feature_registry_key": "phase1/coo-live-executive-status-wiring",
+        "phase_number": 1,
+        "feature_slug": "coo-live-executive-status-wiring",
+        "feature_status": "active",
+        "active_run_status": "context_ready",
+        "merge_status": "not_ready",
+        "last_completed_step": "context_collected",
+        "last_commit_sha": null,
+        "updated_at": "2026-04-03T15:37:29.744Z"
+      },
+      {
+        "feature_registry_key": "phase1/implement-plan-review-cycle-kpi-enforcement",
+        "phase_number": 1,
+        "feature_slug": "implement-plan-review-cycle-kpi-enforcement",
+        "feature_status": "active",
+        "active_run_status": "closeout_pending",
+        "merge_status": "not_ready",
+        "last_completed_step": "completion_summary_written",
+        "last_commit_sha": "90bef29",
+        "updated_at": "2026-04-03T14:32:41.927Z"
+      },
+      {
+        "feature_registry_key": "phase1/adf-runtime-preflight-and-install-split",
+        "phase_number": 1,
+        "feature_slug": "adf-runtime-preflight-and-install-split",
+        "feature_status": "active",
+        "active_run_status": "closeout_pending",
+        "merge_status": null,
+        "last_completed_step": "completion_summary_written",
+        "last_commit_sha": "546f453",
+        "updated_at": "2026-04-03T10:45:26.284Z"
+      }
+    ],
+    "blocked": [],
+    "completed": [
+      {
+        "feature_registry_key": "phase1/implement-plan-review-cycle-vision-master-plan-gating",
+        "phase_number": 1,
+        "feature_slug": "implement-plan-review-cycle-vision-master-plan-gating",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": "merged",
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "9839399",
+        "updated_at": "2026-04-04T21:58:28.075Z"
+      },
+      {
+        "feature_registry_key": "phase1/coo-freeze-to-cto-admission-wiring",
+        "phase_number": 1,
+        "feature_slug": "coo-freeze-to-cto-admission-wiring",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": "merged",
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "c978b84464a812e6f8a63c3427cde578fbfce5dc",
+        "updated_at": "2026-04-04T17:03:01.703Z"
+      },
+      {
+        "feature_registry_key": "phase1/coo-cto-admission-packet-builder",
+        "phase_number": 1,
+        "feature_slug": "coo-cto-admission-packet-builder",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": "merged",
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "8623effbe951717840b8e26ea91b8e9c0ee176f5",
+        "updated_at": "2026-04-03T14:13:05.892Z"
+      },
+      {
+        "feature_registry_key": "phase1/coo-executive-brief-read-model",
+        "phase_number": 1,
+        "feature_slug": "coo-executive-brief-read-model",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": "merged",
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "bd7bc001bcd60b87e665526b63c3220ed9a9635d",
+        "updated_at": "2026-04-03T14:10:15.529Z"
+      },
+      {
+        "feature_registry_key": "phase1/coo-kpi-instrumentation",
+        "phase_number": 1,
+        "feature_slug": "coo-kpi-instrumentation",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": "merged",
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "5dd478352ab0a50f18081eb8003060331e518d8e",
+        "updated_at": "2026-04-03T13:51:12.271Z"
+      },
+      {
+        "feature_registry_key": "phase1/implement-plan-worktree-merge-queue",
+        "phase_number": 1,
+        "feature_slug": "implement-plan-worktree-merge-queue",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": "not_required",
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "81221800f13670ef85005243ff52d96dd131691d",
+        "updated_at": "2026-04-03T13:29:30.303Z"
+      },
+      {
+        "feature_registry_key": "phase1/implement-plan-verification-and-approval-flow",
+        "phase_number": 1,
+        "feature_slug": "implement-plan-verification-and-approval-flow",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": null,
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "2aa2459",
+        "updated_at": "2026-04-03T11:29:18.388Z"
+      },
+      {
+        "feature_registry_key": "phase1/coo-natural-conversation-rendering",
+        "phase_number": 1,
+        "feature_slug": "coo-natural-conversation-rendering",
+        "feature_status": "completed",
+        "active_run_status": "completed",
+        "merge_status": null,
+        "last_completed_step": "marked_complete",
+        "last_commit_sha": "545b96052057c32e4b9111c9a34236e686e34fdc",
+        "updated_at": "2026-04-03T10:47:01.854Z"
+      }
+    ],
+    "closed": [],
+    "open_count": 5
+  }
+}
