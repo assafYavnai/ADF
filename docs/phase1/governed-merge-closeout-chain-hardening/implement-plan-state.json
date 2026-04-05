@@ -4,7 +4,7 @@
   "feature_slug": "governed-merge-closeout-chain-hardening",
   "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
   "feature_registry_key": "phase1/governed-merge-closeout-chain-hardening",
-  "feature_status": "completed",
+  "feature_status": "active",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": "claude_code_skip_permissions",
   "implementor_execution_runtime": "claude_code_exec",
@@ -30,16 +30,16 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "merged",
+  "merge_status": "not_ready",
   "approved_commit_sha": "f302228",
   "merge_commit_sha": "e508003",
   "merge_queue_request_id": null,
   "local_target_sync_status": "fast_forwarded",
-  "last_completed_step": "marked_complete",
+  "last_completed_step": "context_collected",
   "last_commit_sha": "e508003",
-  "active_run_status": "completed",
+  "active_run_status": "context_ready",
   "created_at": "2026-04-05T12:39:15.958Z",
-  "updated_at": "2026-04-05T15:58:06.866Z",
+  "updated_at": "2026-04-05T16:14:24.466Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T12:39:16.023Z",
     "worktree_prepared_at": "2026-04-05T12:44:27.282Z",
@@ -118,6 +118,15 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T15:58:06.866Z",
       "note": "Merged via governed closeout path. Approved commit f302228, merge commit e508003."
+    },
+    {
+      "event_id": "event-8f81e4de-9f98-44d8-aba2-8987daaf8201",
+      "event_type": "state-patched",
+      "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T16:14:24.466Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -134,7 +143,7 @@
     "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening"
   },
-  "last_error": null,
+  "last_error": "true",
   "current_run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
   "current_attempt_id": "attempt-001",
   "execution_runs": {
@@ -146,10 +155,10 @@
       "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632": {
         "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
         "run_mode": "normal",
-        "lifecycle_status": "completed",
-        "terminal_status": "completed",
+        "lifecycle_status": "active",
+        "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 4,
+        "contract_revision": 5,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/run-projection.v1.json",
@@ -169,18 +178,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "completed",
-            "terminal_status": "completed",
+            "status": "ready_for_implementation",
+            "terminal_status": null,
             "started_at": "2026-04-05T12:39:16.002Z",
-            "updated_at": "2026-04-05T15:58:06.866Z",
+            "updated_at": "2026-04-05T16:14:24.465Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "merge_queue",
-              "status": "completed",
-              "reason": "Merged via governed closeout path. Approved commit f302228, merge commit e508003.",
-              "updated_at": "2026-04-05T15:58:06.866Z"
+              "step": "implementation",
+              "status": "ready",
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-05T16:14:24.465Z"
             },
             "step_status": {
               "implementation": {
@@ -212,7 +221,7 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "completed",
+                "status": "not_started",
                 "started_at": null,
                 "completed_at": "2026-04-05T15:57:24.955Z",
                 "duration_seconds": null,
@@ -254,15 +263,15 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T15:58:06.866Z",
-            "last_event_at": "2026-04-05T15:58:06.866Z"
+            "last_checkpoint_at": "2026-04-05T16:14:24.465Z",
+            "last_event_at": "2026-04-05T16:14:24.466Z"
           }
         },
         "created_at": "2026-04-05T12:39:16.003Z",
-        "updated_at": "2026-04-05T15:58:06.872Z",
-        "last_event_at": "2026-04-05T15:58:06.866Z",
+        "updated_at": "2026-04-05T16:14:24.471Z",
+        "last_event_at": "2026-04-05T16:14:24.466Z",
         "kpi_projection": {
-          "terminal_status": "completed",
+          "terminal_status": null,
           "per_step_timing": {
             "implementation": {
               "status": "not_started",
@@ -289,7 +298,7 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "completed",
+              "status": "not_started",
               "started_at": null,
               "completed_at": "2026-04-05T15:57:24.955Z",
               "duration_seconds": null
