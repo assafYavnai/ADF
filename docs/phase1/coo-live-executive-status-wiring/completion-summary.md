@@ -41,6 +41,7 @@ New runtime capability added in this pass:
   - carries compact `Recent landings` summaries with review status, approval-proof status, and legacy-gap explanations
   - calls the COO model for the final CEO-facing wording
   - validates the model output against the approved live CEO-facing contract and repairs drift through deterministic fallback
+  - now enforces exact post-render contract rules for opening-summary presence, required heading order/uniqueness, and the no-fake-options focus-choice policy
 - company-first live render now freezes the approved CEO-facing contract:
   - opening summary
   - optional delivery snapshot
@@ -48,7 +49,7 @@ New runtime capability added in this pass:
   - `Issues That Need Your Attention`
   - `On The Table`
   - `In Motion`
-  - closing call-for-action options when there is a clear next focus
+  - closing call-for-action options only when at least two concrete next-focus options are evidenced
 - later live UX adjustment:
   - the final CEO-facing status now drops a separate `What's Next` section
   - the COO recommendation is surfaced directly above the numbered focus options instead
@@ -120,7 +121,7 @@ Truthful evidence available anyway:
 
 Machine verification passed:
 - `C:\ADF\.codex\implement-plan\worktrees\phase1\coo-live-executive-status-wiring\COO\node_modules\.bin\tsx.cmd --test controller/executive-status.test.ts briefing/executive-brief.test.ts`
-- result: `50 passed, 0 failed`
+- result: `51 passed, 0 failed`
 
 Proof coverage now includes:
 - first-run deep audit
@@ -151,6 +152,8 @@ Smoke observations:
 - the KPI issue now lands as a system closeout-route diagnosis, not as a shallow per-feature symptom
 - the live wording now surfaces why / impact / fix / priority more explicitly and ends with a natural next-focus choice
 - recent landed items now also tell the CEO whether review and pre-merge approval proof are actually present, or why a missing check is acceptable legacy
+- the live route now repairs malformed model output back to the approved CEO-facing contract instead of trusting partial shape compliance
+- the final focus-choice block is now evidence-gated, so the route omits it when fewer than two concrete options are supported
 - the current strongest root-cause evidence is that implement-plan computes KPI totals during execution but the closeout projection does not persist them into durable feature truth for some post-rollout landings
 
 7. What Was Intentionally Deferred
@@ -176,7 +179,7 @@ Human verification:
 
 Review-cycle:
 - previous approval on an older head is stale
-- follow-up review-cycle is still required
+- cycle-03 is now in progress on the rebased head
 
 Merge-queue:
 - not started

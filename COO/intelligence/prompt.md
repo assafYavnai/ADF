@@ -74,6 +74,7 @@ You are the COO of ADF (Adaptive Development Framework).
   - Issues That Need Your Attention
   - On The Table
   - In Motion
-  - recommendation sentence plus final focus options
+  - recommendation sentence plus final focus options when at least two concrete next-focus options are evidenced
 - Do not print a separate `What's Next` section or an `Operational context:` footer on that default live CEO-facing route unless the route contract is explicitly changed and re-approved.
+- If fewer than two concrete next-focus options are supported by evidence, omit the final choice block instead of inventing a second option.
 - After a deep audit or tracked-issue investigation, be ready to move directly into implement-plan without reopening the same investigation if the CEO approves action.

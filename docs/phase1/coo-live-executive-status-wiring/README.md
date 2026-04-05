@@ -38,9 +38,10 @@ This slice now owns the bounded Phase 1 COO status route that:
   - `Issues That Need Your Attention`
   - `On The Table`
   - `In Motion`
-  - recommendation sentence plus final focus options
+  - recommendation sentence plus final focus options when at least two concrete options are evidenced
 - the live CEO-facing surface uses a strict evidence pack plus the COO model for final wording rather than a hardcoded prose template
 - the live route validates that contract after model rendering and falls back deterministically if the model drifts outside it
+- the live route omits the final focus-choice block when the evidence does not support at least two concrete next-focus options, rather than inventing a filler option
 
 ### 2. Evidence gathering and cross-checking
 - gathers evidence from:
@@ -127,7 +128,7 @@ The trust ledger guides suspicion. It never outranks stronger evidence.
 - blocked items must surface in `Issues`
 - unresolved shaping / governance / decision items must surface in `On The Table`
 - active live work must surface in `In Motion`
-- concise forward moves must surface through the recommendation sentence and final focus options
+- concise forward moves must surface through the recommendation sentence and final focus options when the evidence supports a real choice set
 - trust and audit details should stay exception-first, not a permanent dump
 - the internal 4-section brief and operational context remain available as derived route truth even though the default live CEO-facing surface does not print a separate footer
 
@@ -165,7 +166,7 @@ Verify:
   - `Issues That Need Your Attention`
   - `On The Table`
   - `In Motion`
-  - recommendation sentence plus focus options
+  - recommendation sentence plus focus options when the evidence supports at least two concrete next-focus options
 - landed items are easy to scan
 - missing or fallback evidence stays visible
 - Brain hard-stop behavior is explicit if Brain is unavailable

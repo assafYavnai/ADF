@@ -79,6 +79,7 @@ export async function renderStatusWithAgent(
     "If a landing has a suspicious review, approval, or KPI gap, you may still list it in `Recent landings`, but add a short `see issue below` note instead of pretending it is clean.",
     "Do not create a separate numbered list before the final call for action.",
     "If the evidence pack includes clear focus options, end the message with a short natural call for action.",
+    "- Treat focus options as clear only when the evidence supports at least two concrete options. If fewer than two concrete options are supported, omit the final choice block instead of inventing one.",
     "When you provide that final call for action:",
     "- put the COO recommendation as a short sentence immediately before the numbered options",
     "- include the COO recommendation inline, for example `(Recommended)` on the preferred option",
@@ -126,7 +127,8 @@ function buildStatusEvidencePack(
   const groupedAttention = buildGovernanceCards(governance.additionalAttention, governance);
   const groupedTable = buildGovernanceCards(governance.additionalTable, governance);
   const groupedNext = buildNextCards(brief, governance);
-  const focusOptions = buildFocusOptions(groupedAttention, groupedNext);
+  const tableCards = buildTableCards(brief, groupedTable);
+  const focusOptions = buildFocusOptions(groupedAttention, tableCards, groupedNext);
 
   return {
     company: {
@@ -174,8 +176,8 @@ function buildStatusEvidencePack(
         "## What's Next",
         "Operational context:",
       ],
-      final_focus_options_required: focusOptions.length > 0,
-      expected_focus_option_count: focusOptions.length > 0 ? 3 : 0,
+      final_focus_options_required: focusOptions.length >= 2,
+      expected_focus_option_count: focusOptions.length >= 2 ? 3 : 0,
     },
     executive_sections: {
       issues: groupedAttention,
@@ -461,23 +463,54 @@ function buildNextCards(
   return [...urgentIssueCards, ...tableNextCards];
 }
 
+function buildTableCards(
+  brief: ExecutiveBrief,
+  groupedTable: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  return [
+    ...groupedTable,
+    ...brief.onTheTable.map((item) => ({
+      title: item.featureLabel,
+      reason: item.summary,
+      recommended: false,
+      action: item.summary,
+      affected_feature_labels: [item.featureLabel],
+      ready_handoffs: [],
+    })),
+  ];
+}
+
 function buildFocusOptions(
   attentionCards: Array<Record<string, unknown>>,
+  tableCards: Array<Record<string, unknown>>,
   nextCards: Array<Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
   const options: Array<Record<string, unknown>> = [];
+  const seenTitles = new Set<string>();
+
+  const pushOption = (
+    item: Record<string, unknown>,
+    recommended: boolean,
+  ): void => {
+    const title = String(item.title ?? "").trim();
+    if (title.length === 0 || seenTitles.has(title)) {
+      return;
+    }
+    seenTitles.add(title);
+    options.push({
+      title,
+      recommended,
+      why_now: item.reason ?? item.impact ?? item.why ?? item.recommendation ?? null,
+      action_if_approved: item.action ?? item.system_fix ?? item.recommendation ?? null,
+    });
+  };
 
   for (const item of attentionCards) {
     const readyHandoffs = asArray(item.ready_handoffs);
     if (String(item.priority ?? "") !== "now" || readyHandoffs.length === 0) {
       continue;
     }
-    options.push({
-      title: item.title,
-      recommended: true,
-      why_now: item.impact ?? item.why ?? item.recommendation ?? null,
-      action_if_approved: item.system_fix ?? item.recommendation ?? null,
-    });
+    pushOption(item, options.length === 0);
   }
 
   for (const item of nextCards) {
@@ -487,15 +520,25 @@ function buildFocusOptions(
     if (Boolean(item.recommended)) {
       continue;
     }
-    options.push({
-      title: item.title,
-      recommended: options.length === 0,
-      why_now: item.reason ?? null,
-      action_if_approved: item.action ?? null,
-    });
+    pushOption(item, options.length === 0);
   }
 
-  return options.slice(0, 2);
+  for (const item of tableCards) {
+    if (options.length >= 2) {
+      break;
+    }
+    pushOption(item, options.length === 0);
+  }
+
+  const concreteOptions = options.slice(0, 2);
+  if (concreteOptions.length < 2) {
+    return [];
+  }
+
+  return concreteOptions.map((item, index) => ({
+    ...item,
+    recommended: index === 0,
+  }));
 }
 
 function buildRecommendationSummary(
@@ -523,10 +566,24 @@ function collectSupportedLiveStatusViolations(
     "## On The Table",
     "## In Motion",
   ];
+  const headingPositions = new Map<string, number[]>();
+  const liveHeadings = [...normalized.matchAll(/^## .+$/gm)];
 
   for (const heading of requiredHeadings) {
-    if (!normalized.includes(heading)) {
+    const positions = collectExactLineMatches(normalized, heading);
+    headingPositions.set(heading, positions);
+    if (positions.length === 0) {
       violations.push(`missing:${heading}`);
+    }
+    if (positions.length > 1) {
+      violations.push(`duplicate:${heading}`);
+    }
+  }
+
+  for (const match of liveHeadings) {
+    const heading = match[0];
+    if (!requiredHeadings.includes(heading) && heading !== "## What's Next") {
+      violations.push(`unexpected:${heading}`);
     }
   }
 
@@ -543,16 +600,113 @@ function collectSupportedLiveStatusViolations(
     violations.push("missing:recent-landings");
   }
 
-  const focusOptions = asFocusOptions(evidencePack.focus_options);
-  if (focusOptions.length > 0) {
-    for (const optionNumber of [1, 2, 3]) {
-      if (!new RegExp(`(^|\\n)${optionNumber}\\.\\s`, "m").test(normalized)) {
-        violations.push(`missing:focus-option-${optionNumber}`);
+  const requiredHeadingIndexes = requiredHeadings
+    .map((heading) => headingPositions.get(heading)?.[0] ?? -1);
+  const hasAllRequiredHeadings = requiredHeadingIndexes.every((index) => index >= 0);
+  if (hasAllRequiredHeadings) {
+    for (let index = 1; index < requiredHeadingIndexes.length; index += 1) {
+      if (requiredHeadingIndexes[index] <= requiredHeadingIndexes[index - 1]) {
+        violations.push("misordered:required-headings");
+        break;
+      }
+    }
+
+    const firstHeadingIndex = requiredHeadingIndexes[0];
+    const preamble = normalized.slice(0, firstHeadingIndex).trim();
+    if (!hasOpeningSummary(preamble)) {
+      violations.push("missing:opening-summary");
+    }
+
+    for (const optionalLine of ["**Delivery snapshot:**", "**Recent landings:**"]) {
+      const optionalIndex = normalized.indexOf(optionalLine);
+      if (optionalIndex >= firstHeadingIndex) {
+        violations.push(`misordered:${optionalLine}`);
       }
     }
   }
 
-  return violations;
+  const focusOptions = asFocusOptions(evidencePack.focus_options);
+  const focusPromptMatches = collectExactLineMatches(normalized, "Where would you like to focus?");
+  const numberedOptionLines = normalized.split("\n").filter((line) => /^\d+\.\s/.test(line.trim()));
+  const numberedOptionValues = numberedOptionLines.map((line) => Number(line.trim().match(/^(\d+)\./)?.[1] ?? NaN));
+  if (focusOptions.length > 0) {
+    if (focusPromptMatches.length !== 1) {
+      violations.push("invalid:focus-prompt");
+    }
+
+    if (numberedOptionValues.length !== 3) {
+      violations.push("invalid:focus-option-count");
+    } else {
+      for (const [index, value] of numberedOptionValues.entries()) {
+        if (value !== index + 1) {
+          violations.push("invalid:focus-option-order");
+          break;
+        }
+      }
+      if (!/\*\*Other\*\*/.test(numberedOptionLines[2] ?? "")) {
+        violations.push("invalid:focus-option-3");
+      }
+    }
+
+    if (focusPromptMatches.length === 1) {
+      const promptLineIndex = normalized
+        .slice(0, focusPromptMatches[0])
+        .split("\n")
+        .length - 1;
+      const priorLine = findPreviousNonEmptyLine(normalized.split("\n"), promptLineIndex);
+      if (priorLine === null || /^##\s/.test(priorLine) || /^\d+\.\s/.test(priorLine)) {
+        violations.push("missing:recommendation-summary");
+      }
+    }
+
+    const lastNonEmptyLine = normalized.split("\n").map((line) => line.trim()).filter(Boolean).at(-1) ?? "";
+    if (!/^\d+\.\s/.test(lastNonEmptyLine)) {
+      violations.push("unexpected:postscript");
+    }
+  } else if (focusPromptMatches.length > 0 || numberedOptionValues.length > 0) {
+    violations.push("unexpected:focus-options");
+  }
+
+  return [...new Set(violations)];
+}
+
+function collectExactLineMatches(text: string, line: string): number[] {
+  const matches = [...text.matchAll(new RegExp(`^${escapeRegExp(line)}$`, "gm"))];
+  return matches
+    .map((match) => match.index)
+    .filter((index): index is number => typeof index === "number");
+}
+
+function hasOpeningSummary(preamble: string): boolean {
+  const firstNonEmptyLine = preamble
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.length > 0);
+
+  if (!firstNonEmptyLine) {
+    return false;
+  }
+
+  return !/^##\s/.test(firstNonEmptyLine)
+    && !/^\*\*Delivery snapshot:\*\*/.test(firstNonEmptyLine)
+    && !/^\*\*Recent landings:\*\*/.test(firstNonEmptyLine)
+    && !/^- /.test(firstNonEmptyLine)
+    && !/^\d+\.\s/.test(firstNonEmptyLine);
+}
+
+function findPreviousNonEmptyLine(lines: string[], beforeLineIndex: number): string | null {
+  for (let index = beforeLineIndex - 1; index >= 0; index -= 1) {
+    const line = lines[index].trim();
+    if (line.length > 0) {
+      return line;
+    }
+  }
+
+  return null;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function renderDeterministicSupportedStatus(

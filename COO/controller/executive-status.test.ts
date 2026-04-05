@@ -12,6 +12,7 @@ import {
 } from "../../shared/telemetry/collector.js";
 import type { MetricEvent } from "../../shared/telemetry/types.js";
 import { buildLiveExecutiveStatus } from "./executive-status.js";
+import { renderStatusWithAgent } from "../briefing/status-render-agent.js";
 import { BrainHardStopError } from "../briefing/status-governance.js";
 import { createEvent, createThread, type Thread } from "./thread.js";
 import { createApprovedOnionSnapshot, createEmptyOnionState } from "../requirements-gathering/contracts/onion-state.js";
@@ -394,7 +395,7 @@ test("deterministic fallback surface keeps the internal 4 sections and operation
   assert.ok(result.output.includes("Scope path: assafyavnai/adf/feature-"));
 });
 
-test("live agent route hands the evidence pack to the COO model and repairs forbidden headings back to the supported live contract", async () => {
+test("live agent route hands the evidence pack to the COO model and repairs malformed live output back to the supported live contract", async () => {
   const fixture = await createFixture({ includeAdmissions: true });
   await writeGovernanceMilestones();
   const promptsDir = join(tempRoot, "COO", "intelligence");
@@ -428,22 +429,27 @@ test("live agent route hands the evidence pack to the COO model and repairs forb
           source_path: "test",
           timestamp: "2026-04-05T00:00:00.000Z",
         },
-        response: "Overall, the company is steady.\n\n## Issues That Need Your Attention\nNo immediate issues.\n\n## On The Table\nOne pending decision.\n\n## In Motion\nNo active work.\n\n## What's Next\nMove the pending decision forward.",
+        response: "## On The Table\nOne pending decision.\n\n## Issues That Need Your Attention\nNo immediate issues.\n\n## In Motion\nNo active work.\n\n## In Motion\nStill no active work.\n\nWhere would you like to focus?\n\n1. **Feature Moving** (Recommended)\n2. **Feature Next**\n3. **Other** - type what you need\n4. **Unexpected** - should not be here",
         latency_ms: 1,
         attempts: [],
       };
     },
   });
 
+  assert.ok(!result.output.trimStart().startsWith("## "));
   assert.ok(result.output.includes("## Issues That Need Your Attention"));
   assert.ok(result.output.includes("## On The Table"));
   assert.ok(result.output.includes("## In Motion"));
+  assert.equal(countLineOccurrences(result.output, "## Issues That Need Your Attention"), 1);
+  assert.equal(countLineOccurrences(result.output, "## On The Table"), 1);
+  assert.equal(countLineOccurrences(result.output, "## In Motion"), 1);
   assert.ok(!result.output.includes("## What's Next"));
   assert.ok(!result.output.includes("Operational context:"));
   assert.ok(result.output.includes("Where would you like to focus?"));
   assert.ok(result.output.includes("1. **"));
   assert.ok(result.output.includes("2. **"));
-  assert.match(result.output, /\*\*Other\*\* - type what you need/);
+  assert.match(result.output, /^3\.\s\*\*Other\*\* - type what you need$/m);
+  assert.equal(result.output.split("\n").filter((line) => /^\d+\.\s/.test(line.trim())).length, 3);
   assert.match(capturedPrompt, /<status_evidence>/);
   assert.match(capturedPrompt, /"tracked_findings"/);
   assert.match(capturedPrompt, /"landed_recently"/);
@@ -454,6 +460,157 @@ test("live agent route hands the evidence pack to the COO model and repairs forb
   assert.match(capturedPrompt, /"supported_live_contract"/);
   assert.match(capturedPrompt, /route_chain/);
   assert.match(capturedPrompt, /Formatting rules:/);
+});
+
+test("renderStatusWithAgent omits the final focus-choice block when fewer than two concrete options are evidenced", async () => {
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  const output = await renderStatusWithAgent({
+    projectRoot: tempRoot,
+    promptsDir,
+    facts: {
+      collectedAt: "2026-04-05T00:00:00.000Z",
+      sourcePartition: "proof",
+      sourceFreshnessAgeMs: 0,
+      sourceAvailability: [],
+      companyScopePath: "assafyavnai/adf/phase1",
+      features: [],
+    } as any,
+    brief: {
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      diagnostics: {
+        counts: {
+          issuesExpected: 0,
+          issuesActual: 0,
+          onTheTableExpected: 0,
+          onTheTableActual: 0,
+          inMotionExpected: 0,
+          inMotionActual: 0,
+          whatsNextExpected: 0,
+          whatsNextActual: 0,
+        },
+      },
+    } as any,
+    governance: {
+      companyScopePath: "assafyavnai/adf/phase1",
+      statusNotes: [],
+      landedAssessments: new Map(),
+      additionalAttention: [
+        {
+          key: "issue:one-option",
+          featureId: "feature-one",
+          featureLabel: "Feature One",
+          classification: "suspicious",
+          summary: "Feature One needs a route fix",
+          recommendation: "Patch Feature One",
+          evidenceLine: "Derived from source evidence.",
+          rootCause: "A route issue is still open.",
+          systemFix: "Patch Feature One",
+          businessImpact: "The issue remains open.",
+          businessSeverity: "high",
+          businessPriority: "now",
+          routeChain: ["status", "closeout"],
+          implicatedSubjects: ["route:status"],
+        },
+      ],
+      additionalTable: [],
+      additionalNext: [],
+      deepAudit: null,
+      trustNotes: [],
+      currentThread: {
+        threadId: null,
+        activeWorkflow: null,
+        onionLayer: null,
+        scopePath: "assafyavnai/adf/phase1",
+        lastStateCommitAt: null,
+      },
+      operatingState: {
+        schemaVersion: 1,
+        baselineEstablishedAt: "2026-04-05T00:00:00.000Z",
+        lastDeepAuditAt: null,
+        lastDeepAuditTrigger: null,
+        lastDeepAuditScope: null,
+        lastDeepAuditJustified: null,
+        trackedIssues: {
+          "issue:one-option": {
+            key: "issue:one-option",
+            featureId: "feature-one",
+            featureLabel: "Feature One",
+            classification: "suspicious",
+            summary: "Feature One needs a route fix",
+            recommendation: "Patch Feature One",
+            evidenceLine: "Derived from source evidence.",
+            rootCause: "A route issue is still open.",
+            systemFix: "Patch Feature One",
+            businessImpact: "The issue remains open.",
+            businessSeverity: "high",
+            businessPriority: "now",
+            routeChain: ["status", "closeout"],
+            implicatedSubjects: ["route:status"],
+            brainFindingId: null,
+            brainOpenLoopId: null,
+            status: "open",
+            firstSeenAt: "2026-04-05T00:00:00.000Z",
+            lastSeenAt: "2026-04-05T00:00:00.000Z",
+            readyHandoff: {
+              id: "handoff:feature-one",
+              taskSummary: "Patch Feature One",
+              scopePath: "assafyavnai/adf/phase1/feature-one",
+              preparedAt: "2026-04-05T00:00:00.000Z",
+              evidenceDigest: "Feature One issue",
+              implicatedSubjects: ["route:status"],
+              status: "ready_if_approved",
+            },
+          },
+        },
+        trustSubjects: {},
+        auditHistory: [],
+        triggerTuning: {
+          contradictionSensitivity: 1,
+          stalePressureDays: 7,
+          companyEscalationThreshold: 2,
+          lastChangedAt: "2026-04-05T00:00:00.000Z",
+          lastChangedReason: null,
+        },
+      },
+    } as any,
+    surface: {
+      opening: "Overall, the company is stable.",
+    } as any,
+    statusWindow: null,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-one-option",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: "Overall, the company is stable.\n\n## Issues That Need Your Attention\n- Feature One needs a route fix.\n\n## On The Table\nNo open items.\n\n## In Motion\nNothing active.\n\nWhere would you like to focus?\n\n1. **Feature One** (Recommended)\n2. **Other** - type what you need",
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  assert.ok(output.includes("## Issues That Need Your Attention"));
+  assert.ok(output.includes("## On The Table"));
+  assert.ok(output.includes("## In Motion"));
+  assert.ok(!output.includes("Where would you like to focus?"));
+  assert.equal(output.split("\n").filter((line) => /^\d+\.\s/.test(line.trim())).length, 0);
 });
 
 test("live agent evidence pack only marks truly recent landed work as recent", async () => {
@@ -805,6 +962,14 @@ async function createFixture(options: { includeAdmissions: boolean }): Promise<{
     threadsDir,
     brainClient,
   };
+}
+
+function countLineOccurrences(text: string, line: string): number {
+  return text
+    .split("\n")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry === line)
+    .length;
 }
 
 async function writeCompletedFeatureTruth(input: {

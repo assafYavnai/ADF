@@ -84,10 +84,11 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - Issues That Need Your Attention
   - On The Table
   - In Motion
-  - recommendation sentence plus final focus options
+  - recommendation sentence plus final focus options when the evidence supports at least two concrete next-focus options
 - The runtime should gather and normalize the evidence deterministically, but the final CEO-facing wording should come from the COO model, not from hardcoded slot-filled prose.
 - The agent should receive a strict evidence pack, not a pre-rendered prose template, so the COO can brief the CEO naturally from source truth instead of echoing a canned surface.
 - The live route now validates the model-rendered output against that frozen contract and falls back to a deterministic version of the same contract if the model drifts.
+- The live route now treats the final focus-choice block as evidence-gated: if fewer than two concrete next-focus options are supported, it omits that block instead of inventing a second option.
 - Attention items should surface:
   - the issue title on its own line
   - why it is happening
@@ -126,11 +127,23 @@ The trust ledger may increase or decrease suspicion, but it never outranks stron
   - Issues That Need Your Attention
   - On The Table
   - In Motion
-  - recommendation sentence plus 3 focus options
+  - recommendation sentence plus 3 focus options when the evidence supports at least two concrete next-focus options
 - `What's Next` remains internal truth and is merged into the recommendation/focus prompt on the live route.
 - The default live CEO-facing route no longer prints a separate operational footer.
 - The agent evidence pack must reuse the same recent-landings freshness window as the normalized surface.
 - The git comparison anchor must only advance after a successful CEO-visible status render.
+
+## Review-Cycle Exactness Decision - 2026-04-05
+- Review-cycle cycle-03 found that the live route still left part of the approved CEO-facing contract to model compliance.
+- The route now needs exact post-render enforcement for:
+  - opening-summary presence
+  - exact-once required headings
+  - required heading order
+  - no extra `##` sections on the live CEO-facing surface
+  - no underfilled or overfilled final focus-choice block
+- The final focus-choice block now has an explicit no-fake-options rule:
+  - show it only when at least two concrete next-focus options are evidenced
+  - otherwise omit it entirely
 
 ## Launcher Note - 2026-04-05
 - The worktree launcher surfaced real shell errors because `adf.sh` called `coo_needs_build` and `memory_engine_needs_build` without defining them.
