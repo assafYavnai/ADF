@@ -266,6 +266,8 @@ When integrity passes, use the strongest truthful autonomous worker mode availab
 
 Rules:
 
+- resolve worker availability from runtime preflight `llm_tools` section before assuming any CLI tool is unavailable
+- when the user or contract requests a specific LLM tool as a worker, use the `autonomous_invoke` command from preflight to spawn it via Bash
 - worker selection must stay provider-neutral
 - keep worker runtime distinct from control-plane runtime
 - when override knobs are absent, inherit truthful invoker/runtime defaults unless persisted worker continuity is being reused, and surface that continuity explicitly

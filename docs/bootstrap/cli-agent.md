@@ -46,6 +46,11 @@ Treat these output fields as authority:
 - `recommended_commands.install`
 - `recommended_commands.doctor`
 - `recommended_commands.launch`
+- `llm_tools.<name>.available`
+- `llm_tools.<name>.version`
+- `llm_tools.<name>.autonomous_invoke`
+
+The `llm_tools` section reports which sibling LLM CLI tools are installed on this host and how to invoke them for autonomous worker execution. Before claiming a sibling CLI tool is unavailable, check this section. When a skill or user requests a specific LLM tool as a worker (e.g., "reviewers must be codex"), use the `autonomous_invoke` command from preflight to spawn it via Bash.
 
 If runtime preflight fails:
 

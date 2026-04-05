@@ -120,7 +120,9 @@ Rules:
 
 ## Access-mode rule
 
-All spawned executions used by this workflow must run under the strongest truthful non-interactive autonomous access mode the current Codex runtime supports.
+All spawned executions used by this workflow must run under the strongest truthful non-interactive autonomous access mode the current runtime supports.
+
+Resolve worker availability from runtime preflight `llm_tools` section before assuming any CLI tool is unavailable. When the user or contract requests a specific LLM tool as a reviewer or implementor, use the `autonomous_invoke` command from preflight to spawn it via Bash.
 
 Resolve access in this order:
 
