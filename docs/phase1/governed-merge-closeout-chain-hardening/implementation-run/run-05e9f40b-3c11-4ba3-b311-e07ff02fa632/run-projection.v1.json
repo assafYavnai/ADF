@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/governed-merge-closeout-chain-hardening",
   "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
   "run_mode": "normal",
-  "updated_at": "2026-04-05T15:58:06.872Z",
+  "updated_at": "2026-04-05T16:21:30.315Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
@@ -14,10 +14,10 @@
   "run": {
     "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
     "run_mode": "normal",
-    "lifecycle_status": "completed",
-    "terminal_status": "completed",
+    "lifecycle_status": "active",
+    "terminal_status": null,
     "contract_schema_version": 1,
-    "contract_revision": 4,
+    "contract_revision": 8,
     "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
     "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/run-projection.v1.json",
@@ -37,18 +37,18 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "completed",
-        "terminal_status": "completed",
+        "status": "verification_pending",
+        "terminal_status": null,
         "started_at": "2026-04-05T12:39:16.002Z",
-        "updated_at": "2026-04-05T15:58:06.866Z",
+        "updated_at": "2026-04-05T16:21:30.308Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "merge_queue",
-          "status": "completed",
-          "reason": "Merged via governed closeout path. Approved commit f302228, merge commit e508003.",
-          "updated_at": "2026-04-05T15:58:06.866Z"
+          "step": "machine_verification",
+          "status": "ready",
+          "reason": "Resume from the last truthful normal-mode checkpoint.",
+          "updated_at": "2026-04-05T16:21:30.309Z"
         },
         "step_status": {
           "implementation": {
@@ -80,7 +80,7 @@
             "note": null
           },
           "merge_queue": {
-            "status": "completed",
+            "status": "not_started",
             "started_at": null,
             "completed_at": "2026-04-05T15:57:24.955Z",
             "duration_seconds": null,
@@ -122,15 +122,15 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-05T15:58:06.866Z",
-        "last_event_at": "2026-04-05T15:58:06.866Z"
+        "last_checkpoint_at": "2026-04-05T16:21:30.309Z",
+        "last_event_at": "2026-04-05T16:21:30.309Z"
       }
     },
     "created_at": "2026-04-05T12:39:16.003Z",
-    "updated_at": "2026-04-05T15:58:06.872Z",
-    "last_event_at": "2026-04-05T15:58:06.866Z",
+    "updated_at": "2026-04-05T16:21:30.314Z",
+    "last_event_at": "2026-04-05T16:21:30.309Z",
     "kpi_projection": {
-      "terminal_status": "completed",
+      "terminal_status": null,
       "per_step_timing": {
         "implementation": {
           "status": "not_started",
@@ -157,7 +157,7 @@
           "duration_seconds": null
         },
         "merge_queue": {
-          "status": "completed",
+          "status": "not_started",
           "started_at": null,
           "completed_at": "2026-04-05T15:57:24.955Z",
           "duration_seconds": null

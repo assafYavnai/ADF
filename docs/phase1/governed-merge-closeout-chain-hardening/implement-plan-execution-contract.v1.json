@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 4,
-  "prepared_at": "2026-04-05T15:58:06.869Z",
+  "contract_revision": 8,
+  "prepared_at": "2026-04-05T16:21:30.311Z",
   "feature_identity": {
     "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
     "phase_number": 1,
@@ -89,8 +89,8 @@
   },
   "review_handoff": {
     "post_send_to_review": true,
-    "review_until_complete": false,
-    "review_max_cycles": null,
+    "review_until_complete": true,
+    "review_max_cycles": 5,
     "review_required_by_human_plan": false
   },
   "benchmarking": {
@@ -106,10 +106,10 @@
     "reuse_cached_workers_when_valid": true,
     "recreate_workers_when_invalid": true,
     "last_truthful_checkpoint": {
-      "step": "merge_queue",
-      "status": "completed",
-      "reason": "Merged via governed closeout path. Approved commit f302228, merge commit e508003.",
-      "updated_at": "2026-04-05T15:58:06.866Z"
+      "step": "machine_verification",
+      "status": "ready",
+      "reason": "Resume from the last truthful normal-mode checkpoint.",
+      "updated_at": "2026-04-05T16:21:30.309Z"
     }
   },
   "reset_policy": {

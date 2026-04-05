@@ -183,3 +183,22 @@ Compatibility Evidence:
 - push only the feature-branch changes produced by this slice
 - do not manually merge around merge-queue
 - do not claim completion until merge success and governed closeout both succeed truthfully
+
+## Prior Manual Edits — Not Governed
+
+The code changes on this feature branch were manually edited across multiple conversation rounds without running the governed `implement-plan` route. Specifically:
+
+- Code was written directly by the implementation agent without `implement-plan action=run`
+- No `review-cycle` was executed — no auditor, no reviewer, no fix-plan, no fix-report
+- Merges to main were done manually via `git merge`, not through `merge-queue`
+- `mark-complete` was called freehand after manually setting state fields
+- The governed artifacts (`implement-plan-state.json`, execution contract, run projection) were populated by direct helper calls, not by the governed route
+
+The code itself may be correct, but it has not been verified or approved through the governed route.
+
+The implementor must now:
+
+1. Verify all code changes are correct and complete
+2. Fix any issues found
+3. Run the full governed closeout path through `implement-plan` including `review-cycle` and `merge-queue`
+4. Reach `mark-complete` only after truthful governed merge

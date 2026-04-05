@@ -1,7 +1,7 @@
 {
   "phase_number": 1,
   "feature_slug": "governed-merge-closeout-chain-hardening",
-  "repo_root": "C:/ADF",
+  "repo_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
   "feature_agent_registry_key": "phase1/governed-merge-closeout-chain-hardening",
   "auditor_execution_id": null,
   "reviewer_execution_id": null,
@@ -13,14 +13,59 @@
   "reviewer_model": null,
   "auditor_reasoning_effort": null,
   "reviewer_reasoning_effort": null,
-  "resolved_runtime_permission_model": null,
-  "access_mode_resolution_notes": null,
-  "resolved_runtime_capabilities": {},
-  "current_branch": null,
-  "last_completed_cycle": 0,
-  "last_commit_sha": null,
+  "resolved_runtime_permission_model": "claude_code_skip_permissions",
+  "access_mode_resolution_notes": "Claude Code runtime with skip-permissions",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": false,
+    "codex_cli_full_auto_supported": false,
+    "codex_cli_bypass_supported": false
+  },
+  "current_branch": "implement-plan/phase1/governed-merge-closeout-chain-hardening",
+  "last_completed_cycle": 1,
+  "last_commit_sha": "e4aeda8",
   "active_cycle_number": 1,
-  "cycle_runtime": null,
+  "cycle_runtime": {
+    "cycle_number": 1,
+    "cycle_name": "cycle-01",
+    "status": "completed",
+    "cycle_started_at": "2026-04-05T16:23:18.701Z",
+    "review_requested_at": "2026-04-05T16:24:02.844Z",
+    "auditor_finished_at": "2026-04-05T16:25:49.332Z",
+    "reviewer_finished_at": "2026-04-05T16:26:00.354Z",
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": "2026-04-05T16:26:56.498Z",
+    "cycle_finished_at": "2026-04-05T16:27:46.191Z",
+    "report_ready": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surfaced": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surface_order": [
+      "auditor",
+      "reviewer"
+    ],
+    "lane_verdicts": {
+      "auditor": "approve",
+      "reviewer": "approve"
+    },
+    "recreated_executions": {
+      "auditor": false,
+      "reviewer": false,
+      "implementor": false
+    },
+    "last_note": null
+  },
   "split_review_continuity": {
     "mode": "full_pair",
     "approving_lane": null,
@@ -32,5 +77,5 @@
     "note": null
   },
   "created_at": "2026-04-05T15:41:22.236Z",
-  "updated_at": "2026-04-05T15:41:22.236Z"
+  "updated_at": "2026-04-05T16:27:46.191Z"
 }
