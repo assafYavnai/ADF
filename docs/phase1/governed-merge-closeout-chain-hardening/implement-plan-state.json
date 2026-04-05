@@ -4,7 +4,7 @@
   "feature_slug": "governed-merge-closeout-chain-hardening",
   "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
   "feature_registry_key": "phase1/governed-merge-closeout-chain-hardening",
-  "feature_status": "active",
+  "feature_status": "completed",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": "claude_code_skip_permissions",
   "implementor_execution_runtime": "claude_code_exec",
@@ -24,22 +24,22 @@
     "codex_cli_full_auto_supported": true,
     "codex_cli_bypass_supported": true
   },
-  "current_branch": "implement-plan/phase1/governed-merge-closeout-chain-hardening",
+  "current_branch": "main",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/governed-merge-closeout-chain-hardening",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
-  "merge_commit_sha": null,
+  "merge_status": "merged",
+  "approved_commit_sha": "f302228",
+  "merge_commit_sha": "e508003",
   "merge_queue_request_id": null,
-  "local_target_sync_status": "not_started",
-  "last_completed_step": "context_collected",
-  "last_commit_sha": null,
-  "active_run_status": "context_ready",
+  "local_target_sync_status": "fast_forwarded",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "e508003",
+  "active_run_status": "completed",
   "created_at": "2026-04-05T12:39:15.958Z",
-  "updated_at": "2026-04-05T12:44:27.293Z",
+  "updated_at": "2026-04-05T15:58:06.866Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T12:39:16.023Z",
     "worktree_prepared_at": "2026-04-05T12:44:27.282Z",
@@ -52,8 +52,8 @@
     "review_requested_at": null,
     "human_verification_requested_at": null,
     "merge_started_at": null,
-    "merge_finished_at": null,
-    "closeout_finished_at": null
+    "merge_finished_at": "2026-04-05T15:57:24.955Z",
+    "closeout_finished_at": "2026-04-05T15:58:06.866Z"
   },
   "event_log": [
     {
@@ -100,6 +100,24 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T12:44:27.289Z",
       "note": null
+    },
+    {
+      "event_id": "event-d779b506-e266-45d0-a640-e84a336874ee",
+      "event_type": "state-patched",
+      "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T15:57:24.968Z",
+      "note": null
+    },
+    {
+      "event_id": "event-64a72d8e-f815-44a1-9487-40160b27e204",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T15:58:06.866Z",
+      "note": "Merged via governed closeout path. Approved commit f302228, merge commit e508003."
     }
   ],
   "artifacts": {
@@ -107,8 +125,8 @@
     "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/context.md",
     "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-state.json",
     "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
-    "execution_run_contract_path": "C:/ADF/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
     "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/run-projection.v1.json",
     "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-pushback.md",
     "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-brief.md",
@@ -128,10 +146,10 @@
       "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632": {
         "run_id": "run-05e9f40b-3c11-4ba3-b311-e07ff02fa632",
         "run_mode": "normal",
-        "lifecycle_status": "active",
-        "terminal_status": null,
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 2,
+        "contract_revision": 4,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-merge-closeout-chain-hardening/docs/phase1/governed-merge-closeout-chain-hardening/implementation-run/run-05e9f40b-3c11-4ba3-b311-e07ff02fa632/run-projection.v1.json",
@@ -151,18 +169,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "ready_for_implementation",
-            "terminal_status": null,
+            "status": "completed",
+            "terminal_status": "completed",
             "started_at": "2026-04-05T12:39:16.002Z",
-            "updated_at": "2026-04-05T12:44:27.282Z",
+            "updated_at": "2026-04-05T15:58:06.866Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
-              "status": "ready",
-              "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-05T12:44:27.282Z"
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Merged via governed closeout path. Approved commit f302228, merge commit e508003.",
+              "updated_at": "2026-04-05T15:58:06.866Z"
             },
             "step_status": {
               "implementation": {
@@ -194,9 +212,9 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
+                "status": "completed",
                 "started_at": null,
-                "completed_at": null,
+                "completed_at": "2026-04-05T15:57:24.955Z",
                 "duration_seconds": null,
                 "note": null
               }
@@ -231,20 +249,20 @@
                   "runtime": "persisted_continuity",
                   "access_mode": "persisted_continuity",
                   "model": "persisted_continuity",
-                  "reasoning_effort": "unsupported_for_resolved_worker"
+                  "reasoning_effort": "persisted_continuity"
                 },
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T12:44:27.282Z",
-            "last_event_at": "2026-04-05T12:44:27.289Z"
+            "last_checkpoint_at": "2026-04-05T15:58:06.866Z",
+            "last_event_at": "2026-04-05T15:58:06.866Z"
           }
         },
         "created_at": "2026-04-05T12:39:16.003Z",
-        "updated_at": "2026-04-05T12:44:27.287Z",
-        "last_event_at": "2026-04-05T12:44:27.289Z",
+        "updated_at": "2026-04-05T15:58:06.872Z",
+        "last_event_at": "2026-04-05T15:58:06.866Z",
         "kpi_projection": {
-          "terminal_status": null,
+          "terminal_status": "completed",
           "per_step_timing": {
             "implementation": {
               "status": "not_started",
@@ -271,9 +289,9 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
+              "status": "completed",
               "started_at": null,
-              "completed_at": null,
+              "completed_at": "2026-04-05T15:57:24.955Z",
               "duration_seconds": null
             }
           },
