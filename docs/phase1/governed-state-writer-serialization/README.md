@@ -1,68 +1,100 @@
 # governed-state-writer-serialization
 
-## Implementation Objective
+## Target Local Folder
+C:/ADF/docs/phase1/governed-state-writer-serialization/README.md
 
-Introduce one shared governed state-writer utility for Phase 1 workflow runtime state so feature-scoped helpers stop doing unsafe whole-file read-modify-write updates directly. The utility must provide feature-scoped serialized writes, atomic state replacement, durable audit or revision metadata, and governance-visible write outcomes that let the workflow hard-stop when critical writes are still pending or have failed.
+## Feature Goal
+Introduce one shared governed state-writer utility for Phase 1 workflow runtime state so feature-scoped helpers stop doing unsafe whole-file read-modify-write updates directly.
+
+## Why This Slice Exists Now
+
+- `review-cycle` can currently lose or silently reinitialize state after file corruption or concurrent writes
+- the failure class is shared across workflow helpers, not unique to one slice
+- Gap D is not closed until state writes become serialized, atomic, and fail-closed
 
 ## Problem Statement
 
 `implement-plan` and `review-cycle` currently mutate feature-local JSON state directly. In practice, this allows near-parallel helper writes to race on the same state file, which can truncate `review-cycle-state.json`, trigger unsafe reinitialization, and lose truthful in-flight route state.
 
-This is a shared workflow-runtime defect:
+The system-level problem is:
 
 - writer logic is still helper-local or implicit instead of centralized
 - same-feature writes are not serialized through one shared path
 - governance does not have one durable `committed` barrier for critical state transitions
 - malformed-state recovery can still drift into unsafe reset behavior
 
-## Target Behavior
-
-After this fix:
-
-- there is one shared workflow-state writer utility, not per-slice duplicated logic
-- governance initializes a feature-scoped writer handle for each feature stream
-- all governed state writes for that feature route through the same handle
-- writes for the same feature are serialized FIFO
-- state writes are applied atomically
-- each applied write gets durable audit metadata such as revision/write ID and timestamp
-- governance can distinguish `pending`, `committed`, and `failed` writes
-- critical writes block forward progress until committed
-- failed critical writes hard-stop the workflow instead of allowing the next step to proceed
-- transient malformed-state reads do not silently reset active workflow state to defaults
-
 ## Requested Scope
 
-Keep this slice bounded to:
+Keep this slice bounded to the shared workflow-runtime utility layer and the two Phase 1 helpers that still need to consume it directly.
 
-- the shared workflow runtime utility layer needed for serialized governed state writes
-- `skills/governed-feature-runtime.mjs` or the smallest equivalent shared utility surface
-- `implement-plan` integration for feature-scoped governed state
-- `review-cycle` integration for feature-scoped governed state
-- tightly scoped runtime and proof coverage for the above
-- Phase 1 docs that describe this governed runtime contract
+This slice must:
+
+- provide one shared feature-scoped state-writer utility
+- serialize writes per feature stream
+- apply writes atomically
+- expose durable write metadata such as revision or write id plus timestamp
+- let governance distinguish `pending`, `committed`, and `failed` writes
+- hard-stop critical workflow progression when a critical state write fails or is still pending
+- integrate the shared writer into `implement-plan` and `review-cycle`
+- fail closed on malformed active state instead of silently reinitializing from defaults
+
+## Allowed Edits
+
+- `skills/governed-feature-runtime.mjs`
+- `skills/implement-plan/**`
+- `skills/review-cycle/**`
+- tightly scoped tests for the governed writer and its helper integrations
+- `docs/phase1/governed-state-writer-serialization/**`
+
+## Forbidden Edits
+
+- no broad Brain durability redesign
+- no merge-queue redesign unless a minimal touch is strictly required by the shared writer contract
+- no second canonical company database
+- no background daemon or scheduler
+- no unrelated COO runtime work
+
+## Required Deliverables
+
+- one shared governed state-writer utility with feature-scoped serialization
+- `implement-plan` integration
+- `review-cycle` integration
+- targeted proof for same-feature contention, cross-feature isolation, and fail-closed malformed-state handling
+- context.md
+- implement-plan-contract.md
+- completion-summary.md
+
+## Truth Rules
+
+- critical state writes must not be treated as committed before they are durable
+- failed critical writes must block forward progress
+- malformed active state must not silently reset to defaults
+- different feature streams must stay isolated even while one feature stream is blocked on state I/O
+
+## Acceptance Gates
+
+- two near-parallel critical writes for the same feature do not corrupt state
+- helpers for the same feature cannot advance past an uncommitted critical write
+- a failed critical write hard-stops the governed route truthfully
+- per-feature isolation is preserved
+- active malformed state does not silently reset to defaults
+
+## Machine Verification Plan
+
+- run targeted tests for the shared writer utility
+- run targeted tests for `implement-plan` integration
+- run targeted tests for `review-cycle` integration
+- prove same-feature contention handling, cross-feature isolation, and malformed-state fail-closed behavior
+- run `git diff --check` on the changed source set
+
+## Human Verification Plan
+
+- Required: false
+- Reason: this is workflow-runtime hardening and can be proven through deterministic machine verification
 
 ## Non-Goals
 
-- do not redesign Brain durability or Brain schema
-- do not redesign merge-queue behavior unless a minimal touch is strictly required by the shared utility contract
-- do not widen into unrelated COO executive-surface behavior
-- do not build a repo-wide global queue that serializes unrelated features together
-- do not add a background daemon or scheduler in this slice
-
-## Artifact Map
-
-- README.md
-- context.md
-- implement-plan-contract.md
-- implement-plan-state.json
-- implement-plan-brief.md
-- implement-plan-pushback.md
-- implementation-run/
-- completion-summary.md
-
-## Lifecycle
-
-- active
-- blocked
-- completed
-- closed
+- no Brain schema redesign
+- no queue or benchmark harness work
+- no executive-status surface work
+- no full repo-wide mutable-state architecture migration

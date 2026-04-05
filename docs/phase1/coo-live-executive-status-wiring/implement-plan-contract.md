@@ -1,11 +1,12 @@
 1. Implementation Objective
 
-Wire the merged `COO/briefing/**` executive-brief package into the live COO runtime so the CEO can get a real business-level status surface that answers what needs attention, what is on the table, what is moving, and what is next from current live source truth.
+Wire the merged `COO/briefing/**` and `COO/table/**` read models into the live COO runtime so the CEO can request one trustworthy business-level status surface that answers what needs attention, what is on the table, what is moving, and what is next from current runtime truth.
 
 2. Slice Scope
 
 - `COO/briefing/**` for the live source-facts adapter, renderer-facing wiring, and KPI additions needed for the live executive brief surface
-- `COO/controller/**` only where the startup summary and/or status command must call the live executive brief path
+- `COO/table/**` only for additive exports, helpers, or KPI alignment needed to consume the merged table read model as the runtime table substrate
+- `COO/controller/**` only where the startup summary and/or status command must call the live status path
 - `COO/requirements-gathering/**` only for read-shape helpers or additive adapters needed to read live shaping truth
 - tightly scoped tests for the live source adapter, live rendering path, KPI evidence, and proof/production partition handling
 - `docs/phase1/coo-live-executive-status-wiring/**` for contract, context, brief, and completion artifacts
@@ -13,11 +14,12 @@ Wire the merged `COO/briefing/**` executive-brief package into the live COO runt
 3. Required Deliverables
 
 - a live `BriefSourceFacts` adapter for the COO runtime
-- a real startup summary and/or status surface that renders the executive brief from live COO state
+- a runtime status command and/or startup summary that renders the executive brief from live COO state
+- live consumption of the merged `COO/table/**` package instead of controller-local table duplication
 - graceful handling for partial or missing source families without mutating source truth
 - KPI and audit coverage for:
-  - `live_exec_brief_build_latency_ms` with p50 / p95 / p99
-  - slow status-build buckets over 1s / 10s / 60s
+  - `live_exec_brief_build_latency_ms` with p50, p95, p99
+  - slow status-build buckets over 1s, 10s, and 60s
   - `live_exec_brief_render_success_count`
   - `live_exec_brief_render_failure_count`
   - `live_status_invocation_count`
@@ -34,68 +36,74 @@ Wire the merged `COO/briefing/**` executive-brief package into the live COO runt
 
 4. Allowed Edits
 
-- `COO/briefing/**`
-- `COO/controller/**` where the live status surface must be wired
-- `COO/requirements-gathering/**` only for read-shape helpers or additive adapters
-- `docs/phase1/coo-live-executive-status-wiring/**`
+- `C:/ADF/COO/briefing/**`
+- `C:/ADF/COO/table/**` only for additive integration or KPI-alignment changes
+- `C:/ADF/COO/controller/**` where the live status surface must be wired
+- `C:/ADF/COO/requirements-gathering/**` only for read-shape helpers or additive adapters
+- `C:/ADF/docs/phase1/coo-live-executive-status-wiring/**`
 - tightly scoped tests for the above
 
 5. Forbidden Edits
 
-- implement-plan changes
-- review-cycle changes
-- merge-queue changes
-- queue scheduler buildout
-- unrelated onion-behavior redesign
-- broad memory-engine redesign
-- edits to other slice folders
+- no implement-plan changes
+- no review-cycle changes
+- no merge-queue changes
+- no queue scheduler buildout
+- no second table model or queue model
+- no unrelated onion-behavior redesign
+- no broad memory-engine redesign
+- no edits to other slice folders
 
 6. Acceptance Gates
 
+1. The COO runtime can render the executive brief from live data.
+2. The live status surface consumes `COO/table/**` as the table substrate instead of reimplementing queue logic inside the controller.
+3. The 4 sections always appear in this order:
+   - `Issues That Need Your Attention`
+   - `On The Table`
+   - `In Motion`
+   - `What's Next`
+4. The surface stays business-level and concise.
+5. Blocked items surface concretely in `Issues That Need Your Attention`.
+6. Missing source families degrade gracefully instead of crashing the surface.
+7. Tests prove rendering across mixed live-state scenarios and prove the path stays derived-only.
+
+## KPI Applicability
+
 KPI Applicability: required
+KPI Route / Touched Path: `COO/controller CLI startup summary and status command -> live source-facts adapter -> COO/briefing build/render path -> COO/table-derived table substrate -> shared telemetry emission`
+KPI Raw-Truth Source: shared telemetry rows emitted by the real COO CLI/status runtime path for production and proof partitions, plus targeted proof tests for source adaptation, parity, and derived-only behavior
+KPI Coverage / Proof: real COO CLI/status-entry proof, targeted rendering proof for full-source, partial-source, and empty-source cases, parity and missing-source counter proof, freshness-age proof, and production/proof partition coexistence proof
+KPI Production / Proof Partition: production invocations emit production-partition telemetry; proof and test invocations emit proof-partition telemetry; closeout evidence keeps proof rows distinct from production truth
 
-KPI Route / Touched Path: `CLI/startup summary/status surface -> COO/controller live status wiring -> COO/briefing live source-facts adapter -> executive brief renderer -> KPI emission`
+## Vision / Phase 1 / Master-Plan / Gap-Closure Compatibility
 
-KPI Raw-Truth Source: shared telemetry rows emitted by the real COO CLI/status path for production and proof partitions
-- shared telemetry rows emitted by the real COO CLI/status path for production and proof partitions
-- deterministic targeted tests that prove source adaptation, rendering parity, and derived-only behavior
+Vision Compatibility: Directly advances the leadership-surface goal by giving the CEO a live business-readable COO status answer instead of a raw internal dump.
+Phase 1 Compatibility: This is core Phase 1 COO surface work that connects existing derived models to the active runtime without widening into later-company functions.
+Master-Plan Compatibility: Closes the live status gap that still separates merged read-model packages from the real COO route and keeps the work bounded to the active implementation chain.
+Current Gap-Closure Compatibility: Directly closes Gap A and also closes the runtime half of Gap C by consuming the merged company-table read model as part of the live surface.
+Later-Company Check: no
+Compatibility Decision: compatible
+Compatibility Evidence: The executive brief and company-table packages already exist on main, but the runtime still lacks the live surface that the Phase 1 story requires. This slice wires the existing truth surfaces into the real COO route instead of building new speculative components.
 
-KPI Coverage / Proof: real COO CLI/status entry proof plus targeted source-adapter/rendering proof
-- prove the live status surface through the real COO CLI/status entry surface and the live startup/status rendering path
-- prove full-source, partial-source, and empty-source rendering behavior
-- prove visibility parity counters and missing-source counters
-- prove latency percentile and slow-bucket reporting
-- prove freshness-age reporting
-- prove production/proof isolation when proof inputs coexist with production inputs
+## Machine Verification Plan
 
-KPI Production / Proof Partition: production invocations emit production-partition telemetry and proof/test invocations emit proof-partition telemetry
-- production invocations emit production-partition telemetry
-- proof and test invocations emit proof-partition telemetry
-- rollups and closeout evidence keep proof rows distinct from production truth
-
-KPI Non-Applicability Rationale: not applicable because KPI instrumentation is required for this live CEO-facing runtime surface
-
-KPI Exception Owner: none
-
-KPI Exception Expiry: none
-
-KPI Exception Production Status: none
-
-KPI Compensating Control: none
-
-Machine Verification Plan:
 - run targeted tests for the live source adapter and status rendering path
 - validate rendering with full sources, partial sources, and empty sources
 - validate parity counters, missing-source counters, and freshness metrics
-- validate that brief generation does not mutate any source truth
+- validate that brief generation and table generation do not mutate any source truth
 - validate production/proof partition handling and coexistence proof
+- validate that the status surface consumes normalized table truth instead of duplicating table logic in the controller
+- run `git diff --check` on the changed source set
 
-Human Verification Plan:
+## Human Verification Plan
+
 - Required: true
 - Reason: this slice creates a real CEO-facing runtime surface and should be checked for usefulness and readability
 - IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
 - Executive summary of implemented behavior:
   - the COO startup/status surface renders a live 4-section executive brief derived from active threads, finalized requirements, CTO-admission truth when present, and implement-plan truth when present
+  - `On The Table` is driven by the merged company-table read model, not controller-local duplication
   - missing source families degrade gracefully and remain visibly distinguishable from empty-state results
 - IMPLEMENTATION IS READY FOR TESTING
 - Exact testing sequence:
@@ -121,11 +129,11 @@ Human Verification Plan:
 7. Observability / Audit
 
 - the executive brief remains derived-only and must not write back into source truth
+- the table package remains derived-only and must not write back into source truth
 - missing-source cases must remain distinguishable from empty-state cases
 - blocked or attention-worthy items must not be silently dropped
 - parity mismatches must be visible and countable through the required KPI counters
-- review-cycle status, machine verification status, and human verification status must remain truthful in slice artifacts
-- worktree state, merge status, and target-sync status must remain truthful in feature state and completion artifacts
+- the runtime must make it visible whether the table source family was available, empty, or missing
 
 8. Dependencies / Constraints
 
@@ -133,8 +141,9 @@ Human Verification Plan:
 - read finalized requirement artifacts when present
 - read CTO-admission artifacts when present, but degrade gracefully if they do not exist yet
 - read implement-plan feature truth when present
+- consume the merged `COO/table/**` package instead of reimplementing a second queue model
 - keep the output business-level and concise rather than dumping raw state
-- keep the live briefing layer derived-only
+- keep the live briefing and table layers derived-only
 - do not widen into queue ownership, broad onion redesign, or memory-engine redesign
 
 9. Non-Goals
@@ -144,12 +153,34 @@ Human Verification Plan:
 - no unrelated onion-behavior redesign
 - no broad memory-engine redesign
 - no CTO-admission artifact generation in this slice
-- no edits to other slice folders
+- no duplicate standalone table package
 
 10. Source Authorities
 
 - `C:/ADF/docs/phase1/coo-live-executive-status-wiring/README.md`
 - `C:/ADF/docs/phase1/coo-live-executive-status-wiring/context.md`
-- `C:/ADF/docs/v0/architecture.md`
-- `C:/ADF/docs/v0/kpi-instrumentation-requirement.md`
+- `C:/ADF/docs/phase1/company-table-queue-read-model/README.md`
+- `C:/ADF/docs/phase1/coo-executive-brief-read-model/completion-summary.md`
+- `C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md`
 - `C:/ADF/docs/PHASE1_MASTER_PLAN.md`
+- `C:/ADF/docs/PHASE1_VISION.md`
+- `C:/ADF/docs/VISION.md`
+- `C:/ADF/docs/phase1/adf-phase1-current-gap-closure-plan.md`
+
+11. Implementor Defaults
+
+- Preferred Worker Provider: `claude`
+- Preferred Worker Runtime: `claude_code_exec`
+- Preferred Worker Access Mode: `claude_code_skip_permissions`
+- Preferred Worker Model: `claude-opus-4-6`
+- Preferred Implementor Model: `claude-opus-4-6`
+- Preferred Throttle: `max`
+- Preferred Reasoning Effort: not separately configured for this Claude route
+
+12. Closeout Rules
+
+- run machine verification before review handoff
+- use review-cycle after implementation
+- human verification is mandatory before merge
+- commit and push feature-branch changes before merge-queue handoff
+- do not mark complete until review closure, human approval, and merge-queue closeout succeed truthfully
