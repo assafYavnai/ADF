@@ -2,7 +2,7 @@
   "state_schema_version": 2,
   "phase_number": 1,
   "feature_slug": "governed-state-writer-serialization",
-  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization",
+  "project_root": "C:/ADF",
   "feature_registry_key": "phase1/governed-state-writer-serialization",
   "feature_status": "active",
   "implementor_execution_id": null,
@@ -10,7 +10,7 @@
   "implementor_execution_runtime": "claude_code_exec",
   "implementor_provider": "claude",
   "implementor_model": "claude-opus-4-6",
-  "implementor_reasoning_effort": "xhigh",
+  "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": "claude_code_skip_permissions",
   "resolved_runtime_capabilities": {
     "native_agent_spawning_available": false,
@@ -30,16 +30,16 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
+  "merge_status": "blocked",
+  "approved_commit_sha": "244dd60",
   "merge_commit_sha": null,
-  "merge_queue_request_id": null,
+  "merge_queue_request_id": "merge-main-1-governed-state-writer-serialization-1775410645577",
   "local_target_sync_status": "not_started",
-  "last_completed_step": "integrity_precheck_failed",
-  "last_commit_sha": null,
-  "active_run_status": "integrity_failed",
+  "last_completed_step": "merge_blocked",
+  "last_commit_sha": "244dd60",
+  "active_run_status": "merge_blocked",
   "created_at": "2026-04-05T11:13:28.261Z",
-  "updated_at": "2026-04-05T17:23:28.486Z",
+  "updated_at": "2026-04-05T17:37:29.318Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T11:13:28.305Z",
     "worktree_prepared_at": "2026-04-05T11:17:38.447Z",
@@ -199,23 +199,104 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T17:23:28.484Z",
       "note": null
+    },
+    {
+      "event_id": "event-ec60a95b-e282-4a9f-a700-78d8a2ea2dda",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:35:37.832Z",
+      "note": null
+    },
+    {
+      "event_id": "event-90ef0e7e-69fd-44c6-93a9-c30ef66b0534",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:35:49.100Z",
+      "note": null
+    },
+    {
+      "event_id": "event-5f790067-b7b6-40cb-a1b9-b1cfed75b0a5",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:35:50.344Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7de1735d-ae46-4179-93ca-80bafe792b05",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:36:36.868Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f25faa49-c820-45cd-bd7e-a497933a774a",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:36:47.902Z",
+      "note": null
+    },
+    {
+      "event_id": "event-645f70a2-3ccb-41b9-9a5f-91bae93baf3c",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:36:49.032Z",
+      "note": null
+    },
+    {
+      "event_id": "event-ee3ac86d-4b23-41bf-822b-5681fd7ddbbe",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:37:25.720Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f797b8df-a70e-4a2e-8624-0c84f1cfe822",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:37:26.014Z",
+      "note": null
+    },
+    {
+      "event_id": "event-49989689-04f2-43c3-a2d7-e6c87c686012",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:37:29.318Z",
+      "note": null
     }
   ],
   "artifacts": {
-    "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/README.md",
-    "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/context.md",
-    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-state.json",
-    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-contract.md",
+    "readme_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/README.md",
+    "context_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/context.md",
+    "state_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-contract.md",
     "execution_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
     "execution_run_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
-    "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
-    "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-pushback.md",
-    "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-brief.md",
-    "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/completion-summary.md",
-    "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization"
   },
-  "last_error": null,
+  "last_error": "Merge failed: Auto-merging docs/phase1/governed-state-writer-serialization/README.md\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/README.md\nAuto-merging docs/phase1/governed-state-writer-serialization/context.md\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/context.md\nAuto-merging docs/phase1/governed-state-writer-serialization/implement-plan-contract.md\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/implement-plan-contract.md\nAuto-merging docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json\nAuto-merging docs/phase1/governed-state-writer-serialization/implement-plan-state.json\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/implement-plan-state.json\nAuto-merging docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json\nAuto-merging docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json\nCONFLICT (add/add): Merge conflict in docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json\nAuto-merging skills/governed-feature-runtime.mjs\nAuto-merging skills/implement-plan/scripts/implement-plan-helper.mjs\nAuto-merging skills/review-cycle/scripts/review-cycle-helper.mjs\nCONFLICT (content): Merge conflict in skills/review-cycle/scripts/review-cycle-helper.mjs\nAutomatic merge failed; fix conflicts and then commit the result.",
   "current_run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
   "current_attempt_id": "attempt-001",
   "execution_runs": {
@@ -227,14 +308,14 @@
       "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7": {
         "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
         "run_mode": "normal",
-        "lifecycle_status": "blocked",
-        "terminal_status": "blocked",
+        "lifecycle_status": "active",
+        "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 13,
-        "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
-        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
-        "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
-        "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+        "contract_revision": 22,
+        "feature_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
         "benchmark_context": {
           "benchmark_run_id": null,
           "benchmark_suite_id": null,
@@ -251,52 +332,52 @@
             "attempt_id": "attempt-001",
             "attempt_number": 1,
             "status": "blocked",
-            "terminal_status": "blocked",
+            "terminal_status": null,
             "started_at": "2026-04-05T11:13:28.291Z",
-            "updated_at": "2026-04-05T17:23:28.479Z",
+            "updated_at": "2026-04-05T17:37:29.318Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
+              "step": "merge_queue",
               "status": "blocked",
-              "reason": "Benchmarking contract blocked at integrity gate.",
-              "updated_at": "2026-04-05T17:23:28.479Z"
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-05T17:37:29.318Z"
             },
             "step_status": {
               "implementation": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": 0,
+                "duration_seconds": null,
                 "note": null
               },
               "machine_verification": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": 0,
+                "duration_seconds": null,
                 "note": null
               },
               "review_cycle": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": 0,
+                "duration_seconds": null,
                 "note": null
               },
               "human_testing": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": 0,
+                "duration_seconds": null,
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
+                "status": "blocked",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": 0,
+                "duration_seconds": null,
                 "note": null
               }
             },
@@ -321,7 +402,7 @@
                 "provider": "claude",
                 "runtime": "claude_code_exec",
                 "model": "claude-opus-4-6",
-                "reasoning_effort": "xhigh",
+                "reasoning_effort": null,
                 "access_mode": "claude_code_skip_permissions",
                 "execution_id": null,
                 "bound_at": "2026-04-05T11:13:28.291Z",
@@ -330,50 +411,50 @@
                   "runtime": "persisted_continuity",
                   "access_mode": "persisted_continuity",
                   "model": "persisted_continuity",
-                  "reasoning_effort": "invoker_inheritance"
+                  "reasoning_effort": "persisted_continuity"
                 },
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T17:23:28.479Z",
-            "last_event_at": "2026-04-05T17:23:28.484Z"
+            "last_checkpoint_at": "2026-04-05T17:37:29.318Z",
+            "last_event_at": "2026-04-05T17:37:29.318Z"
           }
         },
         "created_at": "2026-04-05T11:13:28.291Z",
-        "updated_at": "2026-04-05T17:23:28.482Z",
-        "last_event_at": "2026-04-05T17:23:28.484Z",
+        "updated_at": "2026-04-05T17:37:29.324Z",
+        "last_event_at": "2026-04-05T17:37:29.318Z",
         "kpi_projection": {
-          "terminal_status": "blocked",
+          "terminal_status": null,
           "per_step_timing": {
             "implementation": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": 0
+              "duration_seconds": null
             },
             "machine_verification": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": 0
+              "duration_seconds": null
             },
             "review_cycle": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": 0
+              "duration_seconds": null
             },
             "human_testing": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": 0
+              "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
+              "status": "blocked",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": 0
+              "duration_seconds": null
             }
           },
           "governance_call_metrics": {
