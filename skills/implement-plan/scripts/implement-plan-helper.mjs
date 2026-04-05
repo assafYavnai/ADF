@@ -25,6 +25,7 @@ import {
   formatDuration,
   gitRefExists,
   gitRun,
+  governedStateWrite,
   installBrokenPipeGuards,
   isFilled,
   isPlainObject,
@@ -256,6 +257,15 @@ const STATUS_MESSAGES = {
 };
 
 installBrokenPipeGuards();
+
+async function writeImplementPlanState(statePath, featureSlug, state) {
+  return governedStateWrite({
+    statePath,
+    featureSlug,
+    mutator: () => state,
+    skipLock: true
+  });
+}
 
 main().catch((error) => {
   fail(error instanceof Error ? error.stack ?? error.message : String(error));
@@ -543,7 +553,7 @@ async function prepareFeature(input) {
         failState.last_error = worktree.message;
         failState.run_timestamps = { integrity_failed_at: nowIso() };
         failState.updated_at = nowIso();
-        await writeJsonAtomic(paths.statePath, failState);
+        await writeImplementPlanState(paths.statePath, input.featureSlug, failState);
         return {
           readmeCreated: false,
           contextCreated: false,
@@ -844,7 +854,7 @@ async function prepareFeature(input) {
 
     if (changed) {
       nextState.updated_at = nowIso();
-      await writeJsonAtomic(artifactPaths.statePath, nextState);
+      await writeImplementPlanState(artifactPaths.statePath, input.featureSlug, nextState);
     }
 
     return {
@@ -1218,7 +1228,7 @@ async function updateState(input) {
         state: next
       });
     }
-    await writeJsonAtomic(updateArtifactPaths.statePath, next);
+    await writeImplementPlanState(updateArtifactPaths.statePath, input.featureSlug, next);
     return next;
   });
 
@@ -1358,7 +1368,7 @@ async function recordEvent(input) {
         state: next
       });
     }
-    await writeJsonAtomic(eventArtifactPaths.statePath, next);
+    await writeImplementPlanState(eventArtifactPaths.statePath, input.featureSlug, next);
     return next;
   });
 
@@ -1518,7 +1528,7 @@ async function resetAttempt(input) {
       state: next
     });
     next.updated_at = timestamp;
-    await writeJsonAtomic(resetArtifactPaths.statePath, next);
+    await writeImplementPlanState(resetArtifactPaths.statePath, input.featureSlug, next);
     return {
       state: next,
       run,
@@ -1658,7 +1668,7 @@ async function markComplete(input) {
       })
     );
 
-    await writeJsonAtomic(completeArtifactPaths.statePath, next);
+    await writeImplementPlanState(completeArtifactPaths.statePath, input.featureSlug, next);
     return next;
   });
 
@@ -2144,11 +2154,12 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
     try {
       state = await readJson(paths.statePath);
     } catch (error) {
-      repairs.push("State could not be parsed and was rebuilt: " + describeError(error));
+      throw new Error("implement-plan state file is malformed and cannot be parsed (fail-closed). Path: " + paths.statePath + ". Error: " + describeError(error));
     }
-  }
-
-  if (!isPlainObject(state)) {
+    if (!isPlainObject(state)) {
+      throw new Error("implement-plan state file exists but is not a valid object (fail-closed). Path: " + paths.statePath);
+    }
+  } else {
     state = buildInitialState(paths, input, registryEntry, indexEntry, currentBranch);
     created = true;
   }

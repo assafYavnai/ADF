@@ -10,7 +10,7 @@
   "implementor_execution_runtime": "claude_code_exec",
   "implementor_provider": "claude",
   "implementor_model": "claude-opus-4-6",
-  "implementor_reasoning_effort": null,
+  "implementor_reasoning_effort": "xhigh",
   "resolved_runtime_permission_model": "claude_code_skip_permissions",
   "resolved_runtime_capabilities": {
     "native_agent_spawning_available": false,
@@ -35,16 +35,16 @@
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "last_completed_step": "context_collected",
+  "last_completed_step": "integrity_precheck_failed",
   "last_commit_sha": null,
-  "active_run_status": "context_ready",
+  "active_run_status": "integrity_failed",
   "created_at": "2026-04-05T11:13:28.261Z",
-  "updated_at": "2026-04-05T12:02:31.077Z",
+  "updated_at": "2026-04-05T17:23:28.486Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T11:13:28.305Z",
     "worktree_prepared_at": "2026-04-05T11:17:38.447Z",
     "integrity_passed_at": null,
-    "integrity_failed_at": "2026-04-05T11:44:29.810Z",
+    "integrity_failed_at": "2026-04-05T17:23:28.479Z",
     "brief_written_at": null,
     "implementor_started_at": null,
     "implementor_finished_at": null,
@@ -181,6 +181,24 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T12:02:31.074Z",
       "note": null
+    },
+    {
+      "event_id": "event-e5c75c68-f757-4421-be31-a4cab8eefbd8",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:11:48.759Z",
+      "note": null
+    },
+    {
+      "event_id": "event-184f3da5-5e03-4b4c-98c2-4a364991c36d",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:23:28.484Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -209,10 +227,10 @@
       "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7": {
         "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
         "run_mode": "normal",
-        "lifecycle_status": "active",
-        "terminal_status": null,
+        "lifecycle_status": "blocked",
+        "terminal_status": "blocked",
         "contract_schema_version": 1,
-        "contract_revision": 11,
+        "contract_revision": 13,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
@@ -232,53 +250,53 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "ready_for_implementation",
-            "terminal_status": null,
+            "status": "blocked",
+            "terminal_status": "blocked",
             "started_at": "2026-04-05T11:13:28.291Z",
-            "updated_at": "2026-04-05T12:02:31.067Z",
+            "updated_at": "2026-04-05T17:23:28.479Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
               "step": "implementation",
-              "status": "ready",
-              "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-05T12:02:31.067Z"
+              "status": "blocked",
+              "reason": "Benchmarking contract blocked at integrity gate.",
+              "updated_at": "2026-04-05T17:23:28.479Z"
             },
             "step_status": {
               "implementation": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": null,
+                "duration_seconds": 0,
                 "note": null
               },
               "machine_verification": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": null,
+                "duration_seconds": 0,
                 "note": null
               },
               "review_cycle": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": null,
+                "duration_seconds": 0,
                 "note": null
               },
               "human_testing": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": null,
+                "duration_seconds": 0,
                 "note": null
               },
               "merge_queue": {
                 "status": "not_started",
                 "started_at": null,
                 "completed_at": null,
-                "duration_seconds": null,
+                "duration_seconds": 0,
                 "note": null
               }
             },
@@ -303,7 +321,7 @@
                 "provider": "claude",
                 "runtime": "claude_code_exec",
                 "model": "claude-opus-4-6",
-                "reasoning_effort": null,
+                "reasoning_effort": "xhigh",
                 "access_mode": "claude_code_skip_permissions",
                 "execution_id": null,
                 "bound_at": "2026-04-05T11:13:28.291Z",
@@ -312,50 +330,50 @@
                   "runtime": "persisted_continuity",
                   "access_mode": "persisted_continuity",
                   "model": "persisted_continuity",
-                  "reasoning_effort": "unsupported_for_resolved_worker"
+                  "reasoning_effort": "invoker_inheritance"
                 },
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T12:02:31.067Z",
-            "last_event_at": "2026-04-05T12:02:31.074Z"
+            "last_checkpoint_at": "2026-04-05T17:23:28.479Z",
+            "last_event_at": "2026-04-05T17:23:28.484Z"
           }
         },
         "created_at": "2026-04-05T11:13:28.291Z",
-        "updated_at": "2026-04-05T12:02:31.071Z",
-        "last_event_at": "2026-04-05T12:02:31.074Z",
+        "updated_at": "2026-04-05T17:23:28.482Z",
+        "last_event_at": "2026-04-05T17:23:28.484Z",
         "kpi_projection": {
-          "terminal_status": null,
+          "terminal_status": "blocked",
           "per_step_timing": {
             "implementation": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": null
+              "duration_seconds": 0
             },
             "machine_verification": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": null
+              "duration_seconds": 0
             },
             "review_cycle": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": null
+              "duration_seconds": 0
             },
             "human_testing": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": null
+              "duration_seconds": 0
             },
             "merge_queue": {
               "status": "not_started",
               "started_at": null,
               "completed_at": null,
-              "duration_seconds": null
+              "duration_seconds": 0
             }
           },
           "governance_call_metrics": {
@@ -373,5 +391,8 @@
         }
       }
     }
-  }
+  },
+  "__gsw_revision": 1,
+  "__gsw_write_id": "gsw-e0ba74a8-35ab-4852-a53a-71a1dba52090",
+  "__gsw_timestamp": "2026-04-05T17:23:28.487Z"
 }

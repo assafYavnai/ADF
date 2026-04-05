@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/governed-state-writer-serialization",
   "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
   "run_mode": "normal",
-  "updated_at": "2026-04-05T12:02:31.076Z",
+  "updated_at": "2026-04-05T17:23:28.485Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
@@ -14,10 +14,10 @@
   "run": {
     "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
     "run_mode": "normal",
-    "lifecycle_status": "active",
-    "terminal_status": null,
+    "lifecycle_status": "blocked",
+    "terminal_status": "blocked",
     "contract_schema_version": 1,
-    "contract_revision": 11,
+    "contract_revision": 13,
     "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
     "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
@@ -37,53 +37,53 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "ready_for_implementation",
-        "terminal_status": null,
+        "status": "blocked",
+        "terminal_status": "blocked",
         "started_at": "2026-04-05T11:13:28.291Z",
-        "updated_at": "2026-04-05T12:02:31.067Z",
+        "updated_at": "2026-04-05T17:23:28.479Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
           "step": "implementation",
-          "status": "ready",
-          "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-05T12:02:31.067Z"
+          "status": "blocked",
+          "reason": "Benchmarking contract blocked at integrity gate.",
+          "updated_at": "2026-04-05T17:23:28.479Z"
         },
         "step_status": {
           "implementation": {
             "status": "not_started",
             "started_at": null,
             "completed_at": null,
-            "duration_seconds": null,
+            "duration_seconds": 0,
             "note": null
           },
           "machine_verification": {
             "status": "not_started",
             "started_at": null,
             "completed_at": null,
-            "duration_seconds": null,
+            "duration_seconds": 0,
             "note": null
           },
           "review_cycle": {
             "status": "not_started",
             "started_at": null,
             "completed_at": null,
-            "duration_seconds": null,
+            "duration_seconds": 0,
             "note": null
           },
           "human_testing": {
             "status": "not_started",
             "started_at": null,
             "completed_at": null,
-            "duration_seconds": null,
+            "duration_seconds": 0,
             "note": null
           },
           "merge_queue": {
             "status": "not_started",
             "started_at": null,
             "completed_at": null,
-            "duration_seconds": null,
+            "duration_seconds": 0,
             "note": null
           }
         },
@@ -108,7 +108,7 @@
             "provider": "claude",
             "runtime": "claude_code_exec",
             "model": "claude-opus-4-6",
-            "reasoning_effort": null,
+            "reasoning_effort": "xhigh",
             "access_mode": "claude_code_skip_permissions",
             "execution_id": null,
             "bound_at": "2026-04-05T11:13:28.291Z",
@@ -117,50 +117,50 @@
               "runtime": "persisted_continuity",
               "access_mode": "persisted_continuity",
               "model": "persisted_continuity",
-              "reasoning_effort": "unsupported_for_resolved_worker"
+              "reasoning_effort": "invoker_inheritance"
             },
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-05T12:02:31.067Z",
-        "last_event_at": "2026-04-05T12:02:31.074Z"
+        "last_checkpoint_at": "2026-04-05T17:23:28.479Z",
+        "last_event_at": "2026-04-05T17:23:28.484Z"
       }
     },
     "created_at": "2026-04-05T11:13:28.291Z",
-    "updated_at": "2026-04-05T12:02:31.071Z",
-    "last_event_at": "2026-04-05T12:02:31.074Z",
+    "updated_at": "2026-04-05T17:23:28.482Z",
+    "last_event_at": "2026-04-05T17:23:28.484Z",
     "kpi_projection": {
-      "terminal_status": null,
+      "terminal_status": "blocked",
       "per_step_timing": {
         "implementation": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "machine_verification": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "review_cycle": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "human_testing": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "merge_queue": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         }
       },
       "governance_call_metrics": {

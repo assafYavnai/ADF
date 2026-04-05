@@ -3,6 +3,7 @@
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
+import { governedStateWrite } from "../../governed-feature-runtime.mjs";
 
 const REQUIRED_ARTIFACTS = [
   "audit-findings.md",
@@ -513,7 +514,7 @@ async function prepareCycle(input) {
 
   if (stateChanged) {
     nextState.updated_at = nowIso();
-    await writeJson(statePath, nextState);
+    await writeReviewCycleState(statePath, input.featureSlug, nextState);
   }
 
   const registrySync = await syncRegistryFromState({
@@ -725,7 +726,7 @@ async function updateState(input) {
   }
 
   next.updated_at = nowIso();
-  await writeJson(statePath, next);
+  await writeReviewCycleState(statePath, input.featureSlug, next);
 
   const registrySync = await syncRegistryFromState({
     registryLoad,
@@ -806,7 +807,7 @@ async function recordEvent(input) {
   if (input.lastCommitSha !== null) synced.last_commit_sha = emptyToNull(input.lastCommitSha);
 
   synced.updated_at = timestamp;
-  await writeJson(statePath, synced);
+  await writeReviewCycleState(statePath, input.featureSlug, synced);
 
   const registrySync = await syncRegistryFromState({
     registryLoad,
@@ -1445,7 +1446,7 @@ async function loadOrInitializeState(input) {
   const repairs = [];
 
   if (!(await pathExists(input.statePath))) {
-    await writeJson(input.statePath, initialized.state);
+    await writeReviewCycleState(input.statePath, input.featureSlug, initialized.state);
     return { created: true, changed: true, state: initialized.state, repairs };
   }
 
@@ -1453,11 +1454,7 @@ async function loadOrInitializeState(input) {
   try {
     existing = await readJson(input.statePath);
   } catch (error) {
-    repairs.push("Existing review-cycle-state.json could not be parsed and was reinitialized from defaults: " + describeError(error));
-    const recovered = initialized.state;
-    recovered.updated_at = nowIso();
-    await writeJson(input.statePath, recovered);
-    return { created: false, changed: true, state: recovered, repairs };
+    throw new Error("review-cycle state file is malformed and cannot be parsed (fail-closed). Path: " + input.statePath + ". Error: " + describeError(error));
   }
 
   const normalized = normalizeStateObject(existing, defaults, repairs);
@@ -1465,7 +1462,7 @@ async function loadOrInitializeState(input) {
 
   if (withRegistry.changed || !sameJson(existing, withRegistry.state)) {
     withRegistry.state.updated_at = nowIso();
-    await writeJson(input.statePath, withRegistry.state);
+    await writeReviewCycleState(input.statePath, input.featureSlug, withRegistry.state);
     return { created: false, changed: true, state: withRegistry.state, repairs };
   }
 
@@ -2536,6 +2533,15 @@ function printJson(value) {
 function fail(message) {
   process.stderr.write(message + "\n");
   process.exit(1);
+}
+
+async function writeReviewCycleState(statePath, featureSlug, state) {
+  return governedStateWrite({
+    statePath,
+    featureSlug,
+    mutator: () => state,
+    skipLock: false
+  });
 }
 
 main().catch((error) => {
