@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Implemented the Slice 01 bootstrap for the boxed `dev_team` department under `components/dev-team/`, including the `VPRND` governance entry surface, the first setup and status MCP tools, the initial durable department state model, the internal team placeholders, the build/package baseline, and the slice documentation needed to position `dev_team` as the intended front door for governed implementation work.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects cycle-04 approved and closed and merge commit c92d07477ba0467dade71cf0ff22bc92c91031ca.
 
 2. Deliverables Produced
 
@@ -25,6 +27,7 @@ Implemented the Slice 01 bootstrap for the boxed `dev_team` department under `co
 - `docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/requirements.md`
 - `docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/implement-plan-contract.md`
 - `docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/implement-plan-brief.md`
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -42,10 +45,11 @@ Implemented the Slice 01 bootstrap for the boxed `dev_team` department under `co
 - Machine Verification: `npm.cmd --prefix components/dev-team run build` passed and `npm.cmd --prefix components/dev-team test` passed with 20 tests across 8 suites during implement-plan verification, and the same build/test pair was rerun after cycle-04 closeout with the same passing 20/8 baseline.
 - Human Verification Requirement: not required.
 - Human Verification Status: not applicable.
-- Review-Cycle Status: completed. Governed review-cycle closed truthfully after 4 cycles, ending with cycle-04 auditor approval and final reviewer `regression_sanity` approval.
-- Merge Status: not started. Explicit invoker approval remains required before any merge to `main`, and `approved_commit_sha` remains `null` until that approval is granted.
-- Local Target Sync Status: not started.
 - Execution-Contract Proof: the live implement-plan artifacts now hold at the pre-merge approval gate with `active_run_status=closeout_pending`, `merge_status=not_ready`, `approved_commit_sha=null`, `review_cycle.status=completed`, and `review_cycle_count=4`.
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: cycle-04 approved and closed
+- Merge Status: merged via merge-queue (merge commit c92d07477ba0467dade71cf0ff22bc92c91031ca)
+- Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
@@ -64,9 +68,10 @@ Implemented the Slice 01 bootstrap for the boxed `dev_team` department under `co
 
 6. Commit And Push Result
 
-- Governed feature-branch commits have been created and pushed for the bootstrap implementation baseline and each review-cycle closeout.
-- Branch pushed to origin: `implement-plan/phase1/mcp-boxing-slice-01-dev-team-bootstrap`
-- Upstream tracking: `origin/implement-plan/phase1/mcp-boxing-slice-01-dev-team-bootstrap`
+- Approved feature commit: 6e0ca593caf5511b461d8868c0d90b1a9aa2ea91
+- Merge commit: c92d07477ba0467dade71cf0ff22bc92c91031ca
+- Push: success to origin/main
+- Closeout note: merged-via-governed-merge-after-invoker-approval
 
 7. Remaining Non-Goals / Debt
 
