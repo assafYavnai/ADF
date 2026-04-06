@@ -17,6 +17,7 @@ Installed target copies under Codex, Claude, or Gemini roots are generated insta
 - `action=status`
 - `action=enqueue`
 - `action=process-next`
+- `action=resume-blocked`
 
 ## Required inputs
 
@@ -53,6 +54,30 @@ Optional process inputs:
 6. If setup is missing, stale, unparsable, incomplete, or internally inconsistent, read [references/setup-contract.md](references/setup-contract.md) and run the internal setup helper before continuing.
 7. Use `merge-queue-helper.mjs` as the source of truth for queue state, merge execution, and implement-plan handoff updates.
 
+## Blocked-merge resume/resolve route
+
+When a queued merge request is blocked (conflict, push failure, stale commit, closeout readiness failure), the governed recovery path is `action=resume-blocked`, not manual merge worktrees.
+
+For `action=resume-blocked`:
+
+- `project_root`
+- `request_id`
+
+Optional:
+
+- `approved_commit_sha` — supply a new approved commit when the original was stale or when the feature branch has been updated after fixing the blocker
+- `base_branch`
+
+Rules:
+
+- `resume-blocked` must find the blocked request by `request_id` in the queue
+- if the blocker was a stale commit, the invoker must supply a new `approved_commit_sha`
+- if the blocker was a conflict, the invoker must first fix the feature branch and supply the new approved commit
+- if the blocker was a closeout readiness failure, the invoker must fix the readiness issue before resuming
+- `resume-blocked` re-queues the request with status `queued` and the updated fields, then returns the updated request
+- `resume-blocked` must not bypass the normal `process-next` merge/push flow — it only transitions the request back to `queued` so the next `process-next` picks it up
+- manual merge worktrees are not the intended blocked-merge recovery route
+
 ## Rules
 
 - Queue requests FIFO per `base_branch` lane, not one global FIFO.
@@ -71,4 +96,5 @@ Optional process inputs:
 - `node C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs status ...`
 - `node C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs enqueue ...`
 - `node C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs process-next ...`
+- `node C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs resume-blocked ...`
 - `node C:/ADF/skills/merge-queue/scripts/merge-queue-setup-helper.mjs write-setup ...`

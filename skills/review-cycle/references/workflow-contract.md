@@ -668,6 +668,31 @@ Execution rules:
 - the report body itself must end with `Final Verdict: APPROVED|REJECTED`
 - the report body must stay human-facing and easy to scan, not a blob of dense prose
 
+## Fix-cycle continuity contract
+
+When a review cycle rejects and requires a fix pass, the orchestrator must reuse the same implementor execution that produced the prior fix, unless that execution is broken or under-permissioned.
+
+Rules:
+
+- rejection or fix cycles reuse the same implementor execution when it is still valid
+- normal fix cycles do not send a fresh long implementation prompt to the implementor
+- normal fix cycles send only the rejected findings or report artifact paths plus a short fix instruction
+- the implementor receives only the delta work, not a full re-bootstrap
+
+## Reopen guardrail contract
+
+Do not open cycle `N+1` for a feature stream unless at least one of these conditions is true:
+
+- there are new diffs on the feature branch since the last approved cycle
+- the invoker explicitly requests a reopen
+
+Rules:
+
+- when neither condition is met, surface a message that the review stream is already approved with no new changes and stop
+- do not start a new audit or review pass when the last completed cycle was approved and the branch has not changed
+- the invoker may override the guardrail by passing an explicit reopen request
+- the guardrail protects against accidental double-review, not against intentional re-review
+
 ## Implementor rules
 
 Implementation remains route-level. Keep this rule unchanged:

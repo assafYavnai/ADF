@@ -106,8 +106,17 @@ async function main() {
     }));
     return;
   }
+  if (command === "resume-blocked") {
+    printJson(await resumeBlocked({
+      projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      requestId: requiredArg(args, "request-id"),
+      approvedCommitSha: args.values["approved-commit-sha"] ?? null,
+      baseBranch: args.values["base-branch"] ?? null
+    }));
+    return;
+  }
 
-  fail("Unknown command '" + command + "'. Use help, get-settings, status, enqueue, or process-next.");
+  fail("Unknown command '" + command + "'. Use help, get-settings, status, enqueue, process-next, or resume-blocked.");
 }
 
 async function renderHelp(args) {
@@ -120,9 +129,12 @@ async function renderHelp(args) {
     project_root: controlProjectRoot,
     requested_project_root: requestedProjectRoot === controlProjectRoot ? undefined : requestedProjectRoot,
     purpose: "Queue and land approved feature merges FIFO per target branch using isolated merge worktrees and truthful completion handoff.",
-    actions: ["help", "get-settings", "status", "enqueue", "process-next"],
+    actions: ["help", "get-settings", "status", "enqueue", "process-next", "resume-blocked"],
     required_inputs_for_enqueue: ["project_root", "phase_number", "feature_slug"],
     optional_enqueue_inputs: ["approved_commit_sha", "base_branch", "feature_branch", "worktree_path", "queue_note"],
+    required_inputs_for_resume_blocked: ["project_root", "request_id"],
+    optional_resume_blocked_inputs: ["approved_commit_sha", "base_branch"],
+    blocked_merge_recovery: "Use resume-blocked to transition a blocked merge request back to queued after fixing the blocker. Do not use manual merge worktrees as the recovery path.",
     transparent_setup_behavior: "The main skill validates setup internally and refreshes it when missing or invalid before merge work starts.",
     current_settings_summary: settings.summary,
     queue_summary: status.summary
@@ -465,6 +477,78 @@ async function processNext(input) {
       process.stderr.write(cleanupError + "\n");
     }
   }
+}
+
+async function resumeBlocked(input) {
+  const controlProjectRoot = resolveControlProjectRoot(input.projectRoot);
+  const paths = buildPaths(controlProjectRoot);
+
+  const result = await withLock(paths.projectLocksRoot, "queue", async () => {
+    const queue = await loadQueue(controlProjectRoot);
+    const request = findRequest(queue.data, input.requestId);
+    if (!request) {
+      fail("Queue request '" + input.requestId + "' does not exist.");
+    }
+    if (request.status !== "blocked") {
+      fail("Queue request '" + input.requestId + "' has status '" + request.status + "', not 'blocked'. Only blocked requests can be resumed.");
+    }
+
+    const newApprovedSha = input.approvedCommitSha ?? request.approved_commit_sha ?? null;
+    if (!newApprovedSha) {
+      fail("Cannot resume blocked request without an approved commit SHA. Supply --approved-commit-sha.");
+    }
+
+    const baseBranch = input.baseBranch ?? request.base_branch;
+
+    // Validate the new approved SHA is not already merged
+    const baseRef = gitRefExists(controlProjectRoot, "refs/remotes/origin/" + baseBranch)
+      ? "origin/" + baseBranch
+      : baseBranch;
+    if (gitRefExists(controlProjectRoot, "refs/heads/" + baseBranch) || gitRefExists(controlProjectRoot, "refs/remotes/origin/" + baseBranch)) {
+      const ancestorCheck = gitRun(controlProjectRoot, ["merge-base", "--is-ancestor", newApprovedSha, baseRef], { timeoutMs: 10000 });
+      if (ancestorCheck.status === 0) {
+        fail("Approved commit " + newApprovedSha + " is already an ancestor of " + baseBranch + ". Supply a newer approved commit SHA.");
+      }
+    }
+
+    request.status = "queued";
+    request.approved_commit_sha = newApprovedSha;
+    request.base_branch = baseBranch;
+    request.blocked_at = null;
+    request.last_error = null;
+    request.started_at = null;
+    request.merged_at = null;
+    request.merge_commit_sha = null;
+    request.local_target_sync_status = "not_started";
+    queue.data.updated_at = nowIso();
+    await writeJsonAtomic(paths.queuePath, queue.data);
+    return request;
+  });
+
+  await updateImplementPlanFeatureState(
+    resolveRequestFeatureProjectRoot(result, input.projectRoot),
+    result.phase_number,
+    result.feature_slug,
+    {
+      merge_status: "queued",
+      merge_required: "true",
+      merge_queue_request_id: result.request_id,
+      approved_commit_sha: result.approved_commit_sha,
+      active_run_status: "merge_queued",
+      last_completed_step: "merge_queued",
+      last_error: null
+    }
+  );
+
+  return {
+    command: "resume-blocked",
+    project_root: controlProjectRoot,
+    request_id: result.request_id,
+    feature_registry_key: result.feature_registry_key,
+    approved_commit_sha: result.approved_commit_sha,
+    base_branch: result.base_branch,
+    resumed: true
+  };
 }
 
 function syncLocalTargetBranch(projectRoot, baseBranch) {

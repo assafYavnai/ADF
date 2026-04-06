@@ -433,6 +433,19 @@ Rules:
 - future benchmark-driven review-cycle parallelism must be able to reduce from the event stream and run projections without depending only on one whole-feature JSON file
 - `terminal-status-recorded` must not create normal-mode completion truth until the guarded `mark-complete` route has already frozen merge-backed closeout evidence
 
+## Authoritative Requirement-Freeze Guard
+
+When a feature stream has an active implementation slice with a frozen contract or brief, the governed route must detect independent authoritative requirement changes on the base branch.
+
+Rules:
+
+- the contract and brief may reference specific authority files (requirements docs, context docs, decision docs, gap-closure plans) that were read at freeze time
+- before spawning or resuming the implementor, compare the merge-base between the feature branch and the base branch against the current base branch tip for changes to those authority files
+- if authority files listed in the frozen contract have been added or modified on the base branch since the merge-base, surface a pushback that identifies the conflicting authority files and refuses to proceed with stale assumptions
+- the guard does not block feature-branch-internal changes to authority files that are part of the slice itself
+- the guard does not require the invoker to rebase — it only requires the invoker to acknowledge the divergence and refresh the contract before proceeding
+- when the invoker refreshes the contract, the guard clears and the route continues normally
+
 ## Run-Mode Rules
 
 Normal mode:

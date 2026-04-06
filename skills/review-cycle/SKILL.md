@@ -242,6 +242,26 @@ Rules:
 - require the report body itself to start section 1 with `Overall Verdict: APPROVED|REJECTED` and end with `Final Verdict: APPROVED|REJECTED`
 - keep surfaced reports human-facing and easy to scan instead of emitting dense wall-of-text output
 
+## Fix-cycle continuity rule
+
+When a review cycle rejects and requires a fix pass, the orchestrator must reuse the same implementor execution that produced the prior fix, unless that execution is broken or under-permissioned.
+
+Rules:
+
+- rejection or fix cycles reuse the same implementor execution when it is still valid
+- normal fix cycles do not send a fresh long implementation prompt to the implementor
+- normal fix cycles send only the rejected findings or report artifact paths plus a short fix instruction
+- this keeps the implementor context window focused on the delta, not a full re-bootstrap
+
+## Reopen guardrail rule
+
+Do not open cycle `N+1` for a feature stream unless at least one of these conditions is true:
+
+- there are new diffs on the feature branch since the last approved cycle
+- the invoker explicitly requests a reopen
+
+If neither condition is met, surface a message that the review stream is already approved with no new changes, and stop without starting a new cycle.
+
 ## Implementor lane rule
 
 The implementor execution is also persistent and cached per feature stream.

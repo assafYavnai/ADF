@@ -1623,6 +1623,12 @@ async function markComplete(input) {
       fail("Refusing to mark complete because local_target_sync_status is '" + (next.local_target_sync_status ?? "unknown") + "'. A recorded local target sync outcome is required before completion.");
     }
 
+    // Stale-language validation: reject closeout when generated artifacts still carry pre-merge or in-progress language
+    const stalePatterns = detectStaleCloseoutLanguage(completionText);
+    if (stalePatterns.length > 0) {
+      fail("Refusing to mark complete because completion-summary.md still contains stale closeout language: " + stalePatterns.join(", ") + ". Normalize or regenerate the completion summary before marking complete.");
+    }
+
     next.feature_status = "completed";
     next.active_run_status = "completed";
     next.last_completed_step = "marked_complete";
@@ -4113,6 +4119,28 @@ function deriveLegacyMergeStatusFromAttempt(attempt, fallbackMergeStatus) {
 
 function hasRecordedLocalTargetSyncStatus(localTargetSyncStatus) {
   return isFilled(localTargetSyncStatus) && localTargetSyncStatus !== "not_started";
+}
+
+const STALE_CLOSEOUT_LANGUAGE_PATTERNS = [
+  { pattern: /\bnot_ready\b/i, label: "not_ready" },
+  { pattern: /\bcloseout_pending\b/i, label: "closeout_pending" },
+  { pattern: /\breview_cycle in progress\b/i, label: "review_cycle in progress" },
+  { pattern: /\breview.cycle in.progress\b/i, label: "review-cycle in progress" },
+  { pattern: /\bapproval[_-]pending\b/i, label: "approval-pending" },
+  { pattern: /\bmerge_blocked\b/i, label: "merge_blocked" },
+  { pattern: /\bmerge_queued\b/i, label: "merge_queued" },
+  { pattern: /\bmerge_in_progress\b/i, label: "merge_in_progress" }
+];
+
+function detectStaleCloseoutLanguage(completionText) {
+  if (!completionText) return [];
+  const found = [];
+  for (const { pattern, label } of STALE_CLOSEOUT_LANGUAGE_PATTERNS) {
+    if (pattern.test(completionText)) {
+      found.push(label);
+    }
+  }
+  return found;
 }
 
 function hasGuardedNormalCompletionEvidence(state) {
