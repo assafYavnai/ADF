@@ -1,0 +1,84 @@
+{
+  "phase_number": 1,
+  "feature_slug": "governed-implementation-route-hardening",
+  "repo_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening",
+  "feature_agent_registry_key": "phase1/governed-implementation-route-hardening",
+  "auditor_execution_id": "019d6493-f407-79f2-a0b2-a26cf21fa2ca",
+  "reviewer_execution_id": "019d6493-f406-7b73-bd5e-a77971391781",
+  "implementor_execution_id": "1bc7df35-c89f-4eb1-9c58-b13e3e364e84",
+  "auditor_execution_access_mode": "codex_cli_full_auto_bypass",
+  "reviewer_execution_access_mode": "codex_cli_full_auto_bypass",
+  "implementor_execution_access_mode": "claude_code_skip_permissions",
+  "auditor_model": null,
+  "reviewer_model": null,
+  "auditor_reasoning_effort": null,
+  "reviewer_reasoning_effort": null,
+  "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+  "access_mode_resolution_notes": "Use Codex CLI full-auto bypass for auditor/reviewer lanes and preserve Claude Code skip-permissions continuity for implementor fix cycles when the feature already bound a Claude implementor session.",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "implement-plan/phase1/governed-implementation-route-hardening",
+  "last_completed_cycle": 0,
+  "last_commit_sha": "f5b6739ca13e3e4e54c041ca84260d4ebd9725a0",
+  "active_cycle_number": 1,
+  "cycle_runtime": {
+    "cycle_number": 1,
+    "cycle_name": "cycle-01",
+    "status": "fix_report_complete_commit_push_pending",
+    "cycle_started_at": "2026-04-06T20:40:10.040Z",
+    "review_requested_at": "2026-04-06T20:49:29.254Z",
+    "auditor_finished_at": "2026-04-06T21:09:49.509Z",
+    "reviewer_finished_at": "2026-04-06T21:09:49.486Z",
+    "implementor_started_at": "2026-04-06T21:10:14.878Z",
+    "implementor_finished_at": "2026-04-06T21:35:56.632Z",
+    "verification_finished_at": "2026-04-06T21:35:56.659Z",
+    "cycle_finished_at": null,
+    "report_ready": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surfaced": {
+      "auditor": true,
+      "reviewer": true
+    },
+    "report_surface_order": [
+      "auditor",
+      "reviewer"
+    ],
+    "lane_verdicts": {
+      "auditor": "reject",
+      "reviewer": "reject"
+    },
+    "recreated_executions": {
+      "auditor": false,
+      "reviewer": false,
+      "implementor": false
+    },
+    "last_note": "Cycle-01"
+  },
+  "split_review_continuity": {
+    "mode": "full_pair",
+    "approving_lane": null,
+    "rejecting_lane": null,
+    "final_sanity_lane": null,
+    "carried_from_cycle": null,
+    "final_sanity_completed": false,
+    "updated_at": null,
+    "note": null
+  },
+  "created_at": "2026-04-06T20:40:10.034Z",
+  "updated_at": "2026-04-06T21:35:56.700Z",
+  "__gsw_revision": 22,
+  "__gsw_write_id": "gsw-c719a027-61f1-488a-b1b5-9b7ba9270fc6",
+  "__gsw_timestamp": "2026-04-06T21:35:56.707Z"
+}

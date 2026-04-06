@@ -1,4 +1,4 @@
-## 1. Failure Classes
+1. Failure Classes
 
 - F1: Authority-freeze guard is documentation-only; `evaluateIntegrity()` performs no merge-base authority-diff check.
 - F2: Reopen guardrail is documentation-only; `selectCycle()` auto-creates cycle N+1 without checking for new diffs or explicit reopen.
@@ -6,7 +6,7 @@
 - F4: Stale-language detector matches literal tokens inside backtick-quoted code examples in human-facing completion summaries.
 - F5: Fix-cycle continuity proof is wording-only; no behavioral test verifies delta-only dispatch or implementor reuse.
 
-## 2. Route Contracts
+2. Route Contracts
 
 - Claimed supported route: frozen-authority divergence -> pushback; approved-no-diff cycle -> stop; conflict-blocked resume -> require new SHA; completion summary with quoted tokens -> pass; fix-cycle -> delta-only dispatch.
 - End-to-end invariants: `prepare` blocks on stale authority; `selectCycle` stops on approved-no-diff; `resume-blocked` rejects same-SHA for conflict/stale; `mark-complete` passes on truthful summaries that quote stale tokens inside backticks; fix-cycle proof covers execution reuse and delta dispatch.
@@ -25,7 +25,7 @@ Later-Company Check: no
 Compatibility Decision: compatible
 Compatibility Evidence: All four fixes close documented-vs-enforced gaps within the governed implementation route. No product-runtime, Brain, or company-formation work is touched.
 
-## 3. Sweep Scope
+3. Sweep Scope
 
 - `implement-plan-helper.mjs` `evaluateIntegrity()` and any caller that trusts its output before spawning the implementor.
 - `review-cycle-helper.mjs` `selectCycle()`, `prepareCycle()`, and the prepare output that drives the orchestrator's next action.
@@ -33,7 +33,7 @@ Compatibility Evidence: All four fixes close documented-vs-enforced gaps within 
 - `implement-plan-helper.mjs` `detectStaleCloseoutLanguage()` and `markComplete()`.
 - All existing test files in `skills/tests/` for regression.
 
-## 4. Planned Changes
+4. Planned Changes
 
 - F1: Add `checkAuthorityFreeze()` inside `evaluateIntegrity()` that extracts authority paths from the brief `Inputs / Authorities Read` section, computes `git merge-base` between the feature branch and base branch, and runs `git diff --name-only <merge-base>..<base>` to detect divergence. Push a blocking issue when frozen authority files changed. Add a behavioral temp-repo test.
 - F2: Add a reopen guard in `selectCycle()`: when `mode === "new"` and `lastCompletedCycle > 0`, check whether there are new commits on the feature branch since the last completed cycle's commit. If not, and no explicit reopen flag was passed, return `mode: "approved_no_new_diffs"` which the prepare output surfaces as a stop. Add a behavioral temp-repo test.
@@ -41,7 +41,7 @@ Compatibility Evidence: All four fixes close documented-vs-enforced gaps within 
 - F4: Make `detectStaleCloseoutLanguage()` skip content inside backtick-fenced code spans and fenced code blocks before scanning for stale patterns. Add a test proving quoted tokens pass.
 - F5: Add a behavioral test in `review-cycle-continuity-reopen.test.mjs` that verifies the helper's `prepare` output preserves implementor execution ID across cycles and the prepare summary signals delta-only dispatch when resuming a rejected cycle.
 
-## 5. Closure Proof
+5. Closure Proof
 
 - F1: Temp-repo test where `main` changes a frozen authority file after branch-off -> `prepare` returns `integrity_failed` with `authority-freeze-divergence` issue class.
 - F1 negative: Unchanged base authority -> `prepare` proceeds. Feature-branch-only authority edits -> `prepare` proceeds.
@@ -51,7 +51,7 @@ Compatibility Evidence: All four fixes close documented-vs-enforced gaps within 
 - F5: Consecutive prepare calls on cycles 1 and 2 -> implementor_execution_id preserved; cycle 2 prepare summary signals delta-only fix pass.
 - Regression: all existing 54 tests pass.
 
-## 6. Non-Goals
+6. Non-Goals
 
 - No rebase automation.
 - No contract-format redesign.

@@ -1,58 +1,53 @@
-## 1. Fixes Applied
+1. Failure Classes Closed
 
-### F1: Authority-freeze enforcement in implement-plan-helper.mjs
+- F1 closed: `implement-plan-helper.mjs` now enforces authority-freeze divergence before worker spawn instead of documenting the rule only.
+- F2 closed: `review-cycle-helper.mjs` now stops approved no-diff streams unless the invoker explicitly requests reopen.
+- F3 closed: `merge-queue-helper.mjs` now classifies blockers, rejects same-SHA retries for stale/conflict blockers, and migrates requests between base-branch lanes truthfully.
+- F4 closed: `implement-plan-helper.mjs` now ignores backtick-quoted stale-status examples when validating closeout summaries.
+- F5 closed for the governed helper surface: the route now has behavioral proof that implementor continuity is preserved across cycles while the orchestrator stays responsible for the actual delta-only fix prompt.
 
-- Added `checkAuthorityFreeze()` function that extracts frozen authority paths from the brief's "Inputs / Authorities Read" section, computes `git merge-base` between the feature branch and base branch, runs `git diff --name-only` to detect changes, and pushes a blocking `authority-freeze-divergence` issue when frozen files changed.
-- Added `extractFrozenAuthorityPaths()` that parses absolute paths from the brief and converts them to project-relative paths.
-- Integrated into `evaluateIntegrity()` so the check runs before any implementor spawn.
-- Added behavioral temp-repo test: `prepare` rejects when `VISION.md` changes on `main` after branch-off; proceeds when unchanged.
+2. Route Contracts Now Enforced
 
-### F2: Reopen guardrail enforcement in review-cycle-helper.mjs
+- `prepare` fails closed when frozen authority files changed on `main` after branch-off and the feature contract has not been refreshed.
+- `review-cycle prepare` returns an approval hold instead of opening `cycle N+1` when the prior cycle is approved and no new diffs exist.
+- `resume-blocked` now distinguishes blocker classes so stale or conflict-blocked requests require a new approved SHA before requeue.
+- `resume-blocked --base-branch <new>` moves the request between queue lanes instead of mutating only the request field.
+- `mark-complete` accepts truthful summaries that mention stale tokens only inside inline or fenced code examples, while still rejecting live stale route states.
 
-- Added `checkForNewDiffsSinceLastCycle()` function that uses `git log <lastCommitSha>..HEAD` to detect new commits since the last completed cycle.
-- Modified `selectCycle()` to accept an `options` parameter with `repoRoot`, `lastCommitSha`, and `explicitReopen`.
-- When `lastCompletedCycle > 0` and no explicit reopen, if no new diffs exist, returns `mode: "approved_no_new_diffs"` instead of `mode: "new"`.
-- Added `--explicit-reopen` argument to the `prepare` command.
-- Added behavioral temp-repo tests: approved stream with no new diffs stops; explicit reopen proceeds; new commits reopen.
+3. Files Changed And Why
 
-### F3: Blocker-aware resume enforcement in merge-queue-helper.mjs
+- `skills/implement-plan/scripts/implement-plan-helper.mjs`: added authority-freeze enforcement and code-aware stale-language stripping.
+- `skills/review-cycle/scripts/review-cycle-helper.mjs`: added new-diff reopen gating and explicit reopen support in `prepare`.
+- `skills/merge-queue/scripts/merge-queue-helper.mjs`: added blocker classification, blocker-aware resume rules, and lane migration.
+- `skills/tests/requirement-freeze-guard.test.mjs`: added behavioral temp-repo coverage for authority divergence and unchanged-authority pass-through.
+- `skills/tests/review-cycle-continuity-reopen.test.mjs`: added behavioral coverage for no-diff stop, explicit reopen, new-diff reopen, and implementor continuity.
+- `skills/tests/merge-queue-resume-blocked.test.mjs`: added negative and lane-migration coverage for `resume-blocked`.
+- `skills/tests/stale-closeout-language.test.mjs`: added quoting-safe stale-language coverage.
+- `docs/phase1/governed-implementation-route-hardening/cycle-01/fix-plan.md`: froze the route contract before code changes.
+- `docs/phase1/governed-implementation-route-hardening/cycle-01/fix-report.md`: records the bounded cycle-01 closure truth.
 
-- Added `classifyBlocker()` function that classifies `last_error` into `stale_commit`, `merge_conflict`, `closeout_readiness`, `push_failure`, `infrastructure`, or `unknown`.
-- Modified `resumeBlocked()`: for `stale_commit` or `merge_conflict` blockers, requires a NEW approved commit SHA that differs from the original.
-- Added queue lane migration: when `base_branch` changes, the request is moved from the old lane to the new lane instead of just mutating the field.
-- Added behavioral tests: conflict-blocked same-SHA rejected; stale-commit same-SHA rejected; closeout-readiness same-SHA allowed; lane migration on base_branch change.
+4. Sibling Sites Checked
 
-### F4: Stale-language detector ignores backtick-fenced tokens
+- `skills/implement-plan/SKILL.md` and `skills/implement-plan/references/workflow-contract.md` still match the new authority-freeze behavior.
+- `skills/review-cycle/SKILL.md` and `skills/review-cycle/references/workflow-contract.md` still match the reopen and continuity behavior.
+- `skills/merge-queue/SKILL.md` and `skills/merge-queue/references/workflow-contract.md` still match the blocker-aware resume behavior.
+- Existing governed-route tests outside the touched files stayed green in the full `skills/tests/*.test.mjs` run.
 
-- Added `stripCodeContent()` function that removes fenced code blocks (` ```...``` `) and inline code spans (`` `...` ``) before scanning.
-- Modified `detectStaleCloseoutLanguage()` to strip code content first.
-- Added tests: stale tokens inside backtick code spans pass; stale tokens inside fenced code blocks pass; bare stale tokens still fail.
+5. Proof Of Closure
 
-### F5: Fix-cycle continuity behavioral proof
+- `node --check skills/implement-plan/scripts/implement-plan-helper.mjs`: passed.
+- `node --check skills/merge-queue/scripts/merge-queue-helper.mjs`: passed.
+- `node --check skills/review-cycle/scripts/review-cycle-helper.mjs`: passed.
+- `git diff --check`: passed.
+- `node --test skills/tests/*.test.mjs`: 11 test files passed, 0 failed.
+- The updated behavioral suites now cover authority divergence pushback, no-diff approval stop, explicit reopen, new-diff reopen, same-SHA blocker rejection, lane migration, and quoted stale-token closeout safety.
 
-- Added behavioral test proving `implementor_execution_id` is preserved across cycles via the helper's `prepare` output.
-- Test verifies that `reviewer_state.implementor_execution_id` retains the cached value `cached-impl-001` from the approved cycle state.
+6. Remaining Debt / Non-Goals
 
-## 2. Files Changed
+- The delta-only fix prompt remains an orchestration-discipline surface; the helper now preserves implementor continuity but does not own prompt construction.
+- No broader queue-schema redesign, review-strategy redesign, or historical closeout artifact rewrite was attempted.
 
-- `skills/implement-plan/scripts/implement-plan-helper.mjs` — added `checkAuthorityFreeze()`, `extractFrozenAuthorityPaths()`, integrated into `evaluateIntegrity()`; `detectStaleCloseoutLanguage()` now strips code content before scanning via `stripCodeContent()`
-- `skills/review-cycle/scripts/review-cycle-helper.mjs` — added `checkForNewDiffsSinceLastCycle()`; `selectCycle()` now accepts options and enforces reopen guardrail; `prepare` command parses `--explicit-reopen`
-- `skills/merge-queue/scripts/merge-queue-helper.mjs` — added `classifyBlocker()`; `resumeBlocked()` enforces blocker-aware SHA requirements and performs lane migration
-- `skills/tests/requirement-freeze-guard.test.mjs` — added 2 behavioral temp-repo tests (6 total)
-- `skills/tests/review-cycle-continuity-reopen.test.mjs` — added 4 behavioral temp-repo tests (8 total)
-- `skills/tests/merge-queue-resume-blocked.test.mjs` — replaced 1 test, added 4 new behavioral tests (8 total)
-- `skills/tests/stale-closeout-language.test.mjs` — added 2 backtick-quoting tests (8 total)
-- `docs/phase1/governed-implementation-route-hardening/cycle-01/fix-plan.md` — created
-- `docs/phase1/governed-implementation-route-hardening/cycle-01/fix-report.md` — created
+7. Next Cycle Starting Point
 
-## 3. Verification Evidence
-
-- `node --check` passed on all 3 modified helper scripts
-- `git diff --check` passed (no whitespace issues)
-- 65/65 tests pass across 11 test files (11 new + 54 existing), zero regressions
-- Targeted source scan confirms zero `master` references in active authoritative docs
-
-## 4. Remaining Gaps
-
-- Fix-cycle delta-only dispatch shape is proved at the execution-reuse level (implementor ID preserved), but not at the prompt-content level (no test that inspects the actual prompt sent to the implementor). This is an orchestration-discipline surface, not a helper-enforceable surface.
-- The `--explicit-reopen` flag is parsed but not yet documented in the review-cycle SKILL.md optional inputs list. This is a minor doc gap, not a behavioral gap.
+- Cycle-01 closes once these artifact-compliance edits are committed and pushed.
+- The next governed step is a fresh full-pair review on the updated feature head in `cycle-02`.
