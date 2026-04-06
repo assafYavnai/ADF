@@ -28,7 +28,7 @@ Slice 01 implementation is complete and pending governed review-cycle closeout. 
 | Identity/audit policy | `components/dev-team/src/schemas/identity.ts` | Implemented |
 | Team placeholders (design, development, review, integration) | `components/dev-team/src/teams/registry.ts` | Implemented |
 | State persistence | `components/dev-team/src/services/state.ts` | Implemented |
-| Machine verification (14 tests, 7 suites) | `components/dev-team/src/smoke.test.ts` | Passing |
+| Machine verification (20 tests, 8 suites) | `components/dev-team/src/smoke.test.ts` | Passing |
 
 ### Department Entry Point
 
