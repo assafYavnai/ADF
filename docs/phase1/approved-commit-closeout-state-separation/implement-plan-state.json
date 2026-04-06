@@ -2,10 +2,10 @@
   "state_schema_version": 2,
   "phase_number": 1,
   "feature_slug": "approved-commit-closeout-state-separation",
-  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation",
+  "project_root": "C:/ADF",
   "feature_registry_key": "phase1/approved-commit-closeout-state-separation",
   "feature_status": "active",
-  "implementor_execution_id": "fcc6ffc6-661e-4459-98c9-7f0b79b94bf5",
+  "implementor_execution_id": "e299c4e0-c271-4509-a8d9-1f9563a8abca",
   "implementor_execution_access_mode": "claude_code_skip_permissions",
   "implementor_execution_runtime": "claude_code_exec",
   "implementor_provider": "claude",
@@ -30,16 +30,16 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
+  "merge_status": "ready_to_queue",
   "approved_commit_sha": "dc096f08f57ad6c997020c4a1da4fd8bfce16cf3",
   "merge_commit_sha": null,
-  "merge_queue_request_id": "merge-main-1-approved-commit-closeout-state-separation-1775473416439",
+  "merge_queue_request_id": "merge-main-1-approved-commit-closeout-state-separation-1775475446621",
   "local_target_sync_status": "not_started",
-  "last_completed_step": "verification_finished",
+  "last_completed_step": "verification_passed",
   "last_commit_sha": null,
-  "active_run_status": "closeout_pending",
+  "active_run_status": "merge_ready",
   "created_at": "2026-04-05T20:36:12.952Z",
-  "updated_at": "2026-04-06T11:12:39.850Z",
+  "updated_at": "2026-04-06T11:54:17.014Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T20:36:13.011Z",
     "worktree_prepared_at": "2026-04-05T20:37:30.359Z",
@@ -47,8 +47,8 @@
     "integrity_failed_at": null,
     "brief_written_at": null,
     "implementor_started_at": "2026-04-06T11:01:51.495Z",
-    "implementor_finished_at": "2026-04-06T11:01:51.624Z",
-    "verification_finished_at": "2026-04-06T11:01:51.808Z",
+    "implementor_finished_at": "2026-04-06T11:52:49.790Z",
+    "verification_finished_at": "2026-04-06T11:53:07.549Z",
     "review_requested_at": null,
     "human_verification_requested_at": null,
     "merge_started_at": null,
@@ -448,20 +448,137 @@
       "attempt_id": "attempt-003",
       "timestamp": "2026-04-06T11:12:39.850Z",
       "note": null
+    },
+    {
+      "event_id": "event-4d30d158-0ebf-431d-aa75-d38bf9c09149",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:37:26.731Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c1ece8b5-b4fb-4ee2-a615-5ce1fa656f2c",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:37:32.317Z",
+      "note": null
+    },
+    {
+      "event_id": "event-0f1fdc33-9fec-4651-8d60-cb410a8fef43",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:44:10.534Z",
+      "note": null
+    },
+    {
+      "event_id": "event-08bab05e-f057-415a-ba9f-da5911531750",
+      "event_type": "contract-materialized",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:46:23.953Z",
+      "note": null
+    },
+    {
+      "event_id": "event-fe71384b-023b-4380-a264-9cf832647fb6",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:49:12.778Z",
+      "note": null
+    },
+    {
+      "event_id": "event-3e92d69b-e4f1-46ef-9142-f9b631f7aa56",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:49:22.252Z",
+      "note": null
+    },
+    {
+      "event_id": "event-38b28945-341d-407a-a00c-b282742ad18a",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:49:29.951Z",
+      "note": null
+    },
+    {
+      "event_id": "event-78a29a38-2648-4863-8bb1-cca2ca90fa33",
+      "event_type": "step-transition",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:52:49.790Z",
+      "note": "Implementation completed in commit dc096f0; advancing state for attempt-003."
+    },
+    {
+      "event_id": "event-7498459a-af8f-4968-9ec6-f5d6754b6607",
+      "event_type": "verification-recorded",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:52:59.346Z",
+      "note": "10/10 targeted tests pass; node --check OK; git diff --check OK."
+    },
+    {
+      "event_id": "event-d78f1eae-34c4-460a-8c3f-e49ef8935316",
+      "event_type": "step-transition",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:53:07.549Z",
+      "note": "Machine verification passed: 10/10 tests, syntax OK, whitespace OK."
+    },
+    {
+      "event_id": "event-8e73758e-2dfc-4edf-b460-21c3ca5e715d",
+      "event_type": "step-transition",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:53:16.018Z",
+      "note": "post_send_to_review=false; review not required for this machine-only route."
+    },
+    {
+      "event_id": "event-8a7f067b-a7b3-458f-ae0f-d919a1f695bb",
+      "event_type": "step-transition",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:53:23.209Z",
+      "note": "Human Verification Plan states Required: false."
+    },
+    {
+      "event_id": "event-13989f25-4839-4a5e-86b5-fc54d346064f",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:54:17.014Z",
+      "note": null
     }
   ],
   "artifacts": {
-    "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/README.md",
-    "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/context.md",
-    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json",
-    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
-    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
-    "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
-    "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implement-plan-pushback.md",
-    "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implement-plan-brief.md",
-    "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/completion-summary.md",
-    "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implementation-run",
+    "readme_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/README.md",
+    "context_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/context.md",
+    "state_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation"
   },
   "last_error": null,
@@ -479,11 +596,11 @@
         "lifecycle_status": "completed",
         "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 32,
-        "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
-        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
-        "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
-        "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+        "contract_revision": 45,
+        "feature_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412",
         "benchmark_context": {
           "benchmark_run_id": null,
           "benchmark_suite_id": null,
@@ -681,32 +798,32 @@
           "attempt-003": {
             "attempt_id": "attempt-003",
             "attempt_number": 3,
-            "status": "closeout_pending",
+            "status": "merge_ready",
             "terminal_status": null,
             "started_at": "2026-04-06T11:01:51.233Z",
-            "updated_at": "2026-04-06T11:12:39.850Z",
+            "updated_at": "2026-04-06T11:54:17.014Z",
             "reset_at": null,
             "reset_reason": "Reset from the implementation boundary after rebasing the feature branch onto origin/main to remove the stale-base merge conflict.",
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "machine_verification",
-              "status": "completed",
+              "step": "merge_queue",
+              "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-06T11:12:39.850Z"
+              "updated_at": "2026-04-06T11:54:17.014Z"
             },
             "step_status": {
               "implementation": {
                 "status": "completed",
                 "started_at": "2026-04-06T11:01:51.495Z",
-                "completed_at": "2026-04-06T11:01:51.624Z",
-                "duration_seconds": 0,
+                "completed_at": "2026-04-06T11:52:49.790Z",
+                "duration_seconds": 3058,
                 "note": null
               },
               "machine_verification": {
                 "status": "completed",
-                "started_at": "2026-04-06T11:01:51.624Z",
-                "completed_at": "2026-04-06T11:01:51.808Z",
-                "duration_seconds": 0,
+                "started_at": "2026-04-06T11:52:49.790Z",
+                "completed_at": "2026-04-06T11:53:07.549Z",
+                "duration_seconds": 18,
                 "note": null
               },
               "review_cycle": {
@@ -724,7 +841,7 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
+                "status": "ready",
                 "started_at": null,
                 "completed_at": null,
                 "duration_seconds": null,
@@ -740,7 +857,17 @@
               "total_completion_tokens_estimated": 0,
               "total_tokens_estimated": 0
             },
-            "verification_outcomes": [],
+            "verification_outcomes": [
+              {
+                "verification_id": "verification-a3deb097-2f01-4f10-bdf0-b5daf680e263",
+                "kind": "machine",
+                "status": "completed",
+                "review_cycle_number": 0,
+                "self_fix_cycle_number": 0,
+                "note": "10/10 targeted tests pass; node --check OK; git diff --check OK.",
+                "recorded_at": "2026-04-06T11:52:59.346Z"
+              }
+            ],
             "review_cycle_count": 0,
             "self_fix_cycle_count": 0,
             "blockers": [],
@@ -754,7 +881,7 @@
                 "model": "claude-opus-4-6",
                 "reasoning_effort": null,
                 "access_mode": "claude_code_skip_permissions",
-                "execution_id": "fcc6ffc6-661e-4459-98c9-7f0b79b94bf5",
+                "execution_id": "e299c4e0-c271-4509-a8d9-1f9563a8abca",
                 "bound_at": "2026-04-06T11:01:51.233Z",
                 "selection_source": {
                   "provider": "persisted_continuity",
@@ -766,27 +893,27 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-06T11:12:39.850Z",
-            "last_event_at": "2026-04-06T11:12:39.850Z"
+            "last_checkpoint_at": "2026-04-06T11:54:17.014Z",
+            "last_event_at": "2026-04-06T11:54:17.014Z"
           }
         },
         "created_at": "2026-04-05T20:36:12.993Z",
-        "updated_at": "2026-04-06T11:12:39.856Z",
-        "last_event_at": "2026-04-06T11:12:39.850Z",
+        "updated_at": "2026-04-06T11:54:17.020Z",
+        "last_event_at": "2026-04-06T11:54:17.014Z",
         "kpi_projection": {
           "terminal_status": "completed",
           "per_step_timing": {
             "implementation": {
               "status": "completed",
               "started_at": "2026-04-06T11:01:51.495Z",
-              "completed_at": "2026-04-06T11:01:51.624Z",
-              "duration_seconds": 0
+              "completed_at": "2026-04-06T11:52:49.790Z",
+              "duration_seconds": 3058
             },
             "machine_verification": {
               "status": "completed",
-              "started_at": "2026-04-06T11:01:51.624Z",
-              "completed_at": "2026-04-06T11:01:51.808Z",
-              "duration_seconds": 0
+              "started_at": "2026-04-06T11:52:49.790Z",
+              "completed_at": "2026-04-06T11:53:07.549Z",
+              "duration_seconds": 18
             },
             "review_cycle": {
               "status": "not_started",
@@ -801,7 +928,7 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
+              "status": "ready",
               "started_at": null,
               "completed_at": null,
               "duration_seconds": null
@@ -815,7 +942,17 @@
             "total_completion_tokens_estimated": 0,
             "total_tokens_estimated": 0
           },
-          "verification_outcomes": [],
+          "verification_outcomes": [
+            {
+              "verification_id": "verification-a3deb097-2f01-4f10-bdf0-b5daf680e263",
+              "kind": "machine",
+              "status": "completed",
+              "review_cycle_number": 0,
+              "self_fix_cycle_number": 0,
+              "note": "10/10 targeted tests pass; node --check OK; git diff --check OK.",
+              "recorded_at": "2026-04-06T11:52:59.346Z"
+            }
+          ],
           "review_cycle_count": 0,
           "self_fix_cycle_count": 0,
           "blocker_history": []
@@ -823,7 +960,7 @@
       }
     }
   },
-  "__gsw_revision": 34,
-  "__gsw_write_id": "gsw-f850dcc5-04c3-40ff-8e0e-b174052bc2bf",
-  "__gsw_timestamp": "2026-04-06T11:12:39.858Z"
+  "__gsw_revision": 47,
+  "__gsw_write_id": "gsw-1539cb03-1deb-4c2f-8dd0-3478f84bfcd9",
+  "__gsw_timestamp": "2026-04-06T11:54:17.022Z"
 }
