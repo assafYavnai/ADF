@@ -30,16 +30,16 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "blocked",
-  "approved_commit_sha": "9b60cd43dc0df4df002d93dad5871e4219ff574d",
+  "merge_status": "ready_to_queue",
+  "approved_commit_sha": "8e5ce343ddde547ab999f4450db7429ed54338a5",
   "merge_commit_sha": null,
   "merge_queue_request_id": "merge-main-1-approved-commit-closeout-state-separation-1775476590834",
   "local_target_sync_status": "not_started",
-  "last_completed_step": "merge_blocked",
-  "last_commit_sha": "9b60cd43dc0df4df002d93dad5871e4219ff574d",
-  "active_run_status": "merge_blocked",
+  "last_completed_step": "verification_finished",
+  "last_commit_sha": "8e5ce343ddde547ab999f4450db7429ed54338a5",
+  "active_run_status": "merge_queued",
   "created_at": "2026-04-05T20:36:12.952Z",
-  "updated_at": "2026-04-06T11:56:42.270Z",
+  "updated_at": "2026-04-06T11:58:17.131Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T20:36:13.011Z",
     "worktree_prepared_at": "2026-04-05T20:37:30.359Z",
@@ -610,6 +610,15 @@
       "attempt_id": "attempt-003",
       "timestamp": "2026-04-06T11:56:42.270Z",
       "note": null
+    },
+    {
+      "event_id": "event-e135d83c-dec5-4330-be04-6ef08d6419ed",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:58:17.131Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -626,7 +635,7 @@
     "implementation_run_dir": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation"
   },
-  "last_error": "Merge failed: Auto-merging docs/phase1/approved-commit-closeout-state-separation/completion-summary.md\nCONFLICT (content): Merge conflict in docs/phase1/approved-commit-closeout-state-separation/completion-summary.md\nAuto-merging docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json\nCONFLICT (content): Merge conflict in docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json\nAuto-merging docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json\nCONFLICT (content): Merge conflict in docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json\nAuto-merging docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json\nCONFLICT (content): Merge conflict in docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json\nAuto-merging docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json\nCONFLICT (content): Merge conflict in docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json\nAutomatic merge failed; fix conflicts and then commit the result.",
+  "last_error": "Resume from the last truthful normal-mode checkpoint.",
   "current_run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
   "current_attempt_id": "attempt-003",
   "execution_runs": {
@@ -638,10 +647,10 @@
       "run-5f38bcd2-17c7-452c-b115-3e23340a8412": {
         "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
         "run_mode": "normal",
-        "lifecycle_status": "completed",
-        "terminal_status": "completed",
+        "lifecycle_status": "active",
+        "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 50,
+        "contract_revision": 51,
         "feature_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
@@ -843,18 +852,18 @@
           "attempt-003": {
             "attempt_id": "attempt-003",
             "attempt_number": 3,
-            "status": "blocked",
+            "status": "merge_queued",
             "terminal_status": null,
             "started_at": "2026-04-06T11:01:51.233Z",
-            "updated_at": "2026-04-06T11:56:42.270Z",
+            "updated_at": "2026-04-06T11:58:17.131Z",
             "reset_at": null,
             "reset_reason": "Reset from the implementation boundary after rebasing the feature branch onto origin/main to remove the stale-base merge conflict.",
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
               "step": "merge_queue",
-              "status": "blocked",
+              "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-06T11:56:42.270Z"
+              "updated_at": "2026-04-06T11:58:17.131Z"
             },
             "step_status": {
               "implementation": {
@@ -886,7 +895,7 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "blocked",
+                "status": "ready",
                 "started_at": null,
                 "completed_at": null,
                 "duration_seconds": null,
@@ -938,15 +947,15 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-06T11:56:42.270Z",
-            "last_event_at": "2026-04-06T11:56:42.270Z"
+            "last_checkpoint_at": "2026-04-06T11:58:17.131Z",
+            "last_event_at": "2026-04-06T11:58:17.131Z"
           }
         },
         "created_at": "2026-04-05T20:36:12.993Z",
-        "updated_at": "2026-04-06T11:56:42.275Z",
-        "last_event_at": "2026-04-06T11:56:42.270Z",
+        "updated_at": "2026-04-06T11:58:17.137Z",
+        "last_event_at": "2026-04-06T11:58:17.131Z",
         "kpi_projection": {
-          "terminal_status": "completed",
+          "terminal_status": null,
           "per_step_timing": {
             "implementation": {
               "status": "completed",
@@ -973,7 +982,7 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "blocked",
+              "status": "ready",
               "started_at": null,
               "completed_at": null,
               "duration_seconds": null
@@ -1005,7 +1014,7 @@
       }
     }
   },
-  "__gsw_revision": 52,
-  "__gsw_write_id": "gsw-83af275b-7f9a-4f9b-8d22-07d2b4ed9eae",
-  "__gsw_timestamp": "2026-04-06T11:56:42.277Z"
+  "__gsw_revision": 53,
+  "__gsw_write_id": "gsw-a744db7c-b43e-4d9a-b265-677e511fd2b5",
+  "__gsw_timestamp": "2026-04-06T11:58:17.140Z"
 }
