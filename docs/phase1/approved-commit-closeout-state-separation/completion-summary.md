@@ -1,12 +1,13 @@
 1. Objective Completed
 
 Fixed the governed merge/closeout state model so pre-merge readiness relies on `approved_commit_sha` instead of `last_commit_sha`, while post-merge closeout still records `merge_commit_sha` and `last_commit_sha` truthfully. Additionally fixed a shared runtime `parseArgs` bug that prevented CLI-driven null-clear of nullable state fields.
-
 - Pre-merge readiness no longer blocks solely because `last_commit_sha` is absent.
 - `merge-queue` still uses the exact approved SHA as merge authority.
 - Post-merge closeout still requires truthful `merge_commit_sha` and `last_commit_sha`.
 - Stale already-merged queue requests are now blocked before duplicate merge work starts.
 - CLI-driven `update-state --last-commit-sha ''` now correctly clears to `null` instead of writing the literal string `"true"`.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects not run and merge commit 3b35b60e84d845ebcae4feb2edfb76e7c794f83f.
 
 2. Deliverables Produced
 
@@ -15,6 +16,7 @@ Fixed the governed merge/closeout state model so pre-merge readiness relies on `
 - Stale-ancestor guard in `skills/merge-queue/scripts/merge-queue-helper.mjs`
 - `parseArgs` null-clear fix in `skills/governed-feature-runtime.mjs`
 - Five targeted machine test suites covering closeout readiness, merge authority, stale queue rejection, post-merge closeout truth, and CLI null-clear behavior
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -41,9 +43,10 @@ Machine Verification:
 - `git diff --check` - no whitespace errors
 Human Verification Requirement: false
 Human Verification Status: not applicable
-Review-Cycle Status: not run
-Merge Status: ready_to_queue
-Local Target Sync Status: not_started
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: not run
+- Merge Status: merged via merge-queue (merge commit 3b35b60e84d845ebcae4feb2edfb76e7c794f83f)
+- Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
@@ -54,11 +57,10 @@ Local Target Sync Status: not_started
 
 6. Commit And Push Result
 
-- Original draft commit: `f08442b` (core closeout-readiness fix + 4 test suites)
-- Stale-ancestor guard commit: `f024ab9` (stale-merge guard + scoped tests)
-- Rebased onto `origin/main` (`d1b42b5`) to resolve merge-queue conflicts from prior blocked attempt
-- Attempt-004 commit: pending (null-clear fix + test + state repair + completion summary)
-- Route history: attempt-001 draft, attempt-002 verification pass, attempt-003 blocked by merge conflicts, attempt-004 rebase repair + null-clear fix
+- Approved feature commit: 427614623c43a0e3a6409f3ac437029ab5a44667
+- Merge commit: 3b35b60e84d845ebcae4feb2edfb76e7c794f83f
+- Push: success to origin/main
+- Closeout note: Merged via merge-queue after approval.
 
 7. Remaining Non-Goals / Debt
 
