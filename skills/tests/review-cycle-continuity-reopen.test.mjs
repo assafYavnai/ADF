@@ -110,10 +110,11 @@ async function setupApprovedCycle(testDir) {
   const cycleDir = join(featureRoot, "cycle-01");
   await mkdir(cycleDir, { recursive: true });
 
-  // Write valid cycle artifacts for a completed approved cycle
-  for (const artifact of ["audit-findings.md", "review-findings.md", "fix-plan.md", "fix-report.md"]) {
-    await writeFile(join(cycleDir, artifact), "# " + artifact + "\nDone.\n", "utf8");
-  }
+  // Write valid cycle artifacts with required headings for a completed approved cycle
+  await writeFile(join(cycleDir, "audit-findings.md"), "1. Findings\nNone.\n\n2. Conceptual Root Cause\nNone.\n\n3. High-Level View Of System Routes That Still Need Work\nNone.\n", "utf8");
+  await writeFile(join(cycleDir, "review-findings.md"), "1. Closure Verdicts\nAll closed.\n\n2. Remaining Root Cause\nNone.\n\n3. Next Minimal Fix Pass\nNone.\n", "utf8");
+  await writeFile(join(cycleDir, "fix-plan.md"), "1. Failure Classes\nNone.\n\n2. Route Contracts\nNone.\n\n3. Sweep Scope\nNone.\n\n4. Planned Changes\nNone.\n\n5. Closure Proof\nNone.\n\n6. Non-Goals\nNone.\n", "utf8");
+  await writeFile(join(cycleDir, "fix-report.md"), "1. Failure Classes Closed\nAll.\n\n2. Route Contracts Now Enforced\nAll.\n\n3. Files Changed And Why\nNone.\n\n4. Sibling Sites Checked\nNone.\n\n5. Proof Of Closure\nAll passed.\n\n6. Remaining Debt / Non-Goals\nNone.\n\n7. Next Cycle Starting Point\nDone.\n", "utf8");
 
   // Commit the cycle artifacts
   git(testDir, ["add", "."]);
@@ -158,6 +159,14 @@ await (async () => {
     assert(
       output.cycle?.mode === "approved_no_new_diffs",
       "cycle mode should be approved_no_new_diffs when no new diffs exist, got: " + (output.cycle?.mode ?? "missing")
+    );
+    assert(
+      output.detected_status_summary?.next_action === "approved_no_new_diffs_hold",
+      "next_action should be approved_no_new_diffs_hold, got: " + (output.detected_status_summary?.next_action ?? "missing")
+    );
+    assert(
+      typeof output.reopen_blocked_reason === "string" && output.reopen_blocked_reason.length > 0,
+      "reopen_blocked_reason should be present"
     );
     passed += 1;
     process.stdout.write("PASS: behavioral - approved stream with no new diffs stops\n");
@@ -242,6 +251,97 @@ await (async () => {
   } catch (error) {
     failed += 1;
     process.stderr.write("FAIL: behavioral - implementor_execution_id preserved across cycles\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 9: Behavioral - fix_cycle_dispatch_mode is fresh for new cycles
+await (async () => {
+  const testDir = join(testRoot, "dispatch-mode-fresh");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    // First cycle with no prior state — should be mode=new, dispatch=fresh
+    const result = runPrepare(testDir, 1, "test-feature-fresh", "New review.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    assert(output.fix_cycle_dispatch_mode === "fresh", "fix_cycle_dispatch_mode should be fresh for a new cycle, got: " + (output.fix_cycle_dispatch_mode ?? "missing"));
+    passed += 1;
+    process.stdout.write("PASS: behavioral - fix_cycle_dispatch_mode is fresh for new cycles\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - fix_cycle_dispatch_mode is fresh for new cycles\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 10: Behavioral - corrupt anchor SHA fails open (allows reopen, not blocks)
+await (async () => {
+  const testDir = join(testRoot, "corrupt-anchor");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    await setupApprovedCycle(testDir);
+
+    // Corrupt the anchor SHA in state
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+    const stateData = JSON.parse(await readFile(join(featureRoot, "review-cycle-state.json"), "utf8"));
+    stateData.last_commit_sha = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef";
+    await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify(stateData, null, 2), "utf8");
+
+    const result = runPrepare(testDir, 1, "test-feature", "Check the route after corruption.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    // Corrupt anchor should fail open — allow reopen, not block as no-new-diffs
+    assert(
+      output.cycle?.mode !== "approved_no_new_diffs",
+      "cycle mode should NOT be approved_no_new_diffs with corrupt anchor, got: " + (output.cycle?.mode ?? "missing")
+    );
+    passed += 1;
+    process.stdout.write("PASS: behavioral - corrupt anchor SHA fails open (allows reopen)\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - corrupt anchor SHA fails open (allows reopen)\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 11: Behavioral - update-state rejects nonexistent SHA
+await (async () => {
+  const testDir = join(testRoot, "invalid-sha-update");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+  const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+  await mkdir(featureRoot, { recursive: true });
+  await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify({
+    phase_number: 1,
+    feature_slug: "test-feature",
+    repo_root: testDir.replace(/\\/g, "/"),
+    feature_agent_registry_key: "phase1/test-feature",
+    last_completed_cycle: 0,
+    last_commit_sha: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }, null, 2), "utf8");
+
+  try {
+    const result = spawnSync("node", [
+      helperPath,
+      "update-state",
+      "--phase-number", "1",
+      "--feature-slug", "test-feature",
+      "--repo-root", testDir,
+      "--last-commit-sha", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+    ], { encoding: "utf8", windowsHide: true, timeout: 30000 });
+    assert(result.status !== 0, "update-state should reject nonexistent SHA");
+    assert(result.stderr.includes("does not resolve"), "error should mention SHA does not resolve, got: " + result.stderr);
+    passed += 1;
+    process.stdout.write("PASS: behavioral - update-state rejects nonexistent SHA\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - update-state rejects nonexistent SHA\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
   }
 })();
 

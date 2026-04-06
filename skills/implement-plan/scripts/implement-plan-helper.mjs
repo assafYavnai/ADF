@@ -5344,9 +5344,10 @@ function checkAuthorityFreeze({ state, input, inputPack }) {
   const projectRoot = input?.projectRoot ?? state.project_root ?? state.worktree_path ?? null;
   if (!projectRoot || !featureBranch) return issues;
 
-  // Extract frozen authority paths from the brief's "Inputs / Authorities Read" section
+  // Extract frozen authority paths from BOTH the brief and the contract
   const briefText = inputPack.feature_artifacts?.brief?.text ?? "";
-  const authorityPaths = extractFrozenAuthorityPaths(briefText, projectRoot);
+  const contractText = inputPack.feature_artifacts?.contract?.text ?? "";
+  const authorityPaths = extractFrozenAuthorityPaths(briefText, projectRoot, contractText);
   if (authorityPaths.length === 0) return issues;
 
   // Compute merge-base between feature branch and base branch
@@ -5387,20 +5388,31 @@ function checkAuthorityFreeze({ state, input, inputPack }) {
   return issues;
 }
 
-function extractFrozenAuthorityPaths(briefText, projectRoot) {
+function extractFrozenAuthorityPaths(briefText, projectRoot, contractText) {
   const paths = [];
-  if (!briefText) return paths;
-  // Look for the "Inputs / Authorities Read" section and extract file paths
-  const sectionMatch = briefText.match(/Inputs\s*\/\s*Authorities\s+Read[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i);
-  if (!sectionMatch) return paths;
-  const section = sectionMatch[0];
   const normalizedRoot = normalizeSlashes(projectRoot).replace(/\/$/, "");
-  // Match lines that look like file paths (starting with - ` or just paths)
+
+  // Parse from brief: "Inputs / Authorities Read" section
+  extractAuthorityPathsFromSection(briefText, /Inputs\s*\/\s*Authorities\s+Read[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i, normalizedRoot, paths);
+
+  // Parse from contract: "Source Authorities" section
+  extractAuthorityPathsFromSection(contractText, /Source\s+Authorities[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i, normalizedRoot, paths);
+
+  // Parse from contract: "Inputs / Authorities Read" if present (some contracts use this heading)
+  extractAuthorityPathsFromSection(contractText, /Inputs\s*\/\s*Authorities\s+Read[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i, normalizedRoot, paths);
+
+  return paths;
+}
+
+function extractAuthorityPathsFromSection(text, sectionPattern, normalizedRoot, paths) {
+  if (!text) return;
+  const sectionMatch = text.match(sectionPattern);
+  if (!sectionMatch) return;
+  const section = sectionMatch[0];
   const linePattern = /[`"]?([A-Za-z]:\/[^\s`"]+|[./][^\s`"]+)[`"]?/g;
   let match;
   while ((match = linePattern.exec(section)) !== null) {
     let filePath = match[1].replace(/[`"]/g, "");
-    // Convert absolute path to relative path from project root
     const normalizedFilePath = normalizeSlashes(filePath);
     if (normalizedFilePath.startsWith(normalizedRoot + "/")) {
       filePath = normalizedFilePath.slice(normalizedRoot.length + 1);
@@ -5411,7 +5423,6 @@ function extractFrozenAuthorityPaths(briefText, projectRoot) {
       paths.push(filePath);
     }
   }
-  return paths;
 }
 
 function issue(issueClass, why, evidence, requiredRepair) {

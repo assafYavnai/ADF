@@ -283,6 +283,103 @@ Human testing: not required.
   }
 })();
 
+// Test 7: Behavioral - contract-only authority freeze (no brief) detects divergence
+await (async () => {
+  const testDir = join(testRoot, "contract-only-divergence");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init", "-b", "main"]);
+  git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    const docsDir = join(testDir, "docs");
+    await mkdir(docsDir, { recursive: true });
+    await writeFile(join(docsDir, "VISION.md"), "# Vision\nOriginal.\n", "utf8");
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "add vision"]);
+
+    git(testDir, ["checkout", "-b", "implement-plan/phase1/test-contract-only"]);
+
+    const featureRoot = join(testDir, "docs", "phase1", "test-contract-only");
+    await mkdir(featureRoot, { recursive: true });
+    await writeFile(join(featureRoot, "README.md"), "# test\nTest.\n", "utf8");
+    await writeFile(join(featureRoot, "context.md"), "# Context\nscope bounded. non-goal none. deliverable t. acceptance verification. constraint t. slice bounded.\n", "utf8");
+    // Contract with Source Authorities section referencing VISION.md — NO brief
+    const contractContent = `## 1. Implementation Objective
+Test.
+
+## 2. Slice Scope
+Test.
+
+## 3. Required Deliverables
+Test.
+
+## 4. Allowed Edits
+Test.
+
+## 5. Forbidden Edits
+None.
+
+## 6. Acceptance Gates
+Machine Verification Plan: test
+Human Verification Plan: Required: false
+KPI Applicability: not required
+KPI Non-Applicability Rationale: test
+Vision Compatibility: compatible
+Phase 1 Compatibility: compatible
+Master-Plan Compatibility: compatible
+Current Gap-Closure Compatibility: compatible
+Later-Company Check: no
+Compatibility Decision: compatible
+Compatibility Evidence: test
+
+## 7. Observability / Audit
+None.
+
+## 8. Dependencies / Constraints
+None.
+
+## 9. Non-Goals
+None.
+
+## 10. Source Authorities
+- ${testDir.replace(/\\/g, "/")}/docs/VISION.md
+`;
+    await writeFile(join(featureRoot, "implement-plan-contract.md"), contractContent, "utf8");
+    await writeFile(join(featureRoot, "implement-plan-state.json"), JSON.stringify({
+      state_schema_version: 2,
+      feature_status: "active",
+      base_branch: "main",
+      feature_branch: "implement-plan/phase1/test-contract-only",
+      project_root: testDir.replace(/\\/g, "/"),
+      worktree_path: testDir.replace(/\\/g, "/")
+    }, null, 2), "utf8");
+
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "feature"]);
+
+    git(testDir, ["checkout", "main"]);
+    await writeFile(join(docsDir, "VISION.md"), "# Vision\nChanged on main.\n", "utf8");
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "change"]);
+
+    git(testDir, ["checkout", "implement-plan/phase1/test-contract-only"]);
+
+    const result = runPrepare(testDir, 1, "test-contract-only", "Test contract-only. Scope bounded. Non-goal none. Deliverable t. Acceptance verification.");
+    assert(result.status === 0, "prepare should succeed (exits 0), got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    const hasIssue = (output.integrity_precheck?.blocking_issues ?? []).some(
+      (i) => i.issue_class === "authority-freeze-divergence"
+    );
+    assert(hasIssue, "prepare should detect authority divergence from contract Source Authorities, got issues: " + JSON.stringify(output.integrity_precheck?.blocking_issues?.map(i => i.issue_class) ?? []));
+
+    passed += 1;
+    process.stdout.write("PASS: behavioral - contract-only authority freeze detects divergence\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - contract-only authority freeze detects divergence\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
 // Summary
 process.stdout.write("\n" + passed + " passed, " + failed + " failed\n");
 if (failed > 0) {
