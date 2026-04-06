@@ -588,4 +588,13 @@ Do not introduce a benchmark-only scoring subsystem in this slice.
 
 The helper owns a `normalize-completion-summary` command that rewrites an existing (possibly malformed) `completion-summary.md` to satisfy the exact required heading contract. This must be called before merge to ensure closeout truth is contract-valid.
 
-The helper owns a `validate-closeout-readiness` command that checks whether `completion-summary.md` exists and satisfies the heading contract. `merge-queue` must call this before merge and block when readiness is invalid.
+The helper owns a `validate-closeout-readiness` command that checks pre-merge readiness. Pre-merge readiness requires:
+
+- `completion-summary.md` exists and satisfies the heading contract
+- `implement-plan-state.json` exists for the feature stream
+- the feature is not already marked completed
+- `approved_commit_sha` is present in state (the reviewed commit authority for merge)
+
+Pre-merge readiness does not require `last_commit_sha`. That field is post-merge closeout evidence recorded after merge-queue lands the approved commit. `merge-queue` must call `validate-closeout-readiness` before merge and block when readiness is invalid.
+
+`mark-complete` continues to require `last_commit_sha` as post-merge closeout evidence. This is set by merge-queue from the merge commit SHA after a successful merge and push.

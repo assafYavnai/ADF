@@ -10,6 +10,14 @@
 - base_branch: main
 - feature_branch: implement-plan/phase1/approved-commit-closeout-state-separation
 
+## Reset History Before Rerun
+
+- The earlier implementation and closeout for this slice were removed from `main` and `origin/main` because the worker bypassed the governed `review-cycle` route during repair.
+- `main` and `origin/main` were rewritten to preserve the published slice seed while dropping the noncompliant integration history.
+- The feature branch and `origin/implement-plan/phase1/approved-commit-closeout-state-separation` were reset to the published seed commit `410b046`.
+- The stale feature worktree was deleted, the slice was reset through governed helper surfaces, and this worktree was recreated from the reset feature branch.
+- The rerun is machine-only. Human verification remains `Required: false`.
+
 ## Task Summary
 
 Repair the structural contradiction in the governed merge/closeout route where pre-merge readiness still requires `last_commit_sha`, even though pre-merge authority should come only from `approved_commit_sha`.

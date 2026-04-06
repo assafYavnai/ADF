@@ -1998,9 +1998,9 @@ async function validateCloseoutReadiness(input) {
     if (state.feature_status === "completed") {
       blockers.push("Feature is already marked completed.");
     }
-    const commitSha = state.last_commit_sha ?? null;
-    if (!commitSha) {
-      blockers.push("No last_commit_sha evidence in feature state.");
+    const approvedSha = state.approved_commit_sha ?? null;
+    if (!approvedSha) {
+      blockers.push("No approved_commit_sha evidence in feature state. Pre-merge readiness requires a reviewed approved commit.");
     }
   }
 
