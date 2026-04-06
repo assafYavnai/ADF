@@ -1,17 +1,27 @@
 # ADF Phase 1 MCP Boxing Requirements
 
-Status: active requirements baseline  
-Last updated: 2026-04-06  
+Status: active requirements baseline
+Last updated: 2026-04-06
+Owner: COO
 Scope: `docs/phase1/mcp-boxing/`
 
-## Purpose
+## Initiative Requirements
 
-This file records high-level requirements that must shape the `dev_team` boxed department model.
+- `dev_team` is the first boxed R&D / implementation department inside ADF Phase 1.
+- `dev_team` becomes the intended front door for governed implementation work, even while later slices still reuse existing internal engines behind that boundary.
+- The boxed design must preserve worktree-only execution, governed review before closeout, governed merge before completion truth, durable run state, resumability, truthful audit, and safe parallel execution.
+- The department shape must support multiple implementation lanes and review cycles in parallel.
+- The department must expose truthful status or progress to the invoker without requiring direct control of internal worker lanes.
+- The shell must stay compatible with later binary-backed packaging and later CTO control above `dev_team`.
+- Repo branch language for this initiative must use `main`, not `master`.
 
-Some requirements are immediate Step 1 requirements.
-Others are later required capabilities that must be preserved in the architecture even when they are not implemented yet.
+## Step 1 Boundaries
 
-## Requirement R-001 — Dual approval / rejection model
+- Step 1 is bootstrap-only and must not broaden into full downstream implementation migration.
+- Step 1 establishes the bounded department surface, initial state model, initial API routes, audit identity baseline, and documentation routing needed to make `dev_team` real.
+- Step 1 may reuse current governed implementation engines as future internal machinery, but it must not rewrite or retire those engines wholesale.
+
+## Requirement R-001 - Dual approval / rejection model
 
 Status: active Step 1 requirement
 
@@ -38,7 +48,7 @@ It must be able to:
 Merge into the main line must not happen merely because code implementation and review completed.
 
 The invoker must receive a detailed completion report and explicitly approve that the slice is complete.
-Only then may the slice move into final completion status and governed merge into master / main and origin.
+Only then may the slice move into final completion status and governed merge into `main` and `origin/main`.
 
 ### Minimum detailed completion report contents
 
@@ -61,7 +71,7 @@ This requirement is Step 1 scope because the boxed department must be designed f
 - gate-specific resume points
 - invoker approval as the final completion authorization before merge
 
-## Requirement R-002 — Process-improvement background function
+## Requirement R-002 - Process-improvement background function
 
 Status: required later capability
 
@@ -108,6 +118,20 @@ Examples:
 This function is not Step 1 implementation scope, but it is a must-have future capability for `dev_team`.
 
 That means the department architecture should preserve the audit, KPI, artifact, timing, and lifecycle data needed for this later analysis instead of treating them as optional noise.
+
+## Slice 01 Link
+
+- Slice 01 is the bootstrap slice for this initiative.
+- Slice-specific mandatory requirements live in `docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/requirements.md`.
+
+## Source Authorities
+
+- `docs/phase1/mcp-boxing/scope.md`
+- `docs/phase1/mcp-boxing/step1.md`
+- `docs/VISION.md`
+- `docs/PHASE1_VISION.md`
+- `docs/PHASE1_MASTER_PLAN.md`
+- `docs/phase1/adf-phase1-current-gap-closure-plan.md`
 
 ## Practical Rule
 

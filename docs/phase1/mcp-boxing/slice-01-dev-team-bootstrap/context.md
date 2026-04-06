@@ -6,11 +6,11 @@
 - feature_slug: mcp-boxing/slice-01-dev-team-bootstrap
 - project_root: C:/ADF
 - feature_root: C:/ADF/docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap
-- current_branch: main
+- current_branch: implement-plan/phase1/mcp-boxing-slice-01-dev-team-bootstrap
 
 ## Task Summary
 
-Create Slice 1 for MCP boxing by standing up the boxed `dev_team` department skeleton, its `VPRND` governance layer, the MCP server foundation, build/package baseline, internal team placeholders, and the first setup API that installs department settings such as repo root and implementation lanes root.
+Create Slice 1 for MCP boxing by standing up the boxed `dev_team` department skeleton, its `VPRND` governance layer, the MCP server foundation, build/package baseline, internal team placeholders, and the first setup API that installs department settings such as repo root and implementation lanes root, while preserving an explicit invoker approval gate before merge to `main`.
 
 ## Scope Hint
 
@@ -24,9 +24,13 @@ Do not yet wire the full end-to-end implementation route. Do not yet remove lega
 
 - [feature-readme] C:/ADF/docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/README.md
 - [feature-decisions] C:/ADF/docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/decisions.md
+- [feature-requirements] C:/ADF/docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/requirements.md
 - [feature-contract] C:/ADF/docs/phase1/mcp-boxing/slice-01-dev-team-bootstrap/implement-plan-contract.md
 - [phase-scope] C:/ADF/docs/phase1/mcp-boxing/scope.md
+- [phase-requirements] C:/ADF/docs/phase1/mcp-boxing/requirements.md
 - [phase-step] C:/ADF/docs/phase1/mcp-boxing/step1.md
+- [vision] C:/ADF/docs/VISION.md
+- [phase-vision] C:/ADF/docs/PHASE1_VISION.md
 - [phase-plan] C:/ADF/docs/PHASE1_MASTER_PLAN.md
 - [phase-gap-plan] C:/ADF/docs/phase1/adf-phase1-current-gap-closure-plan.md
 - [current-engine] C:/ADF/skills/implement-plan/SKILL.md
@@ -37,4 +41,14 @@ Do not yet wire the full end-to-end implementation route. Do not yet remove lega
 ## Notes
 
 - This context file is intentionally human-seeded before the first `implement-plan` run so the slice starts with explicit scope and decisions.
-- Brain decisions are not available from this environment, so this slice uses a repo-local decisions log that can be migrated later.
+- `main` is the repo default branch, and slice merge language should use `main` rather than `master`.
+- `adf.cmd --doctor` verified Brain connectivity and audit writes, but the direct `project-brain` MCP tool surface is not exposed in this runtime, so this slice uses a repo-local decisions log that can be migrated later.
+
+## Implementation Notes
+
+- The `dev_team` department shell is implemented as an MCP server under `components/dev-team/`, following the same pattern as `components/memory-engine/` (Brain).
+- State is persisted as a file-based JSON model at a configurable directory (defaulting to `.dev-team-state/` relative to the component, overridable via `DEV_TEAM_STATE_DIR` env var).
+- The department shell is fully isolated from `skills/`, `COO/`, `tools/`, and `memory-engine/` - verified by an automated isolation test.
+- The MCP server exposes two tools: `devteam_setup` and `devteam_status`. Later slices will add `devteam_implement`, `devteam_resume`, `devteam_cancel`, etc.
+- The build uses the same TypeScript/ES2022/Node16 pattern as `memory-engine`.
+- Machine-facing tests verify schemas, identity, state persistence, setup route, status surface, tool definitions, and isolation.
