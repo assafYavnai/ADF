@@ -4,20 +4,20 @@
   "feature_registry_key": "phase1/approved-commit-closeout-state-separation",
   "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
   "run_mode": "normal",
-  "updated_at": "2026-04-06T10:39:38.253Z",
+  "updated_at": "2026-04-06T11:03:43.288Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
     "run_projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
-    "event_root": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/events/attempt-001"
+    "event_root": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/events/attempt-003"
   },
   "run": {
     "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
     "run_mode": "normal",
-    "lifecycle_status": "active",
-    "terminal_status": null,
+    "lifecycle_status": "completed",
+    "terminal_status": "completed",
     "contract_schema_version": 1,
-    "contract_revision": 4,
+    "contract_revision": 6,
     "feature_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
@@ -219,18 +219,18 @@
       "attempt-003": {
         "attempt_id": "attempt-003",
         "attempt_number": 3,
-        "status": "ready_for_implementation",
-        "terminal_status": null,
+        "status": "completed",
+        "terminal_status": "completed",
         "started_at": "2026-04-06T10:30:47.780Z",
-        "updated_at": "2026-04-06T10:30:47.780Z",
+        "updated_at": "2026-04-06T11:03:43.282Z",
         "reset_at": null,
         "reset_reason": "Administrative reset to a truthful canonical implementation-boundary state after removing integrated slice history from main/origin/main and deleting the stale worktree.",
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "implementation",
-          "status": "ready",
-          "reason": "Reset created a new attempt from the implementation boundary.",
-          "updated_at": "2026-04-06T10:30:47.780Z"
+          "step": "merge_queue",
+          "status": "completed",
+          "reason": "Merged via merge-queue after approval.",
+          "updated_at": "2026-04-06T11:03:43.283Z"
         },
         "step_status": {
           "implementation": {
@@ -262,9 +262,9 @@
             "note": null
           },
           "merge_queue": {
-            "status": "not_started",
+            "status": "completed",
             "started_at": null,
-            "completed_at": null,
+            "completed_at": "2026-04-06T11:03:43.122Z",
             "duration_seconds": null,
             "note": null
           }
@@ -304,15 +304,15 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-06T10:39:38.248Z",
-        "last_event_at": "2026-04-06T10:39:38.248Z"
+        "last_checkpoint_at": "2026-04-06T11:03:43.283Z",
+        "last_event_at": "2026-04-06T11:03:43.282Z"
       }
     },
     "created_at": "2026-04-05T20:36:12.993Z",
-    "updated_at": "2026-04-06T10:39:38.253Z",
-    "last_event_at": "2026-04-06T10:39:38.248Z",
+    "updated_at": "2026-04-06T11:03:43.288Z",
+    "last_event_at": "2026-04-06T11:03:43.282Z",
     "kpi_projection": {
-      "terminal_status": null,
+      "terminal_status": "completed",
       "per_step_timing": {
         "implementation": {
           "status": "not_started",
@@ -339,9 +339,9 @@
           "duration_seconds": null
         },
         "merge_queue": {
-          "status": "not_started",
+          "status": "completed",
           "started_at": null,
-          "completed_at": null,
+          "completed_at": "2026-04-06T11:03:43.122Z",
           "duration_seconds": null
         }
       },
