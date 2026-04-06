@@ -4,6 +4,7 @@ Fixed the governed merge/closeout state model so pre-merge readiness relies on `
 - Repo-owned completion truth now matches the approved review and merged feature lifecycle.
 - Final closeout reflects not run and merge commit 452bf003ed7ef0046c6e37140ba19bba1866344e.
 - Final closeout reflects not run and merge commit 4e27b98ce0a0827e54ade7e37939e0e1e6830d3e.
+- Final closeout reflects not run and merge commit 3c2482ef3886f633f2d20dae9952614a752d9d56.
 
 2. Deliverables Produced
 
@@ -41,17 +42,20 @@ Human Verification Requirement: false
 Human Verification Status: not applicable
 - Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
 - Review-Cycle Status: not run
-- Merge Status: merged via merge-queue (merge commit 4e27b98ce0a0827e54ade7e37939e0e1e6830d3e)
+- Merge Status: merged via merge-queue (merge commit 3c2482ef3886f633f2d20dae9952614a752d9d56)
 - Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
 - `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md` — this file
+- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md`
+- `docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json`
+- `docs/phase1/approved-commit-closeout-state-separation/implementation-run/`
 
 6. Commit And Push Result
 
-- Approved feature commit: dc096f08f57ad6c997020c4a1da4fd8bfce16cf3
-- Merge commit: 4e27b98ce0a0827e54ade7e37939e0e1e6830d3e
+- Approved feature commit: ae56c12104b5e5edb70cbb9a7e47739a35ae8ea6
+- Merge commit: 3c2482ef3886f633f2d20dae9952614a752d9d56
 - Push: success to origin/main
 - Closeout note: Merged via merge-queue after approval.
 
