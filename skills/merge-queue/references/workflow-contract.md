@@ -51,6 +51,7 @@ Rules:
 
 - fetch before merge
 - land the exact approved commit into a temporary merge worktree based on the latest target branch reference
+- reject stale queue requests: if `approved_commit_sha` is already an ancestor of the target branch, block the request instead of re-merging
 - re-check the approved branch delta before merge and block the request if `.codex/*/setup.json` is added or modified
 - validate closeout readiness before merge: `completion-summary.md` must exist and satisfy the required heading contract, the feature must not already be completed, and `approved_commit_sha` must be present in state. Pre-merge readiness does not require `last_commit_sha` — that is post-merge closeout evidence set after the merge lands
 - block the request before merge/push when closeout readiness is invalid

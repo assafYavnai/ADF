@@ -350,6 +350,12 @@ async function processNext(input) {
   if (fetchResult.status !== 0 && !gitRefExists(controlProjectRoot, "refs/heads/" + selected.base_branch)) {
     return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Failed to fetch base branch '" + selected.base_branch + "': " + (fetchResult.stderr || fetchResult.stdout || "unknown error"));
   }
+  // Stale-merge guard: reject if approved_commit_sha is already an ancestor of the base branch
+  const ancestorCheck = gitRun(controlProjectRoot, ["merge-base", "--is-ancestor", selected.approved_commit_sha, baseRef], { timeoutMs: 10000 });
+  if (ancestorCheck.status === 0) {
+    return await failQueuedRequest(controlProjectRoot, paths.queuePath, selected.request_id, selected, "Approved commit " + selected.approved_commit_sha + " is already an ancestor of " + selected.base_branch + ". This request is stale and will not be re-merged.");
+  }
+
   const forbiddenSetupChanges = detectForbiddenLocalOperationalSetupChanges(controlProjectRoot, selected.base_branch, selected.approved_commit_sha);
   if (forbiddenSetupChanges.length > 0) {
     return await failQueuedRequest(

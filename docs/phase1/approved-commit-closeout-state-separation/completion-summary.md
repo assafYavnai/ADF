@@ -1,67 +1,67 @@
 1. Objective Completed
 
-Fixed the governed merge/closeout state model so pre-merge readiness relies on `approved_commit_sha` instead of `last_commit_sha`, while post-merge closeout still records `merge_commit_sha` and `last_commit_sha` truthfully.
-- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
-- Final closeout reflects not run and merge commit 452bf003ed7ef0046c6e37140ba19bba1866344e.
-- Final closeout reflects not run and merge commit 4e27b98ce0a0827e54ade7e37939e0e1e6830d3e.
-- Final closeout reflects not run and merge commit 3c2482ef3886f633f2d20dae9952614a752d9d56.
+Fixed the governed merge/closeout state model so pre-merge readiness relies on `approved_commit_sha` instead of `last_commit_sha`, while post-merge closeout still records `merge_commit_sha` and `last_commit_sha` truthfully. Additionally fixed a shared runtime `parseArgs` bug that prevented CLI-driven null-clear of nullable state fields.
+
+- Pre-merge readiness no longer blocks solely because `last_commit_sha` is absent.
+- `merge-queue` still uses the exact approved SHA as merge authority.
+- Post-merge closeout still requires truthful `merge_commit_sha` and `last_commit_sha`.
+- Stale already-merged queue requests are now blocked before duplicate merge work starts.
+- CLI-driven `update-state --last-commit-sha ''` now correctly clears to `null` instead of writing the literal string `"true"`.
 
 2. Deliverables Produced
 
-- Corrected `validateCloseoutReadiness` to check `approved_commit_sha` instead of `last_commit_sha` for the pre-merge gate
-- Updated the `implement-plan` workflow contract to document the separated pre-merge and post-merge state model
-- Updated the `merge-queue` workflow contract to document the new pre-merge readiness requirements and state that `last_commit_sha` is not merge authority
-- Added 10 targeted tests in `skills/tests/approved-commit-closeout-state-separation.test.mjs` covering pre-merge readiness (7), mark-complete post-merge truth (1), and merge-queue approved-SHA authority (3 — including enqueue rejection without approved SHA, enqueue rejection of completed features, and workflow contract rule verification)
-- Preserved the post-merge `mark-complete` requirement for `last_commit_sha`
-- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
+- Core `validateCloseoutReadiness` fix in `skills/implement-plan/scripts/implement-plan-helper.mjs`
+- Updated workflow contracts in `skills/implement-plan/references/workflow-contract.md` and `skills/merge-queue/references/workflow-contract.md`
+- Stale-ancestor guard in `skills/merge-queue/scripts/merge-queue-helper.mjs`
+- `parseArgs` null-clear fix in `skills/governed-feature-runtime.mjs`
+- Five targeted machine test suites covering closeout readiness, merge authority, stale queue rejection, post-merge closeout truth, and CLI null-clear behavior
 
 3. Files Changed And Why
 
-- `skills/implement-plan/scripts/implement-plan-helper.mjs` — replaced the `last_commit_sha` pre-merge check with `approved_commit_sha` in `validateCloseoutReadiness` (the core fix, 3 lines changed)
-- `skills/implement-plan/references/workflow-contract.md` — documented that `validate-closeout-readiness` requires `approved_commit_sha` as pre-merge authority and does not require `last_commit_sha`
-- `skills/merge-queue/references/workflow-contract.md` — documented that pre-merge readiness requires `approved_commit_sha` and that `last_commit_sha` is not merge authority
-- `skills/tests/approved-commit-closeout-state-separation.test.mjs` — 10 targeted tests for pre-merge readiness, post-merge mark-complete truth, and merge-queue approved-SHA authority
+- `skills/implement-plan/scripts/implement-plan-helper.mjs` - switched pre-merge readiness authority from `last_commit_sha` to `approved_commit_sha`
+- `skills/implement-plan/references/workflow-contract.md` - documented the corrected pre-merge authority rule
+- `skills/merge-queue/references/workflow-contract.md` - documented approved-SHA merge authority, stale-request rejection, and pre-merge readiness without `last_commit_sha`
+- `skills/merge-queue/scripts/merge-queue-helper.mjs` - added stale-ancestor guard rejecting already-merged queue requests before worktree creation
+- `skills/governed-feature-runtime.mjs` - fixed `parseArgs` to use `next === undefined` instead of `!next`, preserving empty-string CLI args as values
+- `skills/tests/closeout-readiness.test.mjs` - 6 targeted pre-merge readiness tests
+- `skills/tests/mark-complete-closeout-truth.test.mjs` - 4 targeted post-merge closeout truth tests
+- `skills/tests/merge-authority.test.mjs` - 4 targeted approved-SHA authority tests
+- `skills/tests/stale-merge-guard.test.mjs` - 2 targeted stale-queue guard tests
+- `skills/tests/null-clear-state-update.test.mjs` - 3 targeted CLI null-clear tests
 
 4. Verification Evidence
 
 Machine Verification:
-- 10/10 targeted tests pass in `skills/tests/approved-commit-closeout-state-separation.test.mjs`:
-  - pre-merge readiness passes with approved_commit_sha and no last_commit_sha
-  - pre-merge readiness blocks when approved_commit_sha is missing
-  - last_commit_sha alone is not sufficient for pre-merge readiness
-  - pre-merge readiness blocks when completion-summary.md is missing
-  - pre-merge readiness blocks when feature is already completed
-  - mark-complete fails without last_commit_sha post-merge evidence
-  - pre-merge readiness blocks when state file is missing
-  - merge-queue enqueue rejects missing approved_commit_sha
-  - merge-queue enqueue rejects completed features
-  - merge-queue workflow contract states last_commit_sha is not merge authority
-- `node --check` passes on the modified test file
-- `git diff --check` passes with no whitespace issues
+- `node skills/tests/closeout-readiness.test.mjs` - 6 passed, 0 failed
+- `node skills/tests/mark-complete-closeout-truth.test.mjs` - 4 passed, 0 failed
+- `node skills/tests/merge-authority.test.mjs` - 4 passed, 0 failed
+- `node skills/tests/stale-merge-guard.test.mjs` - 2 passed, 0 failed
+- `node skills/tests/null-clear-state-update.test.mjs` - 3 passed, 0 failed
+- `node --check` on all modified scripts and tests - passed
+- `git diff --check` - no whitespace errors
 Human Verification Requirement: false
 Human Verification Status: not applicable
-- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
-- Review-Cycle Status: not run
-- Merge Status: merged via merge-queue (merge commit 3c2482ef3886f633f2d20dae9952614a752d9d56)
-- Local Target Sync Status: skipped_dirty_checkout
+Review-Cycle Status: not run
+Merge Status: ready_to_queue
+Local Target Sync Status: not_started
 
 5. Feature Artifacts Updated
 
-- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md` — this file
-- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md`
 - `docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json`
+- `docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json`
 - `docs/phase1/approved-commit-closeout-state-separation/implementation-run/`
+- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md`
 
 6. Commit And Push Result
 
-- Approved feature commit: ae56c12104b5e5edb70cbb9a7e47739a35ae8ea6
-- Merge commit: 3c2482ef3886f633f2d20dae9952614a752d9d56
-- Push: success to origin/main
-- Closeout note: Merged via merge-queue after approval.
+- Original draft commit: `f08442b` (core closeout-readiness fix + 4 test suites)
+- Stale-ancestor guard commit: `f024ab9` (stale-merge guard + scoped tests)
+- Rebased onto `origin/main` (`d1b42b5`) to resolve merge-queue conflicts from prior blocked attempt
+- Attempt-004 commit: pending (null-clear fix + test + state repair + completion summary)
+- Route history: attempt-001 draft, attempt-002 verification pass, attempt-003 blocked by merge conflicts, attempt-004 rebase repair + null-clear fix
 
 7. Remaining Non-Goals / Debt
 
-- No broad historical state migration across unrelated features
-- No manual cleanup workflow as the product fix
-- No review-cycle redesign beyond the narrow contract correction required here
-- No KPI or product work unrelated to this merge/closeout defect
+- No human-review handoff for this machine-only slice
+- No broad merge-queue redesign beyond the stale-request guard
+- Merge-queue enqueue, process, and mark-complete to be executed as final governed steps
