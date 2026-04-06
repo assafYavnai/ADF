@@ -9,24 +9,33 @@ Fixed the governed merge/closeout state model so pre-merge readiness relies on `
 
 - Corrected `validateCloseoutReadiness` to check `approved_commit_sha` instead of `last_commit_sha` for the pre-merge gate
 - Updated the `implement-plan` workflow contract to document the separated pre-merge and post-merge state model
-- Updated the `merge-queue` workflow contract to document the new readiness requirements
-- Added 7 targeted tests covering pre-merge readiness, merge authority, and mark-complete fail-closed behavior
+- Updated the `merge-queue` workflow contract to document the new pre-merge readiness requirements and state that `last_commit_sha` is not merge authority
+- Added 10 targeted tests in `skills/tests/approved-commit-closeout-state-separation.test.mjs` covering pre-merge readiness (7), mark-complete post-merge truth (1), and merge-queue approved-SHA authority (3 — including enqueue rejection without approved SHA, enqueue rejection of completed features, and workflow contract rule verification)
 - Preserved the post-merge `mark-complete` requirement for `last_commit_sha`
 - Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
-- `skills/implement-plan/scripts/implement-plan-helper.mjs` - replaced the `last_commit_sha` pre-merge check with `approved_commit_sha` in `validateCloseoutReadiness`, which is the core fix
-- `skills/implement-plan/references/workflow-contract.md` - documented the separated pre-merge approved-commit authority and post-merge closeout evidence model
-- `skills/merge-queue/references/workflow-contract.md` - documented that pre-merge readiness requires `approved_commit_sha`, not `last_commit_sha`
-- `skills/tests/approved-commit-closeout-state-separation.test.mjs` - added 7 targeted tests for pre-merge readiness, merge authority, and mark-complete fail-closed behavior
+- `skills/implement-plan/scripts/implement-plan-helper.mjs` — replaced the `last_commit_sha` pre-merge check with `approved_commit_sha` in `validateCloseoutReadiness` (the core fix, 3 lines changed)
+- `skills/implement-plan/references/workflow-contract.md` — documented that `validate-closeout-readiness` requires `approved_commit_sha` as pre-merge authority and does not require `last_commit_sha`
+- `skills/merge-queue/references/workflow-contract.md` — documented that pre-merge readiness requires `approved_commit_sha` and that `last_commit_sha` is not merge authority
+- `skills/tests/approved-commit-closeout-state-separation.test.mjs` — 10 targeted tests for pre-merge readiness, post-merge mark-complete truth, and merge-queue approved-SHA authority
 
 4. Verification Evidence
 
 Machine Verification:
-- 7/7 targeted tests pass
-- 6/6 existing governed-state-writer tests pass
-- `node --check` passes on the modified `.mjs` files
+- 10/10 targeted tests pass in `skills/tests/approved-commit-closeout-state-separation.test.mjs`:
+  - pre-merge readiness passes with approved_commit_sha and no last_commit_sha
+  - pre-merge readiness blocks when approved_commit_sha is missing
+  - last_commit_sha alone is not sufficient for pre-merge readiness
+  - pre-merge readiness blocks when completion-summary.md is missing
+  - pre-merge readiness blocks when feature is already completed
+  - mark-complete fails without last_commit_sha post-merge evidence
+  - pre-merge readiness blocks when state file is missing
+  - merge-queue enqueue rejects missing approved_commit_sha
+  - merge-queue enqueue rejects completed features
+  - merge-queue workflow contract states last_commit_sha is not merge authority
+- `node --check` passes on the modified test file
 - `git diff --check` passes with no whitespace issues
 Human Verification Requirement: false
 Human Verification Status: not applicable
@@ -37,10 +46,7 @@ Human Verification Status: not applicable
 
 5. Feature Artifacts Updated
 
-- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md` - this file
-- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md`
-- `docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json`
-- `docs/phase1/approved-commit-closeout-state-separation/implementation-run/`
+- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md` — this file
 
 6. Commit And Push Result
 
