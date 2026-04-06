@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 2,
-  "prepared_at": "2026-04-05T20:37:30.360Z",
+  "contract_revision": 6,
+  "prepared_at": "2026-04-06T10:30:47.780Z",
   "feature_identity": {
     "project_root": "C:/ADF",
     "phase_number": 1,
@@ -13,8 +13,8 @@
   "run_identity": {
     "run_mode": "normal",
     "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
-    "attempt_id": "attempt-001",
-    "attempt_number": 1,
+    "attempt_id": "attempt-003",
+    "attempt_number": 3,
     "lane_id": null,
     "worker_id": "implementor/default"
   },
@@ -108,14 +108,14 @@
     "last_truthful_checkpoint": {
       "step": "implementation",
       "status": "ready",
-      "reason": "Resume from the last truthful normal-mode checkpoint.",
-      "updated_at": "2026-04-05T20:37:30.360Z"
+      "reason": "Reset created a new attempt from the implementation boundary.",
+      "updated_at": "2026-04-06T10:30:47.780Z"
     }
   },
   "reset_policy": {
     "supported": true,
     "behavior": "new_attempt_from_implementation_preserving_history",
-    "next_attempt_number": 2
+    "next_attempt_number": 4
   },
   "kpi_policy": {
     "source": "governed_production_flow",
@@ -138,7 +138,7 @@
     "run_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
     "run_projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
     "execution_run_root": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412",
-    "event_root": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/events/attempt-001",
+    "event_root": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/events/attempt-003",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/approved-commit-closeout-state-separation"
   }
 }
