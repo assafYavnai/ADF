@@ -5041,7 +5041,9 @@ function buildFinalDebtSection({ existingSection, state }) {
     /review-cycle.*deferred/i,
     /merge-queue.*deferred/i,
     /feature remains unmerged/i,
-    /feature is not marked completed/i
+    /feature is not marked completed/i,
+    /merge-queue.*enqueue.*process.*mark-complete/i,
+    /to be executed as final governed steps/i
   ]);
   if (preservedLines.some((line) => line.trim())) {
     return preservedLines.join("\n");

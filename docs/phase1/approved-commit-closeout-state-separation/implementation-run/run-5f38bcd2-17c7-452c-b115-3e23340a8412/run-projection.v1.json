@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/approved-commit-closeout-state-separation",
   "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
   "run_mode": "normal",
-  "updated_at": "2026-04-06T13:02:52.778Z",
+  "updated_at": "2026-04-06T13:16:05.931Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
@@ -17,7 +17,7 @@
     "lifecycle_status": "completed",
     "terminal_status": "completed",
     "contract_schema_version": 1,
-    "contract_revision": 60,
+    "contract_revision": 70,
     "feature_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
@@ -323,29 +323,29 @@
         "status": "completed",
         "terminal_status": "completed",
         "started_at": "2026-04-06T12:46:38.593Z",
-        "updated_at": "2026-04-06T13:02:52.773Z",
+        "updated_at": "2026-04-06T13:16:05.927Z",
         "reset_at": null,
         "reset_reason": "Reopened the feature branch after a worker rebase preserved the code/test diff but replayed stale completed-state artifacts and the wrong historic implementor UUID into the worktree. Resetting to a fresh implementation-boundary attempt while preserving the real Claude Opus session 5a37a8dd-4fd8-4e2a-b164-55642890f355 for governed continuity.",
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
           "step": "merge_queue",
           "status": "completed",
-          "reason": "Merged via merge-queue after approval.",
-          "updated_at": "2026-04-06T13:02:52.773Z"
+          "reason": "Resume from the last truthful normal-mode checkpoint.",
+          "updated_at": "2026-04-06T13:16:05.927Z"
         },
         "step_status": {
           "implementation": {
-            "status": "not_started",
-            "started_at": null,
-            "completed_at": null,
-            "duration_seconds": null,
+            "status": "completed",
+            "started_at": "2026-04-06T12:53:17.707Z",
+            "completed_at": "2026-04-06T12:56:11.000Z",
+            "duration_seconds": 173,
             "note": null
           },
           "machine_verification": {
-            "status": "not_started",
-            "started_at": null,
-            "completed_at": null,
-            "duration_seconds": null,
+            "status": "completed",
+            "started_at": "2026-04-06T12:56:11.000Z",
+            "completed_at": "2026-04-06T12:57:08.000Z",
+            "duration_seconds": 57,
             "note": null
           },
           "review_cycle": {
@@ -364,9 +364,9 @@
           },
           "merge_queue": {
             "status": "completed",
-            "started_at": null,
+            "started_at": "2026-04-06T13:02:48.000Z",
             "completed_at": "2026-04-06T13:02:52.621Z",
-            "duration_seconds": null,
+            "duration_seconds": 5,
             "note": null
           }
         },
@@ -379,7 +379,17 @@
           "total_completion_tokens_estimated": 0,
           "total_tokens_estimated": 0
         },
-        "verification_outcomes": [],
+        "verification_outcomes": [
+          {
+            "verification_id": "verification-c8a9bcf7-aa68-4363-bae5-98c0e1349a94",
+            "kind": "machine",
+            "status": "passed",
+            "review_cycle_number": 0,
+            "self_fix_cycle_number": 0,
+            "note": "Targeted machine verification passed: closeout-readiness 6/6, mark-complete-closeout-truth 4/4, merge-authority 4/4, stale-merge-guard 2/2, null-clear-state-update 3/3, plus node --check and git diff --check.",
+            "recorded_at": "2026-04-06T12:57:08.000Z"
+          }
+        ],
         "review_cycle_count": 0,
         "self_fix_cycle_count": 0,
         "blockers": [],
@@ -405,45 +415,45 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-06T13:02:52.773Z",
+        "last_checkpoint_at": "2026-04-06T13:16:05.927Z",
         "last_event_at": "2026-04-06T13:02:52.773Z"
       }
     },
     "created_at": "2026-04-05T20:36:12.993Z",
-    "updated_at": "2026-04-06T13:02:52.778Z",
+    "updated_at": "2026-04-06T13:16:05.930Z",
     "last_event_at": "2026-04-06T13:02:52.773Z",
     "kpi_projection": {
       "terminal_status": "completed",
       "per_step_timing": {
         "implementation": {
-          "status": "not_started",
-          "started_at": null,
-          "completed_at": null,
-          "duration_seconds": null
+          "status": "completed",
+          "started_at": "2026-04-06T12:53:17.707Z",
+          "completed_at": "2026-04-06T12:56:11.000Z",
+          "duration_seconds": 173
         },
         "machine_verification": {
-          "status": "not_started",
-          "started_at": null,
-          "completed_at": null,
-          "duration_seconds": null
+          "status": "completed",
+          "started_at": "2026-04-06T12:56:12.000Z",
+          "completed_at": "2026-04-06T12:57:08.000Z",
+          "duration_seconds": 56
         },
         "review_cycle": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "human_testing": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "merge_queue": {
           "status": "completed",
-          "started_at": null,
+          "started_at": "2026-04-06T13:02:48.000Z",
           "completed_at": "2026-04-06T13:02:52.621Z",
-          "duration_seconds": null
+          "duration_seconds": 5
         }
       },
       "governance_call_metrics": {
@@ -454,7 +464,17 @@
         "total_completion_tokens_estimated": 0,
         "total_tokens_estimated": 0
       },
-      "verification_outcomes": [],
+      "verification_outcomes": [
+        {
+          "verification_id": "verification-c8a9bcf7-aa68-4363-bae5-98c0e1349a94",
+          "kind": "machine",
+          "status": "passed",
+          "review_cycle_number": 0,
+          "self_fix_cycle_number": 0,
+          "note": "Targeted machine verification passed: closeout-readiness 6/6, mark-complete-closeout-truth 4/4, merge-authority 4/4, stale-merge-guard 2/2, null-clear-state-update 3/3, plus node --check and git diff --check.",
+          "recorded_at": "2026-04-06T12:57:08.000Z"
+        }
+      ],
       "review_cycle_count": 0,
       "self_fix_cycle_count": 0,
       "blocker_history": []

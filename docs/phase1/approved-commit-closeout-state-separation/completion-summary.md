@@ -60,10 +60,8 @@ Human Verification Status: not applicable
 - Approved feature commit: 427614623c43a0e3a6409f3ac437029ab5a44667
 - Merge commit: 3b35b60e84d845ebcae4feb2edfb76e7c794f83f
 - Push: success to origin/main
-- Closeout note: Merged via merge-queue after approval.
 
 7. Remaining Non-Goals / Debt
 
 - No human-review handoff for this machine-only slice
 - No broad merge-queue redesign beyond the stale-request guard
-- Merge-queue enqueue, process, and mark-complete to be executed as final governed steps
