@@ -45,7 +45,7 @@ Implemented the Slice 01 bootstrap for the boxed `dev_team` department under `co
 - Machine Verification: `npm.cmd --prefix components/dev-team run build` passed and `npm.cmd --prefix components/dev-team test` passed with 20 tests across 8 suites during implement-plan verification, and the same build/test pair was rerun after cycle-04 closeout with the same passing 20/8 baseline.
 - Human Verification Requirement: not required.
 - Human Verification Status: not applicable.
-- Execution-Contract Proof: the live implement-plan artifacts now hold at the pre-merge approval gate with `active_run_status=closeout_pending`, `merge_status=not_ready`, `approved_commit_sha=null`, `review_cycle.status=completed`, and `review_cycle_count=4`.
+- Execution-Contract Proof: the live implement-plan artifacts now record `feature_status=completed`, `active_run_status=completed`, `merge_status=merged`, `approved_commit_sha=6e0ca593caf5511b461d8868c0d90b1a9aa2ea91`, `merge_commit_sha=c92d07477ba0467dade71cf0ff22bc92c91031ca`, `local_target_sync_status=skipped_dirty_checkout`, and `review_cycle_count=4`.
 - Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
 - Review-Cycle Status: cycle-04 approved and closed
 - Merge Status: merged via merge-queue (merge commit c92d07477ba0467dade71cf0ff22bc92c91031ca)
@@ -80,4 +80,4 @@ Implemented the Slice 01 bootstrap for the boxed `dev_team` department under `co
 - Legacy skill retirement is intentionally untouched in this slice.
 - Brain boxing is intentionally untouched in this slice.
 - Final CTO-managed orchestration is intentionally untouched in this slice.
-- Governed review-cycle is closed. Explicit invoker approval still remains before any merge action, and the approval package is prepared from the current approval-hold state.
+- Governed review-cycle is closed, invoker approval was received in-thread before merge, and the slice is now merged and completed truthfully.
