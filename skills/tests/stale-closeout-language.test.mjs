@@ -186,6 +186,30 @@ await runTest("rejects completion summary containing merge_blocked", async (dir)
   assert(result.stderr.includes("stale closeout language"), "error should mention stale closeout language");
 });
 
+// Test 7: mark-complete accepts completion summary with stale tokens inside backtick code spans
+await runTest("accepts stale tokens inside backtick code spans", async (dir) => {
+  const projectRoot = await setupFeature(dir, {
+    state: VALID_STATE,
+    completionSummary: buildCompletionSummary("- `mark-complete` fails when summary contains `not_ready`, `closeout_pending`, `approval-pending`\n- Machine Verification: passed\n- Merge Status: merged")
+  });
+  const result = runMarkComplete(projectRoot, 1, "test-feature", "merge456");
+  if (result.status !== 0) {
+    assert(!result.stderr.includes("stale closeout language"), "should not fail for stale tokens inside backticks, but got: " + result.stderr);
+  }
+});
+
+// Test 8: mark-complete accepts completion summary with stale tokens inside fenced code blocks
+await runTest("accepts stale tokens inside fenced code blocks", async (dir) => {
+  const projectRoot = await setupFeature(dir, {
+    state: VALID_STATE,
+    completionSummary: buildCompletionSummary("- Machine Verification: passed\n- Merge Status: merged\n\n```\nnot_ready closeout_pending merge_blocked\n```")
+  });
+  const result = runMarkComplete(projectRoot, 1, "test-feature", "merge456");
+  if (result.status !== 0) {
+    assert(!result.stderr.includes("stale closeout language"), "should not fail for stale tokens inside fenced code blocks, but got: " + result.stderr);
+  }
+});
+
 // Summary
 process.stdout.write("\n" + passed + " passed, " + failed + " failed\n");
 if (failed > 0) {

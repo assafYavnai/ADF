@@ -215,7 +215,8 @@ async function main() {
       reviewerModel: args.values["reviewer-model"] ?? null,
       auditorReasoningEffort: args.values["auditor-reasoning-effort"] ?? null,
       reviewerReasoningEffort: args.values["reviewer-reasoning-effort"] ?? null,
-      currentBranch: args.values["current-branch"] ?? null
+      currentBranch: args.values["current-branch"] ?? null,
+      explicitReopen: args.values["explicit-reopen"] === "true" || args.values["explicit-reopen"] === true
     }));
     return;
   }
@@ -462,7 +463,11 @@ async function prepareCycle(input) {
     registryEntry
   });
 
-  const cycleStatus = await selectCycle(featureRoot, safeInteger(stateLoad.state.last_completed_cycle, 0));
+  const cycleStatus = await selectCycle(featureRoot, safeInteger(stateLoad.state.last_completed_cycle, 0), {
+    repoRoot: input.repoRoot,
+    lastCommitSha: stateLoad.state.last_commit_sha,
+    explicitReopen: input.explicitReopen ?? false
+  });
   if (cycleStatus.mode === "new") {
     await mkdir(cycleStatus.cycleDir, { recursive: true });
   }
@@ -2038,7 +2043,7 @@ async function ensureReadme(input) {
   return true;
 }
 
-async function selectCycle(featureRoot, lastCompletedCycle) {
+async function selectCycle(featureRoot, lastCompletedCycle, options = {}) {
   const cycles = await listCycleDirectories(featureRoot);
   const latestCycleNumber = cycles.length > 0 ? cycles[cycles.length - 1].number : 0;
 
@@ -2070,6 +2075,22 @@ async function selectCycle(featureRoot, lastCompletedCycle) {
     }
   }
 
+  // Reopen guardrail: when last_completed_cycle > 0, check for new diffs before creating a new cycle
+  if (lastCompletedCycle > 0 && !options.explicitReopen) {
+    const hasNewDiffs = checkForNewDiffsSinceLastCycle(options.repoRoot, options.lastCommitSha);
+    if (!hasNewDiffs) {
+      const nextNumber = Math.max(latestCycleNumber, lastCompletedCycle) + 1;
+      return {
+        latestCycleNumber,
+        mode: "approved_no_new_diffs",
+        cycleNumber: nextNumber,
+        cycleName: formatCycleName(nextNumber),
+        cycleDir: join(featureRoot, formatCycleName(nextNumber)),
+        reopen_blocked_reason: "The last completed cycle was approved and no new diffs exist on the feature branch. Pass --explicit-reopen to override."
+      };
+    }
+  }
+
   const nextNumber = Math.max(latestCycleNumber, lastCompletedCycle) + 1;
   return {
     latestCycleNumber,
@@ -2078,6 +2099,13 @@ async function selectCycle(featureRoot, lastCompletedCycle) {
     cycleName: formatCycleName(nextNumber),
     cycleDir: join(featureRoot, formatCycleName(nextNumber))
   };
+}
+
+function checkForNewDiffsSinceLastCycle(repoRoot, lastCommitSha) {
+  if (!repoRoot || !lastCommitSha) return true; // cannot determine, allow reopen
+  const result = gitOutput(repoRoot, ["log", "--oneline", lastCommitSha + "..HEAD", "--"]);
+  // If there are any commits after the last known commit, there are new diffs
+  return result !== null && result.length > 0;
 }
 
 async function inferExistingStreamState(repoRoot, featureRoot) {

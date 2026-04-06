@@ -4134,13 +4134,23 @@ const STALE_CLOSEOUT_LANGUAGE_PATTERNS = [
 
 function detectStaleCloseoutLanguage(completionText) {
   if (!completionText) return [];
+  // Strip backtick-fenced code blocks and inline code spans before scanning
+  const stripped = stripCodeContent(completionText);
   const found = [];
   for (const { pattern, label } of STALE_CLOSEOUT_LANGUAGE_PATTERNS) {
-    if (pattern.test(completionText)) {
+    if (pattern.test(stripped)) {
       found.push(label);
     }
   }
   return found;
+}
+
+function stripCodeContent(text) {
+  // Remove fenced code blocks (```...```)
+  let result = text.replace(/```[\s\S]*?```/g, "");
+  // Remove inline code spans (`...`)
+  result = result.replace(/`[^`\n]+`/g, "");
+  return result;
 }
 
 function hasGuardedNormalCompletionEvidence(state) {
@@ -4533,6 +4543,12 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
   }
   if (contractSource.type === "missing") {
     blockingIssues.push(issue("missing-contract-authority", "No valid implementation contract or equivalent authority set was found.", [], "Provide a normalized contract or enough authoritative source docs to derive one safely."));
+  }
+
+  // Authority-freeze guard: detect base-branch changes to frozen authority files
+  const authorityFreezeIssues = checkAuthorityFreeze({ state, input, inputPack });
+  for (const freezeIssue of authorityFreezeIssues) {
+    blockingIssues.push(freezeIssue);
   }
 
   const combinedText = [
@@ -5319,6 +5335,83 @@ async function loadStateIfExists(statePath) {
     return null;
   }
   return readJson(statePath);
+}
+
+function checkAuthorityFreeze({ state, input, inputPack }) {
+  const issues = [];
+  const baseBranch = state.base_branch ?? "main";
+  const featureBranch = state.feature_branch ?? null;
+  const projectRoot = input?.projectRoot ?? state.project_root ?? state.worktree_path ?? null;
+  if (!projectRoot || !featureBranch) return issues;
+
+  // Extract frozen authority paths from the brief's "Inputs / Authorities Read" section
+  const briefText = inputPack.feature_artifacts?.brief?.text ?? "";
+  const authorityPaths = extractFrozenAuthorityPaths(briefText, projectRoot);
+  if (authorityPaths.length === 0) return issues;
+
+  // Compute merge-base between feature branch and base branch
+  const baseRef = gitRefExists(projectRoot, "refs/remotes/origin/" + baseBranch)
+    ? "origin/" + baseBranch
+    : baseBranch;
+  if (!gitRefExists(projectRoot, "refs/heads/" + featureBranch) && !gitRefExists(projectRoot, "refs/remotes/origin/" + featureBranch)) {
+    return issues;
+  }
+  const featureRef = gitRefExists(projectRoot, "refs/heads/" + featureBranch) ? featureBranch : "origin/" + featureBranch;
+  const mergeBaseResult = gitRun(projectRoot, ["merge-base", featureRef, baseRef], { timeoutMs: 10000 });
+  if (mergeBaseResult.status !== 0 || !mergeBaseResult.stdout) return issues;
+  const mergeBase = mergeBaseResult.stdout;
+
+  // Check for changed authority files between merge-base and current base
+  const diffResult = gitRun(projectRoot, ["diff", "--name-only", mergeBase, baseRef], { timeoutMs: 10000 });
+  if (diffResult.status !== 0) return issues;
+  const changedFiles = new Set(
+    String(diffResult.stdout ?? "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+  );
+
+  const conflicting = authorityPaths.filter((authorityPath) => {
+    for (const changed of changedFiles) {
+      if (normalizeSlashes(changed) === authorityPath || changed === authorityPath) return true;
+    }
+    return false;
+  });
+
+  if (conflicting.length > 0) {
+    issues.push(issue(
+      "authority-freeze-divergence",
+      "Frozen authority files have been modified on the base branch since this feature branched. The implementation contract may be based on stale assumptions.",
+      conflicting,
+      "Refresh the implementation contract to incorporate the base-branch authority changes before proceeding."
+    ));
+  }
+
+  return issues;
+}
+
+function extractFrozenAuthorityPaths(briefText, projectRoot) {
+  const paths = [];
+  if (!briefText) return paths;
+  // Look for the "Inputs / Authorities Read" section and extract file paths
+  const sectionMatch = briefText.match(/Inputs\s*\/\s*Authorities\s+Read[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i);
+  if (!sectionMatch) return paths;
+  const section = sectionMatch[0];
+  const normalizedRoot = normalizeSlashes(projectRoot).replace(/\/$/, "");
+  // Match lines that look like file paths (starting with - ` or just paths)
+  const linePattern = /[`"]?([A-Za-z]:\/[^\s`"]+|[./][^\s`"]+)[`"]?/g;
+  let match;
+  while ((match = linePattern.exec(section)) !== null) {
+    let filePath = match[1].replace(/[`"]/g, "");
+    // Convert absolute path to relative path from project root
+    const normalizedFilePath = normalizeSlashes(filePath);
+    if (normalizedFilePath.startsWith(normalizedRoot + "/")) {
+      filePath = normalizedFilePath.slice(normalizedRoot.length + 1);
+    } else {
+      filePath = normalizedFilePath;
+    }
+    if (filePath && !paths.includes(filePath)) {
+      paths.push(filePath);
+    }
+  }
+  return paths;
 }
 
 function issue(issueClass, why, evidence, requiredRepair) {

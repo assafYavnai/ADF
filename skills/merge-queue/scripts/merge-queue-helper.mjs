@@ -493,27 +493,55 @@ async function resumeBlocked(input) {
       fail("Queue request '" + input.requestId + "' has status '" + request.status + "', not 'blocked'. Only blocked requests can be resumed.");
     }
 
-    const newApprovedSha = input.approvedCommitSha ?? request.approved_commit_sha ?? null;
-    if (!newApprovedSha) {
+    // Classify the blocker to enforce blocker-specific requirements
+    const blockerClass = classifyBlocker(request.last_error);
+    const newApprovedSha = input.approvedCommitSha ?? null;
+    const effectiveSha = newApprovedSha ?? request.approved_commit_sha ?? null;
+
+    if (!effectiveSha) {
       fail("Cannot resume blocked request without an approved commit SHA. Supply --approved-commit-sha.");
+    }
+
+    // For stale_commit or merge_conflict blockers, require a NEW approved commit SHA
+    if ((blockerClass === "stale_commit" || blockerClass === "merge_conflict") && (!newApprovedSha || newApprovedSha === request.approved_commit_sha)) {
+      fail("Cannot resume a " + blockerClass.replace(/_/g, "-") + " blocked request with the same approved commit SHA '" + (request.approved_commit_sha ?? "null") + "'. Supply a new --approved-commit-sha from the corrected feature branch.");
     }
 
     const baseBranch = input.baseBranch ?? request.base_branch;
 
-    // Validate the new approved SHA is not already merged
+    // Validate the approved SHA is not already merged
     const baseRef = gitRefExists(controlProjectRoot, "refs/remotes/origin/" + baseBranch)
       ? "origin/" + baseBranch
       : baseBranch;
     if (gitRefExists(controlProjectRoot, "refs/heads/" + baseBranch) || gitRefExists(controlProjectRoot, "refs/remotes/origin/" + baseBranch)) {
-      const ancestorCheck = gitRun(controlProjectRoot, ["merge-base", "--is-ancestor", newApprovedSha, baseRef], { timeoutMs: 10000 });
+      const ancestorCheck = gitRun(controlProjectRoot, ["merge-base", "--is-ancestor", effectiveSha, baseRef], { timeoutMs: 10000 });
       if (ancestorCheck.status === 0) {
-        fail("Approved commit " + newApprovedSha + " is already an ancestor of " + baseBranch + ". Supply a newer approved commit SHA.");
+        fail("Approved commit " + effectiveSha + " is already an ancestor of " + baseBranch + ". Supply a newer approved commit SHA.");
       }
     }
 
+    // Lane migration: if base_branch changed, move the request between lanes
+    const oldLaneKey = normalizeLaneKey(request.base_branch);
+    const newLaneKey = normalizeLaneKey(baseBranch);
+    if (oldLaneKey !== newLaneKey) {
+      const oldLane = queue.data.lanes[oldLaneKey];
+      if (oldLane) {
+        oldLane.requests = (oldLane.requests ?? []).filter((r) => r.request_id !== request.request_id);
+        if (oldLane.requests.length === 0) {
+          delete queue.data.lanes[oldLaneKey];
+        }
+      }
+      const newLane = queue.data.lanes[newLaneKey] ?? { base_branch: baseBranch, requests: [] };
+      newLane.base_branch = baseBranch;
+      newLane.requests = Array.isArray(newLane.requests) ? newLane.requests : [];
+      newLane.requests.push(request);
+      queue.data.lanes[newLaneKey] = newLane;
+    }
+
     request.status = "queued";
-    request.approved_commit_sha = newApprovedSha;
+    request.approved_commit_sha = effectiveSha;
     request.base_branch = baseBranch;
+    request.blocker_class = blockerClass;
     request.blocked_at = null;
     request.last_error = null;
     request.started_at = null;
@@ -547,8 +575,20 @@ async function resumeBlocked(input) {
     feature_registry_key: result.feature_registry_key,
     approved_commit_sha: result.approved_commit_sha,
     base_branch: result.base_branch,
+    blocker_class: result.blocker_class,
     resumed: true
   };
+}
+
+function classifyBlocker(lastError) {
+  if (!lastError) return "unknown";
+  const lower = String(lastError).toLowerCase();
+  if (lower.includes("already an ancestor")) return "stale_commit";
+  if (lower.includes("merge failed") || lower.includes("conflict")) return "merge_conflict";
+  if (lower.includes("closeout readiness")) return "closeout_readiness";
+  if (lower.includes("push failed")) return "push_failure";
+  if (lower.includes("fetch") || lower.includes("worktree")) return "infrastructure";
+  return "unknown";
 }
 
 function syncLocalTargetBranch(projectRoot, baseBranch) {

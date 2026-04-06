@@ -184,13 +184,54 @@ await runTest("rejects when no approved commit SHA available", async (dir) => {
   assert(result.stderr.includes("approved commit SHA"), "error should mention approved commit SHA");
 });
 
-// Test 5: resume-blocked preserves existing approved SHA when no new one is provided
-await runTest("preserves existing approved SHA when no new one provided", async (dir) => {
+// Test 5: resume-blocked rejects same SHA for conflict-blocked requests
+await runTest("rejects same SHA for conflict-blocked requests", async (dir) => {
   await setupQueueWithBlockedRequest(dir);
   const result = runResumeBlocked(dir, "test-blocked-request-1");
-  assert(result.status === 0, "should succeed with existing approved SHA, got: " + result.stderr);
+  assert(result.status !== 0, "should fail when reusing same SHA for merge_conflict blocker");
+  assert(result.stderr.includes("merge-conflict"), "error should mention merge-conflict blocker class");
+});
+
+// Test 6: resume-blocked rejects same SHA for stale-commit-blocked requests
+await runTest("rejects same SHA for stale-commit-blocked requests", async (dir) => {
+  await setupQueueWithBlockedRequest(dir, {
+    last_error: "Approved commit abc123 is already an ancestor of main. This request is stale."
+  });
+  const result = runResumeBlocked(dir, "test-blocked-request-1");
+  assert(result.status !== 0, "should fail when reusing same SHA for stale_commit blocker");
+  assert(result.stderr.includes("stale-commit"), "error should mention stale-commit blocker class");
+});
+
+// Test 7: resume-blocked allows same SHA for closeout-readiness-blocked requests
+await runTest("allows same SHA for closeout-readiness-blocked requests", async (dir) => {
+  await setupQueueWithBlockedRequest(dir, {
+    last_error: "Pre-merge closeout readiness failed: completion-summary.md is missing"
+  });
+  const result = runResumeBlocked(dir, "test-blocked-request-1");
+  assert(result.status === 0, "should succeed with same SHA for closeout_readiness blocker, got: " + result.stderr);
   const output = JSON.parse(result.stdout.trim());
-  assert(output.approved_commit_sha === "old-sha-123", "should preserve the existing approved SHA");
+  assert(output.blocker_class === "closeout_readiness", "blocker_class should be closeout_readiness");
+});
+
+// Test 8: resume-blocked migrates request between lanes when base_branch changes
+await runTest("migrates request between lanes when base_branch changes", async (dir) => {
+  await setupQueueWithBlockedRequest(dir, {
+    last_error: "Pre-merge closeout readiness failed: completion-summary.md is missing"
+  });
+  const result = runResumeBlocked(dir, "test-blocked-request-1", [
+    "--approved-commit-sha", "new-sha-789",
+    "--base-branch", "release"
+  ]);
+  assert(result.status === 0, "should succeed with lane migration, got: " + result.stderr);
+  const output = JSON.parse(result.stdout.trim());
+  assert(output.base_branch === "release", "base_branch should be release");
+
+  // Verify queue lane migration
+  const queueData = JSON.parse(await readFile(join(dir, ".codex", "merge-queue", "queue.json"), "utf8"));
+  assert(!queueData.lanes.main || queueData.lanes.main.requests.length === 0, "old main lane should be empty or removed");
+  assert(queueData.lanes.release, "release lane should exist");
+  assert(queueData.lanes.release.requests.length === 1, "release lane should have the migrated request");
+  assert(queueData.lanes.release.requests[0].request_id === "test-blocked-request-1", "migrated request should be in release lane");
 });
 
 // Summary

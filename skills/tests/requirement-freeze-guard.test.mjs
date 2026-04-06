@@ -7,14 +7,21 @@
  * the required authoritative requirement-freeze guard rules.
  */
 
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { randomUUID } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const skillRoot = join(__dirname, "..", "implement-plan");
+const helperPath = join(skillRoot, "scripts", "implement-plan-helper.mjs");
+const testRoot = join(
+  process.env.TEMP || process.env.TMPDIR || "/tmp",
+  "requirement-freeze-guard-test-" + randomUUID()
+);
 
 let passed = 0;
 let failed = 0;
@@ -73,6 +80,208 @@ await runTest("workflow-contract.md specifies refresh path to clear guard", asyn
     "workflow-contract.md should specify that refreshing the contract clears the guard"
   );
 });
+
+// Behavioral tests requiring a temp git repo
+
+function git(cwd, args) {
+  const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true, timeout: 15000 });
+  if (result.status !== 0) {
+    throw new Error("git " + args.join(" ") + " failed: " + (result.stderr || result.stdout || "unknown"));
+  }
+  return (result.stdout || "").trim();
+}
+
+function runPrepare(projectRoot, phaseNumber, featureSlug, taskSummary, extraArgs = []) {
+  return spawnSync("node", [
+    helperPath,
+    "prepare",
+    "--project-root", projectRoot,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--task-summary", taskSummary,
+    "--run-mode", "benchmarking",
+    ...extraArgs
+  ], {
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 30000
+  });
+}
+
+// Test 5: Behavioral - prepare pushes back when frozen authority file changed on base branch
+await (async () => {
+  const testDir = join(testRoot, "authority-divergence");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init", "-b", "main"]);
+  git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    // Create a shared authority file and commit on main
+    const docsDir = join(testDir, "docs");
+    await mkdir(docsDir, { recursive: true });
+    await writeFile(join(docsDir, "VISION.md"), "# Vision\nOriginal content.\n", "utf8");
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "add vision"]);
+
+    // Create the feature branch
+    git(testDir, ["checkout", "-b", "implement-plan/phase1/test-feature"]);
+
+    // Create feature artifacts with a brief that references VISION.md
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+    await mkdir(featureRoot, { recursive: true });
+    await writeFile(join(featureRoot, "README.md"), "# test-feature\nTest.\n", "utf8");
+    await writeFile(join(featureRoot, "context.md"), "# Context\nTest context.\n- scope: test\n- non-goal: none\n- deliverable: test output\n- forbidden edits: none\n- acceptance: verification\n- constraint: bounded\n- slice: minimal\n", "utf8");
+    const briefContent = `1. Implementation Objective
+Test.
+
+2. Exact Slice Scope
+Test.
+
+3. Inputs / Authorities Read
+- ${testDir.replace(/\\/g, "/")}/docs/VISION.md
+
+4. Required Deliverables
+Test output.
+
+5. Forbidden Edits
+None.
+
+6. Integrity-Verified Assumptions Only
+Test.
+
+7. Explicit Non-Goals
+None.
+
+8. Proof / Verification Expectations
+Machine Verification Plan: node --check
+Human Verification Plan: Required: false
+
+9. Required Artifact Updates
+None.
+
+10. Closeout Rules
+Human testing: not required.
+`;
+    await writeFile(join(featureRoot, "implement-plan-brief.md"), briefContent, "utf8");
+
+    // Create minimal state
+    await writeFile(join(featureRoot, "implement-plan-state.json"), JSON.stringify({
+      state_schema_version: 2,
+      feature_status: "active",
+      base_branch: "main",
+      feature_branch: "implement-plan/phase1/test-feature",
+      project_root: testDir.replace(/\\/g, "/"),
+      worktree_path: testDir.replace(/\\/g, "/")
+    }, null, 2), "utf8");
+
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "feature artifacts"]);
+
+    // Go back to main and change the authority file
+    git(testDir, ["checkout", "main"]);
+    await writeFile(join(docsDir, "VISION.md"), "# Vision\nChanged after feature branch.\n", "utf8");
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "change vision on main"]);
+
+    // Go back to feature branch and run prepare
+    git(testDir, ["checkout", "implement-plan/phase1/test-feature"]);
+
+    const result = runPrepare(testDir, 1, "test-feature", "Test the authority freeze guard. Scope: bounded slice. Non-goal: none. Deliverable: test. Acceptance: verification.");
+    assert(result.status === 0, "prepare should succeed (exits 0), got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    const hasAuthorityFreezeIssue = (output.integrity_precheck?.blocking_issues ?? []).some(
+      (issue) => issue.issue_class === "authority-freeze-divergence"
+    );
+    assert(hasAuthorityFreezeIssue, "prepare should produce authority-freeze-divergence blocking issue when frozen authority changed on base, got issues: " + JSON.stringify(output.integrity_precheck?.blocking_issues ?? []));
+
+    passed += 1;
+    process.stdout.write("PASS: behavioral - prepare pushes back on authority divergence\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - prepare pushes back on authority divergence\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 6: Behavioral - prepare proceeds when base branch authority is unchanged
+await (async () => {
+  const testDir = join(testRoot, "authority-unchanged");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init", "-b", "main"]);
+  git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    const docsDir = join(testDir, "docs");
+    await mkdir(docsDir, { recursive: true });
+    await writeFile(join(docsDir, "VISION.md"), "# Vision\nOriginal.\n", "utf8");
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "add vision"]);
+
+    git(testDir, ["checkout", "-b", "implement-plan/phase1/test-feature2"]);
+
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature2");
+    await mkdir(featureRoot, { recursive: true });
+    await writeFile(join(featureRoot, "README.md"), "# test-feature2\nTest.\n", "utf8");
+    await writeFile(join(featureRoot, "context.md"), "# Context\nTest. scope bounded. non-goal none. deliverable: test. acceptance: verification. constraint: test. slice: bounded.\n", "utf8");
+    const briefContent = `1. Implementation Objective
+Test.
+
+2. Exact Slice Scope
+Bounded test slice.
+
+3. Inputs / Authorities Read
+- ${testDir.replace(/\\/g, "/")}/docs/VISION.md
+
+4. Required Deliverables
+Test output.
+
+5. Forbidden Edits
+None.
+
+6. Integrity-Verified Assumptions Only
+Test.
+
+7. Explicit Non-Goals
+None.
+
+8. Proof / Verification Expectations
+Machine Verification Plan: node --check
+Human Verification Plan: Required: false
+
+9. Required Artifact Updates
+None.
+
+10. Closeout Rules
+Human testing: not required.
+`;
+    await writeFile(join(featureRoot, "implement-plan-brief.md"), briefContent, "utf8");
+    await writeFile(join(featureRoot, "implement-plan-state.json"), JSON.stringify({
+      state_schema_version: 2,
+      feature_status: "active",
+      base_branch: "main",
+      feature_branch: "implement-plan/phase1/test-feature2",
+      project_root: testDir.replace(/\\/g, "/"),
+      worktree_path: testDir.replace(/\\/g, "/")
+    }, null, 2), "utf8");
+
+    git(testDir, ["add", "."]);
+    git(testDir, ["-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "feature artifacts"]);
+
+    // Do NOT change VISION.md on main — base branch is unchanged
+    const result = runPrepare(testDir, 1, "test-feature2", "Test unchanged authority. Scope: bounded. Non-goal: none. Deliverable: test. Acceptance: verification.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    const hasAuthorityFreezeIssue = (output.integrity_precheck?.blocking_issues ?? []).some(
+      (issue) => issue.issue_class === "authority-freeze-divergence"
+    );
+    assert(!hasAuthorityFreezeIssue, "prepare should NOT produce authority-freeze-divergence when base is unchanged");
+
+    passed += 1;
+    process.stdout.write("PASS: behavioral - prepare proceeds when authority unchanged\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - prepare proceeds when authority unchanged\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
 
 // Summary
 process.stdout.write("\n" + passed + " passed, " + failed + " failed\n");
