@@ -25,6 +25,7 @@ const testRoot = join(
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const helperPath = join(scriptDir, "..", "implement-plan", "scripts", "implement-plan-helper.mjs");
+const mergeHelperPath = join(scriptDir, "..", "merge-queue", "scripts", "merge-queue-helper.mjs");
 
 let passed = 0;
 let failed = 0;
@@ -280,6 +281,117 @@ await runTest("pre-merge readiness blocks when state file is missing", async (di
   assert(json !== null, "helper should return valid JSON");
   assert(json.closeout_ready === false, "closeout_ready should be false when state file is missing");
   assert(json.blockers.some(b => b.includes("implement-plan-state.json")), "blockers should mention missing state file");
+});
+
+// --- Merge-queue approved-SHA authority tests ---
+
+// Helper: set up a git-initialized project with valid merge-queue setup
+async function setupMergeQueueProject(testDir, featureState) {
+  spawnSync("git", ["init"], { cwd: testDir, encoding: "utf8", windowsHide: true });
+  spawnSync("git", ["commit", "--allow-empty", "-m", "init"], { cwd: testDir, encoding: "utf8", windowsHide: true });
+
+  const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+  await mkdir(featureRoot, { recursive: true });
+
+  const mqRoot = join(testDir, ".codex", "merge-queue");
+  await mkdir(join(mqRoot, "locks", "project"), { recursive: true });
+  await mkdir(join(mqRoot, "worktrees"), { recursive: true });
+
+  const ipRoot = join(testDir, ".codex", "implement-plan");
+  await mkdir(join(ipRoot, "locks", "features"), { recursive: true });
+  await mkdir(join(ipRoot, "locks", "project"), { recursive: true });
+
+  const normalizedDir = testDir.replace(/\\/g, "/");
+  await writeFile(join(mqRoot, "setup.json"), JSON.stringify({
+    project_root: normalizedDir,
+    preferred_execution_access_mode: "native_full_access",
+    fallback_execution_access_mode: "interactive_fallback",
+    runtime_permission_model: "native_explicit_full_access",
+    execution_access_notes: "test",
+    preferred_execution_runtime: "claude_code_exec",
+    persistent_execution_strategy: "artifact_continuity_only",
+    detected_runtime_capabilities: {},
+    updated_at: new Date().toISOString()
+  }, null, 2), "utf8");
+
+  if (featureState) {
+    await writeFile(join(featureRoot, "implement-plan-state.json"), JSON.stringify(featureState, null, 2), "utf8");
+  }
+
+  return normalizedDir;
+}
+
+function runMergeHelper(args, cwd) {
+  const result = spawnSync("node", [mergeHelperPath, ...args], {
+    cwd,
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 30000
+  });
+  return {
+    status: result.status,
+    stdout: (result.stdout || "").trim(),
+    stderr: (result.stderr || "").trim()
+  };
+}
+
+// Test 8: merge-queue enqueue rejects when approved_commit_sha is missing (even with last_commit_sha)
+await runTest("merge-queue enqueue rejects missing approved_commit_sha", async (dir) => {
+  const projectRoot = await setupMergeQueueProject(dir, {
+    state_schema_version: 2,
+    feature_status: "active",
+    approved_commit_sha: null,
+    last_commit_sha: "should-not-be-used-as-authority",
+    merge_commit_sha: null,
+    base_branch: "main",
+    feature_branch: "implement-plan/phase1/test-feature"
+  });
+
+  const result = runMergeHelper([
+    "enqueue",
+    "--project-root", projectRoot,
+    "--phase-number", "1",
+    "--feature-slug", "test-feature"
+  ], dir);
+
+  assert(result.status !== 0, "enqueue should fail without approved_commit_sha");
+  const output = (result.stderr + " " + result.stdout).toLowerCase();
+  assert(output.includes("approved commit sha"), "error should mention approved commit SHA, got: " + output);
+});
+
+// Test 9: merge-queue enqueue rejects completed features
+await runTest("merge-queue enqueue rejects completed features", async (dir) => {
+  const projectRoot = await setupMergeQueueProject(dir, {
+    state_schema_version: 2,
+    feature_status: "completed",
+    approved_commit_sha: "abc123",
+    last_commit_sha: "abc123",
+    merge_commit_sha: "merge789",
+    base_branch: "main",
+    feature_branch: "implement-plan/phase1/test-feature"
+  });
+
+  const result = runMergeHelper([
+    "enqueue",
+    "--project-root", projectRoot,
+    "--phase-number", "1",
+    "--feature-slug", "test-feature"
+  ], dir);
+
+  assert(result.status !== 0, "enqueue should fail for completed features");
+  const output = (result.stderr + " " + result.stdout).toLowerCase();
+  assert(output.includes("completed"), "error should mention completed, got: " + output);
+});
+
+// Test 10: merge-queue workflow contract explicitly documents the authority rule
+await runTest("merge-queue workflow contract states last_commit_sha is not merge authority", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const contractPath = join(scriptDir, "..", "merge-queue", "references", "workflow-contract.md");
+  const text = await readFile(contractPath, "utf8");
+  assert(text.includes("last_commit_sha") && text.includes("not merge authority"),
+    "workflow contract must state that last_commit_sha is not merge authority");
+  assert(text.includes("approved_commit_sha"),
+    "workflow contract must reference approved_commit_sha");
 });
 
 // Summary
