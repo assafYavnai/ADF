@@ -31,15 +31,15 @@
   "worktree_status": "ready",
   "merge_required": true,
   "merge_status": "ready_to_queue",
-  "approved_commit_sha": "dc096f08f57ad6c997020c4a1da4fd8bfce16cf3",
+  "approved_commit_sha": "5da1fdee3cf44b0b6b5c0c8f00d5e14a9f435e00",
   "merge_commit_sha": null,
   "merge_queue_request_id": "merge-main-1-approved-commit-closeout-state-separation-1775475446621",
   "local_target_sync_status": "not_started",
-  "last_completed_step": "verification_passed",
-  "last_commit_sha": null,
+  "last_completed_step": "merge_ready",
+  "last_commit_sha": "5da1fdee3cf44b0b6b5c0c8f00d5e14a9f435e00",
   "active_run_status": "merge_ready",
   "created_at": "2026-04-05T20:36:12.952Z",
-  "updated_at": "2026-04-06T11:54:17.014Z",
+  "updated_at": "2026-04-06T11:55:04.321Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T20:36:13.011Z",
     "worktree_prepared_at": "2026-04-05T20:37:30.359Z",
@@ -565,6 +565,15 @@
       "attempt_id": "attempt-003",
       "timestamp": "2026-04-06T11:54:17.014Z",
       "note": null
+    },
+    {
+      "event_id": "event-79038b66-7e9e-4638-a954-d6d4cd1697e8",
+      "event_type": "state-patched",
+      "run_id": "run-5f38bcd2-17c7-452c-b115-3e23340a8412",
+      "run_mode": "normal",
+      "attempt_id": "attempt-003",
+      "timestamp": "2026-04-06T11:55:04.321Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -596,7 +605,7 @@
         "lifecycle_status": "completed",
         "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 45,
+        "contract_revision": 46,
         "feature_contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/approved-commit-closeout-state-separation/implementation-run/run-5f38bcd2-17c7-452c-b115-3e23340a8412/run-projection.v1.json",
@@ -801,7 +810,7 @@
             "status": "merge_ready",
             "terminal_status": null,
             "started_at": "2026-04-06T11:01:51.233Z",
-            "updated_at": "2026-04-06T11:54:17.014Z",
+            "updated_at": "2026-04-06T11:55:04.320Z",
             "reset_at": null,
             "reset_reason": "Reset from the implementation boundary after rebasing the feature branch onto origin/main to remove the stale-base merge conflict.",
             "superseded_by_attempt_id": null,
@@ -809,7 +818,7 @@
               "step": "merge_queue",
               "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-06T11:54:17.014Z"
+              "updated_at": "2026-04-06T11:55:04.321Z"
             },
             "step_status": {
               "implementation": {
@@ -893,13 +902,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-06T11:54:17.014Z",
-            "last_event_at": "2026-04-06T11:54:17.014Z"
+            "last_checkpoint_at": "2026-04-06T11:55:04.321Z",
+            "last_event_at": "2026-04-06T11:55:04.321Z"
           }
         },
         "created_at": "2026-04-05T20:36:12.993Z",
-        "updated_at": "2026-04-06T11:54:17.020Z",
-        "last_event_at": "2026-04-06T11:54:17.014Z",
+        "updated_at": "2026-04-06T11:55:04.326Z",
+        "last_event_at": "2026-04-06T11:55:04.321Z",
         "kpi_projection": {
           "terminal_status": "completed",
           "per_step_timing": {
@@ -960,7 +969,7 @@
       }
     }
   },
-  "__gsw_revision": 47,
-  "__gsw_write_id": "gsw-1539cb03-1deb-4c2f-8dd0-3478f84bfcd9",
-  "__gsw_timestamp": "2026-04-06T11:54:17.022Z"
+  "__gsw_revision": 48,
+  "__gsw_write_id": "gsw-a4227fdc-39c7-484a-a35b-db0b3c2825b2",
+  "__gsw_timestamp": "2026-04-06T11:55:04.328Z"
 }
