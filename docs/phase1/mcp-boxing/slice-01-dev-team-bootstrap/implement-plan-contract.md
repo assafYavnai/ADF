@@ -73,7 +73,7 @@ Stand up the first boxed `dev_team` department shell for ADF Phase 1 by introduc
 8. The slice documents the intended commit identity model for `VPRND` and later feature-scoped team members.
 9. The resulting department shell is clearly positioned for later wiring of the full implementation route without needing to be re-conceived.
 10. The slice remains machine-verifiable without requiring human-facing product testing.
-11. The architecture preserves gate-specific rejection and resume behavior for future human testing and for the immediate invoker approval hold.
+11. The architecture preserves gate-specific rejection and resume behavior for future human testing and for the immediate invoker approval hold. Evidence: `LaneEntry.status` enum includes `review_rejected`, `awaiting_invoker_approval`, and `resume_ready` with per-lane `gate_context`; `devteam_status` projects these without collapsing; smoke tests prove round-trip persistence and negative proof against collapse.
 12. Merge to `main` and final completion truth stop until explicit invoker approval is recorded after implementation, review, and compliance verification.
 
 KPI Applicability: not required
@@ -112,7 +112,7 @@ Human Verification Plan
 - The stored settings must make the installed repo root and implementation lanes root truthfully visible.
 - The status surface must make it clear which team placeholders exist and whether the department shell is ready for later slices.
 - The audit model must make the intended `VPRND` bootstrap ownership and later feature-scoped team identities explicit in documentation and state.
-- The status and route model must make it clear whether the slice is awaiting invoker approval, rejected at a gate, or ready to resume from that gate without losing route truth.
+- The status and route model must make it clear whether the slice is awaiting invoker approval, rejected at a gate, or ready to resume from that gate without losing route truth. This is now enforced by the `LaneStatus` enum (`review_rejected`, `awaiting_invoker_approval`, `resume_ready`) and the `gate_context` field on `LaneEntry`, surfaced truthfully through `devteam_status`.
 
 8. Dependencies / Constraints
 

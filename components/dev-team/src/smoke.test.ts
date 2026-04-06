@@ -5,7 +5,7 @@ import * as path from "node:path";
 import * as os from "node:os";
 
 import { SetupInput } from "./schemas/setup.js";
-import { DepartmentState, createInitialState } from "./schemas/state.js";
+import { DepartmentState, LaneEntry, LaneStatus, createInitialState } from "./schemas/state.js";
 import { setStateDir, loadState, saveState } from "./services/state.js";
 import { setupDepartment } from "./services/setup.js";
 import { getDepartmentStatus } from "./services/status.js";
@@ -173,6 +173,194 @@ describe("status surface", () => {
     assert.equal(afterStatus.identity_policy.governance_owner, "VPRND");
     assert.equal(afterStatus.identity_policy.bootstrap_commit_author, "VPRND");
     assert.equal(afterStatus.identity_policy.team_member_identity_pattern, "<feature-slug>-<role>");
+
+    await fs.rm(freshDir, { recursive: true, force: true });
+    setStateDir(tmpDir);
+  });
+});
+
+describe("gate-state model", () => {
+  it("LaneEntry accepts gate-specific statuses with gate_context", () => {
+    const now = new Date().toISOString();
+    const gateStatuses: Array<{ status: string; gate: string }> = [
+      { status: "review_rejected", gate: "review_cycle" },
+      { status: "awaiting_invoker_approval", gate: "merge_queue" },
+      { status: "resume_ready", gate: "review_cycle" },
+    ];
+
+    for (const { status, gate } of gateStatuses) {
+      const entry = LaneEntry.parse({
+        lane_id: `lane-${status}`,
+        feature_slug: "test-feature",
+        status,
+        gate_context: {
+          gate,
+          reason: `Test ${status} at ${gate}`,
+          updated_at: now,
+        },
+        created_at: now,
+      });
+      assert.equal(entry.status, status);
+      assert.equal(entry.gate_context?.gate, gate);
+    }
+  });
+
+  it("LaneEntry still accepts original statuses without gate_context", () => {
+    const now = new Date().toISOString();
+    for (const status of ["active", "blocked", "completed", "closed"]) {
+      const entry = LaneEntry.parse({
+        lane_id: `lane-${status}`,
+        feature_slug: "test-feature",
+        status,
+        created_at: now,
+      });
+      assert.equal(entry.status, status);
+      assert.equal(entry.gate_context, null);
+    }
+  });
+
+  it("LaneEntry rejects invalid status values", () => {
+    const now = new Date().toISOString();
+    assert.throws(() =>
+      LaneEntry.parse({
+        lane_id: "lane-bad",
+        feature_slug: "test-feature",
+        status: "unknown_garbage",
+        created_at: now,
+      })
+    );
+  });
+
+  it("gate-state lanes round-trip through persistence", async () => {
+    const freshDir = await fs.mkdtemp(path.join(os.tmpdir(), "devteam-gate-"));
+    setStateDir(freshDir);
+
+    const state = createInitialState();
+    state.bootstrap_phase = "settings_installed";
+    state.settings = {
+      repo_root: "C:/test",
+      implementation_lanes_root: "C:/test/lanes",
+    };
+    const now = new Date().toISOString();
+    state.active_lanes = [
+      {
+        lane_id: "lane-rejected",
+        feature_slug: "feat-a",
+        status: "review_rejected",
+        gate_context: {
+          gate: "review_cycle",
+          reason: "Audit found route-truth divergence",
+          updated_at: now,
+        },
+        created_at: now,
+      },
+      {
+        lane_id: "lane-approval-hold",
+        feature_slug: "feat-b",
+        status: "awaiting_invoker_approval",
+        gate_context: {
+          gate: "merge_queue",
+          reason: "Awaiting CEO approval before merge",
+          updated_at: now,
+        },
+        created_at: now,
+      },
+      {
+        lane_id: "lane-resume",
+        feature_slug: "feat-c",
+        status: "resume_ready",
+        gate_context: {
+          gate: "review_cycle",
+          reason: "Fix applied, ready for re-review",
+          updated_at: now,
+        },
+        created_at: now,
+      },
+    ];
+    state.last_updated_at = now;
+
+    await saveState(state);
+    const loaded = await loadState();
+
+    assert.equal(loaded.active_lanes.length, 3);
+    assert.equal(loaded.active_lanes[0].status, "review_rejected");
+    assert.equal(loaded.active_lanes[0].gate_context?.gate, "review_cycle");
+    assert.equal(loaded.active_lanes[1].status, "awaiting_invoker_approval");
+    assert.equal(loaded.active_lanes[1].gate_context?.gate, "merge_queue");
+    assert.equal(loaded.active_lanes[2].status, "resume_ready");
+    assert.equal(loaded.active_lanes[2].gate_context?.gate, "review_cycle");
+
+    await fs.rm(freshDir, { recursive: true, force: true });
+    setStateDir(tmpDir);
+  });
+
+  it("devteam_status surfaces gate_context without collapsing to generic status", async () => {
+    const freshDir = await fs.mkdtemp(path.join(os.tmpdir(), "devteam-gate-status-"));
+    setStateDir(freshDir);
+
+    const state = createInitialState();
+    state.bootstrap_phase = "settings_installed";
+    state.settings = {
+      repo_root: "C:/test",
+      implementation_lanes_root: "C:/test/lanes",
+    };
+    const now = new Date().toISOString();
+    state.initialized_at = now;
+    state.active_lanes = [
+      {
+        lane_id: "lane-rejected",
+        feature_slug: "feat-x",
+        status: "review_rejected",
+        gate_context: {
+          gate: "review_cycle",
+          reason: "Schema defect found",
+          updated_at: now,
+        },
+        created_at: now,
+      },
+      {
+        lane_id: "lane-hold",
+        feature_slug: "feat-y",
+        status: "awaiting_invoker_approval",
+        gate_context: {
+          gate: "merge_queue",
+          reason: null,
+          updated_at: now,
+        },
+        created_at: now,
+      },
+    ];
+    state.last_updated_at = now;
+    await saveState(state);
+
+    const statusResult = await getDepartmentStatus();
+
+    // Verify gate-specific statuses are NOT collapsed to "blocked" or "active"
+    assert.equal(statusResult.active_lanes.length, 2);
+    assert.equal(statusResult.active_lanes[0].status, "review_rejected");
+    assert.notEqual(statusResult.active_lanes[0].status, "blocked");
+    assert.equal(statusResult.active_lanes[0].gate_context?.gate, "review_cycle");
+    assert.equal(statusResult.active_lanes[0].gate_context?.reason, "Schema defect found");
+
+    assert.equal(statusResult.active_lanes[1].status, "awaiting_invoker_approval");
+    assert.notEqual(statusResult.active_lanes[1].status, "blocked");
+    assert.equal(statusResult.active_lanes[1].gate_context?.gate, "merge_queue");
+
+    await fs.rm(freshDir, { recursive: true, force: true });
+    setStateDir(tmpDir);
+  });
+
+  it("setup route does not create lanes (no accidental gate-state injection)", async () => {
+    const freshDir = await fs.mkdtemp(path.join(os.tmpdir(), "devteam-setup-nolane-"));
+    setStateDir(freshDir);
+
+    await setupDepartment({
+      repo_root: "C:/test",
+      implementation_lanes_root: "C:/test/lanes",
+    });
+
+    const state = await loadState();
+    assert.equal(state.active_lanes.length, 0);
 
     await fs.rm(freshDir, { recursive: true, force: true });
     setStateDir(tmpDir);

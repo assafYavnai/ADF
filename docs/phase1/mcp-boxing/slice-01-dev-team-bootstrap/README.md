@@ -56,9 +56,17 @@ Tools exposed:
 - implementation-run/
 - completion-summary.md
 
-## Lifecycle
+## Lane Lifecycle
 
-- active
-- blocked
-- completed
-- closed
+Core statuses:
+- `active` — lane is running normally
+- `blocked` — lane is blocked on a dependency or external factor
+- `completed` — lane work is done
+- `closed` — lane is permanently closed
+
+Gate-specific statuses (added in cycle-01 fix):
+- `review_rejected` — lane was rejected at a review gate; includes `gate_context` with gate name and reason
+- `awaiting_invoker_approval` — lane is held pending explicit invoker approval; includes `gate_context`
+- `resume_ready` — lane is ready to resume from a specific gate checkpoint; includes `gate_context`
+
+Each gate-specific status carries optional `gate_context: { gate, reason, updated_at }` for auditability. The `devteam_status` surface projects these statuses and their gate context without collapsing them to generic values.

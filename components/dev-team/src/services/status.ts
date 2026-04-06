@@ -10,6 +10,19 @@ import { getDepartmentIdentitySummary } from "../teams/registry.js";
  * is initialized and ready for later slices.
  */
 
+export interface LaneGateContext {
+  gate: string;
+  reason: string | null;
+  updated_at: string;
+}
+
+export interface LaneStatusEntry {
+  lane_id: string;
+  feature_slug: string;
+  status: string;
+  gate_context: LaneGateContext | null;
+}
+
 export interface DepartmentStatus {
   department: "dev_team";
   governance_owner: "VPRND";
@@ -25,11 +38,7 @@ export interface DepartmentStatus {
     status: string;
   }>;
   active_lanes_count: number;
-  active_lanes: Array<{
-    lane_id: string;
-    feature_slug: string;
-    status: string;
-  }>;
+  active_lanes: LaneStatusEntry[];
   identity_policy: {
     department: string;
     governance_owner: string;
@@ -64,6 +73,7 @@ export async function getDepartmentStatus(): Promise<DepartmentStatus> {
       lane_id: l.lane_id,
       feature_slug: l.feature_slug,
       status: l.status,
+      gate_context: l.gate_context ?? null,
     })),
     identity_policy: {
       department: identity.department,

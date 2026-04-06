@@ -29,10 +29,38 @@ export const TeamPlaceholder = z.object({
 });
 export type TeamPlaceholder = z.infer<typeof TeamPlaceholder>;
 
+/**
+ * Gate-aware lane status vocabulary.
+ *
+ * Bootstrap statuses: active, blocked, completed, closed.
+ * Gate-specific statuses added by Slice 01 review-cycle fix:
+ *   review_rejected    — lane was rejected at a review gate
+ *   awaiting_invoker_approval — lane is held pending explicit invoker approval
+ *   resume_ready       — lane is ready to resume from a specific gate checkpoint
+ */
+export const LaneStatus = z.enum([
+  "active",
+  "blocked",
+  "completed",
+  "closed",
+  "review_rejected",
+  "awaiting_invoker_approval",
+  "resume_ready",
+]);
+export type LaneStatus = z.infer<typeof LaneStatus>;
+
 export const LaneEntry = z.object({
   lane_id: z.string().min(1),
   feature_slug: z.string().min(1),
-  status: z.enum(["active", "blocked", "completed", "closed"]),
+  status: LaneStatus,
+  gate_context: z
+    .object({
+      gate: z.string().min(1),
+      reason: z.string().nullable(),
+      updated_at: z.string(),
+    })
+    .nullable()
+    .default(null),
   created_at: z.string(),
 });
 export type LaneEntry = z.infer<typeof LaneEntry>;
