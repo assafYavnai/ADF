@@ -51,4 +51,4 @@ Do not yet wire the full end-to-end implementation route. Do not yet remove lega
 - The department shell is fully isolated from `skills/`, `COO/`, `tools/`, and `memory-engine/` - verified by an automated isolation test.
 - The MCP server exposes two tools: `devteam_setup` and `devteam_status`. Later slices will add `devteam_implement`, `devteam_resume`, `devteam_cancel`, etc.
 - The build uses the same TypeScript/ES2022/Node16 pattern as `memory-engine`.
-- 14 machine-facing tests verify schemas, identity, state persistence, setup route, status surface, tool definitions, and isolation.
+- Machine-facing tests verify schemas, identity, state persistence, setup route, status surface, tool definitions, and isolation.
