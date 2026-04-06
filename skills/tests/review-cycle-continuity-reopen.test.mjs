@@ -112,7 +112,7 @@ async function setupApprovedCycle(testDir) {
 
   // Write valid cycle artifacts with required headings for a completed approved cycle
   await writeFile(join(cycleDir, "audit-findings.md"), "1. Findings\nNone.\n\n2. Conceptual Root Cause\nNone.\n\n3. High-Level View Of System Routes That Still Need Work\nNone.\n", "utf8");
-  await writeFile(join(cycleDir, "review-findings.md"), "1. Closure Verdicts\nAll closed.\n\n2. Remaining Root Cause\nNone.\n\n3. Next Minimal Fix Pass\nNone.\n", "utf8");
+  await writeFile(join(cycleDir, "review-findings.md"), "1. Closure Verdicts\nOverall Verdict: APPROVED\nAll closed.\n\n2. Remaining Root Cause\nNone.\n\n3. Next Minimal Fix Pass\nNone.\n", "utf8");
   await writeFile(join(cycleDir, "fix-plan.md"), "1. Failure Classes\nNone.\n\n2. Route Contracts\nNone.\n\n3. Sweep Scope\nNone.\n\n4. Planned Changes\nNone.\n\n5. Closure Proof\nNone.\n\n6. Non-Goals\nNone.\n", "utf8");
   await writeFile(join(cycleDir, "fix-report.md"), "1. Failure Classes Closed\nAll.\n\n2. Route Contracts Now Enforced\nAll.\n\n3. Files Changed And Why\nNone.\n\n4. Sibling Sites Checked\nNone.\n\n5. Proof Of Closure\nAll passed.\n\n6. Remaining Debt / Non-Goals\nNone.\n\n7. Next Cycle Starting Point\nDone.\n", "utf8");
 
@@ -342,6 +342,113 @@ await (async () => {
   } catch (error) {
     failed += 1;
     process.stderr.write("FAIL: behavioral - update-state rejects nonexistent SHA\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 12: Behavioral - rejected completed cycle with no new diffs does NOT hold
+await (async () => {
+  const testDir = join(testRoot, "rejected-no-hold");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    // Write a completed but REJECTED cycle (same structure as approved but with REJECTED verdict)
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+    const cycleDir = join(featureRoot, "cycle-01");
+    await mkdir(cycleDir, { recursive: true });
+
+    await writeFile(join(cycleDir, "audit-findings.md"), "1. Findings\nSome issues.\n\n2. Conceptual Root Cause\nSome cause.\n\n3. High-Level View Of System Routes That Still Need Work\nSome routes.\n", "utf8");
+    await writeFile(join(cycleDir, "review-findings.md"), "1. Closure Verdicts\nOverall Verdict: REJECTED\nNot closed.\n\n2. Remaining Root Cause\nSome.\n\n3. Next Minimal Fix Pass\nFix needed.\n", "utf8");
+    await writeFile(join(cycleDir, "fix-plan.md"), "1. Failure Classes\nF1.\n\n2. Route Contracts\nC1.\n\n3. Sweep Scope\nS1.\n\n4. Planned Changes\nP1.\n\n5. Closure Proof\nProof.\n\n6. Non-Goals\nNone.\n", "utf8");
+    await writeFile(join(cycleDir, "fix-report.md"), "1. Failure Classes Closed\nAll.\n\n2. Route Contracts Now Enforced\nAll.\n\n3. Files Changed And Why\nNone.\n\n4. Sibling Sites Checked\nNone.\n\n5. Proof Of Closure\nAll.\n\n6. Remaining Debt / Non-Goals\nNone.\n\n7. Next Cycle Starting Point\nDone.\n", "utf8");
+
+    git(testDir, ["add", "."]);
+    git(testDir, ["commit", "-m", "rejected cycle"]);
+    const sha = git(testDir, ["rev-parse", "HEAD"]);
+
+    await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify({
+      phase_number: 1,
+      feature_slug: "test-feature",
+      repo_root: testDir.replace(/\\/g, "/"),
+      feature_agent_registry_key: "phase1/test-feature",
+      last_completed_cycle: 1,
+      last_commit_sha: sha,
+      active_cycle_number: 1,
+      cycle_runtime: null,
+      split_review_continuity: { mode: "full_pair" },
+      implementor_execution_id: "cached-impl-001",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }, null, 2), "utf8");
+
+    const result = runPrepare(testDir, 1, "test-feature", "Check route after rejection.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    // Rejected cycle should NOT trigger the approved no-diff hold
+    assert(
+      output.cycle?.mode !== "approved_no_new_diffs",
+      "cycle mode should NOT be approved_no_new_diffs for a rejected cycle, got: " + (output.cycle?.mode ?? "missing")
+    );
+    assert(
+      output.detected_status_summary?.next_action !== "approved_no_new_diffs_hold",
+      "next_action should NOT be approved_no_new_diffs_hold for a rejected cycle"
+    );
+    passed += 1;
+    process.stdout.write("PASS: behavioral - rejected completed cycle does not hold\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - rejected completed cycle does not hold\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 13: Behavioral - fix_cycle_dispatch_mode is fresh for review_in_progress resume
+await (async () => {
+  const testDir = join(testRoot, "dispatch-mode-review-in-progress");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature-rip");
+    const cycleDir = join(featureRoot, "cycle-01");
+    await mkdir(cycleDir, { recursive: true });
+
+    // Write only audit-findings (no review-findings) to simulate review_in_progress
+    await writeFile(join(cycleDir, "audit-findings.md"), "1. Findings\nSome.\n\n2. Conceptual Root Cause\nSome.\n\n3. High-Level View Of System Routes That Still Need Work\nSome.\n", "utf8");
+
+    // Write state with a cached implementor
+    await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify({
+      phase_number: 1,
+      feature_slug: "test-feature-rip",
+      repo_root: testDir.replace(/\\/g, "/"),
+      feature_agent_registry_key: "phase1/test-feature-rip",
+      last_completed_cycle: 0,
+      last_commit_sha: null,
+      active_cycle_number: 1,
+      cycle_runtime: null,
+      split_review_continuity: { mode: "full_pair" },
+      implementor_execution_id: "cached-impl-002",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }, null, 2), "utf8");
+
+    git(testDir, ["add", "."]);
+    git(testDir, ["commit", "-m", "review in progress"]);
+
+    const result = runPrepare(testDir, 1, "test-feature-rip", "Continue review.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    // review_in_progress with cached implementor should be fresh, not delta_only
+    assert(
+      output.fix_cycle_dispatch_mode === "fresh",
+      "fix_cycle_dispatch_mode should be fresh for review_in_progress, got: " + (output.fix_cycle_dispatch_mode ?? "missing")
+    );
+    passed += 1;
+    process.stdout.write("PASS: behavioral - fix_cycle_dispatch_mode is fresh for review_in_progress\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - fix_cycle_dispatch_mode is fresh for review_in_progress\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
   }
 })();
 

@@ -675,24 +675,32 @@ async function prepareCycle(input) {
       next_action: nextAction
     },
     reopen_blocked_reason: cycleStatus.reopen_blocked_reason ?? null,
-    fix_cycle_dispatch_mode: resolveFixCycleDispatchMode(cycleStatus, nextState)
+    fix_cycle_dispatch_mode: resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState)
   };
 }
 
-function resolveFixCycleDispatchMode(cycleStatus, state) {
-  // delta_only: resuming a rejected cycle with a cached implementor
-  if (cycleStatus.mode === "resume" && state.implementor_execution_id) {
-    return "delta_only";
+function resolveFixCycleDispatchMode(cycleStatus, state, currentCycleState) {
+  // resume_pending_closeout: not a dispatch cycle
+  if (cycleStatus.mode === "resume_pending_closeout") {
+    return null;
   }
   // fresh: new cycle or no cached implementor
   if (cycleStatus.mode === "new" || cycleStatus.mode === "approved_no_new_diffs") {
     return "fresh";
   }
-  // resume_pending_closeout: not a dispatch cycle
-  if (cycleStatus.mode === "resume_pending_closeout") {
-    return null;
+  // delta_only: ONLY when resuming a cycle that is in a fix-dispatch state
+  // (fix planning or implementation after review findings are ready)
+  // NOT during review_in_progress, review_not_started, or other non-fix states
+  if (cycleStatus.mode === "resume" && state.implementor_execution_id) {
+    const fixDispatchStates = new Set([
+      "fix_planned_or_implementation_in_progress",
+      "findings_ready_for_fix_planning"
+    ]);
+    if (fixDispatchStates.has(currentCycleState)) {
+      return "delta_only";
+    }
   }
-  return state.implementor_execution_id ? "delta_only" : "fresh";
+  return "fresh";
 }
 
 async function updateState(input) {
@@ -2104,19 +2112,22 @@ async function selectCycle(featureRoot, lastCompletedCycle, options = {}) {
     }
   }
 
-  // Reopen guardrail: when last_completed_cycle > 0, check for new diffs before creating a new cycle
+  // Reopen guardrail: when last_completed_cycle > 0, check approval truth AND new diffs before blocking
   if (lastCompletedCycle > 0 && !options.explicitReopen) {
-    const hasNewDiffs = checkForNewDiffsSinceLastCycle(options.repoRoot, options.lastCommitSha);
-    if (!hasNewDiffs) {
-      const nextNumber = Math.max(latestCycleNumber, lastCompletedCycle) + 1;
-      return {
-        latestCycleNumber,
-        mode: "approved_no_new_diffs",
-        cycleNumber: nextNumber,
-        cycleName: formatCycleName(nextNumber),
-        cycleDir: join(featureRoot, formatCycleName(nextNumber)),
-        reopen_blocked_reason: "The last completed cycle was approved and no new diffs exist on the feature branch. Pass --explicit-reopen to override."
-      };
+    const lastCycleApproved = await checkLastCycleApproved(featureRoot, lastCompletedCycle);
+    if (lastCycleApproved) {
+      const hasNewDiffs = checkForNewDiffsSinceLastCycle(options.repoRoot, options.lastCommitSha);
+      if (!hasNewDiffs) {
+        const nextNumber = Math.max(latestCycleNumber, lastCompletedCycle) + 1;
+        return {
+          latestCycleNumber,
+          mode: "approved_no_new_diffs",
+          cycleNumber: nextNumber,
+          cycleName: formatCycleName(nextNumber),
+          cycleDir: join(featureRoot, formatCycleName(nextNumber)),
+          reopen_blocked_reason: "The last completed cycle was approved and no new diffs exist on the feature branch. Pass --explicit-reopen to override."
+        };
+      }
     }
   }
 
@@ -2128,6 +2139,30 @@ async function selectCycle(featureRoot, lastCompletedCycle, options = {}) {
     cycleName: formatCycleName(nextNumber),
     cycleDir: join(featureRoot, formatCycleName(nextNumber))
   };
+}
+
+async function checkLastCycleApproved(featureRoot, lastCompletedCycle) {
+  // Check the last completed cycle's review-findings.md for an APPROVED overall verdict
+  const cycleName = formatCycleName(lastCompletedCycle);
+  const reviewFindingsPath = join(featureRoot, cycleName, "review-findings.md");
+  try {
+    const text = await readFile(reviewFindingsPath, "utf8");
+    // Check for "Overall Verdict: APPROVED" or "Overall Verdict: REJECTED"
+    const verdictMatch = text.match(/Overall\s+Verdict:\s*(APPROVED|REJECTED)/i);
+    if (verdictMatch) {
+      return verdictMatch[1].toUpperCase() === "APPROVED";
+    }
+    // Also check "Final Verdict" as a fallback
+    const finalMatch = text.match(/Final\s+Verdict:\s*(APPROVED|REJECTED)/i);
+    if (finalMatch) {
+      return finalMatch[1].toUpperCase() === "APPROVED";
+    }
+    // If no verdict found, treat as non-approved (don't block reopening)
+    return false;
+  } catch {
+    // File doesn't exist or can't be read — treat as non-approved
+    return false;
+  }
 }
 
 function checkForNewDiffsSinceLastCycle(repoRoot, lastCommitSha) {

@@ -1,0 +1,38 @@
+1. Findings
+
+Overall Verdict: REJECTED
+
+Finding 1
+- failure class: authoritative review-cycle anchor still bypassable on the live state route
+- broken route invariant in one sentence: the authoritative `review-cycle-state.json.last_commit_sha` must only persist repo-valid continuity anchors, but cycle-03 state again stores a nonexistent head even after cycle-02 declared that path closed.
+- exact route: cycle-02 closeout claims nonexistent-anchor persistence is closed -> cycle-03 handoff/start writes `last_commit_sha=076fd577f39211ccf1337a441f8261ed0249ed29` into `review-cycle-state.json` -> the repo cannot resolve that object while actual `HEAD` is `076fd57800ed83e36126a7000800ac480b5b9e7d` -> helper survives only because corrupt anchors now fail open instead of blocking
+- exact file/line references: [review-cycle-state.json#L31](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/review-cycle-state.json#L31), [review-cycle-state.json#L32](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/review-cycle-state.json#L32), [fix-report.md#L3](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/cycle-02/fix-report.md#L3), [fix-report.md#L10](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/cycle-02/fix-report.md#L10), [fix-report.md#L11](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/cycle-02/fix-report.md#L11), [review-cycle-helper.mjs#L750](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L750), [review-cycle-helper.mjs#L754](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L754), [review-cycle-helper.mjs#L756](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L756), [review-cycle-helper.mjs#L2133](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2133), [review-cycle-helper.mjs#L2137](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2137), [review-cycle-helper.mjs#L2139](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2139), [review-cycle-continuity-reopen.test.mjs#L286](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/tests/review-cycle-continuity-reopen.test.mjs#L286), [review-cycle-continuity-reopen.test.mjs#L310](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/tests/review-cycle-continuity-reopen.test.mjs#L310)
+- concrete operational impact: the helper-proof route is green, but the live cycle-03 handoff still serialized an impossible commit into the authoritative state file. Review progression now continues only because corrupt anchors are treated as reopen-allowing input, which keeps work moving but leaves continuity truth non-repo-backed and unauditable.
+- KPI applicability: not required.
+- KPI closure state: Closed.
+- KPI proof or exception gap: local proof covers helper-level rejection and corrupt-anchor fail-open behavior, but there is no end-to-end proof that the real cycle-start/handoff path which produced the current cycle-03 state cannot bypass that validation.
+- Compatibility verdict: Incompatible.
+- sweep scope: every writer of `docs/phase1/governed-implementation-route-hardening/review-cycle-state.json`, any orchestration that forwards a caller-provided head into cycle state, the cycle-closeout-to-next-cycle handoff, and any route that derives `last_commit_sha` outside helper-owned repo resolution.
+- closure proof: add an end-to-end test covering cycle closeout -> next cycle start with an invalid supplied head and prove state write refuses or normalizes it; prove only repo-resolved anchors are persisted; prove live cycle state after start matches `git rev-parse HEAD` or another reachable cycle artifact commit.
+- shared-surface expansion risk: present on any sibling caller or raw state writer that can patch `review-cycle-state.json` outside the validated helper path.
+- negative proof required: prove invalid supplied heads are rejected across all authoritative writers, prove valid heads still persist, and prove corrupt historical state cannot be silently reserialized as fresh authoritative truth.
+- live/proof isolation risk: present, because helper-level tests pass while the live cycle-03 state still contains the same bad-object class the prior cycle said would no longer be persisted.
+- claimed-route vs proved-route mismatch risk: present and material; cycle-02 fix-report claims nonexistent anchors are rejected before persistence, but current cycle-03 authoritative state still contains one.
+- status: regression
+
+2. Conceptual Root Cause
+
+- Cycle-02 closed the helper-local mutation path, but it did not freeze exclusive authority over `review-cycle-state.json.last_commit_sha` across the full cycle-start route.
+- The remaining missing contract is authoritative-state write discipline: some sibling handoff or out-of-band state mutation path can still stamp a caller-provided head string into the review-cycle state without repo-object validation.
+- The new fail-open behavior contains the old no-diff-block failure, but containment is not the same as route closure when the authoritative state can still diverge from repo truth.
+
+3. High-Level View Of System Routes That Still Need Work
+
+Route: review-cycle authoritative continuity-anchor persistence
+- what must be frozen before implementation: the single governed source for `last_commit_sha`, the allowed writers of `review-cycle-state.json`, and whether the persisted anchor must equal `HEAD` or a specific reachable cycle-artifact commit
+- why endpoint-only fixes will fail: helper-only `update-state` validation does not close the class while another cycle-start or handoff path can still write raw head strings into authoritative state
+- the minimal layers that must change to close the route: the cycle-closeout-to-next-cycle handoff path, any raw state writers, and helper-owned anchor derivation so persistence comes from repo resolution rather than caller text; add end-to-end proof for the real cycle-start path
+- explicit non-goals, so scope does not widen into general refactoring: no review-cycle architecture rewrite, no agent-registry redesign, no new lifecycle-schema overhaul, and no change to the valid corrupt-anchor fail-open containment once authoritative persistence is fixed
+- what done looks like operationally: starting cycle-03 from cycle-02 closeout cannot persist a nonexistent head, invalid supplied heads are rejected or normalized before any state write, and the live `review-cycle-state.json` anchor always resolves to a real repo object
+
+Final Verdict: REJECTED
