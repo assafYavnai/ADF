@@ -19,21 +19,21 @@ If invoked with no inputs or `action=help`, return the helper help payload.
 
 ## Supported commands
 
-- `help` — print command capabilities and required arguments.
-- `connect-smoke` — verify Brain client connect/close using the fallback route.
-- `search` — run Brain search and return structured results.
-- `read` — get the top match from a deterministic search for a short decision context read.
-- `capture` — write a durable Brain memory entry with optional tags.
-- `trust` — run trust-state management actions (`promote` / `cleanup`) on a memory id.
+- `help` - print command capabilities and required arguments.
+- `connect-smoke` - verify Brain client connect/close using the fallback route.
+- `search` - run Brain search and return structured results.
+- `read` - get the top match from a deterministic search for a short decision context read.
+- `capture` - write a durable Brain memory entry with optional tags.
+- `trust` - run trust-state management actions (`promote` / `cleanup`) on a memory id.
 
 ## Required inputs for `connect-smoke`
 
-- `--project-root` — path to a built ADF workspace.
+- `--project-root` - path to a built ADF workspace.
 
 ## Required inputs for `search`
 
 - `--project-root`
-- `--scope` — Brain scope, for example `assafyavnai/adf`.
+- `--scope` - Brain scope, for example `assafyavnai/adf`.
 - `--query`
 
 ## Optional inputs for `search`
@@ -52,7 +52,7 @@ If invoked with no inputs or `action=help`, return the helper help payload.
 
 Optional for `read`
 
-- `--memory-id` — return a single exact id match if present in fallback search results.
+- `--memory-id` - return a single exact id match if present in fallback search results.
 - `--max-results`
 
 ## Required inputs for `capture`
@@ -65,9 +65,9 @@ Optional for `read`
 
 Optional for `capture`
 
-- `--content` — plain text content payload
-- `--content-file` — read payload text from a file
-- `--content-json` — JSON payload as a string
+- `--content` - plain text content payload
+- `--content-file` - read payload text from a file
+- `--content-json` - JSON payload as a string
 - `--tag` (repeatable)
 - `--tags` (comma-separated)
 - `--trust-level`
