@@ -47,6 +47,34 @@ The slice must fix both without weakening the exact approved-SHA merge rule or t
   - pre-resume / pre-merge origin refresh
   - local sync preserve-sync-restore policy
 
+## MCP Boxing Sequencing Decision
+
+- this slice is the bounded precondition slice for safer MCP boxing intake work
+- it should stay focused on:
+  - human-approval truth
+  - split-review truth
+  - pre-refresh of origin truth
+  - preserve-sync-restore for dirty local sync
+- it should not absorb:
+  - broad projection unification
+  - generic completion-summary regeneration
+  - COO product-route cleanup
+  - general setup-helper parity cleanup
+- after this slice, the intended next boxing move is `mcp-boxing/slice-02-lane-admission-and-artifact-bridge`
+- the later boxed downstream execution route should wait for:
+  - `governed-state-writer-serialization`
+  - `implement-plan-provider-neutral-run-contract`
+
+## Repo-Backed Lessons Artifact
+
+- `lessons-for-mcp-boxing.md` is the rich repo-backed context artifact for future contextless agents
+- it captures:
+  - route failures that motivated this slice
+  - what to fix now versus later
+  - why Slice 02 can proceed without widening this slice
+  - the recommended path to later boxed downstream execution
+- use that artifact together with `MCP-gaps.md` and the Slice 02 `context.md`
+
 ## Contextless Implementor Instructions
 
 - Read `README.md`, `requirements.md`, `decisions.md`, and `implement-plan-contract.md` before changing code.
@@ -79,6 +107,9 @@ The slice must fix both without weakening the exact approved-SHA merge rule or t
 - `C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-contract.md`
 - `C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-state.json`
 - `C:/ADF/docs/phase1/coo-live-executive-status-wiring/review-cycle-state.json`
+- `C:/ADF/docs/phase1/MCP-gaps.md`
+- `C:/ADF/docs/phase1/mcp-boxing/requirements.md`
+- `C:/ADF/docs/phase1/mcp-boxing/step2.md`
 - `C:/ADF/skills/implement-plan/SKILL.md`
 - `C:/ADF/skills/implement-plan/references/workflow-contract.md`
 - `C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs`
@@ -93,3 +124,4 @@ The slice must fix both without weakening the exact approved-SHA merge rule or t
 
 - This slice exists because the current route behavior and the current route contract are misaligned.
 - The desired fix is governed behavior, not an operator checklist.
+- The preferred durable memory target is Brain, but this runtime still does not expose the `project-brain` MCP write surface, so the current session uses repo-backed truth instead.
