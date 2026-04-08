@@ -1,0 +1,27 @@
+adf.sh - Authoritative bash launcher for ADF COO
+
+USAGE
+  ./adf.sh [flags] [-- <COO args>]
+  adf.cmd [flags] [-- <COO args>]    # Windows trampoline into bash
+
+FLAGS
+  --help, -h     Show this help text
+  --runtime-preflight
+                  Run the fast runtime gate and emit environment truth for agents
+  --install       Run explicit install/bootstrap repair for repo dependencies and builds
+  --doctor       Repair bounded prerequisites, require working bash + Brain MCP, and log success to Brain
+  --json         Emit JSON when used with --runtime-preflight
+  --scope <id>   Override Brain scope (default: assafyavnai/adf)
+  --no-onion     Disable onion requirements lane
+  --tsx-direct   Run COO through the local tsx shim (default)
+  --watch        Run COO through tsx watch
+  --built        Run compiled COO JavaScript
+  --             Pass remaining args directly to COO
+
+EXAMPLES
+  ./adf.sh --help
+  ./adf.sh --runtime-preflight --json
+  ./adf.sh --install
+  ./adf.sh --doctor
+  ./adf.sh --built -- --resume-last
+  ./adf.sh --scope assafyavnai/adf -- --thread-id <uuid>

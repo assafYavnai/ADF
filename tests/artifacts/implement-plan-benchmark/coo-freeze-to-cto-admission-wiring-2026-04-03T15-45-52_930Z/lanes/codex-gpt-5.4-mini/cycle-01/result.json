@@ -1,0 +1,68 @@
+{
+  "provenance": {
+    "invocation_id": "7971fcca-b32b-4cdd-8d88-aa969a96d74f",
+    "provider": "codex",
+    "model": "gpt-5.4-mini",
+    "reasoning": "high",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-mini/cycle-01",
+    "timestamp": "2026-04-03T16:01:32.094Z"
+  },
+  "response": "Summary: Wired the live onion freeze path to build and persist CTO admission artifacts, track CTO admission state on the thread, and surface that state through serialization and docs. Added an integration test covering live handoff, decision updates, and build-failure handling.\n\nChanged files:\n- `COO/cto-admission/admission-state.ts`\n- `COO/cto-admission/live-handoff.ts`\n- `COO/cto-admission/index.ts`\n- `COO/controller/thread.ts`\n- `COO/controller/thread.test.ts`\n- `COO/requirements-gathering/live/onion-live.ts`\n- `tests/integration/coo-freeze-to-cto-admission-wiring.test.ts`\n- `docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md`\n- `docs/phase1/coo-freeze-to-cto-admission-wiring/cto-admission-request.json`\n- `docs/phase1/coo-freeze-to-cto-admission-wiring/cto-admission-decision.template.json`\n- `docs/phase1/coo-freeze-to-cto-admission-wiring/cto-admission-summary.md`\n\nVerification commands:\n- `npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts`\n- `npx.cmd tsx tests/integration/onion-route.runtime-proof.ts`\n\nVerification outcome:\n- Both commands passed.\n- The integration test run passed 30 tests, 0 failed.\n- The runtime proof regenerated files under `tests/integration/artifacts/onion-route-proof/`.\n\nOpen risks:\n- The runtime proof left tracked artifact churn in `tests/integration/artifacts/onion-route-proof/`.\n- `COO/package-lock.json` is still dirty from install churn, though there is no substantive code diff.",
+  "latency_ms": 908702,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.4-mini",
+      "session_id": "019d5406-3b05-7732-a868-7793b8b53e98",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 2910,
+    "response_chars": 1535,
+    "tokens_in_estimated": 728,
+    "tokens_out_estimated": 384,
+    "estimated_cost_usd": 0.0094,
+    "token_estimation_basis": "char_heuristic_v1",
+    "cost_estimation_basis": "configured_model_rate_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "7971fcca-b32b-4cdd-8d88-aa969a96d74f",
+        "provider": "codex",
+        "model": "gpt-5.4-mini",
+        "reasoning": "high",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-mini/cycle-01",
+        "timestamp": "2026-04-03T16:01:32.094Z"
+      },
+      "latency_ms": 908702,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 2910,
+        "response_chars": 1535,
+        "tokens_in_estimated": 728,
+        "tokens_out_estimated": 384,
+        "estimated_cost_usd": 0.0094,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_lane_id": "codex-gpt-5.4-mini",
+        "benchmark_task_summary": "Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.",
+        "benchmark_target_slug": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

@@ -80,6 +80,12 @@ Project-level setup artifact:
 
 - `<repo_root>/.codex/review-cycle/setup.json`
 
+Rules:
+
+- this file is local operational state for the current checkout or worktree
+- it may be auto-created or refreshed whenever setup is missing or invalid
+- it must not be committed as mergeable source history
+
 Project-level persistent execution registry:
 
 - `<repo_root>/.codex/review-cycle/agent-registry.json`
@@ -124,6 +130,7 @@ Persist this object under `<repo_root>/.codex/review-cycle/setup.json`:
   "requires_project_specific_permission_rules": false,
   "project_specific_permission_rules": [],
   "detected_runtime_capabilities": {},
+  "llm_tools": {},
   "setup_schema_version": 2,
   "created_at": "ISO-8601",
   "updated_at": "ISO-8601"
@@ -148,6 +155,7 @@ Additional setup rules:
 - `preferred_execution_runtime` is the runtime of the worker execution itself
 - `preferred_control_plane_runtime` is the runtime that may orchestrate those workers
 - if `preferred_execution_access_mode` is `codex_cli_full_auto_bypass`, then `preferred_execution_runtime` must be `codex_cli_exec`
+- if `preferred_execution_access_mode` is `claude_code_skip_permissions`, then `preferred_execution_runtime` must be `claude_code_exec`
 - `detected_runtime_capabilities` must be an object
 - `project_specific_permission_rules` must be an array
 - setup must be treated as incomplete if it is missing, unparsable, or internally inconsistent
@@ -158,6 +166,7 @@ Runtime-permission-model values:
 
 - `native_explicit_full_access`
 - `codex_cli_explicit_full_auto`
+- `claude_code_skip_permissions`
 - `native_inherited_access_only`
 - `interactive_or_limited`
 
@@ -166,6 +175,7 @@ Access-mode values:
 - `native_full_access`
 - `native_elevated_permissions`
 - `codex_cli_full_auto_bypass`
+- `claude_code_skip_permissions`
 - `inherits_current_runtime_access`
 - `interactive_fallback`
 
@@ -173,6 +183,7 @@ Execution-runtime values:
 
 - `native_agent_tools`
 - `codex_cli_exec`
+- `claude_code_exec`
 - `artifact_continuity_only`
 
 Persistent-execution-strategy values:
@@ -386,6 +397,22 @@ If `resume_agent` or equivalent execution reuse fails at runtime:
 - keep the other healthy lanes
 - persist the new identifier immediately before continuing
 
+## Worker spawn pattern
+
+To spawn a non-default worker for auditor, reviewer, or implementor roles, use the `autonomous_invoke` from `setup.json` `llm_tools`:
+
+```bash
+bash -c '<autonomous_invoke> "<prompt_or_file>"'
+```
+
+Where `<autonomous_invoke>` is the full autonomous invocation prefix for the tool (e.g. `codex exec --full-auto --dangerously-auto-approve`, `claude --dangerously-skip-permissions`, `gemini`) and `<prompt_or_file>` is the prompt string or path to the prompt file.
+
+Rules:
+
+- only spawn workers whose `available` is `true` in `llm_tools`
+- use the `autonomous_invoke` value exactly as provided; do not construct invocation strings manually
+- if no non-default workers are available, fall back to the resolved default worker from the access-resolution rules
+
 ## Cycle selection and current-state continuation
 
 - detect the latest existing cycle number conservatively
@@ -524,6 +551,25 @@ Rules:
 - auditor and reviewer reports must explicitly state `KPI Closure State` as `Closed`, `Partial`, `Open`, or `Temporary Exception`
 - do not treat a route as closed when KPI proof is missing, when the KPI proof route does not match the claimed route, or when the temporary exception details are incomplete
 - do not let vague observability wording substitute for the explicit KPI fields above
+
+## Vision / Phase 1 / Master-Plan compatibility gate
+
+Every route under review must carry explicit compatibility judgments against the full authority chain.
+
+Rules:
+
+- `fix-plan.md` must freeze all seven compatibility fields:
+  - `Vision Compatibility` — how the fix relates to `docs/VISION.md` strategic constraints
+  - `Phase 1 Compatibility` — how the fix fits within `docs/PHASE1_VISION.md` scope
+  - `Master-Plan Compatibility` — how the fix aligns with `docs/PHASE1_MASTER_PLAN.md` mission filter
+  - `Current Gap-Closure Compatibility` — which gap (A-E) from `docs/phase1/adf-phase1-current-gap-closure-plan.md` the fix closes or supports
+  - `Later-Company Check` — `yes` or `no`
+  - `Compatibility Decision` — `compatible`, `defer-later-company`, or `blocked-needs-user-decision`
+  - `Compatibility Evidence` — substantive evidence supporting the decision
+- auditor and reviewer reports must explicitly state `Compatibility Verdict` as `Compatible` or `Incompatible`
+- do not treat a route as closed when any of the seven compatibility fields is missing
+- do not treat a route as closed when `Compatibility Decision` is not `compatible` or when `Later-Company Check` is `yes`
+- do not let vague compatibility wording substitute for explicit authority-chain references
 
 ## Shared-surface and new-power gate
 
@@ -689,6 +735,19 @@ Rules:
 - separate status, findings, and next actions instead of blending them together
 - reference long evidence instead of pasting giant text blocks unless exact text is required
 
+## Completion-summary normalization rule
+
+When the review cycle reaches approval closeout (both required review lanes satisfied), the invoker must call `normalize-completion-summary` on the feature's `completion-summary.md` before the final approved commit. This rewrites the summary to the exact required 7-heading contract so that `merge-queue` and `mark-complete` can succeed without manual cleanup.
+
+Call: `node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs normalize-completion-summary --project-root <repo_root_or_worktree> --phase-number <phase_number> --feature-slug <feature_slug>`
+
+Rules:
+
+- call after all review work is finished and before the final approval commit and push
+- if the summary is already valid, no changes are made
+- if the summary is missing, treat it as a blocker
+- include any normalization changes in the same approval commit
+
 ## Git closeout rules
 
 Each cycle commit must include:
@@ -696,7 +755,9 @@ Each cycle commit must include:
 - code changes
 - cycle artifacts
 - related documentation updates
-- setup artifacts if they changed
+- completion-summary normalization changes when the cycle is an approval closeout
+
+Do not commit local operational setup artifacts such as `.codex/*/setup.json`, even when they were refreshed during the cycle.
 
 Commit or push failure rules:
 

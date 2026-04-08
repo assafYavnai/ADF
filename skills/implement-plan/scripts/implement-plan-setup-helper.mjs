@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import {
   ACCESS_MODES,
   CAPABILITY_KEYS,
@@ -63,11 +64,13 @@ async function main() {
 
   const existing = await loadExistingSetup(setupPath, projectRoot);
   const capabilityDetection = detectCapabilities(args, existing.detected_runtime_capabilities ?? {});
+  const llmTools = detectLlmToolsViaPreflight(projectRoot);
   const derived = deriveSetup({
     args,
     projectRoot,
     existing,
-    capabilities: capabilityDetection.capabilities
+    capabilities: capabilityDetection.capabilities,
+    llmTools
   });
   const validation = validateSetupObject(derived, projectRoot);
 
@@ -141,6 +144,26 @@ function detectCapabilities(args, fallbackCapabilities) {
   };
 }
 
+function detectLlmToolsViaPreflight(projectRoot) {
+  try {
+    const preflightScript = join(projectRoot, "tools", "agent-runtime-preflight.mjs");
+    const result = spawnSync("node", [preflightScript, "--repo-root", projectRoot, "--json"], {
+      encoding: "utf8",
+      timeout: 15000,
+      windowsHide: true
+    });
+    if (result.status === 0 && result.stdout) {
+      const report = JSON.parse(result.stdout);
+      if (isPlainObject(report.llm_tools)) {
+        return report.llm_tools;
+      }
+    }
+    return {};
+  } catch {
+    return {};
+  }
+}
+
 function deriveSetup(input) {
   const inferred = inferPreferredModes(input.capabilities);
   const projectSpecificPermissionRules = normalizeStringArray(
@@ -153,6 +176,24 @@ function deriveSetup(input) {
         "requires-project-specific-permission-rules",
         input.existing.requires_project_specific_permission_rules ?? false
       );
+  const preferredExecutionRuntime = pick(
+    input.args.values["preferred-execution-runtime"],
+    input.existing.preferred_execution_runtime,
+    inferred.preferred_execution_runtime
+  );
+  const preferredImplementorModel = pick(
+    input.args.values["preferred-implementor-model"],
+    input.existing.preferred_implementor_model,
+    defaultImplementorModelForRuntime(preferredExecutionRuntime)
+  );
+  const preferredImplementorReasoningEffort = sanitizeReasoningEffortForRuntime(
+    pick(
+      input.args.values["preferred-implementor-reasoning-effort"],
+      input.existing.preferred_implementor_reasoning_effort,
+      defaultReasoningEffortForRuntime(preferredExecutionRuntime)
+    ),
+    preferredExecutionRuntime
+  );
 
   return {
     project_root: input.projectRoot,
@@ -181,11 +222,7 @@ function deriveSetup(input) {
       input.existing.execution_access_notes,
       inferred.execution_access_notes
     ),
-    preferred_execution_runtime: pick(
-      input.args.values["preferred-execution-runtime"],
-      input.existing.preferred_execution_runtime,
-      inferred.preferred_execution_runtime
-    ),
+    preferred_execution_runtime: preferredExecutionRuntime,
     preferred_control_plane_runtime: pick(
       input.args.values["preferred-control-plane-runtime"],
       input.existing.preferred_control_plane_runtime,
@@ -196,23 +233,45 @@ function deriveSetup(input) {
       input.existing.persistent_execution_strategy,
       inferred.persistent_execution_strategy
     ),
-    preferred_implementor_model: pick(
-      input.args.values["preferred-implementor-model"],
-      input.existing.preferred_implementor_model,
-      "gpt-5.4"
-    ),
-    preferred_implementor_reasoning_effort: pick(
-      input.args.values["preferred-implementor-reasoning-effort"],
-      input.existing.preferred_implementor_reasoning_effort,
-      "xhigh"
-    ),
+    preferred_implementor_model: preferredImplementorModel,
+    preferred_implementor_reasoning_effort: preferredImplementorReasoningEffort,
     requires_project_specific_permission_rules: requiresProjectSpecificPermissionRules,
     project_specific_permission_rules: projectSpecificPermissionRules,
     detected_runtime_capabilities: input.capabilities,
+    llm_tools: input.llmTools ?? input.existing.llm_tools ?? {},
     setup_schema_version: 1,
     created_at: input.existing.created_at ?? nowIso(),
     updated_at: nowIso()
   };
+}
+
+function defaultImplementorModelForRuntime(runtime) {
+  if (runtime === "claude_code_exec") {
+    return "claude-opus-4-6";
+  }
+  if (runtime === "codex_cli_exec" || runtime === "native_agent_tools") {
+    return "gpt-5.4";
+  }
+  return null;
+}
+
+function defaultReasoningEffortForRuntime(runtime) {
+  if (runtime === "codex_cli_exec" || runtime === "native_agent_tools") {
+    return "xhigh";
+  }
+  return null;
+}
+
+function sanitizeReasoningEffortForRuntime(value, runtime) {
+  if (!isFilled(value)) return null;
+  if (runtime !== "codex_cli_exec" && runtime !== "native_agent_tools") {
+    return null;
+  }
+  const normalized = String(value).trim();
+  if (/^(true|false)$/i.test(normalized)) {
+    return null;
+  }
+  return normalized || null;
 }
 
 function inferPreferredModes(capabilities) {
@@ -314,6 +373,9 @@ function validateSetupObject(setup, projectRoot) {
 
   if (setup.preferred_execution_access_mode === "codex_cli_full_auto_bypass" && setup.preferred_execution_runtime !== "codex_cli_exec") {
     errors.push("preferred_execution_runtime must be 'codex_cli_exec' when preferred_execution_access_mode is 'codex_cli_full_auto_bypass'.");
+  }
+  if (setup.preferred_execution_access_mode === "claude_code_skip_permissions" && setup.preferred_execution_runtime !== "claude_code_exec") {
+    errors.push("preferred_execution_runtime must be 'claude_code_exec' when preferred_execution_access_mode is 'claude_code_skip_permissions'.");
   }
 
   if (!isPlainObject(setup.detected_runtime_capabilities)) {

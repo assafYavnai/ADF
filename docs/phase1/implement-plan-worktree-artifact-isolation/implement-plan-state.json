@@ -1,0 +1,382 @@
+{
+  "state_schema_version": 2,
+  "phase_number": 1,
+  "feature_slug": "implement-plan-worktree-artifact-isolation",
+  "project_root": "C:/ADF",
+  "feature_registry_key": "phase1/implement-plan-worktree-artifact-isolation",
+  "feature_status": "completed",
+  "implementor_execution_id": null,
+  "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
+  "implementor_execution_runtime": "codex_cli_exec",
+  "implementor_provider": "claude",
+  "implementor_model": "gpt-5.4",
+  "implementor_reasoning_effort": null,
+  "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "implement-plan/phase1/implement-plan-worktree-artifact-isolation",
+  "base_branch": "main",
+  "feature_branch": "implement-plan/phase1/implement-plan-worktree-artifact-isolation",
+  "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-worktree-artifact-isolation",
+  "worktree_status": "ready",
+  "merge_required": true,
+  "merge_status": "merged",
+  "approved_commit_sha": "1f6137d948cb796d04958eeed567c63b73906189",
+  "merge_commit_sha": "e5162fb7ee16e19256dff59d65e84756d962d8bb",
+  "merge_queue_request_id": null,
+  "local_target_sync_status": "fetched_only",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "1f6137d948cb796d04958eeed567c63b73906189",
+  "active_run_status": "completed",
+  "created_at": "2026-04-05T07:54:24.936Z",
+  "updated_at": "2026-04-08T09:38:01.094Z",
+  "run_timestamps": {
+    "context_collected_at": "2026-04-05T07:54:24.969Z",
+    "worktree_prepared_at": "2026-04-05T07:54:56.750Z",
+    "integrity_passed_at": null,
+    "integrity_failed_at": "2026-04-05T07:54:24.969Z",
+    "brief_written_at": null,
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": "2026-04-05T11:23:31+03:00",
+    "review_requested_at": "2026-04-05T11:20:34+03:00",
+    "human_verification_requested_at": null,
+    "merge_started_at": "2026-04-05T11:23:31+03:00",
+    "merge_finished_at": "2026-04-05T11:24:11+03:00",
+    "closeout_finished_at": "2026-04-08T09:38:01.094Z"
+  },
+  "event_log": [
+    {
+      "event_id": "event-63bb5da7-742d-4b88-976a-6935cb4461b4",
+      "event_type": "run-initialized",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T07:54:24.974Z",
+      "note": "Created a new normal execution run."
+    },
+    {
+      "event_id": "event-f430c70a-f8fa-4d63-befa-324d3e37407a",
+      "event_type": "attempt-started",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T07:54:24.976Z",
+      "note": "Created the first attempt for this execution run."
+    },
+    {
+      "event_id": "event-b2019b6c-c0dc-4224-ab85-021de4164a66",
+      "event_type": "worker-bound",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T07:54:24.977Z",
+      "note": null
+    },
+    {
+      "event_id": "event-5b58a0f7-fc11-4d80-bf40-6bfbdc032400",
+      "event_type": "contract-materialized",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T07:54:24.978Z",
+      "note": null
+    },
+    {
+      "event_id": "event-0fe74745-548d-4f61-a342-b8becf43f2a0",
+      "event_type": "contract-materialized",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T07:54:56.757Z",
+      "note": null
+    },
+    {
+      "event_id": "event-e4a7ea95-f58b-4b42-946a-7defea3ca7e4",
+      "event_type": "contract-materialized",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T07:55:06.976Z",
+      "note": null
+    },
+    {
+      "event": "review-requested",
+      "timestamp": "2026-04-05T11:20:34+03:00",
+      "note": "Review-cycle began for the worktree artifact isolation fix."
+    },
+    {
+      "event_id": "event-5772114c-dc85-4994-bcf0-36938fc174c5",
+      "event_type": "step-transition",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:20:34+03:00",
+      "note": "Review-cycle began for the worktree artifact isolation fix."
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-05T11:23:31+03:00",
+      "note": "Approved review closeout and verification were committed at 1f6137d."
+    },
+    {
+      "event_id": "event-8ffdd4f2-65fc-435a-91e8-d504a3a5ecb8",
+      "event_type": "step-transition",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:23:31+03:00",
+      "note": "Approved review closeout and verification were committed at 1f6137d."
+    },
+    {
+      "event": "completion-summary-written",
+      "timestamp": "2026-04-05T11:23:31+03:00",
+      "note": "completion-summary.md already existed in approved closeout commit 1f6137d."
+    },
+    {
+      "event_id": "event-d05fb0a1-4212-40d0-aa39-1ca204cdd077",
+      "event_type": "step-transition",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:23:31+03:00",
+      "note": "completion-summary.md already existed in approved closeout commit 1f6137d."
+    },
+    {
+      "event": "merge-finished",
+      "timestamp": "2026-04-05T11:24:11+03:00",
+      "note": "The approved branch tip was already merged to main before this governed reconciliation."
+    },
+    {
+      "event_id": "event-342dcbc1-c8f4-4990-ab2c-0219724ac399",
+      "event_type": "step-transition",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:24:11+03:00",
+      "note": "The approved branch tip was already merged to main before this governed reconciliation."
+    },
+    {
+      "event_id": "event-870fc61f-754c-46bc-b2ea-838562e09607",
+      "event_type": "state-patched",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T09:38:00.927Z",
+      "note": null
+    },
+    {
+      "event_id": "event-58a155db-cd6c-4436-9fff-d72f18f02e7c",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T09:38:01.094Z",
+      "note": "Truthful governed closeout completed after prior approved review and merged landing were reconciled."
+    }
+  ],
+  "artifacts": {
+    "readme_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/README.md",
+    "context_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/context.md",
+    "state_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-worktree-artifact-isolation"
+  },
+  "last_error": null,
+  "current_run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+      "benchmarking": null
+    },
+    "runs": {
+      "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd": {
+        "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+        "run_mode": "normal",
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
+        "contract_schema_version": 1,
+        "contract_revision": 9,
+        "feature_contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [
+          "implementor/default"
+        ],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "completed",
+            "terminal_status": "completed",
+            "started_at": "2026-04-05T07:54:24.954Z",
+            "updated_at": "2026-04-08T09:38:01.094Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Truthful governed closeout completed after prior approved review and merged landing were reconciled.",
+              "updated_at": "2026-04-08T09:38:01.094Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "machine_verification": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": "2026-04-05T11:23:31+03:00",
+                "duration_seconds": null,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "in_progress",
+                "started_at": "2026-04-05T11:20:34+03:00",
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "completed",
+                "started_at": "2026-04-05T11:23:31+03:00",
+                "completed_at": "2026-04-05T11:24:11+03:00",
+                "duration_seconds": 40,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 1,
+            "self_fix_cycle_count": 0,
+            "blockers": [],
+            "worker_bindings": {
+              "implementor/default": {
+                "worker_id": "implementor/default",
+                "lane_id": null,
+                "role": "implementor",
+                "provider": "claude",
+                "runtime": "codex_cli_exec",
+                "model": "gpt-5.4",
+                "reasoning_effort": null,
+                "access_mode": "codex_cli_full_auto_bypass",
+                "execution_id": null,
+                "bound_at": "2026-04-05T07:54:24.954Z",
+                "selection_source": {
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
+                },
+                "recreated_due_to_access": false
+              }
+            },
+            "last_checkpoint_at": "2026-04-08T09:38:01.094Z",
+            "last_event_at": "2026-04-08T09:38:01.094Z"
+          }
+        },
+        "created_at": "2026-04-05T07:54:24.955Z",
+        "updated_at": "2026-04-08T09:38:01.100Z",
+        "last_event_at": "2026-04-08T09:38:01.094Z",
+        "kpi_projection": {
+          "terminal_status": "completed",
+          "per_step_timing": {
+            "implementation": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "machine_verification": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": "2026-04-05T11:23:31+03:00",
+              "duration_seconds": null
+            },
+            "review_cycle": {
+              "status": "in_progress",
+              "started_at": "2026-04-05T11:20:34+03:00",
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "completed",
+              "started_at": "2026-04-05T11:23:31+03:00",
+              "completed_at": "2026-04-05T11:24:11+03:00",
+              "duration_seconds": 40
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 1,
+          "self_fix_cycle_count": 0,
+          "blocker_history": []
+        }
+      }
+    }
+  },
+  "__gsw_revision": 6,
+  "__gsw_write_id": "gsw-bf0fa310-d1c3-4e22-adae-1d0d0da5afdc",
+  "__gsw_timestamp": "2026-04-08T09:38:01.104Z"
+}

@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "projection_kind": "implement-plan-run-projection",
+  "feature_registry_key": "phase1/implementation-benchmarking-supervisor-skill",
+  "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+  "run_mode": "normal",
+  "updated_at": "2026-04-04T23:26:32.874Z",
+  "artifacts": {
+    "execution_contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/run-projection.v1.json",
+    "event_root": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/events/attempt-001"
+  },
+  "run": {
+    "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+    "run_mode": "normal",
+    "lifecycle_status": "completed",
+    "terminal_status": "completed",
+    "contract_schema_version": 1,
+    "contract_revision": 2,
+    "feature_contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-execution-contract.v1.json",
+    "contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/execution-contract.v1.json",
+    "projection_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/run-projection.v1.json",
+    "run_root": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+    "benchmark_context": {
+      "benchmark_run_id": null,
+      "benchmark_suite_id": null,
+      "lane_id": null,
+      "lane_label": null
+    },
+    "worker_keys": [
+      "implementor/default"
+    ],
+    "current_attempt_id": "attempt-001",
+    "attempt_counter": 1,
+    "attempts": {
+      "attempt-001": {
+        "attempt_id": "attempt-001",
+        "attempt_number": 1,
+        "status": "completed",
+        "terminal_status": "completed",
+        "started_at": "2026-04-04T22:48:31.529Z",
+        "updated_at": "2026-04-04T23:26:32.872Z",
+        "reset_at": null,
+        "reset_reason": null,
+        "superseded_by_attempt_id": null,
+        "resume_checkpoint": {
+          "step": "merge_queue",
+          "status": "completed",
+          "reason": "Resume from the last truthful normal-mode checkpoint.",
+          "updated_at": "2026-04-04T23:26:32.872Z"
+        },
+        "step_status": {
+          "implementation": {
+            "status": "completed",
+            "started_at": "2026-04-04T22:59:21.522Z",
+            "completed_at": "2026-04-04T23:13:26.513Z",
+            "duration_seconds": 845,
+            "note": null
+          },
+          "machine_verification": {
+            "status": "completed",
+            "started_at": "2026-04-04T23:13:26.513Z",
+            "completed_at": "2026-04-04T23:15:04.724Z",
+            "duration_seconds": 98,
+            "note": null
+          },
+          "review_cycle": {
+            "status": "in_progress",
+            "started_at": "2026-04-04T23:16:29.703Z",
+            "completed_at": null,
+            "duration_seconds": null,
+            "note": null
+          },
+          "human_testing": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": null,
+            "note": null
+          },
+          "merge_queue": {
+            "status": "completed",
+            "started_at": null,
+            "completed_at": "2026-04-04T23:25:47.311Z",
+            "duration_seconds": null,
+            "note": null
+          }
+        },
+        "governance_calls": [],
+        "governance_metrics": {
+          "call_count": 0,
+          "total_duration_ms": 0,
+          "total_estimated_cost_usd": 0,
+          "total_prompt_tokens_estimated": 0,
+          "total_completion_tokens_estimated": 0,
+          "total_tokens_estimated": 0
+        },
+        "verification_outcomes": [],
+        "review_cycle_count": 1,
+        "self_fix_cycle_count": 0,
+        "blockers": [],
+        "worker_bindings": {
+          "implementor/default": {
+            "worker_id": "implementor/default",
+            "lane_id": null,
+            "role": "implementor",
+            "provider": "claude",
+            "runtime": "codex_cli_exec",
+            "model": "gpt-5.4",
+            "reasoning_effort": "xhigh",
+            "access_mode": "codex_cli_full_auto_bypass",
+            "execution_id": null,
+            "bound_at": "2026-04-04T22:48:31.529Z",
+            "selection_source": {
+              "provider": "invoker_inheritance",
+              "runtime": "invoker_inheritance",
+              "access_mode": "invoker_inheritance",
+              "model": "invoker_inheritance",
+              "reasoning_effort": "invoker_inheritance"
+            },
+            "recreated_due_to_access": false
+          }
+        },
+        "last_checkpoint_at": "2026-04-04T23:26:32.872Z",
+        "last_event_at": "2026-04-04T23:26:32.808Z"
+      }
+    },
+    "created_at": "2026-04-04T22:48:31.529Z",
+    "updated_at": "2026-04-04T23:26:32.872Z",
+    "last_event_at": "2026-04-04T23:26:32.808Z",
+    "kpi_projection": {
+      "terminal_status": "completed",
+      "per_step_timing": {
+        "implementation": {
+          "status": "completed",
+          "started_at": "2026-04-04T22:59:21.522Z",
+          "completed_at": "2026-04-04T23:13:26.513Z",
+          "duration_seconds": 845
+        },
+        "machine_verification": {
+          "status": "completed",
+          "started_at": "2026-04-04T23:13:26.513Z",
+          "completed_at": "2026-04-04T23:15:04.724Z",
+          "duration_seconds": 98
+        },
+        "review_cycle": {
+          "status": "in_progress",
+          "started_at": "2026-04-04T23:16:29.703Z",
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "human_testing": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "merge_queue": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-04-04T23:25:47.311Z",
+          "duration_seconds": null
+        }
+      },
+      "governance_call_metrics": {
+        "call_count": 0,
+        "total_duration_ms": 0,
+        "total_estimated_cost_usd": 0,
+        "total_prompt_tokens_estimated": 0,
+        "total_completion_tokens_estimated": 0,
+        "total_tokens_estimated": 0
+      },
+      "verification_outcomes": [],
+      "review_cycle_count": 1,
+      "self_fix_cycle_count": 0,
+      "blocker_history": []
+    }
+  }
+}

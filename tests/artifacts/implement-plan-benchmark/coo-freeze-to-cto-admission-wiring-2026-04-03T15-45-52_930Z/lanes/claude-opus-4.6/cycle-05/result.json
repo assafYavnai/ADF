@@ -1,0 +1,49 @@
+{
+  "lane": {
+    "id": "claude-opus-4.6",
+    "display_name": "Claude Opus 4.6",
+    "cli": "claude",
+    "model": "opus-4.6",
+    "effort": "max",
+    "bypass": true,
+    "timeout_ms": 1200000
+  },
+  "cycle_number": 5,
+  "error_message": "claude failed (exit 1): ",
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "1c0b2a9d-eba9-45c9-a380-03a39397edce",
+        "provider": "claude",
+        "model": "opus-4.6",
+        "reasoning": "max",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/claude-opus-4.6/cycle-05",
+        "timestamp": "2026-04-03T15:46:49.138Z"
+      },
+      "latency_ms": 4398,
+      "success": false,
+      "session_status": "fresh",
+      "error_message": "claude failed (exit 1): ",
+      "usage": {
+        "prompt_chars": 3086,
+        "response_chars": 0,
+        "tokens_in_estimated": 772,
+        "tokens_out_estimated": 1,
+        "token_estimation_basis": "char_heuristic_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_lane_id": "claude-opus-4.6",
+        "benchmark_task_summary": "Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.",
+        "benchmark_target_slug": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 5,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

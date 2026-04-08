@@ -1,0 +1,497 @@
+{
+  "state_schema_version": 2,
+  "phase_number": 1,
+  "feature_slug": "governed-state-writer-serialization",
+  "project_root": "C:/ADF",
+  "feature_registry_key": "phase1/governed-state-writer-serialization",
+  "feature_status": "completed",
+  "implementor_execution_id": null,
+  "implementor_execution_access_mode": "claude_code_skip_permissions",
+  "implementor_execution_runtime": "claude_code_exec",
+  "implementor_provider": "claude",
+  "implementor_model": "claude-opus-4-6",
+  "implementor_reasoning_effort": null,
+  "resolved_runtime_permission_model": "claude_code_skip_permissions",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "main",
+  "base_branch": "main",
+  "feature_branch": "implement-plan/phase1/governed-state-writer-serialization",
+  "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization",
+  "worktree_status": "ready",
+  "merge_required": true,
+  "merge_status": "merged",
+  "approved_commit_sha": "fb6a90f",
+  "merge_commit_sha": "5834712edeba2268a9b678364857fc526770c0af",
+  "merge_queue_request_id": "merge-main-1-governed-state-writer-serialization-1775411811547",
+  "local_target_sync_status": "skipped_dirty_checkout",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "5834712edeba2268a9b678364857fc526770c0af",
+  "active_run_status": "completed",
+  "created_at": "2026-04-05T11:13:28.261Z",
+  "updated_at": "2026-04-05T17:57:10.721Z",
+  "run_timestamps": {
+    "context_collected_at": "2026-04-05T11:13:28.305Z",
+    "worktree_prepared_at": "2026-04-05T11:17:38.447Z",
+    "integrity_passed_at": null,
+    "integrity_failed_at": "2026-04-05T17:23:28.479Z",
+    "brief_written_at": null,
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": null,
+    "review_requested_at": null,
+    "human_verification_requested_at": null,
+    "merge_started_at": null,
+    "merge_finished_at": "2026-04-05T17:57:10.581Z",
+    "closeout_finished_at": "2026-04-05T17:57:10.721Z"
+  },
+  "event_log": [
+    {
+      "event_id": "event-8543066c-d477-498f-90af-cf155ffc0024",
+      "event_type": "run-initialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:13:28.309Z",
+      "note": "Created a new normal execution run."
+    },
+    {
+      "event_id": "event-62cfe0de-00fd-4fd8-8987-755e0b711ee7",
+      "event_type": "attempt-started",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:13:28.310Z",
+      "note": "Created the first attempt for this execution run."
+    },
+    {
+      "event_id": "event-aa13f42a-07b2-4485-a781-ebab6e190247",
+      "event_type": "worker-bound",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:13:28.311Z",
+      "note": null
+    },
+    {
+      "event_id": "event-68b7bb2d-2e06-4c05-a4eb-f40e9be4638c",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:13:28.312Z",
+      "note": null
+    },
+    {
+      "event_id": "event-ec0de7ac-693a-41b3-9121-fed808f6442e",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:15:45.238Z",
+      "note": null
+    },
+    {
+      "event_id": "event-75af7516-b4d0-4e5c-934f-0f65d09c2b2b",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:17:38.451Z",
+      "note": null
+    },
+    {
+      "event_id": "event-6c6cf167-8029-4750-ba23-25c4d1f4f96f",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:25:38.308Z",
+      "note": null
+    },
+    {
+      "event_id": "event-8e05466e-c9fe-4013-8b88-adba9a676f16",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:25:38.405Z",
+      "note": null
+    },
+    {
+      "event_id": "event-76a4e135-170f-4a27-a389-8be8ec632202",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:36:45.063Z",
+      "note": null
+    },
+    {
+      "event_id": "event-0b9d99e1-bfe0-471b-9bac-eb5e8f8781f6",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:37:09.928Z",
+      "note": null
+    },
+    {
+      "event_id": "event-67178d6f-b56c-476b-bc6a-4b2de3f10279",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:44:29.817Z",
+      "note": null
+    },
+    {
+      "event_id": "event-3d226649-ef43-46be-b73a-15429c9d15bd",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:44:54.422Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f4f23691-f54f-4306-aa38-fa372bd6ce76",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T11:48:56.735Z",
+      "note": null
+    },
+    {
+      "event_id": "event-eb545f45-8ed8-4f60-8aad-8ae365e4aa43",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T12:02:31.074Z",
+      "note": null
+    },
+    {
+      "event_id": "event-e5c75c68-f757-4421-be31-a4cab8eefbd8",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:11:48.759Z",
+      "note": null
+    },
+    {
+      "event_id": "event-184f3da5-5e03-4b4c-98c2-4a364991c36d",
+      "event_type": "contract-materialized",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:23:28.484Z",
+      "note": null
+    },
+    {
+      "event_id": "event-ec60a95b-e282-4a9f-a700-78d8a2ea2dda",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:35:37.832Z",
+      "note": null
+    },
+    {
+      "event_id": "event-90ef0e7e-69fd-44c6-93a9-c30ef66b0534",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:35:49.100Z",
+      "note": null
+    },
+    {
+      "event_id": "event-5f790067-b7b6-40cb-a1b9-b1cfed75b0a5",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:35:50.344Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7de1735d-ae46-4179-93ca-80bafe792b05",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:36:36.868Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f25faa49-c820-45cd-bd7e-a497933a774a",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:36:47.902Z",
+      "note": null
+    },
+    {
+      "event_id": "event-645f70a2-3ccb-41b9-9a5f-91bae93baf3c",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:36:49.032Z",
+      "note": null
+    },
+    {
+      "event_id": "event-ee3ac86d-4b23-41bf-822b-5681fd7ddbbe",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:37:25.720Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f797b8df-a70e-4a2e-8624-0c84f1cfe822",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:37:26.014Z",
+      "note": null
+    },
+    {
+      "event_id": "event-49989689-04f2-43c3-a2d7-e6c87c686012",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:37:29.318Z",
+      "note": null
+    },
+    {
+      "event_id": "event-a829e95c-9dc1-4dc5-812c-a3920c340aae",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:57:10.594Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c16a3d9f-710b-455d-9836-0bf6b5d9bff1",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-05T17:57:10.721Z",
+      "note": "Merged via merge-queue after approval."
+    }
+  ],
+  "artifacts": {
+    "readme_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/README.md",
+    "context_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/context.md",
+    "state_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-state-writer-serialization"
+  },
+  "last_error": null,
+  "current_run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "benchmarking": null
+    },
+    "runs": {
+      "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7": {
+        "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+        "run_mode": "normal",
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
+        "contract_schema_version": 1,
+        "contract_revision": 24,
+        "feature_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [
+          "implementor/default"
+        ],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "completed",
+            "terminal_status": "completed",
+            "started_at": "2026-04-05T11:13:28.291Z",
+            "updated_at": "2026-04-05T17:57:10.721Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Merged via merge-queue after approval.",
+              "updated_at": "2026-04-05T17:57:10.722Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "machine_verification": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "completed",
+                "started_at": null,
+                "completed_at": "2026-04-05T17:57:10.581Z",
+                "duration_seconds": null,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 0,
+            "self_fix_cycle_count": 0,
+            "blockers": [],
+            "worker_bindings": {
+              "implementor/default": {
+                "worker_id": "implementor/default",
+                "lane_id": null,
+                "role": "implementor",
+                "provider": "claude",
+                "runtime": "claude_code_exec",
+                "model": "claude-opus-4-6",
+                "reasoning_effort": null,
+                "access_mode": "claude_code_skip_permissions",
+                "execution_id": null,
+                "bound_at": "2026-04-05T11:13:28.291Z",
+                "selection_source": {
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
+                },
+                "recreated_due_to_access": false
+              }
+            },
+            "last_checkpoint_at": "2026-04-05T17:57:10.722Z",
+            "last_event_at": "2026-04-05T17:57:10.721Z"
+          }
+        },
+        "created_at": "2026-04-05T11:13:28.291Z",
+        "updated_at": "2026-04-05T17:57:10.727Z",
+        "last_event_at": "2026-04-05T17:57:10.721Z",
+        "kpi_projection": {
+          "terminal_status": "completed",
+          "per_step_timing": {
+            "implementation": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "machine_verification": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "review_cycle": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "completed",
+              "started_at": null,
+              "completed_at": "2026-04-05T17:57:10.581Z",
+              "duration_seconds": null
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 0,
+          "self_fix_cycle_count": 0,
+          "blocker_history": []
+        }
+      }
+    }
+  },
+  "__gsw_revision": 1,
+  "__gsw_write_id": "gsw-e0ba74a8-35ab-4852-a53a-71a1dba52090",
+  "__gsw_timestamp": "2026-04-05T17:23:28.487Z"
+}

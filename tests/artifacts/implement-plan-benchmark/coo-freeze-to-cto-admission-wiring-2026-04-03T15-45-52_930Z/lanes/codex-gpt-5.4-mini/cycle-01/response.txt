@@ -1,0 +1,27 @@
+Summary: Wired the live onion freeze path to build and persist CTO admission artifacts, track CTO admission state on the thread, and surface that state through serialization and docs. Added an integration test covering live handoff, decision updates, and build-failure handling.
+
+Changed files:
+- `COO/cto-admission/admission-state.ts`
+- `COO/cto-admission/live-handoff.ts`
+- `COO/cto-admission/index.ts`
+- `COO/controller/thread.ts`
+- `COO/controller/thread.test.ts`
+- `COO/requirements-gathering/live/onion-live.ts`
+- `tests/integration/coo-freeze-to-cto-admission-wiring.test.ts`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/cto-admission-request.json`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/cto-admission-decision.template.json`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/cto-admission-summary.md`
+
+Verification commands:
+- `npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts`
+- `npx.cmd tsx tests/integration/onion-route.runtime-proof.ts`
+
+Verification outcome:
+- Both commands passed.
+- The integration test run passed 30 tests, 0 failed.
+- The runtime proof regenerated files under `tests/integration/artifacts/onion-route-proof/`.
+
+Open risks:
+- The runtime proof left tracked artifact churn in `tests/integration/artifacts/onion-route-proof/`.
+- `COO/package-lock.json` is still dirty from install churn, though there is no substantive code diff.

@@ -1,0 +1,50 @@
+{
+  "lane": {
+    "id": "gemini-3-flash",
+    "display_name": "Gemini 3 Flash",
+    "cli": "gemini",
+    "model": "gemini-3-flash",
+    "bypass": true,
+    "timeout_ms": 1200000
+  },
+  "cycle_number": 1,
+  "error_message": "gemini failed (exit 1): YOLO mode is enabled. All tool calls will be automatically approved.\nLoaded cached credentials.\nYOLO mode is enabled. All tool calls will be automatically approved.\nError when talking to Gemini API Full report available at: C:\\Users\\sufin\\AppData\\Local\\Temp\\gemini-client-error-Turn.run-sendMessageStream-2026-04-03T15-46-35-829Z.json ModelNotFoundError: Requested entity was not found.\n    at classifyGoogleError (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:272938:12)\n    at retryWithBackoff (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:273607:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async GeminiChat.makeApiCallAndProcessStream (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:308672:28)\n    at async GeminiChat.streamWithRetries (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:308515:29)\n    at async Turn.run (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:309002:24)\n    at async GeminiClient.processTurn (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:312720:22)\n    at async GeminiClient.sendMessageStream (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:312833:14)\n    at async file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/gemini.js:9681:26\n    at async main (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/gemini.js:14349:5) {\n  code: 404\n}\n{\n  \"session_id\": \"6ef87760-b110-40c0-b3d1-8ccc236d6f62\",\n  \"error\": {\n    \"type\": \"Error\",\n    \"message\": \"Requested entity was not found.\",\n    \"code\": 1\n  }\n}",
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "2d3a72d9-eb26-4a19-8a99-0cc3dd24c1e6",
+        "provider": "gemini",
+        "model": "gemini-3-flash",
+        "reasoning": "default",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/gemini-3-flash/cycle-01",
+        "timestamp": "2026-04-03T15:46:36.080Z"
+      },
+      "latency_ms": 13054,
+      "success": false,
+      "session_status": "fresh",
+      "error_message": "gemini failed (exit 1): YOLO mode is enabled. All tool calls will be automatically approved.\nLoaded cached credentials.\nYOLO mode is enabled. All tool calls will be automatically approved.\nError when talking to Gemini API Full report available at: C:\\Users\\sufin\\AppData\\Local\\Temp\\gemini-client-error-Turn.run-sendMessageStream-2026-04-03T15-46-35-829Z.json ModelNotFoundError: Requested entity was not found.\n    at classifyGoogleError (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:272938:12)\n    at retryWithBackoff (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:273607:31)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async GeminiChat.makeApiCallAndProcessStream (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:308672:28)\n    at async GeminiChat.streamWithRetries (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:308515:29)\n    at async Turn.run (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:309002:24)\n    at async GeminiClient.processTurn (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:312720:22)\n    at async GeminiClient.sendMessageStream (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/chunk-QVTX2M5J.js:312833:14)\n    at async file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/gemini.js:9681:26\n    at async main (file:///C:/Users/sufin/AppData/Roaming/npm/node_modules/@google/gemini-cli/bundle/gemini.js:14349:5) {\n  code: 404\n}\n{\n  \"session_id\": \"6ef87760-b110-40c0-b3d1-8ccc236d6f62\",\n  \"error\": {\n    \"type\": \"Error\",\n    \"message\": \"Requested entity was not found.\",\n    \"code\": 1\n  }\n}",
+      "usage": {
+        "prompt_chars": 2802,
+        "response_chars": 0,
+        "tokens_in_estimated": 701,
+        "tokens_out_estimated": 1,
+        "estimated_cost_usd": 0.001057,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "gemini-3-flash",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

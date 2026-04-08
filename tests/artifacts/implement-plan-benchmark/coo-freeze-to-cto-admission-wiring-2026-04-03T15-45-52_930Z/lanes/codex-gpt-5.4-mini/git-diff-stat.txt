@@ -1,0 +1,31 @@
+COO/controller/thread.test.ts                      |    2 +
+ COO/controller/thread.ts                           |  107 +-
+ COO/cto-admission/index.ts                         |   20 +
+ COO/requirements-gathering/live/onion-live.ts      |  127 +-
+ .../coo-freeze-to-cto-admission-wiring/context.md  |    6 +
+ .../cli-production-isolation/cli-stderr.txt        |    4 +-
+ .../onion-route-proof/cli-runtime/cli-stdout.txt   |    4 +-
+ .../ef2eb202-95e2-463c-bd73-7fc9ba444f37.json      |  837 ---
+ .../ef2eb202-95e2-463c-bd73-7fc9ba444f37.txt       |   47 -
+ .../333f2234-a414-4961-a2e7-3734ce09fefb.json      |  100 -
+ .../333f2234-a414-4961-a2e7-3734ce09fefb.txt       |   23 -
+ .../30c8dadd-e780-4e0d-bd91-fe10642fe40a.json      |  100 -
+ .../30c8dadd-e780-4e0d-bd91-fe10642fe40a.txt       |   23 -
+ .../84e817b3-28c5-4920-8807-8df504b05baf.json      |  145 -
+ .../84e817b3-28c5-4920-8807-8df504b05baf.txt       |   18 -
+ .../0d424120-2a05-4fb2-858d-e31234ec5c5d.json      |  100 -
+ .../0d424120-2a05-4fb2-858d-e31234ec5c5d.txt       |   23 -
+ .../be4a47f7-c280-4652-ad1d-070c3a1325a7.json      |  100 -
+ .../be4a47f7-c280-4652-ad1d-070c3a1325a7.txt       |   23 -
+ .../ff22a377-dab3-4ec4-90bc-6bd0d68f5710.json      | 4789 ---------------
+ .../ff22a377-dab3-4ec4-90bc-6bd0d68f5710.txt       |   50 -
+ .../6edd6c61-217e-4ed5-99b4-19108afefe2c.json      | 5674 ------------------
+ .../6edd6c61-217e-4ed5-99b4-19108afefe2c.txt       |   48 -
+ .../015da15c-4fa2-499c-b2e8-e462af968c53.json      | 4680 ---------------
+ .../015da15c-4fa2-499c-b2e8-e462af968c53.txt       |   49 -
+ .../artifacts/onion-route-proof/report.json        |  501 +-
+ .../4f3e6a02-4671-487d-b51f-d2de9a0a885e.json      | 4700 ---------------
+ .../4f3e6a02-4671-487d-b51f-d2de9a0a885e.txt       |   48 -
+ .../d60fd93a-a35d-4758-9aa3-3e9f50379b02.json      | 6194 --------------------
+ .../d60fd93a-a35d-4758-9aa3-3e9f50379b02.txt       |   48 -
+ 30 files changed, 470 insertions(+), 28120 deletions(-)

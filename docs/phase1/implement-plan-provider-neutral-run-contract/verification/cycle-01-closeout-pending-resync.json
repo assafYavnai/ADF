@@ -1,0 +1,33 @@
+{
+  "command": "update-state",
+  "proof_route": "update-state(active_run_status=closeout_pending,last_completed_step=completion_summary_written) -> syncNormalRunProjectionFromState -> stable contract + run projection + compatibility state",
+  "kpi_applicability": "not required",
+  "state_assertions": {
+    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-state.json",
+    "run_id": "run-e976eb7e-72ab-435f-ad23-86c523be8985",
+    "attempt_id": "attempt-003",
+    "active_run_status": "closeout_pending",
+    "last_completed_step": "completion_summary_written",
+    "merge_status": "not_ready",
+    "local_target_sync_status": "not_started"
+  },
+  "projection_assertions": {
+    "run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implementation-run/run-e976eb7e-72ab-435f-ad23-86c523be8985/run-projection.v1.json",
+    "attempt_status": "closeout_pending",
+    "resume_checkpoint": {
+      "step": "machine_verification",
+      "status": "completed",
+      "reason": "Resume from the last truthful normal-mode checkpoint."
+    }
+  },
+  "worker_selection_assertions": {
+    "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-provider-neutral-run-contract/docs/phase1/implement-plan-provider-neutral-run-contract/implement-plan-execution-contract.v1.json",
+    "selection_source": {
+      "provider": "persisted_continuity",
+      "runtime": "persisted_continuity",
+      "access_mode": "persisted_continuity",
+      "model": "persisted_continuity",
+      "reasoning_effort": "persisted_continuity"
+    }
+  }
+}

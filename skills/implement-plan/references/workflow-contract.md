@@ -1,63 +1,48 @@
 # Implement-Plan Workflow Contract
 
-Use this file as the execution contract for the skill.
+Use this file as the authoritative reference for the repo-owned `implement-plan` runtime contract.
 
 ## Inputs
 
 Required for `action=prepare` and `action=run`:
 
 - `project_root`
-- `phase_number` positive integer
-- `feature_slug` safe feature-stream slug
+- `phase_number`
+- `feature_slug`
 - `task_summary`
 
-Optional:
+Optional contract inputs:
 
 - `scope_hint`
 - `non_goals`
+- `run_mode` with allowed values `normal` or `benchmarking`; default `normal`
+- `worker_provider`
+- `worker_runtime`
+- `worker_access_mode`
+- `worker_model`
+- `worker_reasoning_effort`
 - `implementor_model`
 - `implementor_reasoning_effort`
 - `feature_status_override`
-- `post_send_to_review` default `false`
-- `post_send_for_review` deprecated compatibility alias for `post_send_to_review`
-- `review_until_complete` default `false`; only valid when `post_send_to_review=true`
-- `review_max_cycles` optional positive integer; only valid when `review_until_complete=true`
-
-## Review handoff flags
-
-Resolve `post_send_to_review` first and treat `post_send_for_review` only as a deprecated compatibility alias.
+- `post_send_to_review`
+- `post_send_for_review` as a deprecated compatibility alias
+- `review_until_complete`
+- `review_max_cycles`
+- `benchmark_run_id`
+- `benchmark_suite_id`
+- `benchmark_lane_id`
+- `benchmark_lane_label`
 
 Rules:
 
-- do not invoke `review-cycle` unless the resolved post-review handoff flag is `true`
-- if `review_until_complete=true`, pass `until_complete=true` to `review-cycle`
-- if `review_max_cycles` is provided, pass `max_cycles=<value>` to `review-cycle`
-- if `review_until_complete=true` and `review_max_cycles` is omitted, let `review-cycle` use its default cap of `5`
-- reject `review_until_complete` or `review_max_cycles` when post-review handoff is not enabled
-- reject `review_max_cycles` when `review_until_complete=false`
+- `feature_slug` must be a safe slash-separated feature-stream slug
+- normal mode may override only runtime/policy knobs such as provider, runtime, access mode, model, and reasoning effort
+- normal mode must not expose operator-controlled route shortcuts
+- benchmarking fields may exist in the same contract, but Spec 1 stops at contract/substrate preparation and must not execute supervisor logic
 
-## Feature slug safety
+## Path Resolution
 
-`feature_slug` must be safe for filesystem use.
-
-Allowed:
-
-- slash-separated segments
-- letters, numbers, dot, underscore, dash
-
-Forbidden:
-
-- empty segments
-- `.` or `..`
-- leading slash
-- trailing slash
-- backslash-based path escape
-
-The helper must reject unsafe slugs instead of resolving them.
-
-## Path variables
-
-The helper must resolve and return at minimum:
+The helper must resolve and surface at minimum:
 
 - `project_root`
 - `phase_number`
@@ -70,8 +55,49 @@ The helper must resolve and return at minimum:
 - `features_index_path`
 - `templates_root`
 - `references_root`
+- `state_path`
 
-## Project-level artifacts
+## Feature Artifact Layout
+
+Feature root:
+
+- `<project_root>/docs/phase<phase_number>/<feature_slug>/`
+
+Stable feature artifacts:
+
+```text
+<feature_root>/
+  README.md
+  context.md
+  implement-plan-state.json
+  implement-plan-contract.md
+  implement-plan-execution-contract.v1.json
+  implement-plan-pushback.md
+  implement-plan-brief.md
+  implementation-run/
+  completion-summary.md
+```
+
+Run-scoped execution artifacts:
+
+```text
+<feature_root>/implementation-run/<run-id>/
+  execution-contract.v1.json
+  run-projection.v1.json
+  events/
+    <attempt-id>/
+      <timestamp>-<event-id>.json
+```
+
+Rules:
+
+- `implement-plan-execution-contract.v1.json` is the stable repo-owned contract path shared by `prepare` and `run`
+- `implementation-run/<run-id>/execution-contract.v1.json` is the run-scoped snapshot for the same schema
+- `run-projection.v1.json` is the mutable reduced projection for that run
+- append-only attempt event files are the durable mutation log
+- `implement-plan-state.json` remains the compatibility projection for current callers; it is not the only execution truth
+
+## Project-Level State
 
 Project-level state root:
 
@@ -79,64 +105,13 @@ Project-level state root:
 
 Project-level files:
 
-- `<project_root>/.codex/implement-plan/setup.json`
-- `<project_root>/.codex/implement-plan/agent-registry.json`
-- `<project_root>/.codex/implement-plan/features-index.json`
-- `<project_root>/.codex/implement-plan/worktrees/...`
+- `setup.json`
+- `agent-registry.json`
+- `features-index.json`
+- `locks/...`
+- `worktrees/...`
 
-Feature root:
-
-- `<project_root>/docs/phase<phase_number>/<feature_slug>/`
-
-Feature artifact layout:
-
-```text
-<project_root>/docs/phase<phase_number>/<feature_slug>/
-  README.md
-  context.md
-  implement-plan-state.json
-  implement-plan-contract.md
-  implement-plan-pushback.md
-  implement-plan-brief.md
-  implementation-run/
-  completion-summary.md
-```
-
-Optional inherited supporting artifacts that may already exist under the same feature root:
-
-- `cycle-XX/audit-findings.md`
-- `cycle-XX/review-findings.md`
-- `cycle-XX/fix-plan.md`
-- `cycle-XX/fix-report.md`
-- related spec, architecture, context, settings, or preference docs
-
-## setup.json contract
-
-Persist this shape under `<project_root>/.codex/implement-plan/setup.json`:
-
-```json
-{
-  "project_root": "C:/ExampleProject",
-  "preferred_execution_access_mode": "codex_cli_full_auto_bypass",
-  "preferred_implementor_access_mode": "codex_cli_full_auto_bypass",
-  "fallback_execution_access_mode": "inherits_current_runtime_access",
-  "runtime_permission_model": "codex_cli_explicit_full_auto",
-  "execution_access_notes": "CLI full-auto plus bypass is the strongest truthful worker mode available here.",
-  "preferred_execution_runtime": "codex_cli_exec",
-  "preferred_control_plane_runtime": "native_agent_tools",
-  "persistent_execution_strategy": "per_feature_agent_registry",
-  "preferred_implementor_model": "gpt-5.4",
-  "preferred_implementor_reasoning_effort": "xhigh",
-  "requires_project_specific_permission_rules": false,
-  "project_specific_permission_rules": [],
-  "detected_runtime_capabilities": {},
-  "setup_schema_version": 1,
-  "created_at": "ISO-8601",
-  "updated_at": "ISO-8601"
-}
-```
-
-Required setup fields:
+`setup.json` must include truthful worker/runtime defaults and capability detection, including:
 
 - `preferred_execution_access_mode`
 - `preferred_implementor_access_mode`
@@ -144,95 +119,37 @@ Required setup fields:
 - `runtime_permission_model`
 - `execution_access_notes`
 - `preferred_execution_runtime`
+- `preferred_control_plane_runtime` when available
 - `persistent_execution_strategy`
+- `preferred_implementor_model`
+- `preferred_implementor_reasoning_effort`
+- `detected_runtime_capabilities`
+- `llm_tools` — object keyed by tool name, each entry containing `{ command_name, available, path, version, autonomous_invoke }` as detected by preflight; empty object `{}` when preflight is unavailable or detects no tools
 
-Validation rules:
+## Identity Model
 
-- `project_root` must match the requested project root
-- `preferred_execution_access_mode` and `preferred_implementor_access_mode` must be supported enum values
-- `runtime_permission_model` must be a supported enum value
-- `preferred_execution_runtime` must be a supported enum value
-- `preferred_control_plane_runtime` must be a supported enum value when present
-- `persistent_execution_strategy` must be a supported enum value
-- if `preferred_execution_access_mode` is `codex_cli_full_auto_bypass`, then `preferred_execution_runtime` must be `codex_cli_exec`
-- `detected_runtime_capabilities` must be an object
-- `project_specific_permission_rules` must be an array
-- setup is incomplete if missing, unparsable, stale, or internally inconsistent
+The runtime must preserve distinct durable identities for:
 
-## agent-registry.json contract
-
-Persist this shape under `<project_root>/.codex/implement-plan/agent-registry.json`:
-
-```json
-{
-  "version": 1,
-  "features": {
-    "phase1/example-feature": {
-      "phase_number": 1,
-      "feature_slug": "example-feature",
-      "feature_root": "C:/ExampleProject/docs/phase1/example-feature",
-      "implementor_execution_id": "agent-123",
-      "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
-      "implementor_model": "gpt-5.4",
-      "implementor_reasoning_effort": "xhigh",
-      "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
-      "updated_at": "ISO-8601"
-    }
-  }
-}
-```
+- feature identity: project root, phase number, feature slug, registry key
+- run identity: `run_mode`, `run_id`
+- attempt identity: `attempt_id`, `attempt_number`
+- worker identity: `worker_id`
+- lane identity: benchmark lane ID when applicable
 
 Rules:
 
-- the registry key must be stable per feature stream and safe for parallel feature work
-- update the registry whenever implementor execution identity or execution access details change
-- do not erase a valid cached execution ID merely because the current invocation did not refresh that lane
-- if the registry is missing or malformed, treat it as empty and rebuild conservatively
+- feature identity must remain stable across attempts and resets
+- reset must create a new attempt identity, not a new feature identity
+- worker identity must remain distinct from execution IDs so cached execution reuse can change without collapsing the worker role/lane identity
+- lane identity is nullable in normal mode and explicit in benchmarking mode
 
-## features-index.json contract
+## Stable Helper State
 
-Persist this shape under `<project_root>/.codex/implement-plan/features-index.json`:
-
-```json
-{
-  "version": 1,
-  "updated_at": "ISO-8601",
-  "features": {
-    "phase1/example-feature": {
-      "phase_number": 1,
-      "feature_slug": "example-feature",
-      "feature_root": "C:/ExampleProject/docs/phase1/example-feature",
-      "feature_status": "active",
-      "active_run_status": "context_ready",
-      "merge_status": "not_ready",
-      "last_completed_step": "context_collected",
-      "last_commit_sha": null,
-      "updated_at": "ISO-8601"
-    }
-  }
-}
-```
-
-Feature status values:
-
-- `active`
-- `blocked`
-- `completed`
-- `closed`
-
-Rules:
-
-- `active` and `blocked` are open features
-- `completed` and `closed` are not open features
-- `action=run` must fail for `completed` and `closed`
-- `action=mark-complete` must update both the feature-local state and this index
-
-## implement-plan-state.json contract
-
-Persist this shape under the feature root:
+`implement-plan-state.json` must carry the current compatibility projection. At minimum it includes:
 
 ```json
 {
+  "state_schema_version": 2,
   "phase_number": 1,
   "feature_slug": "example-feature",
   "project_root": "C:/ExampleProject",
@@ -240,6 +157,8 @@ Persist this shape under the feature root:
   "feature_status": "active",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": null,
+  "implementor_execution_runtime": null,
+  "implementor_provider": null,
   "implementor_model": null,
   "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": null,
@@ -255,277 +174,427 @@ Persist this shape under the feature root:
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "last_completed_step": null,
+  "last_completed_step": "context_collected",
   "last_commit_sha": null,
-  "active_run_status": "idle",
-  "created_at": "ISO-8601",
+  "active_run_status": "context_ready",
+  "run_timestamps": {},
+  "event_log": [],
+  "artifacts": {},
+  "current_run_id": "run-...",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "run-...",
+      "benchmarking": null
+    },
+    "runs": {}
+  }
+}
+```
+
+Rules:
+
+- repairs must be conservative and explicit
+- when the compatibility state is missing or damaged, the helper may recover execution runs from run projections
+- the helper must keep the legacy top-level compatibility fields synchronized from the active normal run
+
+## Project Index Contracts
+
+`agent-registry.json` stores per-feature worker continuity. At minimum each active entry may include:
+
+```json
+{
+  "phase_number": 1,
+  "feature_slug": "example-feature",
+  "feature_root": "C:/ExampleProject/docs/phase1/example-feature",
+  "current_run_id": "run-...",
+  "current_attempt_id": "attempt-001",
+  "current_worker_id": "implementor/default",
+  "implementor_execution_id": "cached-impl-001",
+  "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
+  "implementor_execution_runtime": "codex_cli_exec",
+  "implementor_provider": "codex",
+  "implementor_model": "gpt-5.4",
+  "implementor_reasoning_effort": "xhigh",
+  "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+  "execution_contract_path": "C:/.../implement-plan-execution-contract.v1.json",
+  "execution_run_contract_path": "C:/.../implementation-run/run-.../execution-contract.v1.json",
+  "execution_run_projection_path": "C:/.../implementation-run/run-.../run-projection.v1.json",
+  "updated_at": "ISO-8601"
+}
+```
+
+`features-index.json` stores per-feature discovery summary. At minimum each entry may include:
+
+```json
+{
+  "phase_number": 1,
+  "feature_slug": "example-feature",
+  "feature_root": "C:/ExampleProject/docs/phase1/example-feature",
+  "feature_status": "active",
+  "active_run_status": "context_ready",
+  "current_run_id": "run-...",
+  "current_attempt_id": "attempt-001",
+  "normal_run_id": "run-...",
+  "benchmarking_run_id": null,
+  "execution_contract_path": "C:/.../implement-plan-execution-contract.v1.json",
+  "execution_run_projection_path": "C:/.../implementation-run/run-.../run-projection.v1.json",
+  "merge_status": "not_ready",
+  "last_completed_step": "context_collected",
+  "last_commit_sha": null,
   "updated_at": "ISO-8601"
 }
 ```
 
 Rules:
 
-- state repairs must be conservative and explicit
-- merge continuity from `agent-registry.json` when safe
-- do not mark the slice completed until git push succeeds, unless a clearly pending-closeout status is persisted
+- do not erase a valid cached execution ID merely because the current invocation did not refresh that lane
+- project indexes must remain conservative summaries, not a replacement for feature-local execution truth
 
-## Supported active_run_status values
+## Execution Contract Schema
 
-At minimum support:
+The stable contract file and the run-scoped snapshot share the same schema:
 
-- `idle`
-- `context_ready`
-- `integrity_failed`
-- `brief_ready`
-- `implementation_running`
-- `verification_pending`
-- `review_pending`
-- `human_verification_pending`
-- `merge_ready`
-- `merge_queued`
-- `merge_in_progress`
-- `merge_blocked`
-- `closeout_pending`
-- `completed`
-- `blocked`
-
-## Transparent setup rule
-
-The main skill must:
-
-1. load and validate setup internally
-2. internally refresh setup when it is missing or invalid
-3. continue automatically after setup refresh
-4. not require a user-visible separate setup invocation in normal use
-5. use the internal `implement-plan-setup-helper.mjs`, not a separate public setup skill
-
-## Context/input pack rule
-
-The helper must build a normalized implementation-input pack from all relevant artifacts when present.
-
-At minimum collect and categorize:
-
-- feature README and context docs
-- saved implementation contract docs
-- current plan docs
-- audit docs
-- review docs
-- fix-plan and fix-report docs
-- relevant architecture, context, spec docs
-- settings and preference docs
-- current per-feature state
-
-## Integrity gate rule
-
-Before any implementor worker starts, the main skill must verify:
-
-- the contract explicitly states `KPI Applicability: required`, `KPI Applicability: not required`, or `KPI Applicability: temporary exception approved`
-- if KPI is required or covered by a temporary exception, the contract explicitly freezes:
-  - `KPI Route / Touched Path`
-  - `KPI Raw-Truth Source`
-  - `KPI Coverage / Proof`
-  - `KPI Production / Proof Partition`
-- if KPI is not required, the contract includes `KPI Non-Applicability Rationale`
-- if a temporary KPI exception is used, the contract also includes:
-  - `KPI Exception Owner`
-  - `KPI Exception Expiry`
-  - `KPI Exception Production Status`
-  - `KPI Compensating Control`
-- required implementation contract exists or a valid equivalent source is available
-- the plan is explicit and internally coherent
-- required deliverables are clear
-- allowed edits and forbidden edits are clear
-- acceptance gates are clear
-- `Machine Verification Plan` exists
-- `Human Verification Plan` exists
-- `Human Verification Plan` states `Required: true|false`
-- if `Human Verification Plan` says `Required: true`, the slice is configured with `post_send_to_review=true`
-- if `Human Verification Plan` says `Required: true`, the plan also includes explicit testing-phase instructions, expected results, evidence to report back, and `APPROVED` / `REJECTED: <comments>` response guidance
-- observability or audit expectations are clear when required
-- dependencies, constraints, and non-goals are explicit enough
-- upstream context is sufficient to implement without business guessing
-- the feature is still active/open
-- the target slice is bounded and product-shaped, not broad speculative refactoring
-- a deterministic base branch, feature branch, and worktree path can be resolved for the feature stream
-
-If integrity fails:
-
-- do not spawn the implementor
-- write `implement-plan-pushback.md`
-- surface concise pushback
-- preserve resumable state
-
-If integrity passes:
-
-- write or refresh `implement-plan-contract.md` if normalization is needed
-- write `implement-plan-brief.md`
-- spawn or resume the implementor
-
-## KPI applicability gate
-
-Every implementation slice must make KPI applicability explicit before implementation may begin.
+```json
+{
+  "schema_version": 1,
+  "contract_kind": "implement-plan-execution",
+  "contract_revision": 1,
+  "prepared_at": "ISO-8601",
+  "feature_identity": {
+    "project_root": "C:/ExampleProject",
+    "phase_number": 1,
+    "feature_slug": "example-feature",
+    "feature_registry_key": "phase1/example-feature",
+    "feature_root": "C:/ExampleProject/docs/phase1/example-feature"
+  },
+  "run_identity": {
+    "run_mode": "normal",
+    "run_id": "run-...",
+    "attempt_id": "attempt-001",
+    "attempt_number": 1,
+    "lane_id": null,
+    "worker_id": "implementor/default"
+  },
+  "invoker_runtime": {},
+  "worker_selection": {
+    "defaults": {},
+    "continuity": {},
+    "overrides": {},
+    "resolved": {},
+    "resolved_sources": {},
+    "inheritance": {}
+  },
+  "route_policy": {
+    "normal_mode_governed_flow": [
+      "implementation",
+      "machine_verification",
+      "review_cycle",
+      "human_testing",
+      "merge_queue"
+    ],
+    "supported_operator_stop_surface": false,
+    "supported_reset_surface": "helper-reset-attempt",
+    "normal_mode_shortcuts_allowed": false
+  },
+  "review_handoff": {},
+  "benchmarking": {
+    "enabled": false,
+    "supervisor_status": "not_applicable",
+    "benchmark_run_id": null,
+    "benchmark_suite_id": null,
+    "lane_id": null,
+    "lane_label": null
+  },
+  "resume_policy": {
+    "resumable_after_crash_or_kill": true,
+    "reuse_cached_workers_when_valid": true,
+    "recreate_workers_when_invalid": true,
+    "last_truthful_checkpoint": {}
+  },
+  "reset_policy": {
+    "supported": true,
+    "behavior": "new_attempt_from_implementation_preserving_history",
+    "next_attempt_number": 2
+  },
+  "kpi_policy": {
+    "source": "governed_production_flow",
+    "step_timing_enabled": true,
+    "governance_call_timing_enabled": true,
+    "verification_outcomes_enabled": true,
+    "review_and_self_fix_counts_enabled": true,
+    "blocker_classification_enabled": true,
+    "terminal_status_enabled": true
+  },
+  "integrity": {},
+  "artifacts": {
+    "state_path": "C:/.../implement-plan-state.json",
+    "markdown_contract_path": "C:/.../implement-plan-contract.md",
+    "execution_contract_path": "C:/.../implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/.../implementation-run/run-.../execution-contract.v1.json",
+    "run_projection_path": "C:/.../implementation-run/run-.../run-projection.v1.json",
+    "execution_run_root": "C:/.../implementation-run/run-...",
+    "event_root": "C:/.../implementation-run/run-.../events/attempt-001",
+    "worktree_path": "C:/.../worktrees/phase1/example-feature"
+  }
+}
+```
 
 Rules:
 
-- do not allow a slice to stay silent on KPI applicability
-- when KPI is required, freeze the route or touched path, the raw KPI truth source, the KPI coverage or proof expected, and the production or proof partition handling
-- when KPI is not required, require a narrow rationale that says why the slice is outside the KPI rule instead of omitting KPI discussion
-- when a temporary exception is used, require explicit approval status, owner, expiry, compensating control, and an explicit not-production-complete statement
-- do not let vague observability wording stand in for the required KPI contract fields
+- `contract_revision` increments when the stable contract materially changes
+- the feature-root contract is the canonical repo-owned path for the active run/attempt
+- the run-scoped contract snapshot preserves the same schema within the run root
+- every normal-mode mutator that changes the active run, attempt, resume checkpoint, or closeout state must refresh both contract files so they stay aligned with the compatibility state and the run projection
+- the contract may contain benchmarking fields in both modes, but normal mode behavior must not weaken
+- `worker_selection.defaults` must stay reserved for current invoker/runtime defaults, while persisted feature-local reuse must be surfaced separately under `worker_selection.continuity`
 
-## Worker mode rule
+## Run Projection Schema
 
-Use the strongest truthful worker mode available.
+Each run keeps a mutable reduced projection:
 
-Rules:
-
-- if native worker access is weaker than CLI full-auto bypass, prefer CLI worker mode and record why
-- keep worker runtime distinct from control-plane runtime
-- default implementor target is `gpt-5.4` with `xhigh` reasoning, or the strongest truthful equivalent available
-- persist the actual worker runtime, access mode, model, and reasoning effort used
-
-## Verification flow rule
-
-The implementation flow must stay truthful and minimal:
-
-1. implement
-2. run the machine-verification loop
-3. if configured, send the slice to `review-cycle` against the feature worktree snapshot
-4. if human verification is required and the route-level review approved, enter the human-testing phase
-5. after human approval, run a final sanity `review-cycle` only if code changed after human approval
-6. when approval gates are satisfied, enqueue the exact approved commit into `merge-queue`
-7. close only when every required verification gate is satisfied and the merge queue reports merge success truthfully
-
-Rules:
-
-- machine verification is mandatory for every code-changing slice
-- rerun machine verification after every code change until it passes or blocks
-- when human verification is required, do not claim the slice is complete before the testing-phase handoff is surfaced
-- when human verification is required, `post_send_to_review` must be enabled because human testing happens only after the first route-level `review-cycle` gate
-- if human verification is required, use review-cycle as the route-closure gate before handing the slice to human testing
-- if human testing rejects, return to code fix plus machine verification before re-requesting human testing
-- when code changes after human approval, any sanity-pass fix must preserve approved human-facing behavior or the human approval becomes stale
-- implementation, machine verification, and review-cycle all operate against the dedicated feature worktree rather than the shared base checkout
-- approval on the feature branch is merge-ready state, not completed state
-
-## Human-testing handoff rule
-
-When human verification is required, the handoff must clearly say the slice is in the testing phase.
-
-Use this fixed message shape:
-
-- `IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING`
-- short executive summary of implemented behavior
-- `IMPLEMENTATION IS READY FOR TESTING`
-- exact testing sequence, expected results, and evidence to report back
-- explicit response contract using `APPROVED` or `REJECTED: <comments>`
-- `IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING`
-
-## Human-facing report rule
-
-The user-facing artifacts for this workflow are reports, not raw dumps.
+```json
+{
+  "schema_version": 1,
+  "projection_kind": "implement-plan-run-projection",
+  "feature_registry_key": "phase1/example-feature",
+  "run_id": "run-...",
+  "run_mode": "normal",
+  "updated_at": "ISO-8601",
+  "artifacts": {
+    "execution_contract_path": "C:/.../implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/.../implementation-run/run-.../execution-contract.v1.json",
+    "run_projection_path": "C:/.../implementation-run/run-.../run-projection.v1.json",
+    "event_root": "C:/.../implementation-run/run-.../events/attempt-001"
+  },
+  "run": {
+    "run_id": "run-...",
+    "run_mode": "normal",
+    "lifecycle_status": "active",
+    "terminal_status": null,
+    "contract_schema_version": 1,
+    "contract_revision": 1,
+    "feature_contract_path": "C:/.../implement-plan-execution-contract.v1.json",
+    "contract_path": "C:/.../implementation-run/run-.../execution-contract.v1.json",
+    "projection_path": "C:/.../implementation-run/run-.../run-projection.v1.json",
+    "benchmark_context": {},
+    "worker_keys": [
+      "implementor/default"
+    ],
+    "current_attempt_id": "attempt-001",
+    "attempt_counter": 1,
+    "attempts": {},
+    "kpi_projection": {}
+  }
+}
+```
 
 Rules:
 
-- `implement-plan-pushback.md`, `implement-plan-brief.md`, `completion-summary.md`, and the testing handoff must be easy for a human to scan quickly
-- lead with the most important current outcome
-- keep sections short and use concise bullets when the content is list-shaped
-- separate status, findings or blockers, and next actions instead of blending them into one paragraph wall
-- reference long evidence instead of pasting it inline unless exact text is required
+- the run projection is the preferred mutable reduced state for a run
+- the helper may recover execution runs from these projections when the compatibility state is missing or damaged
 
-## Thread-safety rule
+## Event Log Schema
 
-The skills may be invoked concurrently.
+Attempt events are append-only JSON documents with at minimum:
 
-Therefore:
+```json
+{
+  "schema_version": 1,
+  "event_type": "step-transition",
+  "feature_registry_key": "phase1/example-feature",
+  "run_id": "run-...",
+  "run_mode": "normal",
+  "attempt_id": "attempt-001",
+  "occurred_at": "ISO-8601",
+  "event_id": "event-...",
+  "payload": {}
+}
+```
 
-- use per-feature isolation so different feature streams do not collide
-- use atomic JSON persistence
-- use narrow locks for feature-local and project-level shared files
-- make locks stale-safe and deterministic
-- never allow one feature invocation to corrupt another feature stream
+Supported event families in Spec 1:
 
-## Main action behavior
+- `run-initialized`
+- `attempt-started`
+- `attempt-reset`
+- `contract-materialized`
+- `worker-bound`
+- `state-patched`
+- `step-transition`
+- `governance-call-recorded`
+- `verification-recorded`
+- `blocker-recorded`
+- `terminal-status-recorded`
 
-`action=help`
+Rules:
 
-- return concise help with current settings summary and current active/open features summary
+- event files must be append-only
+- event writes may use a narrow per-feature lock in this slice
+- future benchmark-driven review-cycle parallelism must be able to reduce from the event stream and run projections without depending only on one whole-feature JSON file
+- `terminal-status-recorded` must not create normal-mode completion truth until the guarded `mark-complete` route has already frozen merge-backed closeout evidence
 
-`action=get-settings`
+## Run-Mode Rules
 
-- return the resolved current settings used by the skill
+Normal mode:
 
-`action=list-features`
+- is the governed production route
+- prepares the feature worktree
+- may spawn or resume the implementor
+- must preserve the strict route:
+  - implementation
+  - machine verification
+  - review-cycle when required
+  - human testing when required
+  - merge-queue
+  - completed only after truthful merge success
 
-- return active/open/completed/closed features in compact structured form
+Benchmarking mode in Spec 1:
+
+- uses the same contract schema
+- materializes run identity, lane identity, worker selection, event root, and KPI substrate
+- does not execute benchmark supervision or matrix orchestration
+- must not weaken normal-mode behavior
+
+## Worker-Selection Rules
+
+Worker selection must be provider-neutral.
+
+Resolution order:
+
+1. explicit override
+2. persisted feature-local worker settings
+3. invoker/runtime defaults from setup and runtime detection
+
+The helper must surface:
+
+- `defaults`
+- `continuity`
+- `overrides`
+- `resolved`
+- `resolved_sources` with per-field values `explicit_override`, `persisted_continuity`, or `invoker_inheritance`
+- `inheritance` flags that show which values were inherited directly from the current invoker/runtime defaults
+
+## Worker Spawn Pattern
+
+To spawn a non-default worker, use the `autonomous_invoke` from `available_workers` (returned by `resolveWorkerSelection()` and surfaced at the top level of the prepare output) or from `setup.json` `llm_tools`:
+
+```bash
+bash -c '<autonomous_invoke> "<prompt_or_file>"'
+```
+
+Where `<autonomous_invoke>` is the full autonomous invocation prefix for the tool (e.g. `codex exec --full-auto --dangerously-auto-approve`, `claude --dangerously-skip-permissions`, `gemini`) and `<prompt_or_file>` is the prompt string or path to the prompt file.
+
+Rules:
+
+- only spawn workers whose `available` is `true` in `llm_tools` or that appear in `available_workers`
+- use the `autonomous_invoke` value exactly as provided; do not construct invocation strings manually
+- if no non-default workers are available, fall back to the resolved default worker from `worker_selection`
+
+## Resume And Reset Rules
+
+Resume:
+
+- there is no supported in-band operator stop surface once the run starts
+- crash, kill, or external interruption must remain resumable
+- when a cached execution ID remains valid and access is sufficient, the route should resume that worker
+- when cached execution is invalid or under-permissioned, recreate only what is necessary and continue from the last truthful checkpoint
+
+Reset:
+
+- `reset-attempt` is the explicit helper surface
+- reset starts a new attempt from implementation
+- reset preserves prior attempt history and event files
+- reset invalidates later-step status for the prior attempt without erasing history
+- reset may optionally clear execution identity
+
+## Verification And Completion Rules
+
+Normal route closure must remain truthful:
+
+1. implementation
+2. machine verification
+3. review-cycle when configured or required by the route
+4. human testing when required
+5. merge-queue
+6. completed only after merge success and truthful local target sync status
+
+Rules:
+
+- approval on the feature branch is merge-ready, not completed
+- do not claim completion if merge evidence is missing
+- merged-but-not-completed state may keep `active_run_status=closeout_pending`, but `merge_status`, `step_status.merge_queue`, and the resume checkpoint must still agree that merge work already completed
+- do not treat `local_target_sync_status=not_started` as truthful closeout evidence
+- `mark-complete` must fail closed unless merge truth, recorded local target sync truth, and completion-summary evidence exist
+
+## KPI Rules
+
+Use KPI truth from the real governed route itself.
+
+The run projection must support at minimum:
+
+- per-step timing
+- per-governance-call timing
+- estimated prompt/completion/total tokens when available
+- estimated governance-call cost when available
+- verification outcomes
+- review cycle count
+- self-fix cycle count
+- blocker classification
+- terminal status
+
+Do not introduce a benchmark-only scoring subsystem in this slice.
+
+## Thread-Safety Rule
+
+- use narrow feature-local and project-level locks where mutation is still shared
+- keep append-only event files and run-scoped projections under the feature root
+- do not rely on unsafe shared whole-file read-modify-write state as the only durable execution truth
+- keep repairs deterministic and conservative
+
+## Main Action Behavior
 
 `action=prepare`
 
-- do setup validation or refresh
-- load feature state and lifecycle status
-- fail clearly for completed/closed features
-- build the normalized context/input pack
+- validate or refresh setup
+- normalize feature context
 - run the integrity gate
-- write pushback or brief artifacts accordingly
-- stop before implementor spawn
+- write pushback on failure
+- materialize the stable execution contract, run-scoped contract snapshot, run projection, and initial events
+- return `run_allowed=true` only for runnable normal mode
+- return `benchmark_contract_ready=true` only for runnable benchmarking substrate preparation
 
 `action=run`
 
-- perform all of `prepare`
-- create or reuse the deterministic feature worktree before implementor execution
-- spawn or resume the implementor when integrity passes
-- wait for completion
-- run the machine-verification loop until it passes or blocks
-- verify outputs
-- write `completion-summary.md`
-- commit and push all feature artifacts on the feature branch
-- if `post_send_to_review=false` and human verification is not required, stop at merge-ready state and enqueue the approved commit instead of marking the feature completed immediately
-- if `post_send_to_review=true`, invoke `review-cycle` for the same feature stream after machine verification using the feature worktree as `repo_root`
-- if `post_send_to_review=true` and `review_until_complete=true`, pass `until_complete=true` to `review-cycle` and let `review-cycle` default `max_cycles` to `5` unless `review_max_cycles` was supplied
-- if human verification is required, do not mark the feature completed until the human-testing phase and any required post-human-approval sanity review are both satisfied
-- after approval gates are satisfied, enqueue the exact approved commit in `merge-queue`
-- do not mark the feature completed until `merge-queue` updates the feature to merged and completion closeout succeeds
+- the skill invoker performs all of `prepare`
+- in normal mode, the invoker then executes the governed route using the returned contract and execution projection
+- in benchmarking mode, Spec 1 stops at contract/substrate preparation
 
 `action=mark-complete`
 
-- require a target feature stream
-- persist completion in both state and index only after merge success evidence exists
-- remove the feature from active/open output
+- require merge success evidence, recorded local target sync truth, and a valid `completion-summary.md`
+- update both the compatibility state and the active normal execution projection
+- append terminal completion evidence
 
-## Git closeout rule
+## Completion Summary Rule
 
-Successful implementation is not final until:
+`completion-summary.md` remains the human-facing closeout artifact and must distinguish at minimum:
 
-- feature-branch code changes are committed
-- feature-branch artifacts are committed
-- docs/specs/contracts updates are committed
-- feature-branch changes are pushed to origin
-- the approved commit is merged into the target branch
-- target-branch sync state is recorded truthfully
-
-If commit or push fails:
-
-- preserve artifacts
-- surface the exact failure
-- keep the state truthful with a pending-closeout status instead of completed
-
-## Completion summary rule
-
-When successful, `completion-summary.md` must include at minimum:
-
-- implementation objective completed
-- deliverables produced
-- files changed
-- verification evidence
-- artifacts updated
-- commit and push result
-- remaining non-goals or debt
-
-Section `4. Verification Evidence` must distinguish at minimum:
-
-- machine verification status and evidence
+- machine verification status
 - human verification requirement
 - human verification status
 - review-cycle status
 - merge status
 - local target sync status
+
+The helper owns a `normalize-completion-summary` command that rewrites an existing (possibly malformed) `completion-summary.md` to satisfy the exact required heading contract. This must be called before merge to ensure closeout truth is contract-valid.
+
+The helper owns a `validate-closeout-readiness` command that checks pre-merge readiness. Pre-merge readiness requires:
+
+- `completion-summary.md` exists and satisfies the heading contract
+- `implement-plan-state.json` exists for the feature stream
+- the feature is not already marked completed
+- `approved_commit_sha` is present in state (the reviewed commit authority for merge)
+
+Pre-merge readiness does not require `last_commit_sha`. That field is post-merge closeout evidence recorded after merge-queue lands the approved commit. `merge-queue` must call `validate-closeout-readiness` before merge and block when readiness is invalid.
+
+`mark-complete` continues to require `last_commit_sha` as post-merge closeout evidence. This is set by merge-queue from the merge commit SHA after a successful merge and push.

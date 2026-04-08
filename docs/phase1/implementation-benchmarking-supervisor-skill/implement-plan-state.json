@@ -1,0 +1,472 @@
+{
+  "state_schema_version": 2,
+  "phase_number": 1,
+  "feature_slug": "implementation-benchmarking-supervisor-skill",
+  "project_root": "C:/ADF",
+  "feature_registry_key": "phase1/implementation-benchmarking-supervisor-skill",
+  "feature_status": "completed",
+  "implementor_execution_id": null,
+  "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
+  "implementor_execution_runtime": "codex_cli_exec",
+  "implementor_provider": "claude",
+  "implementor_model": "gpt-5.4",
+  "implementor_reasoning_effort": "xhigh",
+  "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "main",
+  "base_branch": "main",
+  "feature_branch": "implement-plan/phase1/implementation-benchmarking-supervisor-skill",
+  "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implementation-benchmarking-supervisor-skill",
+  "worktree_status": "ready",
+  "merge_required": true,
+  "merge_status": "merged",
+  "approved_commit_sha": "d62a9a0",
+  "merge_commit_sha": "5373b2094df6d2160787c79f5513800cd2a6396e",
+  "merge_queue_request_id": "merge-main-1-implementation-benchmarking-supervisor-skill-1775345099996",
+  "local_target_sync_status": "skipped_dirty_checkout",
+  "last_completed_step": "closeout_finished",
+  "last_commit_sha": "5373b2094df6d2160787c79f5513800cd2a6396e",
+  "active_run_status": "completed",
+  "created_at": "2026-04-04T22:48:31.508Z",
+  "updated_at": "2026-04-04T23:26:32.875Z",
+  "run_timestamps": {
+    "context_collected_at": "2026-04-04T22:48:31.540Z",
+    "worktree_prepared_at": "2026-04-04T22:49:49.792Z",
+    "integrity_passed_at": "2026-04-04T22:50:36.663Z",
+    "integrity_failed_at": "2026-04-04T22:48:31.540Z",
+    "brief_written_at": "2026-04-04T22:59:12.112Z",
+    "implementor_started_at": "2026-04-04T22:59:21.522Z",
+    "implementor_finished_at": "2026-04-04T23:13:26.513Z",
+    "verification_finished_at": "2026-04-04T23:15:04.724Z",
+    "review_requested_at": "2026-04-04T23:16:29.703Z",
+    "human_verification_requested_at": null,
+    "merge_started_at": null,
+    "merge_finished_at": "2026-04-04T23:25:47.311Z",
+    "closeout_finished_at": "2026-04-04T23:26:32.808Z"
+  },
+  "event_log": [
+    {
+      "event_id": "event-d0ebb979-a0e2-436c-bfec-da36069201fe",
+      "event_type": "run-initialized",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:48:31.543Z",
+      "note": "Created a new normal execution run."
+    },
+    {
+      "event_id": "event-9acb9512-33de-42a0-9ff0-5ca2d81f0813",
+      "event_type": "attempt-started",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:48:31.545Z",
+      "note": "Created the first attempt for this execution run."
+    },
+    {
+      "event_id": "event-8b27a24f-4869-4bc3-bc19-d5cc2457aa7a",
+      "event_type": "worker-bound",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:48:31.546Z",
+      "note": null
+    },
+    {
+      "event_id": "event-0ceab0f0-cef8-44c8-9b29-a27b92d8b6f1",
+      "event_type": "contract-materialized",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:48:31.546Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c270a3ab-0b57-4d02-ac7b-42638de8b390",
+      "event_type": "contract-materialized",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:49:49.797Z",
+      "note": null
+    },
+    {
+      "event": "integrity-passed",
+      "timestamp": "2026-04-04T22:50:36.663Z",
+      "note": null
+    },
+    {
+      "event_id": "event-266a165e-3e40-4ba1-a3a9-6bbf678f5c39",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:50:36.663Z",
+      "note": "Legacy event mirrored into the execution projection: integrity-passed."
+    },
+    {
+      "event": "brief-written",
+      "timestamp": "2026-04-04T22:59:12.112Z",
+      "note": null
+    },
+    {
+      "event_id": "event-5aff77a5-47c1-4186-bbda-4b6027f35df0",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:59:12.112Z",
+      "note": "Legacy event mirrored into the execution projection: brief-written."
+    },
+    {
+      "event": "implementor-started",
+      "timestamp": "2026-04-04T22:59:21.522Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c1f87923-7e57-419d-96bb-8653547cb26f",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T22:59:21.522Z",
+      "note": "Legacy event mirrored into the execution projection: implementor-started."
+    },
+    {
+      "event": "implementor-finished",
+      "timestamp": "2026-04-04T23:13:26.513Z",
+      "note": null
+    },
+    {
+      "event_id": "event-57221f41-5748-4ba3-8d00-f9a5df397e86",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:13:26.513Z",
+      "note": "Legacy event mirrored into the execution projection: implementor-finished."
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-04T23:15:04.724Z",
+      "note": null
+    },
+    {
+      "event_id": "event-39e71031-42e1-4a8c-9847-aa5d77cf376d",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:15:04.724Z",
+      "note": "Legacy event mirrored into the execution projection: verification-finished."
+    },
+    {
+      "event": "completion-summary-written",
+      "timestamp": "2026-04-04T23:16:29.531Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c5e9d5cc-3845-437c-8876-2aed6caeb320",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:16:29.531Z",
+      "note": "Legacy event mirrored into the execution projection: completion-summary-written."
+    },
+    {
+      "event": "review-requested",
+      "timestamp": "2026-04-04T23:16:29.703Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c390110c-f53f-44fd-b725-679217047fa6",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:16:29.703Z",
+      "note": "Legacy event mirrored into the execution projection: review-requested."
+    },
+    {
+      "event": "merge-ready",
+      "timestamp": "2026-04-04T23:24:47.716Z",
+      "note": null
+    },
+    {
+      "event_id": "event-53892466-7422-4a1d-a1ea-8d7691dc9eb1",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:24:47.716Z",
+      "note": "Legacy event mirrored into the execution projection: merge-ready."
+    },
+    {
+      "event_id": "event-5d7d1c74-6069-4a1c-bec8-f8318d1b2716",
+      "event_type": "state-patched",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:25:00.169Z",
+      "note": null
+    },
+    {
+      "event_id": "event-8d52cdbd-a3ca-4553-a407-0c284f551295",
+      "event_type": "state-patched",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:25:27.930Z",
+      "note": null
+    },
+    {
+      "event_id": "event-20710c61-07de-4c04-8574-6a8099fc7bab",
+      "event_type": "state-patched",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:25:35.056Z",
+      "note": null
+    },
+    {
+      "event_id": "event-aaea9151-8ffb-4728-83cf-b287049899cb",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:25:35.210Z",
+      "note": "Merged via merge-queue after approval."
+    },
+    {
+      "event": "merge-finished",
+      "timestamp": "2026-04-04T23:25:47.311Z",
+      "note": null
+    },
+    {
+      "event_id": "event-e861b880-d29a-42e6-84b0-c979ba1b9b3a",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:25:47.311Z",
+      "note": "Legacy event mirrored into the execution projection: merge-finished."
+    },
+    {
+      "event": "closeout-finished",
+      "timestamp": "2026-04-04T23:26:32.808Z",
+      "note": null
+    },
+    {
+      "event_id": "event-77157096-47df-4a98-a636-9e5939de3468",
+      "event_type": "step-transition",
+      "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-04T23:26:32.808Z",
+      "note": "Legacy event mirrored into the execution projection: closeout-finished."
+    }
+  ],
+  "artifacts": {
+    "readme_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/README.md",
+    "context_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/context.md",
+    "state_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implementation-benchmarking-supervisor-skill"
+  },
+  "last_error": "Merged via merge-queue after approval.",
+  "current_run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+      "benchmarking": null
+    },
+    "runs": {
+      "run-73e9591d-5c0a-4e6d-84bb-de10e8601189": {
+        "run_id": "run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+        "run_mode": "normal",
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
+        "contract_schema_version": 1,
+        "contract_revision": 2,
+        "feature_contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/implementation-benchmarking-supervisor-skill/implementation-run/run-73e9591d-5c0a-4e6d-84bb-de10e8601189",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [
+          "implementor/default"
+        ],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "completed",
+            "terminal_status": "completed",
+            "started_at": "2026-04-04T22:48:31.529Z",
+            "updated_at": "2026-04-04T23:26:32.872Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-04T23:26:32.872Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "completed",
+                "started_at": "2026-04-04T22:59:21.522Z",
+                "completed_at": "2026-04-04T23:13:26.513Z",
+                "duration_seconds": 845,
+                "note": null
+              },
+              "machine_verification": {
+                "status": "completed",
+                "started_at": "2026-04-04T23:13:26.513Z",
+                "completed_at": "2026-04-04T23:15:04.724Z",
+                "duration_seconds": 98,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "in_progress",
+                "started_at": "2026-04-04T23:16:29.703Z",
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "completed",
+                "started_at": null,
+                "completed_at": "2026-04-04T23:25:47.311Z",
+                "duration_seconds": null,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 1,
+            "self_fix_cycle_count": 0,
+            "blockers": [],
+            "worker_bindings": {
+              "implementor/default": {
+                "worker_id": "implementor/default",
+                "lane_id": null,
+                "role": "implementor",
+                "provider": "claude",
+                "runtime": "codex_cli_exec",
+                "model": "gpt-5.4",
+                "reasoning_effort": "xhigh",
+                "access_mode": "codex_cli_full_auto_bypass",
+                "execution_id": null,
+                "bound_at": "2026-04-04T22:48:31.529Z",
+                "selection_source": {
+                  "provider": "invoker_inheritance",
+                  "runtime": "invoker_inheritance",
+                  "access_mode": "invoker_inheritance",
+                  "model": "invoker_inheritance",
+                  "reasoning_effort": "invoker_inheritance"
+                },
+                "recreated_due_to_access": false
+              }
+            },
+            "last_checkpoint_at": "2026-04-04T23:26:32.872Z",
+            "last_event_at": "2026-04-04T23:26:32.808Z"
+          }
+        },
+        "created_at": "2026-04-04T22:48:31.529Z",
+        "updated_at": "2026-04-04T23:26:32.872Z",
+        "last_event_at": "2026-04-04T23:26:32.808Z",
+        "kpi_projection": {
+          "terminal_status": "completed",
+          "per_step_timing": {
+            "implementation": {
+              "status": "completed",
+              "started_at": "2026-04-04T22:59:21.522Z",
+              "completed_at": "2026-04-04T23:13:26.513Z",
+              "duration_seconds": 845
+            },
+            "machine_verification": {
+              "status": "completed",
+              "started_at": "2026-04-04T23:13:26.513Z",
+              "completed_at": "2026-04-04T23:15:04.724Z",
+              "duration_seconds": 98
+            },
+            "review_cycle": {
+              "status": "in_progress",
+              "started_at": "2026-04-04T23:16:29.703Z",
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "completed",
+              "started_at": null,
+              "completed_at": "2026-04-04T23:25:47.311Z",
+              "duration_seconds": null
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 1,
+          "self_fix_cycle_count": 0,
+          "blocker_history": []
+        }
+      }
+    }
+  }
+}

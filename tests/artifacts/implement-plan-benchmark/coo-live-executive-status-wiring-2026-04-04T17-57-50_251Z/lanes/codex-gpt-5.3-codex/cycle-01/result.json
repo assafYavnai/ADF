@@ -1,0 +1,64 @@
+{
+  "provenance": {
+    "invocation_id": "43d28f6b-27c8-46f0-850f-4310f57c3952",
+    "provider": "codex",
+    "model": "gpt-5.3-codex",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.3-codex/cycle-01",
+    "timestamp": "2026-04-04T18:14:13.595Z"
+  },
+  "response": "Summary:\nImplemented live executive status wiring by adding a real runtime source adapter (threads/onion + finalized requirement + CTO admission + implement-plan state), a live status surface with KPI counters, and CLI wiring for `--status` and `/status` without changing normal turn handling.\n\nChanged files:\n- `COO/briefing/types.ts`\n- `COO/briefing/live-source-adapter.ts`\n- `COO/briefing/live-status.ts`\n- `COO/controller/cli.ts`\n- `tests/integration/coo-live-executive-status-wiring.test.ts`\n- `docs/phase1/coo-live-executive-status-wiring/completion-summary.md`\n\nVerification commands:\n- `npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts`\n- `npx.cmd tsx COO/controller/cli.ts --status --scope assafyavnai/adf`\n\nVerification outcome:\n- Pass. `38` tests passed, `0` failed (required machine verification command).\n- CLI one-shot status command executed successfully and rendered the 4-section live executive surface.\n\nOpen risks:\n- Feature correlation is heuristic when thread scope/topic does not map cleanly to `feature_slug`; some streams may appear as separate items.\n- Finalized requirement/CTO admission coverage currently depends on live onion thread state presence; if artifacts exist only outside active thread state, visibility can be partial.\n- `project-brain` MCP tool surface was not exposed in this harness runtime, so Brain startup context loading/capture could not be executed via MCP in-lane.",
+  "latency_ms": 945032,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex",
+      "session_id": "019d59a5-7b54-7222-bb0a-22e6458b6e13",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 3307,
+    "response_chars": 1479,
+    "tokens_in_estimated": 827,
+    "tokens_out_estimated": 370,
+    "token_estimation_basis": "char_heuristic_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "43d28f6b-27c8-46f0-850f-4310f57c3952",
+        "provider": "codex",
+        "model": "gpt-5.3-codex",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.3-codex/cycle-01",
+        "timestamp": "2026-04-04T18:14:13.595Z"
+      },
+      "latency_ms": 945032,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 3307,
+        "response_chars": 1479,
+        "tokens_in_estimated": 827,
+        "tokens_out_estimated": 370,
+        "token_estimation_basis": "char_heuristic_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "codex-gpt-5.3-codex",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

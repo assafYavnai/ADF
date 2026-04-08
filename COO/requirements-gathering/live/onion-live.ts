@@ -16,6 +16,12 @@ import {
   type UserInputEvent,
 } from "../../controller/thread.js";
 import {
+  handoffFinalizedRequirementToCtoAdmission,
+  resetCtoAdmissionThreadState,
+  type AdmissionPersistenceReceipt,
+  type CtoAdmissionThreadState as CtoAdmissionThreadStateType,
+} from "../../cto-admission/index.js";
+import {
   buildWorkingScopeArtifact,
   type RequirementArtifact,
   type WorkingScopeArtifact,
@@ -59,6 +65,8 @@ export async function handleRequirementsGatheringOnion(input: {
   store: FileSystemThreadStore;
   config: Pick<
     ControllerConfig,
+    | "projectRoot"
+    | "telemetryPartition"
     | "intelligenceParams"
     | "invokeLLM"
     | "brainCreateFinalizedRequirementCandidate"
@@ -216,11 +224,13 @@ export async function handleRequirementsGatheringOnion(input: {
   const stateCommitSummary = buildStateCommitSummary({
     lifecycleStatus,
     finalizedRequirementMemoryId: persistence.finalizedRequirementMemoryId,
+    ctoAdmissionState: persistence.ctoAdmissionState,
     persistenceFailures: persistence.receipts.filter((receipt) => !receipt.success),
   });
   const openLoops = buildOpenLoops({
     clarificationQuestion: clarification.selection.next_question?.question ?? null,
     freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
+    ctoAdmissionState: persistence.ctoAdmissionState,
     persistenceFailures: persistence.receipts.filter((receipt) => !receipt.success),
   });
   const threadWorkflowState = OnionWorkflowThreadState.parse({
@@ -234,6 +244,7 @@ export async function handleRequirementsGatheringOnion(input: {
     working_artifact: reduced.working_artifact,
     requirement_artifact: derivation.artifact,
     finalized_requirement_memory_id: persistence.finalizedRequirementMemoryId,
+    cto_admission: persistence.ctoAdmissionState,
     latest_audit_trace: audit.trace,
     latest_llm_calls: llmCalls,
     latest_persistence_receipts: [
@@ -270,6 +281,7 @@ export async function handleRequirementsGatheringOnion(input: {
     working_artifact: reduced.working_artifact,
     requirement_artifact: derivation.artifact,
     finalized_requirement_memory_id: persistence.finalizedRequirementMemoryId,
+    cto_admission: persistence.ctoAdmissionState,
     workflow_trace: audit.trace,
     operation_records: [
       reduced.record,
@@ -312,6 +324,7 @@ export async function handleRequirementsGatheringOnion(input: {
       stateCommitSummary,
       clarificationQuestion: clarification.selection.next_question?.question ?? null,
       freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
+      ctoAdmissionState: persistence.ctoAdmissionState,
       finalizedRequirementMemoryId: persistence.finalizedRequirementMemoryId,
       persistenceFailures: persistence.receipts.filter((receipt) => !receipt.success),
     }),
@@ -397,6 +410,7 @@ async function handleParseFailure(input: {
       working_artifact: input.previousWorkingArtifact,
       requirement_artifact: input.previousWorkflowState?.requirement_artifact ?? null,
       finalized_requirement_memory_id: input.previousWorkflowState?.finalized_requirement_memory_id ?? null,
+      cto_admission: input.previousWorkflowState?.cto_admission ?? null,
       latest_audit_trace: audit.trace,
       latest_llm_calls: input.llmCalls,
       latest_persistence_receipts: persistenceReceipts,
@@ -415,6 +429,7 @@ async function handleParseFailure(input: {
     working_artifact: input.previousWorkingArtifact,
     requirement_artifact: input.previousWorkflowState?.requirement_artifact ?? null,
     finalized_requirement_memory_id: input.previousWorkflowState?.finalized_requirement_memory_id ?? null,
+    cto_admission: input.previousWorkflowState?.cto_admission ?? null,
     workflow_trace: audit.trace,
     operation_records: [
       input.priorClarification.record,
@@ -446,6 +461,7 @@ async function handleParseFailure(input: {
     openDecisionCount: layerMetrics.open_decision_count,
     persistence: {
       finalizedRequirementMemoryId: input.previousWorkflowState?.finalized_requirement_memory_id ?? null,
+      ctoAdmissionState: input.previousWorkflowState?.cto_admission ?? null,
       receipts: persistenceReceipts,
       telemetry: {
         finalized_requirement_create_ms: 0,
@@ -491,10 +507,15 @@ async function persistOnionArtifacts(input: {
   readinessStatus: "ready" | "blocked";
   config: Pick<
     ControllerConfig,
-    "brainCreateFinalizedRequirementCandidate" | "brainManageMemory" | "brainPublishFinalizedRequirement"
+    | "projectRoot"
+    | "telemetryPartition"
+    | "brainCreateFinalizedRequirementCandidate"
+    | "brainManageMemory"
+    | "brainPublishFinalizedRequirement"
   >;
 }): Promise<{
   finalizedRequirementMemoryId: string | null;
+  ctoAdmissionState: CtoAdmissionThreadStateType | null;
   receipts: OnionPersistenceReceiptType[];
   telemetry: {
     finalized_requirement_create_ms: number;
@@ -505,6 +526,7 @@ async function persistOnionArtifacts(input: {
 }> {
   const receipts: OnionPersistenceReceiptType[] = [];
   let finalizedRequirementMemoryId = input.previousWorkflowState?.finalized_requirement_memory_id ?? null;
+  let ctoAdmissionState = input.previousWorkflowState?.cto_admission ?? null;
   const telemetry = {
     finalized_requirement_create_ms: 0,
     finalized_requirement_lock_ms: 0,
@@ -516,6 +538,9 @@ async function persistOnionArtifacts(input: {
     input.previousWorkflowState?.finalized_requirement_memory_id
     && input.reducedState.freeze_status.status !== "approved"
   ) {
+    ctoAdmissionState = resetCtoAdmissionThreadState({
+      previousState: input.previousWorkflowState?.cto_admission ?? null,
+    });
     if (!input.scopePath || !input.config.brainManageMemory) {
       receipts.push(OnionPersistenceReceipt.parse({
         kind: "superseded_requirement_retire",
@@ -587,6 +612,7 @@ async function persistOnionArtifacts(input: {
   ) {
     return {
       finalizedRequirementMemoryId,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -606,6 +632,7 @@ async function persistOnionArtifacts(input: {
     }));
     return {
       finalizedRequirementMemoryId: null,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -625,6 +652,7 @@ async function persistOnionArtifacts(input: {
     }));
     return {
       finalizedRequirementMemoryId: null,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -644,6 +672,7 @@ async function persistOnionArtifacts(input: {
     }));
     return {
       finalizedRequirementMemoryId: null,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -663,6 +692,7 @@ async function persistOnionArtifacts(input: {
     }));
     return {
       finalizedRequirementMemoryId: null,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -715,6 +745,7 @@ async function persistOnionArtifacts(input: {
     }));
     return {
       finalizedRequirementMemoryId: null,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -723,6 +754,7 @@ async function persistOnionArtifacts(input: {
   if (!provisionalFinalizedRequirementMemoryId) {
     return {
       finalizedRequirementMemoryId: null,
+      ctoAdmissionState,
       receipts,
       telemetry,
     };
@@ -784,8 +816,22 @@ async function persistOnionArtifacts(input: {
     finalizedRequirementMemoryId = null;
   }
 
+  if (finalizedRequirementMemoryId && input.requirementArtifact) {
+    const handoff = await handoffFinalizedRequirementToCtoAdmission({
+      projectRoot: input.config.projectRoot,
+      scopePath: input.scopePath,
+      requirementArtifact: input.requirementArtifact,
+      finalizedRequirementMemoryId,
+      previousState: input.previousWorkflowState?.cto_admission ?? null,
+      partition: input.config.telemetryPartition,
+    });
+    ctoAdmissionState = handoff.state;
+    receipts.push(...handoff.receipts.map(toOnionPersistenceReceipt));
+  }
+
   return {
     finalizedRequirementMemoryId,
+    ctoAdmissionState,
     receipts,
     telemetry,
   };
@@ -985,12 +1031,25 @@ function buildLifecycleStatus(input: {
 function buildStateCommitSummary(input: {
   lifecycleStatus: OnionWorkflowLifecycleStatusType;
   finalizedRequirementMemoryId: string | null;
+  ctoAdmissionState: CtoAdmissionThreadStateType | null;
   persistenceFailures: OnionPersistenceReceiptType[];
 }): string {
   if (input.persistenceFailures.length > 0) {
     return "Requirements-gathering onion froze the human scope, but durable artifact persistence is blocked and handoff is not truthful yet.";
   }
   if (input.lifecycleStatus === "handoff_ready") {
+    if (input.ctoAdmissionState?.status === "admission_pending_decision") {
+      return `Requirements-gathering onion is frozen, the finalized requirement artifact is durably stored as ${input.finalizedRequirementMemoryId}, and the CTO admission packet is persisted with an explicit pending decision.`;
+    }
+    if (input.ctoAdmissionState?.status === "admission_admitted") {
+      return `Requirements-gathering onion is frozen, the finalized requirement artifact is durably stored as ${input.finalizedRequirementMemoryId}, and the CTO admission state is explicitly admitted.`;
+    }
+    if (input.ctoAdmissionState?.status === "admission_deferred") {
+      return `Requirements-gathering onion is frozen, the finalized requirement artifact is durably stored as ${input.finalizedRequirementMemoryId}, and the CTO admission state is explicitly deferred.`;
+    }
+    if (input.ctoAdmissionState?.status === "admission_blocked") {
+      return `Requirements-gathering onion is frozen, the finalized requirement artifact is durably stored as ${input.finalizedRequirementMemoryId}, and the CTO admission state is explicitly blocked.`;
+    }
     return `Requirements-gathering onion is frozen and the finalized requirement artifact is durably stored as ${input.finalizedRequirementMemoryId}.`;
   }
   if (input.lifecycleStatus === "awaiting_freeze_approval") {
@@ -1005,10 +1064,22 @@ function buildStateCommitSummary(input: {
 function buildOpenLoops(input: {
   clarificationQuestion: string | null;
   freezeRequest: string | null;
+  ctoAdmissionState: CtoAdmissionThreadStateType | null;
   persistenceFailures: OnionPersistenceReceiptType[];
 }): string[] {
   if (input.persistenceFailures.length > 0) {
     return input.persistenceFailures.map((receipt) => receipt.message);
+  }
+  if (input.ctoAdmissionState?.status === "admission_pending_decision") {
+    return [
+      `CTO admission decision is pending in ${input.ctoAdmissionState.artifact_paths.decision_template_json}.`,
+    ];
+  }
+  if (input.ctoAdmissionState?.status === "admission_blocked") {
+    return [
+      input.ctoAdmissionState.decision_reason
+        ?? "CTO admission is explicitly blocked and needs follow-up before implementation can start.",
+    ];
   }
   if (input.freezeRequest) {
     return [input.freezeRequest];
@@ -1025,10 +1096,11 @@ function buildCeoResponse(input: {
   stateCommitSummary: string;
   clarificationQuestion: string | null;
   freezeRequest: string | null;
+  ctoAdmissionState: CtoAdmissionThreadStateType | null;
   finalizedRequirementMemoryId: string | null;
   persistenceFailures: OnionPersistenceReceiptType[];
 }): string {
-  return renderConversationResponse(deriveConversationState({
+  const baseResponse = renderConversationResponse(deriveConversationState({
     lifecycleStatus: input.lifecycleStatus,
     state: input.state,
     clarificationQuestion: input.clarificationQuestion,
@@ -1037,6 +1109,35 @@ function buildCeoResponse(input: {
     persistenceFailures: input.persistenceFailures,
     stateCommitSummary: input.stateCommitSummary,
   }));
+  const admissionNote = buildAdmissionResponseNote(input.ctoAdmissionState);
+  return admissionNote ? `${baseResponse}\n\n${admissionNote}` : baseResponse;
+}
+
+function buildAdmissionResponseNote(
+  ctoAdmissionState: CtoAdmissionThreadStateType | null,
+): string | null {
+  if (!ctoAdmissionState) {
+    return null;
+  }
+
+  switch (ctoAdmissionState.status) {
+    case "admission_pending_decision":
+      return "CTO admission artifacts are built and the decision is explicitly pending.";
+    case "admission_admitted":
+      return "CTO admission is explicitly admitted.";
+    case "admission_deferred":
+      return "CTO admission is explicitly deferred.";
+    case "admission_blocked":
+      return ctoAdmissionState.decision_reason
+        ? `CTO admission is explicitly blocked: ${ctoAdmissionState.decision_reason}`
+        : "CTO admission is explicitly blocked.";
+    case "admission_build_failed":
+      return ctoAdmissionState.last_error
+        ? `CTO admission build failed: ${ctoAdmissionState.last_error}`
+        : "CTO admission build failed.";
+    default:
+      return null;
+  }
 }
 
 function buildLlmCallRecordFromResult(
@@ -1211,6 +1312,7 @@ function emitOnionTurnTelemetry(input: {
   openDecisionCount: number;
   persistence: {
     finalizedRequirementMemoryId: string | null;
+    ctoAdmissionState: CtoAdmissionThreadStateType | null;
     receipts: OnionPersistenceReceiptType[];
     telemetry: {
       finalized_requirement_create_ms: number;
@@ -1255,6 +1357,11 @@ function emitOnionTurnTelemetry(input: {
       freeze_blocker_count: input.freezeBlockerCount,
       open_decision_count: input.openDecisionCount,
       finalized_requirement_memory_id: input.persistence.finalizedRequirementMemoryId,
+      cto_admission_status: input.persistence.ctoAdmissionState?.status ?? null,
+      cto_admission_decision: input.persistence.ctoAdmissionState?.decision ?? null,
+      cto_admission_outcome: input.persistence.ctoAdmissionState?.outcome ?? null,
+      cto_admission_feature_slug: input.persistence.ctoAdmissionState?.feature_slug ?? null,
+      cto_admission_partition: input.persistence.ctoAdmissionState?.partition ?? null,
       finalized_requirement_create_ms: input.persistence.telemetry.finalized_requirement_create_ms,
       finalized_requirement_lock_ms: input.persistence.telemetry.finalized_requirement_lock_ms,
       provisional_retire_ms: input.persistence.telemetry.provisional_retire_ms,
@@ -1264,6 +1371,10 @@ function emitOnionTurnTelemetry(input: {
       reopened_scope: input.reopenedScope,
     },
   });
+}
+
+function toOnionPersistenceReceipt(receipt: AdmissionPersistenceReceipt): OnionPersistenceReceiptType {
+  return OnionPersistenceReceipt.parse(receipt);
 }
 
 function clipSummary(input: string): string {

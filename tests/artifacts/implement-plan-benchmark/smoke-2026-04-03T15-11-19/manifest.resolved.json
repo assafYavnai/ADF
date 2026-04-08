@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "smoke",
+  "description": "Minimal harness smoke run for parallel provider benchmarking.",
+  "task_summary": "Verify that each configured provider can read one shared prompt and return compact JSON.",
+  "instructions": "Respond with JSON only.\nReturn an object with these keys:\n- provider_ready: boolean\n- benchmark_note: string\n- repo_acknowledged: boolean\nDo not include markdown fences.",
+  "instructions_path": null,
+  "context_files": [],
+  "response_requirements": "Return valid JSON only. Keep benchmark_note under 30 words.",
+  "telemetry_metadata": {},
+  "engines": [
+    {
+      "id": "codex-default",
+      "cli": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "xhigh",
+      "bypass": true,
+      "timeout_ms": 120000
+    },
+    {
+      "id": "claude-opus",
+      "cli": "claude",
+      "model": "opus",
+      "effort": "max",
+      "bypass": true,
+      "timeout_ms": 120000
+    }
+  ],
+  "isolation": {
+    "mode": "none",
+    "target_slug": null,
+    "base_ref": null,
+    "worktree_root": null
+  },
+  "output_root": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark",
+  "effective_repo_root": "C:\\ADF",
+  "effective_worktree_root": null
+}

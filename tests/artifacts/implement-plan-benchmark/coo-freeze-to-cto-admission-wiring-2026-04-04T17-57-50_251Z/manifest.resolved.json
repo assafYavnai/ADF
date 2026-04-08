@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+  "description": "Parallel isolated implementation benchmark for the live finalized-requirement to CTO-admission wiring slice.",
+  "task_summary": "Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.",
+  "instructions": "Inside the current worktree:\n1. Read docs/phase1/coo-freeze-to-cto-admission-wiring/README.md and docs/phase1/coo-freeze-to-cto-admission-wiring/context.md.\n2. Implement the slice in code, staying within the allowed-edit surface defined by the plan.\n3. Run the tightest machine verification needed for the changed route.\n4. Do not push, merge, or modify merge-queue / implement-plan / review-cycle unless the plan explicitly requires it.\n5. Leave the worktree in its final benchmark state for later inspection.\nReturn a concise report with: summary, changed files, verification commands, verification outcome, and open risks.",
+  "instructions_path": null,
+  "context_files": [],
+  "response_requirements": "Return only the benchmark lane report. Do not include markdown fences. Keep it concise and factual.",
+  "telemetry_metadata": {
+    "benchmark_phase": "phase1",
+    "benchmark_target_slug": "coo-freeze-to-cto-admission-wiring"
+  },
+  "engines": [
+    {
+      "id": "codex-gpt-5.4-baseline",
+      "display_name": "Codex GPT-5.4 xhigh (Baseline)",
+      "cli": "codex",
+      "model": "gpt-5.4",
+      "reasoning": "xhigh",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "codex-gpt-5.3-codex-spark",
+      "display_name": "Codex GPT-5.3 Codex Spark",
+      "cli": "codex",
+      "model": "gpt-5.3-codex-spark",
+      "reasoning": "medium",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "codex-gpt-5.4-mini",
+      "display_name": "Codex GPT-5.4 Mini",
+      "cli": "codex",
+      "model": "gpt-5.4-mini",
+      "reasoning": "high",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "codex-gpt-5.3-codex",
+      "display_name": "Codex GPT-5.3 Codex",
+      "cli": "codex",
+      "model": "gpt-5.3-codex",
+      "reasoning": "xhigh",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "claude-opus-4.6",
+      "display_name": "Claude Opus 4.6",
+      "cli": "claude",
+      "model": "opus-4.6",
+      "effort": "max",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "claude-sonnet-4.6",
+      "display_name": "Claude Sonnet 4.6",
+      "cli": "claude",
+      "model": "sonnet-4.6",
+      "effort": "high",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "gemini-3.1-pro",
+      "display_name": "Gemini 3.1 Pro",
+      "cli": "gemini",
+      "model": "gemini-3.1-pro",
+      "bypass": true,
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "gemini-3-flash",
+      "display_name": "Gemini 3 Flash",
+      "cli": "gemini",
+      "model": "gemini-3-flash",
+      "bypass": true,
+      "timeout_ms": 1200000
+    }
+  ],
+  "isolation": {
+    "mode": "git_worktree",
+    "target_slug": "coo-freeze-to-cto-admission-wiring",
+    "base_ref": "HEAD",
+    "worktree_root": null
+  },
+  "execution_policy": {
+    "max_review_cycles": 6,
+    "skip_human_testing": true,
+    "global_cutoff_minutes": 30
+  },
+  "verification_commands": [
+    {
+      "id": "freeze-wiring-tests",
+      "label": "freeze wiring integration tests",
+      "command": "npx.cmd",
+      "args": [
+        "tsx",
+        "--test",
+        "tests/integration/cto-admission-packet-builder.test.ts",
+        "tests/integration/coo-freeze-to-cto-admission-wiring.test.ts"
+      ],
+      "cwd": ".",
+      "timeout_ms": 600000,
+      "optional": false
+    },
+    {
+      "id": "onion-route-proof",
+      "label": "onion route runtime proof",
+      "command": "npx.cmd",
+      "args": [
+        "tsx",
+        "tests/integration/onion-route.runtime-proof.ts"
+      ],
+      "cwd": ".",
+      "timeout_ms": 900000,
+      "optional": false
+    }
+  ],
+  "artifact_policy": {
+    "required_paths": [
+      "docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md",
+      "tests/integration/coo-freeze-to-cto-admission-wiring.test.ts"
+    ],
+    "required_changed_prefixes": [
+      "COO/requirements-gathering/live/",
+      "docs/phase1/coo-freeze-to-cto-admission-wiring/",
+      "tests/integration/"
+    ],
+    "allowed_edit_prefixes": [
+      "COO/cto-admission/",
+      "COO/requirements-gathering/live/",
+      "COO/requirements-gathering/contracts/",
+      "COO/controller/",
+      "docs/phase1/coo-freeze-to-cto-admission-wiring/",
+      "tests/integration/"
+    ],
+    "forbidden_edit_prefixes": []
+  },
+  "output_root": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark",
+  "effective_repo_root": "C:\\ADF",
+  "effective_worktree_root": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring",
+  "resumed_from_run_root": null,
+  "global_cutoff_at": "2026-04-04T18:27:50.246Z"
+}

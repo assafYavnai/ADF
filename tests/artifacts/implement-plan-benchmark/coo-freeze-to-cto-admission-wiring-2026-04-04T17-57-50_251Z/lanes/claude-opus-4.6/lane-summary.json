@@ -1,0 +1,80 @@
+{
+  "lane_id": "claude-opus-4.6",
+  "display_name": "Claude Opus 4.6",
+  "cli": "claude",
+  "model": "opus-4.6",
+  "reasoning": null,
+  "effort": "max",
+  "isolation_mode": "git_worktree",
+  "working_directory": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring\\claude-opus-4.6",
+  "worktree_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring\\claude-opus-4.6",
+  "base_ref": "HEAD",
+  "starting_head_sha": "c978b84464a812e6f8a63c3427cde578fbfce5dc",
+  "status": "blocked_skipped",
+  "cycle_wall_clock_ms": 37787,
+  "total_llm_latency_ms": 6875,
+  "review_cycle_count": 1,
+  "invocation_attempt_count": 1,
+  "verification_status": "not_run",
+  "blocker_kind": "provider_execution_failed",
+  "blocker_reason": "claude failed (exit 1): ",
+  "error_message": "claude failed (exit 1): ",
+  "estimated_cost_usd": null,
+  "prompt_tokens_estimated": 852,
+  "response_tokens_estimated": 1,
+  "total_tokens_estimated": 853,
+  "final_response_path": null,
+  "final_result_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\cycle-01\\result.json",
+  "final_request_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\cycle-01\\request.json",
+  "final_verification_path": null,
+  "lane_summary_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\lane-summary.json",
+  "cycles_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\cycles.json",
+  "git_status_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\git-status.txt",
+  "diff_stat_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\git-diff-stat.txt",
+  "diff_patch_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\git-diff.patch",
+  "changed_paths_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\claude-opus-4.6\\changed-paths.json",
+  "changed_paths": [
+    ".codex/runtime/install-state.json"
+  ],
+  "verification_failures": [],
+  "latest_session_handle": null,
+  "resume_supported": false,
+  "phase_metrics": {
+    "workspace_preparation_ms": 28668,
+    "implementation_invocation_ms": 6875,
+    "machine_verification_ms": 0,
+    "self_fix_cycle_count": 0,
+    "self_fix_wall_clock_ms": 0,
+    "self_fix_invocation_ms": 0,
+    "self_fix_verification_ms": 0,
+    "audit_ms": null,
+    "review_ms": null,
+    "human_testing_ms": null,
+    "human_testing_skipped": true,
+    "time_to_first_green_ms": null
+  },
+  "artifact_quality": {
+    "score": 10,
+    "rating": "weak",
+    "rubric_version": "heuristic_v1",
+    "notes": [
+      "Machine verification did not pass.",
+      "No final lane report was captured.",
+      "Missing required paths: tests/integration/coo-freeze-to-cto-admission-wiring.test.ts",
+      "Required changed prefixes not satisfied: COO/requirements-gathering/live/, docs/phase1/coo-freeze-to-cto-admission-wiring/, tests/integration/",
+      "Touched paths outside allowed edit surface: .codex/runtime/install-state.json"
+    ],
+    "signals": {
+      "verification_passed": false,
+      "changed_file_count": 1,
+      "required_paths_total": 2,
+      "required_paths_present": 1,
+      "required_changed_prefixes_total": 3,
+      "required_changed_prefixes_satisfied": 0,
+      "allowed_surface_violations": [
+        ".codex/runtime/install-state.json"
+      ],
+      "forbidden_surface_violations": []
+    }
+  }
+}

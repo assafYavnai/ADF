@@ -1,0 +1,68 @@
+{
+  "provenance": {
+    "invocation_id": "02ab7193-0950-4a97-9caa-b2df1573a284",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.4-baseline/cycle-01",
+    "timestamp": "2026-04-03T16:01:40.927Z"
+  },
+  "response": "Summary: Wired the executive brief into a live repo-backed status surface. Added a filesystem source adapter for thread/onion, finalized-requirement, CTO-admission, and implement-plan artifacts; added a bounded `--status` CLI route with freshness/coverage notes; added integration proof that mixed-source rendering works, missing sources are distinguishable from empty state, and source files are not mutated.\n\nChanged files:\n- COO/briefing/live-source-facts.ts\n- COO/controller/status-command.ts\n- COO/controller/cli.ts\n- tests/integration/coo-live-executive-status-wiring.test.ts\n- docs/phase1/coo-live-executive-status-wiring/completion-summary.md\n\nVerification commands:\n- npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts\n\nVerification outcome: Pass. 38/38 tests passed, including the required live executive status harness test.\n\nOpen risks:\n- Cross-source correlation is best-effort and currently depends on feature slug, scope-path tail, or topic slug alignment.\n- Runtime preflight still reports a blocked Brain MCP route, and `adf.cmd --install` fails in this worktree with `memory_engine_needs_build` / `coo_needs_build`, so the live status route is repo-file-backed rather than Brain-backed for finalized-requirement truth.",
+  "latency_ms": 917983,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "019d5406-3102-70d3-9e54-c914d4fde380",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 2802,
+    "response_chars": 1300,
+    "tokens_in_estimated": 701,
+    "tokens_out_estimated": 325,
+    "estimated_cost_usd": 0.00838,
+    "token_estimation_basis": "char_heuristic_v1",
+    "cost_estimation_basis": "configured_model_rate_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "02ab7193-0950-4a97-9caa-b2df1573a284",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-live-executive-status-wiring/codex-gpt-5.4-baseline/cycle-01",
+        "timestamp": "2026-04-03T16:01:40.927Z"
+      },
+      "latency_ms": 917983,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 2802,
+        "response_chars": 1300,
+        "tokens_in_estimated": 701,
+        "tokens_out_estimated": 325,
+        "estimated_cost_usd": 0.00838,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-live-executive-status-wiring",
+        "benchmark_lane_id": "codex-gpt-5.4-baseline",
+        "benchmark_task_summary": "Implement the coo-live-executive-status-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, skip human testing for the benchmark, and return a concise execution report.",
+        "benchmark_target_slug": "coo-live-executive-status-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

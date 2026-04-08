@@ -1,0 +1,25 @@
+You are participating in a controlled multi-engine benchmark for the ADF implement-plan workflow.
+
+<benchmark>
+id: smoke
+description: Minimal harness smoke run for parallel provider benchmarking.
+</benchmark>
+
+<task_summary>
+Verify that each configured provider can read one shared prompt and return compact JSON.
+</task_summary>
+
+<instructions>
+Respond with JSON only.
+Return an object with these keys:
+- provider_ready: boolean
+- benchmark_note: string
+- repo_acknowledged: boolean
+Do not include markdown fences.
+</instructions>
+
+<response_requirements>
+Return valid JSON only. Keep benchmark_note under 30 words.
+</response_requirements>
+
+Return only your substantive answer for this benchmark run.

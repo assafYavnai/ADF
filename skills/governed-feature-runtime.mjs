@@ -9,6 +9,7 @@ export const ACCESS_MODES = new Set([
   "native_full_access",
   "native_elevated_permissions",
   "codex_cli_full_auto_bypass",
+  "claude_code_skip_permissions",
   "inherits_current_runtime_access",
   "interactive_fallback"
 ]);
@@ -17,6 +18,7 @@ export const ACCESS_MODE_RANK = {
   native_full_access: 50,
   native_elevated_permissions: 40,
   codex_cli_full_auto_bypass: 30,
+  claude_code_skip_permissions: 30,
   inherits_current_runtime_access: 20,
   interactive_fallback: 10
 };
@@ -24,6 +26,7 @@ export const ACCESS_MODE_RANK = {
 export const RUNTIME_PERMISSION_MODELS = new Set([
   "native_explicit_full_access",
   "codex_cli_explicit_full_auto",
+  "claude_code_skip_permissions",
   "native_inherited_access_only",
   "interactive_or_limited"
 ]);
@@ -31,6 +34,7 @@ export const RUNTIME_PERMISSION_MODELS = new Set([
 export const EXECUTION_RUNTIMES = new Set([
   "native_agent_tools",
   "codex_cli_exec",
+  "claude_code_exec",
   "artifact_continuity_only"
 ]);
 
@@ -38,6 +42,69 @@ export const PERSISTENT_EXECUTION_STRATEGIES = new Set([
   "per_feature_agent_registry",
   "per_feature_cli_sessions",
   "artifact_continuity_only"
+]);
+
+export const IMPLEMENT_PLAN_RUN_MODES = new Set([
+  "normal",
+  "benchmarking"
+]);
+
+export const BENCHMARK_LANE_STATUSES = new Set([
+  "provisioning",
+  "running",
+  "verification_pending",
+  "review_pending",
+  "succeeded",
+  "failed",
+  "blocked",
+  "stopped",
+  "max_cycles_exhausted",
+  "global_cutoff_reached",
+  "suite_stopped",
+  "provider_stopped",
+  "lane_stopped"
+]);
+
+export const BENCHMARK_SUITE_STATUSES = new Set([
+  "initializing",
+  "running",
+  "completing",
+  "completed",
+  "stopped",
+  "failed"
+]);
+
+export const BENCHMARK_EVENTS = new Set([
+  "suite-started",
+  "lane-provisioning",
+  "lane-started",
+  "lane-cycle-started",
+  "lane-cycle-completed",
+  "lane-verification-passed",
+  "lane-verification-failed",
+  "lane-review-started",
+  "lane-review-completed",
+  "lane-blocked",
+  "lane-stopped",
+  "lane-completed",
+  "lane-failed",
+  "lane-reset",
+  "suite-progress",
+  "suite-completed",
+  "suite-stopped",
+  "suite-failed",
+  "global-failure"
+]);
+
+export const BENCHMARK_TERMINAL_LANE_STATUSES = new Set([
+  "succeeded",
+  "failed",
+  "blocked",
+  "max_cycles_exhausted",
+  "global_cutoff_reached",
+  "suite_stopped",
+  "provider_stopped",
+  "lane_stopped"
 ]);
 
 export const FEATURE_STATUSES = new Set([
@@ -131,7 +198,7 @@ export function parseArgs(argv, multiKeys = []) {
 
     const key = token.slice(2);
     const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
+    if (next === undefined || next.startsWith("--")) {
       values[key] = "true";
       continue;
     }
@@ -316,6 +383,134 @@ export async function writeJsonAtomic(filePath, value) {
   await writeTextAtomic(filePath, JSON.stringify(value, null, 2) + "\n");
 }
 
+export async function governedStateWrite({ statePath, featureSlug, mutator, skipLock = false }) {
+  if (typeof mutator !== "function") {
+    throw new Error("governedStateWrite: mutator must be a function.");
+  }
+  if (!isFilled(statePath)) {
+    throw new Error("governedStateWrite: statePath is required.");
+  }
+  if (!isFilled(featureSlug)) {
+    throw new Error("governedStateWrite: featureSlug is required.");
+  }
+
+  const lockRoot = join(dirname(statePath), ".gsw-locks");
+  const lockKey = "gsw-" + sanitizeLockName(featureSlug);
+
+  const doWrite = async () => {
+    let currentState = null;
+    let currentRevision = 0;
+
+    if (await pathExists(statePath)) {
+      const raw = await readFile(statePath, "utf8");
+      currentState = JSON.parse(raw);
+      currentRevision = typeof currentState?.__gsw_revision === "number" ? currentState.__gsw_revision : 0;
+    }
+
+    const nextState = await mutator(currentState);
+
+    if (!isPlainObject(nextState)) {
+      throw new Error("governedStateWrite: mutator must return a plain object.");
+    }
+
+    const writeId = "gsw-" + randomUUID();
+    const nextRevision = currentRevision + 1;
+    const timestamp = nowIso();
+
+    nextState.__gsw_revision = nextRevision;
+    nextState.__gsw_write_id = writeId;
+    nextState.__gsw_timestamp = timestamp;
+
+    await writeJsonAtomic(statePath, nextState);
+
+    return {
+      status: "committed",
+      state: nextState,
+      write_id: writeId,
+      revision: nextRevision
+    };
+  };
+
+  if (skipLock) {
+    return doWrite();
+  }
+
+  return withLock(lockRoot, lockKey, doWrite);
+}
+
+export function createOpaqueId(prefix) {
+  return sanitizePathSegment(prefix) + "-" + randomUUID();
+}
+
+export function timestampForPath(value = nowIso()) {
+  const timestamp = new Date(value);
+  if (!Number.isFinite(timestamp.getTime())) {
+    fail("Invalid timestamp '" + value + "'.");
+  }
+  return timestamp
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.(\d{3})Z$/, "$1Z");
+}
+
+export async function appendJsonEvent(eventRoot, record) {
+  await mkdir(eventRoot, { recursive: true });
+  const occurredAt = record?.occurred_at ?? nowIso();
+  const eventId = record?.event_id ?? createOpaqueId("event");
+  const eventPath = join(eventRoot, timestampForPath(occurredAt) + "-" + eventId + ".json");
+  const payload = {
+    ...record,
+    event_id: eventId,
+    occurred_at: occurredAt
+  };
+  await writeJsonAtomic(eventPath, payload);
+  return {
+    event_id: eventId,
+    event_path: normalizeSlashes(eventPath),
+    payload
+  };
+}
+
+export async function readJsonDirectory(rootPath, options = {}) {
+  const recursive = options.recursive !== false;
+  if (!(await pathExists(rootPath))) {
+    return [];
+  }
+
+  const entries = (await safeReaddir(rootPath)).sort((left, right) => left.name.localeCompare(right.name));
+  const files = [];
+
+  for (const entry of entries) {
+    const targetPath = join(rootPath, entry.name);
+    if (entry.isDirectory()) {
+      if (!recursive) continue;
+      files.push(...(await readJsonDirectory(targetPath, options)));
+      continue;
+    }
+    if (!entry.isFile() || !entry.name.endsWith(".json")) {
+      continue;
+    }
+    try {
+      files.push({
+        path: normalizeSlashes(targetPath),
+        data: await readJson(targetPath),
+        error: null
+      });
+    } catch (error) {
+      if (options.failOnParseError) {
+        throw error;
+      }
+      files.push({
+        path: normalizeSlashes(targetPath),
+        data: null,
+        error: describeError(error)
+      });
+    }
+  }
+
+  return files.sort((left, right) => left.path.localeCompare(right.path));
+}
+
 export async function withLock(lockRoot, key, fn, options = {}) {
   const timeoutMs = options.timeoutMs ?? 15000;
   const staleMs = options.staleMs ?? 120000;
@@ -363,6 +558,21 @@ export async function withLock(lockRoot, key, fn, options = {}) {
 
 export function normalizeProjectRoot(value) {
   return normalizeSlashes(resolve(value));
+}
+
+export function resolveCanonicalGitProjectRoot(projectRoot) {
+  const normalizedRoot = normalizeProjectRoot(projectRoot);
+  const commonDirResult = gitRun(normalizedRoot, ["rev-parse", "--path-format=absolute", "--git-common-dir"], { timeoutMs: 5000 });
+  if (commonDirResult.status !== 0) {
+    return normalizedRoot;
+  }
+
+  const commonDir = String(commonDirResult.stdout ?? "").trim();
+  if (!commonDir) {
+    return normalizedRoot;
+  }
+
+  return normalizeProjectRoot(dirname(commonDir));
 }
 
 export function normalizeSlashes(value) {

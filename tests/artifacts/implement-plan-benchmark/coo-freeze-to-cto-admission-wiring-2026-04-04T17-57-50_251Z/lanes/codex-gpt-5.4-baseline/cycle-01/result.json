@@ -1,0 +1,68 @@
+{
+  "provenance": {
+    "invocation_id": "6b6c88cf-d605-4ded-9c61-4949f5247cb4",
+    "provider": "codex",
+    "model": "gpt-5.4",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/cycle-01",
+    "timestamp": "2026-04-04T18:05:33.295Z"
+  },
+  "response": "Summary:\nThe snapshot already contained the live freeze-to-CTO-admission wiring. This lane added the missing benchmark integration entrypoint, added a live onion regression proof that scope-derived feature roots win over topic text, and refreshed the slice completion summary. No production module changes were needed in this worktree.\n\nChanged files:\n- [COO/requirements-gathering/live/onion-live.test.ts](C:/ADF/tests/artifacts/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z/worktrees/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/COO/requirements-gathering/live/onion-live.test.ts)\n- [docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md](C:/ADF/tests/artifacts/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z/worktrees/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md)\n- [tests/integration/coo-freeze-to-cto-admission-wiring.test.ts](C:/ADF/tests/artifacts/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z/worktrees/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/tests/integration/coo-freeze-to-cto-admission-wiring.test.ts)\n\nVerification commands:\n- `npx.cmd tsx --test COO/requirements-gathering/live/onion-live.test.ts`\n- `npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts`\n- `npx.cmd tsx tests/integration/onion-route.runtime-proof.ts`\n\nVerification outcome:\nAll commands passed. `COO/requirements-gathering/live/onion-live.test.ts` passed 3/3, the integration suite passed 32/32, and `tests/integration/onion-route.runtime-proof.ts` exited 0.\n\nOpen risks:\n- The `project-brain` MCP write surface was not exposed in this runtime, so Brain capture remained docs-only in the slice files.",
+  "latency_ms": 424642,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "session_id": "019d59a5-7c5c-79c3-8440-db8cc0d523ae",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 3411,
+    "response_chars": 1906,
+    "tokens_in_estimated": 853,
+    "tokens_out_estimated": 477,
+    "estimated_cost_usd": 0.01142,
+    "token_estimation_basis": "char_heuristic_v1",
+    "cost_estimation_basis": "configured_model_rate_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "6b6c88cf-d605-4ded-9c61-4949f5247cb4",
+        "provider": "codex",
+        "model": "gpt-5.4",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.4-baseline/cycle-01",
+        "timestamp": "2026-04-04T18:05:33.295Z"
+      },
+      "latency_ms": 424642,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 3411,
+        "response_chars": 1906,
+        "tokens_in_estimated": 853,
+        "tokens_out_estimated": 477,
+        "estimated_cost_usd": 0.01142,
+        "token_estimation_basis": "char_heuristic_v1",
+        "cost_estimation_basis": "configured_model_rate_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_lane_id": "codex-gpt-5.4-baseline",
+        "benchmark_task_summary": "Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.",
+        "benchmark_target_slug": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

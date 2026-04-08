@@ -1,0 +1,64 @@
+{
+  "provenance": {
+    "invocation_id": "03fa4a92-6898-426f-95f4-a242ed7e6d97",
+    "provider": "codex",
+    "model": "gpt-5.3-codex",
+    "reasoning": "xhigh",
+    "was_fallback": false,
+    "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.3-codex/cycle-01",
+    "timestamp": "2026-04-04T18:09:19.451Z"
+  },
+  "response": "summary:\n- Completed the slice in this lane by adding the required integration wiring test and extending live onion proof coverage for reopened-scope reset behavior.\n- Updated slice documentation with this benchmark cycle delta.\n\nchanged files:\n- COO/requirements-gathering/live/onion-live.test.ts\n- tests/integration/coo-freeze-to-cto-admission-wiring.test.ts\n- docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md\n\nverification commands:\n- npx.cmd tsx --test COO/requirements-gathering/live/onion-live.test.ts tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts\n- npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts\n- npx.cmd tsx tests/integration/onion-route.runtime-proof.ts\n\nverification outcome:\n- Pass. All commands exited with code 0.\n- Combined targeted test run: 33 passed, 0 failed.\n- Harness freeze wiring integration run: 30 passed, 0 failed.\n- Onion route runtime proof completed successfully (report emitted, no command failure).\n\nopen risks:\n- New integration coverage is focused on wiring/status truth paths; it does not re-assert every KPI field at onion-route level (existing route/runtime proofs still cover KPI surfaces).\n- `project-brain` MCP tool calls were not available in this Codex runtime, so Brain context/memory capture via MCP could not be executed in-lane.",
+  "latency_ms": 650222,
+  "session": {
+    "handle": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex",
+      "session_id": "019d59a5-7e45-73d0-82c7-d67486fa3a15",
+      "source": "provider_returned"
+    },
+    "status": "fresh"
+  },
+  "usage": {
+    "prompt_chars": 3414,
+    "response_chars": 1451,
+    "tokens_in_estimated": 854,
+    "tokens_out_estimated": 363,
+    "token_estimation_basis": "char_heuristic_v1"
+  },
+  "attempts": [
+    {
+      "provenance": {
+        "invocation_id": "03fa4a92-6898-426f-95f4-a242ed7e6d97",
+        "provider": "codex",
+        "model": "gpt-5.3-codex",
+        "reasoning": "xhigh",
+        "was_fallback": false,
+        "source_path": "tests/implement-plan-benchmark/coo-freeze-to-cto-admission-wiring/codex-gpt-5.3-codex/cycle-01",
+        "timestamp": "2026-04-04T18:09:19.451Z"
+      },
+      "latency_ms": 650222,
+      "success": true,
+      "session_status": "fresh",
+      "usage": {
+        "prompt_chars": 3414,
+        "response_chars": 1451,
+        "tokens_in_estimated": 854,
+        "tokens_out_estimated": 363,
+        "token_estimation_basis": "char_heuristic_v1"
+      },
+      "telemetry_metadata": {
+        "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_lane_id": "codex-gpt-5.3-codex",
+        "benchmark_task_summary": "Implement the coo-freeze-to-cto-admission-wiring slice in isolated per-model worktrees from the current codebase snapshot, stop before merge, and return a concise execution report.",
+        "benchmark_target_slug": "coo-freeze-to-cto-admission-wiring",
+        "benchmark_isolation_mode": "git_worktree",
+        "benchmark_base_ref": "HEAD",
+        "benchmark_max_review_cycles": 6,
+        "benchmark_skip_human_testing": true,
+        "benchmark_review_cycle": 1,
+        "benchmark_phase": "phase1"
+      }
+    }
+  ]
+}

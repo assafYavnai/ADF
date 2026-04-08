@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "coo-freeze-to-cto-admission-wiring",
+  "lane_id": "gemini-3.1-pro",
+  "started_at": "2026-04-04T17:58:01.550Z",
+  "updated_at": "2026-04-04T17:58:43.078Z",
+  "status": "max_cycles_exhausted",
+  "workspace": {
+    "isolation_mode": "git_worktree",
+    "working_directory": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring\\gemini-3.1-pro",
+    "worktree_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring\\gemini-3.1-pro",
+    "base_ref": "HEAD",
+    "starting_head_sha": "c978b84464a812e6f8a63c3427cde578fbfce5dc"
+  },
+  "workspace_preparation_ms": 26489,
+  "session_handle": null,
+  "next_cycle_number": 7,
+  "feedback": "The previous cycle failed before verification.\nError: gemini failed (exit 1): Cannot use both --yolo (-y) and --approval-mode together. Use --approval-mode=yolo instead.\nUsage: gemini [options] [command]\n\nGemini CLI - Defaults to interactive mode. Use -p/--prompt for non-interactive (headless) mode.\n\nCommands:\n  gemini mcp                   Manage MCP servers\n  gemini extensions <command>  Manage Gemini CLI extensions.  [aliases: extension]\n  gemini skills <command>      Manage agent skills.  [aliases: skill]\n  gemini hooks <command>       Manage Gemini CLI hooks.  [aliases: hook]\n  gemini [query..]             Launch Gemini CLI  [default]\n\nPositionals:\n  query  Initial prompt. Runs in interactive mode by default; use -p/--prompt for non-interactive.\n\nOptions:\n  -d, --debug                     Run in debug mode (open debug console with F12)  [boolean] [default: false]\n  -m, --model                     Model  [string]\n  -p, --prompt                    Run in non-interactive (headless) mode with the given prompt. Appended to input on stdin (if any).  [string]\n  -i, --prompt-interactive        Execute the provided prompt and continue in interactive mode  [string]\n  -w, --worktree                  Start Gemini in a new git worktree. If no name is provided, one is generated automatically.  [string]\n  -s, --sandbox                   Run in sandbox?  [boolean]\n  -y, --yolo                      Automatically accept all actions (aka YOLO mode, see https://www.youtube.com/watch?v=xvFZjo5PgG0 for more details)?  [boolean] [default: false]\n      --approval-mode             Set the approval mode: default (prompt for approval), auto_edit (auto-approve edit tools), yolo (auto-approve all tools), plan (read-only mode)  [string] [choices: \"default\", \"auto_edit\", \"yolo\", \"plan\"]\n      --policy                    Additional policy files or directories to load (comma-separated or multiple --policy)  [array]\n      --admin-policy              Additional admin policy files or directories to load (comma-separated or multiple --admin-policy)  [array]\n      --acp                       Starts the agent in ACP mode  [boolean]\n      --experimental-acp          Starts the agent in ACP mode (deprecated, use --acp instead)  [boolean]\n      --allowed-mcp-server-names  Allowed MCP server names  [array]\n      --allowed-tools             [DEPRECATED: Use Policy Engine instead See https://geminicli.com/docs/core/policy-engine] Tools that are allowed to run without confirmation  [array]\n  -e, --extensions                A list of extensions to us\n...[truncated 1262 chars]\nRetry the implementation in the same worktree and then rerun the verification commands yourself.",
+  "verification_failures": [],
+  "final_response_path": null,
+  "final_result_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\gemini-3.1-pro\\cycle-06\\result.json",
+  "final_request_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\gemini-3.1-pro\\cycle-06\\request.json",
+  "final_verification_path": null
+}

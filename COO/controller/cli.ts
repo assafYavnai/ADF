@@ -62,6 +62,7 @@ async function main() {
     threadsDir,
     promptsDir,
     memoryDir,
+    telemetryPartition,
     classifierParams: DEFAULT_CLASSIFIER_PARAMS,
     intelligenceParams: DEFAULT_INTELLIGENCE_PARAMS,
     enableRequirementsGatheringOnion: onionEnabled,

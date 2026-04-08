@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const REQUIRED_SETUP_FIELDS = [
@@ -20,6 +20,7 @@ const ACCESS_MODES = new Set([
   "native_full_access",
   "native_elevated_permissions",
   "codex_cli_full_auto_bypass",
+  "claude_code_skip_permissions",
   "inherits_current_runtime_access",
   "interactive_fallback"
 ]);
@@ -27,6 +28,7 @@ const ACCESS_MODES = new Set([
 const RUNTIME_PERMISSION_MODELS = new Set([
   "native_explicit_full_access",
   "codex_cli_explicit_full_auto",
+  "claude_code_skip_permissions",
   "native_inherited_access_only",
   "interactive_or_limited"
 ]);
@@ -34,6 +36,7 @@ const RUNTIME_PERMISSION_MODELS = new Set([
 const EXECUTION_RUNTIMES = new Set([
   "native_agent_tools",
   "codex_cli_exec",
+  "claude_code_exec",
   "artifact_continuity_only"
 ]);
 
@@ -90,11 +93,13 @@ async function main() {
   const existing = await loadExistingSetup(projectRoot);
 
   const capabilityDetection = detectCapabilities(args, existing.detected_runtime_capabilities ?? {});
+  const llmTools = detectLlmToolsViaPreflight(projectRoot);
   const derived = deriveSetup({
     args,
     projectRoot,
     existing,
-    capabilityDetection
+    capabilityDetection,
+    llmTools
   });
   const validation = validateSetupObject(derived.setup, projectRoot);
 
@@ -165,6 +170,26 @@ function detectCapabilities(args, fallbackCapabilities) {
       codex_cli_probe: cliDetection.metadata
     }
   };
+}
+
+function detectLlmToolsViaPreflight(projectRoot) {
+  try {
+    const preflightScript = join(projectRoot, "tools", "agent-runtime-preflight.mjs");
+    const result = spawnSync("node", [preflightScript, "--repo-root", projectRoot, "--json"], {
+      encoding: "utf8",
+      timeout: 15000,
+      windowsHide: true
+    });
+    if (result.status === 0 && result.stdout) {
+      const report = JSON.parse(result.stdout);
+      if (isPlainObject(report.llm_tools)) {
+        return report.llm_tools;
+      }
+    }
+    return {};
+  } catch {
+    return {};
+  }
 }
 
 function deriveSetup(input) {
@@ -258,6 +283,7 @@ function deriveSetup(input) {
     requires_project_specific_permission_rules: requiresProjectSpecificPermissionRules,
     project_specific_permission_rules: projectSpecificPermissionRules,
     detected_runtime_capabilities: capabilities,
+    llm_tools: input.llmTools ?? input.existing.llm_tools ?? {},
     setup_schema_version: 2,
     created_at: input.existing.created_at ?? nowIso(),
     updated_at: nowIso()
@@ -378,6 +404,9 @@ function validateSetupObject(setup, projectRoot) {
 
   if (setup.preferred_execution_access_mode === "codex_cli_full_auto_bypass" && setup.preferred_execution_runtime !== "codex_cli_exec") {
     errors.push("preferred_execution_runtime must be 'codex_cli_exec' when preferred_execution_access_mode is 'codex_cli_full_auto_bypass'.");
+  }
+  if (setup.preferred_execution_access_mode === "claude_code_skip_permissions" && setup.preferred_execution_runtime !== "claude_code_exec") {
+    errors.push("preferred_execution_runtime must be 'claude_code_exec' when preferred_execution_access_mode is 'claude_code_skip_permissions'.");
   }
 
   if (

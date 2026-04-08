@@ -67,6 +67,7 @@ If a required input is missing, ask only for the missing field.
 5. For `action=run`, read [references/prompt-templates.md](references/prompt-templates.md).
 6. Load `<repo_root>/.codex/review-cycle/setup.json`.
 7. If setup is missing, incomplete, unparsable, or internally inconsistent, read [references/setup-contract.md](references/setup-contract.md) and run the internal setup helper before continuing.
+   Treat `setup.json` as local operational state. It may be auto-created or refreshed locally, but it must not be committed as a source artifact.
 8. Run `node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs prepare ...`.
 9. Treat the helper JSON as the source of truth for:
    - active cycle selection
@@ -88,6 +89,7 @@ Rules:
   - failure classes
   - claimed supported route and end-to-end invariants
   - KPI applicability and KPI closure expectation
+  - Vision Compatibility, Phase 1 Compatibility, Master-Plan Compatibility, Current Gap-Closure Compatibility, Later-Company Check, Compatibility Decision, and Compatibility Evidence
   - allowed mutation surfaces
   - forbidden shared-surface expansion
   - sibling sweep scope
@@ -118,7 +120,9 @@ Rules:
 
 ## Access-mode rule
 
-All spawned executions used by this workflow must run under the strongest truthful non-interactive autonomous access mode the current Codex runtime supports.
+All spawned executions used by this workflow must run under the strongest truthful non-interactive autonomous access mode the current runtime supports.
+
+Resolve worker availability from runtime preflight `llm_tools` section before assuming any CLI tool is unavailable. When the user or contract requests a specific LLM tool as a reviewer or implementor, use the `autonomous_invoke` command from preflight to spawn it via Bash.
 
 Resolve access in this order:
 
@@ -320,6 +324,28 @@ Use the helper scripts for deterministic local state:
 - `node C:/ADF/skills/review-cycle/scripts/review-cycle-setup-helper.mjs write-setup ...`
 
 Use the helper as the deterministic state machine. The Codex agent still owns actual prompting, waiting, verification, documentation updates, and git closeout.
+
+## Completion-summary normalization rule
+
+When the review cycle reaches approval closeout (both required review lanes satisfied), the invoker must normalize `completion-summary.md` before the final approved commit on the feature branch.
+
+Call:
+
+```bash
+node C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs normalize-completion-summary \
+  --project-root <repo_root_or_worktree> \
+  --phase-number <phase_number> \
+  --feature-slug <feature_slug>
+```
+
+Rules:
+
+- call this after all review work is finished and before the final approval commit and push
+- the command rewrites the completion summary to satisfy the required 7-heading contract
+- if the summary is already valid, the command returns `already_valid: true` and makes no changes
+- if the summary is missing, the command fails — this is a blocker that must be surfaced
+- include any normalization changes in the same approval commit
+- this ensures the approved commit SHA carries a contract-valid completion summary so `merge-queue` and `mark-complete` can succeed without manual cleanup
 
 ## Closeout
 

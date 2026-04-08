@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "contract_kind": "implement-plan-execution",
+  "contract_revision": 5,
+  "prepared_at": "2026-04-08T10:00:19.146Z",
+  "feature_identity": {
+    "project_root": "C:/ADF",
+    "phase_number": 1,
+    "feature_slug": "implement-plan-llm-tools-worker-resolution",
+    "feature_registry_key": "phase1/implement-plan-llm-tools-worker-resolution",
+    "feature_root": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution"
+  },
+  "run_identity": {
+    "run_mode": "normal",
+    "run_id": "run-bccd79ee-5d61-431c-9195-f1d7e1c91182",
+    "attempt_id": "attempt-001",
+    "attempt_number": 1,
+    "lane_id": null,
+    "worker_id": "implementor/default"
+  },
+  "invoker_runtime": {
+    "provider": "claude",
+    "execution_runtime": "codex_cli_exec",
+    "control_plane_runtime": "codex_cli_exec",
+    "access_mode": "codex_cli_full_auto_bypass",
+    "model": "gpt-5.4",
+    "reasoning_effort": "xhigh",
+    "runtime_permission_model": "codex_cli_explicit_full_auto",
+    "selection_source": "invoker_runtime_defaults"
+  },
+  "worker_selection": {
+    "defaults": {
+      "provider": "claude",
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh"
+    },
+    "continuity": {
+      "provider": "claude",
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": null
+    },
+    "overrides": {
+      "provider": null,
+      "runtime": null,
+      "access_mode": null,
+      "model": null,
+      "reasoning_effort": null
+    },
+    "resolved": {
+      "provider": "claude",
+      "runtime": "codex_cli_exec",
+      "access_mode": "codex_cli_full_auto_bypass",
+      "model": "gpt-5.4",
+      "reasoning_effort": "xhigh"
+    },
+    "resolved_sources": {
+      "provider": "persisted_continuity",
+      "runtime": "persisted_continuity",
+      "access_mode": "persisted_continuity",
+      "model": "persisted_continuity",
+      "reasoning_effort": "invoker_inheritance"
+    },
+    "inheritance": {
+      "provider": false,
+      "runtime": false,
+      "access_mode": false,
+      "model": false,
+      "reasoning_effort": true
+    }
+  },
+  "route_policy": {
+    "normal_mode_governed_flow": [
+      "implementation",
+      "machine_verification",
+      "review_cycle",
+      "human_testing",
+      "merge_queue"
+    ],
+    "normal_mode_requires_review_cycle_when_requested": true,
+    "human_testing_requires_route_level_review_gate": true,
+    "merge_completion_required_for_terminal_completion": true,
+    "supported_operator_stop_surface": false,
+    "supported_reset_surface": "helper-reset-attempt",
+    "normal_mode_shortcuts_allowed": false
+  },
+  "review_handoff": {
+    "post_send_to_review": true,
+    "review_until_complete": true,
+    "review_max_cycles": 5,
+    "review_required_by_human_plan": false
+  },
+  "benchmarking": {
+    "enabled": false,
+    "supervisor_status": "not_applicable",
+    "benchmark_run_id": null,
+    "benchmark_suite_id": null,
+    "lane_id": null,
+    "lane_label": null
+  },
+  "resume_policy": {
+    "resumable_after_crash_or_kill": true,
+    "reuse_cached_workers_when_valid": true,
+    "recreate_workers_when_invalid": true,
+    "last_truthful_checkpoint": {
+      "step": "merge_queue",
+      "status": "completed",
+      "reason": "Legacy already-landed feature reconciled to completed state after cycle-03 review approval. Code was already on main at 93ee2077. No merge-queue replay was performed.",
+      "updated_at": "2026-04-08T10:00:19.143Z"
+    }
+  },
+  "reset_policy": {
+    "supported": true,
+    "behavior": "new_attempt_from_implementation_preserving_history",
+    "next_attempt_number": 2
+  },
+  "kpi_policy": {
+    "source": "governed_production_flow",
+    "step_timing_enabled": true,
+    "governance_call_timing_enabled": true,
+    "verification_outcomes_enabled": true,
+    "review_and_self_fix_counts_enabled": true,
+    "blocker_classification_enabled": true,
+    "terminal_status_enabled": true
+  },
+  "integrity": {
+    "blocking_issue_count": 0,
+    "blocking_issue_classes": [],
+    "next_safe_move": "materialize normalized contract and proceed to implementor brief"
+  },
+  "artifacts": {
+    "state_path": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implement-plan-state.json",
+    "markdown_contract_path": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implementation-run/run-bccd79ee-5d61-431c-9195-f1d7e1c91182/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implementation-run/run-bccd79ee-5d61-431c-9195-f1d7e1c91182/run-projection.v1.json",
+    "execution_run_root": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implementation-run/run-bccd79ee-5d61-431c-9195-f1d7e1c91182",
+    "event_root": "C:/ADF/docs/phase1/implement-plan-llm-tools-worker-resolution/implementation-run/run-bccd79ee-5d61-431c-9195-f1d7e1c91182/events/attempt-001",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-llm-tools-worker-resolution"
+  }
+}

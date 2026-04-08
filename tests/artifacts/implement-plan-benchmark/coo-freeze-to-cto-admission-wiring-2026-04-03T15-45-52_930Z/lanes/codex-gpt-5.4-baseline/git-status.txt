@@ -1,0 +1,71 @@
+ M COO/controller/loop.ts
+ M COO/controller/thread.test.ts
+ M COO/controller/thread.ts
+ M COO/cto-admission/build-packet.ts
+ M COO/cto-admission/index.ts
+ M COO/cto-admission/types.ts
+ M COO/package-lock.json
+ M COO/requirements-gathering/contracts/onion-live.ts
+ M COO/requirements-gathering/live/onion-live.ts
+ M tests/integration/artifacts/onion-route-proof/cli-production-isolation/cli-stderr.txt
+ M tests/integration/artifacts/onion-route-proof/cli-runtime/cli-stdout.txt
+ D tests/integration/artifacts/onion-route-proof/cli-runtime/threads/ef2eb202-95e2-463c-bd73-7fc9ba444f37.json
+ D tests/integration/artifacts/onion-route-proof/cli-runtime/threads/ef2eb202-95e2-463c-bd73-7fc9ba444f37.txt
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/brain-search-unavailable/threads/333f2234-a414-4961-a2e7-3734ce09fefb.json
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/brain-search-unavailable/threads/333f2234-a414-4961-a2e7-3734ce09fefb.txt
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/failed-search/threads/30c8dadd-e780-4e0d-bd91-fe10642fe40a.json
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/failed-search/threads/30c8dadd-e780-4e0d-bd91-fe10642fe40a.txt
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/memory-capture/threads/84e817b3-28c5-4920-8807-8df504b05baf.json
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/memory-capture/threads/84e817b3-28c5-4920-8807-8df504b05baf.txt
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/missing-scope/threads/0d424120-2a05-4fb2-858d-e31234ec5c5d.json
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/missing-scope/threads/0d424120-2a05-4fb2-858d-e31234ec5c5d.txt
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/success/threads/be4a47f7-c280-4652-ad1d-070c3a1325a7.json
+ D tests/integration/artifacts/onion-route-proof/direct-response-runtime/success/threads/be4a47f7-c280-4652-ad1d-070c3a1325a7.txt
+ D tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/threads/ff22a377-dab3-4ec4-90bc-6bd0d68f5710.json
+ D tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/threads/ff22a377-dab3-4ec4-90bc-6bd0d68f5710.txt
+ D tests/integration/artifacts/onion-route-proof/lock-failure-runtime/threads/6edd6c61-217e-4ed5-99b4-19108afefe2c.json
+ D tests/integration/artifacts/onion-route-proof/lock-failure-runtime/threads/6edd6c61-217e-4ed5-99b4-19108afefe2c.txt
+ D tests/integration/artifacts/onion-route-proof/no-scope-runtime/threads/015da15c-4fa2-499c-b2e8-e462af968c53.json
+ D tests/integration/artifacts/onion-route-proof/no-scope-runtime/threads/015da15c-4fa2-499c-b2e8-e462af968c53.txt
+ M tests/integration/artifacts/onion-route-proof/report.json
+ D tests/integration/artifacts/onion-route-proof/success-runtime/threads/4f3e6a02-4671-487d-b51f-d2de9a0a885e.json
+ D tests/integration/artifacts/onion-route-proof/success-runtime/threads/4f3e6a02-4671-487d-b51f-d2de9a0a885e.txt
+ D tests/integration/artifacts/onion-route-proof/supersession-runtime/threads/d60fd93a-a35d-4758-9aa3-3e9f50379b02.json
+ D tests/integration/artifacts/onion-route-proof/supersession-runtime/threads/d60fd93a-a35d-4758-9aa3-3e9f50379b02.txt
+ M tests/integration/onion-route.runtime-proof.ts
+?? COO/cto-admission/live-wiring.ts
+?? tests/integration/artifacts/onion-route-proof/cli-runtime/threads/e046edaa-da2c-4b8a-a179-6180979ee6b9.json
+?? tests/integration/artifacts/onion-route-proof/cli-runtime/threads/e046edaa-da2c-4b8a-a179-6180979ee6b9.txt
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/brain-search-unavailable/threads/463f10c6-86df-4d15-8eb2-92962abae1b2.json
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/brain-search-unavailable/threads/463f10c6-86df-4d15-8eb2-92962abae1b2.txt
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/failed-search/threads/209f7846-8a12-4a6c-a783-1f22f061e290.json
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/failed-search/threads/209f7846-8a12-4a6c-a783-1f22f061e290.txt
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/memory-capture/threads/1e482655-e350-42a7-a100-3db6efb4469d.json
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/memory-capture/threads/1e482655-e350-42a7-a100-3db6efb4469d.txt
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/missing-scope/threads/4cdc3e4b-6496-4884-b875-f73fa062534e.json
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/missing-scope/threads/4cdc3e4b-6496-4884-b875-f73fa062534e.txt
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/success/threads/bcd52f50-6135-4bbf-84bb-b78fd1d1c030.json
+?? tests/integration/artifacts/onion-route-proof/direct-response-runtime/success/threads/bcd52f50-6135-4bbf-84bb-b78fd1d1c030.txt
+?? tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/docs/phase1/shippingagent/cto-admission-decision.template.json
+?? tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/docs/phase1/shippingagent/cto-admission-request.json
+?? tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/docs/phase1/shippingagent/cto-admission-summary.md
+?? tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/threads/f3b74ca2-486a-48e4-902c-1b5f87700dcb.json
+?? tests/integration/artifacts/onion-route-proof/gate-disabled-runtime/threads/f3b74ca2-486a-48e4-902c-1b5f87700dcb.txt
+?? tests/integration/artifacts/onion-route-proof/lock-failure-runtime/docs/phase1/shippingagent/cto-admission-decision.template.json
+?? tests/integration/artifacts/onion-route-proof/lock-failure-runtime/docs/phase1/shippingagent/cto-admission-request.json
+?? tests/integration/artifacts/onion-route-proof/lock-failure-runtime/docs/phase1/shippingagent/cto-admission-summary.md
+?? tests/integration/artifacts/onion-route-proof/lock-failure-runtime/threads/729c5b12-453b-4ae4-84a3-01cdba958eb8.json
+?? tests/integration/artifacts/onion-route-proof/lock-failure-runtime/threads/729c5b12-453b-4ae4-84a3-01cdba958eb8.txt
+?? tests/integration/artifacts/onion-route-proof/no-scope-runtime/threads/6cbc0ac9-289b-4abe-99ee-71c318d0805e.json
+?? tests/integration/artifacts/onion-route-proof/no-scope-runtime/threads/6cbc0ac9-289b-4abe-99ee-71c318d0805e.txt
+?? tests/integration/artifacts/onion-route-proof/success-runtime/docs/phase1/shippingagent/cto-admission-decision.template.json
+?? tests/integration/artifacts/onion-route-proof/success-runtime/docs/phase1/shippingagent/cto-admission-request.json
+?? tests/integration/artifacts/onion-route-proof/success-runtime/docs/phase1/shippingagent/cto-admission-summary.md
+?? tests/integration/artifacts/onion-route-proof/success-runtime/threads/ee6751da-a2ac-469c-8a41-03df12dbe56c.json
+?? tests/integration/artifacts/onion-route-proof/success-runtime/threads/ee6751da-a2ac-469c-8a41-03df12dbe56c.txt
+?? tests/integration/artifacts/onion-route-proof/supersession-runtime/docs/phase1/shippingagent/cto-admission-decision.template.json
+?? tests/integration/artifacts/onion-route-proof/supersession-runtime/docs/phase1/shippingagent/cto-admission-request.json
+?? tests/integration/artifacts/onion-route-proof/supersession-runtime/docs/phase1/shippingagent/cto-admission-summary.md
+?? tests/integration/artifacts/onion-route-proof/supersession-runtime/threads/e071cb5a-9e64-4b23-b9b3-d256ff26d640.json
+?? tests/integration/artifacts/onion-route-proof/supersession-runtime/threads/e071cb5a-9e64-4b23-b9b3-d256ff26d640.txt
+?? tests/integration/coo-freeze-to-cto-admission-wiring.test.ts

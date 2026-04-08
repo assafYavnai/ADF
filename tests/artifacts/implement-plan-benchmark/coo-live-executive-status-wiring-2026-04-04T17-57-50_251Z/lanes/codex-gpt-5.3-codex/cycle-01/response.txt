@@ -1,0 +1,23 @@
+Summary:
+Implemented live executive status wiring by adding a real runtime source adapter (threads/onion + finalized requirement + CTO admission + implement-plan state), a live status surface with KPI counters, and CLI wiring for `--status` and `/status` without changing normal turn handling.
+
+Changed files:
+- `COO/briefing/types.ts`
+- `COO/briefing/live-source-adapter.ts`
+- `COO/briefing/live-status.ts`
+- `COO/controller/cli.ts`
+- `tests/integration/coo-live-executive-status-wiring.test.ts`
+- `docs/phase1/coo-live-executive-status-wiring/completion-summary.md`
+
+Verification commands:
+- `npx.cmd tsx --test COO/briefing/executive-brief.test.ts tests/integration/coo-live-executive-status-wiring.test.ts`
+- `npx.cmd tsx COO/controller/cli.ts --status --scope assafyavnai/adf`
+
+Verification outcome:
+- Pass. `38` tests passed, `0` failed (required machine verification command).
+- CLI one-shot status command executed successfully and rendered the 4-section live executive surface.
+
+Open risks:
+- Feature correlation is heuristic when thread scope/topic does not map cleanly to `feature_slug`; some streams may appear as separate items.
+- Finalized requirement/CTO admission coverage currently depends on live onion thread state presence; if artifacts exist only outside active thread state, visibility can be partial.
+- `project-brain` MCP tool surface was not exposed in this harness runtime, so Brain startup context loading/capture could not be executed via MCP in-lane.

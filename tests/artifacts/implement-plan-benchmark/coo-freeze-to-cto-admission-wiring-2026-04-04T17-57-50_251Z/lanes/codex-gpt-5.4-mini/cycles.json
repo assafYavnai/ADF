@@ -1,0 +1,27 @@
+[
+  {
+    "cycle_number": 1,
+    "started_at": "2026-04-04T17:58:29.939Z",
+    "finished_at": "2026-04-04T18:18:32.201Z",
+    "cycle_wall_clock_ms": 1202262,
+    "prompt_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.4-mini\\cycle-01\\prompt.txt",
+    "request_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.4-mini\\cycle-01\\request.json",
+    "response_path": null,
+    "result_path": "C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026-04-04T17-57-50_251Z\\lanes\\codex-gpt-5.4-mini\\cycle-01\\result.json",
+    "verification_path": null,
+    "invocation_status": "blocked",
+    "verification_status": "not_run",
+    "llm_latency_ms": 1202262,
+    "invocation_attempt_count": 1,
+    "estimated_cost_usd": 0.00428,
+    "prompt_tokens_estimated": 853,
+    "response_tokens_estimated": 1,
+    "total_tokens_estimated": 854,
+    "verification_latency_ms": 0,
+    "session_handle": null,
+    "error_message": "codex timed out after 1200000ms: Reading additional input from stdin...\n2026-04-04T17:58:47.283560Z ERROR codex_core::tools::router: error=Exit code: 1\nWall time: 0.8 seconds\nOutput:\nadf.cmd : The term 'adf.cmd' is not recognized as the name of a cmdlet, function, script file, or operable program. \r\nCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\r\nAt line:2 char:1\r\n+ adf.cmd --runtime-preflight --json\r\n+ ~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (adf.cmd:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CommandNotFoundException\r\n \r\n\n2026-04-04T17:59:08.632736Z ERROR codex_core::tools::router: error=Exit code: 1\nWall time: 0.3 seconds\nOutput:\nGet-Content : Cannot find path 'C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026\r\n-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring\\codex-gpt-5.4-mini\\tests\\integration\\coo-freeze-to-ct\r\no-admission-wiring.test.ts' because it does not exist.\r\nAt line:2 char:1\r\n+ Get-Content tests/integration/coo-freeze-to-cto-admission-wiring.test ...\r\n+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (C:\\ADF\\tests\\ar...-wiring.test.ts:String) [Get-Content], ItemNotFoundEx \r\n   ception\r\n    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand\r\n \r\n\n2026-04-04T18:10:24.439555Z ERROR codex_core::tools::router: error=Exit code: 124\nWall time: 603.5 seconds\nOutput:\ncommand timed out after 603479 milliseconds\n\n2026-04-04T18:15:37.875914Z ERROR codex_core::tools::router: error=Exit code: 124\nWall time: 303.8 seconds\nOutput:\ncommand timed out after 303831 milliseconds\n\n2026-04-04T18:18:13.107416Z ERROR codex_core::tools::router: error=Exit code: 124\nWall time: 124 seconds\nOutput:\ncommand timed out after 124022 milliseconds",
+    "blocker_kind": "provider_execution_failed",
+    "blocker_reason": "codex timed out after 1200000ms: Reading additional input from stdin...\n2026-04-04T17:58:47.283560Z ERROR codex_core::tools::router: error=Exit code: 1\nWall time: 0.8 seconds\nOutput:\nadf.cmd : The term 'adf.cmd' is not recognized as the name of a cmdlet, function, script file, or operable program. \r\nCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\r\nAt line:2 char:1\r\n+ adf.cmd --runtime-preflight --json\r\n+ ~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (adf.cmd:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CommandNotFoundException\r\n \r\n\n2026-04-04T17:59:08.632736Z ERROR codex_core::tools::router: error=Exit code: 1\nWall time: 0.3 seconds\nOutput:\nGet-Content : Cannot find path 'C:\\ADF\\tests\\artifacts\\implement-plan-benchmark\\coo-freeze-to-cto-admission-wiring-2026\r\n-04-04T17-57-50_251Z\\worktrees\\coo-freeze-to-cto-admission-wiring\\codex-gpt-5.4-mini\\tests\\integration\\coo-freeze-to-ct\r\no-admission-wiring.test.ts' because it does not exist.\r\nAt line:2 char:1\r\n+ Get-Content tests/integration/coo-freeze-to-cto-admission-wiring.test ...\r\n+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (C:\\ADF\\tests\\ar...-wiring.test.ts:String) [Get-Content], ItemNotFoundEx \r\n   ception\r\n    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand\r\n \r\n\n2026-04-04T18:10:24.439555Z ERROR codex_core::tools::router: error=Exit code: 124\nWall time: 603.5 seconds\nOutput:\ncommand timed out after 603479 milliseconds\n\n2026-04-04T18:15:37.875914Z ERROR codex_core::tools::router: error=Exit code: 124\nWall time: 303.8 seconds\nOutput:\ncommand timed out after 303831 milliseconds\n\n2026-04-04T18:18:13.107416Z ERROR codex_core::tools::router: error=Exit code: 124\nWall time: 124 seconds\nOutput:\ncommand timed out after 124022 milliseconds",
+    "verification_failures": []
+  }
+]

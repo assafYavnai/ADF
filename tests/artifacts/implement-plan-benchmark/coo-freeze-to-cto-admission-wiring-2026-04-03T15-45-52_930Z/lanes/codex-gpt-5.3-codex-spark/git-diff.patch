@@ -1,0 +1,242 @@
+diff --git a/COO/package-lock.json b/COO/package-lock.json
+index 6960af8..15f9df2 100644
+--- a/COO/package-lock.json
++++ b/COO/package-lock.json
+@@ -8,7 +8,6 @@
+       "name": "@adf/coo",
+       "version": "0.1.0",
+       "dependencies": {
+-        "@anthropic-ai/sdk": "^0.52.0",
+         "zod": "^3.25.0"
+       },
+       "devDependencies": {
+@@ -17,15 +16,6 @@
+         "typescript": "^5.8.0"
+       }
+     },
+-    "node_modules/@anthropic-ai/sdk": {
+-      "version": "0.52.0",
+-      "resolved": "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.52.0.tgz",
+-      "integrity": "sha512-d4c+fg+xy9e46c8+YnrrgIQR45CZlAi7PwdzIfDXDM6ACxEZli1/fxhURsq30ZpMZy6LvSkr41jGq5aF5TD7rQ==",
+-      "license": "MIT",
+-      "bin": {
+-        "anthropic-ai-sdk": "bin/cli"
+-      }
+-    },
+     "node_modules/@esbuild/aix-ppc64": {
+       "version": "0.27.4",
+       "resolved": "https://registry.npmjs.org/@esbuild/aix-ppc64/-/aix-ppc64-0.27.4.tgz",
+diff --git a/COO/requirements-gathering/contracts/onion-live.ts b/COO/requirements-gathering/contracts/onion-live.ts
+index 76ea120..d79a212 100644
+--- a/COO/requirements-gathering/contracts/onion-live.ts
++++ b/COO/requirements-gathering/contracts/onion-live.ts
+@@ -7,6 +7,45 @@ import {
+ } from "./onion-observability.js";
+ import { OnionLayer, OnionState } from "./onion-state.js";
+ 
++export const AdmissionDecision = z.enum(["admit", "defer", "block"]);
++export type AdmissionDecision = z.infer<typeof AdmissionDecision>;
++
++export const AdmissionLifecycleStatus = z.enum([
++  "admission_not_started",
++  "admission_build_failed",
++  "admission_pending_decision",
++  "admission_admitted",
++  "admission_deferred",
++  "admission_blocked",
++]);
++export type AdmissionLifecycleStatus = z.infer<typeof AdmissionLifecycleStatus>;
++
++export const AdmissionBuildOutcome = z.enum([
++  "admitted",
++  "deferred",
++  "blocked",
++  "build_failed",
++]);
++export type AdmissionBuildOutcome = z.infer<typeof AdmissionBuildOutcome>;
++
++export const AdmissionLifecycle = z.object({
++  status: AdmissionLifecycleStatus,
++  feature_slug: z.string().nullable().default(null),
++  feature_root_path: z.string().nullable().default(null),
++  request_path: z.string().nullable().default(null),
++  decision_template_path: z.string().nullable().default(null),
++  summary_path: z.string().nullable().default(null),
++  packet_build_latency_ms: z.number().int().nonnegative().default(0),
++  packet_outcome: AdmissionBuildOutcome.nullable().default(null),
++  packet_decision: AdmissionDecision.nullable().default(null),
++  failure_reason: z.string().nullable().default(null),
++  persistence_receipt_kinds: z.array(z.string()).default([]),
++  request_write_ms: z.number().int().nonnegative().default(0),
++  decision_template_write_ms: z.number().int().nonnegative().default(0),
++  summary_write_ms: z.number().int().nonnegative().default(0),
++});
++export type AdmissionLifecycle = z.infer<typeof AdmissionLifecycle>;
++
+ export const OnionPersistenceReceipt = z.object({
+   kind: z.enum([
+     "thread_workflow_state",
+@@ -14,6 +53,10 @@ export const OnionPersistenceReceipt = z.object({
+     "finalized_requirement_lock",
+     "provisional_finalized_requirement_retire",
+     "superseded_requirement_retire",
++    "admission_request_write",
++    "admission_decision_template_write",
++    "admission_summary_write",
++    "admission_build_failed",
+   ]),
+   target: z.enum(["thread", "memory_engine"]),
+   status: z.enum(["stored", "created", "locked", "archived", "superseded", "skipped", "failed"]),
+@@ -50,6 +93,22 @@ export const OnionWorkflowThreadState = z.object({
+   latest_audit_trace: OnionWorkflowAuditTrace,
+   latest_llm_calls: z.array(OnionLlmCallRecord).default([]),
+   latest_persistence_receipts: z.array(OnionPersistenceReceipt).default([]),
++  admission: AdmissionLifecycle.default({
++    status: "admission_not_started",
++    feature_slug: null,
++    feature_root_path: null,
++    request_path: null,
++    decision_template_path: null,
++    summary_path: null,
++    packet_build_latency_ms: 0,
++    packet_outcome: null,
++    packet_decision: null,
++    failure_reason: null,
++    persistence_receipt_kinds: [],
++    request_write_ms: 0,
++    decision_template_write_ms: 0,
++    summary_write_ms: 0,
++  }),
+ });
+ export type OnionWorkflowThreadState = z.infer<typeof OnionWorkflowThreadState>;
+ 
+@@ -84,6 +143,22 @@ export const OnionTurnResultRecord = z.object({
+   operation_records: z.array(OnionOperationRecord),
+   llm_calls: z.array(OnionLlmCallRecord).default([]),
+   persistence_receipts: z.array(OnionPersistenceReceipt).default([]),
++  admission: AdmissionLifecycle.default({
++    status: "admission_not_started",
++    feature_slug: null,
++    feature_root_path: null,
++    request_path: null,
++    decision_template_path: null,
++    summary_path: null,
++    packet_build_latency_ms: 0,
++    packet_outcome: null,
++    packet_decision: null,
++    failure_reason: null,
++    persistence_receipt_kinds: [],
++    request_write_ms: 0,
++    decision_template_write_ms: 0,
++    summary_write_ms: 0,
++  }),
+   state_commit_summary: z.string(),
+   open_loops: z.array(z.string()).default([]),
+ });
+diff --git a/COO/requirements-gathering/live/onion-live.ts b/COO/requirements-gathering/live/onion-live.ts
+index 29bffc6..0c20cac 100644
+--- a/COO/requirements-gathering/live/onion-live.ts
++++ b/COO/requirements-gathering/live/onion-live.ts
+@@ -1,4 +1,7 @@
+ import { z } from "zod";
++import { mkdir, writeFile } from "node:fs/promises";
++import { fileURLToPath } from "node:url";
++import { join, resolve } from "node:path";
+ import { createSystemProvenance, type Provenance } from "../../../shared/provenance/types.js";
+ import { emit } from "../../../shared/telemetry/collector.js";
+ import { invoke } from "../../../shared/llm-invoker/invoker.js";
+@@ -22,9 +25,13 @@ import {
+ } from "../contracts/onion-artifact.js";
+ import {
+   OnionPersistenceReceipt,
++  AdmissionLifecycle,
+   OnionWorkflowLifecycleStatus,
++  AdmissionLifecycleStatus,
+   OnionWorkflowThreadState,
+   type OnionPersistenceReceipt as OnionPersistenceReceiptType,
++  type AdmissionLifecycle as OnionAdmissionLifecycleType,
++  type AdmissionLifecycleStatus as OnionAdmissionLifecycleStatusType,
+   type OnionWorkflowLifecycleStatus as OnionWorkflowLifecycleStatusType,
+ } from "../contracts/onion-live.js";
+ import {
+@@ -41,6 +48,7 @@ import { deriveConversationState } from "../engine/conversation-state.js";
+ import { evaluateFreezeReadiness } from "../engine/freeze-check.js";
+ import { reduceOnionState } from "../engine/onion-reducer.js";
+ import { evaluateReadiness } from "../engine/readiness-check.js";
++import { buildAdmissionPacket } from "../../cto-admission/build-packet.js";
+ 
+ const ParserResponse = OnionTurnUpdate;
+ 
+@@ -217,11 +225,13 @@ export async function handleRequirementsGatheringOnion(input: {
+     lifecycleStatus,
+     finalizedRequirementMemoryId: persistence.finalizedRequirementMemoryId,
+     persistenceFailures: persistence.receipts.filter((receipt) => !receipt.success),
++    admissionStatus: persistence.admission.status,
+   });
+   const openLoops = buildOpenLoops({
+     clarificationQuestion: clarification.selection.next_question?.question ?? null,
+     freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
+     persistenceFailures: persistence.receipts.filter((receipt) => !receipt.success),
++    admissionStatus: persistence.admission.status,
+   });
+   const threadWorkflowState = OnionWorkflowThreadState.parse({
+     trace_id: traceId,
+@@ -234,6 +244,7 @@ export async function handleRequirementsGatheringOnion(input: {
+     working_artifact: reduced.working_artifact,
+     requirement_artifact: derivation.artifact,
+     finalized_requirement_memory_id: persistence.finalizedRequirementMemoryId,
++    admission: persistence.admission,
+     latest_audit_trace: audit.trace,
+     latest_llm_calls: llmCalls,
+     latest_persistence_receipts: [
+@@ -281,6 +292,7 @@ export async function handleRequirementsGatheringOnion(input: {
+     ],
+     llm_calls: llmCalls,
+     persistence_receipts: threadWorkflowState.latest_persistence_receipts,
++    admission: persistence.admission,
+     state_commit_summary: stateCommitSummary,
+     open_loops: openLoops,
+   }, responseProvenance));
+@@ -300,6 +312,7 @@ export async function handleRequirementsGatheringOnion(input: {
+     freezeBlockerCount: layerMetrics.freeze_blocker_count,
+     openDecisionCount: layerMetrics.open_decision_count,
+     persistence,
++    admissionStatus: persistence.admission.status,
+     clarificationQuestion: clarification.selection.next_question?.question ?? null,
+     freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
+     reopenedScope: Boolean(previousWorkflowState?.finalized_requirement_memory_id && reduced.state.freeze_status.status !== "approved"),
+@@ -496,13 +509,22 @@ async function persistOnionArtifacts(input: {
+ }): Promise<{
+   finalizedRequirementMemoryId: string | null;
+   receipts: OnionPersistenceReceiptType[];
++  admission: OnionAdmissionLifecycleType;
+   telemetry: {
+     finalized_requirement_create_ms: number;
+     finalized_requirement_lock_ms: number;
+     provisional_retire_ms: number;
+     supersede_ms: number;
++    admission_build_ms: number;
++    admission_request_write_ms: number;
++    admission_decision_template_write_ms: number;
++    admission_summary_write_ms: number;
++    admission_write_failure_count: number;
+   };
+ }> {
++  const admission = AdmissionLifecycle.parse({
++    status: "admission_not_started",
++  });
+   const receipts: OnionPersistenceReceiptType[] = [];
+   let finalizedRequirementMemoryId = input.previousWorkflowState?.finalized_requirement_memory_id ?? null;
+   const telemetry = {
+@@ -510,6 +532,11 @@ async function persistOnionArtifacts(input: {
+     finalized_requirement_lock_ms: 0,
+     provisional_retire_ms: 0,
+     supersede_ms: 0,
++    admission_build_ms: 0,
++    admission_request_write_ms: 0,
++    admission_decision_template_write_ms: 0,
++    admission_summary_write_ms: 0,
++    admission_write_failure_count: 0,
+   };
+ 
+   if (

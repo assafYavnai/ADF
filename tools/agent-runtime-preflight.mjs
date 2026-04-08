@@ -440,6 +440,31 @@ export function buildRuntimePreflightReport({
   const npxPath = lookup(npxCommand);
   const rgPath = lookup("rg");
   const pgIsReadyPath = lookup("pg_isready");
+
+  const llmToolSpecs = [
+    { name: "codex", invoke: "codex exec --full-auto --dangerously-auto-approve" },
+    { name: "claude", invoke: "claude --dangerously-skip-permissions" },
+    { name: "gemini", invoke: "gemini" },
+  ];
+  const llmTools = {};
+  for (const spec of llmToolSpecs) {
+    const toolPath = lookup(spec.name);
+    let version = null;
+    if (toolPath) {
+      const vResult = bashWorking
+        ? processRunner(bashCommand, ["-c", spec.name + " --version 2>&1 | head -1"])
+        : processRunner(spec.name, ["--version"]);
+      const firstLine = (vResult.stdout || vResult.stderr || "").trim().split("\n")[0].trim();
+      if (firstLine && /\d/.test(firstLine)) version = firstLine;
+    }
+    llmTools[spec.name] = {
+      command_name: spec.name,
+      available: Boolean(toolPath),
+      path: toolPath,
+      version,
+      autonomous_invoke: toolPath ? spec.invoke : null,
+    };
+  }
   const pgReachability = pgIsReadyPath
     ? processRunner("pg_isready", ["-h", "localhost", "-p", "5432", "-q"])
     : { status: 1, stdout: "", stderr: "pg_isready unavailable" };
@@ -515,6 +540,7 @@ export function buildRuntimePreflightReport({
       rg: { command_name: "rg", available: Boolean(rgPath), path: rgPath },
       pg_isready: { command_name: "pg_isready", available: Boolean(pgIsReadyPath), path: pgIsReadyPath },
     },
+    llm_tools: llmTools,
     postgresql: {
       reachable: Boolean(pgIsReadyPath) && pgReachability.status === 0,
       detail: pgReachability.stderr || pgReachability.stdout || "PostgreSQL did not confirm readiness on localhost:5432.",

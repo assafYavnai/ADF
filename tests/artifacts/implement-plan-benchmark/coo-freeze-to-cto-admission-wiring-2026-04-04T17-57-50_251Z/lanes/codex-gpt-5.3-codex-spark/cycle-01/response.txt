@@ -1,0 +1,22 @@
+Benchmark lane report (codex-gpt-5.3-codex-spark, review cycle 1 of 6)
+
+Summary
+- Implemented the coo-freeze-to-cto-admission-wiring slice in the current worktree.
+- Added the required integration test file and updated the phase completion summary.
+- Left implementation and tests only under allowed-edit paths.
+- No merge/push actions were performed.
+
+Changed files
+- tests/integration/coo-freeze-to-cto-admission-wiring.test.ts (new)
+- docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md (updated)
+
+Verification commands
+- npx.cmd tsx --test tests/integration/cto-admission-packet-builder.test.ts tests/integration/coo-freeze-to-cto-admission-wiring.test.ts
+- npx.cmd tsx tests/integration/onion-route.runtime-proof.ts
+
+Verification outcome
+- Integration tests: passed (33 tests, 33 passed).
+- Runtime proof: passed (exit code 0, no assertion failure observed in run output).
+
+Open risks
+- An untracked .codex/runtime directory remains in worktree from environment/runtime activity; it was not modified by this lane and may need repo-clean handling if strict cleanliness is required.

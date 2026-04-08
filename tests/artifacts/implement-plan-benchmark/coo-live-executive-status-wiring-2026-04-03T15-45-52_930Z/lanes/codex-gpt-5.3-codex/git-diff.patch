@@ -1,0 +1,189 @@
+diff --git a/COO/briefing/kpi.ts b/COO/briefing/kpi.ts
+index a12ae58..0fbfe5c 100644
+--- a/COO/briefing/kpi.ts
++++ b/COO/briefing/kpi.ts
+@@ -177,3 +177,101 @@ export function buildAndRenderWithKpi(facts: BriefSourceFacts): InstrumentedBrie
+ 
+   return { brief, rendered, metrics };
+ }
++
++// ---------------------------------------------------------------------------
++// Live executive status KPI instrumentation
++// ---------------------------------------------------------------------------
++
++export interface LiveStatusKpiRecord {
++  success: boolean;
++  buildLatencyMs: number;
++  sourceAgeMs: number;
++  sourcePartition: "production" | "proof" | "mixed";
++  missingSourceCount: number;
++  parity: BriefParityCounts;
++}
++
++export interface LiveStatusKpiReport {
++  live_exec_brief_build_latency_ms: { p50: number; p95: number; p99: number };
++  slow_status_build_buckets: { over1s: number; over10s: number; over60s: number };
++  live_exec_brief_render_success_count: number;
++  live_exec_brief_render_failure_count: number;
++  live_status_invocation_count: number;
++  live_source_adapter_missing_source_count: number;
++  issues_visibility_parity_count: number;
++  table_visibility_parity_count: number;
++  in_motion_visibility_parity_count: number;
++  next_visibility_parity_count: number;
++  live_source_freshness_age_ms: number | null;
++  observed_source_partitions: Array<"production" | "proof" | "mixed">;
++}
++
++const liveStatusRecords: LiveStatusKpiRecord[] = [];
++
++export function recordLiveStatusMetrics(record: LiveStatusKpiRecord): void {
++  liveStatusRecords.push(record);
++}
++
++export function resetLiveStatusMetrics(): void {
++  liveStatusRecords.length = 0;
++}
++
++export function getLiveStatusKpiReport(): LiveStatusKpiReport {
++  if (liveStatusRecords.length === 0) {
++    return {
++      live_exec_brief_build_latency_ms: { p50: 0, p95: 0, p99: 0 },
++      slow_status_build_buckets: { over1s: 0, over10s: 0, over60s: 0 },
++      live_exec_brief_render_success_count: 0,
++      live_exec_brief_render_failure_count: 0,
++      live_status_invocation_count: 0,
++      live_source_adapter_missing_source_count: 0,
++      issues_visibility_parity_count: 0,
++      table_visibility_parity_count: 0,
++      in_motion_visibility_parity_count: 0,
++      next_visibility_parity_count: 0,
++      live_source_freshness_age_ms: null,
++      observed_source_partitions: [],
++    };
++  }
++
++  const latencies = liveStatusRecords.map((record) => record.buildLatencyMs).sort((a, b) => a - b);
++  const parityMatches = liveStatusRecords.reduce((acc, record) => {
++    if (record.parity.issuesExpected === record.parity.issuesActual) acc.issues++;
++    if (record.parity.tableExpected === record.parity.tableActual) acc.table++;
++    if (record.parity.inMotionExpected === record.parity.inMotionActual) acc.inMotion++;
++    if (record.parity.whatsNextExpected === record.parity.whatsNextActual) acc.next++;
++    return acc;
++  }, { issues: 0, table: 0, inMotion: 0, next: 0 });
++
++  const partitionOrder: Array<"production" | "proof" | "mixed"> = ["production", "proof", "mixed"];
++  const partitionSet = new Set<"production" | "proof" | "mixed">(liveStatusRecords.map((record) => record.sourcePartition));
++  const observedSourcePartitions = partitionOrder.filter((partition) => partitionSet.has(partition));
++
++  const latest = liveStatusRecords[liveStatusRecords.length - 1];
++
++  return {
++    live_exec_brief_build_latency_ms: {
++      p50: percentile(latencies, 0.50),
++      p95: percentile(latencies, 0.95),
++      p99: percentile(latencies, 0.99),
++    },
++    slow_status_build_buckets: {
++      over1s: latencies.filter((latency) => latency > SLOW_THRESHOLDS_MS[0]).length,
++      over10s: latencies.filter((latency) => latency > SLOW_THRESHOLDS_MS[1]).length,
++      over60s: latencies.filter((latency) => latency > SLOW_THRESHOLDS_MS[2]).length,
++    },
++    live_exec_brief_render_success_count: liveStatusRecords.filter((record) => record.success).length,
++    live_exec_brief_render_failure_count: liveStatusRecords.filter((record) => !record.success).length,
++    live_status_invocation_count: liveStatusRecords.length,
++    live_source_adapter_missing_source_count: liveStatusRecords.reduce(
++      (total, record) => total + record.missingSourceCount,
++      0,
++    ),
++    issues_visibility_parity_count: parityMatches.issues,
++    table_visibility_parity_count: parityMatches.table,
++    in_motion_visibility_parity_count: parityMatches.inMotion,
++    next_visibility_parity_count: parityMatches.next,
++    live_source_freshness_age_ms: latest.sourceAgeMs,
++    observed_source_partitions: observedSourcePartitions,
++  };
++}
+diff --git a/COO/controller/cli.ts b/COO/controller/cli.ts
+index c6e7700..47d2fed 100644
+--- a/COO/controller/cli.ts
++++ b/COO/controller/cli.ts
+@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
+ import { handleTurn, DEFAULT_CLASSIFIER_PARAMS, DEFAULT_INTELLIGENCE_PARAMS } from "./loop.js";
+ import type { ControllerConfig } from "./loop.js";
+ import { emitInvocationTelemetry } from "../../shared/llm-invoker/invoker.js";
++import { buildLiveExecutiveStatus, formatLiveExecutiveStatus } from "../briefing/live-status.js";
+ import {
+   appendPersistedMetrics,
+   close as closeTelemetry,
+@@ -200,9 +201,10 @@ async function main() {
+   console.log(`Requirements-gathering onion: ${onionEnabled ? "enabled (feature gate)" : "disabled"}`);
+   console.log(`LLM invoker: ${args.testProofMode ? "test-proof-mode (guarded)" : "live"}`);
+   console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.\n");
++  console.log("Status mode: type /status to render live executive status.\n");
+ 
+   if (!process.stdin.isTTY) {
+-    await runScriptedSession(config, brainClient, threadId, configuredScope, {
++    await runScriptedSession(config, brainClient, threadId, configuredScope, telemetryPartition, {
+       ...runtimeTelemetryContext,
+       cli_mode: cliMode,
+       configured_scope: configuredScope,
+@@ -224,6 +226,16 @@ async function main() {
+   let spinnerIndex = 0;
+   const spinnerFrames = ["|", "/", "-", "\\"];
+ 
++  const showLiveStatus = async (): Promise<void> => {
++    const status = await buildLiveExecutiveStatus({
++      projectRoot,
++      threadsDir: config.threadsDir,
++      docsPhase1Dir: resolve(projectRoot, "docs", "phase1"),
++      sourcePartition: telemetryPartition,
++    });
++    console.log(`\n${formatLiveExecutiveStatus(status)}\n`);
++  };
++
+   const renderPrompt = (): void => {
+     rl.setPrompt(multilineMode ? "... " : "CEO> ");
+     rl.prompt();
+@@ -261,6 +273,11 @@ async function main() {
+       return;
+     }
+ 
++    if (input === "/status") {
++      await showLiveStatus();
++      return;
++    }
++
+     if (input === "/multi") {
+       multilineMode = true;
+       multilineBuffer.length = 0;
+@@ -587,6 +604,7 @@ async function runScriptedSession(
+   brainClient: MemoryEngineClient | null,
+   threadId: string | null,
+   configuredScope: string | null,
++  sourcePartition: "production" | "proof" | "mixed",
+   shutdownMetadata: Record<string, unknown>,
+ ): Promise<void> {
+   const rl = createInterface({
+@@ -604,6 +622,21 @@ async function runScriptedSession(
+         break;
+       }
+ 
++      if (input === "/status") {
++        try {
++          const status = await buildLiveExecutiveStatus({
++            projectRoot: config.projectRoot,
++            threadsDir: config.threadsDir,
++            docsPhase1Dir: resolve(config.projectRoot, "docs", "phase1"),
++            sourcePartition,
++          });
++          console.log(`\n${formatLiveExecutiveStatus(status)}\n`);
++        } catch (err) {
++          console.error("Error:", err);
++        }
++        continue;
++      }
++
+       try {
+         const result = await handleTurn(threadId, input, config, configuredScope);
+         threadId = result.threadId;

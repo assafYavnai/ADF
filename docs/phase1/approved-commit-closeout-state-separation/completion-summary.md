@@ -1,0 +1,67 @@
+1. Objective Completed
+
+Fixed the governed merge/closeout state model so pre-merge readiness relies on `approved_commit_sha` instead of `last_commit_sha`, while post-merge closeout still records `merge_commit_sha` and `last_commit_sha` truthfully. Additionally fixed a shared runtime `parseArgs` bug that prevented CLI-driven null-clear of nullable state fields.
+- Pre-merge readiness no longer blocks solely because `last_commit_sha` is absent.
+- `merge-queue` still uses the exact approved SHA as merge authority.
+- Post-merge closeout still requires truthful `merge_commit_sha` and `last_commit_sha`.
+- Stale already-merged queue requests are now blocked before duplicate merge work starts.
+- CLI-driven `update-state --last-commit-sha ''` now correctly clears to `null` instead of writing the literal string `"true"`.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects not run and merge commit 3b35b60e84d845ebcae4feb2edfb76e7c794f83f.
+
+2. Deliverables Produced
+
+- Core `validateCloseoutReadiness` fix in `skills/implement-plan/scripts/implement-plan-helper.mjs`
+- Updated workflow contracts in `skills/implement-plan/references/workflow-contract.md` and `skills/merge-queue/references/workflow-contract.md`
+- Stale-ancestor guard in `skills/merge-queue/scripts/merge-queue-helper.mjs`
+- `parseArgs` null-clear fix in `skills/governed-feature-runtime.mjs`
+- Five targeted machine test suites covering closeout readiness, merge authority, stale queue rejection, post-merge closeout truth, and CLI null-clear behavior
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
+
+3. Files Changed And Why
+
+- `skills/implement-plan/scripts/implement-plan-helper.mjs` - switched pre-merge readiness authority from `last_commit_sha` to `approved_commit_sha`
+- `skills/implement-plan/references/workflow-contract.md` - documented the corrected pre-merge authority rule
+- `skills/merge-queue/references/workflow-contract.md` - documented approved-SHA merge authority, stale-request rejection, and pre-merge readiness without `last_commit_sha`
+- `skills/merge-queue/scripts/merge-queue-helper.mjs` - added stale-ancestor guard rejecting already-merged queue requests before worktree creation
+- `skills/governed-feature-runtime.mjs` - fixed `parseArgs` to use `next === undefined` instead of `!next`, preserving empty-string CLI args as values
+- `skills/tests/closeout-readiness.test.mjs` - 6 targeted pre-merge readiness tests
+- `skills/tests/mark-complete-closeout-truth.test.mjs` - 4 targeted post-merge closeout truth tests
+- `skills/tests/merge-authority.test.mjs` - 4 targeted approved-SHA authority tests
+- `skills/tests/stale-merge-guard.test.mjs` - 2 targeted stale-queue guard tests
+- `skills/tests/null-clear-state-update.test.mjs` - 3 targeted CLI null-clear tests
+
+4. Verification Evidence
+
+Machine Verification:
+- `node skills/tests/closeout-readiness.test.mjs` - 6 passed, 0 failed
+- `node skills/tests/mark-complete-closeout-truth.test.mjs` - 4 passed, 0 failed
+- `node skills/tests/merge-authority.test.mjs` - 4 passed, 0 failed
+- `node skills/tests/stale-merge-guard.test.mjs` - 2 passed, 0 failed
+- `node skills/tests/null-clear-state-update.test.mjs` - 3 passed, 0 failed
+- `node --check` on all modified scripts and tests - passed
+- `git diff --check` - no whitespace errors
+Human Verification Requirement: false
+Human Verification Status: not applicable
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: not run
+- Merge Status: merged via merge-queue (merge commit 3b35b60e84d845ebcae4feb2edfb76e7c794f83f)
+- Local Target Sync Status: skipped_dirty_checkout
+
+5. Feature Artifacts Updated
+
+- `docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json`
+- `docs/phase1/approved-commit-closeout-state-separation/implement-plan-execution-contract.v1.json`
+- `docs/phase1/approved-commit-closeout-state-separation/implementation-run/`
+- `docs/phase1/approved-commit-closeout-state-separation/completion-summary.md`
+
+6. Commit And Push Result
+
+- Approved feature commit: 427614623c43a0e3a6409f3ac437029ab5a44667
+- Merge commit: 3b35b60e84d845ebcae4feb2edfb76e7c794f83f
+- Push: success to origin/main
+
+7. Remaining Non-Goals / Debt
+
+- No human-review handoff for this machine-only slice
+- No broad merge-queue redesign beyond the stale-request guard
