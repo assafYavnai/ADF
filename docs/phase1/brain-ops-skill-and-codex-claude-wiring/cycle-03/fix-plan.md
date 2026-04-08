@@ -43,14 +43,11 @@
 - `completion-summary.md` explicitly names the cycle-02 closeout-state commit and the cycle-03 pre-review alignment commit so the current branch tip no longer tells competing lineage stories.
 - cycle-04 review can approve the branch tip without depending on dirty-only state or ambiguous commit lineage.
 
-6. Regression Forecast
+- targeted regression checks:
+  - review the updated `completion-summary.md` against `git log --oneline origin/main..HEAD` before committing
+  - compare `implement-plan-state.json` and `review-cycle-state.json` directly before writing `cycle-03/fix-report.md`
 
-- risk: the summary could still omit a later state-alignment commit and reopen lineage ambiguity.
-  targeted check: review the updated `completion-summary.md` against `git log --oneline origin/main..HEAD` before committing.
-- risk: helper-recorded timestamps could drift again between `implement-plan` and `review-cycle`.
-  targeted check: compare the two state files directly before writing `cycle-03/fix-report.md`.
-
-7. Non-Goals
+6. Non-Goals
 
 - No changes to `skills/brain-ops/*`.
 - No changes to `docs/bootstrap/cli-agent.md`.
