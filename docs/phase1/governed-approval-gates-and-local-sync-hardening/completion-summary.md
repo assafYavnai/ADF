@@ -26,12 +26,12 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 4. Verification Evidence
 
 - Machine Verification: passed
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
 - Human Verification Requirement: not required
 - Human Verification Status: not required
-- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
 - Review-Cycle Status: not run
 - Merge Status: merged via merge-queue (merge commit aea98570b680eee0c842689bb64d1d8a7f9a6619)
-- Local Target Sync Status: skipped_dirty_checkout
+- Local Target Sync Status: preserve_restore_succeeded
 
 5. Feature Artifacts Updated
 
@@ -47,8 +47,9 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 
 - Approved feature commit: 3cd2084e2dfdea8dfc5bb6d63334f1818925583d
 - Merge commit: aea98570b680eee0c842689bb64d1d8a7f9a6619
+- Final closeout commit: 47fbeec113fb380728ac55266becfaec3185a6d4
 - Push: success to origin/main
-- Closeout note: Merged via merge-queue after approval.
+- Closeout note: Merged via merge-queue after preserve/sync/restore local main reconciliation.
 
 7. Remaining Non-Goals / Debt
 
