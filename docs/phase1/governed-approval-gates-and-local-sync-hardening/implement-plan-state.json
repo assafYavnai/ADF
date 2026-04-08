@@ -30,16 +30,16 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
+  "merge_status": "ready_to_queue",
+  "approved_commit_sha": "3cd208451023a04c0a18a7e7fa3938b95a28be5f",
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "last_completed_step": "verification_finished",
+  "last_completed_step": "merge_ready",
   "last_commit_sha": null,
-  "active_run_status": "closeout_pending",
+  "active_run_status": "merge_ready",
   "created_at": "2026-04-08T15:50:04.688Z",
-  "updated_at": "2026-04-08T17:47:51.561Z",
+  "updated_at": "2026-04-08T17:49:41.227Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-08T15:50:04.750Z",
     "worktree_prepared_at": "2026-04-08T15:53:05.779Z",
@@ -53,7 +53,8 @@
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": null,
-    "closeout_finished_at": null
+    "closeout_finished_at": null,
+    "merge_ready_at": "2026-04-08T17:49:41.173Z"
   },
   "event_log": [
     {
@@ -114,6 +115,29 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-08T17:47:51.509Z",
       "note": "Legacy event mirrored into the execution projection: verification-finished."
+    },
+    {
+      "event_id": "event-fefa2eee-7bcc-4c83-985d-dbf343c27171",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:49:17.164Z",
+      "note": null
+    },
+    {
+      "event": "merge-ready",
+      "timestamp": "2026-04-08T17:49:41.173Z",
+      "note": null
+    },
+    {
+      "event_id": "event-a217d835-3705-4834-9627-64655fc1fcc0",
+      "event_type": "step-transition",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:49:41.173Z",
+      "note": "Legacy event mirrored into the execution projection: merge-ready."
     }
   ],
   "artifacts": {
@@ -145,7 +169,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 3,
+        "contract_revision": 5,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/run-projection.v1.json",
@@ -165,18 +189,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "closeout_pending",
+            "status": "merge_ready",
             "terminal_status": null,
             "started_at": "2026-04-08T15:50:04.730Z",
-            "updated_at": "2026-04-08T17:47:51.559Z",
+            "updated_at": "2026-04-08T17:49:41.225Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "machine_verification",
-              "status": "completed",
+              "step": "merge_queue",
+              "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-08T17:47:51.559Z"
+              "updated_at": "2026-04-08T17:49:41.226Z"
             },
             "step_status": {
               "implementation": {
@@ -208,7 +232,7 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
+                "status": "ready",
                 "started_at": null,
                 "completed_at": null,
                 "duration_seconds": null,
@@ -250,13 +274,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T17:47:51.559Z",
-            "last_event_at": "2026-04-08T17:47:51.509Z"
+            "last_checkpoint_at": "2026-04-08T17:49:41.226Z",
+            "last_event_at": "2026-04-08T17:49:41.173Z"
           }
         },
         "created_at": "2026-04-08T15:50:04.730Z",
-        "updated_at": "2026-04-08T17:47:51.565Z",
-        "last_event_at": "2026-04-08T17:47:51.509Z",
+        "updated_at": "2026-04-08T17:49:41.231Z",
+        "last_event_at": "2026-04-08T17:49:41.173Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
@@ -285,7 +309,7 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
+              "status": "ready",
               "started_at": null,
               "completed_at": null,
               "duration_seconds": null
@@ -307,9 +331,9 @@
       }
     }
   },
-  "__gsw_revision": 3,
-  "__gsw_write_id": "gsw-ae5110f6-0bc5-4cb3-9bd4-2d04c038da27",
-  "__gsw_timestamp": "2026-04-08T17:47:51.567Z",
+  "__gsw_revision": 5,
+  "__gsw_write_id": "gsw-2a89ea10-5127-4c74-aec3-a4fd1eff6b84",
+  "__gsw_timestamp": "2026-04-08T17:49:41.233Z",
   "human_verification_status": null,
   "human_verification_approved_at": null,
   "human_verification_approved_commit_sha": null
