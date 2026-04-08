@@ -35,11 +35,11 @@
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "last_completed_step": "context_collected",
+  "last_completed_step": "verification_finished",
   "last_commit_sha": null,
-  "active_run_status": "context_ready",
+  "active_run_status": "closeout_pending",
   "created_at": "2026-04-08T15:50:04.688Z",
-  "updated_at": "2026-04-08T15:53:05.787Z",
+  "updated_at": "2026-04-08T17:47:51.561Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-08T15:50:04.750Z",
     "worktree_prepared_at": "2026-04-08T15:53:05.779Z",
@@ -48,7 +48,7 @@
     "brief_written_at": null,
     "implementor_started_at": null,
     "implementor_finished_at": null,
-    "verification_finished_at": null,
+    "verification_finished_at": "2026-04-08T17:47:51.509Z",
     "review_requested_at": null,
     "human_verification_requested_at": null,
     "merge_started_at": null,
@@ -100,6 +100,20 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-08T15:53:05.784Z",
       "note": null
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-08T17:47:51.509Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7e4c50e3-5f1a-4374-b5fe-a8d1015c0e46",
+      "event_type": "step-transition",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:47:51.509Z",
+      "note": "Legacy event mirrored into the execution projection: verification-finished."
     }
   ],
   "artifacts": {
@@ -107,8 +121,8 @@
     "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/context.md",
     "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-state.json",
     "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
-    "execution_run_contract_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
     "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/run-projection.v1.json",
     "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-pushback.md",
     "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-brief.md",
@@ -131,7 +145,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 2,
+        "contract_revision": 3,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/run-projection.v1.json",
@@ -151,18 +165,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "ready_for_implementation",
+            "status": "closeout_pending",
             "terminal_status": null,
             "started_at": "2026-04-08T15:50:04.730Z",
-            "updated_at": "2026-04-08T15:53:05.779Z",
+            "updated_at": "2026-04-08T17:47:51.559Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
-              "status": "ready",
+              "step": "machine_verification",
+              "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-08T15:53:05.780Z"
+              "updated_at": "2026-04-08T17:47:51.559Z"
             },
             "step_status": {
               "implementation": {
@@ -175,7 +189,7 @@
               "machine_verification": {
                 "status": "not_started",
                 "started_at": null,
-                "completed_at": null,
+                "completed_at": "2026-04-08T17:47:51.509Z",
                 "duration_seconds": null,
                 "note": null
               },
@@ -231,18 +245,18 @@
                   "runtime": "persisted_continuity",
                   "access_mode": "persisted_continuity",
                   "model": "persisted_continuity",
-                  "reasoning_effort": "unsupported_for_resolved_worker"
+                  "reasoning_effort": "persisted_continuity"
                 },
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T15:53:05.780Z",
-            "last_event_at": "2026-04-08T15:53:05.784Z"
+            "last_checkpoint_at": "2026-04-08T17:47:51.559Z",
+            "last_event_at": "2026-04-08T17:47:51.509Z"
           }
         },
         "created_at": "2026-04-08T15:50:04.730Z",
-        "updated_at": "2026-04-08T15:53:05.782Z",
-        "last_event_at": "2026-04-08T15:53:05.784Z",
+        "updated_at": "2026-04-08T17:47:51.565Z",
+        "last_event_at": "2026-04-08T17:47:51.509Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
@@ -255,7 +269,7 @@
             "machine_verification": {
               "status": "not_started",
               "started_at": null,
-              "completed_at": null,
+              "completed_at": "2026-04-08T17:47:51.509Z",
               "duration_seconds": null
             },
             "review_cycle": {
@@ -293,7 +307,10 @@
       }
     }
   },
-  "__gsw_revision": 2,
-  "__gsw_write_id": "gsw-78faa616-3fac-4968-a861-548502170684",
-  "__gsw_timestamp": "2026-04-08T15:53:05.787Z"
+  "__gsw_revision": 3,
+  "__gsw_write_id": "gsw-ae5110f6-0bc5-4cb3-9bd4-2d04c038da27",
+  "__gsw_timestamp": "2026-04-08T17:47:51.567Z",
+  "human_verification_status": null,
+  "human_verification_approved_at": null,
+  "human_verification_approved_commit_sha": null
 }

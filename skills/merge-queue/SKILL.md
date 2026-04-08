@@ -83,10 +83,10 @@ Rules:
 - Queue requests FIFO per `base_branch` lane, not one global FIFO.
 - Merge the exact approved commit SHA, not a moving branch head.
 - Reject approved branch deltas that add or modify `.codex/*/setup.json`; those files are local operational state, not mergeable source. The one-time tracked-file removal is allowed.
-- Validate closeout readiness before merge: `completion-summary.md` must exist and pass the required heading contract. Block the merge request when closeout readiness is invalid.
+- Validate closeout readiness before merge: `completion-summary.md` must exist and pass the required heading contract, required human verification must be durably satisfied for the current approved commit, and split review truth must not pass as clean approval. Block the merge request when closeout readiness is invalid.
 - Use an isolated merge worktree for landing.
 - If merge conflicts or push failures occur, surface them truthfully and leave the feature resumable instead of silently forcing completion.
-- After successful merge, fetch the target branch locally and fast-forward only when the local checkout is clean and safe.
+- After successful merge, fetch the target branch locally. If the target checkout is dirty, preserve tracked and untracked changes, sync, then restore them; fail closed if restore is unsafe.
 - Mark the feature completed only after merge success updates implement-plan state truthfully.
 
 ## Helper scripts

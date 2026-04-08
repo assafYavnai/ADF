@@ -174,6 +174,9 @@ Rules:
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
+  "human_verification_status": null,
+  "human_verification_approved_at": null,
+  "human_verification_approved_commit_sha": null,
   "last_completed_step": "context_collected",
   "last_commit_sha": null,
   "active_run_status": "context_ready",
@@ -534,10 +537,14 @@ Normal route closure must remain truthful:
 Rules:
 
 - approval on the feature branch is merge-ready, not completed
+- `record-event` must not promote `merge_ready`, merged, or terminal completed truth while governed approval blockers remain
+- required human verification must be durably recorded in feature state before merge or completion truth can advance
+- split review verdicts must not become merge-ready or completed truth
+- when `approved_commit_sha` changes after human approval, the stored human approval becomes stale until explicitly re-approved
 - do not claim completion if merge evidence is missing
 - merged-but-not-completed state may keep `active_run_status=closeout_pending`, but `merge_status`, `step_status.merge_queue`, and the resume checkpoint must still agree that merge work already completed
 - do not treat `local_target_sync_status=not_started` as truthful closeout evidence
-- `mark-complete` must fail closed unless merge truth, recorded local target sync truth, and completion-summary evidence exist
+- `mark-complete` must fail closed unless merge truth, completion-eligible local target sync truth, governed approval truth, and completion-summary evidence exist
 
 ## KPI Rules
 
@@ -570,6 +577,8 @@ Do not introduce a benchmark-only scoring subsystem in this slice.
 
 - validate or refresh setup
 - normalize feature context
+- refresh origin truth before creating or reusing the governed feature worktree
+- fail closed when the local feature branch is behind or diverged from `origin/<feature_branch>`
 - run the integrity gate
 - write pushback on failure
 - materialize the stable execution contract, run-scoped contract snapshot, run projection, and initial events
@@ -607,6 +616,9 @@ The helper owns a `validate-closeout-readiness` command that checks pre-merge re
 - `implement-plan-state.json` exists for the feature stream
 - the feature is not already marked completed
 - `approved_commit_sha` is present in state (the reviewed commit authority for merge)
+- if human verification is required, durable feature state records one of `approved`, `pending`, `rejected`, or `stale`
+- if human verification is required, only `approved` for the current `approved_commit_sha` is merge-eligible
+- when review-cycle evidence exists, only completed dual approval is merge-eligible
 
 Pre-merge readiness does not require `last_commit_sha`. That field is post-merge closeout evidence recorded after merge-queue lands the approved commit. `merge-queue` must call `validate-closeout-readiness` before merge and block when readiness is invalid.
 
