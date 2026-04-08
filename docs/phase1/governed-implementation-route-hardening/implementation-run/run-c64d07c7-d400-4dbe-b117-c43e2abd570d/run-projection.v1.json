@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/governed-implementation-route-hardening",
   "run_id": "run-c64d07c7-d400-4dbe-b117-c43e2abd570d",
   "run_mode": "normal",
-  "updated_at": "2026-04-06T20:43:36.986Z",
+  "updated_at": "2026-04-08T15:44:39.763Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/governed-implementation-route-hardening/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/governed-implementation-route-hardening/implementation-run/run-c64d07c7-d400-4dbe-b117-c43e2abd570d/execution-contract.v1.json",
@@ -14,10 +14,10 @@
   "run": {
     "run_id": "run-c64d07c7-d400-4dbe-b117-c43e2abd570d",
     "run_mode": "normal",
-    "lifecycle_status": "active",
-    "terminal_status": null,
+    "lifecycle_status": "completed",
+    "terminal_status": "completed",
     "contract_schema_version": 1,
-    "contract_revision": 10,
+    "contract_revision": 12,
     "feature_contract_path": "C:/ADF/docs/phase1/governed-implementation-route-hardening/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/governed-implementation-route-hardening/implementation-run/run-c64d07c7-d400-4dbe-b117-c43e2abd570d/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/governed-implementation-route-hardening/implementation-run/run-c64d07c7-d400-4dbe-b117-c43e2abd570d/run-projection.v1.json",
@@ -37,18 +37,18 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "closeout_pending",
-        "terminal_status": null,
+        "status": "completed",
+        "terminal_status": "completed",
         "started_at": "2026-04-06T20:17:29.538Z",
-        "updated_at": "2026-04-06T20:43:36.980Z",
+        "updated_at": "2026-04-08T15:44:39.755Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "machine_verification",
+          "step": "merge_queue",
           "status": "completed",
-          "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-06T20:43:36.981Z"
+          "reason": "Merged via merge-queue after approval.",
+          "updated_at": "2026-04-08T15:44:39.756Z"
         },
         "step_status": {
           "implementation": {
@@ -80,10 +80,10 @@
             "note": null
           },
           "merge_queue": {
-            "status": "not_started",
-            "started_at": null,
-            "completed_at": null,
-            "duration_seconds": null,
+            "status": "completed",
+            "started_at": "2026-04-06T20:39:53.619Z",
+            "completed_at": "2026-04-08T15:44:39.619Z",
+            "duration_seconds": 155086,
             "note": null
           }
         },
@@ -122,15 +122,15 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-06T20:43:36.981Z",
-        "last_event_at": "2026-04-06T20:43:36.981Z"
+        "last_checkpoint_at": "2026-04-08T15:44:39.756Z",
+        "last_event_at": "2026-04-08T15:44:39.755Z"
       }
     },
     "created_at": "2026-04-06T20:17:29.539Z",
-    "updated_at": "2026-04-06T20:43:36.986Z",
-    "last_event_at": "2026-04-06T20:43:36.981Z",
+    "updated_at": "2026-04-08T15:44:39.762Z",
+    "last_event_at": "2026-04-08T15:44:39.755Z",
     "kpi_projection": {
-      "terminal_status": null,
+      "terminal_status": "completed",
       "per_step_timing": {
         "implementation": {
           "status": "completed",
@@ -157,10 +157,10 @@
           "duration_seconds": null
         },
         "merge_queue": {
-          "status": "not_started",
-          "started_at": null,
-          "completed_at": null,
-          "duration_seconds": null
+          "status": "completed",
+          "started_at": "2026-04-06T20:39:53.619Z",
+          "completed_at": "2026-04-08T15:44:39.619Z",
+          "duration_seconds": 155086
         }
       },
       "governance_call_metrics": {

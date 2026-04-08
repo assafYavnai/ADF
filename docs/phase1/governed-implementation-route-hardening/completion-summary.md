@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Hardened the governed implementation route so future Phase 1 slices can move from slice-contract preparation through implementation, review, blocked-merge recovery, and closeout with less operator guesswork and fewer route-truth failures.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects cycle-01 fix_report_complete_commit_push_pending and merge commit 253d5c008762c5c361b7bf0bdde98c6ac542bd63.
 
 2. Deliverables Produced
 
@@ -11,6 +13,7 @@ Hardened the governed implementation route so future Phase 1 slices can move fro
 - implement-plan stale closeout validation: `mark-complete` fails when `completion-summary.md` still contains stale language (`not_ready`, `closeout_pending`, `review_cycle in progress`, `approval-pending`, `merge_blocked`, `merge_queued`, `merge_in_progress`)
 - cli-agent.md sibling-worker invocation examples: concrete Windows-host + bash-workflow examples for Claude Code, Codex CLI, and Gemini CLI autonomous worker spawning
 - 4 new targeted test files (19 tests) covering all new governed behavior
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -37,20 +40,25 @@ Hardened the governed implementation route so future Phase 1 slices can move fro
   - Targeted source scan confirms no `master` references in active authoritative docs (skills/, docs/bootstrap/)
 - Human Verification Requirement: not required
 - Human Verification Status: not applicable
-- Review-Cycle Status: required after implementation — not yet run
-- Merge Status: not merged — feature branch only
-- Local Target Sync Status: not applicable at this stage
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: cycle-01 fix_report_complete_commit_push_pending
+- Merge Status: merged via merge-queue (merge commit 253d5c008762c5c361b7bf0bdde98c6ac542bd63)
+- Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
 - `docs/phase1/governed-implementation-route-hardening/completion-summary.md` — created
 - No execution-contract or run-projection changes were needed since the slice does not change runtime execution identity or substrate
+- `docs/phase1/governed-implementation-route-hardening/completion-summary.md`
+- `docs/phase1/governed-implementation-route-hardening/implement-plan-state.json`
+- `docs/phase1/governed-implementation-route-hardening/implementation-run/`
 
 6. Commit And Push Result
 
-Committed and pushed on feature branch `implement-plan/phase1/governed-implementation-route-hardening`.
-- Commit SHA: `662642fd638b19b056e520b8cd50d53c4bdc9f4b`
-- Push: succeeded to `origin/implement-plan/phase1/governed-implementation-route-hardening`
+- Approved feature commit: d419a985a42a820536332ef7c39ec880b8594aac
+- Merge commit: 253d5c008762c5c361b7bf0bdde98c6ac542bd63
+- Push: success to origin/main
+- Closeout note: Merged via merge-queue after approval.
 
 7. Remaining Non-Goals / Debt
 
