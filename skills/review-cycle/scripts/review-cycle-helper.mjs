@@ -678,10 +678,7 @@ async function prepareCycle(input) {
     fix_cycle_dispatch_mode: resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState),
     fix_cycle_implementor_input: resolveFixCycleImplementorInput(
       resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState),
-      featureRoot,
       priorCycleNumber,
-      priorCycleDir,
-      priorArtifacts,
       activeArtifacts,
       cycleStatus
     )
@@ -712,29 +709,16 @@ function resolveFixCycleDispatchMode(cycleStatus, state, currentCycleState) {
   return "fresh";
 }
 
-function resolveFixCycleImplementorInput(dispatchMode, featureRoot, priorCycleNumber, priorCycleDir, priorArtifacts, activeArtifacts, cycleStatus) {
+function resolveFixCycleImplementorInput(dispatchMode, priorCycleNumber, activeArtifacts, cycleStatus) {
   if (dispatchMode !== "delta_only") return null;
 
   const rejectedArtifactPaths = [];
-  const instruction = "Fix only the rejected findings from the prior review cycle. Do not send a fresh long implementation prompt. Use only the rejected report and findings paths below plus this short fix instruction.";
+  const instruction = "Fix only the rejected findings from the active rejecting review cycle. Do not send a fresh long implementation prompt. Use only the rejected report and findings paths below plus this short fix instruction.";
 
-  // Collect rejected artifact paths from the prior cycle (the one that produced the rejection)
-  if (priorCycleDir && priorArtifacts) {
-    for (const [name, artifact] of Object.entries(priorArtifacts.required_artifacts ?? {})) {
-      if (artifact.exists && (name === "audit-findings.md" || name === "review-findings.md" || name === "fix-report.md")) {
-        rejectedArtifactPaths.push(normalizeSlashes(artifact.path));
-      }
-    }
-  }
-
-  // Also include the current cycle's findings if they exist (for cycles resuming after findings arrived)
   if (activeArtifacts) {
     for (const [name, artifact] of Object.entries(activeArtifacts.required_artifacts ?? {})) {
       if (artifact.exists && (name === "audit-findings.md" || name === "review-findings.md")) {
-        const normalized = normalizeSlashes(artifact.path);
-        if (!rejectedArtifactPaths.includes(normalized)) {
-          rejectedArtifactPaths.push(normalized);
-        }
+        rejectedArtifactPaths.push(normalizeSlashes(artifact.path));
       }
     }
   }

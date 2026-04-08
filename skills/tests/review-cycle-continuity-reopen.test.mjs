@@ -32,6 +32,10 @@ function assert(condition, message) {
   }
 }
 
+function normalizePathForAssertion(value) {
+  return value.replace(/\\/g, "/");
+}
+
 async function runTest(name, fn) {
   try {
     await fn();
@@ -577,7 +581,55 @@ await (async () => {
   }
 })();
 
-// Test 17: Behavioral - fix_cycle_implementor_input is null for fresh dispatch
+// Test 17: Behavioral - later-cycle delta_only input has exact rejecting-cycle membership
+await (async () => {
+  const testDir = join(testRoot, "delta-only-later-cycle-exact-membership");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    await setupApprovedCycle(testDir);
+
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+    const cycle02Dir = join(featureRoot, "cycle-02");
+    await mkdir(cycle02Dir, { recursive: true });
+
+    await writeFile(join(cycle02Dir, "audit-findings.md"), "1. Findings\nOverall Verdict: APPROVED\nCarry forward the already-cleared lane.\n\n2. Conceptual Root Cause\nNone.\n\n3. High-Level View Of System Routes That Still Need Work\nOnly the reviewer lane remains open.\n", "utf8");
+    await writeFile(join(cycle02Dir, "review-findings.md"), "1. Closure Verdicts\nOverall Verdict: REJECTED\nThe rejecting lane still needs a narrow fix.\n\n2. Remaining Root Cause\nExact membership is still wrong.\n\n3. Next Minimal Fix Pass\nKeep only the active cycle findings.\n", "utf8");
+
+    git(testDir, ["add", "."]);
+    git(testDir, ["commit", "-m", "cycle 02 rejected findings"]);
+
+    const result = runPrepare(testDir, 1, "test-feature", "Fix the later-cycle rejected findings.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    assert(output.fix_cycle_dispatch_mode === "delta_only",
+      "fix_cycle_dispatch_mode should be delta_only, got: " + (output.fix_cycle_dispatch_mode ?? "missing"));
+
+    const actualPaths = [...(output.fix_cycle_implementor_input?.rejected_artifact_paths ?? [])].sort();
+    const expectedPaths = [
+      normalizePathForAssertion(join(cycle02Dir, "audit-findings.md")),
+      normalizePathForAssertion(join(cycle02Dir, "review-findings.md"))
+    ].sort();
+
+    assert(JSON.stringify(actualPaths) === JSON.stringify(expectedPaths),
+      "rejected_artifact_paths should contain exactly the active rejecting cycle findings, got: " + JSON.stringify(actualPaths));
+    assert(!actualPaths.includes(normalizePathForAssertion(join(featureRoot, "cycle-01", "audit-findings.md"))),
+      "prior approved cycle audit-findings.md should be excluded");
+    assert(!actualPaths.includes(normalizePathForAssertion(join(featureRoot, "cycle-01", "review-findings.md"))),
+      "prior approved cycle review-findings.md should be excluded");
+    assert(!actualPaths.includes(normalizePathForAssertion(join(featureRoot, "cycle-01", "fix-report.md"))),
+      "prior approved cycle fix-report.md should be excluded");
+    passed += 1;
+    process.stdout.write("PASS: behavioral - later-cycle delta_only input has exact rejecting-cycle membership\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - later-cycle delta_only input has exact rejecting-cycle membership\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 18: Behavioral - fix_cycle_implementor_input is null for fresh dispatch
 await (async () => {
   const testDir = join(testRoot, "fresh-no-input");
   await mkdir(testDir, { recursive: true });
