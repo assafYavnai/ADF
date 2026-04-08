@@ -1,122 +1,149 @@
 1. Implementation Objective
 
-Continue the existing `coo-live-executive-status-wiring` slice and rebaseline it into the bounded rebased COO for Phase 1.
+Rework the COO live `/status` route so the default CEO-facing brief is a compact executive synthesis instead of a raw operational dump, while preserving evidence truth, active-slice visibility, and the bounded Phase 1 COO behavior already approved for this slice.
 
-This slice now implements:
-- company-first executive status
-- evidence cross-checking
-- anomaly investigation
-- operating-table continuity
-- bounded deep-audit and trust logic
-- Brain hard-stop enforcement
+2. Slice Scope
 
-2. Exact Slice Scope
-
-- `COO/briefing/**`
-- `COO/controller/**`
-- `COO/requirements-gathering/**` only for additive read helpers
+- `COO/briefing/status-render-agent.ts`
+- `COO/briefing/live-source-adapter.ts`
+- `COO/controller/executive-status.ts`
+- `COO/intelligence/prompt.md`
 - tightly scoped tests for the same route
 - `docs/phase1/coo-live-executive-status-wiring/**`
 
 3. Required Deliverables
 
-- rebased runtime implementation on top of the existing live-status wiring
-- 4-section company-first CEO-facing `/status`
-- bounded operating-table/trust/deep-audit layer
-- Brain-backed runtime finding and trust persistence
-- Brain hard-stop behavior
-- updated slice docs, COO prompt, and Phase 1 wording
-- proof/tests
-- truthful completion summary
+- CEO-facing `/status` brief with aggregate-first rendering
+- issue grouping by systemic root cause instead of per-slice repetition
+- short context-evidence lines for decision issues
+- a detail-drill-down option in final focus choices
+- truthful visibility for active plan-only slices so they do not disappear from COO status
+- updated slice docs and review artifacts
 
-4. Forbidden Edits
+4. Allowed Edits
 
-- implement-plan changes
-- review-cycle changes
-- merge-queue changes
-- queue scheduler buildout
-- unrelated onion redesign
-- broad memory-engine redesign
-- edits to other slice folders
+- `COO/briefing/**`
+- `COO/controller/**`
+- `COO/intelligence/**`
+- `docs/phase1/coo-live-executive-status-wiring/**`
+- route-local tests that verify this behavior
 
-5. Accepted Product Decisions
+5. Forbidden Edits
 
-- the COO remains bounded in authority
-- Brain is primary durable memory
-- direct workspace reality outranks worker-reported surfaces
-- trust is secondary to evidence and never overrides stronger truth
-- `/status` is company-first
-- the CEO still controls launch into major execution
+- `skills/implement-plan/**`
+- `skills/review-cycle/**`
+- `skills/merge-queue/**`
+- unrelated slice folders
+- broad COO architecture restarts
+- memory-engine redesign
 
-6. Proof Expectations
+6. Acceptance Gates
 
-- first-run deep audit
-- Brain hard stop
-- anomaly classification and investigation
-- tracked COO issue creation
-- immediate trust downgrade on credible drift
-- full-trust proposal path
-- company-first `/status`
-- no silent fallback / no silent source mutation
+KPI Applicability: required
 
-7. Human Verification
+KPI Route / Touched Path: `COO/controller/executive-status.ts`, `COO/briefing/status-render-agent.ts`, `COO/briefing/live-source-adapter.ts`
 
-Required: true
+KPI Raw-Truth Source: live COO status output, route-local parity checks, and the route-local tests that exercise grouped issues, focus options, and active-slice visibility
 
-Verify from the feature worktree:
-```bash
-./adf.sh -- --status --scope-path assafyavnai/adf/phase1
-```
+KPI Coverage / Proof: prove that the default CEO brief groups duplicate findings, includes evidence-bridge counts, offers a detail option when hidden detail exists, and does not hide the active governed slice from COO status
 
-Check:
-- readable business-level output
-- approved live CEO-facing contract present:
-  - `Issues That Need Your Attention`
-  - `On The Table`
-  - `In Motion`
-  - recommendation sentence plus focus options
-- evidence gaps stay visible
-- Brain hard-stop message is explicit if Brain is unavailable
-- any git-backed dropped-context warning is understandable
+KPI Production / Proof Partition: proof-only from the feature worktree plus route-local tests and a live `/status` smoke render from the worktree
 
-8. Change Request 02 - Rebased COO Operator
+KPI Non-Applicability Rationale: None.
 
-This slice is no longer only "wire the executive brief."
+KPI Exception Owner: None.
 
-Approved rebaseline:
-- keep the current foundation
-- add bounded company situational awareness
-- add evidence cross-checking and anomaly investigation
-- add bounded trust and deep-audit behavior
-- keep the route derived-only and Phase 1 bounded
+KPI Exception Expiry: None.
 
-9. Review / Compatibility Gates
+KPI Exception Production Status: None.
 
-- post_send_to_review: true
-- review_until_complete: true
-- review_max_cycles: 3
+KPI Compensating Control: None.
 
-Vision Compatibility:
-- compatible
-- This slice strengthens the COO as the executive operating surface of the startup by improving leadership visibility, continuity, and evidence-grounded judgment without widening into later-company autonomy.
+Vision Compatibility: compatible. This keeps the COO as the company operating surface while making its CEO brief more decision-ready and more truthful about live work.
 
-Phase 1 Compatibility:
-- compatible
-- The work stays within the Phase 1 mission of a real startup that can shape demand, manage the table, admit work intelligently, and brief leadership truthfully.
+Phase 1 Compatibility: compatible. The slice stays inside the bounded Phase 1 COO runtime and improves briefing quality without widening into later-company autonomy.
 
-Master-Plan Compatibility:
-- compatible
-- The slice builds on the stabilized COO runtime and the merged briefing/admission foundations instead of restarting architecture, and it improves the real COO management seam that the master plan requires.
+Master-Plan Compatibility: compatible. The work strengthens the real COO management seam instead of bypassing the approved runtime route.
 
-Current Gap-Closure Compatibility:
-- compatible
-- The slice closes the active gap around the COO business-level surface by turning it from status compression into evidence-validated operational judgment plus company-table visibility.
+Current Gap-Closure Compatibility: compatible. The fix closes the current gap where the live CEO brief is verbose, repetitive, and incomplete about active governed work.
 
-Compatibility Evidence:
-- company-first `/status` now renders the approved live CEO-facing contract from live evidence while the internal executive brief keeps the 4 operating sections
-- suspicious surfaced facts such as `0 review cycles` are investigated rather than merely repeated
-- deep-audit, trust, tracked-issue, and Brain hard-stop behavior are implemented and tested
-- the route remains bounded and derived-only rather than becoming a second canonical company database
+Later-Company Check: no
 
-Compatibility Decision:
-- compatible
+Compatibility Decision: compatible
+
+Compatibility Evidence: the route remains derived-only, evidence-first, and CEO-facing; the change compresses display while preserving governed truth and active-slice visibility.
+
+post_send_to_review: true
+
+review_until_complete: true
+
+review_max_cycles: 3
+
+Machine Verification Plan:
+- `node --check COO/briefing/status-render-agent.ts`
+- `node --check COO/briefing/live-source-adapter.ts`
+- `node --check COO/controller/executive-status.ts`
+- `npm.cmd run build` from `COO/`
+- `npx.cmd tsx COO/controller/executive-status.test.ts`
+- `./adf.sh -- --status --scope-path assafyavnai/adf/phase1` from the feature worktree
+
+Human Verification Plan:
+- Required: true
+- IMPLEMENTATION COMPLETE AND READY FOR YOUR TESTING
+- Executive summary of implemented behavior:
+  - the CEO-facing `/status` brief now renders as a compact executive synthesis instead of the old operational dump
+  - duplicate KPI findings are grouped into one systemic decision issue with context-evidence counts
+  - active plan-only governed slices stay visible in COO status instead of disappearing when only implement-plan truth is available
+- IMPLEMENTATION IS READY FOR TESTING
+- Exact testing sequence:
+  - from the feature worktree run `./adf.sh -- --status --scope-path assafyavnai/adf/phase1`
+  - read only the CEO-facing brief, not the raw evidence pack
+  - confirm the brief shows `Bottom line`, `Delivery health`, `Issues that need a decision`, `Parked / waiting`, and `Recommendation` in that order
+  - confirm the main body shows at most two decision issues
+  - confirm duplicate KPI findings are grouped into one systemic issue
+  - confirm each decision issue includes a short evidence-bridge count
+  - confirm the final focus options include `Show detailed breakdown` when hidden detail exists
+  - confirm the active governed slice is not silently dropped from COO status
+- Expected results:
+  - the brief starts with `Bottom line` and `Delivery health`
+  - the main body shows at most 2 decision issues
+  - duplicate KPI findings are grouped into one systemic issue
+  - each decision issue includes a short evidence-bridge count
+  - the final focus options include a detail-drill-down option when hidden detail exists
+  - the active governed slice is not silently dropped from COO status
+- Evidence to report back:
+  - paste the rendered brief
+  - state whether it is scan-friendly and decision-ready
+- Response contract:
+  - `APPROVED`
+  - `REJECTED: <comments>`
+
+7. Observability / Audit
+
+- Preserve existing live-status parity telemetry
+- Keep evidence-based issue grouping deterministic enough that the fallback renderer tells the same story as the model-backed renderer
+- Do not hide active governed work just because only implement-plan truth is available
+
+8. Dependencies / Constraints
+
+- Brain unavailability must still fail closed on the rebased COO route
+- The CEO-facing brief must stay data-driven; no slice-specific hardcoded report text
+- The deterministic fallback must match the same executive contract as the model-backed path
+- The fix must stay bounded to this route and this slice
+
+9. Non-Goals
+
+- repairing the implement-plan KPI closeout bug itself
+- changing review-cycle or merge-queue behavior
+- redesigning unrelated COO surfaces
+- building a second canonical operating table outside the current derived route
+
+10. Source Authorities
+
+- `docs/phase1/coo-live-executive-status-wiring/README.md`
+- `docs/phase1/coo-live-executive-status-wiring/context.md`
+- `docs/phase1/coo-live-executive-status-wiring/cycle-07/audit-findings.md`
+- `docs/phase1/coo-live-executive-status-wiring/cycle-07/fix-plan.md`
+- `COO/briefing/status-render-agent.ts`
+- `COO/briefing/live-source-adapter.ts`
+- `COO/controller/executive-status.ts`

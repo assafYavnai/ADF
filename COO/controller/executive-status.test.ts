@@ -1,5 +1,6 @@
 import test, { afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -12,6 +13,7 @@ import {
 } from "../../shared/telemetry/collector.js";
 import type { MetricEvent } from "../../shared/telemetry/types.js";
 import { buildLiveExecutiveStatus } from "./executive-status.js";
+import { inspectGitStatusWindow } from "./status-window.js";
 import { renderStatusWithAgent } from "../briefing/status-render-agent.js";
 import { assessSupportedLiveStatusBody } from "../briefing/status-render-agent.js";
 import { BrainHardStopError } from "../briefing/status-governance.js";
@@ -103,12 +105,7 @@ test("first run performs a deep audit, writes findings to Brain, and populates d
 
   assert.equal(result.governance.deepAudit?.trigger, "first_run");
   assert.equal(result.governance.deepAudit?.scope, "company");
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("## In Motion"));
-  assert.ok(result.output.includes("## What's Next"));
-  assert.ok(result.output.includes("Status notes:"));
-  assert.ok(result.output.includes("deep audit ran"));
+  assertExecutiveBriefShape(result.output);
   assert.ok(fixture.brainClient.rules.some((rule) => /evidence-first operating rule/i.test(rule.title)));
   assert.ok(fixture.brainClient.captured.some((entry) => entry.tags.includes("deep-audit")));
   const operatingState = JSON.parse(await readFile(join(tempRoot, ".codex", "runtime", "coo-operating-state.json"), "utf-8"));
@@ -189,9 +186,8 @@ test("0 review cycles is investigated as acceptable legacy when route timing say
     statusScopePath: "assafyavnai/adf/phase1",
   });
 
-  assert.ok(result.output.includes("review-cycle was not required for this landing"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("Feature Legacy Review Gap"));
+  assertExecutiveBriefShape(result.output);
+  assert.doesNotMatch(result.output, /review governance should have applied/i);
 });
 
 test("0 review cycles after review governance is active is treated as suspicious and raises a tracked issue", async () => {
@@ -215,8 +211,7 @@ test("0 review cycles after review governance is active is treated as suspicious
     statusScopePath: "assafyavnai/adf/phase1",
   });
 
-  assert.ok(result.output.includes("review governance should have applied"));
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
+  assertExecutiveBriefShape(result.output);
   assert.ok(result.governance.additionalAttention.some((item) => item.featureId === "feature-review-gap"));
   assert.ok(fixture.brainClient.captured.some((entry) => entry.tags.includes("tracked-issue")));
 });
@@ -242,7 +237,7 @@ test("merged landing without approved-commit proof is treated as suspicious and 
     statusScopePath: "assafyavnai/adf/phase1",
   });
 
-  assert.ok(result.output.includes("approved commit"));
+  assertExecutiveBriefShape(result.output);
   assert.ok(result.governance.additionalAttention.some((item) => item.featureId === "feature-approval-gap"));
   assert.ok(fixture.brainClient.captured.some((entry) =>
     entry.tags.includes("tracked-issue") && JSON.stringify(entry.content).includes("approved commit"),
@@ -329,7 +324,7 @@ test("credible drift immediately downgrades trust and surfaces the downgrade to 
   });
 
   assert.ok(result.governance.trustNotes.some((note) => /guarded trust/i.test(note.summary)));
-  assert.ok(result.output.includes("guarded trust"));
+  assertExecutiveBriefShape(result.output);
 });
 
 test("fresh deep audit plus repeated evidence agreement creates a full-trust proposal instead of auto-upgrading", async () => {
@@ -369,12 +364,11 @@ test("fresh deep audit plus repeated evidence agreement creates a full-trust pro
     statusScopePath: "assafyavnai/adf/phase1",
   });
 
-  assert.ok(result.output.includes("## What's Next"));
-  assert.ok(result.output.includes("Full trust can now be proposed"));
+  assertExecutiveBriefShape(result.output);
   assert.ok(result.governance.additionalNext.length > 0);
 });
 
-test("deterministic fallback surface keeps the internal 4 sections and operational footer when prompts are unavailable", async () => {
+test("deterministic fallback surface uses the same executive brief contract when prompts are unavailable", async () => {
   const fixture = await createFixture({ includeAdmissions: true });
   const currentThreadId = await firstThreadId(fixture.threadsDir);
 
@@ -387,13 +381,10 @@ test("deterministic fallback surface keeps the internal 4 sections and operation
     currentThreadId,
   });
 
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("## In Motion"));
-  assert.ok(result.output.includes("## What's Next"));
-  assert.ok(result.output.includes("Operational context:"));
-  assert.ok(result.output.includes("Current thread ID:"));
-  assert.ok(result.output.includes("Scope path: assafyavnai/adf/feature-"));
+  assertExecutiveBriefShape(result.output);
+  assert.ok(!result.output.includes("Operational context:"));
+  assert.ok(!result.output.includes("## Issues That Need Your Attention"));
+  assert.ok(!result.output.includes("## What's Next"));
 });
 
 test("live agent route hands the evidence pack to the COO model and repairs malformed live output back to the supported live contract", async () => {
@@ -438,19 +429,17 @@ test("live agent route hands the evidence pack to the COO model and repairs malf
   });
 
   assert.ok(!result.output.trimStart().startsWith("## "));
-  assert.ok(result.output.includes("## Issues That Need Your Attention"));
-  assert.ok(result.output.includes("## On The Table"));
-  assert.ok(result.output.includes("## In Motion"));
-  assert.equal(countLineOccurrences(result.output, "## Issues That Need Your Attention"), 1);
-  assert.equal(countLineOccurrences(result.output, "## On The Table"), 1);
-  assert.equal(countLineOccurrences(result.output, "## In Motion"), 1);
-  assert.ok(!result.output.includes("## What's Next"));
-  assert.ok(!result.output.includes("Operational context:"));
+  assertExecutiveBriefShape(result.output);
+  assert.equal(countLineOccurrences(result.output, "**Bottom line**"), 1);
+  assert.equal(countLineOccurrences(result.output, "**Delivery health**"), 1);
+  assert.equal(countLineOccurrences(result.output, "**Issues that need a decision**"), 1);
+  assert.equal(countLineOccurrences(result.output, "**Parked / waiting**"), 1);
+  assert.equal(countLineOccurrences(result.output, "**Recommendation**"), 1);
   assert.ok(result.output.includes("Where would you like to focus?"));
   assert.ok(result.output.includes("1. **"));
   assert.ok(result.output.includes("2. **"));
-  assert.match(result.output, /^3\.\s\*\*Other\*\* - type what you need$/m);
-  assert.equal(result.output.split("\n").filter((line) => /^\d+\.\s/.test(line.trim())).length, 3);
+  assert.match(result.output, /^4\.\s\*\*Other\*\* - type what you need$/m);
+  assert.equal(countFocusOptionLines(result.output), 4);
   assert.match(capturedPrompt, /<status_evidence>/);
   assert.match(capturedPrompt, /"tracked_findings"/);
   assert.match(capturedPrompt, /"landed_recently"/);
@@ -700,7 +689,6 @@ test("renderStatusWithAgent rejects structurally valid but evidence-dropping liv
   assert.match(assessment.violations.join(","), /parity:issues/);
   assert.match(assessment.violations.join(","), /parity:on-the-table/);
   assert.match(assessment.violations.join(","), /parity:in-motion/);
-  assert.match(assessment.violations.join(","), /parity:recent-landings/);
   assert.match(assessment.violations.join(","), /parity:focus-options/);
 
   const output = await renderStatusWithAgent({
@@ -731,16 +719,11 @@ test("renderStatusWithAgent rejects structurally valid but evidence-dropping liv
     }),
   });
 
-  assert.ok(output.includes("## Issues That Need Your Attention"));
-  assert.ok(output.includes("## On The Table"));
-  assert.ok(output.includes("## In Motion"));
-  assert.match(output, /Feature One needs a route fix/);
-  assert.ok(output.includes("Fix: Patch the closeout route and backfill the affected slices."));
-  assert.ok(output.includes("Feature Table:"));
-  assert.ok(output.includes("Feature Moving:"));
-  assert.ok(output.includes("Feature Landed (1 review cycle, approval before merge proved, cost data missing - see issue below)"));
-  assert.ok(output.includes("1. **Feature One needs a route fix** (Recommended)"));
-  assert.ok(output.includes("2. **Feature Table**"));
+  assertExecutiveBriefShape(output);
+  assert.match(output, /Cost auditability gap/);
+  assert.match(output, /patch the closeout route and backfill the affected slices/i);
+  assert.ok(output.includes("Feature Table"));
+  assert.ok(output.includes("1. **Cost auditability gap** (Recommended)"));
   assert.ok(!output.includes("Unrelated One"));
   assert.ok(!output.includes("No immediate issues."));
   assert.ok(!output.includes("No open items."));
@@ -1071,11 +1054,462 @@ test("renderStatusWithAgent omits the final focus-choice block when fewer than t
     }),
   });
 
-  assert.ok(output.includes("## Issues That Need Your Attention"));
-  assert.ok(output.includes("## On The Table"));
-  assert.ok(output.includes("## In Motion"));
+  assertExecutiveBriefShape(output);
   assert.ok(!output.includes("Where would you like to focus?"));
-  assert.equal(output.split("\n").filter((line) => /^\d+\.\s/.test(line.trim())).length, 0);
+});
+
+test("renderStatusWithAgent keeps a single ready-to-start slice visible in parked waiting even without focus options", async () => {
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  const output = await renderStatusWithAgent({
+    projectRoot: tempRoot,
+    promptsDir,
+    facts: {
+      collectedAt: "2026-04-05T00:00:00.000Z",
+      sourcePartition: "proof",
+      sourceFreshnessAgeMs: 0,
+      sourceAvailability: [],
+      companyScopePath: "assafyavnai/adf/phase1",
+      features: [],
+    } as any,
+    brief: {
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [
+        {
+          featureId: "feature-next",
+          featureLabel: "Feature Next",
+          nextAction: "Start implementation for Feature Next",
+        },
+      ],
+      diagnostics: {
+        counts: {
+          issuesExpected: 0,
+          issuesActual: 0,
+          onTheTableExpected: 0,
+          onTheTableActual: 0,
+          inMotionExpected: 0,
+          inMotionActual: 0,
+          whatsNextExpected: 1,
+          whatsNextActual: 1,
+        },
+      },
+    } as any,
+    governance: {
+      companyScopePath: "assafyavnai/adf/phase1",
+      statusNotes: [],
+      landedAssessments: new Map(),
+      additionalAttention: [],
+      additionalTable: [],
+      additionalNext: [],
+      deepAudit: null,
+      trustNotes: [],
+      currentThread: {
+        threadId: null,
+        activeWorkflow: null,
+        onionLayer: null,
+        scopePath: "assafyavnai/adf/phase1",
+        lastStateCommitAt: null,
+      },
+      operatingState: {
+        schemaVersion: 1,
+        baselineEstablishedAt: "2026-04-05T00:00:00.000Z",
+        lastDeepAuditAt: null,
+        lastDeepAuditTrigger: null,
+        lastDeepAuditScope: null,
+        lastDeepAuditJustified: null,
+        trackedIssues: {},
+        trustSubjects: {},
+        auditHistory: [],
+        triggerTuning: {
+          contradictionSensitivity: 1,
+          stalePressureDays: 7,
+          companyEscalationThreshold: 2,
+          lastChangedAt: "2026-04-05T00:00:00.000Z",
+          lastChangedReason: null,
+        },
+      },
+    } as any,
+    surface: {
+      opening: "Overall, one slice is ready to start.",
+      statusWindow: null,
+      statusNotes: [],
+      landed: [],
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [
+        {
+          featureId: "feature-next",
+          featureLabel: "Feature Next",
+          nextAction: "Start implementation for Feature Next",
+        },
+      ],
+      operationalFooter: null,
+    } as any,
+    statusWindow: null,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-single-next",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: "Overall, the company is steady.\n\n**Bottom line**\n\nNothing is actively executing right now. No systemic issue needs your decision right now.\n\n---\n\n**Delivery health**\n\n- The work looks solid; the remaining questions are about route quality, not delivery quality.\n\n---\n\n**Issues that need a decision**\n\nNo systemic issue needs your decision right now.\n\n---\n\n**Parked / waiting**\n\n- Nothing material is parked or waiting right now.\n\n---\n\n**Recommendation**\n\nNo new escalation is stronger than the work already on the table.",
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  assertExecutiveBriefShape(output);
+  assert.ok(output.includes("Feature Next"));
+});
+
+test("status-window raises a first-run red flag when the current implement-plan worktree slice is missing from the COO surface", async () => {
+  await initGitRepo(tempRoot);
+  const projectRoot = join(tempRoot, ".codex", "implement-plan", "worktrees", "phase1", "feature-dashboard-blind-spot");
+  await mkdir(projectRoot, { recursive: true });
+
+  const statusWindow = await inspectGitStatusWindow({
+    projectRoot,
+    currentRenderedAt: "2026-04-05T00:00:00.000Z",
+    previousAnchor: null,
+    surfacedFeatureIds: [],
+  });
+
+  assert.equal(statusWindow.verificationBasis, "baseline_not_established");
+  assert.equal(statusWindow.redFlag, true);
+  assert.deepEqual(statusWindow.currentWorktreeFeatureSlugs, ["feature-dashboard-blind-spot"]);
+  assert.deepEqual(statusWindow.droppedFeatureSlugs, ["feature-dashboard-blind-spot"]);
+  assert.deepEqual(statusWindow.visibilityGapSources, ["current_worktree"]);
+  assert.match(statusWindow.verificationNotes.join(" "), /current implement-plan worktree activity/i);
+});
+
+test("renderStatusWithAgent ranks a COO dashboard blind spot ahead of the KPI gap", async () => {
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  const output = await renderStatusWithAgent({
+    projectRoot: tempRoot,
+    promptsDir,
+    facts: {
+      collectedAt: "2026-04-05T00:00:00.000Z",
+      sourcePartition: "proof",
+      sourceFreshnessAgeMs: 0,
+      sourceAvailability: [],
+      companyScopePath: "assafyavnai/adf/phase1",
+      features: [],
+    } as any,
+    brief: {
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      diagnostics: {
+        counts: {
+          issuesExpected: 0,
+          issuesActual: 0,
+          onTheTableExpected: 0,
+          onTheTableActual: 0,
+          inMotionExpected: 0,
+          inMotionActual: 0,
+          whatsNextExpected: 0,
+          whatsNextActual: 0,
+        },
+      },
+    } as any,
+    governance: {
+      companyScopePath: "assafyavnai/adf/phase1",
+      statusNotes: [],
+      landedAssessments: new Map(),
+      additionalAttention: [
+        {
+          key: "kpi-gap",
+          title: "The implement-plan closeout route is dropping post-rollout KPI token totals from durable closeout truth.",
+          summary: "The implement-plan closeout route is dropping post-rollout KPI token totals from durable closeout truth.",
+          why: "Post-rollout KPI totals are missing from durable closeout truth.",
+          impact: "Without durable token totals on post-rollout landings, the COO cannot fully audit delivery cost or compare company efficiency across recent work.",
+          recommendation: "Patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
+          system_fix: "Patch the implement-plan closeout projection so post-rollout landings persist KPI token totals into durable truth, then backfill the affected landed slices.",
+          severity: "high",
+          priority: "now",
+          routeChain: [
+            "Recent landed slices rely on implement-plan closeout for durable KPI totals.",
+            "Those totals are dropping out after rollout closeout completes.",
+          ],
+          affected_count: 15,
+          affected_feature_labels: ["Feature Cost One", "Feature Cost Two"],
+          representative_handoff: {
+            id: "handoff:kpi-gap",
+            task_summary: "Fix the KPI closeout gap.",
+          },
+        },
+      ],
+      additionalTable: [],
+      additionalNext: [],
+      deepAudit: null,
+      trustNotes: [],
+      currentThread: {
+        threadId: null,
+        activeWorkflow: null,
+        onionLayer: null,
+        scopePath: "assafyavnai/adf/phase1",
+        lastStateCommitAt: null,
+      },
+      operatingState: {
+        schemaVersion: 1,
+        baselineEstablishedAt: "2026-04-05T00:00:00.000Z",
+        lastDeepAuditAt: null,
+        lastDeepAuditTrigger: null,
+        lastDeepAuditScope: null,
+        lastDeepAuditJustified: null,
+        trackedIssues: {},
+        trustSubjects: {},
+        auditHistory: [],
+        triggerTuning: {
+          contradictionSensitivity: 1,
+          stalePressureDays: 7,
+          companyEscalationThreshold: 2,
+          lastChangedAt: "2026-04-05T00:00:00.000Z",
+          lastChangedReason: null,
+        },
+      },
+    } as any,
+    surface: {
+      opening: "Overall, the company is stable.",
+      statusWindow: null,
+      statusNotes: [],
+      landed: [],
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      operationalFooter: null,
+    } as any,
+    statusWindow: {
+      currentRenderedAt: "2026-04-05T00:00:00.000Z",
+      previousRenderedAt: null,
+      previousHeadCommit: null,
+      currentHeadCommit: "abc123",
+      verificationBasis: "baseline_not_established",
+      gitAvailable: true,
+      commitsSincePrevious: 0,
+      changedFeatureSlugs: [],
+      droppedFeatureSlugs: ["coo-live-executive-status-wiring"],
+      currentWorktreeFeatureSlugs: ["coo-live-executive-status-wiring"],
+      visibilityGapSources: ["current_worktree"],
+      verificationNotes: ["Red flag: current implement-plan worktree activity on coo-live-executive-status-wiring is missing from the COO surface."],
+      redFlag: true,
+    } as any,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-priority",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: "Malformed output",
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  assertExecutiveBriefShape(output);
+  assert.match(output, /1\.\s+COO dashboard blind spot/i);
+  assert.match(output, /2\.\s+Cost auditability gap/i);
+  assert.match(output, /Fix COO dashboard blind spot first, then cost auditability gap\./i);
+});
+
+test("renderStatusWithAgent keeps non-KPI findings distinct when KPI gaps also exist", async () => {
+  const promptsDir = join(tempRoot, "COO", "intelligence");
+  await mkdir(promptsDir, { recursive: true });
+  await writeFile(join(promptsDir, "prompt.md"), "You are the COO of ADF.", "utf-8");
+
+  const output = await renderStatusWithAgent({
+    projectRoot: tempRoot,
+    promptsDir,
+    facts: {
+      collectedAt: "2026-04-05T00:00:00.000Z",
+      sourcePartition: "proof",
+      sourceFreshnessAgeMs: 0,
+      sourceAvailability: [],
+      companyScopePath: "assafyavnai/adf/phase1",
+      features: [
+        {
+          id: "feature-landed-kpi",
+          label: "Feature Landed KPI",
+          status: "completed",
+          lastActivityAt: "2026-04-05T00:00:00.000Z",
+          openLoops: [],
+          openDecisions: [],
+          currentLayer: null,
+          progressSummary: "Completed cleanly.",
+          blockers: [],
+          isFinalized: true,
+          briefingState: "closeout",
+          nextAction: null,
+          sourceFamilies: ["implement_plan"],
+          missingSourceFamilies: [],
+          evidence: {},
+          completion: {
+            mergedAt: "2026-04-05T00:00:00.000Z",
+            reviewCycles: 1,
+            tokenCostTokens: null,
+            timing: null,
+            keyIssue: null,
+          },
+        },
+      ],
+    } as any,
+    brief: {
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      diagnostics: {
+        counts: {
+          issuesExpected: 0,
+          issuesActual: 0,
+          onTheTableExpected: 0,
+          onTheTableActual: 0,
+          inMotionExpected: 0,
+          inMotionActual: 0,
+          whatsNextExpected: 0,
+          whatsNextActual: 0,
+        },
+      },
+    } as any,
+    governance: {
+      companyScopePath: "assafyavnai/adf/phase1",
+      statusNotes: [],
+      landedAssessments: new Map([
+        ["feature-landed-kpi", {
+          classification: "suspicious",
+          primaryConcern: "kpi",
+          reviewAssessmentLine: "Review check: 1 completed review cycle is recorded.",
+          approvalAssessmentLine: "Approval check: approved commit is recorded before merge.",
+          tokenAssessmentLine: "KPI check: token cost is unavailable even though KPI capture was already live when this feature landed.",
+          timingAssessmentLine: "Timing check: route only proves elapsed lifecycle time.",
+          cooReadLine: "This is a route-quality problem.",
+          recommendation: "Patch the closeout route.",
+          businessImpact: "Cost visibility is incomplete.",
+          businessSeverity: "high",
+          businessPriority: "now",
+          routeChain: ["implement-plan", "closeout", "status"],
+          implicatedSubjects: ["route:implement-plan-closeout"],
+        }],
+      ]),
+      additionalAttention: [
+        {
+          key: "review-gap",
+          featureId: "feature-review-gap",
+          featureLabel: "Feature Review Gap",
+          classification: "suspicious",
+          summary: "Review governance proof is incomplete for this landing.",
+          recommendation: "Restore the missing review evidence.",
+          evidenceLine: "Direct source; fresh; high confidence.",
+          rootCause: "The landing does not prove required review governance.",
+          systemFix: "Restore the missing review evidence.",
+          businessImpact: "Leadership cannot fully trust the review trail for this landing.",
+          businessSeverity: "high",
+          businessPriority: "now",
+          routeChain: ["review-cycle", "closeout", "status"],
+          implicatedSubjects: ["route:review-cycle"],
+        },
+      ],
+      additionalTable: [],
+      additionalNext: [],
+      deepAudit: null,
+      trustNotes: [],
+      currentThread: {
+        threadId: null,
+        activeWorkflow: null,
+        onionLayer: null,
+        scopePath: "assafyavnai/adf/phase1",
+        lastStateCommitAt: null,
+      },
+      operatingState: {
+        schemaVersion: 1,
+        baselineEstablishedAt: "2026-04-05T00:00:00.000Z",
+        lastDeepAuditAt: null,
+        lastDeepAuditTrigger: null,
+        lastDeepAuditScope: null,
+        lastDeepAuditJustified: null,
+        trackedIssues: {},
+        trustSubjects: {},
+        auditHistory: [],
+        triggerTuning: {
+          contradictionSensitivity: 1,
+          stalePressureDays: 7,
+          companyEscalationThreshold: 2,
+          lastChangedAt: "2026-04-05T00:00:00.000Z",
+          lastChangedReason: null,
+        },
+      },
+    } as any,
+    surface: {
+      opening: "",
+      statusWindow: null,
+      statusNotes: [],
+      landed: [],
+      issues: [],
+      onTheTable: [],
+      inMotion: [],
+      whatsNext: [],
+      operationalFooter: null,
+    } as any,
+    statusWindow: null,
+    intelligenceParams: {
+      cli: "codex",
+      model: "gpt-5.4",
+      reasoning: "medium",
+      bypass: true,
+      timeout_ms: 5_000,
+    },
+    invokeLLM: async () => ({
+      provenance: {
+        invocation_id: "status-agent-mixed-classification",
+        provider: "codex",
+        model: "gpt-5.4",
+        reasoning: "medium",
+        was_fallback: false,
+        source_path: "test",
+        timestamp: "2026-04-05T00:00:00.000Z",
+      },
+      response: "Malformed output",
+      latency_ms: 1,
+      attempts: [],
+    }),
+  });
+
+  assertExecutiveBriefShape(output);
+  assert.match(output, /Review evidence gap/i);
+  assert.match(output, /Fix: Restore the missing review evidence\./i);
+  assert.doesNotMatch(output, /1\.\s+Cost auditability gap/i);
 });
 
 test("live agent evidence pack only marks truly recent landed work as recent", async () => {
@@ -1291,8 +1725,8 @@ test("missing-source fallback stays explicit and source files are not mutated", 
 
   const after = await Promise.all(watchedPaths.map((path) => readFile(path, "utf-8")));
   assert.deepEqual(after, before);
-  assert.ok(result.output.includes("Missing source families remain visible"));
-  assert.ok(result.output.includes("CTO admission truth"));
+  assertExecutiveBriefShape(result.output);
+  assert.ok(result.output.includes("CTO Admission") || result.output.includes("CTO admission"));
 });
 
 async function createFixture(options: { includeAdmissions: boolean }): Promise<{
@@ -1435,6 +1869,41 @@ function countLineOccurrences(text: string, line: string): number {
     .map((entry) => entry.trim())
     .filter((entry) => entry === line)
     .length;
+}
+
+function countFocusOptionLines(output: string): number {
+  const lines = output.split("\n");
+  const focusIndex = lines.findIndex((line) => line.trim() === "Where would you like to focus?");
+  if (focusIndex < 0) {
+    return 0;
+  }
+
+  return lines
+    .slice(focusIndex + 1)
+    .map((line) => line.trim())
+    .filter((line) => /^\d+\.\s/.test(line))
+    .length;
+}
+
+function assertExecutiveBriefShape(output: string): void {
+  const requiredHeadings = [
+    "**Bottom line**",
+    "**Delivery health**",
+    "**Issues that need a decision**",
+    "**Parked / waiting**",
+    "**Recommendation**",
+  ];
+
+  for (const heading of requiredHeadings) {
+    assert.ok(output.includes(heading), `Expected executive heading ${heading}.`);
+    assert.equal(countLineOccurrences(output, heading), 1, `Expected executive heading ${heading} exactly once.`);
+  }
+
+  assert.ok(!output.includes("## Issues That Need Your Attention"));
+  assert.ok(!output.includes("## On The Table"));
+  assert.ok(!output.includes("## In Motion"));
+  assert.ok(!output.includes("## What's Next"));
+  assert.ok(!output.includes("Operational context:"));
 }
 
 async function writeCompletedFeatureTruth(input: {
@@ -1660,6 +2129,23 @@ function makeOnionThread(input: {
 
 async function writeThread(threadsDir: string, thread: Thread): Promise<void> {
   await writeJson(join(threadsDir, `${thread.id}.json`), thread);
+}
+
+async function initGitRepo(repoRoot: string): Promise<void> {
+  const runGit = (args: string[]): void => {
+    const result = spawnSync("git", ["-C", repoRoot, ...args], {
+      encoding: "utf-8",
+      windowsHide: true,
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout || `git ${args.join(" ")} failed`);
+  };
+
+  runGit(["init"]);
+  runGit(["config", "user.email", "tests@example.com"]);
+  runGit(["config", "user.name", "ADF Tests"]);
+  await writeFile(join(repoRoot, ".gitkeep"), "fixture\n", "utf-8");
+  runGit(["add", ".gitkeep"]);
+  runGit(["commit", "-m", "init"]);
 }
 
 async function writeJson(path: string, value: unknown): Promise<void> {

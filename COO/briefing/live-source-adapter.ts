@@ -563,7 +563,10 @@ function shouldSurfaceCorrelatedItem(item: CorrelatedBriefItem): boolean {
     return false;
   }
 
-  return isPlanInMotion(item.plan) || isPlanCompleted(item.plan) || Boolean(item.plan.lastError);
+  return isPlanOpen(item.plan)
+    || isPlanInMotion(item.plan)
+    || isPlanCompleted(item.plan)
+    || Boolean(item.plan.lastError);
 }
 
 function mergeThreadSignals(existing: ThreadSignal, incoming: ThreadSignal): ThreadSignal {
@@ -1032,6 +1035,21 @@ function resolveProgressSummary(
     if (isPlanReadyToStart(item.plan)) {
       return "Implementation context is ready and waiting to start.";
     }
+    if (item.plan.activeRunStatus === "integrity_failed") {
+      return "The governed slice is blocked at integrity checks and needs contract repairs before implementation can resume.";
+    }
+    if (item.plan.activeRunStatus === "closeout_pending") {
+      return "Implementation work is done, but governed closeout still needs reconciliation.";
+    }
+    if (item.plan.activeRunStatus === "review_requested" || item.plan.activeRunStatus === "review_in_progress") {
+      return "Implementation is in governed review and waiting for review completion.";
+    }
+    if (item.plan.activeRunStatus === "human_verification_pending") {
+      return "Implementation is waiting for human verification before it can close.";
+    }
+    if (item.plan.activeRunStatus === "merge_in_progress") {
+      return "The approved implementation is landing through merge queue.";
+    }
   }
 
   if (item.admission) {
@@ -1072,6 +1090,21 @@ function resolveNextAction(
     }
     if (item.plan.activeRunStatus === "merge_ready" || item.plan.mergeStatus === "ready_to_queue") {
       return "Land the approved implementation.";
+    }
+    if (item.plan.activeRunStatus === "integrity_failed") {
+      return "Repair the governed slice contract so implementation can resume.";
+    }
+    if (item.plan.activeRunStatus === "closeout_pending") {
+      return "Finish the remaining review and closeout steps.";
+    }
+    if (item.plan.activeRunStatus === "review_requested" || item.plan.activeRunStatus === "review_in_progress") {
+      return "Close the active review cycle and surface the result.";
+    }
+    if (item.plan.activeRunStatus === "human_verification_pending") {
+      return "Run the required human verification and capture the result.";
+    }
+    if (item.plan.activeRunStatus === "merge_in_progress") {
+      return "Wait for merge queue to land the approved change.";
     }
     if (isPlanInMotion(item.plan)) {
       return "Keep the implementation moving through the current execution step.";
@@ -1397,6 +1430,14 @@ function adaptEmbeddedRequirement(
 
 function isPlanInMotion(plan: PlanSignal): boolean {
   return PLAN_IN_MOTION_STATUSES.has(plan.activeRunStatus);
+}
+
+function isPlanOpen(plan: PlanSignal): boolean {
+  if (isPlanCompleted(plan)) {
+    return false;
+  }
+
+  return plan.featureStatus === "active" || plan.featureStatus === "blocked";
 }
 
 function isPlanReadyToStart(plan: PlanSignal): boolean {

@@ -20,6 +20,8 @@ export interface GitStatusWindow {
   commitsSincePrevious: number;
   changedFeatureSlugs: string[];
   droppedFeatureSlugs: string[];
+  currentWorktreeFeatureSlugs: string[];
+  visibilityGapSources: Array<"recent_git" | "current_worktree">;
   verificationNotes: string[];
   redFlag: boolean;
 }
@@ -76,7 +78,19 @@ export async function inspectGitStatusWindow(
 ): Promise<GitStatusWindow> {
   const currentHeadResult = await safeGit(options.projectRoot, ["rev-parse", "HEAD"]);
   const currentHeadCommit = currentHeadResult.output;
+  const currentBranchResult = await safeGit(options.projectRoot, ["rev-parse", "--abbrev-ref", "HEAD"]);
+  const currentWorktreeFeatureSlugs = detectCurrentFeatureSlugs(options.projectRoot, currentBranchResult.output);
   const surfaced = new Set(options.surfacedFeatureIds.map(normalizeFeatureId));
+  const missingCurrentWorktreeFeatureSlugs = currentWorktreeFeatureSlugs.filter((slug) => !surfaced.has(normalizeFeatureId(slug)));
+  const baselineNotes = currentHeadResult.available
+    ? ["No previous COO status update is recorded yet, so git comparison will start after this run."]
+    : ["Git history could not be read in this runtime, so comparison will stay unavailable until git becomes readable."];
+
+  if (missingCurrentWorktreeFeatureSlugs.length > 0) {
+    baselineNotes.push(
+      `Red flag: current implement-plan worktree activity on ${missingCurrentWorktreeFeatureSlugs.join(", ")} is missing from the COO surface.`,
+    );
+  }
 
   if (!options.previousAnchor) {
     return {
@@ -88,11 +102,11 @@ export async function inspectGitStatusWindow(
       gitAvailable: currentHeadResult.available,
       commitsSincePrevious: 0,
       changedFeatureSlugs: [],
-      droppedFeatureSlugs: [],
-      verificationNotes: currentHeadResult.available
-        ? ["No previous COO status update is recorded yet, so git comparison will start after this run."]
-        : ["Git history could not be read in this runtime, so comparison will stay unavailable until git becomes readable."],
-      redFlag: false,
+      droppedFeatureSlugs: missingCurrentWorktreeFeatureSlugs,
+      currentWorktreeFeatureSlugs,
+      visibilityGapSources: missingCurrentWorktreeFeatureSlugs.length > 0 ? ["current_worktree"] : [],
+      verificationNotes: baselineNotes,
+      redFlag: missingCurrentWorktreeFeatureSlugs.length > 0,
     };
   }
 
@@ -101,7 +115,11 @@ export async function inspectGitStatusWindow(
   const changedFeatureSlugs = uniqueStrings([
     ...commits.flatMap((commit) => extractFeatureSlugsFromCommit(commit)),
   ]);
-  const droppedFeatureSlugs = changedFeatureSlugs.filter((slug) => !surfaced.has(normalizeFeatureId(slug)));
+  const droppedGitFeatureSlugs = changedFeatureSlugs.filter((slug) => !surfaced.has(normalizeFeatureId(slug)));
+  const droppedFeatureSlugs = uniqueStrings([
+    ...droppedGitFeatureSlugs,
+    ...missingCurrentWorktreeFeatureSlugs,
+  ]);
   const verificationNotes: string[] = [];
 
   if (!commitLoad.available) {
@@ -112,23 +130,33 @@ export async function inspectGitStatusWindow(
     verificationNotes.push(`Git checked ${commits.length} commit(s) since the previous status update.`);
   }
 
-  if (droppedFeatureSlugs.length > 0) {
-    verificationNotes.push(`Red flag: git shows recent work on ${droppedFeatureSlugs.join(", ")}, but the current COO surface does not carry it.`);
+  if (droppedGitFeatureSlugs.length > 0) {
+    verificationNotes.push(`Red flag: git shows recent work on ${droppedGitFeatureSlugs.join(", ")}, but the current COO surface does not carry it.`);
+  }
+  if (missingCurrentWorktreeFeatureSlugs.length > 0) {
+    verificationNotes.push(
+      `Red flag: current implement-plan worktree activity on ${missingCurrentWorktreeFeatureSlugs.join(", ")} is missing from the COO surface.`,
+    );
   }
 
-    return {
-      currentRenderedAt: options.currentRenderedAt,
-      previousRenderedAt: options.previousAnchor.renderedAt,
-      previousHeadCommit: options.previousAnchor.headCommit,
-      currentHeadCommit,
-      verificationBasis: commitLoad.verificationBasis,
-      gitAvailable: commitLoad.available,
-      commitsSincePrevious: commits.length,
-      changedFeatureSlugs,
-      droppedFeatureSlugs,
-      verificationNotes,
-      redFlag: commitLoad.available && droppedFeatureSlugs.length > 0,
-    };
+  return {
+    currentRenderedAt: options.currentRenderedAt,
+    previousRenderedAt: options.previousAnchor.renderedAt,
+    previousHeadCommit: options.previousAnchor.headCommit,
+    currentHeadCommit,
+    verificationBasis: commitLoad.verificationBasis,
+    gitAvailable: commitLoad.available,
+    commitsSincePrevious: commits.length,
+    changedFeatureSlugs,
+    droppedFeatureSlugs,
+    currentWorktreeFeatureSlugs,
+    visibilityGapSources: [
+      ...(droppedGitFeatureSlugs.length > 0 ? ["recent_git"] as const : []),
+      ...(missingCurrentWorktreeFeatureSlugs.length > 0 ? ["current_worktree"] as const : []),
+    ],
+    verificationNotes,
+    redFlag: (commitLoad.available && droppedGitFeatureSlugs.length > 0) || missingCurrentWorktreeFeatureSlugs.length > 0,
+  };
 }
 
 function resolveStatusWindowPath(projectRoot: string): string {
@@ -265,4 +293,30 @@ function normalizeFeatureId(value: string): string {
 
 function uniqueStrings(values: string[]): string[] {
   return Array.from(new Set(values.filter((value) => value.trim().length > 0)));
+}
+
+function detectCurrentFeatureSlugs(projectRoot: string, currentBranch: string | null): string[] {
+  const detected = new Set<string>();
+  const normalizedRoot = normalizeForPath(projectRoot);
+  const worktreeMarker = "/.codex/implement-plan/worktrees/";
+  const worktreeIndex = normalizedRoot.indexOf(worktreeMarker);
+
+  if (worktreeIndex >= 0) {
+    const suffix = normalizedRoot.slice(worktreeIndex + worktreeMarker.length);
+    const parts = suffix.split("/").filter(Boolean);
+    if (parts.length >= 2 && /^phase\d+$/i.test(parts[0])) {
+      detected.add(normalizeFeatureId(parts.slice(1).join("/")));
+    }
+  }
+
+  const branchMatch = String(currentBranch ?? "").trim().match(/^implement-plan\/phase\d+\/(.+)$/i);
+  if (branchMatch) {
+    detected.add(normalizeFeatureId(branchMatch[1]));
+  }
+
+  return Array.from(detected);
+}
+
+function normalizeForPath(value: string): string {
+  return resolve(value).replace(/\\/g, "/").toLowerCase();
 }

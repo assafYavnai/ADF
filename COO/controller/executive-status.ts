@@ -3,11 +3,11 @@ import { createSystemProvenance } from "../../shared/provenance/types.js";
 import { buildExecutiveBrief } from "../briefing/builder.js";
 import {
   normalizeLiveExecutiveSurface,
-  renderLiveExecutiveSurface,
   type LiveExecutiveSurface,
 } from "../briefing/live-executive-surface.js";
 import {
   assessSupportedLiveStatusBody,
+  renderDeterministicStatusBriefing,
   renderStatusWithAgent,
 } from "../briefing/status-render-agent.js";
 import {
@@ -151,7 +151,13 @@ export async function buildLiveExecutiveStatus(
         intelligenceParams: options.intelligenceParams,
         invokeLLM: options.invokeLLM,
       })
-      : renderLiveExecutiveSurface(surface);
+      : renderDeterministicStatusBriefing({
+        facts,
+        brief,
+        governance,
+        surface,
+        statusWindow,
+      });
     if (options.promptsDir && options.intelligenceParams) {
       acceptedBodyParity = assessSupportedLiveStatusBody(rendered, {
         facts,
@@ -328,6 +334,8 @@ async function resolveStatusWindow(
       commitsSincePrevious: 0,
       changedFeatureSlugs: [],
       droppedFeatureSlugs: [],
+      currentWorktreeFeatureSlugs: [],
+      visibilityGapSources: [],
       verificationNotes: ["Git-backed status-window verification is unavailable in this runtime, so context-drop checks could not run."],
       redFlag: false,
     };

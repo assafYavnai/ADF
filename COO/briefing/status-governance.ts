@@ -375,16 +375,23 @@ export async function prepareGovernedStatusContext(
   }
 
   if (options.statusWindow?.redFlag) {
+    const visibilitySummary = describeStatusCoverageGap(options.statusWindow);
+    const visibilityRecommendation = options.statusWindow.visibilityGapSources.includes("current_worktree")
+      ? "Wire the missing active slice into the COO surface before relying on this update for prioritization."
+      : "Check the missing slice context before relying on this COO update for prioritization.";
+    const visibilityEvidenceLine = options.statusWindow.visibilityGapSources.includes("current_worktree")
+      ? "Evidence: direct active worktree reality; fresh; high confidence. This coverage warning comes from the current implement-plan worktree not carrying its active slice into the COO surface."
+      : "Evidence: direct workspace reality; fresh; high confidence. This coverage warning comes from git commits since the previous COO status update.";
     draftFindings.push({
       key: `git-red-flag:${options.statusWindow.droppedFeatureSlugs.join(",")}`,
       featureId: null,
       featureLabel: "Status coverage",
-      summary: `Recent git activity on ${humanizeFeatureSlugList(options.statusWindow.droppedFeatureSlugs)} is missing from the current COO surface.`,
-      recommendation: "Check the missing slice context before relying on this COO update for prioritization.",
-      evidenceLine: "Evidence: direct workspace reality; fresh; high confidence. This coverage warning comes from git commits since the previous COO status update.",
+      summary: visibilitySummary,
+      recommendation: visibilityRecommendation,
+      evidenceLine: visibilityEvidenceLine,
       rootCause: null,
       systemFix: null,
-      businessImpact: "If recent git-touched work drops out of COO context, leadership can act on an incomplete company picture.",
+      businessImpact: "If active or recent work drops out of COO context, leadership can act on an incomplete company picture.",
       businessSeverity: "high",
       businessPriority: "now",
       routeChain: [
@@ -514,6 +521,18 @@ export async function prepareGovernedStatusContext(
     currentThread,
     operatingState,
   };
+}
+
+function describeStatusCoverageGap(statusWindow: GitStatusWindow): string {
+  const missing = humanizeFeatureSlugList(statusWindow.droppedFeatureSlugs);
+  const sources = new Set(statusWindow.visibilityGapSources ?? []);
+  if (sources.has("current_worktree") && sources.has("recent_git")) {
+    return `Current work on ${missing} and recent git-touched slice activity are missing from the current COO surface.`;
+  }
+  if (sources.has("current_worktree")) {
+    return `Current work on ${missing} is missing from the current COO surface.`;
+  }
+  return `Recent git activity on ${missing} is missing from the current COO surface.`;
 }
 
 function resolveCompanyScopePath(value: string | null): string | null {
