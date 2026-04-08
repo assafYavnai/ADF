@@ -1,8 +1,40 @@
 #!/usr/bin/env node
 
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+
+import {
+  ACCESS_MODES,
+  CAPABILITY_KEYS,
+  EXECUTION_RUNTIMES,
+  PERSISTENT_EXECUTION_STRATEGIES,
+  RUNTIME_PERMISSION_MODELS,
+  booleanArg,
+  capabilityKeyToArgumentName,
+  defaultCapabilityValue,
+  describeError,
+  detectCodexCliCapabilities,
+  fail,
+  installBrokenPipeGuards,
+  isFilled,
+  isPlainObject,
+  normalizeProjectRoot,
+  normalizeSlashes,
+  nowIso,
+  parseArgs,
+  pathExists,
+  printJson,
+  readJson,
+  requiredArg,
+  writeJsonAtomic
+} from "../../governed-feature-runtime.mjs";
+
+installBrokenPipeGuards();
+
+main().catch((error) => {
+  process.stderr.write((error instanceof Error ? error.stack ?? error.message : String(error)) + "\n");
+  process.exit(1);
+});
 
 const REQUIRED_SETUP_FIELDS = [
   "preferred_execution_access_mode",
@@ -16,71 +48,32 @@ const REQUIRED_SETUP_FIELDS = [
   "persistent_execution_strategy"
 ];
 
-const ACCESS_MODES = new Set([
-  "native_full_access",
-  "native_elevated_permissions",
-  "codex_cli_full_auto_bypass",
-  "claude_code_skip_permissions",
-  "inherits_current_runtime_access",
-  "interactive_fallback"
-]);
+function booleanFallback(value, fallback) {
+  return typeof value === "boolean" ? value : fallback;
+}
 
-const RUNTIME_PERMISSION_MODELS = new Set([
-  "native_explicit_full_access",
-  "codex_cli_explicit_full_auto",
-  "claude_code_skip_permissions",
-  "native_inherited_access_only",
-  "interactive_or_limited"
-]);
-
-const EXECUTION_RUNTIMES = new Set([
-  "native_agent_tools",
-  "codex_cli_exec",
-  "claude_code_exec",
-  "artifact_continuity_only"
-]);
-
-const PERSISTENT_EXECUTION_STRATEGIES = new Set([
-  "per_feature_agent_registry",
-  "per_feature_cli_sessions",
-  "artifact_continuity_only"
-]);
-
-const CAPABILITY_KEYS = [
-  "native_agent_spawning_available",
-  "native_agent_access_configurable",
-  "native_agent_inherits_runtime_access",
-  "native_agent_resume_available",
-  "native_agent_send_input_available",
-  "native_agent_wait_available",
-  "native_parallel_wait_available",
-  "codex_cli_available",
-  "codex_cli_full_auto_supported",
-  "codex_cli_bypass_supported"
-];
-
-
-
-installBrokenPipeGuards();
-
-function installBrokenPipeGuards() {
-  process.stdout.on("error", (error) => {
-    if (error && error.code === "EPIPE") {
-      process.exit(0);
+function coalesceNonEmpty(...values) {
+  for (const value of values) {
+    if (isFilled(value)) {
+      return value;
     }
-    throw error;
-  });
+  }
+  return null;
+}
 
-  process.stderr.on("error", (error) => {
-    if (error && error.code === "EPIPE") {
-      process.exit(1);
+function normalizeStringArray(values) {
+  const next = [];
+  for (const value of values) {
+    const trimmed = String(value ?? "").trim();
+    if (trimmed && !next.includes(trimmed)) {
+      next.push(trimmed);
     }
-    throw error;
-  });
+  }
+  return next;
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseArgs(process.argv.slice(2), ["project-permission-rule"]);
   const command = args.positionals[0];
   if (!command) {
     fail("Missing command. Use 'write-setup'.");
@@ -89,7 +82,7 @@ async function main() {
     fail("Unknown command '" + command + "'. Use 'write-setup'.");
   }
 
-  const projectRoot = normalizeSlashes(resolve(requiredArg(args, "project-root")));
+  const projectRoot = normalizeProjectRoot(requiredArg(args, "project-root"));
   const existing = await loadExistingSetup(projectRoot);
 
   const capabilityDetection = detectCapabilities(args, existing.detected_runtime_capabilities ?? {});
@@ -107,7 +100,7 @@ async function main() {
     fail("Cannot write setup.json because the derived setup is invalid:\n- " + validation.errors.join("\n- "));
   }
 
-  await writeJson(derived.path, derived.setup);
+  await writeJsonAtomic(derived.path, derived.setup);
   printJson({
     setup_path: normalizeSlashes(derived.path),
     created: !existing.exists,
@@ -457,226 +450,3 @@ function validateEnumField(setup, fieldName, allowedValues, errors) {
     );
   }
 }
-
-function detectCodexCliCapabilities() {
-  const metadata = {
-    cli_probe_attempted: true,
-    cli_probe_succeeded: false,
-    help_output_inspected: false,
-    inferred_from_help: false,
-    raw_signal_summary: []
-  };
-
-  try {
-    const result = spawnSync("codex", ["--help"], {
-      encoding: "utf8",
-      windowsHide: true,
-      timeout: 5000
-    });
-
-    const combinedOutput = ((result.stdout ?? "") + "\n" + (result.stderr ?? "")).toLowerCase();
-    metadata.cli_probe_succeeded = result.status === 0;
-    metadata.help_output_inspected = combinedOutput.trim().length > 0;
-
-    const cliAvailable = result.status === 0;
-    const fullAutoSupported = containsAny(combinedOutput, [
-      "dangerously-skip-permissions",
-      "approval never",
-      "approval-never",
-      "full-auto",
-      "full auto",
-      "--ask-for-approval",
-      "--approval-mode"
-    ]);
-    const bypassSupported = containsAny(combinedOutput, [
-      "dangerously-skip-permissions",
-      "bypass",
-      "approval never",
-      "approval-never"
-    ]);
-
-    metadata.inferred_from_help = fullAutoSupported || bypassSupported;
-    if (cliAvailable) metadata.raw_signal_summary.push("codex --help exited successfully");
-    if (fullAutoSupported) metadata.raw_signal_summary.push("help output suggests non-interactive approval control");
-    if (bypassSupported) metadata.raw_signal_summary.push("help output suggests permission bypass support");
-
-    return {
-      metadata,
-      cli_available: cliAvailable,
-      cli_full_auto_supported: fullAutoSupported,
-      cli_bypass_supported: bypassSupported
-    };
-  } catch (error) {
-    metadata.raw_signal_summary.push("codex probe failed: " + describeError(error));
-    return {
-      metadata,
-      cli_available: false,
-      cli_full_auto_supported: false,
-      cli_bypass_supported: false
-    };
-  }
-}
-
-function containsAny(text, fragments) {
-  return fragments.some((fragment) => text.includes(fragment));
-}
-
-function defaultCapabilityValue(key, cliDetection) {
-  switch (key) {
-    case "codex_cli_available":
-      return cliDetection.cli_available;
-    case "codex_cli_full_auto_supported":
-      return cliDetection.cli_full_auto_supported;
-    case "codex_cli_bypass_supported":
-      return cliDetection.cli_bypass_supported;
-    default:
-      return false;
-  }
-}
-
-function capabilityKeyToArgumentName(key) {
-  return key.replace(/_/g, "-");
-}
-
-function isSetupComplete(setup, projectRoot = null) {
-  return validateSetupObject(
-    setup,
-    projectRoot ?? normalizeSlashes(resolve(setup.project_root ?? "."))
-  ).complete;
-}
-
-function parseArgs(argv) {
-  const values = {};
-  const multi = {};
-  const positionals = [];
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const token = argv[index];
-    if (!token.startsWith("--")) {
-      positionals.push(token);
-      continue;
-    }
-
-    const key = token.slice(2);
-    const next = argv[index + 1];
-    if (!next || next.startsWith("--")) {
-      values[key] = "true";
-      continue;
-    }
-
-    if (key === "project-permission-rule") {
-      multi[key] ??= [];
-      multi[key].push(next);
-    } else {
-      values[key] = next;
-    }
-    index += 1;
-  }
-
-  return { positionals, values, multi };
-}
-
-function requiredArg(args, key) {
-  const value = args.values[key];
-  if (!isFilled(value)) {
-    fail("Missing required argument --" + key + ".");
-  }
-  return value;
-}
-
-function booleanArg(args, key, fallback) {
-  const value = args.values[key];
-  if (value === undefined) {
-    return fallback;
-  }
-  if (value === "true") {
-    return true;
-  }
-  if (value === "false") {
-    return false;
-  }
-  fail("Argument --" + key + " must be true or false.");
-}
-
-function booleanFallback(value, fallback) {
-  return typeof value === "boolean" ? value : fallback;
-}
-
-function coalesceNonEmpty(...values) {
-  for (const value of values) {
-    if (isFilled(value)) {
-      return value;
-    }
-  }
-  return null;
-}
-
-function normalizeStringArray(values) {
-  const next = [];
-  for (const value of values) {
-    const trimmed = String(value ?? "").trim();
-    if (trimmed && !next.includes(trimmed)) {
-      next.push(trimmed);
-    }
-  }
-  return next;
-}
-
-function normalizeSlashes(value) {
-  return String(value).replace(/\\/g, "/");
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function isFilled(value) {
-  return !(value === undefined || value === null || String(value).trim() === "");
-}
-
-function describeError(error) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-}
-
-async function pathExists(targetPath) {
-  try {
-    await stat(targetPath);
-    return true;
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
-      return false;
-    }
-    throw error;
-  }
-}
-
-async function readJson(filePath) {
-  const raw = await readFile(filePath, "utf8");
-  return JSON.parse(raw);
-}
-
-async function writeJson(filePath, value) {
-  await mkdir(dirname(filePath), { recursive: true });
-  await writeFile(filePath, JSON.stringify(value, null, 2) + "\n", "utf8");
-}
-
-function printJson(value) {
-  process.stdout.write(JSON.stringify(value, null, 2) + "\n");
-}
-
-function fail(message) {
-  process.stderr.write(message + "\n");
-  process.exit(1);
-}
-
-main().catch((error) => {
-  process.stderr.write((error instanceof Error ? error.stack ?? error.message : String(error)) + "\n");
-  process.exit(1);
-});
