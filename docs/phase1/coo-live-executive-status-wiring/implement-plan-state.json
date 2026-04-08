@@ -24,11 +24,11 @@
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "last_completed_step": "review_requested",
+  "last_completed_step": "completion_summary_written",
   "last_commit_sha": null,
-  "active_run_status": "review_pending",
+  "active_run_status": "closeout_pending",
   "created_at": "2026-04-08T14:17:03.526Z",
-  "updated_at": "2026-04-08T15:04:40.823Z",
+  "updated_at": "2026-04-08T15:06:45.349Z",
   "run_timestamps": {
     "context_collected_at": null,
     "worktree_prepared_at": "2026-04-08T15:04:23.773Z",
@@ -42,7 +42,8 @@
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": null,
-    "closeout_finished_at": null
+    "closeout_finished_at": null,
+    "completion_summary_written_at": "2026-04-08T15:06:45.296Z"
   },
   "event_log": [
     {
@@ -123,6 +124,20 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-08T15:04:40.770Z",
       "note": "Machine verification succeeded and the same feature worktree was handed into governed review-cycle for cycle-07 closeout."
+    },
+    {
+      "event": "completion-summary-written",
+      "timestamp": "2026-04-08T15:06:45.296Z",
+      "note": "Completion summary rewritten to the required 7-heading contract with truthful pre-merge branch status."
+    },
+    {
+      "event_id": "event-e0a4907e-d37b-498b-a9d9-bafb9267ba76",
+      "event_type": "step-transition",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:06:45.296Z",
+      "note": "Completion summary rewritten to the required 7-heading contract with truthful pre-merge branch status."
     }
   ],
   "artifacts": {
@@ -154,7 +169,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 7,
+        "contract_revision": 8,
         "feature_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json",
@@ -174,18 +189,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "review_pending",
+            "status": "closeout_pending",
             "terminal_status": null,
             "started_at": "2026-04-08T14:17:03.526Z",
-            "updated_at": "2026-04-08T15:04:40.822Z",
+            "updated_at": "2026-04-08T15:06:45.347Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "review_cycle",
-              "status": "ready",
+              "step": "machine_verification",
+              "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-08T15:04:40.822Z"
+              "updated_at": "2026-04-08T15:06:45.347Z"
             },
             "step_status": {
               "implementation": {
@@ -259,13 +274,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T15:04:40.822Z",
-            "last_event_at": "2026-04-08T15:04:40.770Z"
+            "last_checkpoint_at": "2026-04-08T15:06:45.347Z",
+            "last_event_at": "2026-04-08T15:06:45.296Z"
           }
         },
         "created_at": "2026-04-08T14:17:03.526Z",
-        "updated_at": "2026-04-08T15:04:40.827Z",
-        "last_event_at": "2026-04-08T15:04:40.770Z",
+        "updated_at": "2026-04-08T15:06:45.353Z",
+        "last_event_at": "2026-04-08T15:06:45.296Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
@@ -482,7 +497,7 @@
       }
     }
   },
-  "__gsw_revision": 12,
-  "__gsw_write_id": "gsw-8d9f9b31-a656-42d9-ae20-62f7f4a119c0",
-  "__gsw_timestamp": "2026-04-08T15:04:40.830Z"
+  "__gsw_revision": 13,
+  "__gsw_write_id": "gsw-51b277da-7aa3-47dc-b1de-c8e2910418cf",
+  "__gsw_timestamp": "2026-04-08T15:06:45.355Z"
 }
