@@ -1,45 +1,45 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 4,
-  "prepared_at": "2026-04-08T10:00:24.162Z",
+  "contract_revision": 2,
+  "prepared_at": "2026-04-08T10:00:16.276Z",
   "feature_identity": {
     "project_root": "C:/ADF",
     "phase_number": 1,
-    "feature_slug": "review-cycle-setup-merge-safety",
-    "feature_registry_key": "phase1/review-cycle-setup-merge-safety",
-    "feature_root": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety"
+    "feature_slug": "company-table-queue-read-model",
+    "feature_registry_key": "phase1/company-table-queue-read-model",
+    "feature_root": "C:/ADF/docs/phase1/company-table-queue-read-model"
   },
   "run_identity": {
     "run_mode": "normal",
-    "run_id": "run-13a0ce92-c939-432a-8e6e-c901c02acbdf",
+    "run_id": "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
     "attempt_id": "attempt-001",
     "attempt_number": 1,
     "lane_id": null,
     "worker_id": "implementor/default"
   },
   "invoker_runtime": {
-    "provider": "codex",
-    "execution_runtime": "codex_cli_exec",
-    "control_plane_runtime": "codex_cli_exec",
-    "access_mode": "codex_cli_full_auto_bypass",
-    "model": "gpt-5.4",
-    "reasoning_effort": "xhigh",
+    "provider": "claude",
+    "execution_runtime": null,
+    "control_plane_runtime": null,
+    "access_mode": null,
+    "model": null,
+    "reasoning_effort": null,
     "runtime_permission_model": "codex_cli_explicit_full_auto",
     "selection_source": "invoker_runtime_defaults"
   },
   "worker_selection": {
     "defaults": {
-      "provider": "codex",
-      "runtime": "codex_cli_exec",
-      "access_mode": "codex_cli_full_auto_bypass",
-      "model": "gpt-5.4",
-      "reasoning_effort": "xhigh"
+      "provider": "claude",
+      "runtime": null,
+      "access_mode": null,
+      "model": null,
+      "reasoning_effort": null
     },
     "continuity": {
       "provider": "codex",
       "runtime": "codex_cli_exec",
-      "access_mode": "codex_cli_full_auto_bypass",
+      "access_mode": null,
       "model": "gpt-5.4",
       "reasoning_effort": null
     },
@@ -51,25 +51,25 @@
       "reasoning_effort": null
     },
     "resolved": {
-      "provider": "codex",
+      "provider": "claude",
       "runtime": "codex_cli_exec",
-      "access_mode": "codex_cli_full_auto_bypass",
+      "access_mode": null,
       "model": "gpt-5.4",
-      "reasoning_effort": "xhigh"
+      "reasoning_effort": null
     },
     "resolved_sources": {
       "provider": "invoker_inheritance",
       "runtime": "persisted_continuity",
-      "access_mode": "persisted_continuity",
+      "access_mode": "invoker_inheritance",
       "model": "persisted_continuity",
-      "reasoning_effort": "invoker_inheritance"
+      "reasoning_effort": "unsupported_for_resolved_worker"
     },
     "inheritance": {
       "provider": true,
       "runtime": false,
-      "access_mode": false,
+      "access_mode": true,
       "model": false,
-      "reasoning_effort": true
+      "reasoning_effort": false
     }
   },
   "route_policy": {
@@ -88,9 +88,9 @@
     "normal_mode_shortcuts_allowed": false
   },
   "review_handoff": {
-    "post_send_to_review": true,
-    "review_until_complete": true,
-    "review_max_cycles": 5,
+    "post_send_to_review": false,
+    "review_until_complete": false,
+    "review_max_cycles": null,
     "review_required_by_human_plan": false
   },
   "benchmarking": {
@@ -108,8 +108,8 @@
     "last_truthful_checkpoint": {
       "step": "merge_queue",
       "status": "completed",
-      "reason": "Legacy already-landed feature reconciled to completed state after cycle-01 review approval. Code was already on main at f8134d9. No merge-queue replay was performed.",
-      "updated_at": "2026-04-08T10:00:24.159Z"
+      "reason": "Legacy pre-governed-path feature reconciled to completed state. Code was already on main at face9295. No merge-queue replay was performed.",
+      "updated_at": "2026-04-08T10:00:16.272Z"
     }
   },
   "reset_policy": {
@@ -126,19 +126,15 @@
     "blocker_classification_enabled": true,
     "terminal_status_enabled": true
   },
-  "integrity": {
-    "blocking_issue_count": 0,
-    "blocking_issue_classes": [],
-    "next_safe_move": "materialize normalized contract and proceed to implementor brief"
-  },
+  "integrity": {},
   "artifacts": {
-    "state_path": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implement-plan-state.json",
-    "markdown_contract_path": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implement-plan-execution-contract.v1.json",
-    "run_contract_path": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implementation-run/run-13a0ce92-c939-432a-8e6e-c901c02acbdf/execution-contract.v1.json",
-    "run_projection_path": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implementation-run/run-13a0ce92-c939-432a-8e6e-c901c02acbdf/run-projection.v1.json",
-    "execution_run_root": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implementation-run/run-13a0ce92-c939-432a-8e6e-c901c02acbdf",
-    "event_root": "C:/ADF/docs/phase1/review-cycle-setup-merge-safety/implementation-run/run-13a0ce92-c939-432a-8e6e-c901c02acbdf/events/attempt-001",
-    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/review-cycle-setup-merge-safety"
+    "state_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implement-plan-state.json",
+    "markdown_contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/run-projection.v1.json",
+    "execution_run_root": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+    "event_root": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/events/attempt-001",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/company-table-queue-read-model"
   }
 }

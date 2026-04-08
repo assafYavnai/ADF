@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Implemented provider-neutral LLM tool discovery and worker-selection plumbing for governed `implement-plan`, then closed the follow-on provider-truth gaps found in review.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects not run and merge commit 93ee2077ee3c819e4a11e9320ad42607fb93e9c4.
 
 2. Deliverables Produced
 
@@ -12,6 +14,7 @@ Implemented provider-neutral LLM tool discovery and worker-selection plumbing fo
 - first-run Claude-targeted prepares now keep truthful `provider=claude` identity in lane output and execution contracts
 - shared review-cycle validator surfaces now accept the widened Claude access/runtime enum set
 - authoritative setup/workflow contracts were updated to match the code-supported surface
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -46,18 +49,23 @@ Implemented provider-neutral LLM tool discovery and worker-selection plumbing fo
   - proved `reasoning_effort = null` for the Claude lane
 - `review-cycle-setup-helper.mjs write-setup --project-root <worktree> --runtime-permission-model claude_code_skip_permissions ...`
   - proved the widened review-cycle validator surface accepts explicit Claude worker/runtime settings coherently
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: not run
+- Merge Status: merged via merge-queue (merge commit 93ee2077ee3c819e4a11e9320ad42607fb93e9c4)
+- Local Target Sync Status: fetched_only
 
-5. Review-Cycle Status
+5. Feature Artifacts Updated
 
-- cycle-01: approved original `llm_tools` wiring route
-- cycle-02: rejected, found first-run provider drift and shared-validator/authority drift
-- cycle-02 fix pass: completed with proof and committed at `e1a2447`
-- cycle-03: approved
+- `docs/phase1/implement-plan-llm-tools-worker-resolution/completion-summary.md`
+- `docs/phase1/implement-plan-llm-tools-worker-resolution/implement-plan-state.json`
+- `docs/phase1/implement-plan-llm-tools-worker-resolution/implementation-run/`
 
 6. Commit And Push Result
 
-- cycle-02 fix commit: `e1a2447`
-- cycle-03 approval closeout: pending until the current head is committed and pushed
+- Approved feature commit: 93ee2077ee3c819e4a11e9320ad42607fb93e9c4
+- Merge commit: 93ee2077ee3c819e4a11e9320ad42607fb93e9c4
+- Push: success to origin/main
+- Closeout note: Legacy already-landed feature reconciled to completed state after cycle-03 review approval. Code was already on main at 93ee2077. No merge-queue replay was performed.
 
 7. Remaining Non-Goals / Debt
 

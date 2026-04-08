@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 2,
-  "prepared_at": "2026-04-05T07:08:18.629Z",
+  "contract_revision": 4,
+  "prepared_at": "2026-04-08T10:00:21.550Z",
   "feature_identity": {
     "project_root": "C:/ADF",
     "phase_number": 1,
@@ -19,7 +19,7 @@
     "worker_id": "implementor/default"
   },
   "invoker_runtime": {
-    "provider": null,
+    "provider": "codex",
     "execution_runtime": "codex_cli_exec",
     "control_plane_runtime": "codex_cli_exec",
     "access_mode": "codex_cli_full_auto_bypass",
@@ -30,18 +30,18 @@
   },
   "worker_selection": {
     "defaults": {
-      "provider": null,
+      "provider": "codex",
       "runtime": "codex_cli_exec",
       "access_mode": "codex_cli_full_auto_bypass",
       "model": "gpt-5.4",
       "reasoning_effort": "xhigh"
     },
     "continuity": {
-      "provider": null,
+      "provider": "codex",
       "runtime": "codex_cli_exec",
       "access_mode": "codex_cli_full_auto_bypass",
       "model": "gpt-5.4",
-      "reasoning_effort": "xhigh"
+      "reasoning_effort": null
     },
     "overrides": {
       "provider": null,
@@ -51,7 +51,7 @@
       "reasoning_effort": null
     },
     "resolved": {
-      "provider": null,
+      "provider": "codex",
       "runtime": "codex_cli_exec",
       "access_mode": "codex_cli_full_auto_bypass",
       "model": "gpt-5.4",
@@ -62,14 +62,14 @@
       "runtime": "persisted_continuity",
       "access_mode": "persisted_continuity",
       "model": "persisted_continuity",
-      "reasoning_effort": "persisted_continuity"
+      "reasoning_effort": "invoker_inheritance"
     },
     "inheritance": {
       "provider": true,
       "runtime": false,
       "access_mode": false,
       "model": false,
-      "reasoning_effort": false
+      "reasoning_effort": true
     }
   },
   "route_policy": {
@@ -106,10 +106,10 @@
     "reuse_cached_workers_when_valid": true,
     "recreate_workers_when_invalid": true,
     "last_truthful_checkpoint": {
-      "step": "implementation",
-      "status": "ready",
-      "reason": "Resume from the last truthful normal-mode checkpoint.",
-      "updated_at": "2026-04-05T07:08:18.628Z"
+      "step": "merge_queue",
+      "status": "completed",
+      "reason": "Legacy already-landed feature reconciled to completed state after cycle-01 review approval. Code was already on main at 4a25938. No merge-queue replay was performed.",
+      "updated_at": "2026-04-08T10:00:21.547Z"
     }
   },
   "reset_policy": {

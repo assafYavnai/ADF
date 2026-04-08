@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/merge-queue-closeout-repo-truth",
   "run_id": "run-c929fd48-5202-4591-ad5a-949fb46d0079",
   "run_mode": "normal",
-  "updated_at": "2026-04-05T07:08:18.635Z",
+  "updated_at": "2026-04-08T10:00:21.552Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/execution-contract.v1.json",
@@ -14,10 +14,10 @@
   "run": {
     "run_id": "run-c929fd48-5202-4591-ad5a-949fb46d0079",
     "run_mode": "normal",
-    "lifecycle_status": "active",
-    "terminal_status": null,
+    "lifecycle_status": "completed",
+    "terminal_status": "completed",
     "contract_schema_version": 1,
-    "contract_revision": 2,
+    "contract_revision": 4,
     "feature_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/run-projection.v1.json",
@@ -37,18 +37,18 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "ready_for_implementation",
-        "terminal_status": null,
+        "status": "completed",
+        "terminal_status": "completed",
         "started_at": "2026-04-05T07:07:31.642Z",
-        "updated_at": "2026-04-05T07:08:18.628Z",
+        "updated_at": "2026-04-08T10:00:21.547Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "implementation",
-          "status": "ready",
-          "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-05T07:08:18.628Z"
+          "step": "merge_queue",
+          "status": "completed",
+          "reason": "Legacy already-landed feature reconciled to completed state after cycle-01 review approval. Code was already on main at 4a25938. No merge-queue replay was performed.",
+          "updated_at": "2026-04-08T10:00:21.547Z"
         },
         "step_status": {
           "implementation": {
@@ -80,9 +80,9 @@
             "note": null
           },
           "merge_queue": {
-            "status": "not_started",
+            "status": "completed",
             "started_at": null,
-            "completed_at": null,
+            "completed_at": "2026-04-08T09:58:47.221Z",
             "duration_seconds": null,
             "note": null
           }
@@ -108,12 +108,12 @@
             "provider": null,
             "runtime": "codex_cli_exec",
             "model": "gpt-5.4",
-            "reasoning_effort": "xhigh",
+            "reasoning_effort": null,
             "access_mode": "codex_cli_full_auto_bypass",
             "execution_id": null,
             "bound_at": "2026-04-05T07:07:31.642Z",
             "selection_source": {
-              "provider": "invoker_inheritance",
+              "provider": "persisted_continuity",
               "runtime": "persisted_continuity",
               "access_mode": "persisted_continuity",
               "model": "persisted_continuity",
@@ -122,15 +122,15 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-05T07:08:18.628Z",
-        "last_event_at": "2026-04-05T07:08:18.633Z"
+        "last_checkpoint_at": "2026-04-08T10:00:21.547Z",
+        "last_event_at": "2026-04-08T10:00:21.547Z"
       }
     },
     "created_at": "2026-04-05T07:07:31.642Z",
-    "updated_at": "2026-04-05T07:08:18.632Z",
-    "last_event_at": "2026-04-05T07:08:18.633Z",
+    "updated_at": "2026-04-08T10:00:21.552Z",
+    "last_event_at": "2026-04-08T10:00:21.547Z",
     "kpi_projection": {
-      "terminal_status": null,
+      "terminal_status": "completed",
       "per_step_timing": {
         "implementation": {
           "status": "not_started",
@@ -157,9 +157,9 @@
           "duration_seconds": null
         },
         "merge_queue": {
-          "status": "not_started",
+          "status": "completed",
           "started_at": null,
-          "completed_at": null,
+          "completed_at": "2026-04-08T09:58:47.221Z",
           "duration_seconds": null
         }
       },

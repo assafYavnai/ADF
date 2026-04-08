@@ -4,13 +4,13 @@
   "feature_slug": "merge-queue-closeout-repo-truth",
   "project_root": "C:/ADF",
   "feature_registry_key": "phase1/merge-queue-closeout-repo-truth",
-  "feature_status": "active",
+  "feature_status": "completed",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": "codex_cli_full_auto_bypass",
   "implementor_execution_runtime": "codex_cli_exec",
   "implementor_provider": null,
   "implementor_model": "gpt-5.4",
-  "implementor_reasoning_effort": "xhigh",
+  "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
   "resolved_runtime_capabilities": {
     "native_agent_spawning_available": false,
@@ -24,22 +24,22 @@
     "codex_cli_full_auto_supported": true,
     "codex_cli_bypass_supported": true
   },
-  "current_branch": "implement-plan/phase1/merge-queue-closeout-repo-truth",
+  "current_branch": "main",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/merge-queue-closeout-repo-truth",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/merge-queue-closeout-repo-truth",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
-  "merge_commit_sha": null,
+  "merge_status": "merged",
+  "approved_commit_sha": "4a259380cb35effcafcdbdab2d2078eabe56b2d6",
+  "merge_commit_sha": "4a259380cb35effcafcdbdab2d2078eabe56b2d6",
   "merge_queue_request_id": null,
-  "local_target_sync_status": "not_started",
-  "last_completed_step": "context_collected",
-  "last_commit_sha": null,
-  "active_run_status": "context_ready",
+  "local_target_sync_status": "fetched_only",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "4a259380cb35effcafcdbdab2d2078eabe56b2d6",
+  "active_run_status": "completed",
   "created_at": "2026-04-05T07:07:31.610Z",
-  "updated_at": "2026-04-05T07:08:18.635Z",
+  "updated_at": "2026-04-08T10:00:21.547Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T07:07:31.657Z",
     "worktree_prepared_at": "2026-04-05T07:08:18.628Z",
@@ -52,8 +52,8 @@
     "review_requested_at": null,
     "human_verification_requested_at": null,
     "merge_started_at": null,
-    "merge_finished_at": null,
-    "closeout_finished_at": null
+    "merge_finished_at": "2026-04-08T09:58:47.221Z",
+    "closeout_finished_at": "2026-04-08T10:00:21.547Z"
   },
   "event_log": [
     {
@@ -100,6 +100,24 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T07:08:18.633Z",
       "note": null
+    },
+    {
+      "event_id": "event-b9dfda09-64f8-4a41-997c-7521aee092d5",
+      "event_type": "state-patched",
+      "run_id": "run-c929fd48-5202-4591-ad5a-949fb46d0079",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T09:58:47.230Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7c042d9c-311b-476c-94a8-3389178e476f",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-c929fd48-5202-4591-ad5a-949fb46d0079",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T10:00:21.547Z",
+      "note": "Legacy already-landed feature reconciled to completed state after cycle-01 review approval. Code was already on main at 4a25938. No merge-queue replay was performed."
     }
   ],
   "artifacts": {
@@ -128,10 +146,10 @@
       "run-c929fd48-5202-4591-ad5a-949fb46d0079": {
         "run_id": "run-c929fd48-5202-4591-ad5a-949fb46d0079",
         "run_mode": "normal",
-        "lifecycle_status": "active",
-        "terminal_status": null,
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 2,
+        "contract_revision": 4,
         "feature_contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/merge-queue-closeout-repo-truth/implementation-run/run-c929fd48-5202-4591-ad5a-949fb46d0079/run-projection.v1.json",
@@ -151,18 +169,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "ready_for_implementation",
-            "terminal_status": null,
+            "status": "completed",
+            "terminal_status": "completed",
             "started_at": "2026-04-05T07:07:31.642Z",
-            "updated_at": "2026-04-05T07:08:18.628Z",
+            "updated_at": "2026-04-08T10:00:21.547Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
-              "status": "ready",
-              "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-05T07:08:18.628Z"
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Legacy already-landed feature reconciled to completed state after cycle-01 review approval. Code was already on main at 4a25938. No merge-queue replay was performed.",
+              "updated_at": "2026-04-08T10:00:21.547Z"
             },
             "step_status": {
               "implementation": {
@@ -194,9 +212,9 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
+                "status": "completed",
                 "started_at": null,
-                "completed_at": null,
+                "completed_at": "2026-04-08T09:58:47.221Z",
                 "duration_seconds": null,
                 "note": null
               }
@@ -222,12 +240,12 @@
                 "provider": null,
                 "runtime": "codex_cli_exec",
                 "model": "gpt-5.4",
-                "reasoning_effort": "xhigh",
+                "reasoning_effort": null,
                 "access_mode": "codex_cli_full_auto_bypass",
                 "execution_id": null,
                 "bound_at": "2026-04-05T07:07:31.642Z",
                 "selection_source": {
-                  "provider": "invoker_inheritance",
+                  "provider": "persisted_continuity",
                   "runtime": "persisted_continuity",
                   "access_mode": "persisted_continuity",
                   "model": "persisted_continuity",
@@ -236,15 +254,15 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T07:08:18.628Z",
-            "last_event_at": "2026-04-05T07:08:18.633Z"
+            "last_checkpoint_at": "2026-04-08T10:00:21.547Z",
+            "last_event_at": "2026-04-08T10:00:21.547Z"
           }
         },
         "created_at": "2026-04-05T07:07:31.642Z",
-        "updated_at": "2026-04-05T07:08:18.632Z",
-        "last_event_at": "2026-04-05T07:08:18.633Z",
+        "updated_at": "2026-04-08T10:00:21.552Z",
+        "last_event_at": "2026-04-08T10:00:21.547Z",
         "kpi_projection": {
-          "terminal_status": null,
+          "terminal_status": "completed",
           "per_step_timing": {
             "implementation": {
               "status": "not_started",
@@ -271,9 +289,9 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
+              "status": "completed",
               "started_at": null,
-              "completed_at": null,
+              "completed_at": "2026-04-08T09:58:47.221Z",
               "duration_seconds": null
             }
           },
@@ -292,5 +310,8 @@
         }
       }
     }
-  }
+  },
+  "__gsw_revision": 2,
+  "__gsw_write_id": "gsw-3b389497-d5ce-4ce1-8502-22a4aa9207c3",
+  "__gsw_timestamp": "2026-04-08T10:00:21.555Z"
 }

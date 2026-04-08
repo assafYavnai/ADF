@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Built the standalone company-level table and queue read model under `COO/table/**` that aggregates Phase 1 work into a coherent management view from four source families (thread/onion, finalized requirement, CTO admission, implement-plan), without wiring into the live COO runtime.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects not run and merge commit face9295a1eddd9f3c2414136fe653201c320aee.
 
 2. Deliverables Produced
 
@@ -12,6 +14,7 @@ Built the standalone company-level table and queue read model under `COO/table/*
 - `COO/table/index.ts` — public API barrel export
 - `COO/table/fixtures/` — 5 fixture files covering full lifecycle, empty, missing, conflict, and blocked scenarios
 - `COO/table/company-table.test.ts` — 35 proof tests
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -34,22 +37,21 @@ Built the standalone company-level table and queue read model under `COO/table/*
 Machine Verification
 - `npm.cmd run build` in `C:/ADF/COO`: passed
 - `npx.cmd tsx --test COO/table/company-table.test.ts`: 35/35 passed across 7 suites (full lifecycle, empty sources, missing sources, conflict/ambiguity, blocked items, KPI instrumentation, partition isolation)
-
 Human Verification Requirement
 - Required: false
 - Reason: standalone artifact package, not a live CEO-facing runtime surface
-
 Human Verification Status
 - Not required for this slice
-
 Review-Cycle Status
 - Pending: will run after merge-queue path is configured
-
 Merge Status
 - Pending: awaiting governed merge-queue path
-
 Local Target Sync Status
 - Pending: awaiting merge completion
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: not run
+- Merge Status: merged via merge-queue (merge commit face9295a1eddd9f3c2414136fe653201c320aee)
+- Local Target Sync Status: fetched_only
 
 5. Feature Artifacts Updated
 
@@ -57,11 +59,14 @@ Local Target Sync Status
 - `docs/phase1/company-table-queue-read-model/implement-plan-contract.md`
 - `docs/phase1/company-table-queue-read-model/implement-plan-state.json`
 - `docs/phase1/company-table-queue-read-model/completion-summary.md`
+- `docs/phase1/company-table-queue-read-model/implementation-run/`
 
 6. Commit And Push Result
 
-- Code committed to main as `f01b015` (pre-governed path)
-- Governed closeout via implement-plan worktree + merge-queue pending
+- Approved feature commit: face9295a1eddd9f3c2414136fe653201c320aee
+- Merge commit: face9295a1eddd9f3c2414136fe653201c320aee
+- Push: success to origin/main
+- Closeout note: Legacy pre-governed-path feature reconciled to completed state. Code was already on main at face9295. No merge-queue replay was performed.
 
 7. Remaining Non-Goals / Debt
 

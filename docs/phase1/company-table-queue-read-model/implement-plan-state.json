@@ -3,12 +3,12 @@
   "feature_slug": "company-table-queue-read-model",
   "project_root": "C:/ADF",
   "feature_registry_key": "phase1/company-table-queue-read-model",
-  "feature_status": "active",
+  "feature_status": "completed",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": null,
   "implementor_execution_runtime": "codex_cli_exec",
   "implementor_model": "gpt-5.4",
-  "implementor_reasoning_effort": "xhigh",
+  "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
   "resolved_runtime_capabilities": {
     "native_agent_spawning_available": false,
@@ -22,28 +22,57 @@
     "codex_cli_full_auto_supported": true,
     "codex_cli_bypass_supported": true
   },
-  "current_branch": "implement-plan/phase1/company-table-queue-read-model",
+  "current_branch": "main",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/company-table-queue-read-model",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/company-table-queue-read-model",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
-  "merge_commit_sha": null,
+  "merge_status": "merged",
+  "approved_commit_sha": "face9295a1eddd9f3c2414136fe653201c320aee",
+  "merge_commit_sha": "face9295a1eddd9f3c2414136fe653201c320aee",
   "merge_queue_request_id": null,
-  "local_target_sync_status": "not_started",
-  "last_completed_step": "context_collected",
-  "last_commit_sha": null,
-  "active_run_status": "context_ready",
+  "local_target_sync_status": "fetched_only",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "face9295a1eddd9f3c2414136fe653201c320aee",
+  "active_run_status": "completed",
   "created_at": "2026-04-04T16:53:51.945Z",
-  "updated_at": "2026-04-04T17:00:26.843Z",
+  "updated_at": "2026-04-08T10:00:16.272Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-04T16:53:51.968Z",
+    "worktree_prepared_at": "2026-04-04T16:55:59.256Z",
+    "integrity_passed_at": null,
     "integrity_failed_at": "2026-04-04T16:53:51.968Z",
-    "worktree_prepared_at": "2026-04-04T16:55:59.256Z"
+    "brief_written_at": null,
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": null,
+    "review_requested_at": null,
+    "human_verification_requested_at": null,
+    "merge_started_at": null,
+    "merge_finished_at": "2026-04-08T09:58:40.117Z",
+    "closeout_finished_at": "2026-04-08T10:00:16.272Z"
   },
-  "event_log": [],
+  "event_log": [
+    {
+      "event_id": "event-9d7f5be9-8569-429f-bf32-0ff35d7de65c",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T09:58:40.119Z",
+      "note": null
+    },
+    {
+      "event_id": "event-d4b5116f-577f-4129-9418-e73b466d1550",
+      "event_type": "terminal-status-recorded",
+      "run_id": "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T10:00:16.272Z",
+      "note": "Legacy pre-governed-path feature reconciled to completed state. Code was already on main at face9295. No merge-queue replay was performed."
+    }
+  ],
   "artifacts": {
     "readme_path": "C:/ADF/docs/phase1/company-table-queue-read-model/README.md",
     "context_path": "C:/ADF/docs/phase1/company-table-queue-read-model/context.md",
@@ -53,7 +82,191 @@
     "brief_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implement-plan-brief.md",
     "completion_summary_path": "C:/ADF/docs/phase1/company-table-queue-read-model/completion-summary.md",
     "implementation_run_dir": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run",
-    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/company-table-queue-read-model"
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/company-table-queue-read-model",
+    "execution_contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/run-projection.v1.json"
   },
-  "last_error": null
+  "last_error": null,
+  "state_schema_version": 2,
+  "implementor_provider": null,
+  "current_run_id": "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+      "benchmarking": null
+    },
+    "runs": {
+      "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z": {
+        "run_id": "legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+        "run_mode": "normal",
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
+        "contract_schema_version": 1,
+        "contract_revision": 2,
+        "feature_contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/company-table-queue-read-model/implementation-run/legacy-normal-phase1-company-table-queue-read-model-2026-04-04T16-53-51.945Z",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [
+          "implementor/default"
+        ],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "completed",
+            "terminal_status": "completed",
+            "started_at": "2026-04-04T16:53:51.945Z",
+            "updated_at": "2026-04-08T10:00:16.272Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Legacy pre-governed-path feature reconciled to completed state. Code was already on main at face9295. No merge-queue replay was performed.",
+              "updated_at": "2026-04-08T10:00:16.272Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "machine_verification": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "completed",
+                "started_at": null,
+                "completed_at": "2026-04-08T09:58:40.117Z",
+                "duration_seconds": null,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 0,
+            "self_fix_cycle_count": 0,
+            "blockers": [],
+            "worker_bindings": {
+              "implementor/default": {
+                "worker_id": "implementor/default",
+                "lane_id": null,
+                "role": "implementor",
+                "provider": null,
+                "runtime": "codex_cli_exec",
+                "model": "gpt-5.4",
+                "reasoning_effort": null,
+                "access_mode": null,
+                "execution_id": null,
+                "bound_at": "2026-04-08T09:58:40.117Z",
+                "selection_source": {
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
+                },
+                "recreated_due_to_access": false
+              }
+            },
+            "last_checkpoint_at": "2026-04-08T10:00:16.272Z",
+            "last_event_at": "2026-04-08T10:00:16.272Z"
+          }
+        },
+        "created_at": "2026-04-04T16:53:51.945Z",
+        "updated_at": "2026-04-08T10:00:16.278Z",
+        "last_event_at": "2026-04-08T10:00:16.272Z",
+        "kpi_projection": {
+          "terminal_status": "completed",
+          "per_step_timing": {
+            "implementation": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "machine_verification": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "review_cycle": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "completed",
+              "started_at": null,
+              "completed_at": "2026-04-08T09:58:40.117Z",
+              "duration_seconds": null
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 0,
+          "self_fix_cycle_count": 0,
+          "blocker_history": []
+        }
+      }
+    }
+  },
+  "__gsw_revision": 2,
+  "__gsw_write_id": "gsw-47305c5a-45e0-4d02-805c-340d78e2e1b5",
+  "__gsw_timestamp": "2026-04-08T10:00:16.281Z"
 }
