@@ -1,8 +1,8 @@
 # ADF Phase 1 Pre-MCP-Boxing Baseline Gap Report
 
-Audit date: 2026-04-08
-Audit baseline commit: `192ad0b` (main)
-Prior baseline: `6478c6c`
+Audit date: 2026-04-08 (updated same day after GOV-1 partial fix)
+Audit baseline commit: `3301f61` (main)
+Prior baselines: `192ad0b`, `6478c6c`
 Purpose: Identify code-level defects, pattern inconsistencies, and structural debt on `main` that the MCP boxing model will inherit if not fixed before boxing slice-02 begins.
 
 This report is written for a contextless agent. Every finding includes:
@@ -36,7 +36,7 @@ The branch has 6 review cycles of contract/doc repairs but zero implementation c
 Code on main: No executive status wiring exists. `COO/briefing/` (the read model) is merged, but the live wiring to the COO surface is missing.
 MCP boxing impact: LOW. This is a CEO-facing display feature, not a structural dependency for the governed implementation chain (`implement-plan` / `review-cycle` / `merge-queue`). Safe to defer past boxing slice-02.
 
-Action: No action needed for boxing baseline. Defer.
+Action: In progress as of 2026-04-08. No action needed for boxing baseline. Defer.
 
 Verify:
 ```
@@ -47,31 +47,27 @@ Expected if still open: `active context_ready` and `UNMERGED`
 
 ### 2 stale unmerged branches should be deleted
 
-#### Branch: `implement-plan/phase1/approved-commit-closeout-state-separation`
+#### Branch: `implement-plan/phase1/approved-commit-closeout-state-separation` — RESOLVED
 
-Commits ahead of main: 1 (commit `c55fb4d`)
-What the commit does: Advances the slice governance state from `context_ready` to `merge_ready` and sets `approved_commit_sha`.
-Why it is stale: The slice's state file on main already reads `feature_status: completed`, `merge_status: merged`, `active_run_status: completed`, `last_completed_step: marked_complete`. The branch commit is a mid-lifecycle governance handshake that was superseded when the slice was completed through a different path.
-Evidence:
-- Main state: `docs/phase1/approved-commit-closeout-state-separation/implement-plan-state.json` shows `completed / merged`.
-- Branch state: same file on branch shows `active / merge_ready`.
-- Main state is strictly ahead of branch state. Branch carries no unique code.
+Status: Feature branch and remote deleted on 2026-04-08 by CEO.
+Remaining cleanup: Two local backup branches still exist:
+- `backup/feature-approved-commit-closeout-state-separation-before-reset-20260406`
+- `backup/main-before-approved-commit-closeout-reset-20260406`
 
-There is also a backup branch: `backup/feature-approved-commit-closeout-state-separation-before-reset-20260406`. This was created before a branch reset on 2026-04-06 and is no longer needed since the slice is complete on main.
+These are pre-reset snapshots from 2026-04-06. The slice is complete on main. They carry no unique content needed going forward.
 
-Action: Delete both branches (local + remote). They carry no unique content.
+Action: Delete both backup branches when convenient.
 ```
-git branch -D implement-plan/phase1/approved-commit-closeout-state-separation
-git push origin --delete implement-plan/phase1/approved-commit-closeout-state-separation
 git branch -D backup/feature-approved-commit-closeout-state-separation-before-reset-20260406
+git branch -D backup/main-before-approved-commit-closeout-reset-20260406
 ```
 
 Verify:
 ```
-git branch -a | grep approved-commit-closeout
+git branch | grep approved-commit-closeout
 ```
-Expected if fixed: no output
-Expected if still open: branch names appear
+Expected if fully cleaned: no output
+Expected if backup remains: backup branch names appear
 
 #### Branch: `implement-plan/phase1/governed-implementation-route-hardening`
 
@@ -388,7 +384,7 @@ Expected if still open: `import` at line 7 and another at line 40
 | 2.2 | P2 | Stale tsconfig | `COO/tsconfig.json` | Open | Remove empty includes, fix rootDir |
 | 2.3 | P2 | KPI pattern inconsistency | `COO/*/kpi.ts` | Open | Document for boxing, normalize later |
 | 2.4 | P2 | Unmerged hardening branch | `governed-implementation-route-hardening` | CEO decision needed | Merge, close, or cherry-pick |
-| GOV-1 | P2 | Stale branch | `approved-commit-closeout-state-separation` | Open | Delete local + remote + backup |
+| GOV-1 | P2 | Stale branch | `approved-commit-closeout-state-separation` | Mostly fixed (2 backup refs remain) | Delete backup branches |
 | 3.1 | P3 | Orphaned tools | `tools/agent-role-builder/` etc. | Open | Delete or archive |
 | 3.2 | P3 | Provenance bug | `memory-engine/src/provenance.ts` | Known, workaround exists | Fix or document for boxing |
 | 3.3 | P3 | Hardcoded paths | `agent-runtime-preflight.test.mjs` | Open | Use dynamic paths |
