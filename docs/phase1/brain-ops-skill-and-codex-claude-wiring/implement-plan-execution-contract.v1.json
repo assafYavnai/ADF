@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 6,
-  "prepared_at": "2026-04-08T17:28:08.114Z",
+  "contract_revision": 12,
+  "prepared_at": "2026-04-08T18:17:13.136Z",
   "feature_identity": {
-    "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring",
+    "project_root": "C:/ADF",
     "phase_number": 1,
     "feature_slug": "brain-ops-skill-and-codex-claude-wiring",
     "feature_registry_key": "phase1/brain-ops-skill-and-codex-claude-wiring",
-    "feature_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring"
+    "feature_root": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring"
   },
   "run_identity": {
     "run_mode": "normal",
     "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
-    "attempt_id": "attempt-001",
-    "attempt_number": 1,
+    "attempt_id": "attempt-002",
+    "attempt_number": 2,
     "lane_id": null,
     "worker_id": "implementor/default"
   },
@@ -88,7 +88,7 @@
     "normal_mode_shortcuts_allowed": false
   },
   "review_handoff": {
-    "post_send_to_review": false,
+    "post_send_to_review": true,
     "review_until_complete": false,
     "review_max_cycles": null,
     "review_required_by_human_plan": false
@@ -109,13 +109,13 @@
       "step": "machine_verification",
       "status": "completed",
       "reason": "Resume from the last truthful normal-mode checkpoint.",
-      "updated_at": "2026-04-08T17:28:08.111Z"
+      "updated_at": "2026-04-08T18:16:56.846Z"
     }
   },
   "reset_policy": {
     "supported": true,
     "behavior": "new_attempt_from_implementation_preserving_history",
-    "next_attempt_number": 2
+    "next_attempt_number": 3
   },
   "kpi_policy": {
     "source": "governed_production_flow",
@@ -127,18 +127,20 @@
     "terminal_status_enabled": true
   },
   "integrity": {
-    "blocking_issue_count": 0,
-    "blocking_issue_classes": [],
-    "next_safe_move": "proceed to implementor brief"
+    "blocking_issue_count": 1,
+    "blocking_issue_classes": [
+      "authority-freeze-divergence"
+    ],
+    "next_safe_move": "write pushback and stop"
   },
   "artifacts": {
-    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json",
-    "markdown_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
-    "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
-    "run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
-    "execution_run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953",
-    "event_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/events/attempt-001",
+    "state_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json",
+    "markdown_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
+    "execution_run_root": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953",
+    "event_root": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/events/attempt-002",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring"
   }
 }

@@ -18,9 +18,9 @@ import {
 } from "../../governed-feature-runtime.mjs";
 
 const scriptName = "skills/brain-ops/scripts/brain-ops-helper.mjs";
-const TRUST_LEVELS = new Set(["working", "reviewed", "locked"]);
+const TRUST_LEVELS = new Set(["reviewed", "locked"]);
 const TRUST_ACTIONS = new Set(["promote", "cleanup"]);
-const CLEANUP_ACTIONS = new Set(["archive", "delete", "supersede"]);
+const CLEANUP_ACTIONS = new Set(["archive", "delete"]);
 
 main().catch((error) => {
   fail(error instanceof Error ? error.stack ?? error.message : String(error));
@@ -161,7 +161,7 @@ function normalizeCleanupAction(value) {
   }
   const normalized = String(value).toLowerCase();
   if (!CLEANUP_ACTIONS.has(normalized)) {
-    fail("--cleanup-action must be archive, delete, or supersede.");
+    fail("--cleanup-action must be archive or delete.");
   }
   return normalized;
 }
@@ -489,7 +489,7 @@ function parseTrustLevel(trustLevel) {
   }
   const normalized = String(trustLevel).toLowerCase();
   if (!TRUST_LEVELS.has(normalized)) {
-    fail("--trust-level must be working, reviewed, or locked.");
+    fail("--trust-level must be reviewed or locked.");
   }
   return normalized;
 }
