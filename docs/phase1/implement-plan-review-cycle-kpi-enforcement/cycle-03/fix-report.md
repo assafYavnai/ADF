@@ -54,10 +54,12 @@
 6. Remaining Debt / Non-Goals
 
 - No manual edit to `review-cycle-state.json`.
-- No helper/orchestrator fix for `last_commit_sha`; that remains helper-managed follow-up.
+- Cycle-03 closeout later completed through:
+  - content commit `8d72ec8df1d1b61727385a0e22407be744bb8947`
+  - helper/state closeout commit `a35151a43ea35d83a4ba7c1de791b529ce527e5d`.
 - No merge-queue/runtime hardening work.
 - No review-cycle or implement-plan helper refactor.
-- No commit or push.
+- No merge-queue/runtime hardening work beyond this governed docs/closeout route.
 
 7. Next Cycle Starting Point
 
