@@ -3,12 +3,15 @@
 - Verified that the underlying COO telemetry-contract repair is already present on current `main`.
 - Verified that `COO/requirements-gathering/live/onion-live.ts` now emits nested `cto_admission_*` telemetry fields in the live sample block and no unsupported top-level `ctoAdmissionState` field there.
 - Closed this slice as a docs-and-governance reconciliation pass without introducing new COO code changes.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects not run and merge commit 4e4361b307631fffabd8963dd2f0901e1614d71e.
 
 2. Deliverables Produced
 
 - Truthful slice artifacts explaining that the unsupported top-level emitter field was already removed by commit `42bf725a04c96f0b89fcf1a1e591cff0f72d6abb`.
 - Build and targeted test proof for the onion and CTO-admission handoff path on current `main` semantics.
 - Governed completion artifacts for this slice, including the implementation brief and completion summary.
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -29,9 +32,10 @@
 - Verification environment note: build and tests were executed from canonical repo root `C:/ADF` because the isolated implement-plan worktree does not contain the installed COO dependencies; the product source under verification was already identical for the relevant COO files.
 - Human Verification Requirement: Required: false
 - Human Verification Status: not_required
-- Review-Cycle Status: not run because the slice closed without a new implementation change
-- Merge Status: pending merge-queue landing of the docs-only closeout commit; the underlying COO code repair is already on `main`
-- Local Target Sync Status: not_started
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: not run
+- Merge Status: merged via merge-queue (merge commit 4e4361b307631fffabd8963dd2f0901e1614d71e)
+- Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
@@ -40,13 +44,15 @@
 - `docs/phase1/coo-onion-telemetry-contract-fix/implement-plan-contract.md`
 - `docs/phase1/coo-onion-telemetry-contract-fix/implement-plan-brief.md`
 - `docs/phase1/coo-onion-telemetry-contract-fix/completion-summary.md`
+- `docs/phase1/coo-onion-telemetry-contract-fix/implement-plan-state.json`
+- `docs/phase1/coo-onion-telemetry-contract-fix/implementation-run/`
 
 6. Commit And Push Result
 
-- Approved feature commit: pending
-- Merge commit: pending
-- Push: pending
-- Closeout note: no new COO code change was required because the underlying contract repair already landed on `main` in `42bf725a04c96f0b89fcf1a1e591cff0f72d6abb`
+- Approved feature commit: 7663018982b8acf07c1fd429586610ec43b72212
+- Merge commit: 4e4361b307631fffabd8963dd2f0901e1614d71e
+- Push: success to origin/main
+- Closeout note: Merged via merge-queue after approval.
 
 7. Remaining Non-Goals / Debt
 
