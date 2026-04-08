@@ -1627,6 +1627,7 @@ function makeOnionThread(input: {
       working_artifact: workingArtifact,
       requirement_artifact: null,
       finalized_requirement_memory_id: input.finalizedRequirementMemoryId,
+      cto_admission: null,
       latest_audit_trace: {
         trace_id: `trace:${input.scopePath}`,
         turn_id: "turn-latest",
