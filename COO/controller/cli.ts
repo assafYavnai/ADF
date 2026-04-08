@@ -19,6 +19,8 @@ import type { InvocationAttempt, InvocationParams, InvocationResult, InvocationU
 import { createLLMProvenance } from "../../shared/provenance/types.js";
 import { MemoryEngineClient } from "./memory-engine-client.js";
 import { createSystemProvenance } from "../../shared/provenance/types.js";
+import { buildLiveExecutiveStatus } from "./executive-status.js";
+import { BrainHardStopError } from "../briefing/status-governance.js";
 
 let shuttingDown = false;
 
@@ -27,6 +29,7 @@ async function main() {
   const projectRoot = await resolveProjectRoot(import.meta.dirname ?? ".");
   const args = parseCliArgs(process.argv.slice(2));
   assertProofInvokerIsolation(args);
+  const configuredScope = args.scopePath ?? null;
   const onionEnabled = resolveOnionGate(args);
   const threadsDir = resolveRuntimeDir(process.env.ADF_COO_THREADS_DIR, resolve(projectRoot, "threads"));
   const promptsDir = resolveRuntimeDir(process.env.ADF_COO_PROMPTS_DIR, resolve(projectRoot, "COO/intelligence"));
@@ -40,6 +43,10 @@ async function main() {
     proof_mode: Boolean(args.testProofMode),
     cli_mode: cliMode,
     onion_enabled: onionEnabled,
+  };
+  const statusTelemetryContext = {
+    ...runtimeTelemetryContext,
+    status_surface: "coo_cli_status",
   };
   configurePersistence({
     outboxPath: telemetryOutboxPath,
@@ -66,6 +73,7 @@ async function main() {
   }
 
   let brainClient: MemoryEngineClient | null = null;
+  let replayedMetrics = 0;
   try {
     const brainConnectStartedAt = Date.now();
     brainClient = await MemoryEngineClient.connect(projectRoot, {
@@ -120,7 +128,7 @@ async function main() {
       },
     });
     const replayStartedAt = Date.now();
-    const replayedMetrics = await replayPersistedMetrics();
+    replayedMetrics = await replayPersistedMetrics();
     emit({
       provenance: createSystemProvenance("COO/controller/cli/telemetry-replay"),
       category: "system",
@@ -132,7 +140,7 @@ async function main() {
         replay_status: replayedMetrics > 0 ? "replayed" : "empty",
       },
     });
-    if (replayedMetrics > 0) {
+    if (replayedMetrics > 0 && !args.statusOnly) {
       console.log(`Recovered ${replayedMetrics} persisted telemetry event(s) from the local outbox.`);
     }
     emit({
@@ -147,7 +155,7 @@ async function main() {
         cli_mode: cliMode,
         onion_enabled: onionEnabled,
         proof_mode: Boolean(args.testProofMode),
-        configured_scope: args.scopePath ?? null,
+        configured_scope: configuredScope,
       },
     });
   } catch (err) {
@@ -164,19 +172,46 @@ async function main() {
         cli_mode: cliMode,
         onion_enabled: onionEnabled,
         proof_mode: Boolean(args.testProofMode),
-        configured_scope: args.scopePath ?? null,
+        configured_scope: configuredScope,
       },
     });
     await closeTelemetry({ timeoutMs: 1 }).catch(() => {});
-    console.error(`Memory engine MCP connection failed: ${message}`);
+    console.error("COO hard stop: Brain durable memory is unavailable.");
+    console.error(`Reason: ${message}`);
+    console.error("Immediate fix: repair the memory-engine MCP route, then rerun the COO.");
     throw err;
+  }
+
+  if (args.statusOnly) {
+    await printExecutiveStatus(
+      projectRoot,
+      threadsDir,
+      promptsDir,
+      brainClient,
+      config.intelligenceParams,
+      config.invokeLLM,
+      configuredScope,
+      null,
+      statusTelemetryContext,
+      telemetryPartition,
+    );
+    await shutdownCli(brainClient, {
+      ...runtimeTelemetryContext,
+      cli_mode: cliMode,
+      configured_scope: configuredScope,
+      proof_mode: Boolean(args.testProofMode),
+      shutdown_path: "status_only",
+      replayed_events: replayedMetrics,
+    }, {
+      announceSessionEnded: false,
+    });
+    return;
   }
 
   console.log("ADF COO - Interactive CLI");
   console.log("Brain MCP: connected");
   console.log("Type your message, press Enter. Type 'exit' to quit.\n");
 
-  const configuredScope = args.scopePath ?? null;
   const resumeLookupStartedAt = Date.now();
   let threadId = await resolveStartingThreadId(args, config.threadsDir);
   emit({
@@ -200,14 +235,16 @@ async function main() {
   }
   console.log(`Requirements-gathering onion: ${onionEnabled ? "enabled (feature gate)" : "disabled"}`);
   console.log(`LLM invoker: ${args.testProofMode ? "test-proof-mode (guarded)" : "live"}`);
-  console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.\n");
+  console.log("Multiline mode: type /multi to start, /send to submit, /cancel to discard.");
+  console.log("Status surface: type /status or launch with --status.\n");
 
   if (!process.stdin.isTTY) {
-    await runScriptedSession(config, brainClient, threadId, configuredScope, {
+    await runScriptedSession(config, brainClient, threadId, configuredScope, projectRoot, threadsDir, promptsDir, {
       ...runtimeTelemetryContext,
       cli_mode: cliMode,
       configured_scope: configuredScope,
       proof_mode: Boolean(args.testProofMode),
+      status_surface: "coo_cli_status",
     });
     return;
   }
@@ -219,6 +256,7 @@ async function main() {
   });
 
   let isProcessing = false;
+  let isClosing = false;
   let multilineMode = false;
   const multilineBuffer: string[] = [];
   let spinner: NodeJS.Timeout | null = null;
@@ -226,6 +264,9 @@ async function main() {
   const spinnerFrames = ["|", "/", "-", "\\"];
 
   const renderPrompt = (): void => {
+    if (isClosing) {
+      return;
+    }
     rl.setPrompt(multilineMode ? "... " : "CEO> ");
     rl.prompt();
   };
@@ -258,7 +299,16 @@ async function main() {
     }
 
     if (input.toLowerCase() === "exit") {
+      isClosing = true;
       rl.close();
+      return;
+    }
+
+    if (input === "/status") {
+      await printExecutiveStatus(projectRoot, threadsDir, promptsDir, brainClient, config.intelligenceParams, config.invokeLLM, configuredScope, threadId, {
+        ...statusTelemetryContext,
+        current_thread_id: threadId,
+      }, telemetryPartition);
       return;
     }
 
@@ -315,7 +365,9 @@ async function main() {
       console.error("Error:", err);
     } finally {
       isProcessing = false;
-      rl.resume();
+      if (!isClosing) {
+        rl.resume();
+      }
     }
   };
 
@@ -337,10 +389,13 @@ async function main() {
     }
 
     await processInput(line);
-    renderPrompt();
+    if (!isClosing) {
+      renderPrompt();
+    }
   });
 
   rl.on("close", () => {
+    isClosing = true;
     stopThinkingIndicator();
     void shutdownCli(brainClient, {
       ...runtimeTelemetryContext,
@@ -350,6 +405,66 @@ async function main() {
       shutdown_path: "interactive_close",
     });
   });
+}
+
+async function printExecutiveStatus(
+  projectRoot: string,
+  threadsDir: string,
+  promptsDir: string,
+  brainClient: MemoryEngineClient | null,
+  intelligenceParams: ControllerConfig["intelligenceParams"],
+  invokeLLM: ControllerConfig["invokeLLM"] | undefined,
+  statusScopePath: string | null,
+  currentThreadId: string | null,
+  telemetryContext: Record<string, unknown>,
+  sourcePartition: "production" | "proof" | "mixed",
+): Promise<void> {
+  const stopIndicator = startStatusLoadingIndicator();
+  try {
+    const status = await buildLiveExecutiveStatus({
+      projectRoot,
+      threadsDir,
+      brainClient,
+      sourcePartition,
+      telemetryContext,
+      statusScopePath,
+      currentThreadId,
+      promptsDir,
+      intelligenceParams,
+      invokeLLM,
+    });
+    stopIndicator();
+    console.log(`\n${status.output}\n`);
+  } catch (error) {
+    stopIndicator();
+    if (error instanceof BrainHardStopError) {
+      console.error("\n# COO Executive Status\n");
+      console.error(`Hard stop: ${error.message}`);
+      console.error(`Immediate fix: ${error.immediateFix}`);
+      return;
+    }
+    console.error(`Executive status failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function startStatusLoadingIndicator(): () => void {
+  if (!process.stdout.isTTY) {
+    return () => {};
+  }
+
+  const frames = ["|", "/", "-", "\\"];
+  const prefix = "COO> Let me get my notes before I tell you our current status... ";
+  let index = 0;
+  process.stdout.write(`\n${prefix}${frames[index]}`);
+  const timer = setInterval(() => {
+    index = (index + 1) % frames.length;
+    process.stdout.write(`\r${prefix}${frames[index]}`);
+  }, 120);
+
+  return () => {
+    clearInterval(timer);
+    process.stdout.write(`\r${" ".repeat(prefix.length + 2)}\r`);
+  };
 }
 
 function resolveRuntimeDir(overridePath: string | undefined, fallbackPath: string): string {
@@ -502,12 +617,14 @@ function parseCliArgs(argv: string[]): {
   scopePath?: string;
   enableOnion?: boolean;
   testProofMode?: boolean;
+  statusOnly: boolean;
 } {
   let threadId: string | undefined;
   let resumeLast = false;
   let scopePath: string | undefined;
   let enableOnion: boolean | undefined;
   let testProofMode: boolean | undefined;
+  let statusOnly = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -519,12 +636,17 @@ function parseCliArgs(argv: string[]): {
     } else if (arg === "--scope") {
       scopePath = argv[i + 1];
       i++;
+    } else if (arg === "--scope-path") {
+      scopePath = argv[i + 1];
+      i++;
     } else if (arg === "--enable-onion") {
       enableOnion = true;
     } else if (arg === "--disable-onion") {
       enableOnion = false;
     } else if (arg === "--test-proof-mode") {
       testProofMode = true;
+    } else if (arg === "--status") {
+      statusOnly = true;
     }
   }
 
@@ -534,6 +656,7 @@ function parseCliArgs(argv: string[]): {
     scopePath,
     enableOnion,
     testProofMode,
+    statusOnly,
   };
 }
 
@@ -588,6 +711,9 @@ async function runScriptedSession(
   brainClient: MemoryEngineClient | null,
   threadId: string | null,
   configuredScope: string | null,
+  projectRoot: string,
+  threadsDir: string,
+  promptsDir: string,
   shutdownMetadata: Record<string, unknown>,
 ): Promise<void> {
   const rl = createInterface({
@@ -603,6 +729,14 @@ async function runScriptedSession(
       }
       if (input.toLowerCase() === "exit") {
         break;
+      }
+
+      if (input === "/status") {
+        await printExecutiveStatus(projectRoot, threadsDir, promptsDir, brainClient, config.intelligenceParams, config.invokeLLM, configuredScope, threadId, {
+          ...shutdownMetadata,
+          current_thread_id: threadId,
+        }, String(shutdownMetadata.telemetry_partition ?? "production") === "proof" ? "proof" : "production");
+        continue;
       }
 
       try {
@@ -626,6 +760,9 @@ async function runScriptedSession(
 async function shutdownCli(
   brainClient: MemoryEngineClient | null,
   metadata: Record<string, unknown> = {},
+  options: {
+    announceSessionEnded?: boolean;
+  } = {},
 ): Promise<void> {
   if (shuttingDown) {
     return;
@@ -668,7 +805,9 @@ async function shutdownCli(
       await appendPersistedMetrics([shutdownEvent]);
     }
     await brainClient?.close();
-    console.log("\nSession ended.");
+    if (options.announceSessionEnded ?? true) {
+      console.log("\nSession ended.");
+    }
     process.exit(0);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

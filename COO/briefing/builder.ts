@@ -18,7 +18,7 @@ import type {
 
 const BLOCKED_STATUSES = new Set(["blocked"]);
 const ACTIVE_STATUSES = new Set(["active", "awaiting_freeze_approval"]);
-const COMPLETED_STATUSES = new Set(["completed", "closed", "approved", "handoff_ready"]);
+const COMPLETED_STATUSES = new Set(["completed", "closed"]);
 
 function isBlocked(f: BriefFeatureSnapshot): boolean {
   return BLOCKED_STATUSES.has(f.status) || f.blockers.length > 0;
@@ -32,7 +32,30 @@ function hasOpenDecisions(f: BriefFeatureSnapshot): boolean {
   return f.openDecisions.some((d) => d.status === "open");
 }
 
+function isOnTheTableCandidate(f: BriefFeatureSnapshot): boolean {
+  if (isCompleted(f) || isBlocked(f)) return false;
+
+  if (f.briefingState === "shaping" || f.briefingState === "admission_pending") {
+    return true;
+  }
+
+  return hasOpenDecisions(f);
+}
+
+function isInMotionCandidate(f: BriefFeatureSnapshot): boolean {
+  if (isBlocked(f)) return false;
+
+  if (f.briefingState) {
+    return f.briefingState === "implementation_active";
+  }
+
+  return isActive(f);
+}
+
 function isCompleted(f: BriefFeatureSnapshot): boolean {
+  if (f.briefingState) {
+    return f.briefingState === "closeout";
+  }
   return COMPLETED_STATUSES.has(f.status);
 }
 
@@ -43,10 +66,6 @@ function hasMetadata(f: BriefFeatureSnapshot): boolean {
     f.progressSummary.trim().length > 0
   );
 }
-
-// ---------------------------------------------------------------------------
-// Section builders
-// ---------------------------------------------------------------------------
 
 function buildIssues(
   features: BriefFeatureSnapshot[],
@@ -76,13 +95,12 @@ function buildIssues(
     });
   }
 
-  // Global open loops that aren't tied to a feature
   if (globalOpenLoops.length > 0) {
     items.push({
       featureId: "_global",
       featureLabel: "Cross-cutting",
       headline: `${globalOpenLoops.length} unresolved cross-cutting item(s)`,
-      details: globalOpenLoops.map((l) => `Open loop: ${l}`),
+      details: globalOpenLoops.map((loop) => `Open loop: ${loop}`),
     });
   }
 
@@ -93,14 +111,23 @@ function buildOnTheTable(features: BriefFeatureSnapshot[]): BriefTableItem[] {
   const items: BriefTableItem[] = [];
 
   for (const f of features) {
-    if (isCompleted(f) || isBlocked(f)) continue;
-    if (!hasOpenDecisions(f)) continue;
+    if (!isOnTheTableCandidate(f)) continue;
 
     const openCount = f.openDecisions.filter((d) => d.status === "open").length;
+    let summary = f.progressSummary;
+
+    if (openCount > 0) {
+      summary = `${openCount} open decision(s) - ${f.progressSummary}`;
+    } else if (f.briefingState === "admission_pending") {
+      summary = `Awaiting decision - ${f.progressSummary}`;
+    } else if (f.briefingState === "shaping") {
+      summary = `Shaping - ${f.progressSummary}`;
+    }
+
     items.push({
       featureId: f.id,
       featureLabel: f.label,
-      summary: `${openCount} open decision(s) — ${f.progressSummary}`,
+      summary,
       openDecisionCount: openCount,
     });
   }
@@ -112,7 +139,7 @@ function buildInMotion(features: BriefFeatureSnapshot[]): BriefInMotionItem[] {
   const items: BriefInMotionItem[] = [];
 
   for (const f of features) {
-    if (!isActive(f)) continue;
+    if (!isInMotionCandidate(f)) continue;
 
     items.push({
       featureId: f.id,
@@ -129,12 +156,17 @@ function buildWhatsNext(features: BriefFeatureSnapshot[]): BriefWhatsNextItem[] 
   const items: BriefWhatsNextItem[] = [];
 
   for (const f of features) {
-    if (isCompleted(f) && f.isFinalized) continue;
-    if (isBlocked(f)) continue;
+    if (!isWhatsNextCandidate(f)) continue;
 
     let nextAction: string;
-    if (isCompleted(f) && !f.isFinalized) {
+    if (typeof f.nextAction === "string" && f.nextAction.trim().length > 0) {
+      nextAction = f.nextAction.trim();
+    } else if (isCompleted(f) && !f.isFinalized) {
       nextAction = `Finalize closeout for ${f.label}`;
+    } else if (f.briefingState === "ready_to_start") {
+      nextAction = `Start implementation for ${f.label}`;
+    } else if (f.briefingState === "admission_pending") {
+      nextAction = `Decide whether to admit ${f.label}`;
     } else if (f.openDecisions.some((d) => d.status === "open")) {
       const firstOpen = f.openDecisions.find((d) => d.status === "open")!;
       nextAction = `Resolve: ${firstOpen.question}`;
@@ -154,9 +186,31 @@ function buildWhatsNext(features: BriefFeatureSnapshot[]): BriefWhatsNextItem[] 
   return items;
 }
 
-// ---------------------------------------------------------------------------
-// Parity computation
-// ---------------------------------------------------------------------------
+function isWhatsNextCandidate(f: BriefFeatureSnapshot): boolean {
+  if (isCompleted(f) && f.isFinalized) return false;
+  if (isBlocked(f)) return false;
+
+  if (!f.briefingState) {
+    return true;
+  }
+
+  if (
+    f.briefingState === "ready_to_start"
+    || f.briefingState === "closeout"
+    || f.briefingState === "admission_pending"
+  ) {
+    return true;
+  }
+
+  if (f.briefingState !== "implementation_active") {
+    return false;
+  }
+
+  const nextAction = typeof f.nextAction === "string" ? f.nextAction.trim() : "";
+  return nextAction.length > 0
+    && nextAction !== "Keep the implementation moving through the current execution step."
+    && nextAction !== "Live work is active.";
+}
 
 function computeParity(
   features: BriefFeatureSnapshot[],
@@ -167,13 +221,10 @@ function computeParity(
   whatsNext: BriefWhatsNextItem[],
 ): BriefParityCounts {
   const blockedCount = features.filter(isBlocked).length + (globalOpenLoops.length > 0 ? 1 : 0);
-  const tableCount = features.filter((f) => !isCompleted(f) && !isBlocked(f) && hasOpenDecisions(f)).length;
-  const activeCount = features.filter(isActive).length;
-  // whatsNext includes active non-blocked + completed-but-not-finalized
+  const tableCount = features.filter(isOnTheTableCandidate).length;
+  const activeCount = features.filter(isInMotionCandidate).length;
   const nextCount = features.filter((f) => {
-    if (isCompleted(f) && f.isFinalized) return false;
-    if (isBlocked(f)) return false;
-    return true;
+    return isWhatsNextCandidate(f);
   }).length;
 
   return {
@@ -188,13 +239,9 @@ function computeParity(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Main builder
-// ---------------------------------------------------------------------------
-
 export function buildExecutiveBrief(facts: BriefSourceFacts): ExecutiveBrief {
   const builtAt = new Date().toISOString();
-  const sourceAgeMs = Date.now() - new Date(facts.collectedAt).getTime();
+  const sourceAgeMs = facts.sourceFreshnessAgeMs ?? (Date.now() - new Date(facts.collectedAt).getTime());
 
   const issues = buildIssues(facts.features, facts.globalOpenLoops);
   const onTheTable = buildOnTheTable(facts.features);

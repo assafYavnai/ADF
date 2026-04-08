@@ -1,0 +1,1958 @@
+import { constants } from "node:fs";
+import { access, readFile, readdir } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { FileSystemThreadStore, getLatestStateCommit, type Thread } from "../controller/thread.js";
+import { createSystemProvenance, type Provenance } from "../../shared/provenance/types.js";
+import type {
+  BriefClaimQualification,
+  BriefCompletionEvidence,
+  BriefConfidence,
+  BriefFeatureEvidence,
+  BriefFeatureSnapshot,
+  BriefFreshness,
+  BriefOpenDecision,
+  BriefSourceAvailability,
+  BriefSourceFacts,
+  BriefSourceFamily,
+  BriefTimingEvidence,
+} from "./types.js";
+
+export interface BriefRequirementReader {
+  getRequirement(
+    memoryId: string,
+    scope: string,
+    provenance: Provenance,
+    options?: {
+      include_legacy?: boolean;
+      telemetry_context?: Record<string, unknown>;
+    },
+  ): Promise<Record<string, unknown>>;
+}
+
+export interface LiveBriefSourceFactsOptions {
+  projectRoot: string;
+  threadsDir: string;
+  brainClient?: BriefRequirementReader | null;
+  sourcePartition?: "production" | "proof" | "mixed";
+  now?: Date;
+  threadStore?: Pick<FileSystemThreadStore, "list" | "get">;
+}
+
+export interface LiveBriefDiagnostics {
+  availability: BriefSourceAvailability[];
+  unavailableFamilies: BriefSourceFamily[];
+  degradationNotes: string[];
+  missingSourceCount: number;
+  sourceFreshnessAgeMs: number;
+}
+
+export interface LiveBriefSourceFactsResult {
+  facts: BriefSourceFacts;
+  diagnostics: LiveBriefDiagnostics;
+}
+
+interface RequirementSignal {
+  id: string;
+  label: string;
+  summary: string;
+  blockers: string[];
+  openDecisions: BriefOpenDecision[];
+  derivationStatus: "ready" | "blocked";
+  lastActivityAt: string;
+}
+
+interface ThreadSignal {
+  id: string;
+  label: string;
+  scopePath: string | null;
+  status: BriefFeatureSnapshot["status"];
+  currentLayer: string | null;
+  blockers: string[];
+  openLoops: string[];
+  openDecisions: BriefOpenDecision[];
+  progressSummary: string;
+  lastActivityAt: string;
+  hasApprovedSnapshot: boolean;
+  hasFinalizedRequirement: boolean;
+  finalizedRequirementMemoryId: string | null;
+  embeddedRequirement: RequirementSignal | null;
+}
+
+interface AdmissionSignal {
+  id: string;
+  decision: "admit" | "defer" | "block" | null;
+  decisionReason: string | null;
+  dependencyBlocked: boolean;
+  scopeConflictDetected: boolean;
+  packetBuiltAt: string;
+  decidedAt: string | null;
+}
+
+interface PlanSignal {
+  id: string;
+  featureStatus: string;
+  activeRunStatus: string;
+  mergeStatus: string;
+  lastCompletedStep: string;
+  lastError: string | null;
+  updatedAt: string;
+  featureBranch: string | null;
+  createdAt: string | null;
+  contextCollectedAt: string | null;
+  closeoutFinishedAt: string | null;
+  mergeCommitSha: string | null;
+  approvedCommitSha: string | null;
+  reviewCycleCount: number | null;
+  reviewCycleQualification: BriefClaimQualification;
+  reviewCycleNote: string;
+  tokenCostTokens: number | null;
+  keyIssue: string | null;
+  keyIssueCount: number | null;
+  explicitNoIssuesRecorded: boolean;
+}
+
+interface FamilyLoadResult<T> {
+  available: boolean;
+  items: T[];
+  notes: string[];
+}
+
+interface CorrelatedBriefItem {
+  id: string;
+  label: string;
+  thread: ThreadSignal | null;
+  requirement: RequirementSignal | null;
+  admission: AdmissionSignal | null;
+  plan: PlanSignal | null;
+}
+
+const PLAN_IN_MOTION_STATUSES = new Set([
+  "implementation_in_progress",
+  "verification_pending",
+  "review_cycle_pending",
+  "review_requested",
+  "review_in_progress",
+  "human_verification_pending",
+  "merge_ready",
+  "ready_to_queue",
+  "in_queue",
+  "queued",
+]);
+
+const PLAN_READY_TO_START_STATUSES = new Set([
+  "context_ready",
+  "prepared",
+  "ready_to_start",
+]);
+
+const STALE_SOURCE_AGE_MS = 72 * 60 * 60 * 1_000;
+
+export async function loadLiveBriefSourceFacts(
+  options: LiveBriefSourceFactsOptions,
+): Promise<LiveBriefSourceFactsResult> {
+  const now = options.now ?? new Date();
+  const collectedAt = now.toISOString();
+  const threadStore = options.threadStore ?? new FileSystemThreadStore(options.threadsDir);
+
+  const threadLoad = await loadThreadSignals(threadStore);
+  const requirementLoad = await loadRequirementSignals(threadLoad.items, options.brainClient ?? null);
+  const admissionLoad = await loadAdmissionSignals(options.projectRoot, collectedAt);
+  const planLoad = await loadImplementPlanSignals(options.projectRoot);
+
+  const availability = [
+    buildAvailability("thread_onion", threadLoad, collectedAt, now),
+    buildAvailability("finalized_requirement", requirementLoad, collectedAt, now),
+    buildAvailability("cto_admission", admissionLoad, collectedAt, now),
+    buildAvailability("implement_plan", planLoad, collectedAt, now),
+  ];
+
+  const features = correlateSources({
+    threads: threadLoad.items,
+    requirements: requirementLoad.items,
+    admissions: admissionLoad.items,
+    plans: planLoad.items,
+    availability,
+    fallbackCollectedAt: collectedAt,
+    now,
+  });
+
+  const unavailableFamilies = availability
+    .filter((entry) => !entry.available)
+    .map((entry) => entry.family);
+  const itemMissingSourceCount = features.reduce(
+    (sum, feature) => sum + (feature.missingSourceFamilies?.length ?? 0),
+    0,
+  );
+  const sourceFreshnessAgeMs = computeSourceFreshnessAgeMs(features, availability, collectedAt, now);
+  const degradationNotes = buildDegradationNotes(
+    unavailableFamilies,
+    [...threadLoad.notes, ...requirementLoad.notes, ...admissionLoad.notes, ...planLoad.notes],
+  );
+
+  return {
+    facts: {
+      collectedAt,
+      features,
+      globalOpenLoops: collectGlobalOpenLoops(threadLoad.items),
+      sourcePartition: options.sourcePartition ?? "production",
+      sourceAvailability: availability,
+      sourceFreshnessAgeMs,
+    },
+    diagnostics: {
+      availability,
+      unavailableFamilies,
+      degradationNotes,
+      missingSourceCount: unavailableFamilies.length + itemMissingSourceCount,
+      sourceFreshnessAgeMs,
+    },
+  };
+}
+
+async function loadThreadSignals(
+  threadStore: Pick<FileSystemThreadStore, "list" | "get">,
+): Promise<FamilyLoadResult<ThreadSignal>> {
+  let threadIds: string[];
+  try {
+    threadIds = await threadStore.list();
+  } catch (error) {
+    return {
+      available: false,
+      items: [],
+      notes: [`COO thread state could not be read: ${formatError(error)}`],
+    };
+  }
+
+  const settled = await Promise.allSettled(threadIds.map((threadId) => threadStore.get(threadId)));
+  const items: ThreadSignal[] = [];
+  const notes: string[] = [];
+
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      items.push(adaptThread(result.value));
+      continue;
+    }
+
+    notes.push(`A COO thread could not be loaded and was skipped: ${formatError(result.reason)}`);
+  }
+
+  return {
+    available: true,
+    items,
+    notes,
+  };
+}
+
+async function loadRequirementSignals(
+  threads: ThreadSignal[],
+  brainClient: BriefRequirementReader | null,
+): Promise<FamilyLoadResult<RequirementSignal>> {
+  const targets = threads.filter(
+    (thread) => typeof thread.finalizedRequirementMemoryId === "string" && thread.finalizedRequirementMemoryId.length > 0 && thread.scopePath,
+  );
+  const fallbackRequirements = dedupeRequirementSignals(
+    threads.flatMap((thread) => thread.embeddedRequirement ? [thread.embeddedRequirement] : []),
+  );
+
+  if (!brainClient) {
+    return {
+      available: fallbackRequirements.length > 0,
+      items: fallbackRequirements,
+      notes: targets.length > 0
+        ? fallbackRequirements.length > 0
+          ? ["Brain requirement reads are unavailable, so this brief is using the finalized requirement artifact carried on the live COO thread."]
+          : ["Finalized requirement truth is unavailable because the Brain read path is not available."]
+        : [],
+    };
+  }
+
+  const settled = await Promise.allSettled(
+    targets.map(async (target) => {
+      const record = await brainClient.getRequirement(
+        target.finalizedRequirementMemoryId!,
+        target.scopePath!,
+        createSystemProvenance(`COO/briefing/live-source-adapter/get-requirement/${target.id}`),
+        {
+          include_legacy: false,
+          telemetry_context: {
+            executive_status_surface: "live_exec_brief",
+            executive_status_feature_id: target.id,
+          },
+        },
+      );
+      return adaptRequirementRecord(record, target);
+    }),
+  );
+
+  const items: RequirementSignal[] = [];
+  const notes: string[] = [];
+  const fallbackById = new Map(fallbackRequirements.map((requirement) => [requirement.id, requirement]));
+
+  for (let index = 0; index < settled.length; index++) {
+    const result = settled[index];
+    const target = targets[index];
+    if (result.status === "fulfilled") {
+      items.push(result.value);
+      continue;
+    }
+
+    const fallback = target ? fallbackById.get(target.id) ?? target.embeddedRequirement : null;
+    if (fallback) {
+      items.push(fallback);
+      notes.push("A finalized requirement artifact could not be read from Brain, so the live thread-carried finalized artifact was used instead.");
+      continue;
+    }
+
+    notes.push(`A finalized requirement artifact could not be read and was skipped: ${formatError(result.reason)}`);
+  }
+
+  return {
+    available: items.length > 0 || fallbackRequirements.length > 0,
+    items: dedupeRequirementSignals([...items, ...fallbackRequirements]),
+    notes,
+  };
+}
+
+async function loadAdmissionSignals(
+  projectRoot: string,
+  collectedAt: string,
+): Promise<FamilyLoadResult<AdmissionSignal>> {
+  const phaseRoot = resolve(projectRoot, "docs", "phase1");
+  if (!await pathExists(phaseRoot)) {
+    return {
+      available: false,
+      items: [],
+      notes: [],
+    };
+  }
+
+  const entries = await readdir(phaseRoot, { withFileTypes: true });
+  const items: AdmissionSignal[] = [];
+  const notes: string[] = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+
+    const featureRoot = join(phaseRoot, entry.name);
+    const requestPath = join(featureRoot, "cto-admission-request.json");
+    const decisionPath = join(featureRoot, "cto-admission-decision.template.json");
+    const hasRequest = await pathExists(requestPath);
+    const hasDecision = await pathExists(decisionPath);
+    if (!hasRequest && !hasDecision) continue;
+
+    try {
+      const request = hasRequest ? await parseJsonFile<Record<string, unknown>>(requestPath) : null;
+      const decision = hasDecision ? await parseJsonFile<Record<string, unknown>>(decisionPath) : null;
+      const featureId = normalizeFeatureId(
+        asNonEmptyString(decision?.feature_slug)
+          ?? asNonEmptyString(request?.feature_slug)
+          ?? entry.name,
+      );
+
+      items.push({
+        id: featureId,
+        decision: normalizeAdmissionDecision(asNonEmptyString(decision?.decision)),
+        decisionReason: asNonEmptyString(decision?.decision_reason),
+        dependencyBlocked: asBoolean(decision?.dependency_blocked),
+        scopeConflictDetected: asBoolean(decision?.scope_conflict_detected),
+        packetBuiltAt: asNonEmptyString(request?.packet_built_at) ?? collectedAt,
+        decidedAt: asNonEmptyString(decision?.decided_at),
+      });
+    } catch (error) {
+      notes.push(`A CTO admission artifact could not be parsed and was skipped: ${formatError(error)}`);
+    }
+  }
+
+  return {
+    available: items.length > 0,
+    items,
+    notes,
+  };
+}
+
+async function loadImplementPlanSignals(projectRoot: string): Promise<FamilyLoadResult<PlanSignal>> {
+  const featuresIndexPath = await resolveAncestorFile(projectRoot, [".codex", "implement-plan", "features-index.json"]);
+  const items = new Map<string, PlanSignal>();
+  const notes: string[] = [];
+
+  if (featuresIndexPath) {
+    try {
+      const payload = await parseJsonFile<Record<string, unknown>>(featuresIndexPath);
+      const features = asRecord(payload.features);
+      for (const entry of Object.values(features)) {
+        const plan = asRecord(entry);
+        const featureSlug = asNonEmptyString(plan.feature_slug);
+        if (!featureSlug) continue;
+
+        const id = normalizeFeatureId(featureSlug);
+        items.set(id, {
+          id,
+          featureStatus: asNonEmptyString(plan.feature_status) ?? "active",
+          activeRunStatus: asNonEmptyString(plan.active_run_status) ?? "unknown",
+          mergeStatus: asNonEmptyString(plan.merge_status) ?? "unknown",
+          lastCompletedStep: asNonEmptyString(plan.last_completed_step) ?? "unknown",
+          lastError: asNonEmptyString(plan.last_error),
+          updatedAt: asNonEmptyString(plan.updated_at) ?? new Date().toISOString(),
+          featureBranch: asNonEmptyString(plan.feature_branch),
+          createdAt: null,
+          contextCollectedAt: null,
+          closeoutFinishedAt: null,
+          mergeCommitSha: null,
+          approvedCommitSha: null,
+          reviewCycleCount: null,
+          reviewCycleQualification: "unavailable",
+          reviewCycleNote: "The slice folder has not yet provided review-cycle truth for this item.",
+          tokenCostTokens: null,
+          keyIssue: null,
+          keyIssueCount: null,
+          explicitNoIssuesRecorded: false,
+        });
+      }
+    } catch (error) {
+      notes.push(`Implement-plan feature truth could not be parsed: ${formatError(error)}`);
+    }
+  }
+
+  const phaseRoot = resolve(projectRoot, "docs", "phase1");
+  if (await pathExists(phaseRoot)) {
+    const entries = await readdir(phaseRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const featureRoot = join(phaseRoot, entry.name);
+      const statePath = join(featureRoot, "implement-plan-state.json");
+      const summaryRaw = await tryReadFile(join(featureRoot, "completion-summary.md"));
+      const reviewCycleEvidence = await loadReviewCycleEvidence(featureRoot, summaryRaw);
+      const fallbackId = normalizeFeatureId(entry.name);
+      const fallbackExisting = items.get(fallbackId);
+
+      if (!await pathExists(statePath)) {
+        if (fallbackExisting) {
+          items.set(fallbackId, mergePlanSignals(fallbackExisting, {
+            ...fallbackExisting,
+            reviewCycleCount: reviewCycleEvidence.reviewCycleCount,
+            reviewCycleQualification: reviewCycleEvidence.reviewCycleQualification,
+            reviewCycleNote: reviewCycleEvidence.reviewCycleNote,
+            tokenCostTokens: parseTokenCost(summaryRaw),
+            explicitNoIssuesRecorded: summaryMentionsNoRecordedIssues(summaryRaw),
+          }));
+        }
+        continue;
+      }
+
+      try {
+        const state = asRecord(await parseJsonFile<Record<string, unknown>>(statePath));
+        const id = normalizeFeatureId(
+          asNonEmptyString(state.feature_slug)
+            ?? asNonEmptyString(state.feature_registry_key)
+            ?? entry.name,
+        );
+        const existing = items.get(id);
+        const { keyIssue, keyIssueCount } = await loadKeyIssueEvidence(featureRoot, reviewCycleEvidence.reviewCycleCount);
+
+        items.set(id, mergePlanSignals(existing, {
+          id,
+          featureStatus: asNonEmptyString(state.feature_status) ?? existing?.featureStatus ?? "active",
+          activeRunStatus: asNonEmptyString(state.active_run_status) ?? existing?.activeRunStatus ?? "unknown",
+          mergeStatus: asNonEmptyString(state.merge_status) ?? existing?.mergeStatus ?? "unknown",
+          lastCompletedStep: asNonEmptyString(state.last_completed_step) ?? existing?.lastCompletedStep ?? "unknown",
+          lastError: asNonEmptyString(state.last_error) ?? existing?.lastError ?? null,
+          updatedAt: asNonEmptyString(state.updated_at) ?? existing?.updatedAt ?? new Date().toISOString(),
+          featureBranch: asNonEmptyString(state.feature_branch) ?? existing?.featureBranch ?? null,
+          createdAt: asNonEmptyString(state.created_at),
+          contextCollectedAt: asNonEmptyString(asRecord(state.run_timestamps).context_collected_at),
+          closeoutFinishedAt: asNonEmptyString(asRecord(state.run_timestamps).closeout_finished_at),
+          mergeCommitSha: asNonEmptyString(state.merge_commit_sha),
+          approvedCommitSha: asNonEmptyString(state.approved_commit_sha),
+          reviewCycleCount: reviewCycleEvidence.reviewCycleCount,
+          reviewCycleQualification: reviewCycleEvidence.reviewCycleQualification,
+          reviewCycleNote: reviewCycleEvidence.reviewCycleNote,
+          tokenCostTokens: parseTokenCost(summaryRaw),
+          keyIssue,
+          keyIssueCount,
+          explicitNoIssuesRecorded: summaryMentionsNoRecordedIssues(summaryRaw),
+        }));
+      } catch (error) {
+        notes.push(`Implement-plan state for ${entry.name} could not be parsed: ${formatError(error)}`);
+      }
+    }
+  }
+
+  if (items.size === 0) {
+    return {
+      available: false,
+      items: [],
+      notes: featuresIndexPath
+        ? notes
+        : [...notes, "Implement-plan feature truth is unavailable in this checkout."],
+    };
+  }
+
+  return {
+    available: true,
+    items: Array.from(items.values()),
+    notes,
+  };
+}
+
+function correlateSources(input: {
+  threads: ThreadSignal[];
+  requirements: RequirementSignal[];
+  admissions: AdmissionSignal[];
+  plans: PlanSignal[];
+  availability: BriefSourceAvailability[];
+  fallbackCollectedAt: string;
+  now: Date;
+}): BriefFeatureSnapshot[] {
+  const correlated = new Map<string, CorrelatedBriefItem>();
+
+  const ensure = (id: string, label: string): CorrelatedBriefItem => {
+    const normalizedId = normalizeFeatureId(id);
+    let item = correlated.get(normalizedId);
+    if (!item) {
+      item = {
+        id: normalizedId,
+        label: label.trim() || humanizeFeatureId(normalizedId),
+        thread: null,
+        requirement: null,
+        admission: null,
+        plan: null,
+      };
+      correlated.set(normalizedId, item);
+    }
+    if (label.trim().length > 0 && item.label === humanizeFeatureId(normalizedId)) {
+      item.label = label;
+    }
+    return item;
+  };
+
+  for (const thread of input.threads) {
+    const item = ensure(thread.id, thread.label);
+    item.thread = item.thread ? mergeThreadSignals(item.thread, thread) : thread;
+    item.label = resolveCorrelatedLabel(item);
+  }
+
+  for (const requirement of input.requirements) {
+    const item = ensure(requirement.id, requirement.label);
+    item.requirement = requirement;
+    item.label = resolveCorrelatedLabel(item);
+  }
+
+  for (const admission of input.admissions) {
+    const item = ensure(admission.id, humanizeFeatureId(admission.id));
+    item.admission = admission;
+    item.label = resolveCorrelatedLabel(item);
+  }
+
+  for (const plan of input.plans) {
+    const item = ensure(plan.id, humanizeFeatureId(plan.id));
+    item.plan = plan;
+    item.label = resolveCorrelatedLabel(item);
+  }
+
+  return Array.from(correlated.values())
+    .filter(shouldSurfaceCorrelatedItem)
+    .map((item) => toBriefFeatureSnapshot(item, input.availability, input.fallbackCollectedAt, input.now))
+    .sort((left, right) => right.lastActivityAt.localeCompare(left.lastActivityAt));
+}
+
+function shouldSurfaceCorrelatedItem(item: CorrelatedBriefItem): boolean {
+  if (item.thread || item.requirement || item.admission) {
+    return true;
+  }
+
+  if (!item.plan) {
+    return false;
+  }
+
+  return isPlanOpen(item.plan)
+    || isPlanInMotion(item.plan)
+    || isPlanCompleted(item.plan)
+    || Boolean(item.plan.lastError);
+}
+
+function mergeThreadSignals(existing: ThreadSignal, incoming: ThreadSignal): ThreadSignal {
+  const primary = compareThreadSignals(existing, incoming) >= 0 ? existing : incoming;
+  const secondary = primary === existing ? incoming : existing;
+
+  return {
+    id: primary.id,
+    label: chooseThreadLabel(primary, secondary),
+    scopePath: primary.scopePath ?? secondary.scopePath,
+    status: primary.status,
+    currentLayer: primary.currentLayer ?? secondary.currentLayer,
+    blockers: uniqueStrings([...existing.blockers, ...incoming.blockers]),
+    openLoops: uniqueStrings([...existing.openLoops, ...incoming.openLoops]),
+    openDecisions: dedupeOpenDecisions([...existing.openDecisions, ...incoming.openDecisions]),
+    progressSummary: chooseThreadProgressSummary(primary, secondary),
+    lastActivityAt: maxIsoTimestamp([existing.lastActivityAt, incoming.lastActivityAt]) ?? primary.lastActivityAt,
+    hasApprovedSnapshot: existing.hasApprovedSnapshot || incoming.hasApprovedSnapshot,
+    hasFinalizedRequirement: existing.hasFinalizedRequirement || incoming.hasFinalizedRequirement,
+    finalizedRequirementMemoryId: primary.finalizedRequirementMemoryId ?? secondary.finalizedRequirementMemoryId,
+    embeddedRequirement: primary.embeddedRequirement ?? secondary.embeddedRequirement,
+  };
+}
+
+function compareThreadSignals(left: ThreadSignal, right: ThreadSignal): number {
+  const scoreDifference = threadSignalScore(left) - threadSignalScore(right);
+  if (scoreDifference !== 0) {
+    return scoreDifference;
+  }
+
+  const leftTime = Date.parse(left.lastActivityAt);
+  const rightTime = Date.parse(right.lastActivityAt);
+  return (Number.isNaN(leftTime) ? 0 : leftTime) - (Number.isNaN(rightTime) ? 0 : rightTime);
+}
+
+function threadSignalScore(thread: ThreadSignal): number {
+  let score = statusSignalScore(thread.status);
+
+  if (thread.hasFinalizedRequirement) score += 200;
+  if (thread.hasApprovedSnapshot) score += 150;
+  if (thread.currentLayer) score += 25;
+  score += thread.blockers.length * 10;
+  score += thread.openDecisions.length * 5;
+  score += thread.openLoops.length * 2;
+  if (!isGenericThreadLabel(thread)) score += 10;
+  if (!isGenericProgressSummary(thread.progressSummary)) score += 10;
+
+  return score;
+}
+
+function statusSignalScore(status: ThreadSignal["status"]): number {
+  switch (status) {
+    case "handoff_ready":
+      return 80;
+    case "approved":
+      return 70;
+    case "awaiting_freeze_approval":
+      return 60;
+    case "blocked":
+      return 50;
+    case "completed":
+      return 40;
+    case "active":
+    default:
+      return 30;
+  }
+}
+
+function chooseThreadLabel(primary: ThreadSignal, secondary: ThreadSignal): string {
+  if (!isGenericThreadLabel(primary)) {
+    return primary.label;
+  }
+  if (!isGenericThreadLabel(secondary)) {
+    return secondary.label;
+  }
+  return primary.label;
+}
+
+function chooseThreadProgressSummary(primary: ThreadSignal, secondary: ThreadSignal): string {
+  if (!isGenericProgressSummary(primary.progressSummary)) {
+    return primary.progressSummary;
+  }
+  if (!isGenericProgressSummary(secondary.progressSummary)) {
+    return secondary.progressSummary;
+  }
+  return primary.progressSummary;
+}
+
+function resolveCorrelatedLabel(item: CorrelatedBriefItem): string {
+  const labels = [
+    item.thread?.label ?? null,
+    item.requirement?.label ?? null,
+    item.label,
+    humanizeFeatureId(item.id),
+  ];
+
+  for (const label of labels) {
+    const trimmed = label?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+
+  return humanizeFeatureId(item.id);
+}
+
+function toBriefFeatureSnapshot(
+  item: CorrelatedBriefItem,
+  availability: BriefSourceAvailability[],
+  fallbackCollectedAt: string,
+  now: Date,
+): BriefFeatureSnapshot {
+  const blockers = uniqueStrings([
+    ...(item.thread?.blockers ?? []),
+    ...(item.requirement?.blockers ?? []),
+    ...(item.plan?.lastError && shouldTreatPlanErrorAsCurrentBlocker(item.plan) ? [item.plan.lastError] : []),
+    ...(item.admission?.dependencyBlocked ? ["Dependency blocked in CTO admission."] : []),
+    ...(item.admission?.scopeConflictDetected ? ["Scope conflict detected in CTO admission."] : []),
+  ]);
+
+  const openDecisions = dedupeOpenDecisions([
+    ...(item.thread?.openDecisions ?? []),
+    ...(item.requirement?.openDecisions ?? []),
+  ]);
+
+  const sourceFamilies = listPresentSourceFamilies(item);
+  const missingSourceFamilies = resolveMissingSourceFamilies(item, availability);
+  const status = resolveStatus(item, blockers);
+  const briefingState = resolveBriefingState(item, status);
+  const progressSummary = resolveProgressSummary(item, blockers, briefingState);
+  const nextAction = resolveNextAction(item, briefingState, openDecisions);
+  const lastActivityAt = maxIsoTimestamp([
+    item.thread?.lastActivityAt ?? null,
+    item.requirement?.lastActivityAt ?? null,
+    item.admission?.decidedAt ?? null,
+    item.admission?.packetBuiltAt ?? null,
+    item.plan?.updatedAt ?? null,
+  ]) ?? fallbackCollectedAt;
+  const freshnessAgeMs = computeFreshnessAgeMs(lastActivityAt, now);
+  const evidence = buildFeatureEvidence(item, {
+    sourceFamilies,
+    missingSourceFamilies,
+    blockers,
+    freshnessAgeMs,
+  });
+  const completion = buildCompletionEvidence(item);
+
+  return {
+    id: item.id,
+    label: item.label,
+    status,
+    lastActivityAt,
+    openLoops: item.thread?.openLoops ?? [],
+    openDecisions,
+    currentLayer: item.thread?.currentLayer ?? null,
+    progressSummary,
+    blockers,
+    isFinalized: isFinalized(item),
+    briefingState,
+    nextAction,
+    sourceFamilies,
+    missingSourceFamilies,
+    evidence,
+    completion,
+  };
+}
+
+function buildFeatureEvidence(
+  item: CorrelatedBriefItem,
+  input: {
+    sourceFamilies: BriefSourceFamily[];
+    missingSourceFamilies: BriefSourceFamily[];
+    blockers: string[];
+    freshnessAgeMs: number | null;
+  },
+): BriefFeatureEvidence {
+  const notes: string[] = [];
+  const ambiguityNotes = buildAmbiguityNotes(item);
+  const freshness = classifyFreshness(input.freshnessAgeMs);
+
+  if (input.sourceFamilies.length === 0) {
+    return {
+      qualification: "unavailable",
+      confidence: "low",
+      freshnessAgeMs: input.freshnessAgeMs,
+      freshness,
+      sourceFamilies: [],
+      missingSourceFamilies: input.missingSourceFamilies,
+      notes: ["No source truth was available for this item."],
+    };
+  }
+
+  if (ambiguityNotes.length > 0) {
+    notes.push(...ambiguityNotes);
+  }
+  if (input.missingSourceFamilies.length > 0) {
+    notes.push(`Missing source families: ${input.missingSourceFamilies.map(humanizeSourceFamily).join(", ")}.`);
+  }
+  if (freshness === "stale") {
+    notes.push(`This item is stale (${formatAge(input.freshnessAgeMs)} since the latest supporting update).`);
+  }
+
+  const qualification = resolveFeatureQualification(input.sourceFamilies, input.missingSourceFamilies, ambiguityNotes);
+  const confidence = resolveFeatureConfidence(qualification, freshness);
+
+  if (notes.length === 0) {
+    if (qualification === "direct_source") {
+      notes.push(`Direct source truth from ${humanizeSourceFamily(input.sourceFamilies[0])}.`);
+    } else {
+      notes.push(`Derived from ${input.sourceFamilies.map(humanizeSourceFamily).join(", ")}.`);
+    }
+  }
+
+  return {
+    qualification,
+    confidence,
+    freshnessAgeMs: input.freshnessAgeMs,
+    freshness,
+    sourceFamilies: input.sourceFamilies,
+    missingSourceFamilies: input.missingSourceFamilies,
+    notes,
+  };
+}
+
+function buildCompletionEvidence(item: CorrelatedBriefItem): BriefCompletionEvidence | null {
+  if (!item.plan || !isPlanCompleted(item.plan)) {
+    return null;
+  }
+
+  const timing = buildCompletionTiming(item.plan);
+  const reviewCycleCount = item.plan.reviewCycleCount;
+  const reviewCycles = reviewCycleCount === null
+    ? {
+        value: null,
+        qualification: item.plan.reviewCycleQualification,
+        note: item.plan.reviewCycleNote,
+      }
+    : {
+        value: reviewCycleCount,
+        qualification: item.plan.reviewCycleQualification,
+        note: item.plan.reviewCycleNote,
+      };
+
+  const tokenCostTokens = item.plan.tokenCostTokens === null
+    ? {
+        value: null,
+        qualification: "unavailable" as const,
+        note: "Token cost is not recorded in the current source truth for this landed item.",
+      }
+    : {
+        value: item.plan.tokenCostTokens,
+        qualification: "direct_source" as const,
+        note: "Token cost is recorded in source truth.",
+      };
+
+  const keyIssue = item.plan.keyIssue
+    ? {
+        value: item.plan.keyIssueCount && item.plan.keyIssueCount > 1
+          ? `${item.plan.keyIssue} (+${item.plan.keyIssueCount - 1} more review finding${item.plan.keyIssueCount === 2 ? "" : "s"})`
+          : item.plan.keyIssue,
+        qualification: item.plan.reviewCycleCount && item.plan.reviewCycleCount > 0
+          ? "direct_source" as const
+          : "derived_from_sources" as const,
+        note: item.plan.reviewCycleCount && item.plan.reviewCycleCount > 0
+          ? "Pulled from the latest recorded review findings."
+          : "Pulled from closeout artifacts because structured review findings were not available.",
+      }
+    : item.plan.explicitNoIssuesRecorded
+      ? {
+          value: "No implementation-quality issue is recorded in the current closeout truth.",
+          qualification: "direct_source" as const,
+          note: "Closeout truth explicitly records no implementation-quality issue for this landed item.",
+        }
+    : {
+        value: null,
+        qualification: "unavailable" as const,
+        note: "No structured key-issue summary is recorded for this landed item.",
+      };
+
+  return {
+    mergedAt: item.plan.mergeStatus === "merged"
+      ? (item.plan.closeoutFinishedAt ?? item.plan.updatedAt)
+      : null,
+    timing,
+    reviewCycles,
+    tokenCostTokens,
+    keyIssue,
+  };
+}
+
+function buildCompletionTiming(plan: PlanSignal): BriefTimingEvidence {
+  const startedAt = plan.contextCollectedAt ?? plan.createdAt;
+  const endedAt = plan.closeoutFinishedAt ?? plan.updatedAt;
+  const startedMs = startedAt ? Date.parse(startedAt) : Number.NaN;
+  const endedMs = endedAt ? Date.parse(endedAt) : Number.NaN;
+
+  if (!startedAt || !endedAt || Number.isNaN(startedMs) || Number.isNaN(endedMs) || endedMs < startedMs) {
+    return {
+      kind: "unknown",
+      durationMs: null,
+      startedAt,
+      endedAt,
+      qualification: "unavailable",
+      note: "Only partial lifecycle timestamps are available, so timing is unavailable.",
+    };
+  }
+
+  return {
+    kind: "elapsed_lifecycle",
+    durationMs: endedMs - startedMs,
+    startedAt,
+    endedAt,
+    qualification: "ambiguous",
+    note: "This is elapsed lifecycle time from implement-plan timestamps. It may include waiting, review, merge, or idle time, so active work time is unknown.",
+  };
+}
+
+function buildAmbiguityNotes(item: CorrelatedBriefItem): string[] {
+  const notes: string[] = [];
+
+  if (item.plan && isPlanCompleted(item.plan) && item.thread && item.thread.status !== "completed") {
+    notes.push("Implement-plan truth says this work landed, but thread/onion truth still reflects an earlier stage.");
+  }
+
+  if (item.plan && isPlanInMotion(item.plan) && item.admission?.decision === "defer") {
+    notes.push("Implement-plan truth shows execution activity while CTO admission truth still says deferred.");
+  }
+
+  return notes;
+}
+
+function resolveFeatureQualification(
+  sourceFamilies: BriefSourceFamily[],
+  missingSourceFamilies: BriefSourceFamily[],
+  ambiguityNotes: string[],
+): BriefClaimQualification {
+  if (sourceFamilies.length === 0) {
+    return "unavailable";
+  }
+  if (ambiguityNotes.length > 0) {
+    return "ambiguous";
+  }
+  if (missingSourceFamilies.length > 0) {
+    return "fallback_missing_source";
+  }
+  if (sourceFamilies.length > 1) {
+    return "derived_from_sources";
+  }
+  return "direct_source";
+}
+
+function resolveFeatureConfidence(
+  qualification: BriefClaimQualification,
+  freshness: BriefFreshness,
+): BriefConfidence {
+  if (qualification === "unavailable" || qualification === "ambiguous" || freshness === "stale") {
+    return "low";
+  }
+  if (qualification === "fallback_missing_source" || qualification === "derived_from_sources") {
+    return "medium";
+  }
+  return "high";
+}
+
+function classifyFreshness(freshnessAgeMs: number | null): BriefFreshness {
+  if (freshnessAgeMs === null) {
+    return "unknown";
+  }
+  if (freshnessAgeMs > STALE_SOURCE_AGE_MS) {
+    return "stale";
+  }
+  return "fresh";
+}
+
+function resolveStatus(
+  item: CorrelatedBriefItem,
+  blockers: string[],
+): BriefFeatureSnapshot["status"] {
+  if (blockers.length > 0 || item.admission?.decision === "block") {
+    return "blocked";
+  }
+
+  if (item.plan) {
+    if (isPlanCompleted(item.plan)) {
+      return "completed";
+    }
+    if (isPlanInMotion(item.plan)) {
+      return "active";
+    }
+  }
+
+  if (item.admission?.decision === "admit") {
+    return "approved";
+  }
+
+  if (item.thread) {
+    return item.thread.status;
+  }
+
+  if (item.requirement?.derivationStatus === "blocked") {
+    return "blocked";
+  }
+
+  if (item.requirement) {
+    return "handoff_ready";
+  }
+
+  return "active";
+}
+
+function resolveBriefingState(
+  item: CorrelatedBriefItem,
+  status: BriefFeatureSnapshot["status"],
+): BriefFeatureSnapshot["briefingState"] {
+  if (item.plan) {
+    if (isPlanCompleted(item.plan)) {
+      return "closeout";
+    }
+    if (isPlanInMotion(item.plan)) {
+      return "implementation_active";
+    }
+    if (isPlanReadyToStart(item.plan)) {
+      return "ready_to_start";
+    }
+  }
+
+  if (item.admission) {
+    if (item.admission.decision === "admit") {
+      return "ready_to_start";
+    }
+    if (item.admission.decision === "defer") {
+      return "shaping";
+    }
+    return "admission_pending";
+  }
+
+  if (item.requirement) {
+    return "admission_pending";
+  }
+
+  if (status === "completed") {
+    return "closeout";
+  }
+
+  return "shaping";
+}
+
+function resolveProgressSummary(
+  item: CorrelatedBriefItem,
+  blockers: string[],
+  briefingState: BriefFeatureSnapshot["briefingState"],
+): string {
+  if (blockers.length > 0) {
+    return blockers[0];
+  }
+
+  if (item.plan) {
+    if (isPlanCompleted(item.plan)) {
+      return item.plan.mergeStatus === "merged"
+        ? "Implementation completed and merged."
+        : "Implementation completed and waiting for final closeout.";
+    }
+    if (isPlanInMotion(item.plan)) {
+      return `Implementation is moving through ${humanizeStatus(item.plan.activeRunStatus)}.`;
+    }
+    if (isPlanReadyToStart(item.plan)) {
+      return "Implementation context is ready and waiting to start.";
+    }
+    if (item.plan.activeRunStatus === "integrity_failed") {
+      return "The governed slice is blocked at integrity checks and needs contract repairs before implementation can resume.";
+    }
+    if (item.plan.activeRunStatus === "closeout_pending") {
+      return "Implementation work is done, but governed closeout still needs reconciliation.";
+    }
+    if (item.plan.activeRunStatus === "review_requested" || item.plan.activeRunStatus === "review_in_progress") {
+      return "Implementation is in governed review and waiting for review completion.";
+    }
+    if (item.plan.activeRunStatus === "human_verification_pending") {
+      return "Implementation is waiting for human verification before it can close.";
+    }
+    if (item.plan.activeRunStatus === "merge_in_progress") {
+      return "The approved implementation is landing through merge queue.";
+    }
+  }
+
+  if (item.admission) {
+    if (item.admission.decision === "admit") {
+      return "CTO admission is approved and ready for implementation.";
+    }
+    if (item.admission.decision === "defer") {
+      return item.admission.decisionReason?.trim() || "CTO admission was deferred for later work.";
+    }
+    return "The finalized requirement is waiting on a CTO admission decision.";
+  }
+
+  if (item.requirement) {
+    return item.requirement.summary;
+  }
+
+  if (item.thread) {
+    if (briefingState === "admission_pending") {
+      return "Requirements are frozen and ready for technical admission.";
+    }
+    return item.thread.progressSummary;
+  }
+
+  return "Live work is active.";
+}
+
+function resolveNextAction(
+  item: CorrelatedBriefItem,
+  briefingState: BriefFeatureSnapshot["briefingState"],
+  openDecisions: BriefOpenDecision[],
+): string | null {
+  if (item.plan) {
+    if (isPlanCompleted(item.plan) && item.plan.mergeStatus !== "merged") {
+      return "Queue the approved implementation for merge.";
+    }
+    if (item.plan.activeRunStatus === "verification_pending") {
+      return "Clear verification and review so the implementation can land.";
+    }
+    if (item.plan.activeRunStatus === "merge_ready" || item.plan.mergeStatus === "ready_to_queue") {
+      return "Land the approved implementation.";
+    }
+    if (item.plan.activeRunStatus === "integrity_failed") {
+      return "Repair the governed slice contract so implementation can resume.";
+    }
+    if (item.plan.activeRunStatus === "closeout_pending") {
+      return "Finish the remaining review and closeout steps.";
+    }
+    if (item.plan.activeRunStatus === "review_requested" || item.plan.activeRunStatus === "review_in_progress") {
+      return "Close the active review cycle and surface the result.";
+    }
+    if (item.plan.activeRunStatus === "human_verification_pending") {
+      return "Run the required human verification and capture the result.";
+    }
+    if (item.plan.activeRunStatus === "merge_in_progress") {
+      return "Wait for merge queue to land the approved change.";
+    }
+    if (isPlanInMotion(item.plan)) {
+      return "Keep the implementation moving through the current execution step.";
+    }
+    if (isPlanReadyToStart(item.plan)) {
+      return "Kick off implementation against the prepared feature branch.";
+    }
+  }
+
+  if (item.admission) {
+    if (item.admission.decision === "admit") {
+      return "Start implementation against the admitted scope.";
+    }
+    if (item.admission.decision === "defer") {
+      return item.admission.decisionReason?.trim() || "Decide when to bring the deferred scope back.";
+    }
+    return "Record the CTO admission decision.";
+  }
+
+  if (item.requirement) {
+    return "Review the finalized requirement for technical admission.";
+  }
+
+  if (openDecisions.length > 0) {
+    return `Resolve: ${openDecisions[0].question}`;
+  }
+
+  if (briefingState === "shaping" && item.thread?.currentLayer) {
+    return `Continue ${item.thread.currentLayer} shaping.`;
+  }
+
+  return null;
+}
+
+function resolveMissingSourceFamilies(
+  item: CorrelatedBriefItem,
+  availability: BriefSourceAvailability[],
+): BriefSourceFamily[] {
+  const missing = new Set<BriefSourceFamily>();
+  const familyKnown = (family: BriefSourceFamily) => availability.some((entry) => entry.family === family);
+
+  if (item.thread && (item.thread.hasFinalizedRequirement || item.thread.status === "handoff_ready") && !item.requirement) {
+    missing.add("finalized_requirement");
+  }
+
+  if (
+    item.requirement
+    && !item.admission
+    && (item.thread?.blockers.length ?? 0) === 0
+    && item.requirement.blockers.length === 0
+  ) {
+    missing.add("cto_admission");
+  }
+
+  if (item.admission?.decision === "admit" && !item.plan) {
+    missing.add("implement_plan");
+  }
+
+  if (
+    !item.thread
+    && (item.requirement || item.plan)
+    && familyKnown("thread_onion")
+    && !(item.plan && isPlanCompleted(item.plan))
+  ) {
+    missing.add("thread_onion");
+  }
+
+  return Array.from(missing).filter((family) => familyKnown(family));
+}
+
+function isFinalized(item: CorrelatedBriefItem): boolean {
+  if (!item.plan) return false;
+  return item.plan.mergeStatus === "merged" || (item.plan.featureStatus === "completed" && item.plan.activeRunStatus === "completed");
+}
+
+function listPresentSourceFamilies(item: CorrelatedBriefItem): BriefSourceFamily[] {
+  const families: BriefSourceFamily[] = [];
+  if (item.thread) families.push("thread_onion");
+  if (item.requirement) families.push("finalized_requirement");
+  if (item.admission) families.push("cto_admission");
+  if (item.plan) families.push("implement_plan");
+  return families;
+}
+
+function collectGlobalOpenLoops(threads: ThreadSignal[]): string[] {
+  return uniqueStrings(
+    threads
+      .filter((thread) => !thread.scopePath)
+      .flatMap((thread) => thread.openLoops),
+  );
+}
+
+function buildAvailability<T>(
+  family: BriefSourceFamily,
+  load: FamilyLoadResult<T>,
+  collectedAt: string,
+  now: Date,
+): BriefSourceAvailability {
+  const freshestItemTimestamp = maxIsoTimestamp(load.items.map((item) => extractItemTimestamp(item)).filter((value): value is string => Boolean(value)));
+  const freshnessAnchor = freshestItemTimestamp ?? collectedAt;
+  return {
+    family,
+    available: load.available,
+    itemCount: load.items.length,
+    collectedAt,
+    freshnessAgeMs: Math.max(0, now.getTime() - new Date(freshnessAnchor).getTime()),
+  };
+}
+
+function computeSourceFreshnessAgeMs(
+  features: BriefFeatureSnapshot[],
+  availability: BriefSourceAvailability[],
+  collectedAt: string,
+  now: Date,
+): number {
+  const latestFeatureTimestamp = maxIsoTimestamp(features.map((feature) => feature.lastActivityAt));
+  const latestAvailabilityTimestamp = maxIsoTimestamp(availability.map((entry) => entry.itemCount > 0 ? entry.collectedAt : null));
+  const freshnessAnchor = latestFeatureTimestamp ?? latestAvailabilityTimestamp ?? collectedAt;
+  return Math.max(0, now.getTime() - new Date(freshnessAnchor).getTime());
+}
+
+function buildDegradationNotes(
+  unavailableFamilies: BriefSourceFamily[],
+  rawNotes: string[],
+): string[] {
+  const notes: string[] = [];
+
+  if (unavailableFamilies.includes("cto_admission")) {
+    notes.push("CTO admission truth is not available yet, so this brief is using the shaping and implementation sources that are live.");
+  }
+  if (unavailableFamilies.includes("finalized_requirement")) {
+    notes.push("Finalized requirement truth is unavailable, so admission-readiness details may be understated.");
+  }
+  if (unavailableFamilies.includes("implement_plan")) {
+    notes.push("Implement-plan truth is unavailable, so active implementation coverage may be understated.");
+  }
+  if (unavailableFamilies.includes("thread_onion")) {
+    notes.push("Active COO thread truth is unavailable, so shaping coverage may be understated.");
+  }
+  if (rawNotes.length > 0) {
+    notes.push("A few status inputs were incomplete, so this brief is using the clean live sources that were available.");
+  }
+
+  return uniqueStrings(notes);
+}
+
+function adaptThread(thread: Thread): ThreadSignal {
+  const onion = thread.workflowState.onion;
+  const latestCommit = getLatestStateCommit(thread);
+  const approvedSnapshot = onion?.state.approved_snapshot;
+  const openDecisionSource: Array<{ question: string; impact: string; status: "open" | "resolved" }> =
+    approvedSnapshot?.open_decisions ?? onion?.state.open_decisions ?? [];
+  const blockers = uniqueStrings(onion?.state.freeze_status.blockers ?? []);
+  const label = firstMeaningfulText(
+    approvedSnapshot?.topic,
+    onion?.state.topic,
+    thread.scopePath ? humanizeFeatureId(normalizeFeatureId(thread.scopePath)) : null,
+  ) ?? "Active COO work";
+
+  return {
+    id: normalizeFeatureId(thread.scopePath ?? thread.id),
+    label: label.trim(),
+    scopePath: thread.scopePath ?? null,
+    status: normalizeThreadStatus(thread, blockers),
+    currentLayer: onion?.current_layer ?? null,
+    blockers,
+    openLoops: latestCommit?.data.openLoops ?? [],
+    openDecisions: openDecisionSource.map((decision) => ({
+      question: asNonEmptyString(decision.question) ?? "Open decision",
+      impact: asNonEmptyString(decision.impact) ?? "business scope",
+      status: decision.status === "resolved" ? "resolved" : "open",
+    })),
+    progressSummary: describeThreadProgress(thread, latestCommit?.data.summary ?? null),
+    lastActivityAt: thread.updatedAt,
+    hasApprovedSnapshot: Boolean(approvedSnapshot),
+    hasFinalizedRequirement: Boolean(onion?.finalized_requirement_memory_id),
+    finalizedRequirementMemoryId: onion?.finalized_requirement_memory_id ?? null,
+    embeddedRequirement: adaptEmbeddedRequirement(onion?.requirement_artifact, {
+      featureId: normalizeFeatureId(thread.scopePath ?? thread.id),
+      label,
+      fallbackTimestamp: thread.updatedAt,
+    }),
+  };
+}
+
+function normalizeThreadStatus(
+  thread: Thread,
+  blockers: string[],
+): BriefFeatureSnapshot["status"] {
+  const lifecycleStatus = thread.workflowState.onion?.lifecycle_status;
+  if (blockers.length > 0 || lifecycleStatus === "blocked") {
+    return "blocked";
+  }
+  if (lifecycleStatus === "awaiting_freeze_approval") {
+    return "awaiting_freeze_approval";
+  }
+  if (lifecycleStatus === "approved") {
+    return "approved";
+  }
+  if (lifecycleStatus === "handoff_ready") {
+    return "handoff_ready";
+  }
+  if (thread.status === "completed") {
+    return "completed";
+  }
+  return "active";
+}
+
+function describeThreadProgress(thread: Thread, latestCommitSummary: string | null): string {
+  const onion = thread.workflowState.onion;
+  if (onion) {
+    if (onion.state.freeze_status.blockers.length > 0) {
+      return onion.state.freeze_status.blockers[0];
+    }
+    if (onion.lifecycle_status === "handoff_ready" || onion.lifecycle_status === "approved") {
+      return "Requirements are frozen and ready for technical admission.";
+    }
+    if (onion.lifecycle_status === "awaiting_freeze_approval") {
+      return "Scope is waiting for explicit freeze approval.";
+    }
+    if (onion.current_layer) {
+      return `Shaping is active in ${onion.current_layer}.`;
+    }
+  }
+
+  const trimmedSummary = latestCommitSummary?.trim();
+  if (trimmedSummary) {
+    return trimSentence(trimmedSummary);
+  }
+
+  return thread.status === "completed"
+    ? "The COO thread has completed its latest work."
+    : "The COO is actively shaping this work.";
+}
+
+function adaptRequirementRecord(
+  record: Record<string, unknown>,
+  target: ThreadSignal,
+): RequirementSignal {
+  const content = normalizeContent(record.content);
+  const humanScope = asRecord(content.human_scope);
+  const featureId = normalizeFeatureId(asNonEmptyString(content.feature_slug) ?? target.id);
+  const openDecisionSource = asArray(content.open_business_decisions).length > 0
+    ? asArray(content.open_business_decisions)
+    : asArray(humanScope.open_decisions);
+
+  return {
+    id: featureId,
+    label: humanizeFeatureId(featureId),
+    summary: firstMeaningfulText(
+      asNonEmptyString(content.requirement_summary),
+      asNonEmptyString(content.text),
+      asNonEmptyString(humanScope.goal),
+      "Finalized requirement is ready for admission.",
+    ) ?? "Finalized requirement is ready for admission.",
+    blockers: normalizeStringArray(content.blockers),
+    openDecisions: openDecisionSource.map((decision) => {
+      const recordDecision = asRecord(decision);
+      return {
+        question: asNonEmptyString(recordDecision.question) ?? "Open decision",
+        impact: asNonEmptyString(recordDecision.impact) ?? "business scope",
+        status: asNonEmptyString(recordDecision.status) === "resolved" ? "resolved" : "open",
+      };
+    }),
+    derivationStatus: asNonEmptyString(content.derivation_status) === "blocked" ? "blocked" : "ready",
+    lastActivityAt: firstMeaningfulText(
+      asNonEmptyString(record.updated_at),
+      asNonEmptyString(record.created_at),
+      asNonEmptyString(content.source_frozen_at),
+      target.lastActivityAt,
+    ) ?? target.lastActivityAt,
+  };
+}
+
+function adaptEmbeddedRequirement(
+  artifact: unknown,
+  target: {
+    featureId: string;
+    label: string;
+    fallbackTimestamp: string;
+  },
+): RequirementSignal | null {
+  const requirement = asRecord(artifact);
+  if (Object.keys(requirement).length === 0) {
+    return null;
+  }
+
+  const humanScope = asRecord(requirement.human_scope);
+  const featureId = normalizeFeatureId(
+    asNonEmptyString(requirement.feature_slug)
+      ?? target.featureId,
+  );
+  const openDecisionSource = asArray(requirement.open_business_decisions).length > 0
+    ? asArray(requirement.open_business_decisions)
+    : asArray(humanScope.open_decisions);
+  const summary = firstMeaningfulText(
+    asNonEmptyString(requirement.requirement_summary),
+    asNonEmptyString(humanScope.goal),
+    asNonEmptyString(humanScope.expected_result),
+    target.label,
+  );
+
+  return {
+    id: featureId,
+    label: firstMeaningfulText(asNonEmptyString(humanScope.topic), target.label, humanizeFeatureId(featureId)) ?? humanizeFeatureId(featureId),
+    summary: summary ?? "Finalized requirement is ready for admission.",
+    blockers: normalizeStringArray(requirement.blockers),
+    openDecisions: openDecisionSource.map((decision) => {
+      const recordDecision = asRecord(decision);
+      return {
+        question: asNonEmptyString(recordDecision.question) ?? "Open decision",
+        impact: asNonEmptyString(recordDecision.impact) ?? "business scope",
+        status: asNonEmptyString(recordDecision.status) === "resolved" ? "resolved" : "open",
+      };
+    }),
+    derivationStatus: asNonEmptyString(requirement.derivation_status) === "blocked" ? "blocked" : "ready",
+    lastActivityAt: firstMeaningfulText(
+      asNonEmptyString(humanScope.approved_at),
+      target.fallbackTimestamp,
+    ) ?? target.fallbackTimestamp,
+  };
+}
+
+function isPlanInMotion(plan: PlanSignal): boolean {
+  return PLAN_IN_MOTION_STATUSES.has(plan.activeRunStatus);
+}
+
+function isPlanOpen(plan: PlanSignal): boolean {
+  if (isPlanCompleted(plan)) {
+    return false;
+  }
+
+  return plan.featureStatus === "active" || plan.featureStatus === "blocked";
+}
+
+function isPlanReadyToStart(plan: PlanSignal): boolean {
+  return PLAN_READY_TO_START_STATUSES.has(plan.activeRunStatus);
+}
+
+function isPlanCompleted(plan: PlanSignal): boolean {
+  return plan.mergeStatus === "merged"
+    || plan.activeRunStatus === "completed"
+    || (plan.featureStatus === "completed" && plan.activeRunStatus !== "implementation_in_progress");
+}
+
+function shouldTreatPlanErrorAsCurrentBlocker(plan: PlanSignal): boolean {
+  if (!plan.lastError) {
+    return false;
+  }
+  if (isPlanCompleted(plan)) {
+    return false;
+  }
+  return true;
+}
+
+function mergePlanSignals(existing: PlanSignal | undefined, incoming: PlanSignal): PlanSignal {
+  if (!existing) {
+    return incoming;
+  }
+
+  return {
+    ...existing,
+    ...incoming,
+    featureStatus: incoming.featureStatus || existing.featureStatus,
+    activeRunStatus: incoming.activeRunStatus || existing.activeRunStatus,
+    mergeStatus: incoming.mergeStatus || existing.mergeStatus,
+    lastCompletedStep: incoming.lastCompletedStep || existing.lastCompletedStep,
+    lastError: incoming.lastError ?? existing.lastError,
+    updatedAt: maxIsoTimestamp([incoming.updatedAt, existing.updatedAt]) ?? incoming.updatedAt,
+    featureBranch: incoming.featureBranch ?? existing.featureBranch,
+    createdAt: incoming.createdAt ?? existing.createdAt,
+    contextCollectedAt: incoming.contextCollectedAt ?? existing.contextCollectedAt,
+    closeoutFinishedAt: incoming.closeoutFinishedAt ?? existing.closeoutFinishedAt,
+    mergeCommitSha: incoming.mergeCommitSha ?? existing.mergeCommitSha,
+    approvedCommitSha: incoming.approvedCommitSha ?? existing.approvedCommitSha,
+    reviewCycleCount: incoming.reviewCycleCount ?? existing.reviewCycleCount,
+    reviewCycleQualification: shouldReplaceQualification(existing.reviewCycleQualification, incoming.reviewCycleQualification)
+      ? incoming.reviewCycleQualification
+      : existing.reviewCycleQualification,
+    reviewCycleNote: incoming.reviewCycleNote.trim().length > 0
+      ? incoming.reviewCycleNote
+      : existing.reviewCycleNote,
+    tokenCostTokens: incoming.tokenCostTokens ?? existing.tokenCostTokens,
+    keyIssue: incoming.keyIssue ?? existing.keyIssue,
+    keyIssueCount: incoming.keyIssueCount ?? existing.keyIssueCount,
+    explicitNoIssuesRecorded: incoming.explicitNoIssuesRecorded || existing.explicitNoIssuesRecorded,
+  };
+}
+
+async function loadReviewCycleEvidence(
+  featureRoot: string,
+  completionSummaryRaw: string | null,
+): Promise<{
+  reviewCycleCount: number | null;
+  reviewCycleQualification: BriefClaimQualification;
+  reviewCycleNote: string;
+}> {
+  const reviewStatePath = join(featureRoot, "review-cycle-state.json");
+  const cycleDirectoryNames = await listCycleDirectories(featureRoot);
+  const reviewStatusLine = extractReviewCycleStatusLine(completionSummaryRaw);
+  const hasCompletionSummary = Boolean(completionSummaryRaw);
+  const hasImplementPlanState = await pathExists(join(featureRoot, "implement-plan-state.json"));
+
+  if (await pathExists(reviewStatePath)) {
+    try {
+      const reviewState = asRecord(await parseJsonFile<Record<string, unknown>>(reviewStatePath));
+      const rawValue = reviewState.last_completed_cycle;
+      const reviewCycleCount = typeof rawValue === "number" && rawValue >= 0 ? rawValue : null;
+      if (reviewCycleCount !== null) {
+        return {
+          reviewCycleCount,
+          reviewCycleQualification: "direct_source",
+          reviewCycleNote: reviewCycleCount === 0
+            ? firstMeaningfulText(
+                normalizeReviewStatusLine(reviewStatusLine),
+                "Structured review-cycle state records zero completed cycles for this landed item.",
+              ) ?? "Structured review-cycle state records zero completed cycles for this landed item."
+            : reviewStatusLine
+              ? `Slice closeout says ${normalizeReviewStatusLine(reviewStatusLine)}`
+              : `${reviewCycleCount} completed review-cycle pass(es) are recorded in structured slice truth.`,
+        };
+      }
+    } catch {
+      // fall through to derived or unavailable evidence below
+    }
+  }
+
+  if (cycleDirectoryNames.length > 0) {
+    return {
+      reviewCycleCount: cycleDirectoryNames.length,
+      reviewCycleQualification: "derived_from_sources",
+      reviewCycleNote: reviewStatusLine
+        ? `Structured review-cycle state is missing, but slice artifacts say ${normalizeReviewStatusLine(reviewStatusLine)}`
+        : `Structured review-cycle state is missing, so review count was derived from slice folders: ${cycleDirectoryNames.join(", ")}.`,
+    };
+  }
+
+  if (reviewStatusLine) {
+    const normalizedReviewStatusLine = normalizeReviewStatusLine(reviewStatusLine);
+    if (/not invoked/i.test(reviewStatusLine)) {
+      return {
+        reviewCycleCount: 0,
+        reviewCycleQualification: "direct_source",
+        reviewCycleNote: `Slice closeout says ${normalizedReviewStatusLine}`,
+      };
+    }
+
+    return {
+      reviewCycleCount: null,
+      reviewCycleQualification: "derived_from_sources",
+      reviewCycleNote: `Slice closeout says ${normalizedReviewStatusLine}`,
+    };
+  }
+
+  if (!hasImplementPlanState && !hasCompletionSummary) {
+    return {
+      reviewCycleCount: null,
+      reviewCycleQualification: "unavailable",
+      reviewCycleNote: "The slice folder does not carry closeout or review-cycle artifacts, so review status is not provable.",
+    };
+  }
+
+  if (hasImplementPlanState && !hasCompletionSummary) {
+    return {
+      reviewCycleCount: null,
+      reviewCycleQualification: "unavailable",
+      reviewCycleNote: "The slice folder has implement-plan state but does not explain review-cycle status, so review status is not provable.",
+    };
+  }
+
+  return {
+    reviewCycleCount: null,
+    reviewCycleQualification: "unavailable",
+    reviewCycleNote: "The slice folder has closeout artifacts but does not explain review-cycle status, so review status is not provable.",
+  };
+}
+
+async function listCycleDirectories(featureRoot: string): Promise<string[]> {
+  try {
+    const entries = await readdir(featureRoot, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory() && /^cycle-\d+$/i.test(entry.name))
+      .map((entry) => entry.name)
+      .sort((left, right) => left.localeCompare(right));
+  } catch {
+    return [];
+  }
+}
+
+async function loadKeyIssueEvidence(
+  featureRoot: string,
+  reviewCycleCount: number | null,
+): Promise<{ keyIssue: string | null; keyIssueCount: number | null }> {
+  const cycleNames = reviewCycleCount && reviewCycleCount > 0
+    ? [`cycle-${String(reviewCycleCount).padStart(2, "0")}`]
+    : [];
+  const candidateFiles = cycleNames.flatMap((cycleName) => [
+    join(featureRoot, cycleName, "review-findings.md"),
+    join(featureRoot, cycleName, "audit-findings.md"),
+    join(featureRoot, cycleName, "fix-report.md"),
+  ]);
+
+  const issues: string[] = [];
+  for (const candidateFile of candidateFiles) {
+    const raw = await tryReadFile(candidateFile);
+    if (!raw) continue;
+    issues.push(...extractIssueSummaries(raw));
+  }
+
+  const deduped = uniqueStrings(issues);
+  return {
+    keyIssue: deduped[0] ?? null,
+    keyIssueCount: deduped.length > 0 ? deduped.length : null,
+  };
+}
+
+function extractIssueSummaries(markdown: string): string[] {
+  const matches = [
+    ...Array.from(markdown.matchAll(/^- Failure class:\s*(.+)$/gm), (match) => match[1]),
+    ...Array.from(markdown.matchAll(/^- Closed:\s*(.+)$/gm), (match) => match[1]),
+    ...Array.from(markdown.matchAll(/^- ([A-Z][^:\n]{2,120}):\s*(?:Open|Partial|Rejected)\.?$/gm), (match) => match[1]),
+  ];
+
+  return uniqueStrings(matches.map((match) => trimSentence(match)));
+}
+
+function parseTokenCost(raw: string | null): number | null {
+  if (!raw) {
+    return null;
+  }
+
+  const match = raw.match(/tokens used\s*[:\s]\s*([\d,]+)/i);
+  if (!match) {
+    return null;
+  }
+
+  const parsed = Number(match[1].replace(/,/g, ""));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function extractReviewCycleStatusLine(raw: string | null): string | null {
+  if (!raw) {
+    return null;
+  }
+
+  const directLineMatch = raw.match(/^(?:##?\s*)?Review-Cycle Status:\s*(.+)$/im);
+  if (directLineMatch?.[1]) {
+    return directLineMatch[1].trim();
+  }
+
+  const headingBlockMatch = raw.match(/^(?:##?\s*)?Review-Cycle Status:?\s*$\r?\n(?:- |\* )?(.+)$/im);
+  if (headingBlockMatch?.[1]) {
+    return headingBlockMatch[1].trim();
+  }
+
+  return null;
+}
+
+function normalizeReviewStatusLine(value: string | null): string {
+  const trimmed = (value?.trim() ?? "").replace(/^[-*]\s+/, "");
+  if (trimmed.length === 0) {
+    return "review-cycle status is unavailable.";
+  }
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+function summaryMentionsNoRecordedIssues(raw: string | null): boolean {
+  if (!raw) {
+    return false;
+  }
+
+  return /no implementation-quality defects recorded/i.test(raw)
+    || /no implementation-quality issue is recorded/i.test(raw)
+    || /no issues recorded/i.test(raw);
+}
+
+function normalizeAdmissionDecision(
+  value: string | null,
+): AdmissionSignal["decision"] {
+  if (value === "admit" || value === "defer" || value === "block") {
+    return value;
+  }
+  return null;
+}
+
+function normalizeContent(input: unknown): Record<string, unknown> {
+  if (typeof input === "string") {
+    try {
+      return JSON.parse(input) as Record<string, unknown>;
+    } catch {
+      return { text: input };
+    }
+  }
+  return asRecord(input);
+}
+
+function uniqueStrings(values: Array<string | null | undefined>): string[] {
+  const deduped = new Set<string>();
+  for (const value of values) {
+    const trimmed = typeof value === "string" ? value.trim() : "";
+    if (trimmed.length > 0) {
+      deduped.add(trimmed);
+    }
+  }
+  return Array.from(deduped);
+}
+
+function dedupeOpenDecisions(decisions: BriefOpenDecision[]): BriefOpenDecision[] {
+  const seen = new Set<string>();
+  const deduped: BriefOpenDecision[] = [];
+  for (const decision of decisions) {
+    const key = `${decision.question}::${decision.impact}::${decision.status}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(decision);
+  }
+  return deduped;
+}
+
+function dedupeRequirementSignals(requirements: RequirementSignal[]): RequirementSignal[] {
+  const deduped = new Map<string, RequirementSignal>();
+  for (const requirement of requirements) {
+    const existing = deduped.get(requirement.id);
+    if (!existing || requirement.lastActivityAt.localeCompare(existing.lastActivityAt) > 0) {
+      deduped.set(requirement.id, requirement);
+    }
+  }
+  return Array.from(deduped.values());
+}
+
+function humanizeFeatureId(value: string): string {
+  const words = value
+    .split(/[\/_-]+/)
+    .filter((part) => part.trim().length > 0)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1));
+  return words.join(" ");
+}
+
+function humanizeStatus(value: string): string {
+  return value
+    .split(/[_-]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function isGenericThreadLabel(thread: ThreadSignal): boolean {
+  const fallbackLabel = thread.scopePath
+    ? humanizeFeatureId(normalizeFeatureId(thread.scopePath))
+    : humanizeFeatureId(thread.id);
+  return thread.label === "Active COO work" || thread.label === fallbackLabel;
+}
+
+function isGenericProgressSummary(value: string): boolean {
+  return value === "The COO is actively shaping this work."
+    || value === "The COO thread has completed its latest work."
+    || value === "Live work is active.";
+}
+
+function normalizeFeatureId(value: string): string {
+  const normalized = value.replace(/\\/g, "/").trim();
+  const segments = normalized
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+  const candidate = segments.at(-1);
+
+  if (candidate && /^[a-z0-9._-]+$/i.test(candidate)) {
+    return candidate.toLowerCase();
+  }
+
+  if (/^[a-z0-9._-]+$/i.test(normalized)) {
+    return normalized.toLowerCase();
+  }
+
+  return normalized;
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  return asArray(value)
+    .map((entry) => typeof entry === "string" ? entry.trim() : "")
+    .filter((entry) => entry.length > 0);
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function asNonEmptyString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function asBoolean(value: unknown): boolean {
+  return value === true;
+}
+
+function firstMeaningfulText(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  return null;
+}
+
+function trimSentence(value: string): string {
+  const firstSentenceMatch = value.match(/^[\s\S]*?[.!?](?:\s|$)/);
+  const sentence = firstSentenceMatch ? firstSentenceMatch[0] : value;
+  return sentence.trim();
+}
+
+function shouldReplaceQualification(
+  existing: BriefClaimQualification,
+  incoming: BriefClaimQualification,
+): boolean {
+  return qualificationPriority(incoming) >= qualificationPriority(existing);
+}
+
+function qualificationPriority(value: BriefClaimQualification): number {
+  switch (value) {
+    case "direct_source":
+      return 4;
+    case "derived_from_sources":
+      return 3;
+    case "fallback_missing_source":
+      return 2;
+    case "ambiguous":
+      return 1;
+    case "unavailable":
+    default:
+      return 0;
+  }
+}
+
+
+function extractItemTimestamp(item: unknown): string | null {
+  if (!item || typeof item !== "object") return null;
+  const record = item as Record<string, unknown>;
+  return firstMeaningfulText(
+    asNonEmptyString(record.lastActivityAt),
+    asNonEmptyString(record.updatedAt),
+    asNonEmptyString(record.packetBuiltAt),
+    asNonEmptyString(record.decidedAt),
+  );
+}
+
+function maxIsoTimestamp(values: Array<string | null | undefined>): string | null {
+  const timestamps = values
+    .map((value) => {
+      if (typeof value !== "string" || value.trim().length === 0) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : value;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  if (timestamps.length === 0) return null;
+
+  return timestamps.sort((left, right) => right.localeCompare(left))[0];
+}
+
+function computeFreshnessAgeMs(lastActivityAt: string, now: Date): number | null {
+  const timestamp = Date.parse(lastActivityAt);
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+  return Math.max(0, now.getTime() - timestamp);
+}
+
+function humanizeSourceFamily(family: BriefSourceFamily): string {
+  switch (family) {
+    case "thread_onion":
+      return "live COO thread/onion truth";
+    case "finalized_requirement":
+      return "finalized requirement truth";
+    case "cto_admission":
+      return "CTO admission truth";
+    case "implement_plan":
+      return "implement-plan truth";
+    default:
+      return family;
+  }
+}
+
+function formatAge(ageMs: number | null): string {
+  if (ageMs === null) {
+    return "unknown age";
+  }
+  if (ageMs < 60_000) {
+    return `${Math.max(1, Math.round(ageMs / 1_000))}s`;
+  }
+  if (ageMs < 60 * 60 * 1_000) {
+    return `${Math.round(ageMs / 60_000)}m`;
+  }
+  if (ageMs < 24 * 60 * 60 * 1_000) {
+    return `${Math.round(ageMs / (60 * 60 * 1_000))}h`;
+  }
+  return `${Math.round(ageMs / (24 * 60 * 60 * 1_000))}d`;
+}
+
+async function resolveAncestorFile(startPath: string, relativeParts: string[]): Promise<string | null> {
+  let current = resolve(startPath);
+
+  while (true) {
+    const candidate = join(current, ...relativeParts);
+    if (await pathExists(candidate)) {
+      return candidate;
+    }
+
+    const parent = dirname(current);
+    if (parent === current) {
+      return null;
+    }
+    current = parent;
+  }
+}
+
+async function parseJsonFile<T>(path: string): Promise<T> {
+  const raw = await readFile(path, "utf-8");
+  return JSON.parse(raw) as T;
+}
+
+async function tryReadFile(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}

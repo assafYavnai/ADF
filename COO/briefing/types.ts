@@ -30,6 +30,18 @@ export interface BriefFeatureSnapshot {
   blockers: string[];
   /** Whether this feature has been finalized / handed off */
   isFinalized: boolean;
+  /** Live executive-state classification when the source adapter can infer it */
+  briefingState?: "shaping" | "admission_pending" | "ready_to_start" | "implementation_active" | "closeout";
+  /** Source-derived next action when the live adapter can provide one */
+  nextAction?: string | null;
+  /** Source families that contributed to this feature snapshot */
+  sourceFamilies?: BriefSourceFamily[];
+  /** Expected families that were missing while building this snapshot */
+  missingSourceFamilies?: BriefSourceFamily[];
+  /** Evidence metadata for this feature snapshot */
+  evidence?: BriefFeatureEvidence;
+  /** Completion-only evidence for landed work when available */
+  completion?: BriefCompletionEvidence | null;
 }
 
 export interface BriefOpenDecision {
@@ -47,6 +59,75 @@ export interface BriefSourceFacts {
   globalOpenLoops: string[];
   /** Source system identifier for isolation/partition proof */
   sourcePartition: "production" | "proof" | "mixed";
+  /** Per-family source availability for graceful-degradation proof */
+  sourceAvailability?: BriefSourceAvailability[];
+  /** Age of the freshest underlying source truth, in ms */
+  sourceFreshnessAgeMs?: number;
+}
+
+export type BriefSourceFamily =
+  | "thread_onion"
+  | "finalized_requirement"
+  | "cto_admission"
+  | "implement_plan";
+
+export interface BriefSourceAvailability {
+  family: BriefSourceFamily;
+  available: boolean;
+  itemCount: number;
+  collectedAt: string;
+  freshnessAgeMs: number;
+}
+
+export type BriefClaimQualification =
+  | "direct_source"
+  | "derived_from_sources"
+  | "fallback_missing_source"
+  | "ambiguous"
+  | "unavailable";
+
+export type BriefConfidence = "high" | "medium" | "low";
+
+export type BriefFreshness = "fresh" | "stale" | "unknown";
+
+export interface BriefFeatureEvidence {
+  qualification: BriefClaimQualification;
+  confidence: BriefConfidence;
+  freshnessAgeMs: number | null;
+  freshness: BriefFreshness;
+  sourceFamilies: BriefSourceFamily[];
+  missingSourceFamilies: BriefSourceFamily[];
+  notes: string[];
+}
+
+export interface BriefEvidenceField<T> {
+  value: T | null;
+  qualification: BriefClaimQualification;
+  note: string;
+}
+
+export type BriefTimingKind =
+  | "active_work"
+  | "elapsed_lifecycle"
+  | "waiting_or_queue"
+  | "unknown"
+  | "unavailable";
+
+export interface BriefTimingEvidence {
+  kind: BriefTimingKind;
+  durationMs: number | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  qualification: BriefClaimQualification;
+  note: string;
+}
+
+export interface BriefCompletionEvidence {
+  mergedAt: string | null;
+  timing: BriefTimingEvidence;
+  reviewCycles: BriefEvidenceField<number>;
+  tokenCostTokens: BriefEvidenceField<number>;
+  keyIssue: BriefEvidenceField<string>;
 }
 
 // ---------------------------------------------------------------------------

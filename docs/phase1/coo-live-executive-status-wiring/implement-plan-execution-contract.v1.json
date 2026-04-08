@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "contract_kind": "implement-plan-execution",
+  "contract_revision": 8,
+  "prepared_at": "2026-04-08T15:06:45.350Z",
+  "feature_identity": {
+    "project_root": "C:/ADF",
+    "phase_number": 1,
+    "feature_slug": "coo-live-executive-status-wiring",
+    "feature_registry_key": "phase1/coo-live-executive-status-wiring",
+    "feature_root": "C:/ADF/docs/phase1/coo-live-executive-status-wiring"
+  },
+  "run_identity": {
+    "run_mode": "normal",
+    "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+    "attempt_id": "attempt-001",
+    "attempt_number": 1,
+    "lane_id": null,
+    "worker_id": "implementor/default"
+  },
+  "invoker_runtime": {
+    "provider": "claude",
+    "execution_runtime": "claude_code_exec",
+    "control_plane_runtime": "claude_code_exec",
+    "access_mode": "claude_code_skip_permissions",
+    "model": "claude-opus-4-6",
+    "reasoning_effort": null,
+    "runtime_permission_model": "claude_code_skip_permissions",
+    "selection_source": "invoker_runtime_defaults"
+  },
+  "worker_selection": {
+    "defaults": {
+      "provider": "claude",
+      "runtime": "claude_code_exec",
+      "access_mode": "claude_code_skip_permissions",
+      "model": "claude-opus-4-6",
+      "reasoning_effort": null
+    },
+    "continuity": {
+      "provider": "codex",
+      "runtime": null,
+      "access_mode": null,
+      "model": "gpt-5.4",
+      "reasoning_effort": null
+    },
+    "overrides": {
+      "provider": null,
+      "runtime": null,
+      "access_mode": null,
+      "model": null,
+      "reasoning_effort": null
+    },
+    "resolved": {
+      "provider": "claude",
+      "runtime": "claude_code_exec",
+      "access_mode": "claude_code_skip_permissions",
+      "model": "gpt-5.4",
+      "reasoning_effort": null
+    },
+    "resolved_sources": {
+      "provider": "invoker_inheritance",
+      "runtime": "invoker_inheritance",
+      "access_mode": "invoker_inheritance",
+      "model": "persisted_continuity",
+      "reasoning_effort": "unsupported_for_resolved_worker"
+    },
+    "inheritance": {
+      "provider": true,
+      "runtime": true,
+      "access_mode": true,
+      "model": false,
+      "reasoning_effort": false
+    }
+  },
+  "route_policy": {
+    "normal_mode_governed_flow": [
+      "implementation",
+      "machine_verification",
+      "review_cycle",
+      "human_testing",
+      "merge_queue"
+    ],
+    "normal_mode_requires_review_cycle_when_requested": true,
+    "human_testing_requires_route_level_review_gate": true,
+    "merge_completion_required_for_terminal_completion": true,
+    "supported_operator_stop_surface": false,
+    "supported_reset_surface": "helper-reset-attempt",
+    "normal_mode_shortcuts_allowed": false
+  },
+  "review_handoff": {
+    "post_send_to_review": true,
+    "review_until_complete": true,
+    "review_max_cycles": 3,
+    "review_required_by_human_plan": true
+  },
+  "benchmarking": {
+    "enabled": false,
+    "supervisor_status": "not_applicable",
+    "benchmark_run_id": null,
+    "benchmark_suite_id": null,
+    "lane_id": null,
+    "lane_label": null
+  },
+  "resume_policy": {
+    "resumable_after_crash_or_kill": true,
+    "reuse_cached_workers_when_valid": true,
+    "recreate_workers_when_invalid": true,
+    "last_truthful_checkpoint": {
+      "step": "machine_verification",
+      "status": "completed",
+      "reason": "Resume from the last truthful normal-mode checkpoint.",
+      "updated_at": "2026-04-08T15:06:45.347Z"
+    }
+  },
+  "reset_policy": {
+    "supported": true,
+    "behavior": "new_attempt_from_implementation_preserving_history",
+    "next_attempt_number": 2
+  },
+  "kpi_policy": {
+    "source": "governed_production_flow",
+    "step_timing_enabled": true,
+    "governance_call_timing_enabled": true,
+    "verification_outcomes_enabled": true,
+    "review_and_self_fix_counts_enabled": true,
+    "blocker_classification_enabled": true,
+    "terminal_status_enabled": true
+  },
+  "integrity": {
+    "blocking_issue_count": 0,
+    "blocking_issue_classes": [],
+    "next_safe_move": "proceed to implementor brief"
+  },
+  "artifacts": {
+    "state_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-state.json",
+    "markdown_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json",
+    "execution_run_root": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+    "event_root": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/events/attempt-001",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-live-executive-status-wiring"
+  }
+}
