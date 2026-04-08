@@ -9,12 +9,15 @@
 - Closed the later cycle-04 closeout-chain stabilization through:
   - docs/proof commit `dee9559463788c20913dc6421adcc81bf73ccad6`
   - helper/state closeout commit `259784800c99bab534aae9da7555132b5b4fd2a9`.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects cycle-06 approved and closed and merge commit e7283504242e6d01fb645183e23b41ce5769addd.
 
 2. Deliverables Produced
 
 - Restored the previously broadened `implement-plan`, `merge-queue`, and shared runtime surfaces to their pre-`827f028` state.
 - Restored the feature-local route docs to the approved KPI-governance scope.
 - Updated the stale closeout narrative in `completion-summary.md` and `cycle-02/fix-report.md`, then added cycle-03 doc-sync artifacts that record the actual committed and pushed cycle-02 history.
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -32,7 +35,6 @@
 Machine Verification: passed
 Human Verification Requirement: false
 Human Verification Status: not required
-Review-Cycle Status: cycle-02 repair committed and pushed; repair commit `682d46337ebc69b6fd0db55cbd583162ade97019`, pushed closeout head `77d98598f12572d6ba1927098ea5c4473252072e`
 - `node --check skills/governed-feature-runtime.mjs`
 - `node --check skills/implement-plan/scripts/implement-plan-helper.mjs`
 - `node --check skills/merge-queue/scripts/merge-queue-helper.mjs`
@@ -46,6 +48,10 @@ Review-Cycle Status: cycle-02 repair committed and pushed; repair commit `682d46
 - `git log --oneline --decorate -n 2`
   - showed `77d9859 review-cycle(implement-plan-review-cycle-kpi-enforcement): record phase1 cycle-02 closeout state` above `682d463 review-cycle(implement-plan-review-cycle-kpi-enforcement): phase1 cycle-02 close route-level defects`
 - carried-forward approved-route proof in `cycle-01/fix-report.md`
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: cycle-06 approved and closed
+- Merge Status: merged via merge-queue (merge commit e7283504242e6d01fb645183e23b41ce5769addd)
+- Local Target Sync Status: skipped_dirty_checkout
 
 5. Feature Artifacts Updated
 
@@ -60,21 +66,16 @@ Review-Cycle Status: cycle-02 repair committed and pushed; repair commit `682d46
 - `cycle-03/fix-plan.md`
 - `cycle-03/fix-report.md`
 - `completion-summary.md`
+- `docs/phase1/implement-plan-review-cycle-kpi-enforcement/completion-summary.md`
+- `docs/phase1/implement-plan-review-cycle-kpi-enforcement/implement-plan-state.json`
+- `docs/phase1/implement-plan-review-cycle-kpi-enforcement/implementation-run/`
 
 6. Commit And Push Result
 
-- Cycle-02 repair was committed as `682d46337ebc69b6fd0db55cbd583162ade97019`.
-- Cycle-02 closeout state was recorded and pushed at `77d98598f12572d6ba1927098ea5c4473252072e`, which matches `origin/implement-plan/phase1/implement-plan-review-cycle-kpi-enforcement`.
-- Cycle-03 human-facing closeout synchronization later closed through:
-  - content commit `8d72ec8df1d1b61727385a0e22407be744bb8947`
-  - helper/state closeout commit `a35151a43ea35d83a4ba7c1de791b529ce527e5d`.
-- Cycle-04 closeout-chain stabilization later closed through:
-  - docs/proof commit `dee9559463788c20913dc6421adcc81bf73ccad6`
-  - helper/state closeout commit `259784800c99bab534aae9da7555132b5b4fd2a9`.
-- Current next-pass routing for future cycles is not hard-coded in this artifact.
-- The frozen cycle-03 completion boundary remains:
-  - content commit `8d72ec8df1d1b61727385a0e22407be744bb8947`
-  - helper/state closeout commit `a35151a43ea35d83a4ba7c1de791b529ce527e5d`.
+- Approved feature commit: abaa3ef174215fa5fd684d1bfa9e58d29e61d58b
+- Merge commit: e7283504242e6d01fb645183e23b41ce5769addd
+- Push: success to origin/main
+- Closeout note: Merged via merge-queue after approval.
 
 7. Remaining Non-Goals / Debt
 
