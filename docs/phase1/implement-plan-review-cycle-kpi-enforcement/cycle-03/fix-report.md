@@ -62,4 +62,6 @@
 7. Next Cycle Starting Point
 
 - Orchestrator/helper should correct `review-cycle-state.json` `last_commit_sha` through the supported helper path, not through manual artifact edits.
-- If another review pass is needed later, it starts from pushed head `77d98598f12572d6ba1927098ea5c4473252072e` with the human-facing closeout docs already synchronized.
+- If another review pass is needed later, the next-pass anchor should come from current review-cycle helper state, while the fixed historical cycle-03 boundary remains:
+  - content commit `8d72ec8df1d1b61727385a0e22407be744bb8947`
+  - helper/state closeout commit `a35151a43ea35d83a4ba7c1de791b529ce527e5d`.
