@@ -3,6 +3,7 @@
 Implemented the launcher/bootstrap split and then closed the governed closeout gaps exposed by review-cycle: explicit install/bootstrap and bounded launch repair now rebuild stale existing artifacts truthfully, the Windows trampoline proof route now fails closed unless it captures real runtime-preflight JSON, Windows cmd-trampoline install and launch are now durably proved, and launcher-route KPI proof now fails closed on the live startup surfaces claimed by this slice.
 - Repo-owned completion truth now matches the approved review and merged feature lifecycle.
 - Final approved review now comes from cycle-04: the rerun auditor delta pass approved, then the carried-forward reviewer lane approved the required final `regression_sanity` pass on April 8, 2026.
+- Final closeout reflects cycle-04 approved and closed and merge commit 7c3e3c92754f0dd6e52e46996286ca7d89c62df3.
 
 2. Deliverables Produced
 
@@ -45,8 +46,10 @@ Implemented the launcher/bootstrap split and then closed the governed closeout g
 - `node tools/launcher-route-telemetry-proof.test.mjs` passed during the cycle-04 closeout pass.
 - `node tools/launcher-route-telemetry-proof.mjs --repo-root C:/ADF --proof-run-id 20260408T080127Z-cycle03-cmd-frontdoor --expect-cmd-frontdoor true` passed during the cycle-04 closeout pass.
 - `adf.cmd --runtime-preflight --json` passed during the cycle-04 closeout pass and still reported `control_plane.kind=windows-cmd-trampoline` with `entrypoint=adf.cmd`.
-- Merge Status: the feature code and cycle-03 remediation commit `91d9919` were already on `main` and `origin/main` before the cycle-04 review-only closeout artifacts were created.
-- Local Target Sync Status: `git rev-list --left-right --count origin/main...HEAD` returned `0 0` before cycle-04 closeout artifacts were staged.
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
+- Review-Cycle Status: cycle-04 approved and closed
+- Merge Status: already landed on `main` / `origin/main` and reconciled to completed state after cycle-04 approval; no merge-queue replay was performed (closeout commit `7c3e3c92754f0dd6e52e46996286ca7d89c62df3`).
+- Local Target Sync Status: fetched_only
 
 5. Feature Artifacts Updated
 
@@ -64,14 +67,18 @@ Implemented the launcher/bootstrap split and then closed the governed closeout g
 - [cycle-04/audit-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/audit-findings.md)
 - [cycle-04/review-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/review-findings.md)
 - [cycle-04/fix-report.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/fix-report.md)
-- [completion-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md)
 - [implement-plan-state.json](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-state.json)
 - [implementation-run](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implementation-run)
+- `docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md`
+- `docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-state.json`
+- `docs/phase1/adf-runtime-preflight-and-install-split/implementation-run/`
 
 6. Commit And Push Result
 
-- The feature code and review-cycle remediation are already merged and pushed on `main` / `origin/main`; cycle-04 is a review-only approval closeout, not a new feature merge.
-- The final approval closeout commit for cycle-04 will contain review artifacts, repo-owned state, and completion-summary normalization only.
+- Approved feature commit: 91d9919df3fa6c0724ab872aaf904a5c21221a7b
+- Merge commit: 7c3e3c92754f0dd6e52e46996286ca7d89c62df3
+- Push: success to origin/main
+- Closeout note: Legacy already-landed feature reconciled to completed state after cycle-04 review approval; no merge-queue replay was performed.
 
 7. Remaining Non-Goals / Debt
 
