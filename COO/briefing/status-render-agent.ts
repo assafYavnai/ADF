@@ -432,15 +432,13 @@ function buildGovernanceCards(
       if (item.featureLabel && !affectedLabels.includes(item.featureLabel)) {
         affectedLabels.push(item.featureLabel);
       }
-      if (tracked?.readyHandoff) {
-        const readyHandoffs = existing.ready_handoffs as Array<Record<string, unknown>>;
-        if (!readyHandoffs.some((handoff) => handoff.id === tracked.readyHandoff.id)) {
-          readyHandoffs.push({
-            id: tracked.readyHandoff.id,
-            task_summary: tracked.readyHandoff.taskSummary,
-            status: tracked.readyHandoff.status,
-          });
-        }
+      (existing as Record<string, unknown>).affected_count = ((existing.affected_count as number) ?? 1) + 1;
+      if (!existing.representative_handoff && tracked?.readyHandoff) {
+        (existing as Record<string, unknown>).representative_handoff = {
+          id: tracked.readyHandoff.id,
+          task_summary: tracked.readyHandoff.taskSummary,
+          status: tracked.readyHandoff.status,
+        };
       }
       continue;
     }
@@ -458,13 +456,14 @@ function buildGovernanceCards(
       route_chain: item.routeChain,
       recommendation: item.recommendation,
       implicated_subjects: item.implicatedSubjects,
-      ready_handoffs: tracked?.readyHandoff
-        ? [{
+      representative_handoff: tracked?.readyHandoff
+        ? {
             id: tracked.readyHandoff.id,
             task_summary: tracked.readyHandoff.taskSummary,
             status: tracked.readyHandoff.status,
-          }]
-        : [],
+          }
+        : null,
+      affected_count: 1,
     });
   }
 
@@ -492,7 +491,8 @@ function buildIssueCards(
       route_chain: [],
       recommendation: item.recommendation,
       implicated_subjects: [],
-      ready_handoffs: [],
+      representative_handoff: null,
+      affected_count: 1,
     };
 
     const key = buildIssueCardKey(card);
@@ -527,7 +527,7 @@ function buildNextCards(
       recommended: true,
       action: item.system_fix ?? item.recommendation,
       affected_feature_labels: item.affected_feature_labels,
-      ready_handoffs: item.ready_handoffs,
+      representative_handoff: item.representative_handoff ?? null,
     }));
 
   const tableNextCards = brief.whatsNext.map((item) => ({
@@ -536,7 +536,7 @@ function buildNextCards(
     recommended: false,
     action: item.nextAction,
     affected_feature_labels: [item.featureLabel],
-    ready_handoffs: [],
+    representative_handoff: null,
   }));
 
   return [...urgentIssueCards, ...tableNextCards];
@@ -554,7 +554,8 @@ function buildTableCards(
       recommended: false,
       action: item.summary,
       affected_feature_labels: [item.featureLabel],
-      ready_handoffs: [],
+      representative_handoff: null,
+      affected_count: 1,
     })),
   ];
 }
@@ -585,8 +586,8 @@ function buildFocusOptions(
   };
 
   for (const item of attentionCards) {
-    const readyHandoffs = asArray(item.ready_handoffs);
-    if (String(item.priority ?? "") !== "now" || readyHandoffs.length === 0) {
+    const hasHandoff = Boolean(item.representative_handoff);
+    if (String(item.priority ?? "") !== "now" || !hasHandoff) {
       continue;
     }
     pushOption(item, options.length === 0);
@@ -865,9 +866,9 @@ function countVisibleSectionItems(
     }
 
     if (options?.requireFixForReadyHandoff) {
-      const readyHandoffs = asArray(item.ready_handoffs);
+      const hasHandoff = Boolean(item.representative_handoff);
       const requiredFix = firstNonEmptyString([item.system_fix, item.action, item.recommendation]);
-      if (readyHandoffs.length > 0 && requiredFix && !normalizedSection.includes(normalizeForEvidenceMatch(requiredFix))) {
+      if (hasHandoff && requiredFix && !normalizedSection.includes(normalizeForEvidenceMatch(requiredFix))) {
         return count;
       }
     }
