@@ -312,7 +312,6 @@ export async function handleRequirementsGatheringOnion(input: {
     freezeBlockerCount: layerMetrics.freeze_blocker_count,
     openDecisionCount: layerMetrics.open_decision_count,
     persistence,
-    ctoAdmissionState: persistence.ctoAdmissionState,
     clarificationQuestion: clarification.selection.next_question?.question ?? null,
     freezeRequest: freeze.result.freeze_request?.approval_question ?? null,
     reopenedScope: Boolean(previousWorkflowState?.finalized_requirement_memory_id && reduced.state.freeze_status.status !== "approved"),

@@ -1,6 +1,6 @@
 1. Objective Completed
 
-Implemented the launcher/bootstrap split between explicit install/bootstrap repair and fast runtime preflight, added a machine-readable runtime-preflight helper for agent awareness, updated bootstrap docs to require that preflight first, and added proof/test artifacts for the new route.
+Implemented the launcher/bootstrap split and then closed the governed closeout gaps exposed by review-cycle: explicit install/bootstrap and bounded launch repair now rebuild stale existing artifacts truthfully, the Windows trampoline proof route now fails closed unless it captures real runtime-preflight JSON, and launcher-route KPI proof now exists for the live startup surfaces claimed by this slice.
 
 2. Deliverables Produced
 
@@ -8,44 +8,47 @@ Implemented the launcher/bootstrap split between explicit install/bootstrap repa
 - Explicit install/bootstrap route in [adf.sh](/C:/ADF/adf.sh)
 - Runtime/install state recording at `.codex/runtime/install-state.json` on successful install route execution
 - Strengthened runtime-preflight schema with explicit control-plane entrypoint truth and Brain MCP availability/verification truth
-- Updated bootstrap docs in [AGENTS.md](/C:/ADF/AGENTS.md), [cli-agent.md](/C:/ADF/docs/bootstrap/cli-agent.md), [vscode-agent.md](/C:/ADF/docs/bootstrap/vscode-agent.md), and [architecture.md](/C:/ADF/docs/v0/architecture.md)
-- Direct assertion test script in [agent-runtime-preflight.test.mjs](/C:/ADF/tools/agent-runtime-preflight.test.mjs)
-- Manual proof runner in [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh)
+- Bounded launcher-route KPI emitter in [launcher-route-telemetry.mjs](/C:/ADF/tools/launcher-route-telemetry.mjs) plus proof query in [launcher-route-telemetry-proof.mjs](/C:/ADF/tools/launcher-route-telemetry-proof.mjs)
+- Hardened governed proof runner in [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh) that validates cmd JSON, forces stale-artifact repair proof, and captures proof-partition KPI evidence
+- Refreshed governed proof bundle under [proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4)
 
 3. Files Changed And Why
 
-- [adf.sh](/C:/ADF/adf.sh): added `--runtime-preflight`, `--install`, mode exclusivity, install-state writing, and switched normal launch to the fast runtime gate.
-- [agent-runtime-preflight.mjs](/C:/ADF/tools/agent-runtime-preflight.mjs): added the structured runtime detection/reporting helper used by launcher preflight and agent bootstrap.
-- [agent-runtime-preflight.test.mjs](/C:/ADF/tools/agent-runtime-preflight.test.mjs): added direct runnable assertions for the helper.
-- [AGENTS.md](/C:/ADF/AGENTS.md), [cli-agent.md](/C:/ADF/docs/bootstrap/cli-agent.md), [vscode-agent.md](/C:/ADF/docs/bootstrap/vscode-agent.md), and [architecture.md](/C:/ADF/docs/v0/architecture.md): updated the bootstrap/runtime contract so agents must run preflight first.
-- [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh): added a live proof route for a real VS Code bash terminal.
+- [adf.sh](/C:/ADF/adf.sh): fixed the stale-build predicate names, added launcher-route telemetry emission, and tied runtime-preflight, install, and launch-preflight closeout truth to the real route execution path.
+- [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh): replaced exit-code-only cmd proof with artifact validation, forced stale-artifact install and launch proof, and added KPI proof capture.
+- [launcher-route-telemetry.mjs](/C:/ADF/tools/launcher-route-telemetry.mjs): emits bounded route telemetry with production/proof partitioning and proof-run metadata.
+- [launcher-route-telemetry-proof.mjs](/C:/ADF/tools/launcher-route-telemetry-proof.mjs): queries route telemetry by `proof_run_id` and verifies required operations plus cmd trampoline coverage.
+- [onion-live.ts](/C:/ADF/COO/requirements-gathering/live/onion-live.ts): removed a duplicate telemetry field that was blocking a truthful COO rebuild during stale-artifact proof.
+- [implement-plan-contract.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-contract.md) and [completion-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md): updated the authoritative contract and closeout summary to match the live proof and KPI rule.
 
 4. Verification Evidence
 
-- `node --check tools/agent-runtime-preflight.mjs`
-- `node --check tools/agent-runtime-preflight.test.mjs`
-- `node tools/agent-runtime-preflight.test.mjs`
-- `node tools/agent-runtime-preflight.mjs --repo-root C:/ADF --launch-mode tsx-direct --json`
-
-The direct CLI smoke above was intentionally run in the current non-compliant PowerShell-backed host and returned a structured failing JSON report instead of crashing. Live positive bash-route proof was not run from this session; that proof is deferred to [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh) in a real VS Code bash terminal.
+- `bash -n adf.sh`
+- `bash -n docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh`
+- `node --check tools/launcher-route-telemetry.mjs`
+- `node --check tools/launcher-route-telemetry-proof.mjs`
+- `npm --prefix COO run build`
+- [proof-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4/proof-summary.md) shows `PASS` for authoritative bash runtime-preflight, Windows trampoline runtime-preflight, explicit install, post-install runtime-preflight, scripted launch preflight, KPI proof, and launcher help.
+- [06-kpi-proof.log](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4/06-kpi-proof.log) proves twelve launcher telemetry rows landed on the `proof` partition, required operations are all present, and the cmd trampoline runtime-preflight row exists.
 
 5. Feature Artifacts Updated
 
 - [README.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/README.md)
 - [context.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/context.md)
 - [implement-plan-contract.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-contract.md)
-- [implement-plan-brief.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-brief.md)
-- [implement-plan-state.json](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-state.json)
 - [completion-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md)
 - [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh)
+- [cycle-02/fix-plan.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-02/fix-plan.md)
+- [cycle-02/fix-report.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-02/fix-report.md)
+- [proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4)
 
-6. Commit And Push Result
+6. Commit And Push Truth
 
-- Commit: `546f453` `Implement runtime preflight and install split`
-- Closeout metadata commit: `50aec53` `Record runtime preflight closeout metadata`
-- Push: succeeded to `origin/main`
+- The original feature implementation commits `546f453`, `50aec53`, and `59dc2e5` are already ancestors of `main` and `origin/main`.
+- This cycle is a governed closeout-reconciliation pass, not a new merge-to-main pass.
+- Review-cycle state, not a fresh merge, is the authority for whether the cycle-02 remediation changes have completed git closeout.
 
 7. Remaining Non-Goals / Debt
 
-- Live positive proof for the supported bash route still needs to be executed from a real VS Code bash terminal with [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh).
-- Review-cycle still needs to audit the claimed route and either close the stream or surface additional route-level defects.
+- Review-cycle still needs a fresh approval pass against the updated proof bundle before the stream can be treated as fully closed.
+- No Brain transport redesign, launcher-mode expansion, or generic telemetry-platform rewrite is part of this slice.

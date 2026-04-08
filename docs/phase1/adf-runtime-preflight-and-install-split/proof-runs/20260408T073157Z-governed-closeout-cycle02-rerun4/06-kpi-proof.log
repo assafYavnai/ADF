@@ -1,0 +1,287 @@
+{
+  "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4",
+  "source_path_prefix": "ADF/launcher/",
+  "total_events": 12,
+  "partition_counts": [
+    {
+      "telemetry_partition": "proof",
+      "total_events": 12
+    }
+  ],
+  "operations": [
+    {
+      "operation": "launcher_runtime_preflight",
+      "total_events": 4,
+      "success_count": 4,
+      "failure_count": 0,
+      "route_stages": [
+        "route"
+      ],
+      "step_names": [
+        "runtime-preflight"
+      ]
+    },
+    {
+      "operation": "launcher_repair_step",
+      "total_events": 6,
+      "success_count": 6,
+      "failure_count": 0,
+      "route_stages": [
+        "repair"
+      ],
+      "step_names": [
+        "memory-engine repair",
+        "COO repair",
+        "install state"
+      ]
+    },
+    {
+      "operation": "launcher_install",
+      "total_events": 1,
+      "success_count": 1,
+      "failure_count": 0,
+      "route_stages": [
+        "route"
+      ],
+      "step_names": [
+        "install"
+      ]
+    },
+    {
+      "operation": "launcher_launch_preflight",
+      "total_events": 1,
+      "success_count": 1,
+      "failure_count": 0,
+      "route_stages": [
+        "route"
+      ],
+      "step_names": [
+        "launch-preflight"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "source_path": "ADF/launcher/launcher_runtime_preflight",
+      "operation": "launcher_runtime_preflight",
+      "latency_ms": 2606,
+      "success": true,
+      "created_at": "2026-04-08T07:32:00.409Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "runtime_preflight",
+      "route_stage": "route",
+      "step_name": "runtime-preflight",
+      "trace_id": "efb763f8-f48a-4206-ab5f-41af9ba512f1",
+      "result_status": "passed",
+      "runtime_entry_surface": "explicit_runtime_preflight",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_runtime_preflight",
+      "operation": "launcher_runtime_preflight",
+      "latency_ms": 2531,
+      "success": true,
+      "created_at": "2026-04-08T07:32:05.730Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "runtime_preflight",
+      "route_stage": "route",
+      "step_name": "runtime-preflight",
+      "trace_id": "d7543e16-ced9-4a06-b667-b0dd8191abec",
+      "result_status": "passed",
+      "runtime_entry_surface": "explicit_runtime_preflight",
+      "control_plane_kind": "windows-cmd-trampoline",
+      "entrypoint": "adf.cmd",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_repair_step",
+      "operation": "launcher_repair_step",
+      "latency_ms": 1735,
+      "success": true,
+      "created_at": "2026-04-08T07:32:12.286Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "install",
+      "route_stage": "repair",
+      "step_name": "memory-engine repair",
+      "trace_id": "6cc1c9a6-1b83-4cfb-aa26-141aada8acb7",
+      "result_status": "applied",
+      "runtime_entry_surface": "explicit_install",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_repair_step",
+      "operation": "launcher_repair_step",
+      "latency_ms": 2794,
+      "success": true,
+      "created_at": "2026-04-08T07:32:15.111Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "install",
+      "route_stage": "repair",
+      "step_name": "COO repair",
+      "trace_id": "6cc1c9a6-1b83-4cfb-aa26-141aada8acb7",
+      "result_status": "applied",
+      "runtime_entry_surface": "explicit_install",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_repair_step",
+      "operation": "launcher_repair_step",
+      "latency_ms": 604,
+      "success": true,
+      "created_at": "2026-04-08T07:32:18.604Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "install",
+      "route_stage": "repair",
+      "step_name": "install state",
+      "trace_id": "6cc1c9a6-1b83-4cfb-aa26-141aada8acb7",
+      "result_status": "applied",
+      "runtime_entry_surface": "explicit_install",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_runtime_preflight",
+      "operation": "launcher_runtime_preflight",
+      "latency_ms": 2586,
+      "success": true,
+      "created_at": "2026-04-08T07:32:23.727Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "runtime_preflight",
+      "route_stage": "route",
+      "step_name": "runtime-preflight",
+      "trace_id": "8639f063-2ea1-447e-b58e-5c17072136c7",
+      "result_status": "passed",
+      "runtime_entry_surface": "install_post_repair_verify",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_install",
+      "operation": "launcher_install",
+      "latency_ms": 17743,
+      "success": true,
+      "created_at": "2026-04-08T07:32:26.259Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "install",
+      "route_stage": "route",
+      "step_name": "install",
+      "trace_id": "6cc1c9a6-1b83-4cfb-aa26-141aada8acb7",
+      "result_status": "repaired_and_verified",
+      "runtime_entry_surface": "explicit_install",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_runtime_preflight",
+      "operation": "launcher_runtime_preflight",
+      "latency_ms": 2706,
+      "success": true,
+      "created_at": "2026-04-08T07:32:31.725Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "runtime_preflight",
+      "route_stage": "route",
+      "step_name": "runtime-preflight",
+      "trace_id": "462f47de-47d7-46e8-8449-f0d1eb80a367",
+      "result_status": "passed",
+      "runtime_entry_surface": "explicit_runtime_preflight",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_repair_step",
+      "operation": "launcher_repair_step",
+      "latency_ms": 1636,
+      "success": true,
+      "created_at": "2026-04-08T07:32:41.192Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "launch_preflight",
+      "route_stage": "repair",
+      "step_name": "memory-engine repair",
+      "trace_id": "f993a3d6-e045-4610-af7e-fc49d6571b40",
+      "result_status": "applied",
+      "runtime_entry_surface": "normal_launch_preflight",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_repair_step",
+      "operation": "launcher_repair_step",
+      "latency_ms": 2803,
+      "success": true,
+      "created_at": "2026-04-08T07:32:44.028Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "launch_preflight",
+      "route_stage": "repair",
+      "step_name": "COO repair",
+      "trace_id": "f993a3d6-e045-4610-af7e-fc49d6571b40",
+      "result_status": "applied",
+      "runtime_entry_surface": "normal_launch_preflight",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_repair_step",
+      "operation": "launcher_repair_step",
+      "latency_ms": 606,
+      "success": true,
+      "created_at": "2026-04-08T07:32:47.519Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "launch_preflight",
+      "route_stage": "repair",
+      "step_name": "install state",
+      "trace_id": "f993a3d6-e045-4610-af7e-fc49d6571b40",
+      "result_status": "applied",
+      "runtime_entry_surface": "normal_launch_preflight",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    },
+    {
+      "source_path": "ADF/launcher/launcher_launch_preflight",
+      "operation": "launcher_launch_preflight",
+      "latency_ms": 18114,
+      "success": true,
+      "created_at": "2026-04-08T07:32:52.685Z",
+      "telemetry_partition": "proof",
+      "workflow": "adf_launcher",
+      "route_name": "launch_preflight",
+      "route_stage": "route",
+      "step_name": "launch-preflight",
+      "trace_id": "f993a3d6-e045-4610-af7e-fc49d6571b40",
+      "result_status": "repaired_pass",
+      "runtime_entry_surface": "normal_launch_preflight",
+      "control_plane_kind": "direct-bash",
+      "entrypoint": "adf.sh",
+      "proof_run_id": "20260408T073157Z-governed-closeout-cycle02-rerun4"
+    }
+  ],
+  "validation": {
+    "has_proof_rows": true,
+    "missing_required_operations": [],
+    "has_cmd_trampoline_runtime_preflight": true,
+    "valid": true
+  }
+}

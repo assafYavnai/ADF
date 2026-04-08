@@ -10,12 +10,18 @@ COO_DIR="$REPO_ROOT/COO"
 DOCTOR_AUDIT_SCRIPT="$REPO_ROOT/tools/doctor-brain-audit.mjs"
 DOCTOR_SMOKE_SCRIPT="$REPO_ROOT/tools/doctor-brain-connect-smoke.mjs"
 RUNTIME_PREFLIGHT_SCRIPT="$REPO_ROOT/tools/agent-runtime-preflight.mjs"
+LAUNCHER_TELEMETRY_SCRIPT="$REPO_ROOT/tools/launcher-route-telemetry.mjs"
 DOCTOR_INCIDENT_DIR="$REPO_ROOT/memory/doctor-incidents"
 INSTALL_STATE_PATH="$REPO_ROOT/.codex/runtime/install-state.json"
 TMP_DIR="$REPO_ROOT/tmp"
 DEFAULT_SCOPE="assafyavnai/adf"
 DOCTOR_AUDIT_SCOPE="assafyavnai/adf"
 FIELD_SEP=$'\x1f'
+ACTIVE_LAUNCHER_TRACE_ID=""
+ACTIVE_LAUNCHER_ROUTE_NAME=""
+ACTIVE_LAUNCHER_ENTRY_SURFACE=""
+ACTIVE_LAUNCHER_ENTRYPOINT=""
+ACTIVE_LAUNCHER_CONTROL_PLANE_KIND=""
 
 if [[ ! -f "$MEMORY_ENGINE_DIR/package.json" ]]; then
   echo "FATAL: Cannot find components/memory-engine/package.json under $REPO_ROOT"
@@ -294,12 +300,124 @@ iso_now() {
   node -e "console.log(new Date().toISOString())"
 }
 
+epoch_ms_now() {
+  node -e "process.stdout.write(String(Date.now()))"
+}
+
+elapsed_ms_between() {
+  node -e "const start = Number(process.argv[1]); const end = Number(process.argv[2]); const diff = Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, end - start) : 0; process.stdout.write(String(diff));" "$1" "$2"
+}
+
 new_uuid() {
   node -e "console.log(require('node:crypto').randomUUID())"
 }
 
 json_string() {
   node -e "process.stdout.write(JSON.stringify(process.argv[1] ?? ''))" "$1"
+}
+
+set_active_launcher_repair_context() {
+  ACTIVE_LAUNCHER_TRACE_ID="$1"
+  ACTIVE_LAUNCHER_ROUTE_NAME="$2"
+  ACTIVE_LAUNCHER_ENTRY_SURFACE="$3"
+  ACTIVE_LAUNCHER_ENTRYPOINT="$4"
+  ACTIVE_LAUNCHER_CONTROL_PLANE_KIND="$5"
+}
+
+clear_active_launcher_repair_context() {
+  ACTIVE_LAUNCHER_TRACE_ID=""
+  ACTIVE_LAUNCHER_ROUTE_NAME=""
+  ACTIVE_LAUNCHER_ENTRY_SURFACE=""
+  ACTIVE_LAUNCHER_ENTRYPOINT=""
+  ACTIVE_LAUNCHER_CONTROL_PLANE_KIND=""
+}
+
+emit_launcher_route_metric() {
+  local trace_id="$1"
+  local route_name="$2"
+  local entry_surface="$3"
+  local entrypoint="$4"
+  local control_plane_kind="$5"
+  local operation="$6"
+  local success="$7"
+  local latency_ms="$8"
+  local route_stage="$9"
+  local step_name="${10:-}"
+  local result_status="${11:-}"
+  local error_class="${12:-}"
+  local error_message="${13:-}"
+
+  if [[ ! -f "$LAUNCHER_TELEMETRY_SCRIPT" ]]; then
+    return 0
+  fi
+
+  if ! command -v node >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local -a telemetry_args
+  telemetry_args=(
+    "$LAUNCHER_TELEMETRY_SCRIPT"
+    --repo-root "$REPO_ROOT"
+    --operation "$operation"
+    --success "$success"
+    --latency-ms "$latency_ms"
+    --trace-id "$trace_id"
+    --route-name "$route_name"
+    --entry-surface "$entry_surface"
+    --entrypoint "$entrypoint"
+    --control-plane-kind "$control_plane_kind"
+    --route-stage "$route_stage"
+    --step-name "$step_name"
+    --result-status "$result_status"
+  )
+
+  if [[ -n "$error_class" ]]; then
+    telemetry_args+=(--error-class "$error_class")
+  fi
+
+  if [[ -n "$error_message" ]]; then
+    telemetry_args+=(--error-message "$error_message")
+  fi
+
+  node "${telemetry_args[@]}" >/dev/null 2>&1 || true
+}
+
+emit_active_launcher_repair_metric() {
+  local status="$1"
+  local name="$2"
+  local detail="$3"
+  local started_at_ms="$4"
+  local completed_at_ms="$5"
+
+  if [[ -z "$ACTIVE_LAUNCHER_TRACE_ID" || -z "$ACTIVE_LAUNCHER_ROUTE_NAME" ]]; then
+    return 0
+  fi
+
+  local success="false"
+  local result_status="failed"
+  local error_class="repair_failed"
+
+  if [[ "$status" == "applied" ]]; then
+    success="true"
+    result_status="applied"
+    error_class=""
+  fi
+
+  emit_launcher_route_metric \
+    "$ACTIVE_LAUNCHER_TRACE_ID" \
+    "$ACTIVE_LAUNCHER_ROUTE_NAME" \
+    "$ACTIVE_LAUNCHER_ENTRY_SURFACE" \
+    "$ACTIVE_LAUNCHER_ENTRYPOINT" \
+    "$ACTIVE_LAUNCHER_CONTROL_PLANE_KIND" \
+    "launcher_repair_step" \
+    "$success" \
+    "$(elapsed_ms_between "$started_at_ms" "$completed_at_ms")" \
+    "repair" \
+    "$name" \
+    "$result_status" \
+    "$error_class" \
+    "$detail"
 }
 
 write_install_state() {
@@ -363,9 +481,21 @@ add_repair() {
   local detail="$3"
   local started_at="$4"
   local completed_at="$5"
+  local started_at_ms
+  local completed_at_ms
+
+  started_at_ms="$(epoch_ms_now)"
+  completed_at_ms="$started_at_ms"
 
   DOCTOR_REPAIR_LINES+=("${status}${FIELD_SEP}${name}${FIELD_SEP}${detail}${FIELD_SEP}${started_at}${FIELD_SEP}${completed_at}")
   DOCTOR_REPAIRS_JSON+=("{\"Name\":$(json_string "$name"),\"Status\":$(json_string "$status"),\"Detail\":$(json_string "$detail"),\"StartedAt\":$(json_string "$started_at"),\"CompletedAt\":$(json_string "$completed_at")}")
+
+  if [[ -n "$started_at" && -n "$completed_at" ]]; then
+    started_at_ms="$(node -e "const value = Date.parse(process.argv[1]); process.stdout.write(String(Number.isFinite(value) ? value : Date.now()));" "$started_at")"
+    completed_at_ms="$(node -e "const value = Date.parse(process.argv[1]); process.stdout.write(String(Number.isFinite(value) ? value : Date.now()));" "$completed_at")"
+  fi
+
+  emit_active_launcher_repair_metric "$status" "$name" "$detail" "$started_at_ms" "$completed_at_ms"
 }
 
 json_array_from_name() {
@@ -647,14 +777,14 @@ print_repair_failures() {
 coo_repair_label() {
   local actions=()
   coo_needs_install && actions+=("install dependencies")
-  (coo_needs_build || [[ ! -f "$(coo_memory_engine_client_artifact)" ]]) && actions+=("build artifacts")
+  (needs_coo_build || [[ ! -f "$(coo_memory_engine_client_artifact)" ]]) && actions+=("build artifacts")
   printf 'COO: %s' "$(join_with_and "${actions[@]}")"
 }
 
 memory_engine_repair_label() {
   local actions=()
   memory_engine_needs_install && actions+=("install dependencies")
-  (memory_engine_needs_build || [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]]) && actions+=("build artifacts")
+  (needs_memory_engine_build || [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]]) && actions+=("build artifacts")
   printf 'memory-engine: %s' "$(join_with_and "${actions[@]}")"
 }
 
@@ -663,7 +793,7 @@ run_coo_repair_lane() {
     run_checked "$COO_DIR" "$NPM_CMD" install --no-fund --no-audit
   fi
 
-  if coo_needs_build || [[ ! -f "$(coo_memory_engine_client_artifact)" ]]; then
+  if needs_coo_build || [[ ! -f "$(coo_memory_engine_client_artifact)" ]]; then
     run_checked "$COO_DIR" "$NPM_CMD" run build
   fi
 }
@@ -673,7 +803,7 @@ run_memory_engine_repair_lane() {
     run_checked "$MEMORY_ENGINE_DIR" "$NPM_CMD" install --no-fund --no-audit
   fi
 
-  if memory_engine_needs_build || [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]]; then
+  if needs_memory_engine_build || [[ ! -f "$MEMORY_ENGINE_DIR/dist/server.js" ]]; then
     run_checked "$MEMORY_ENGINE_DIR" "$NPM_CMD" run build
   fi
 }
@@ -1071,6 +1201,14 @@ run_doctor() {
 }
 
 run_runtime_preflight_route() {
+  local entry_surface="${1:-explicit_runtime_preflight}"
+  local route_name="${2:-runtime_preflight}"
+  local trace_id
+  local route_started_ms
+  local route_entrypoint
+  local control_plane_kind
+  local status=0
+
   [[ -f "$RUNTIME_PREFLIGHT_SCRIPT" ]] || die "Runtime preflight script is missing: $RUNTIME_PREFLIGHT_SCRIPT"
   command -v node >/dev/null 2>&1 || die "node is not installed or not on PATH."
 
@@ -1080,9 +1218,48 @@ run_runtime_preflight_route() {
     args+=("--json")
   fi
 
+  trace_id="$(new_uuid)"
+  route_started_ms="$(epoch_ms_now)"
+  route_entrypoint="${ADF_ENTRYPOINT:-adf.sh}"
+  control_plane_kind="${ADF_CONTROL_PLANE_KIND:-direct-bash}"
+
+  set +e
   ADF_ENTRYPOINT="${ADF_ENTRYPOINT:-adf.sh}" \
   ADF_CONTROL_PLANE_KIND="${ADF_CONTROL_PLANE_KIND:-direct-bash}" \
   node "${args[@]}"
+  status=$?
+  set -e
+
+  if [[ $status -ne 0 ]]; then
+    emit_launcher_route_metric \
+      "$trace_id" \
+      "$route_name" \
+      "$entry_surface" \
+      "$route_entrypoint" \
+      "$control_plane_kind" \
+      "launcher_runtime_preflight" \
+      "false" \
+      "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+      "route" \
+      "runtime-preflight" \
+      "failed" \
+      "runtime_preflight_failed" \
+      "Runtime preflight exited with status $status."
+    return $status
+  fi
+
+  emit_launcher_route_metric \
+    "$trace_id" \
+    "$route_name" \
+    "$entry_surface" \
+    "$route_entrypoint" \
+    "$control_plane_kind" \
+    "launcher_runtime_preflight" \
+    "true" \
+    "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+    "route" \
+    "runtime-preflight" \
+    "passed"
 }
 
 assert_runtime_preflight() {
@@ -1114,23 +1291,104 @@ print_install_report() {
 }
 
 run_install_route() {
+  local trace_id
+  local route_started_ms
+  local route_entrypoint
+  local control_plane_kind
+  local post_install_status=0
+
+  trace_id="$(new_uuid)"
+  route_started_ms="$(epoch_ms_now)"
+  route_entrypoint="${ADF_ENTRYPOINT:-adf.sh}"
+  control_plane_kind="${ADF_CONTROL_PLANE_KIND:-direct-bash}"
+
+  set_active_launcher_repair_context "$trace_id" "install" "explicit_install" "$route_entrypoint" "$control_plane_kind"
   if ! run_auto_repair_flow; then
+    clear_active_launcher_repair_context
+    emit_launcher_route_metric \
+      "$trace_id" \
+      "install" \
+      "explicit_install" \
+      "$route_entrypoint" \
+      "$control_plane_kind" \
+      "launcher_install" \
+      "false" \
+      "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+      "route" \
+      "install" \
+      "repair_failed" \
+      "bounded_repair_failed" \
+      "Install/bootstrap repair failed."
     die "Install/bootstrap repair failed."
   fi
+  clear_active_launcher_repair_context
 
   echo "ADF install/bootstrap OK"
   echo ""
-  run_runtime_preflight_route
+  run_runtime_preflight_route "install_post_repair_verify" "runtime_preflight" || post_install_status=$?
+  if [[ $post_install_status -ne 0 ]]; then
+    emit_launcher_route_metric \
+      "$trace_id" \
+      "install" \
+      "explicit_install" \
+      "$route_entrypoint" \
+      "$control_plane_kind" \
+      "launcher_install" \
+      "false" \
+      "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+      "route" \
+      "install" \
+      "post_repair_runtime_preflight_failed" \
+      "post_install_runtime_preflight_failed" \
+      "Install/bootstrap post-repair runtime preflight failed."
+    return "$post_install_status"
+  fi
+
+  emit_launcher_route_metric \
+    "$trace_id" \
+    "install" \
+    "explicit_install" \
+    "$route_entrypoint" \
+    "$control_plane_kind" \
+    "launcher_install" \
+    "true" \
+    "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+    "route" \
+    "install" \
+    "repaired_and_verified"
 }
 
 run_launch_preflight() {
   local report_path="$TMP_DIR/launch-runtime-preflight-$$.json"
   local overall_status
+  local trace_id
+  local route_started_ms
+  local route_entrypoint
+  local control_plane_kind
+  local repair_performed=false
 
   mkdir -p "$TMP_DIR"
+  trace_id="$(new_uuid)"
+  route_started_ms="$(epoch_ms_now)"
+  route_entrypoint="${ADF_ENTRYPOINT:-adf.sh}"
+  control_plane_kind="${ADF_CONTROL_PLANE_KIND:-direct-bash}"
 
   if ! run_with_spinner "Running preflight checks..." capture_runtime_preflight_to_file "$report_path"; then
     if [[ ! -s "$report_path" ]]; then
+      emit_launcher_route_metric \
+        "$trace_id" \
+        "launch_preflight" \
+        "normal_launch_preflight" \
+        "$route_entrypoint" \
+        "$control_plane_kind" \
+        "launcher_launch_preflight" \
+        "false" \
+        "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+        "route" \
+        "launch-preflight" \
+        "runtime_preflight_crashed" \
+        "runtime_preflight_crashed" \
+        "Runtime preflight crashed before producing a report."
       die "Runtime preflight crashed before producing a report."
     fi
   fi
@@ -1139,20 +1397,64 @@ run_launch_preflight() {
 
   if [[ "$overall_status" != "fail" ]] && ! auto_repair_needed; then
     echo "ADF preflight OK"
+    emit_launcher_route_metric \
+      "$trace_id" \
+      "launch_preflight" \
+      "normal_launch_preflight" \
+      "$route_entrypoint" \
+      "$control_plane_kind" \
+      "launcher_launch_preflight" \
+      "true" \
+      "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+      "route" \
+      "launch-preflight" \
+      "clean_pass"
     rm -f "$report_path"
     return 0
   fi
 
   if auto_repair_needed; then
+    repair_performed=true
+    set_active_launcher_repair_context "$trace_id" "launch_preflight" "normal_launch_preflight" "$route_entrypoint" "$control_plane_kind"
     if ! run_auto_repair_flow; then
+      clear_active_launcher_repair_context
       echo ""
       print_repair_failures
+      emit_launcher_route_metric \
+        "$trace_id" \
+        "launch_preflight" \
+        "normal_launch_preflight" \
+        "$route_entrypoint" \
+        "$control_plane_kind" \
+        "launcher_launch_preflight" \
+        "false" \
+        "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+        "route" \
+        "launch-preflight" \
+        "repair_failed" \
+        "bounded_repair_failed" \
+        "Bounded launch repair failed."
       rm -f "$report_path"
       return 1
     fi
+    clear_active_launcher_repair_context
 
     if ! run_with_spinner "Running preflight checks..." capture_runtime_preflight_to_file "$report_path"; then
       if [[ ! -s "$report_path" ]]; then
+        emit_launcher_route_metric \
+          "$trace_id" \
+          "launch_preflight" \
+          "normal_launch_preflight" \
+          "$route_entrypoint" \
+          "$control_plane_kind" \
+          "launcher_launch_preflight" \
+          "false" \
+          "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+          "route" \
+          "launch-preflight" \
+          "runtime_preflight_crashed_after_repair" \
+          "runtime_preflight_crashed" \
+          "Runtime preflight crashed after bounded repair."
         die "Runtime preflight crashed after bounded repair."
       fi
     fi
@@ -1163,11 +1465,37 @@ run_launch_preflight() {
   if [[ "$overall_status" == "fail" ]]; then
     echo ""
     print_launch_blockers "$report_path"
+    emit_launcher_route_metric \
+      "$trace_id" \
+      "launch_preflight" \
+      "normal_launch_preflight" \
+      "$route_entrypoint" \
+      "$control_plane_kind" \
+      "launcher_launch_preflight" \
+      "false" \
+      "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+      "route" \
+      "launch-preflight" \
+      "$([[ "$repair_performed" == true ]] && printf 'blocked_after_repair' || printf 'blocked')" \
+      "runtime_preflight_blocked" \
+      "Launch preflight reported blocking failures."
     rm -f "$report_path"
     return 1
   fi
 
   echo "ADF preflight OK"
+  emit_launcher_route_metric \
+    "$trace_id" \
+    "launch_preflight" \
+    "normal_launch_preflight" \
+    "$route_entrypoint" \
+    "$control_plane_kind" \
+    "launcher_launch_preflight" \
+    "true" \
+    "$(elapsed_ms_between "$route_started_ms" "$(epoch_ms_now)")" \
+    "route" \
+    "launch-preflight" \
+    "$([[ "$repair_performed" == true ]] && printf 'repaired_pass' || printf 'clean_pass')"
   rm -f "$report_path"
 }
 

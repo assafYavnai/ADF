@@ -18,6 +18,7 @@ Implement a production-grade ADF launcher/bootstrap split that makes runtime det
 - Updated bootstrap docs in [cli-agent.md](/C:/ADF/docs/bootstrap/cli-agent.md), [vscode-agent.md](/C:/ADF/docs/bootstrap/vscode-agent.md), and [AGENTS.md](/C:/ADF/AGENTS.md).
 - Updated architecture truth in [architecture.md](/C:/ADF/docs/v0/architecture.md) if the launcher contract changes materially.
 - Proof-bearing tests or runnable proof artifacts that show the supported route and the split behavior.
+- Route-level KPI instrumentation plus proof-query support for explicit runtime-preflight, explicit install, bounded normal launch preflight, and their bounded repair substeps, unless a valid temporary exception keeps the route explicitly non-production.
 - Closeout with review-cycle handoff using `until_complete=true`.
 
 4. Allowed Edits
@@ -51,7 +52,9 @@ Implement a production-grade ADF launcher/bootstrap split that makes runtime det
 6. Doctor remains bounded repair plus fail-closed verification and does not become a hidden fallback route.
 7. CLI and VS Code bootstrap docs require the runtime preflight route before workflow execution.
 8. Tests or proof artifacts cover the supported route and the install/runtime split.
-9. The implementation is committed, pushed, and handed to review-cycle with `until_complete=true`.
+9. Live launcher-route KPI instrumentation and proof exist for explicit runtime-preflight, explicit install, bounded normal launch preflight, and their bounded repair substeps, with production and proof partitions kept durably separate.
+10. Any KPI exception carries explicit approval, owner, expiry, compensating control, and explicit non-production status; otherwise the route is not eligible for truthful closeout.
+11. The implementation is committed, pushed, and handed to review-cycle with `until_complete=true`.
 
 7. Observability / Audit
 
@@ -59,6 +62,9 @@ Implement a production-grade ADF launcher/bootstrap split that makes runtime det
 - Install/bootstrap, runtime-preflight, doctor, and normal launch routes must stay distinguishable in behavior and proof.
 - Claimed route, route mutated, and route proved must match in review-cycle artifacts.
 - Any runtime preflight JSON route must be stable enough for bootstrap consumption and test assertions.
+- Launcher-route KPI truth must come from durable route telemetry on the real launcher entrypoints, not from narrative-only closeout claims.
+- Production and proof telemetry partitions must remain separately queryable so proof rows never silently count as production truth.
+- Proof bundles for this slice must include both direct route logs and a proof-partition query keyed to the proof-run identifier.
 
 8. Dependencies / Constraints
 

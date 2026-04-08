@@ -1,0 +1,50 @@
+Marked launcher artifacts stale:
+- /c/ADF/COO/dist/COO/controller/cli.js
+- /c/ADF/COO/dist/COO/controller/memory-engine-client.js
+- /c/ADF/components/memory-engine/dist/server.js
+Repairing missing prerequisites...
+memory-engine: build artifacts ...
+COO: build artifacts ...
+memory-engine: build artifacts OK
+COO: build artifacts OK
+Recording install state...
+Recording install state... PASSED
+ADF install/bootstrap OK
+
+ADF runtime preflight
+
+[PASS] host OS
+  Detected windows.
+[PASS] workflow shell
+  ADF workflow shell is bash via /usr/bin/bash.
+[PASS] control-plane entrypoint
+  Runtime preflight was entered through adf.sh (direct-bash).
+[PASS] node
+  node is available via /c/Program Files/nodejs/node.
+[PASS] npm.cmd
+  npm.cmd is available via /c/Program Files/nodejs/npm.cmd.
+[PASS] npx.cmd
+  npx.cmd is available via /c/Program Files/nodejs/npx.cmd.
+[PASS] ripgrep
+  rg is available via /c/Users/sufin/AppData/Local/Microsoft/WinGet/Links/rg.
+[PASS] memory-engine dist
+  Found C:\ADF\components\memory-engine\dist\server.js.
+[PASS] MCP SDK client
+  Found C:\ADF\components\memory-engine\node_modules\@modelcontextprotocol\sdk\dist\esm\client\index.js.
+[PASS] COO tsx shim
+  Found C:\ADF\COO\node_modules\.bin\tsx.cmd.
+[PASS] PostgreSQL reachability
+  PostgreSQL is accepting connections on localhost:5432.
+[PASS] install state
+  Found C:\ADF\.codex\runtime\install-state.json.
+[PASS] Brain MCP route
+  Runtime preflight confirmed that the Brain MCP route artifacts are present. Full Brain verification is intentionally deferred to doctor.
+  Fix: Use ./adf.sh --doctor when you need full bash + Brain verification.
+
+Recommended commands
+- runtime preflight: ./adf.sh --runtime-preflight --json
+- install/bootstrap: ./adf.sh --install
+- doctor: ./adf.sh --doctor
+- launch: ./adf.sh [flags] [-- <COO args>]
+
+Next action: Runtime preflight passed. Launch through ./adf.sh [flags] [-- <COO args>].
