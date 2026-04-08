@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Hardened the governed implementation-review-merge-closeout route so merge and completion truth now fail closed on missing or stale approval evidence, split review verdicts cannot advance closeout truth, and dirty local target sync uses preserve-sync-restore instead of silent skip behavior.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final closeout reflects not run and merge commit aea98570b680eee0c842689bb64d1d8a7f9a6619.
 
 2. Deliverables Produced
 
@@ -10,6 +12,7 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 - structured restore-failure handling so `process-next` returns recovery evidence instead of hard-exiting
 - targeted proof for approval gates, preserve-sync-restore, and origin-refresh failure
 - workflow-contract and skill documentation updates for the governed route
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
 
 3. Files Changed And Why
 
@@ -23,11 +26,12 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 4. Verification Evidence
 
 - Machine Verification: passed
+- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.
 - Human Verification Requirement: not required
 - Human Verification Status: not required
 - Review-Cycle Status: not run
-- Merge Status: pending
-- Local Target Sync Status: pending
+- Merge Status: merged via merge-queue (merge commit aea98570b680eee0c842689bb64d1d8a7f9a6619)
+- Local Target Sync Status: preserve_restore_succeeded
 
 5. Feature Artifacts Updated
 
@@ -35,10 +39,17 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 - `completion-summary.md`
 - workflow-contract references for `implement-plan` and `merge-queue`
 - targeted test artifacts covering the new route guards
+- `docs/phase1/governed-approval-gates-and-local-sync-hardening/completion-summary.md`
+- `docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-state.json`
+- `docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/`
 
 6. Commit And Push Result
 
-Committed and pushed on `implement-plan/phase1/governed-approval-gates-and-local-sync-hardening` as `3cd2084`.
+- Approved feature commit: 3cd2084e2dfdea8dfc5bb6d63334f1818925583d
+- Merge commit: aea98570b680eee0c842689bb64d1d8a7f9a6619
+- Final closeout commit: 47fbeec113fb380728ac55266becfaec3185a6d4
+- Push: success to origin/main
+- Closeout note: Merged via merge-queue after preserve/sync/restore local main reconciliation.
 
 7. Remaining Non-Goals / Debt
 
