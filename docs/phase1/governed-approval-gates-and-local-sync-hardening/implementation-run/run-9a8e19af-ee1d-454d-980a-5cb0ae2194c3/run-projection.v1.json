@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/governed-approval-gates-and-local-sync-hardening",
   "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
   "run_mode": "normal",
-  "updated_at": "2026-04-08T18:04:46.584Z",
+  "updated_at": "2026-04-08T18:39:57.474Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
@@ -14,10 +14,10 @@
   "run": {
     "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
     "run_mode": "normal",
-    "lifecycle_status": "completed",
-    "terminal_status": "completed",
+    "lifecycle_status": "active",
+    "terminal_status": null,
     "contract_schema_version": 1,
-    "contract_revision": 10,
+    "contract_revision": 14,
     "feature_contract_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/run-projection.v1.json",
@@ -37,18 +37,18 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "completed",
-        "terminal_status": "completed",
+        "status": "ready_for_implementation",
+        "terminal_status": null,
         "started_at": "2026-04-08T15:50:04.730Z",
-        "updated_at": "2026-04-08T18:04:46.574Z",
+        "updated_at": "2026-04-08T18:39:57.468Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
           "step": "merge_queue",
-          "status": "completed",
-          "reason": "Merged via merge-queue after preserve/sync/restore local main reconciliation.",
-          "updated_at": "2026-04-08T18:04:46.575Z"
+          "status": "ready",
+          "reason": "Resume from the last truthful normal-mode checkpoint.",
+          "updated_at": "2026-04-08T18:39:57.468Z"
         },
         "step_status": {
           "implementation": {
@@ -122,15 +122,15 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-08T18:04:46.575Z",
-        "last_event_at": "2026-04-08T18:04:46.574Z"
+        "last_checkpoint_at": "2026-04-08T18:39:57.468Z",
+        "last_event_at": "2026-04-08T18:39:57.468Z"
       }
     },
     "created_at": "2026-04-08T15:50:04.730Z",
-    "updated_at": "2026-04-08T18:04:46.583Z",
-    "last_event_at": "2026-04-08T18:04:46.574Z",
+    "updated_at": "2026-04-08T18:39:57.474Z",
+    "last_event_at": "2026-04-08T18:39:57.468Z",
     "kpi_projection": {
-      "terminal_status": "completed",
+      "terminal_status": null,
       "per_step_timing": {
         "implementation": {
           "status": "not_started",
