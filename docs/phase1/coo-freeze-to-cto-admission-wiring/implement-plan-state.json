@@ -8,7 +8,7 @@
   "implementor_execution_access_mode": null,
   "implementor_execution_runtime": "codex_cli_exec",
   "implementor_model": "gpt-5.4",
-  "implementor_reasoning_effort": "xhigh",
+  "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": "codex_cli_explicit_full_auto",
   "resolved_runtime_capabilities": {
     "native_agent_spawning_available": false,
@@ -32,19 +32,38 @@
   "approved_commit_sha": "597f32c1afcfc53bb16b06c5aa4c313d8bde3bf1",
   "merge_commit_sha": "c978b84464a812e6f8a63c3427cde578fbfce5dc",
   "merge_queue_request_id": "merge-main-1-coo-freeze-to-cto-admission-wiring-1775322170183",
-  "local_target_sync_status": "skipped_dirty_checkout",
+  "local_target_sync_status": "fast_forwarded",
   "last_completed_step": "marked_complete",
-  "last_commit_sha": "c978b84464a812e6f8a63c3427cde578fbfce5dc",
+  "last_commit_sha": "80c5ccb",
   "active_run_status": "completed",
   "created_at": "2026-04-03T15:33:10.397Z",
-  "updated_at": "2026-04-04T17:03:01.700Z",
+  "updated_at": "2026-04-08T09:06:33.469Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-03T15:33:10.427Z",
-    "integrity_failed_at": "2026-04-03T15:35:00.134Z",
     "worktree_prepared_at": "2026-04-03T15:35:25.498Z",
-    "closeout_finished_at": "2026-04-04T17:03:01.700Z"
+    "integrity_passed_at": null,
+    "integrity_failed_at": "2026-04-03T15:35:00.134Z",
+    "brief_written_at": null,
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": null,
+    "review_requested_at": null,
+    "human_verification_requested_at": null,
+    "merge_started_at": null,
+    "merge_finished_at": "2026-04-04T17:03:01.700Z",
+    "closeout_finished_at": "2026-04-08T09:06:33.467Z"
   },
-  "event_log": [],
+  "event_log": [
+    {
+      "event_id": "event-038ab4c7-1aa3-4a83-b4f5-839bdcd41b8b",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T09:06:33.469Z",
+      "note": null
+    }
+  ],
   "artifacts": {
     "readme_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/README.md",
     "context_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/context.md",
@@ -54,7 +73,191 @@
     "brief_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implement-plan-brief.md",
     "completion_summary_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md",
     "implementation_run_dir": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implementation-run",
-    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-freeze-to-cto-admission-wiring"
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-freeze-to-cto-admission-wiring",
+    "execution_contract_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implementation-run/legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implementation-run/legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z/run-projection.v1.json"
   },
-  "last_error": "Merged via merge-queue after approval."
+  "last_error": "Governed closeout completed after cycle-02 review approval. Both auditor and reviewer approved.",
+  "state_schema_version": 2,
+  "implementor_provider": null,
+  "current_run_id": "legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z",
+      "benchmarking": null
+    },
+    "runs": {
+      "legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z": {
+        "run_id": "legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z",
+        "run_mode": "normal",
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
+        "contract_schema_version": 1,
+        "contract_revision": 1,
+        "feature_contract_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implementation-run/legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implementation-run/legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/coo-freeze-to-cto-admission-wiring/implementation-run/legacy-normal-phase1-coo-freeze-to-cto-admission-wiring-2026-04-03T15-33-10.397Z",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [
+          "implementor/default"
+        ],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "completed",
+            "terminal_status": "completed",
+            "started_at": "2026-04-03T15:33:10.397Z",
+            "updated_at": "2026-04-08T09:06:33.469Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "merge_queue",
+              "status": "completed",
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-08T09:06:33.469Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "machine_verification": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "completed",
+                "started_at": null,
+                "completed_at": "2026-04-04T17:03:01.700Z",
+                "duration_seconds": null,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 0,
+            "self_fix_cycle_count": 0,
+            "blockers": [],
+            "worker_bindings": {
+              "implementor/default": {
+                "worker_id": "implementor/default",
+                "lane_id": null,
+                "role": "implementor",
+                "provider": null,
+                "runtime": "codex_cli_exec",
+                "model": "gpt-5.4",
+                "reasoning_effort": null,
+                "access_mode": null,
+                "execution_id": null,
+                "bound_at": "2026-04-08T09:06:33.467Z",
+                "selection_source": {
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
+                },
+                "recreated_due_to_access": false
+              }
+            },
+            "last_checkpoint_at": "2026-04-08T09:06:33.469Z",
+            "last_event_at": "2026-04-08T09:06:33.469Z"
+          }
+        },
+        "created_at": "2026-04-03T15:33:10.397Z",
+        "updated_at": "2026-04-08T09:06:33.474Z",
+        "last_event_at": "2026-04-08T09:06:33.469Z",
+        "kpi_projection": {
+          "terminal_status": "completed",
+          "per_step_timing": {
+            "implementation": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "machine_verification": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "review_cycle": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "completed",
+              "started_at": null,
+              "completed_at": "2026-04-04T17:03:01.700Z",
+              "duration_seconds": null
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 0,
+          "self_fix_cycle_count": 0,
+          "blocker_history": []
+        }
+      }
+    }
+  },
+  "__gsw_revision": 1,
+  "__gsw_write_id": "gsw-315e0028-735a-425d-887b-e4b38e74c579",
+  "__gsw_timestamp": "2026-04-08T09:06:33.475Z"
 }
