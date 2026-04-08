@@ -1,21 +1,22 @@
 1. Implementation Objective
 
-Restore a build-clean COO runtime by fixing the onion live telemetry contract drift around CTO-admission persistence fields without changing the intended freeze-to-admission behavior.
+Truthfully close this slice by verifying that the onion live telemetry contract drift has already been repaired on current `main` and by recording the governed proof and completion artifacts without changing the intended freeze-to-admission behavior.
 
 2. Slice Scope
 
-- `COO/requirements-gathering/live/**` for the live onion telemetry and persistence path
-- `COO/requirements-gathering/contracts/**` for the declared telemetry and persistence contract shape
-- `COO/cto-admission/**` only if a minimal additive contract alignment is strictly required
+- verification of `COO/requirements-gathering/live/**` for the live onion telemetry and persistence path
+- verification of `COO/requirements-gathering/contracts/**` for the declared telemetry and persistence contract shape
+- `COO/cto-admission/**` only if current verification proves a minimal additive contract alignment is still required
 - tightly scoped tests for the onion and CTO-admission handoff path
-- `docs/phase1/coo-onion-telemetry-contract-fix/**` for contract, context, and completion artifacts
+- `docs/phase1/coo-onion-telemetry-contract-fix/**` for contract, context, brief, and completion artifacts
 
 3. Required Deliverables
 
 - one truthful telemetry and persistence contract shape for the onion live handoff path
 - a clean `COO` build on current `main` semantics
-- targeted tests or proof updates if needed
+- targeted tests or proof updates showing the current route truthfully
 - `context.md`
+- `implement-plan-brief.md`
 - `completion-summary.md`
 
 4. Allowed Edits
@@ -40,6 +41,7 @@ Restore a build-clean COO runtime by fixing the onion live telemetry contract dr
 2. The onion live telemetry path no longer emits unsupported top-level fields.
 3. CTO-admission persistence fields remain visible in the correct nested location.
 4. Targeted onion and CTO-admission proof remains truthful.
+5. No new COO code changes are introduced unless verification shows the regression is still live.
 
 ## KPI Applicability
 
@@ -54,12 +56,14 @@ Master-Plan Compatibility: Keeps the current implementation lane buildable and p
 Current Gap-Closure Compatibility: Supports Gap B by restoring build cleanliness on the live CTO-admission seam that already exists in code.
 Later-Company Check: no
 Compatibility Decision: compatible
-Compatibility Evidence: The freeze-to-admission seam exists and tests pass, but current `main` still fails the `COO` build because the live telemetry emitter drifted from the declared contract. This slice repairs that regression without widening scope.
+Compatibility Evidence: The freeze-to-admission seam exists and the original telemetry drift has already been repaired on `main` by commit `42bf725a04c96f0b89fcf1a1e591cff0f72d6abb`. This slice is now the bounded governed closeout that verifies the already-landed repair and records it truthfully without widening scope.
 
 ## Machine Verification Plan
 
 - run `npm.cmd run build` in `C:/ADF/COO`
 - run targeted tests for the onion and CTO-admission handoff path
+- run a direct emitter proof that the live telemetry sample block contains nested `cto_admission_*` fields and no top-level `ctoAdmissionState` field
+- run `git show 42bf725a04c96f0b89fcf1a1e591cff0f72d6abb -- COO/requirements-gathering/live/onion-live.ts`
 - run `git diff --check` on the changed source set
 
 ## Human Verification Plan
@@ -77,7 +81,7 @@ Compatibility Evidence: The freeze-to-admission seam exists and tests pass, but 
 
 - preserve the current freeze-to-admission behavior
 - keep the fix inside the telemetry and persistence contract boundary
-- prefer the smallest truthful contract repair that restores build cleanliness
+- prefer no new COO code changes unless current verification shows the regression is still live
 
 9. Non-Goals
 
@@ -108,7 +112,7 @@ Compatibility Evidence: The freeze-to-admission seam exists and tests pass, but 
 
 12. Closeout Rules
 
-- run machine verification before review handoff
-- use review-cycle after implementation
-- keep the slice tightly bounded to the contract repair
-- do not mark complete until review closure and merge-queue closeout succeed truthfully
+- run machine verification before any completion closeout
+- do not run review-cycle unless current verification disproves the already-landed repair and forces a real implementation change
+- keep the slice tightly bounded to verification and truthful documentation of the contract repair
+- do not mark complete until merge-queue lands the docs-only closeout commit and implement-plan records merge truthfully

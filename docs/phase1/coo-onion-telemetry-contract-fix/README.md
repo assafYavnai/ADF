@@ -4,25 +4,25 @@
 C:/ADF/docs/phase1/coo-onion-telemetry-contract-fix/README.md
 
 ## Feature Goal
-Restore a build-clean COO runtime by fixing the onion live telemetry contract drift around CTO-admission persistence fields without changing the intended freeze-to-admission behavior.
+Truthfully close the telemetry-contract slice by verifying that the onion live handoff no longer emits the unsupported top-level CTO-admission field and by recording the already-landed repair without changing the intended freeze-to-admission behavior.
 
 ## Why This Slice Exists Now
 
-- current `main` fails the `COO` TypeScript build because onion live telemetry emits a top-level `ctoAdmissionState` field that is not part of the declared telemetry contract
-- the regression sits on a core Phase 1 path that should already be stable after the freeze-to-admission wiring work
-- tests are green, but the branch is not releasable while the build stays broken
+- this slice was opened when the onion live telemetry path appeared to drift from the declared CTO-admission contract
+- current `main` no longer reproduces that failure: commit `42bf725a04c96f0b89fcf1a1e591cff0f72d6abb` already removed the unsupported top-level emitter field while closing `adf-runtime-preflight-and-install-split`
+- the remaining governed work is to verify the already-landed repair, record the proof truthfully, and close this slice without reintroducing duplicate transport fields
 
 ## Requested Scope
 
-Keep this slice tightly focused on the onion live telemetry contract and the minimum proof needed to reestablish build truth.
+Keep this slice tightly focused on the onion live telemetry contract and the minimum proof needed to close the slice truthfully.
 
 This slice must:
 
-- align `COO/requirements-gathering/live/onion-live.ts` with the declared telemetry and persistence contract
-- keep CTO-admission persistence fields in one truthful location instead of duplicating them across transport shapes
+- verify that `COO/requirements-gathering/live/onion-live.ts` now matches the declared telemetry and persistence contract
+- confirm CTO-admission persistence fields remain in the nested truthful location instead of a duplicate top-level transport field
 - preserve the intended freeze-to-admission behavior and persistence receipts
-- add or update targeted tests if the contract fix is not already sufficiently covered
-- prove that `COO` builds cleanly again
+- add code changes only if current verification disproves the already-landed repair
+- record the proof that `COO` builds cleanly on current `main`
 
 ## Allowed Edits
 
@@ -44,9 +44,10 @@ This slice must:
 
 - one truthful telemetry and persistence contract shape for the onion live handoff path
 - a clean `COO` build on current `main` semantics
-- targeted tests or proof updates if needed
+- targeted tests or proof updates showing the current route truthfully
 - context.md
 - implement-plan-contract.md
+- implement-plan-brief.md
 - completion-summary.md
 
 ## Acceptance Gates
@@ -55,6 +56,7 @@ This slice must:
 - the onion live telemetry path no longer emits unsupported top-level fields
 - CTO-admission persistence fields remain visible in the correct nested location
 - targeted onion and CTO-admission proof remains truthful
+- no new COO code changes are introduced unless verification shows the regression is still live
 
 ## Machine Verification Plan
 
