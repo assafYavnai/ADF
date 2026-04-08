@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "contract_kind": "implement-plan-execution",
-  "contract_revision": 12,
-  "prepared_at": "2026-04-08T18:17:13.136Z",
+  "contract_revision": 14,
+  "prepared_at": "2026-04-08T18:37:05.796Z",
   "feature_identity": {
     "project_root": "C:/ADF",
     "phase_number": 1,
@@ -45,8 +45,8 @@
     },
     "overrides": {
       "provider": "codex",
-      "runtime": "codex_cli_exec",
-      "access_mode": "codex_cli_full_auto_bypass",
+      "runtime": null,
+      "access_mode": null,
       "model": "gpt-5.3-codex-spark",
       "reasoning_effort": null
     },
@@ -59,8 +59,8 @@
     },
     "resolved_sources": {
       "provider": "explicit_override",
-      "runtime": "explicit_override",
-      "access_mode": "explicit_override",
+      "runtime": "persisted_continuity",
+      "access_mode": "persisted_continuity",
       "model": "explicit_override",
       "reasoning_effort": "unsupported_for_resolved_worker"
     },
@@ -88,7 +88,7 @@
     "normal_mode_shortcuts_allowed": false
   },
   "review_handoff": {
-    "post_send_to_review": true,
+    "post_send_to_review": false,
     "review_until_complete": false,
     "review_max_cycles": null,
     "review_required_by_human_plan": false
@@ -106,10 +106,10 @@
     "reuse_cached_workers_when_valid": true,
     "recreate_workers_when_invalid": true,
     "last_truthful_checkpoint": {
-      "step": "machine_verification",
-      "status": "completed",
+      "step": "implementation",
+      "status": "ready",
       "reason": "Resume from the last truthful normal-mode checkpoint.",
-      "updated_at": "2026-04-08T18:16:56.846Z"
+      "updated_at": "2026-04-08T18:37:05.796Z"
     }
   },
   "reset_policy": {
@@ -127,11 +127,9 @@
     "terminal_status_enabled": true
   },
   "integrity": {
-    "blocking_issue_count": 1,
-    "blocking_issue_classes": [
-      "authority-freeze-divergence"
-    ],
-    "next_safe_move": "write pushback and stop"
+    "blocking_issue_count": 0,
+    "blocking_issue_classes": [],
+    "next_safe_move": "proceed to implementor brief"
   },
   "artifacts": {
     "state_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json",
