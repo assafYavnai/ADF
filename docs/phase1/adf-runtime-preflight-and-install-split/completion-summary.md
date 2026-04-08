@@ -1,6 +1,8 @@
 1. Objective Completed
 
 Implemented the launcher/bootstrap split and then closed the governed closeout gaps exposed by review-cycle: explicit install/bootstrap and bounded launch repair now rebuild stale existing artifacts truthfully, the Windows trampoline proof route now fails closed unless it captures real runtime-preflight JSON, Windows cmd-trampoline install and launch are now durably proved, and launcher-route KPI proof now fails closed on the live startup surfaces claimed by this slice.
+- Repo-owned completion truth now matches the approved review and merged feature lifecycle.
+- Final approved review now comes from cycle-04: the rerun auditor delta pass approved, then the carried-forward reviewer lane approved the required final `regression_sanity` pass on April 8, 2026.
 
 2. Deliverables Produced
 
@@ -12,6 +14,8 @@ Implemented the launcher/bootstrap split and then closed the governed closeout g
 - Shared fail-closed validator logic in [launcher-route-telemetry-proof-lib.mjs](/C:/ADF/tools/launcher-route-telemetry-proof-lib.mjs) plus targeted regression coverage in [launcher-route-telemetry-proof.test.mjs](/C:/ADF/tools/launcher-route-telemetry-proof.test.mjs)
 - Hardened governed proof runner in [run-proof-sequence.sh](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/run-proof-sequence.sh) that validates cmd JSON, proves cmd install and launch, forces stale-artifact repair proof, and captures proof-partition KPI evidence
 - Refreshed governed proof bundles under [proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4) and [proof-runs/20260408T080127Z-cycle03-cmd-frontdoor](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T080127Z-cycle03-cmd-frontdoor)
+- Reconciled the repo-owned completion artifacts to canonical main-root paths and merged closeout truth.
+- Final review-only approval artifacts under [cycle-04](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04) that closed the split verdict without further code changes.
 
 3. Files Changed And Why
 
@@ -21,6 +25,7 @@ Implemented the launcher/bootstrap split and then closed the governed closeout g
 - [launcher-route-telemetry-proof-lib.mjs](/C:/ADF/tools/launcher-route-telemetry-proof-lib.mjs), [launcher-route-telemetry-proof.mjs](/C:/ADF/tools/launcher-route-telemetry-proof.mjs), and [launcher-route-telemetry-proof.test.mjs](/C:/ADF/tools/launcher-route-telemetry-proof.test.mjs): now validate direct-bash and cmd-front-door route coverage, reject mixed partitions, and reject missing repair-step coverage.
 - [onion-live.ts](/C:/ADF/COO/requirements-gathering/live/onion-live.ts): removed a duplicate telemetry field that was blocking a truthful COO rebuild during stale-artifact proof.
 - [implement-plan-contract.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-contract.md) and [completion-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md): updated the authoritative contract and closeout summary to match the live proof and KPI rule.
+- [cycle-04/audit-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/audit-findings.md), [cycle-04/review-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/review-findings.md), and [cycle-04/fix-report.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/fix-report.md): record the review-only approval closeout that cleared the split verdict.
 
 4. Verification Evidence
 
@@ -36,6 +41,12 @@ Implemented the launcher/bootstrap split and then closed the governed closeout g
 - [06-kpi-proof.log](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T073157Z-governed-closeout-cycle02-rerun4/06-kpi-proof.log) proves twelve launcher telemetry rows landed on the `proof` partition, required operations are all present, and the cmd trampoline runtime-preflight row exists.
 - [proof-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T080127Z-cycle03-cmd-frontdoor/proof-summary.md) shows `PASS` for cmd install, cmd launch-preflight, and the stricter KPI proof step.
 - [08-kpi-proof.log](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T080127Z-cycle03-cmd-frontdoor/08-kpi-proof.log) proves proof-only partitions, direct-bash and cmd-front-door route coverage, and complete repair-step coverage for install and launch-preflight.
+- [cycle-04/audit-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/audit-findings.md) and [cycle-04/review-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/review-findings.md) both ended `Final Verdict: APPROVED`.
+- `node tools/launcher-route-telemetry-proof.test.mjs` passed during the cycle-04 closeout pass.
+- `node tools/launcher-route-telemetry-proof.mjs --repo-root C:/ADF --proof-run-id 20260408T080127Z-cycle03-cmd-frontdoor --expect-cmd-frontdoor true` passed during the cycle-04 closeout pass.
+- `adf.cmd --runtime-preflight --json` passed during the cycle-04 closeout pass and still reported `control_plane.kind=windows-cmd-trampoline` with `entrypoint=adf.cmd`.
+- Merge Status: the feature code and cycle-03 remediation commit `91d9919` were already on `main` and `origin/main` before the cycle-04 review-only closeout artifacts were created.
+- Local Target Sync Status: `git rev-list --left-right --count origin/main...HEAD` returned `0 0` before cycle-04 closeout artifacts were staged.
 
 5. Feature Artifacts Updated
 
@@ -50,14 +61,19 @@ Implemented the launcher/bootstrap split and then closed the governed closeout g
 - [cycle-03/fix-plan.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-03/fix-plan.md)
 - [cycle-03/fix-report.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-03/fix-report.md)
 - [proof-runs/20260408T080127Z-cycle03-cmd-frontdoor](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/20260408T080127Z-cycle03-cmd-frontdoor)
+- [cycle-04/audit-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/audit-findings.md)
+- [cycle-04/review-findings.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/review-findings.md)
+- [cycle-04/fix-report.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/cycle-04/fix-report.md)
+- [completion-summary.md](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/completion-summary.md)
+- [implement-plan-state.json](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implement-plan-state.json)
+- [implementation-run](/C:/ADF/docs/phase1/adf-runtime-preflight-and-install-split/implementation-run)
 
-6. Commit And Push Truth
+6. Commit And Push Result
 
-- The original feature implementation commits `546f453`, `50aec53`, and `59dc2e5` are already ancestors of `main` and `origin/main`.
-- This cycle is a governed closeout-reconciliation pass, not a new merge-to-main pass.
-- Review-cycle state, not a fresh merge, is the authority for whether the cycle-02 remediation changes have completed git closeout.
+- The feature code and review-cycle remediation are already merged and pushed on `main` / `origin/main`; cycle-04 is a review-only approval closeout, not a new feature merge.
+- The final approval closeout commit for cycle-04 will contain review artifacts, repo-owned state, and completion-summary normalization only.
 
 7. Remaining Non-Goals / Debt
 
-- Review-cycle still needs the split-verdict follow-up passes against the updated proof bundle before the stream can be treated as fully closed.
+- No launcher-route defect remains open in review-cycle after the cycle-04 auditor approval and final reviewer regression-sanity approval.
 - No Brain transport redesign, launcher-mode expansion, or generic telemetry-platform rewrite is part of this slice.
