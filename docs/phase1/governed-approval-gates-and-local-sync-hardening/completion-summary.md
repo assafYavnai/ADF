@@ -2,7 +2,7 @@
 
 Hardened the governed implementation-review-merge-closeout route so merge and completion truth now fail closed on missing or stale approval evidence, split review verdicts cannot advance closeout truth, and dirty local target sync uses preserve-sync-restore instead of silent skip behavior.
 - Repo-owned completion truth now matches the approved review and merged feature lifecycle.
-- Final closeout reflects not run and merge commit aea98570b680eee0c842689bb64d1d8a7f9a6619.
+- Final closeout reflects not run and merge commit ab2f68e565bb03e19a3c084400dbfeaf9fa7ef5c.
 
 2. Deliverables Produced
 
@@ -30,8 +30,8 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 - Human Verification Requirement: not required
 - Human Verification Status: not required
 - Review-Cycle Status: not run
-- Merge Status: merged via merge-queue (merge commit aea98570b680eee0c842689bb64d1d8a7f9a6619)
-- Local Target Sync Status: preserve_restore_succeeded
+- Merge Status: merged via merge-queue (merge commit ab2f68e565bb03e19a3c084400dbfeaf9fa7ef5c)
+- Local Target Sync Status: fast_forwarded
 
 5. Feature Artifacts Updated
 
@@ -45,11 +45,9 @@ Hardened the governed implementation-review-merge-closeout route so merge and co
 
 6. Commit And Push Result
 
-- Approved feature commit: 3cd2084e2dfdea8dfc5bb6d63334f1818925583d
-- Merge commit: aea98570b680eee0c842689bb64d1d8a7f9a6619
-- Final closeout commit: 47fbeec113fb380728ac55266becfaec3185a6d4
+- Approved feature commit: 3881d85f6b6e69933c8a20abb87aba6d357bb1b3
+- Merge commit: ab2f68e565bb03e19a3c084400dbfeaf9fa7ef5c
 - Push: success to origin/main
-- Closeout note: Merged via merge-queue after preserve/sync/restore local main reconciliation.
 
 7. Remaining Non-Goals / Debt
 
