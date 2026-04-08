@@ -1,0 +1,8 @@
+interface:
+  display_name: "Brain Ops"
+  short_description: "Run deterministic Brain operations for ADF with MCP-first routing and repo fallback"
+  default_prompt: >
+    Use the Brain Ops skill for deterministic Brain operations.
+    Prefer `project-brain` MCP directly when exposed in the runtime.
+    Fall back only to `node skills/brain-ops/scripts/brain-ops-helper.mjs` for shell-deterministic actions.
+    Use `action=<command>` for local invocations with `<command>` in {help, connect-smoke, search, read, capture, trust>.

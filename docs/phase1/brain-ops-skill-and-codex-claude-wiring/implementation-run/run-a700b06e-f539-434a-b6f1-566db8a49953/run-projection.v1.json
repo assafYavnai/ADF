@@ -1,0 +1,291 @@
+{
+  "schema_version": 1,
+  "projection_kind": "implement-plan-run-projection",
+  "feature_registry_key": "phase1/brain-ops-skill-and-codex-claude-wiring",
+  "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
+  "run_mode": "normal",
+  "updated_at": "2026-04-08T19:09:47.578Z",
+  "artifacts": {
+    "execution_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
+    "run_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
+    "run_projection_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
+    "event_root": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/events/attempt-002"
+  },
+  "run": {
+    "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
+    "run_mode": "normal",
+    "lifecycle_status": "active",
+    "terminal_status": null,
+    "contract_schema_version": 1,
+    "contract_revision": 22,
+    "feature_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
+    "contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
+    "projection_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
+    "run_root": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953",
+    "benchmark_context": {
+      "benchmark_run_id": null,
+      "benchmark_suite_id": null,
+      "lane_id": null,
+      "lane_label": null
+    },
+    "worker_keys": [
+      "implementor/default"
+    ],
+    "current_attempt_id": "attempt-002",
+    "attempt_counter": 2,
+    "attempts": {
+      "attempt-001": {
+        "attempt_id": "attempt-001",
+        "attempt_number": 1,
+        "status": "superseded",
+        "terminal_status": "reset",
+        "started_at": "2026-04-08T17:11:50.580Z",
+        "updated_at": "2026-04-08T18:14:44.265Z",
+        "reset_at": "2026-04-08T18:14:44.265Z",
+        "reset_reason": null,
+        "superseded_by_attempt_id": "attempt-002",
+        "resume_checkpoint": {
+          "step": "implementation",
+          "status": "blocked",
+          "reason": "Benchmarking contract blocked at integrity gate.",
+          "updated_at": "2026-04-08T18:11:33.355Z"
+        },
+        "step_status": {
+          "implementation": {
+            "status": "completed",
+            "started_at": "2026-04-08T17:27:25.846Z",
+            "completed_at": "2026-04-08T17:27:25.973Z",
+            "duration_seconds": 0,
+            "note": null
+          },
+          "machine_verification": {
+            "status": "completed",
+            "started_at": "2026-04-08T17:27:25.973Z",
+            "completed_at": "2026-04-08T17:27:26.099Z",
+            "duration_seconds": 0,
+            "note": null
+          },
+          "review_cycle": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "human_testing": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          },
+          "merge_queue": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": 0,
+            "note": null
+          }
+        },
+        "governance_calls": [],
+        "governance_metrics": {
+          "call_count": 0,
+          "total_duration_ms": 0,
+          "total_estimated_cost_usd": 0,
+          "total_prompt_tokens_estimated": 0,
+          "total_completion_tokens_estimated": 0,
+          "total_tokens_estimated": 0
+        },
+        "verification_outcomes": [],
+        "review_cycle_count": 0,
+        "self_fix_cycle_count": 0,
+        "blockers": [],
+        "worker_bindings": {
+          "implementor/default": {
+            "worker_id": "implementor/default",
+            "lane_id": null,
+            "role": "implementor",
+            "provider": "codex",
+            "runtime": "codex_cli_exec",
+            "model": "gpt-5.3-codex-spark",
+            "reasoning_effort": null,
+            "access_mode": "codex_cli_full_auto_bypass",
+            "execution_id": null,
+            "bound_at": "2026-04-08T17:11:50.580Z",
+            "selection_source": {
+              "provider": "explicit_override",
+              "runtime": "explicit_override",
+              "access_mode": "explicit_override",
+              "model": "explicit_override",
+              "reasoning_effort": "unsupported_for_resolved_worker"
+            },
+            "recreated_due_to_access": false
+          }
+        },
+        "last_checkpoint_at": "2026-04-08T18:11:33.355Z",
+        "last_event_at": "2026-04-08T18:11:33.360Z"
+      },
+      "attempt-002": {
+        "attempt_id": "attempt-002",
+        "attempt_number": 2,
+        "status": "review_pending",
+        "terminal_status": null,
+        "started_at": "2026-04-08T18:14:44.265Z",
+        "updated_at": "2026-04-08T19:09:47.572Z",
+        "reset_at": null,
+        "reset_reason": "Reset after rebasing onto origin/main to absorb updated authority files before continuing the cycle-01 fix pass.",
+        "superseded_by_attempt_id": null,
+        "resume_checkpoint": {
+          "step": "review_cycle",
+          "status": "ready",
+          "reason": "Resume from the last truthful normal-mode checkpoint.",
+          "updated_at": "2026-04-08T19:09:47.572Z"
+        },
+        "step_status": {
+          "implementation": {
+            "status": "completed",
+            "started_at": "2026-04-08T18:15:32.275Z",
+            "completed_at": "2026-04-08T18:15:51.254Z",
+            "duration_seconds": 19,
+            "note": null
+          },
+          "machine_verification": {
+            "status": "completed",
+            "started_at": "2026-04-08T18:15:51.254Z",
+            "completed_at": "2026-04-08T18:16:56.610Z",
+            "duration_seconds": 65,
+            "note": null
+          },
+          "review_cycle": {
+            "status": "in_progress",
+            "started_at": "2026-04-08T19:09:37.3284306Z",
+            "completed_at": null,
+            "duration_seconds": null,
+            "note": null
+          },
+          "human_testing": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": null,
+            "note": null
+          },
+          "merge_queue": {
+            "status": "not_started",
+            "started_at": null,
+            "completed_at": null,
+            "duration_seconds": null,
+            "note": null
+          }
+        },
+        "governance_calls": [],
+        "governance_metrics": {
+          "call_count": 0,
+          "total_duration_ms": 0,
+          "total_estimated_cost_usd": 0,
+          "total_prompt_tokens_estimated": 0,
+          "total_completion_tokens_estimated": 0,
+          "total_tokens_estimated": 0
+        },
+        "verification_outcomes": [
+          {
+            "verification_id": "verification-7400d676-74d9-4750-8e4a-91ec6eb8983d",
+            "kind": "machine",
+            "status": "passed",
+            "review_cycle_number": 1,
+            "self_fix_cycle_number": 1,
+            "note": "Attempt-002 passed helper syntax, repo-fallback connect/search, controlled capture-promote-search-cleanup proof, generated Codex/Claude install refresh, and install checks after rebasing onto origin/main.",
+            "recorded_at": "2026-04-08T18:17:13.041Z"
+          }
+        ],
+        "review_cycle_count": 1,
+        "self_fix_cycle_count": 1,
+        "blockers": [],
+        "worker_bindings": {
+          "implementor/default": {
+            "worker_id": "implementor/default",
+            "lane_id": null,
+            "role": "implementor",
+            "provider": "codex",
+            "runtime": "codex_cli_exec",
+            "model": "gpt-5.3-codex-spark",
+            "reasoning_effort": null,
+            "access_mode": "codex_cli_full_auto_bypass",
+            "execution_id": null,
+            "bound_at": "2026-04-08T18:14:44.265Z",
+            "selection_source": {
+              "provider": "persisted_continuity",
+              "runtime": "persisted_continuity",
+              "access_mode": "persisted_continuity",
+              "model": "persisted_continuity",
+              "reasoning_effort": "persisted_continuity"
+            },
+            "recreated_due_to_access": false
+          }
+        },
+        "last_checkpoint_at": "2026-04-08T19:09:47.572Z",
+        "last_event_at": "2026-04-08T19:09:37.3284306Z"
+      }
+    },
+    "created_at": "2026-04-08T17:11:50.580Z",
+    "updated_at": "2026-04-08T19:09:47.578Z",
+    "last_event_at": "2026-04-08T19:09:37.3284306Z",
+    "kpi_projection": {
+      "terminal_status": null,
+      "per_step_timing": {
+        "implementation": {
+          "status": "completed",
+          "started_at": "2026-04-08T18:15:32.275Z",
+          "completed_at": "2026-04-08T18:15:51.254Z",
+          "duration_seconds": 19
+        },
+        "machine_verification": {
+          "status": "completed",
+          "started_at": "2026-04-08T18:15:51.254Z",
+          "completed_at": "2026-04-08T18:16:56.610Z",
+          "duration_seconds": 65
+        },
+        "review_cycle": {
+          "status": "in_progress",
+          "started_at": "2026-04-08T19:09:37.3284306Z",
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "human_testing": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        },
+        "merge_queue": {
+          "status": "not_started",
+          "started_at": null,
+          "completed_at": null,
+          "duration_seconds": null
+        }
+      },
+      "governance_call_metrics": {
+        "call_count": 0,
+        "total_duration_ms": 0,
+        "total_estimated_cost_usd": 0,
+        "total_prompt_tokens_estimated": 0,
+        "total_completion_tokens_estimated": 0,
+        "total_tokens_estimated": 0
+      },
+      "verification_outcomes": [
+        {
+          "verification_id": "verification-7400d676-74d9-4750-8e4a-91ec6eb8983d",
+          "kind": "machine",
+          "status": "passed",
+          "review_cycle_number": 1,
+          "self_fix_cycle_number": 1,
+          "note": "Attempt-002 passed helper syntax, repo-fallback connect/search, controlled capture-promote-search-cleanup proof, generated Codex/Claude install refresh, and install checks after rebasing onto origin/main.",
+          "recorded_at": "2026-04-08T18:17:13.041Z"
+        }
+      ],
+      "review_cycle_count": 1,
+      "self_fix_cycle_count": 1,
+      "blocker_history": []
+    }
+  }
+}
