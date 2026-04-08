@@ -44,6 +44,7 @@ Rules:
 - `last_commit_sha` is not merge authority and must never be used as the approved commit fallback
 - reject enqueue when there is no approved commit SHA
 - reject enqueue when the feature is already completed
+- reject enqueue when governed closeout readiness is not yet satisfied
 - reject enqueue when the approved branch delta adds or modifies `.codex/*/setup.json`
 - update implement-plan state to `merge_status=queued` when a request is accepted
 
@@ -55,9 +56,11 @@ Rules:
 - re-check the approved branch delta before merge and block the request if `.codex/*/setup.json` is added or modified
 - validate closeout readiness before merge: `completion-summary.md` must exist and satisfy the required heading contract, the feature must not already be completed, and `approved_commit_sha` must be present in state. Pre-merge readiness does not require `last_commit_sha` — that is post-merge closeout evidence set after the merge lands
 - block the request before merge/push when closeout readiness is invalid
+- if human verification is required, closeout readiness must prove durable approval for the current `approved_commit_sha`
+- if review-cycle evidence exists, only completed dual approval is merge-eligible
 - do not start a queued request on a `base_branch` lane while another request in that same lane is already `in_progress`
 - push only after a clean merge
-- on success, update implement-plan merge state, attempt safe local target sync, and mark the feature completed
+- on success, update implement-plan merge state, refresh the local target branch, and mark the feature completed only after sync truth is recorded
 - on failure, preserve queue evidence, update implement-plan state truthfully, and do not mark complete
 
 ## Blocked-merge resume/resolve rules
@@ -90,5 +93,7 @@ Rules:
 ## Sync rules
 
 - always fetch the target branch locally after successful merge
-- fast-forward the local target branch checkout only when it is both on the target branch and clean
-- otherwise record a truthful sync status and continue
+- if the local checkout is already on the target branch and clean, fast-forward it directly
+- if the local checkout is on the target branch and dirty, preserve tracked and untracked changes first, fast-forward the branch, then restore the preserved local state
+- if preserve or restore fails, fail closed, keep durable recovery evidence, and do not mark the feature completed
+- if the local checkout is not on the target branch, record a truthful fetched-only outcome instead of mutating the wrong checkout

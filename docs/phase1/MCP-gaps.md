@@ -1,8 +1,8 @@
 # ADF Phase 1 Pre-MCP-Boxing Baseline Gap Report
 
-Audit date: 2026-04-08 (third revision)
-Audit baseline commit: `884452e` (main)
-Prior baselines: `d929715`, `192ad0b`, `6478c6c`
+Audit date: 2026-04-08 (fourth revision)
+Audit baseline commit: `dd17128` (origin/main)
+Prior baselines: `884452e`, `d929715`, `192ad0b`, `6478c6c`
 Purpose: Identify code-level defects, pattern inconsistencies, and structural debt on `main` that the MCP boxing model will inherit if not fixed before boxing slice-02 begins.
 
 This report is written for a contextless agent. Every finding includes context, evidence, related slices, dependency chains, and suggested fix approach. Fix approaches are SUGGESTIONS — the fixer agent must verify the full dependency chain before acting.
@@ -11,7 +11,7 @@ This report is written for a contextless agent. Every finding includes context, 
 
 ## How to use this report
 
-1. Run `git log --oneline -1` and compare the SHA to `884452e`. If main has advanced, run `git log --oneline 884452e..HEAD` to see what changed, then re-verify each finding.
+1. Run `git log --oneline -1` and compare the SHA to `dd17128`. If main has advanced, run `git log --oneline dd17128..HEAD` to see what changed, then re-verify each finding.
 2. Each finding has a "Verify" block. Run the commands. Compare to the expected output.
 3. Each finding has a "Related slice / dependency chain" section. Read it before attempting a fix. A finding that looks like a standalone bug may be part of a larger governed slice.
 4. Findings are ordered by priority: P1 should be fixed before MCP boxing slice-02 starts, P2 should be fixed, P3 can be deferred.
@@ -19,11 +19,18 @@ This report is written for a contextless agent. Every finding includes context, 
 
 ---
 
-## Governance state summary (as of 884452e)
+## Governance state summary (as of dd17128)
 
 All feature slices with `implement-plan-state.json` on main now show `feature_status: completed`. Zero open slices remain in the governed pipeline.
 
 The `coo-live-executive-status-wiring` slice was completed and merged during this audit session (was the last open slice). State on main now shows `completed / merged / marked_complete`.
+
+Important caveat for contextless agents:
+
+- main-side feature-local truth and local control-plane projections are not always the same thing
+- `mcp-boxing/slice-01-dev-team-bootstrap` is completed and merged in its own `implement-plan-state.json` on main
+- but local `.codex/implement-plan/features-index.json` can still lag in some workspaces
+- when those projections disagree, trust slice-local main truth first, then git truth, and treat the local control-plane projection as potentially stale
 
 Verify:
 ```
@@ -33,18 +40,22 @@ Expected: no output (all completed)
 
 ---
 
-## Unmerged branches
+## Historical dependency note
 
-Only 1 unmerged feature branch remains. It is the primary dependency for multiple findings in this report.
+The earlier primary dependency from the third revision, `governed-implementation-route-hardening`, is now already merged on `origin/main`.
 
-### governed-implementation-route-hardening (10 commits ahead of main)
+Current truth:
 
-Branch: `implement-plan/phase1/governed-implementation-route-hardening`
-Remote: `origin/implement-plan/phase1/governed-implementation-route-hardening`
-Commits ahead of main at audit time: 10
-Merge test at audit time: **clean merge, no conflicts** (`git merge --no-commit --no-ff` succeeded against `884452e`)
+- approved feature commit: `d419a98`
+- merge commit: `253d5c0`
+- final closeout commit: `dd17128`
 
-This branch is a governed implementation slice that hardens the skill layer (`implement-plan`, `review-cycle`, `merge-queue`) with:
+Why keep the details below:
+
+- several findings in this report still refer to that slice as the historical home of fixes
+- contextless agents may need to know that those fixes are already on main and should not be re-opened as fresh work
+
+That slice hardens the skill layer (`implement-plan`, `review-cycle`, `merge-queue`) with:
 
 Code changes (448 insertions across 3 helpers):
 - `skills/implement-plan/scripts/implement-plan-helper.mjs` (+132 lines): stale closeout language detection gate in `markComplete`, authoritative requirement-freeze guard detecting base-branch changes to frozen authority files
@@ -67,7 +78,7 @@ Test files (1,450 lines, 19 new tests):
 - `skills/tests/review-cycle-continuity-reopen.test.mjs` (605 lines, 4 tests)
 - `skills/tests/stale-closeout-language.test.mjs` (217 lines, 6 tests)
 
-Governance artifacts (on branch only, no docs folder on main):
+Historical governance artifacts produced by that slice:
 - `docs/phase1/governed-implementation-route-hardening/` — full slice lifecycle: README, context, contract, brief, pushback, completion-summary, 4 review cycles (cycle-01 through cycle-04), state.json, execution contracts
 
 Review cycle history on branch:
@@ -81,7 +92,7 @@ Verification status (from branch completion-summary):
 - All 54 tests pass (19 new + 35 existing), zero regressions
 - `git diff --check` passed
 
-Why this matters for MCP boxing: This branch hardens the exact skill helpers that the MCP boxing model will wrap. If boxing starts without these hardening fixes, the boxed department inherits:
+Why this matters for MCP boxing: These fixes are already in the current main baseline, so agents should treat them as present behavior rather than as a pending prerequisite branch.
 - No stale-closeout language validation in `implement-plan`
 - No requirement-freeze guard in `implement-plan`
 - No fix-cycle continuity in `review-cycle` (full prompt resend instead of delta-only)
@@ -89,17 +100,17 @@ Why this matters for MCP boxing: This branch hardens the exact skill helpers tha
 - No governed blocked-merge recovery in `merge-queue`
 - Duplicated enums/utilities in `review-cycle-setup-helper.mjs`
 
-Verify branch still unmerged:
+Historical verify command from the earlier revision:
 ```
 git merge-base --is-ancestor implement-plan/phase1/governed-implementation-route-hardening main && echo MERGED || echo "UNMERGED ($(git rev-list --count main..implement-plan/phase1/governed-implementation-route-hardening) ahead)"
 ```
-Expected if still open: `UNMERGED (10 ahead)`
+Expected in the third revision: `UNMERGED (10 ahead)`
 
-Verify clean merge:
+Historical merge test from the earlier revision:
 ```
 git merge --no-commit --no-ff implement-plan/phase1/governed-implementation-route-hardening 2>&1; echo "EXIT: $?"; git merge --abort 2>/dev/null
 ```
-Expected: `Automatic merge went well; stopped before committing as requested` and `EXIT: 0`
+Expected in the third revision: `Automatic merge went well; stopped before committing as requested` and `EXIT: 0`
 
 ---
 
@@ -116,9 +127,9 @@ All of these should be imported from `skills/governed-feature-runtime.mjs`, as t
 - `skills/merge-queue/scripts/merge-queue-setup-helper.mjs` lines 2-27: same pattern
 
 Related slice / dependency chain:
-**This fix is ALREADY IMPLEMENTED on branch `implement-plan/phase1/governed-implementation-route-hardening`** (commit `1fb89af`). The branch replaces all local definitions with imports and keeps only `booleanFallback`, `coalesceNonEmpty`, and `normalizeStringArray` as local helpers (no export in `governed-feature-runtime.mjs`). It also replaces `writeJson` calls with `writeJsonAtomic`, removes `isSetupComplete`, and moves the `main()` call to match the pattern in other helpers.
+**This fix is ALREADY IMPLEMENTED on `origin/main` via `governed-implementation-route-hardening`** (implementation commit `1fb89af`, merged through `253d5c0`, finalized by `dd17128`). The slice replaces all local definitions with imports and keeps only `booleanFallback`, `coalesceNonEmpty`, and `normalizeStringArray` as local helpers (no export in `governed-feature-runtime.mjs`). It also replaces `writeJson` calls with `writeJsonAtomic`, removes `isSetupComplete`, and moves the `main()` call to match the pattern in other helpers.
 
-DO NOT fix this standalone. Merging the hardening branch resolves this finding.
+DO NOT fix this standalone. It is already resolved on the current main baseline.
 
 Verify on main:
 ```
@@ -342,9 +353,9 @@ Expected if cleaned: no output
 
 ## Summary table
 
-| ID | Priority | Category | File(s) | Related slice/branch | Status at 884452e | Suggested action |
+| ID | Priority | Category | File(s) | Related slice/branch | Status at dd17128 | Suggested action |
 |----|----------|----------|---------|---------------------|-------------------|------------------|
-| 1.1+1.2+3.4 | P1 | Enum/utility duplication + dead code | `review-cycle-setup-helper.mjs` | **governed-implementation-route-hardening** (commit `1fb89af`) | Fixed on branch, not on main | Merge the hardening branch |
+| 1.1+1.2+3.4 | P1 | Enum/utility duplication + dead code | `review-cycle-setup-helper.mjs` | **governed-implementation-route-hardening** (commit `1fb89af`) | Fixed on current main baseline | No action; keep as historical reference |
 | 1.3 | P1 | Missing llm_tools field | `merge-queue-setup-helper.mjs` | Independent (implement-plan-llm-tools-worker-resolution missed this) | Open | Add llm_tools or document why it's absent |
 | 1.4 | P1 | Schema version drift | All `*-setup-helper.mjs` | Independent (needs git history investigation) | Open | Investigate and normalize or document |
 | 2.1 | P2 | Missing barrel export | `COO/index.ts` (missing) | Independent | Open | Create barrel exports |
@@ -360,10 +371,10 @@ Expected if cleaned: no output
 
 ## Recommended action sequence
 
-1. **Merge `governed-implementation-route-hardening`** — resolves finding 1.1+1.2+3.4, adds 448 lines of skill hardening, 1450 lines of tests, and 127 lines of contract updates. Merges cleanly against `884452e`. This is the single highest-value action.
-2. **Investigate and fix 1.3 and 1.4** — these are independent of the hardening branch and small in scope.
-3. **Address P2 items (2.1, 2.2, 2.3)** — COO structural improvements before boxing wraps the department.
-4. **P3 items** — defer or address opportunistically.
+1. **Finish `governed-approval-gates-and-local-sync-hardening`** — this is now the highest-value bounded hardening slice because it directly fixes approval truth, split-review truth, pre-refresh, and dirty-local-sync preservation without widening into general cleanup.
+2. **Proceed with `mcp-boxing/slice-02-lane-admission-and-artifact-bridge`** — Step 2 explicitly keeps full downstream implementation, review, merge, and full approval-gate implementation out of scope.
+3. **Investigate and fix 1.3 and 1.4 if still relevant to Slice 02 intake/setup behavior** — these are independent and smaller in scope than the approval/local-sync hardening route.
+4. **Treat P2 and P3 items as later cleanup unless they become a direct blocker for boxing** — do not let them delay the bounded Step 2 admission/bridge route by default.
 
 ---
 
@@ -371,9 +382,9 @@ Expected if cleaned: no output
 
 When re-auditing this report:
 
-1. Start from baseline commit `884452e`. Run `git log --oneline 884452e..HEAD` to see what changed.
+1. Start from baseline commit `dd17128`. Run `git log --oneline dd17128..HEAD` to see what changed.
 2. Run every "Verify" command. Compare output to the expected values. Mark each finding as FIXED or STILL OPEN.
 3. For FIXED findings, update the summary table status and add the fixing commit SHA.
-4. Check if the `governed-implementation-route-hardening` branch was merged (this resolves findings 1.1+1.2+3.4).
-5. If new slices or branches were created after `884452e`, audit those separately and append findings.
+4. Re-check whether `governed-approval-gates-and-local-sync-hardening` is still active or has landed, because it is now the primary bounded precondition slice for safer boxing intake.
+5. If new slices or branches were created after `dd17128`, audit those separately and append findings.
 6. After completing the re-audit, update the "Audit date" and "Audit baseline commit" at the top of this file.

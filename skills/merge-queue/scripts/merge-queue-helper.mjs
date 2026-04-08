@@ -58,6 +58,8 @@ const LOCAL_SYNC_STATUSES = new Set([
   "not_started",
   "fetched_only",
   "fast_forwarded",
+  "preserve_restore_succeeded",
+  "preserve_restore_failed",
   "skipped_dirty_checkout",
   "skipped_branch_not_checked_out",
   "failed"
@@ -233,6 +235,10 @@ async function enqueueRequest(input) {
 
   if (!approvedCommitSha) {
     fail("Cannot enqueue merge without an approved commit SHA.");
+  }
+  const closeoutReadiness = await validateCloseoutReadinessBeforeMerge(input.projectRoot, input.phaseNumber, input.featureSlug);
+  if (!closeoutReadiness.ready) {
+    fail("Cannot enqueue merge because governed closeout readiness is not satisfied: " + closeoutReadiness.blockers.join("; "));
   }
   const forbiddenSetupChanges = detectForbiddenLocalOperationalSetupChanges(controlProjectRoot, baseBranch, approvedCommitSha);
   if (forbiddenSetupChanges.length > 0) {
@@ -433,7 +439,7 @@ async function processNext(input) {
         mergeCommitSha,
         requestId: selected.request_id,
         localTargetSyncStatus: sync.status,
-        closeoutErrorDetail: sync.detail && sync.status === "failed" ? sync.detail : ""
+        closeoutErrorDetail: sync.detail && (sync.status === "failed" || sync.status === "preserve_restore_failed") ? sync.detail : ""
       });
     } catch (error) {
       preserveMergeWorktree = closeoutProjectRoot === mergeWorktreePath;
@@ -610,9 +616,60 @@ function syncLocalTargetBranch(projectRoot, baseBranch) {
 
   const dirty = gitRun(projectRoot, ["status", "--porcelain"]).stdout;
   if (dirty) {
+    const preservableDirtyPaths = collectPreservableDirtyPaths(projectRoot);
+    let stashRef = null;
+    if (preservableDirtyPaths.length > 0) {
+      const stashMessage = "merge-queue-preserve-sync-" + sanitizePathSegment(baseBranch) + "-" + Date.now();
+      const stashResult = gitRun(projectRoot, ["stash", "push", "--include-untracked", "-m", stashMessage, "--", ...preservableDirtyPaths], { timeoutMs: 30000 });
+      if (stashResult.status !== 0) {
+        return {
+          status: "failed",
+          detail: stashResult.stderr || stashResult.stdout || "Failed to preserve local changes before fast-forward."
+        };
+      }
+      stashRef = resolveStashRef(projectRoot, stashMessage);
+      if (!stashRef) {
+        return {
+          status: "failed",
+          detail: "Local changes were detected, but the governed preserve-sync stash could not be resolved."
+        };
+      }
+    }
+
+    const ffResult = gitRun(projectRoot, ["merge", "--ff-only", "origin/" + baseBranch], { timeoutMs: 30000 });
+    if (ffResult.status !== 0) {
+      if (!stashRef) {
+        return {
+          status: "failed",
+          detail: ffResult.stderr || ffResult.stdout || "Fast-forward of the local target branch failed."
+        };
+      }
+      const restoreResult = restorePreservedLocalState(projectRoot, stashRef);
+      return {
+        status: restoreResult.ok ? "failed" : "preserve_restore_failed",
+        detail: restoreResult.ok
+          ? "Fast-forward of the local target branch failed after preserving local changes in " + stashRef + ", and the preserved state was restored."
+          : "Fast-forward failed after preserving local changes in " + stashRef + ", and restore also failed: " + restoreResult.detail
+      };
+    }
+
+    if (!stashRef) {
+      return {
+        status: "fast_forwarded",
+        detail: "Fetched and fast-forwarded the local '" + baseBranch + "' checkout while leaving local operational .codex state in place."
+      };
+    }
+
+    const restoreResult = restorePreservedLocalState(projectRoot, stashRef);
+    if (!restoreResult.ok) {
+      return {
+        status: "preserve_restore_failed",
+        detail: "Fast-forwarded the local '" + baseBranch + "' checkout, but restore of preserved local changes failed. Recovery stash: " + stashRef + ". " + restoreResult.detail
+      };
+    }
     return {
-      status: "skipped_dirty_checkout",
-      detail: "Fetched origin/" + baseBranch + ", but the local checkout is dirty and was not fast-forwarded."
+      status: "preserve_restore_succeeded",
+      detail: "Preserved tracked and untracked local changes outside .codex, fast-forwarded the local '" + baseBranch + "' checkout, and restored local state."
     };
   }
 
@@ -699,7 +756,80 @@ function resolveRequestFeatureProjectRoot(request, fallbackProjectRoot) {
 }
 
 function chooseCloseoutProjectRoot(controlProjectRoot, mergeWorktreePath, localTargetSyncStatus) {
-  return localTargetSyncStatus === "fast_forwarded" ? controlProjectRoot : mergeWorktreePath;
+  return localTargetSyncStatus === "fast_forwarded" || localTargetSyncStatus === "preserve_restore_succeeded"
+    ? controlProjectRoot
+    : mergeWorktreePath;
+}
+
+function resolveStashRef(projectRoot, stashMessage) {
+  const listResult = gitRun(projectRoot, ["stash", "list", "--format=%gd%x09%s"], { timeoutMs: 10000 });
+  if (listResult.status !== 0) {
+    return null;
+  }
+  for (const line of String(listResult.stdout ?? "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const [ref, message] = trimmed.split(/\t/, 2);
+    const normalizedMessage = String(message ?? "").trim();
+    if (
+      normalizedMessage === stashMessage
+      || normalizedMessage.endsWith(": " + stashMessage)
+      || normalizedMessage.includes(stashMessage)
+    ) {
+      return ref;
+    }
+  }
+  return null;
+}
+
+function collectPreservableDirtyPaths(projectRoot) {
+  const paths = new Set();
+  for (const dirtyPath of readGitPathList(projectRoot, ["diff", "--name-only"])) {
+    if (!shouldExcludeFromGovernedPreserve(dirtyPath)) {
+      paths.add(dirtyPath);
+    }
+  }
+  for (const dirtyPath of readGitPathList(projectRoot, ["diff", "--cached", "--name-only"])) {
+    if (!shouldExcludeFromGovernedPreserve(dirtyPath)) {
+      paths.add(dirtyPath);
+    }
+  }
+  for (const dirtyPath of readGitPathList(projectRoot, ["ls-files", "--others", "--exclude-standard"])) {
+    if (!shouldExcludeFromGovernedPreserve(dirtyPath)) {
+      paths.add(dirtyPath);
+    }
+  }
+  return Array.from(paths).sort();
+}
+
+function readGitPathList(projectRoot, args) {
+  const result = gitRun(projectRoot, args, { timeoutMs: 10000 });
+  if (result.status !== 0) {
+    return [];
+  }
+  return String(result.stdout ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => normalizeSlashes(line));
+}
+
+function shouldExcludeFromGovernedPreserve(path) {
+  return normalizeSlashes(path).startsWith(".codex/");
+}
+
+function restorePreservedLocalState(projectRoot, stashRef) {
+  const popResult = gitRun(projectRoot, ["stash", "pop", "--index", stashRef], { timeoutMs: 30000 });
+  if (popResult.status !== 0) {
+    return {
+      ok: false,
+      detail: popResult.stderr || popResult.stdout || ("Restore from " + stashRef + " failed.")
+    };
+  }
+  return {
+    ok: true,
+    detail: "Restored local state from " + stashRef + "."
+  };
 }
 
 async function persistMergedFeatureCloseout({
@@ -1060,7 +1190,7 @@ async function runNodeHelper(scriptPath, args, workdir) {
     timeout: 60000
   });
   if (result.status !== 0) {
-    fail((result.stderr || result.stdout || "Node helper failed.").trim());
+    throw new Error((result.stderr || result.stdout || "Node helper failed.").trim());
   }
   return result.stdout?.trim() ?? "";
 }

@@ -293,6 +293,7 @@ Rules:
 
 - validate or refresh setup internally
 - normalize the context/input pack
+- refresh origin truth before creating or reusing the governed feature worktree
 - run integrity verification
 - if weak, write the pushback artifact and stop
 - if solid, materialize the execution contract, run projection, and implementation brief
@@ -327,7 +328,7 @@ Rules:
 - persist feature completion in state and index only after merge success evidence exists
 - keep merged-but-not-completed closeout state internally consistent before final completion is recorded
 - remove the feature from active/open output
-- do not silently mark complete if closeout evidence is missing
+- do not silently mark complete if governed approval truth, merge truth, or closeout evidence is missing
 
 ## Helper scripts
 
