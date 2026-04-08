@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/implement-plan-worktree-artifact-isolation",
   "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
   "run_mode": "normal",
-  "updated_at": "2026-04-05T07:55:06.977Z",
+  "updated_at": "2026-04-08T09:38:01.100Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/execution-contract.v1.json",
@@ -14,10 +14,10 @@
   "run": {
     "run_id": "run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd",
     "run_mode": "normal",
-    "lifecycle_status": "active",
-    "terminal_status": null,
+    "lifecycle_status": "completed",
+    "terminal_status": "completed",
     "contract_schema_version": 1,
-    "contract_revision": 3,
+    "contract_revision": 9,
     "feature_contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/implement-plan-worktree-artifact-isolation/implementation-run/run-0b2d1cfa-eb8d-4f5b-868b-31f1375302fd/run-projection.v1.json",
@@ -37,18 +37,18 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "ready_for_implementation",
-        "terminal_status": null,
+        "status": "completed",
+        "terminal_status": "completed",
         "started_at": "2026-04-05T07:54:24.954Z",
-        "updated_at": "2026-04-05T07:55:06.969Z",
+        "updated_at": "2026-04-08T09:38:01.094Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "implementation",
-          "status": "ready",
-          "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-05T07:55:06.969Z"
+          "step": "merge_queue",
+          "status": "completed",
+          "reason": "Truthful governed closeout completed after prior approved review and merged landing were reconciled.",
+          "updated_at": "2026-04-08T09:38:01.094Z"
         },
         "step_status": {
           "implementation": {
@@ -61,13 +61,13 @@
           "machine_verification": {
             "status": "not_started",
             "started_at": null,
-            "completed_at": null,
+            "completed_at": "2026-04-05T11:23:31+03:00",
             "duration_seconds": null,
             "note": null
           },
           "review_cycle": {
-            "status": "not_started",
-            "started_at": null,
+            "status": "in_progress",
+            "started_at": "2026-04-05T11:20:34+03:00",
             "completed_at": null,
             "duration_seconds": null,
             "note": null
@@ -80,10 +80,10 @@
             "note": null
           },
           "merge_queue": {
-            "status": "not_started",
-            "started_at": null,
-            "completed_at": null,
-            "duration_seconds": null,
+            "status": "completed",
+            "started_at": "2026-04-05T11:23:31+03:00",
+            "completed_at": "2026-04-05T11:24:11+03:00",
+            "duration_seconds": 40,
             "note": null
           }
         },
@@ -97,7 +97,7 @@
           "total_tokens_estimated": 0
         },
         "verification_outcomes": [],
-        "review_cycle_count": 0,
+        "review_cycle_count": 1,
         "self_fix_cycle_count": 0,
         "blockers": [],
         "worker_bindings": {
@@ -108,7 +108,7 @@
             "provider": "claude",
             "runtime": "codex_cli_exec",
             "model": "gpt-5.4",
-            "reasoning_effort": "xhigh",
+            "reasoning_effort": null,
             "access_mode": "codex_cli_full_auto_bypass",
             "execution_id": null,
             "bound_at": "2026-04-05T07:54:24.954Z",
@@ -122,15 +122,15 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-05T07:55:06.969Z",
-        "last_event_at": "2026-04-05T07:55:06.976Z"
+        "last_checkpoint_at": "2026-04-08T09:38:01.094Z",
+        "last_event_at": "2026-04-08T09:38:01.094Z"
       }
     },
     "created_at": "2026-04-05T07:54:24.955Z",
-    "updated_at": "2026-04-05T07:55:06.974Z",
-    "last_event_at": "2026-04-05T07:55:06.976Z",
+    "updated_at": "2026-04-08T09:38:01.100Z",
+    "last_event_at": "2026-04-08T09:38:01.094Z",
     "kpi_projection": {
-      "terminal_status": null,
+      "terminal_status": "completed",
       "per_step_timing": {
         "implementation": {
           "status": "not_started",
@@ -141,12 +141,12 @@
         "machine_verification": {
           "status": "not_started",
           "started_at": null,
-          "completed_at": null,
+          "completed_at": "2026-04-05T11:23:31+03:00",
           "duration_seconds": null
         },
         "review_cycle": {
-          "status": "not_started",
-          "started_at": null,
+          "status": "in_progress",
+          "started_at": "2026-04-05T11:20:34+03:00",
           "completed_at": null,
           "duration_seconds": null
         },
@@ -157,10 +157,10 @@
           "duration_seconds": null
         },
         "merge_queue": {
-          "status": "not_started",
-          "started_at": null,
-          "completed_at": null,
-          "duration_seconds": null
+          "status": "completed",
+          "started_at": "2026-04-05T11:23:31+03:00",
+          "completed_at": "2026-04-05T11:24:11+03:00",
+          "duration_seconds": 40
         }
       },
       "governance_call_metrics": {
@@ -172,7 +172,7 @@
         "total_tokens_estimated": 0
       },
       "verification_outcomes": [],
-      "review_cycle_count": 0,
+      "review_cycle_count": 1,
       "self_fix_cycle_count": 0,
       "blocker_history": []
     }
