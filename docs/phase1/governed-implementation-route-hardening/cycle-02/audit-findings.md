@@ -1,0 +1,38 @@
+1. Findings
+
+Overall Verdict: REJECTED
+
+Finding 1
+- failure class: unvalidated review-cycle continuity anchor
+- broken route invariant in one sentence: the commit recorded as the last approved-cycle anchor must resolve to a real ancestor on the feature branch before it is persisted or used for reopen decisions, but cycle-02 state stores a bad object and the helper converts that invalid range into a no-diff hold.
+- exact route: cycle-01 closeout handoff -> `review-cycle update-state --last-commit-sha <raw value>` persists `review-cycle-state.json.last_commit_sha` -> later `selectCycle()` calls `checkForNewDiffsSinceLastCycle()` -> `gitOutput()` returns `null` for the invalid revision range -> helper treats the stream as `approved_no_new_diffs`
+- exact file/line references: [review-cycle-state.json#L31](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/review-cycle-state.json#L31), [review-cycle-state.json#L32](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/review-cycle-state.json#L32), [review-cycle-helper.mjs#L224](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L224), [review-cycle-helper.mjs#L243](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L243), [review-cycle-helper.mjs#L731](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L731), [review-cycle-helper.mjs#L2078](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2078), [review-cycle-helper.mjs#L2080](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2080), [review-cycle-helper.mjs#L2104](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2104), [review-cycle-helper.mjs#L2106](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2106), [review-cycle-helper.mjs#L2108](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/scripts/review-cycle-helper.mjs#L2108), [workflow-contract.md#L684](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/references/workflow-contract.md#L684), [workflow-contract.md#L686](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/references/workflow-contract.md#L686), [workflow-contract.md#L687](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/skills/review-cycle/references/workflow-contract.md#L687), [fix-report.md#L52](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/cycle-01/fix-report.md#L52), [fix-report.md#L53](/C:/ADF/.codex/implement-plan/worktrees/phase1/governed-implementation-route-hardening/docs/phase1/governed-implementation-route-hardening/cycle-01/fix-report.md#L53)
+- concrete operational impact: cycle continuity and reopen decisions are no longer auditable against a real branch tip. In the live worktree, `git rev-parse HEAD` resolved to `f3f7a78cffdd59bf266e5dbb262437b2b5159b61`, while the persisted cycle-02 anchor `f3f7a786d49a40d6dcf35b365193a5027feef165` fails `git show` as a bad object. If cycle-02 is restarted or a later cycle relies on this anchor, the stream can be blocked or reasoned against a nonexistent head.
+- KPI applicability: not required.
+- KPI closure state: Closed.
+- KPI proof or exception gap: cycle-01 proof passed on valid fixtures only. There is no negative proof that nonexistent, malformed, or non-ancestor anchors are rejected before state write or before reopen evaluation.
+- Compatibility verdict: Incompatible.
+- sweep scope: `review-cycle prepare`, `review-cycle update-state`, any caller that forwards `--last-commit-sha`, and any resume or reopen path that consumes `review-cycle-state.json.last_commit_sha`.
+- closure proof: add negative tests proving `update-state` rejects nonexistent and non-ancestor SHAs; add a `prepare` or resume test proving corrupt state fails closed with an explicit anchor-integrity error instead of `approved_no_new_diffs`; add a positive proof that a valid feature-head ancestor still blocks no-diff reopen correctly.
+- shared-surface expansion risk: present on the generic `review-cycle update-state --last-commit-sha` mutation surface.
+- negative proof required: prove nonexistent SHAs, malformed SHAs, and valid-but-unrelated SHAs are rejected; prove null-clears and valid ancestor SHAs still behave as intended.
+- live/proof isolation risk: present, because the proof suite is green while the live cycle-02 state already contains a corrupt anchor accepted through the real state surface.
+- claimed-route vs proved-route mismatch risk: present and material, because cycle-01 closeout says cycle-02 should review the updated feature head, but the persisted cycle-02 head is not a valid commit and the helper silently turns that corruption into a no-diff verdict path.
+- status: live defect
+
+2. Conceptual Root Cause
+
+- The remaining gap is not the reopen guard logic itself. The missing contract is integrity enforcement for the continuity anchor that the guard trusts.
+- `review-cycle` still accepts caller-supplied `last_commit_sha` values as raw strings and persists them without object-existence or branch-ancestry validation. The reopen path then interprets git-range failure as a normal no-diff result instead of corrupted-state pushback.
+- Cycle-01 closed the valid-input behavioral routes, but the governing state-mutation surface still lacks negative proof for invalid anchors.
+
+3. High-Level View Of System Routes That Still Need Work
+
+Route: review-cycle approved-anchor integrity
+- what must be frozen before implementation: the exact commit object used as the last approved-cycle anchor, plus the limited set of callers allowed to write it
+- why endpoint-only fixes will fail: correcting the current JSON or report text does not close the class while `update-state` can persist arbitrary SHA strings and reopen evaluation interprets git failure as `no new diffs`
+- the minimal layers that must change to close the route: `review-cycle-helper.mjs` input validation on `--last-commit-sha`, state-write enforcement, and fail-closed diff evaluation when the anchor cannot be resolved; add negative tests for malformed, nonexistent, and non-ancestor anchors plus positive tests for valid ancestors
+- explicit non-goals, so scope does not widen into general refactoring: no review-cycle architecture rewrite, no agent-registry redesign, no change to valid implementor continuity behavior, and no broader lifecycle-schema refactor
+- what done looks like operationally: cycle state only stores real reachable commit anchors, `prepare` and resume surface explicit corruption when the anchor is invalid, and approved no-diff blocking continues to work for valid unchanged branches
+
+Final Verdict: REJECTED

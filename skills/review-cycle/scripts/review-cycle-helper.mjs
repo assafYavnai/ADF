@@ -215,7 +215,8 @@ async function main() {
       reviewerModel: args.values["reviewer-model"] ?? null,
       auditorReasoningEffort: args.values["auditor-reasoning-effort"] ?? null,
       reviewerReasoningEffort: args.values["reviewer-reasoning-effort"] ?? null,
-      currentBranch: args.values["current-branch"] ?? null
+      currentBranch: args.values["current-branch"] ?? null,
+      explicitReopen: args.values["explicit-reopen"] === "true" || args.values["explicit-reopen"] === true
     }));
     return;
   }
@@ -462,7 +463,11 @@ async function prepareCycle(input) {
     registryEntry
   });
 
-  const cycleStatus = await selectCycle(featureRoot, safeInteger(stateLoad.state.last_completed_cycle, 0));
+  const cycleStatus = await selectCycle(featureRoot, safeInteger(stateLoad.state.last_completed_cycle, 0), {
+    repoRoot: input.repoRoot,
+    lastCommitSha: stateLoad.state.last_commit_sha,
+    explicitReopen: input.explicitReopen ?? false
+  });
   if (cycleStatus.mode === "new") {
     await mkdir(cycleStatus.cycleDir, { recursive: true });
   }
@@ -565,7 +570,8 @@ async function prepareCycle(input) {
     currentCycleState,
     reportsReady,
     reportsSurfaced,
-    reviewStrategy
+    reviewStrategy,
+    cycleMode: cycleStatus.mode
   });
 
   return {
@@ -667,7 +673,63 @@ async function prepareCycle(input) {
       review_strategy: reviewStrategy,
       recreated_due_to_weaker_access: recreateDueToWeakAccess,
       next_action: nextAction
+    },
+    reopen_blocked_reason: cycleStatus.reopen_blocked_reason ?? null,
+    fix_cycle_dispatch_mode: resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState),
+    fix_cycle_implementor_input: resolveFixCycleImplementorInput(
+      resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState),
+      priorCycleNumber,
+      activeArtifacts,
+      cycleStatus
+    )
+  };
+}
+
+function resolveFixCycleDispatchMode(cycleStatus, state, currentCycleState) {
+  // resume_pending_closeout: not a dispatch cycle
+  if (cycleStatus.mode === "resume_pending_closeout") {
+    return null;
+  }
+  // fresh: new cycle or no cached implementor
+  if (cycleStatus.mode === "new" || cycleStatus.mode === "approved_no_new_diffs") {
+    return "fresh";
+  }
+  // delta_only: ONLY when resuming a cycle that is in a fix-dispatch state
+  // (fix planning or implementation after review findings are ready)
+  // NOT during review_in_progress, review_not_started, or other non-fix states
+  if (cycleStatus.mode === "resume" && state.implementor_execution_id) {
+    const fixDispatchStates = new Set([
+      "fix_planned_or_implementation_in_progress",
+      "findings_ready_for_fix_planning"
+    ]);
+    if (fixDispatchStates.has(currentCycleState)) {
+      return "delta_only";
     }
+  }
+  return "fresh";
+}
+
+function resolveFixCycleImplementorInput(dispatchMode, priorCycleNumber, activeArtifacts, cycleStatus) {
+  if (dispatchMode !== "delta_only") return null;
+
+  const rejectedArtifactPaths = [];
+  const instruction = "Fix only the rejected findings from the active rejecting review cycle. Do not send a fresh long implementation prompt. Use only the rejected report and findings paths below plus this short fix instruction.";
+
+  if (activeArtifacts) {
+    for (const [name, artifact] of Object.entries(activeArtifacts.required_artifacts ?? {})) {
+      if (artifact.exists && (name === "audit-findings.md" || name === "review-findings.md")) {
+        rejectedArtifactPaths.push(normalizeSlashes(artifact.path));
+      }
+    }
+  }
+
+  return {
+    dispatch_mode: "delta_only",
+    instruction,
+    rejected_artifact_paths: rejectedArtifactPaths,
+    prior_cycle_number: priorCycleNumber,
+    current_cycle_number: cycleStatus.cycleNumber,
+    note: "The orchestrator must send only these artifact paths plus the instruction to the implementor. Do not send a fresh long implementation prompt."
   };
 }
 
@@ -723,7 +785,17 @@ async function updateState(input) {
 
   if (input.accessModeResolutionNotes !== undefined) next.access_mode_resolution_notes = emptyToNull(input.accessModeResolutionNotes);
   if (input.currentBranch !== undefined) next.current_branch = emptyToNull(input.currentBranch);
-  if (input.lastCommitSha !== undefined) next.last_commit_sha = emptyToNull(input.lastCommitSha);
+  if (input.lastCommitSha !== undefined) {
+    const candidateSha = emptyToNull(input.lastCommitSha);
+    if (candidateSha !== null) {
+      // Validate that the SHA resolves to a real git object before persisting (cat-file -t checks object existence)
+      const verifyResult = gitOutput(input.repoRoot, ["cat-file", "-t", candidateSha]);
+      if (!verifyResult) {
+        fail("Refusing to persist last_commit_sha '" + candidateSha + "' because it does not resolve to a valid git object in the repository.");
+      }
+    }
+    next.last_commit_sha = candidateSha;
+  }
   if (input.lastCompletedCycle !== undefined) next.last_completed_cycle = parseNonNegativeInteger(input.lastCompletedCycle, "last-completed-cycle");
   if (input.activeCycleNumber !== undefined) next.active_cycle_number = parsePositiveInteger(input.activeCycleNumber, "active-cycle-number");
 
@@ -834,7 +906,16 @@ async function recordEvent(input) {
   }
 
   if (input.currentBranch !== null) synced.current_branch = emptyToNull(input.currentBranch);
-  if (input.lastCommitSha !== null) synced.last_commit_sha = emptyToNull(input.lastCommitSha);
+  if (input.lastCommitSha !== null) {
+    const candidateSha = emptyToNull(input.lastCommitSha);
+    if (candidateSha !== null) {
+      const verifyResult = gitOutput(input.repoRoot, ["cat-file", "-t", candidateSha]);
+      if (!verifyResult) {
+        fail("Refusing to persist last_commit_sha '" + candidateSha + "' via record-event because it does not resolve to a valid git object in the repository.");
+      }
+    }
+    synced.last_commit_sha = candidateSha;
+  }
 
   synced.updated_at = timestamp;
   await writeReviewCycleState(statePath, input.featureSlug, synced);
@@ -1697,7 +1778,20 @@ function normalizeStateObject(existing, defaults, repairs) {
   merged.reviewer_reasoning_effort = emptyToNull(existing.reviewer_reasoning_effort);
   merged.access_mode_resolution_notes = emptyToNull(existing.access_mode_resolution_notes);
   merged.current_branch = emptyToNull(existing.current_branch);
-  merged.last_commit_sha = emptyToNull(existing.last_commit_sha);
+
+  // Validate existing last_commit_sha against the repo; repair to null if invalid
+  const existingAnchor = emptyToNull(existing.last_commit_sha);
+  if (existingAnchor !== null) {
+    const anchorVerify = gitOutput(defaults.repo_root, ["cat-file", "-t", existingAnchor]);
+    if (!anchorVerify) {
+      repairs.push("last_commit_sha '" + existingAnchor + "' does not resolve to a valid git object and was cleared.");
+      merged.last_commit_sha = null;
+    } else {
+      merged.last_commit_sha = existingAnchor;
+    }
+  } else {
+    merged.last_commit_sha = null;
+  }
 
   if (merged.last_completed_cycle < 0) {
     repairs.push("last_completed_cycle was negative and was reset to 0.");
@@ -2038,7 +2132,7 @@ async function ensureReadme(input) {
   return true;
 }
 
-async function selectCycle(featureRoot, lastCompletedCycle) {
+async function selectCycle(featureRoot, lastCompletedCycle, options = {}) {
   const cycles = await listCycleDirectories(featureRoot);
   const latestCycleNumber = cycles.length > 0 ? cycles[cycles.length - 1].number : 0;
 
@@ -2070,6 +2164,25 @@ async function selectCycle(featureRoot, lastCompletedCycle) {
     }
   }
 
+  // Reopen guardrail: when last_completed_cycle > 0, check approval truth AND new diffs before blocking
+  if (lastCompletedCycle > 0 && !options.explicitReopen) {
+    const lastCycleApproved = await checkLastCycleApproved(featureRoot, lastCompletedCycle);
+    if (lastCycleApproved) {
+      const hasNewDiffs = checkForNewDiffsSinceLastCycle(options.repoRoot, options.lastCommitSha);
+      if (!hasNewDiffs) {
+        const nextNumber = Math.max(latestCycleNumber, lastCompletedCycle) + 1;
+        return {
+          latestCycleNumber,
+          mode: "approved_no_new_diffs",
+          cycleNumber: nextNumber,
+          cycleName: formatCycleName(nextNumber),
+          cycleDir: join(featureRoot, formatCycleName(nextNumber)),
+          reopen_blocked_reason: "The last completed cycle was approved and no new diffs exist on the feature branch. Pass --explicit-reopen to override."
+        };
+      }
+    }
+  }
+
   const nextNumber = Math.max(latestCycleNumber, lastCompletedCycle) + 1;
   return {
     latestCycleNumber,
@@ -2078,6 +2191,59 @@ async function selectCycle(featureRoot, lastCompletedCycle) {
     cycleName: formatCycleName(nextNumber),
     cycleDir: join(featureRoot, formatCycleName(nextNumber))
   };
+}
+
+async function checkLastCycleApproved(featureRoot, lastCompletedCycle) {
+  // Check the last completed cycle's review-findings.md for an APPROVED overall verdict
+  const cycleName = formatCycleName(lastCompletedCycle);
+  const reviewFindingsPath = join(featureRoot, cycleName, "review-findings.md");
+  try {
+    const text = await readFile(reviewFindingsPath, "utf8");
+    // Check for "Overall Verdict: APPROVED" or "Overall Verdict: REJECTED"
+    const verdictMatch = text.match(/Overall\s+Verdict:\s*(APPROVED|REJECTED)/i);
+    if (verdictMatch) {
+      return verdictMatch[1].toUpperCase() === "APPROVED";
+    }
+    // Also check "Final Verdict" as a fallback
+    const finalMatch = text.match(/Final\s+Verdict:\s*(APPROVED|REJECTED)/i);
+    if (finalMatch) {
+      return finalMatch[1].toUpperCase() === "APPROVED";
+    }
+    // If no verdict found, treat as non-approved (don't block reopening)
+    return false;
+  } catch {
+    // File doesn't exist or can't be read — treat as non-approved
+    return false;
+  }
+}
+
+function checkForNewDiffsSinceLastCycle(repoRoot, lastCommitSha) {
+  if (!repoRoot || !lastCommitSha) return true; // cannot determine, allow reopen
+
+  // First verify the anchor SHA resolves to a real object (cat-file -t checks existence, not just format)
+  const verifyResult = gitOutput(repoRoot, ["cat-file", "-t", lastCommitSha]);
+  if (!verifyResult) {
+    // Corrupt or nonexistent anchor — fail open (allow reopen) instead of silently blocking
+    return true;
+  }
+
+  // Use spawnSync directly to distinguish empty output (no new diffs) from git failure
+  try {
+    const logResult = spawnSync("git", ["-c", "safe.directory=" + normalizeSlashes(repoRoot), "log", "--oneline", lastCommitSha + "..HEAD", "--"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 10000
+    });
+    if (logResult.status !== 0) {
+      // Git command failed — fail open (allow reopen)
+      return true;
+    }
+    const output = (logResult.stdout ?? "").trim();
+    return output.length > 0;
+  } catch {
+    return true;
+  }
 }
 
 async function inferExistingStreamState(repoRoot, featureRoot) {
@@ -2213,6 +2379,7 @@ function rankAccessMode(mode) {
 }
 
 function determineNextAction(input) {
+  if (input.cycleMode === "approved_no_new_diffs") return "approved_no_new_diffs_hold";
   if (input.setupStatus !== "ready") return "auto_invoke_review_cycle_setup";
   if (input.commitPushPending) return "finish_verification_and_git_closeout";
   if (input.currentCycleState === "invalid_cycle_artifacts") return "clean_invalid_cycle_artifacts_and_restart_current_cycle";

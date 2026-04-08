@@ -60,6 +60,33 @@ Rules:
 - on success, update implement-plan merge state, attempt safe local target sync, and mark the feature completed
 - on failure, preserve queue evidence, update implement-plan state truthfully, and do not mark complete
 
+## Blocked-merge resume/resolve rules
+
+When a merge request is blocked, the governed recovery path is `resume-blocked`, not manual merge worktrees.
+
+For `resume-blocked`:
+
+- `project_root`
+- `request_id`
+
+Optional:
+
+- `approved_commit_sha`
+- `base_branch`
+
+Rules:
+
+- find the blocked request in the queue by `request_id`
+- fail if the request does not exist or is not in `blocked` status
+- if the original blocker was a stale commit (approved SHA is already an ancestor of base), the invoker must supply a new `approved_commit_sha`
+- if the original blocker was a merge conflict, the invoker must fix the feature branch first and supply the new approved commit
+- if the original blocker was a closeout readiness failure, the invoker must fix readiness before resuming
+- validate the new `approved_commit_sha` against the same constraints as enqueue: reject if missing, reject if already an ancestor
+- when the new `approved_commit_sha` passes validation, re-queue the request with `status=queued`, update `approved_commit_sha`, clear `last_error` and `blocked_at`
+- update implement-plan feature state to `merge_status=queued` and `active_run_status=merge_queued`
+- `resume-blocked` must not merge or push directly — it returns the request to the queue so `process-next` handles the actual merge
+- manual merge worktrees are not the intended product-path recovery route
+
 ## Sync rules
 
 - always fetch the target branch locally after successful merge

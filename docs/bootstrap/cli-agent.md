@@ -52,6 +52,39 @@ Treat these output fields as authority:
 
 The `llm_tools` section reports which sibling LLM CLI tools are installed on this host and how to invoke them for autonomous worker execution. Before claiming a sibling CLI tool is unavailable, check this section. When a skill or user requests a specific LLM tool as a worker (e.g., "reviewers must be codex"), use the `autonomous_invoke` command from preflight to spawn it via Bash.
 
+### Sibling-worker invocation examples (Windows host + bash workflow)
+
+When spawning a sibling CLI tool as an autonomous worker on a Windows host with bash as the workflow shell, use the `autonomous_invoke` command from preflight output:
+
+```bash
+# Claude Code as autonomous implementor worker
+bash -c 'claude --dangerously-skip-permissions "Implement the bounded slice described in docs/phase1/feature-slug/implement-plan-brief.md"'
+
+# Codex CLI as autonomous reviewer worker
+bash -c 'codex exec --full-auto --dangerously-auto-approve "Review the feature changes on branch implement-plan/phase1/feature-slug"'
+
+# Gemini CLI as autonomous auditor worker (when available)
+bash -c 'gemini "Audit the route changes in skills/review-cycle/"'
+```
+
+For multiline or quote-heavy prompts, write the prompt to a temporary file and invoke from file:
+
+```bash
+# Write the prompt to a temp file, then invoke the worker
+cat > /tmp/worker-prompt.txt << 'PROMPT'
+Implement the bounded product slice exactly as described.
+Read the brief at docs/phase1/feature-slug/implement-plan-brief.md.
+PROMPT
+bash -c 'claude --dangerously-skip-permissions "$(cat /tmp/worker-prompt.txt)"'
+```
+
+Rules:
+
+- always use the `autonomous_invoke` string from preflight `llm_tools`; do not construct invocation strings manually
+- on Windows, wrap all worker invocations in `bash -c '...'` to stay inside the ADF workflow shell
+- check `llm_tools.<name>.available` before attempting to spawn a worker
+- prefer writing a temp `.sh` or `.txt` prompt file when the prompt is multiline or contains special characters
+
 If runtime preflight fails:
 
 - use `--install` for bounded dependency/build/bootstrap repair
