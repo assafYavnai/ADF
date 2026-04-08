@@ -1,71 +1,55 @@
-# coo-freeze-to-cto-admission-wiring - Completion Summary
+1. Objective Completed
 
-## Current Slice Status
-- Implementation status: code complete in the dedicated implement-plan worktree
-- Machine verification status: passing for the targeted slice tests after the cycle-01 route fix pass
-- Review-cycle status: cycle-01 audit, review, fix, and verification complete locally; commit/push closeout is the remaining review-cycle step
-- Merge-queue status: not run in this turn
-- Final feature status: active, reviewed and machine-verified, not complete until merge-queue lands the approved commit and implement-plan records merge truthfully
+- Wired the live COO finalized-requirement freeze path into `COO/cto-admission/**` so the COO produces real persisted CTO-admission handoff artifacts without manual reinterpretation.
+- Tightened the persistence contract with scope-derived feature-root identity and proof partition isolation.
 
-## What Changed
-- Wired the live finalized-requirement freeze path into `COO/cto-admission/**` after durable finalized-requirement publication.
-- Added a COO-owned durable CTO-admission state model with explicit statuses:
-  - `admission_not_started`
-  - `admission_build_failed`
-  - `admission_pending_decision`
-  - `admission_admitted`
-  - `admission_deferred`
-  - `admission_blocked`
-- Persisted deterministic CTO-admission artifacts under `docs/phase1/<feature-slug>/`:
-  - `cto-admission-request.json`
-  - `cto-admission-decision.template.json`
-  - `cto-admission-summary.md`
-- Added a minimal decision-update seam that rewrites the decision template and summary for explicit `admit`, `defer`, and `block` updates.
-- Exposed CTO-admission truth in controller serialization and onion turn records.
-- Tightened the persistence contract so:
-  - the deterministic feature root resolves from the live scope-path slug when available
-  - proof partition persistence fails closed on repo-like ADF checkout/worktree roots instead of writing into live `docs/phase1/<feature-slug>/`
+2. Deliverables Produced
 
-## Files Updated
-- `COO/cto-admission/index.ts`
-- `COO/cto-admission/live-handoff.ts`
-- `COO/cto-admission/live-handoff.test.ts`
-- `COO/cto-admission/live-state.ts`
-- `COO/controller/cli.ts`
-- `COO/controller/loop.ts`
-- `COO/controller/thread.ts`
-- `COO/controller/thread.test.ts`
-- `COO/requirements-gathering/contracts/onion-live.ts`
-- `COO/requirements-gathering/live/onion-live.ts`
-- `COO/requirements-gathering/live/onion-live.test.ts`
-- `docs/phase1/coo-freeze-to-cto-admission-wiring/context.md`
+- Live finalized-requirement to CTO-admission adapter in `COO/cto-admission/live-handoff.ts`
+- Deterministic CTO-admission artifact persistence under `docs/phase1/<feature-slug>/`
+- Explicit persisted admission status model with statuses: `admission_not_started`, `admission_build_failed`, `admission_pending_decision`, `admission_admitted`, `admission_deferred`, `admission_blocked`
+- Minimal decision-update seam for explicit `admit`, `defer`, and `block` updates
+- Scope-derived feature-slug resolution (scope path preferred over topic text)
+- Fail-closed proof partition isolation guard at the persistence seam
+- Full KPI instrumentation: latency percentiles, slow buckets, handoff/build/status counters, parity, write completeness, and production/proof separation
+
+3. Files Changed And Why
+
+- `COO/cto-admission/index.ts` — exports
+- `COO/cto-admission/live-handoff.ts` — main implementation: scope-derived feature-slug resolution, proof-root isolation guard, live handoff adapter
+- `COO/cto-admission/live-handoff.test.ts` — proof tests including scope/topic mismatch and negative proof for proof-mode persistence on repo-like roots
+- `COO/cto-admission/live-state.ts` — explicit admission state model
+- `COO/controller/cli.ts` — proof-mode telemetry partition bootstrap
+- `COO/controller/loop.ts` — loop integration for admission handoff
+- `COO/controller/thread.ts` — controller serialization exposing CTO-admission truth
+- `COO/controller/thread.test.ts` — thread integration tests
+- `COO/requirements-gathering/contracts/onion-live.ts` — contract types for CTO-admission thread state
+- `COO/requirements-gathering/live/onion-live.ts` — live onion integration forwarding scope/partition to handoff
+- `COO/requirements-gathering/live/onion-live.test.ts` — integration tests with proof-root rejection
+
+4. Verification Evidence
+
+- Verification command: `npx.cmd tsx --test cto-admission/live-handoff.test.ts requirements-gathering/live/onion-live.test.ts controller/thread.test.ts requirements-gathering/onion-lane.test.ts`
+- All 26 tests passing
+- Review-Cycle Status: cycle-01 rejected (both lanes), fixes applied and verified; cycle-02 approved (both auditor and reviewer)
+- Merge Status: merged via merge-queue (merge commit c978b84464a812e6f8a63c3427cde578fbfce5dc)
+- Approved feature commit: 597f32c1afcfc53bb16b06c5aa4c313d8bde3bf1
+
+5. Feature Artifacts Updated
+
 - `docs/phase1/coo-freeze-to-cto-admission-wiring/completion-summary.md`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/review-cycle-state.json`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/context.md`
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/cycle-01/` — reject cycle artifacts
+- `docs/phase1/coo-freeze-to-cto-admission-wiring/cycle-02/` — approval cycle artifacts
 
-## Verification Run
-- `npx.cmd tsx --test cto-admission/live-handoff.test.ts requirements-gathering/live/onion-live.test.ts controller/thread.test.ts requirements-gathering/onion-lane.test.ts`
+6. Commit And Push Result
 
-## KPI / Audit Evidence Added
-- `finalized_requirement_to_admission_latency_ms` samples with persisted `p50`, `p95`, `p99`
-- slow buckets over `1s`, `10s`, and `60s`
-- `finalized_requirement_handoff_count`
-- `admission_artifact_build_success_count`
-- `admission_artifact_build_failed_count`
-- `admission_pending_decision_count`
-- `admission_admitted_count`
-- `admission_deferred_count`
-- `admission_blocked_count`
-- `admission_artifact_persist_failure_count`
-- `requirement_to_admission_artifact_parity_count`
-- `admission_status_write_completeness_rate`
-- production/proof handoff counters proving partition separation
-- negative proof that proof-mode handoffs fail closed on repo-like roots
-- positive proof that scope/topic mismatch still persists under the scope-derived feature root
+- Approved feature commit: 597f32c1afcfc53bb16b06c5aa4c313d8bde3bf1
+- Merge commit: c978b84464a812e6f8a63c3427cde578fbfce5dc
+- Code already on main and origin/main before governed closeout reconciliation
 
-## Brain / Status Note
-- Brain project-status note: docs-only fallback used
-- Reason: the runtime preflight reported Brain availability, but the normal Brain write MCP tool surface was not exposed in this Codex runtime, so no fake status write was attempted
+7. Remaining Non-Goals / Debt
 
-## Remaining Governance Closeout
-- Review-cycle `cycle-01` is complete locally and awaiting git closeout plus merge handoff.
-- Merge-queue has not been run from this turn.
-- `implement-plan` feature index still shows this slice as active and not merged, so the slice is not marked complete yet.
+- No queue manager, scheduler, or downstream implement-plan automation was added (by design).
+- The minimal explicit decision-update seam remains limited to persisted artifact and state updates for `admit`, `defer`, and `block`.
