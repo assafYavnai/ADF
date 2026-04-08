@@ -4,7 +4,7 @@ Hardened the governed implementation route so future Phase 1 slices can move fro
 
 2. Deliverables Produced
 
-- review-cycle fix-cycle continuity rule: rejection/fix cycles reuse the same implementor execution and send only rejected findings plus a short fix instruction, not a fresh long prompt
+- review-cycle fix-cycle continuity rule: rejection/fix cycles reuse the same implementor execution; the helper constructs a `fix_cycle_implementor_input` with only rejected artifact paths and a short instruction when `fix_cycle_dispatch_mode` is `delta_only`; the orchestrator must use this input rather than constructing a fresh long prompt
 - review-cycle reopen guardrail: cycle N+1 is blocked unless there are new diffs since the approved cycle or the invoker explicitly requests reopen
 - merge-queue governed blocked-merge resume/resolve route: `resume-blocked` command transitions blocked requests back to queued after the invoker fixes the blocker, replacing manual merge worktrees as the recovery path
 - implement-plan authoritative requirement-freeze guard: detects independent authority file changes on the base branch that conflict with the frozen slice contract and surfaces a pushback

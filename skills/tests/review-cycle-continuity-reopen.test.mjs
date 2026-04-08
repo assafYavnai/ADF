@@ -452,6 +452,152 @@ await (async () => {
   }
 })();
 
+// Test 14: Behavioral - record-event rejects nonexistent last-commit-sha
+await (async () => {
+  const testDir = join(testRoot, "record-event-invalid-sha");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+  const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+  await mkdir(featureRoot, { recursive: true });
+  await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify({
+    phase_number: 1, feature_slug: "test-feature",
+    repo_root: testDir.replace(/\\/g, "/"),
+    feature_agent_registry_key: "phase1/test-feature",
+    last_completed_cycle: 0, last_commit_sha: null,
+    active_cycle_number: 1, cycle_runtime: null,
+    split_review_continuity: { mode: "full_pair" },
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+  }, null, 2), "utf8");
+  git(testDir, ["add", "."]); git(testDir, ["commit", "-m", "state"]);
+
+  try {
+    const result = spawnSync("node", [
+      helperPath, "record-event",
+      "--phase-number", "1", "--feature-slug", "test-feature",
+      "--repo-root", testDir, "--event", "closeout-finished",
+      "--last-commit-sha", "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+    ], { encoding: "utf8", windowsHide: true, timeout: 30000 });
+    assert(result.status !== 0, "record-event should reject nonexistent SHA");
+    assert(result.stderr.includes("does not resolve"), "error should mention SHA does not resolve, got: " + result.stderr);
+    passed += 1;
+    process.stdout.write("PASS: behavioral - record-event rejects nonexistent last-commit-sha\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - record-event rejects nonexistent last-commit-sha\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 15: Behavioral - normalization repairs invalid last_commit_sha to null
+await (async () => {
+  const testDir = join(testRoot, "normalization-repair");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+  const featureRoot = join(testDir, "docs", "phase1", "test-feature");
+  await mkdir(featureRoot, { recursive: true });
+  // Write state with an invalid last_commit_sha
+  await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify({
+    phase_number: 1, feature_slug: "test-feature",
+    repo_root: testDir.replace(/\\/g, "/"),
+    feature_agent_registry_key: "phase1/test-feature",
+    last_completed_cycle: 0,
+    last_commit_sha: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+    active_cycle_number: 1, cycle_runtime: null,
+    split_review_continuity: { mode: "full_pair" },
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+  }, null, 2), "utf8");
+  git(testDir, ["add", "."]); git(testDir, ["commit", "-m", "state"]);
+
+  try {
+    const result = runPrepare(testDir, 1, "test-feature", "Test normalization repair.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    // The repaired state should have cleared the invalid anchor
+    assert(output.state_repairs?.some(r => r.includes("last_commit_sha")) || output.last_commit_sha === null,
+      "normalization should repair invalid last_commit_sha");
+    passed += 1;
+    process.stdout.write("PASS: behavioral - normalization repairs invalid last_commit_sha\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - normalization repairs invalid last_commit_sha\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 16: Behavioral - fix_cycle_implementor_input is present for delta_only dispatch
+await (async () => {
+  const testDir = join(testRoot, "delta-only-input");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    const featureRoot = join(testDir, "docs", "phase1", "test-feature-delta");
+    const cycleDir = join(featureRoot, "cycle-01");
+    await mkdir(cycleDir, { recursive: true });
+
+    // Write valid cycle-01 artifacts with both review findings present (findings_ready_for_fix_planning)
+    await writeFile(join(cycleDir, "audit-findings.md"), "1. Findings\nOverall Verdict: REJECTED\nSome issue.\n\n2. Conceptual Root Cause\nSome.\n\n3. High-Level View Of System Routes That Still Need Work\nSome.\n", "utf8");
+    await writeFile(join(cycleDir, "review-findings.md"), "1. Closure Verdicts\nOverall Verdict: REJECTED\nOpen.\n\n2. Remaining Root Cause\nSome.\n\n3. Next Minimal Fix Pass\nFix needed.\n", "utf8");
+    // No fix-plan or fix-report — cycle is in findings_ready_for_fix_planning state
+
+    await writeFile(join(featureRoot, "review-cycle-state.json"), JSON.stringify({
+      phase_number: 1, feature_slug: "test-feature-delta",
+      repo_root: testDir.replace(/\\/g, "/"),
+      feature_agent_registry_key: "phase1/test-feature-delta",
+      last_completed_cycle: 0, last_commit_sha: null,
+      active_cycle_number: 1, cycle_runtime: null,
+      split_review_continuity: { mode: "full_pair" },
+      implementor_execution_id: "cached-impl-delta",
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+    }, null, 2), "utf8");
+
+    git(testDir, ["add", "."]); git(testDir, ["commit", "-m", "rejected cycle"]);
+
+    const result = runPrepare(testDir, 1, "test-feature-delta", "Fix the rejected findings.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    assert(output.fix_cycle_dispatch_mode === "delta_only",
+      "fix_cycle_dispatch_mode should be delta_only, got: " + (output.fix_cycle_dispatch_mode ?? "missing"));
+    assert(output.fix_cycle_implementor_input !== null,
+      "fix_cycle_implementor_input should be present for delta_only dispatch");
+    assert(output.fix_cycle_implementor_input?.dispatch_mode === "delta_only",
+      "dispatch_mode in input should be delta_only");
+    assert(Array.isArray(output.fix_cycle_implementor_input?.rejected_artifact_paths),
+      "rejected_artifact_paths should be an array");
+    assert(output.fix_cycle_implementor_input?.rejected_artifact_paths?.length > 0,
+      "rejected_artifact_paths should not be empty");
+    assert(typeof output.fix_cycle_implementor_input?.instruction === "string",
+      "instruction should be a string");
+    passed += 1;
+    process.stdout.write("PASS: behavioral - fix_cycle_implementor_input present for delta_only\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - fix_cycle_implementor_input present for delta_only\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
+// Test 17: Behavioral - fix_cycle_implementor_input is null for fresh dispatch
+await (async () => {
+  const testDir = join(testRoot, "fresh-no-input");
+  await mkdir(testDir, { recursive: true });
+  git(testDir, ["init"]);
+  git(testDir, ["commit", "--allow-empty", "-m", "init"]);
+
+  try {
+    const result = runPrepare(testDir, 1, "test-feature-fresh2", "New review.");
+    assert(result.status === 0, "prepare should succeed, got: " + result.stderr);
+    const output = JSON.parse(result.stdout.trim());
+    assert(output.fix_cycle_implementor_input === null,
+      "fix_cycle_implementor_input should be null for fresh dispatch, got: " + JSON.stringify(output.fix_cycle_implementor_input));
+    passed += 1;
+    process.stdout.write("PASS: behavioral - fix_cycle_implementor_input is null for fresh dispatch\n");
+  } catch (error) {
+    failed += 1;
+    process.stderr.write("FAIL: behavioral - fix_cycle_implementor_input is null for fresh dispatch\n  " + (error.stack ?? error.message ?? String(error)) + "\n");
+  }
+})();
+
 // Summary
 process.stdout.write("\n" + passed + " passed, " + failed + " failed\n");
 if (failed > 0) {

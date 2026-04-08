@@ -675,7 +675,16 @@ async function prepareCycle(input) {
       next_action: nextAction
     },
     reopen_blocked_reason: cycleStatus.reopen_blocked_reason ?? null,
-    fix_cycle_dispatch_mode: resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState)
+    fix_cycle_dispatch_mode: resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState),
+    fix_cycle_implementor_input: resolveFixCycleImplementorInput(
+      resolveFixCycleDispatchMode(cycleStatus, nextState, currentCycleState),
+      featureRoot,
+      priorCycleNumber,
+      priorCycleDir,
+      priorArtifacts,
+      activeArtifacts,
+      cycleStatus
+    )
   };
 }
 
@@ -701,6 +710,43 @@ function resolveFixCycleDispatchMode(cycleStatus, state, currentCycleState) {
     }
   }
   return "fresh";
+}
+
+function resolveFixCycleImplementorInput(dispatchMode, featureRoot, priorCycleNumber, priorCycleDir, priorArtifacts, activeArtifacts, cycleStatus) {
+  if (dispatchMode !== "delta_only") return null;
+
+  const rejectedArtifactPaths = [];
+  const instruction = "Fix only the rejected findings from the prior review cycle. Do not send a fresh long implementation prompt. Use only the rejected report and findings paths below plus this short fix instruction.";
+
+  // Collect rejected artifact paths from the prior cycle (the one that produced the rejection)
+  if (priorCycleDir && priorArtifacts) {
+    for (const [name, artifact] of Object.entries(priorArtifacts.required_artifacts ?? {})) {
+      if (artifact.exists && (name === "audit-findings.md" || name === "review-findings.md" || name === "fix-report.md")) {
+        rejectedArtifactPaths.push(normalizeSlashes(artifact.path));
+      }
+    }
+  }
+
+  // Also include the current cycle's findings if they exist (for cycles resuming after findings arrived)
+  if (activeArtifacts) {
+    for (const [name, artifact] of Object.entries(activeArtifacts.required_artifacts ?? {})) {
+      if (artifact.exists && (name === "audit-findings.md" || name === "review-findings.md")) {
+        const normalized = normalizeSlashes(artifact.path);
+        if (!rejectedArtifactPaths.includes(normalized)) {
+          rejectedArtifactPaths.push(normalized);
+        }
+      }
+    }
+  }
+
+  return {
+    dispatch_mode: "delta_only",
+    instruction,
+    rejected_artifact_paths: rejectedArtifactPaths,
+    prior_cycle_number: priorCycleNumber,
+    current_cycle_number: cycleStatus.cycleNumber,
+    note: "The orchestrator must send only these artifact paths plus the instruction to the implementor. Do not send a fresh long implementation prompt."
+  };
 }
 
 async function updateState(input) {
@@ -876,7 +922,16 @@ async function recordEvent(input) {
   }
 
   if (input.currentBranch !== null) synced.current_branch = emptyToNull(input.currentBranch);
-  if (input.lastCommitSha !== null) synced.last_commit_sha = emptyToNull(input.lastCommitSha);
+  if (input.lastCommitSha !== null) {
+    const candidateSha = emptyToNull(input.lastCommitSha);
+    if (candidateSha !== null) {
+      const verifyResult = gitOutput(input.repoRoot, ["cat-file", "-t", candidateSha]);
+      if (!verifyResult) {
+        fail("Refusing to persist last_commit_sha '" + candidateSha + "' via record-event because it does not resolve to a valid git object in the repository.");
+      }
+    }
+    synced.last_commit_sha = candidateSha;
+  }
 
   synced.updated_at = timestamp;
   await writeReviewCycleState(statePath, input.featureSlug, synced);
@@ -1739,7 +1794,20 @@ function normalizeStateObject(existing, defaults, repairs) {
   merged.reviewer_reasoning_effort = emptyToNull(existing.reviewer_reasoning_effort);
   merged.access_mode_resolution_notes = emptyToNull(existing.access_mode_resolution_notes);
   merged.current_branch = emptyToNull(existing.current_branch);
-  merged.last_commit_sha = emptyToNull(existing.last_commit_sha);
+
+  // Validate existing last_commit_sha against the repo; repair to null if invalid
+  const existingAnchor = emptyToNull(existing.last_commit_sha);
+  if (existingAnchor !== null) {
+    const anchorVerify = gitOutput(defaults.repo_root, ["cat-file", "-t", existingAnchor]);
+    if (!anchorVerify) {
+      repairs.push("last_commit_sha '" + existingAnchor + "' does not resolve to a valid git object and was cleared.");
+      merged.last_commit_sha = null;
+    } else {
+      merged.last_commit_sha = existingAnchor;
+    }
+  } else {
+    merged.last_commit_sha = null;
+  }
 
   if (merged.last_completed_cycle < 0) {
     repairs.push("last_completed_cycle was negative and was reset to 0.");

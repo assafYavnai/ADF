@@ -678,6 +678,8 @@ Rules:
 - normal fix cycles do not send a fresh long implementation prompt to the implementor
 - normal fix cycles send only the rejected findings or report artifact paths plus a short fix instruction
 - the implementor receives only the delta work, not a full re-bootstrap
+- the helper constructs a `fix_cycle_implementor_input` object when `fix_cycle_dispatch_mode` is `delta_only`, containing the rejected report/findings artifact paths and a short fix instruction
+- the orchestrator must use `fix_cycle_implementor_input` as the sole implementor input when present; constructing a fresh long prompt when the helper supplies delta-only input violates the continuity contract
 
 ## Reopen guardrail contract
 
