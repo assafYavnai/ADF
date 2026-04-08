@@ -131,6 +131,17 @@ Use `semantic_weight: 0` (keyword-only) unless Ollama is running for embeddings.
 
 Do not ask the CEO to restate context that the Brain already holds.
 
+## Brain Fallback Route
+
+- Preferred path is always MCP calls to `project-brain` in the assistant/runtime layer.
+- For shell automation, smoke checks, or when MCP is unavailable, use:
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs connect-smoke --project-root C:/ADF`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs search --project-root C:/ADF --scope assafyavnai/adf --query "..."`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs capture --project-root C:/ADF --scope assafyavnai/adf --content-type finding --title "..." --summary "..."`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs trust --project-root C:/ADF --scope assafyavnai/adf --memory-id <id> --action promote|cleanup`
+- Do not import or call memory-engine internals directly. Route all fallback writes through this helper.
+
 ## Brain Capture Discipline
 
 The Brain is the company's durable memory. Capture knowledge as you work, without being asked.

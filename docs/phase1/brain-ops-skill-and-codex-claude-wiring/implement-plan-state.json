@@ -35,20 +35,20 @@
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "last_completed_step": "context_collected",
+  "last_completed_step": "verification_finished",
   "last_commit_sha": null,
-  "active_run_status": "context_ready",
+  "active_run_status": "closeout_pending",
   "created_at": "2026-04-08T17:11:50.531Z",
-  "updated_at": "2026-04-08T17:15:15.091Z",
+  "updated_at": "2026-04-08T17:27:26.154Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-08T17:11:50.602Z",
     "worktree_prepared_at": "2026-04-08T17:15:15.086Z",
     "integrity_passed_at": null,
     "integrity_failed_at": "2026-04-08T17:11:50.602Z",
     "brief_written_at": null,
-    "implementor_started_at": null,
-    "implementor_finished_at": null,
-    "verification_finished_at": null,
+    "implementor_started_at": "2026-04-08T17:27:25.846Z",
+    "implementor_finished_at": "2026-04-08T17:27:25.973Z",
+    "verification_finished_at": "2026-04-08T17:27:26.099Z",
     "review_requested_at": null,
     "human_verification_requested_at": null,
     "merge_started_at": null,
@@ -100,6 +100,48 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-08T17:15:15.089Z",
       "note": null
+    },
+    {
+      "event": "implementor-started",
+      "timestamp": "2026-04-08T17:27:25.846Z",
+      "note": "Started gpt-5.3-codex-spark implementor lane for the repo-owned brain-ops skill and Codex/Claude wiring."
+    },
+    {
+      "event_id": "event-ab359fde-16d1-4c20-9c17-a173a117f00f",
+      "event_type": "step-transition",
+      "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:27:25.846Z",
+      "note": "Started gpt-5.3-codex-spark implementor lane for the repo-owned brain-ops skill and Codex/Claude wiring."
+    },
+    {
+      "event": "implementor-finished",
+      "timestamp": "2026-04-08T17:27:25.973Z",
+      "note": "Implemented skills/brain-ops, manifest registration, and CLI bootstrap wiring in the feature worktree."
+    },
+    {
+      "event_id": "event-ae6369c5-586c-4fc2-905e-4ba09478afc2",
+      "event_type": "step-transition",
+      "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:27:25.973Z",
+      "note": "Implemented skills/brain-ops, manifest registration, and CLI bootstrap wiring in the feature worktree."
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-08T17:27:26.099Z",
+      "note": "Passed helper syntax, worktree-aware connect/search/read, controlled Brain write+promotion+archive cleanup, and manage-skills install/check for Codex and Claude."
+    },
+    {
+      "event_id": "event-b5178e97-9182-4028-81bd-05b023ad70c6",
+      "event_type": "step-transition",
+      "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:27:26.099Z",
+      "note": "Passed helper syntax, worktree-aware connect/search/read, controlled Brain write+promotion+archive cleanup, and manage-skills install/check for Codex and Claude."
     }
   ],
   "artifacts": {
@@ -107,8 +149,8 @@
     "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/context.md",
     "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json",
     "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
-    "execution_run_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
     "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
     "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-pushback.md",
     "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-brief.md",
@@ -131,7 +173,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 2,
+        "contract_revision": 5,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
@@ -151,32 +193,32 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "ready_for_implementation",
+            "status": "closeout_pending",
             "terminal_status": null,
             "started_at": "2026-04-08T17:11:50.580Z",
-            "updated_at": "2026-04-08T17:15:15.086Z",
+            "updated_at": "2026-04-08T17:27:26.153Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "implementation",
-              "status": "ready",
+              "step": "machine_verification",
+              "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-08T17:15:15.086Z"
+              "updated_at": "2026-04-08T17:27:26.153Z"
             },
             "step_status": {
               "implementation": {
-                "status": "not_started",
-                "started_at": null,
-                "completed_at": null,
-                "duration_seconds": null,
+                "status": "completed",
+                "started_at": "2026-04-08T17:27:25.846Z",
+                "completed_at": "2026-04-08T17:27:25.973Z",
+                "duration_seconds": 0,
                 "note": null
               },
               "machine_verification": {
-                "status": "not_started",
-                "started_at": null,
-                "completed_at": null,
-                "duration_seconds": null,
+                "status": "completed",
+                "started_at": "2026-04-08T17:27:25.973Z",
+                "completed_at": "2026-04-08T17:27:26.099Z",
+                "duration_seconds": 0,
                 "note": null
               },
               "review_cycle": {
@@ -227,36 +269,36 @@
                 "execution_id": null,
                 "bound_at": "2026-04-08T17:11:50.580Z",
                 "selection_source": {
-                  "provider": "explicit_override",
-                  "runtime": "explicit_override",
-                  "access_mode": "explicit_override",
-                  "model": "explicit_override",
-                  "reasoning_effort": "unsupported_for_resolved_worker"
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
                 },
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T17:15:15.086Z",
-            "last_event_at": "2026-04-08T17:15:15.089Z"
+            "last_checkpoint_at": "2026-04-08T17:27:26.153Z",
+            "last_event_at": "2026-04-08T17:27:26.099Z"
           }
         },
         "created_at": "2026-04-08T17:11:50.580Z",
-        "updated_at": "2026-04-08T17:15:15.088Z",
-        "last_event_at": "2026-04-08T17:15:15.089Z",
+        "updated_at": "2026-04-08T17:27:26.158Z",
+        "last_event_at": "2026-04-08T17:27:26.099Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
             "implementation": {
-              "status": "not_started",
-              "started_at": null,
-              "completed_at": null,
-              "duration_seconds": null
+              "status": "completed",
+              "started_at": "2026-04-08T17:27:25.846Z",
+              "completed_at": "2026-04-08T17:27:25.973Z",
+              "duration_seconds": 0
             },
             "machine_verification": {
-              "status": "not_started",
-              "started_at": null,
-              "completed_at": null,
-              "duration_seconds": null
+              "status": "completed",
+              "started_at": "2026-04-08T17:27:25.973Z",
+              "completed_at": "2026-04-08T17:27:26.099Z",
+              "duration_seconds": 0
             },
             "review_cycle": {
               "status": "not_started",
@@ -293,7 +335,7 @@
       }
     }
   },
-  "__gsw_revision": 2,
-  "__gsw_write_id": "gsw-0a0a5de1-265a-4225-aa2a-1bf6418e26fc",
-  "__gsw_timestamp": "2026-04-08T17:15:15.092Z"
+  "__gsw_revision": 5,
+  "__gsw_write_id": "gsw-cbba9905-3640-4896-9ebc-9ffb7b5d8ee6",
+  "__gsw_timestamp": "2026-04-08T17:27:26.160Z"
 }

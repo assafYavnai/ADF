@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/brain-ops-skill-and-codex-claude-wiring",
   "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
   "run_mode": "normal",
-  "updated_at": "2026-04-08T17:15:15.091Z",
+  "updated_at": "2026-04-08T17:27:26.158Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
@@ -17,7 +17,7 @@
     "lifecycle_status": "active",
     "terminal_status": null,
     "contract_schema_version": 1,
-    "contract_revision": 2,
+    "contract_revision": 5,
     "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
     "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
@@ -37,32 +37,32 @@
       "attempt-001": {
         "attempt_id": "attempt-001",
         "attempt_number": 1,
-        "status": "ready_for_implementation",
+        "status": "closeout_pending",
         "terminal_status": null,
         "started_at": "2026-04-08T17:11:50.580Z",
-        "updated_at": "2026-04-08T17:15:15.086Z",
+        "updated_at": "2026-04-08T17:27:26.153Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
-          "step": "implementation",
-          "status": "ready",
+          "step": "machine_verification",
+          "status": "completed",
           "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-08T17:15:15.086Z"
+          "updated_at": "2026-04-08T17:27:26.153Z"
         },
         "step_status": {
           "implementation": {
-            "status": "not_started",
-            "started_at": null,
-            "completed_at": null,
-            "duration_seconds": null,
+            "status": "completed",
+            "started_at": "2026-04-08T17:27:25.846Z",
+            "completed_at": "2026-04-08T17:27:25.973Z",
+            "duration_seconds": 0,
             "note": null
           },
           "machine_verification": {
-            "status": "not_started",
-            "started_at": null,
-            "completed_at": null,
-            "duration_seconds": null,
+            "status": "completed",
+            "started_at": "2026-04-08T17:27:25.973Z",
+            "completed_at": "2026-04-08T17:27:26.099Z",
+            "duration_seconds": 0,
             "note": null
           },
           "review_cycle": {
@@ -113,36 +113,36 @@
             "execution_id": null,
             "bound_at": "2026-04-08T17:11:50.580Z",
             "selection_source": {
-              "provider": "explicit_override",
-              "runtime": "explicit_override",
-              "access_mode": "explicit_override",
-              "model": "explicit_override",
-              "reasoning_effort": "unsupported_for_resolved_worker"
+              "provider": "persisted_continuity",
+              "runtime": "persisted_continuity",
+              "access_mode": "persisted_continuity",
+              "model": "persisted_continuity",
+              "reasoning_effort": "persisted_continuity"
             },
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-08T17:15:15.086Z",
-        "last_event_at": "2026-04-08T17:15:15.089Z"
+        "last_checkpoint_at": "2026-04-08T17:27:26.153Z",
+        "last_event_at": "2026-04-08T17:27:26.099Z"
       }
     },
     "created_at": "2026-04-08T17:11:50.580Z",
-    "updated_at": "2026-04-08T17:15:15.088Z",
-    "last_event_at": "2026-04-08T17:15:15.089Z",
+    "updated_at": "2026-04-08T17:27:26.158Z",
+    "last_event_at": "2026-04-08T17:27:26.099Z",
     "kpi_projection": {
       "terminal_status": null,
       "per_step_timing": {
         "implementation": {
-          "status": "not_started",
-          "started_at": null,
-          "completed_at": null,
-          "duration_seconds": null
+          "status": "completed",
+          "started_at": "2026-04-08T17:27:25.846Z",
+          "completed_at": "2026-04-08T17:27:25.973Z",
+          "duration_seconds": 0
         },
         "machine_verification": {
-          "status": "not_started",
-          "started_at": null,
-          "completed_at": null,
-          "duration_seconds": null
+          "status": "completed",
+          "started_at": "2026-04-08T17:27:25.973Z",
+          "completed_at": "2026-04-08T17:27:26.099Z",
+          "duration_seconds": 0
         },
         "review_cycle": {
           "status": "not_started",
