@@ -39,7 +39,7 @@
   "last_commit_sha": "355ead3b56604cf5a65960bd6150b50721599657",
   "active_run_status": "review_pending",
   "created_at": "2026-04-08T17:11:50.531Z",
-  "updated_at": "2026-04-08T18:57:43.091Z",
+  "updated_at": "2026-04-08T18:59:03.426Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-08T17:11:50.602Z",
     "worktree_prepared_at": "2026-04-08T17:15:15.086Z",
@@ -49,7 +49,7 @@
     "implementor_started_at": "2026-04-08T18:15:32.275Z",
     "implementor_finished_at": "2026-04-08T18:15:51.254Z",
     "verification_finished_at": "2026-04-08T18:16:56.610Z",
-    "review_requested_at": "2026-04-08T18:44:10.201Z",
+    "review_requested_at": "2026-04-08T18:58:56.971Z",
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": null,
@@ -307,6 +307,20 @@
       "attempt_id": "attempt-002",
       "timestamp": "2026-04-08T18:57:43.091Z",
       "note": null
+    },
+    {
+      "event": "review-requested",
+      "timestamp": "2026-04-08T18:58:56.971Z",
+      "note": "Cycle-04 approval review requested on the corrected branch tip after cycle-03 closeout sync."
+    },
+    {
+      "event_id": "event-eb3e0e12-059e-48a7-9982-7e18bcd5504a",
+      "event_type": "step-transition",
+      "run_id": "run-a700b06e-f539-434a-b6f1-566db8a49953",
+      "run_mode": "normal",
+      "attempt_id": "attempt-002",
+      "timestamp": "2026-04-08T18:58:56.971Z",
+      "note": "Cycle-04 approval review requested on the corrected branch tip after cycle-03 closeout sync."
     }
   ],
   "artifacts": {
@@ -338,7 +352,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 19,
+        "contract_revision": 20,
         "feature_contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implementation-run/run-a700b06e-f539-434a-b6f1-566db8a49953/run-projection.v1.json",
@@ -452,7 +466,7 @@
             "status": "review_pending",
             "terminal_status": null,
             "started_at": "2026-04-08T18:14:44.265Z",
-            "updated_at": "2026-04-08T18:57:43.090Z",
+            "updated_at": "2026-04-08T18:59:03.424Z",
             "reset_at": null,
             "reset_reason": "Reset after rebasing onto origin/main to absorb updated authority files before continuing the cycle-01 fix pass.",
             "superseded_by_attempt_id": null,
@@ -460,7 +474,7 @@
               "step": "review_cycle",
               "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-08T18:57:43.090Z"
+              "updated_at": "2026-04-08T18:59:03.424Z"
             },
             "step_status": {
               "implementation": {
@@ -479,7 +493,7 @@
               },
               "review_cycle": {
                 "status": "in_progress",
-                "started_at": "2026-04-08T18:44:10.201Z",
+                "started_at": "2026-04-08T18:58:56.971Z",
                 "completed_at": null,
                 "duration_seconds": null,
                 "note": null
@@ -544,13 +558,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T18:57:43.090Z",
-            "last_event_at": "2026-04-08T18:57:43.091Z"
+            "last_checkpoint_at": "2026-04-08T18:59:03.424Z",
+            "last_event_at": "2026-04-08T18:58:56.971Z"
           }
         },
         "created_at": "2026-04-08T17:11:50.580Z",
-        "updated_at": "2026-04-08T18:57:43.096Z",
-        "last_event_at": "2026-04-08T18:57:43.091Z",
+        "updated_at": "2026-04-08T18:59:03.430Z",
+        "last_event_at": "2026-04-08T18:58:56.971Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
@@ -568,7 +582,7 @@
             },
             "review_cycle": {
               "status": "in_progress",
-              "started_at": "2026-04-08T18:44:10.201Z",
+              "started_at": "2026-04-08T18:58:56.971Z",
               "completed_at": null,
               "duration_seconds": null
             },
@@ -611,9 +625,9 @@
       }
     }
   },
-  "__gsw_revision": 20,
-  "__gsw_write_id": "gsw-02018f5f-2160-41d5-9cc3-18ef5ba81f87",
-  "__gsw_timestamp": "2026-04-08T18:57:43.098Z",
+  "__gsw_revision": 21,
+  "__gsw_write_id": "gsw-70b2d979-93f2-4a03-951c-582bfa71b5d1",
+  "__gsw_timestamp": "2026-04-08T18:59:03.431Z",
   "human_verification_status": null,
   "human_verification_approved_at": null,
   "human_verification_approved_commit_sha": null
