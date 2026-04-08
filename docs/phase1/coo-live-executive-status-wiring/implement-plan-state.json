@@ -4,7 +4,7 @@
   "feature_slug": "coo-live-executive-status-wiring",
   "project_root": "C:/ADF",
   "feature_registry_key": "phase1/coo-live-executive-status-wiring",
-  "feature_status": "active",
+  "feature_status": "completed",
   "implementor_execution_id": null,
   "implementor_execution_access_mode": null,
   "implementor_execution_runtime": null,
@@ -13,22 +13,22 @@
   "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": null,
   "resolved_runtime_capabilities": {},
-  "current_branch": "implement-plan/phase1/coo-live-executive-status-wiring",
+  "current_branch": "main",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/coo-live-executive-status-wiring",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-live-executive-status-wiring",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": null,
-  "merge_commit_sha": null,
-  "merge_queue_request_id": null,
-  "local_target_sync_status": "not_started",
-  "last_completed_step": "completion_summary_written",
-  "last_commit_sha": null,
-  "active_run_status": "closeout_pending",
+  "merge_status": "merged",
+  "approved_commit_sha": "5cb553c4831a99d384b828c5c21d68946a4f500d",
+  "merge_commit_sha": "b7c8967b7bf445b43d804fc86bc71c30b7a1ac73",
+  "merge_queue_request_id": "merge-main-1-coo-live-executive-status-wiring-1775660860565",
+  "local_target_sync_status": "skipped_dirty_checkout",
+  "last_completed_step": "marked_complete",
+  "last_commit_sha": "b7c8967b7bf445b43d804fc86bc71c30b7a1ac73",
+  "active_run_status": "completed",
   "created_at": "2026-04-08T14:17:03.526Z",
-  "updated_at": "2026-04-08T15:06:45.349Z",
+  "updated_at": "2026-04-08T15:07:51.642Z",
   "run_timestamps": {
     "context_collected_at": null,
     "worktree_prepared_at": "2026-04-08T15:04:23.773Z",
@@ -40,10 +40,9 @@
     "verification_finished_at": "2026-04-08T15:04:36.701Z",
     "review_requested_at": "2026-04-08T15:04:40.770Z",
     "human_verification_requested_at": null,
-    "merge_started_at": null,
-    "merge_finished_at": null,
-    "closeout_finished_at": null,
-    "completion_summary_written_at": "2026-04-08T15:06:45.296Z"
+    "merge_started_at": "2026-04-08T15:04:36.701Z",
+    "merge_finished_at": "2026-04-08T15:07:51.498Z",
+    "closeout_finished_at": "2026-04-08T15:07:51.642Z"
   },
   "event_log": [
     {
@@ -138,6 +137,24 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-08T15:06:45.296Z",
       "note": "Completion summary rewritten to the required 7-heading contract with truthful pre-merge branch status."
+    },
+    {
+      "event_id": "event-0e761f22-230d-4394-b318-ad84ad9d82a7",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:07:51.513Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f44682f9-919f-493b-be00-9fa6f27fefea",
+      "event_type": "terminal-status-recorded",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:07:51.642Z",
+      "note": "Merged via merge-queue after approval."
     }
   ],
   "artifacts": {
@@ -166,10 +183,10 @@
       "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z": {
         "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
         "run_mode": "normal",
-        "lifecycle_status": "active",
-        "terminal_status": null,
+        "lifecycle_status": "completed",
+        "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 8,
+        "contract_revision": 10,
         "feature_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json",
@@ -189,18 +206,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "closeout_pending",
-            "terminal_status": null,
+            "status": "completed",
+            "terminal_status": "completed",
             "started_at": "2026-04-08T14:17:03.526Z",
-            "updated_at": "2026-04-08T15:06:45.347Z",
+            "updated_at": "2026-04-08T15:07:51.642Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "machine_verification",
+              "step": "merge_queue",
               "status": "completed",
-              "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-08T15:06:45.347Z"
+              "reason": "Merged via merge-queue after approval.",
+              "updated_at": "2026-04-08T15:07:51.642Z"
             },
             "step_status": {
               "implementation": {
@@ -232,10 +249,10 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
-                "started_at": null,
-                "completed_at": null,
-                "duration_seconds": null,
+                "status": "completed",
+                "started_at": "2026-04-08T15:04:36.701Z",
+                "completed_at": "2026-04-08T15:07:51.498Z",
+                "duration_seconds": 195,
                 "note": null
               }
             },
@@ -274,15 +291,15 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T15:06:45.347Z",
-            "last_event_at": "2026-04-08T15:06:45.296Z"
+            "last_checkpoint_at": "2026-04-08T15:07:51.642Z",
+            "last_event_at": "2026-04-08T15:07:51.642Z"
           }
         },
         "created_at": "2026-04-08T14:17:03.526Z",
-        "updated_at": "2026-04-08T15:06:45.353Z",
-        "last_event_at": "2026-04-08T15:06:45.296Z",
+        "updated_at": "2026-04-08T15:07:51.649Z",
+        "last_event_at": "2026-04-08T15:07:51.642Z",
         "kpi_projection": {
-          "terminal_status": null,
+          "terminal_status": "completed",
           "per_step_timing": {
             "implementation": {
               "status": "completed",
@@ -309,10 +326,10 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
-              "started_at": null,
-              "completed_at": null,
-              "duration_seconds": null
+              "status": "completed",
+              "started_at": "2026-04-08T15:04:36.701Z",
+              "completed_at": "2026-04-08T15:07:51.498Z",
+              "duration_seconds": 195
             }
           },
           "governance_call_metrics": {
@@ -497,7 +514,7 @@
       }
     }
   },
-  "__gsw_revision": 13,
-  "__gsw_write_id": "gsw-51b277da-7aa3-47dc-b1de-c8e2910418cf",
-  "__gsw_timestamp": "2026-04-08T15:06:45.355Z"
+  "__gsw_revision": 15,
+  "__gsw_write_id": "gsw-08b15a6d-ee58-4dcc-9055-0da179aea173",
+  "__gsw_timestamp": "2026-04-08T15:07:51.653Z"
 }
