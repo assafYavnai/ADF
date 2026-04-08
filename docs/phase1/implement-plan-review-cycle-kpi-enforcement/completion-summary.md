@@ -1,48 +1,39 @@
 1. Objective Completed
 
-- Hardened repo-owned `implement-plan`, `merge-queue`, and shared governed-runtime helpers so approved-commit freeze, canonical-root handling, blocked-request recovery, clean target sync, and human-facing failure output are deterministic.
-- Closed the remaining canonical-root gap in `implement-plan` non-run entrypoints so `help`, `get-settings`, and `list-features` no longer read worktree-local `.codex` state as durable authority.
+- Restored this feature stream to the cycle-01 approved KPI-governance route after cycle-02 rejected the later branch-local `merge-queue` and shared-runtime hardening.
+- Removed the rejected branch-local scope broadening instead of trying to force a wider merge-queue closeout program through this stream.
 
 2. Deliverables Produced
 
-- Expanded `implement-plan-helper.mjs` so merge-ready can freeze the approved SHA, feature state records canonical and execution roots separately, and feature-index handoff data is rich enough for merge-queue to operate from local `.codex` state.
-- Expanded `merge-queue-helper.mjs` so queue processing fetches and validates the exact approved SHA, preserves blocked history, supports `retry-request` and `requeue-request`, and falls back to a clean target-sync worktree when the shared root checkout is dirty or on a different branch.
-- Added shared governed-runtime helpers for canonical-root inference and human-facing command-failure formatting.
-- Updated repo-owned skill contracts and prompt templates so the documented behavior matches the enforced helper behavior.
-- Refreshed the feature contract, brief, state, and closeout summary so this stream is human-facing and scoped to workflow hardening rather than product KPI instrumentation.
+- Restored the previously broadened `implement-plan`, `merge-queue`, and shared runtime surfaces to their pre-`827f028` state.
+- Restored the feature-local route docs to the approved KPI-governance scope.
+- Added cycle-02 fix artifacts that freeze and report the boundary-restoration repair truthfully.
 
 3. Files Changed And Why
 
 - `skills/governed-feature-runtime.mjs`
-  - Added shared canonical-root inference and structured subprocess failure formatting.
-- `skills/implement-plan/scripts/implement-plan-helper.mjs`
-  - Added canonical-vs-execution root handling, merge-ready approved-SHA freeze, richer `.codex` handoff fields, and canonical-root reads for non-run entrypoints.
-- `skills/merge-queue/scripts/merge-queue-helper.mjs`
-  - Added exact-SHA fetch and reachability checks, retry/requeue actions, transition history, clean target-sync worktree fallback, and human-facing blocked/failure output.
-- `skills/implement-plan/*` and `skills/merge-queue/*`
-  - Updated skill entry docs, workflow contracts, and prompt templates to match the new closeout model.
+  - Restored to the approved boundary so the branch-local shared-runtime hardening is no longer carried by this stream.
+- `skills/implement-plan/*`
+  - Restored to the approved KPI-governance route and removed the later branch-local hardening additions.
+- `skills/merge-queue/*`
+  - Restored to the pre-`827f028` state so this stream no longer claims the rejected merge-queue closeout hardening path.
 - `docs/phase1/implement-plan-review-cycle-kpi-enforcement/*`
-  - Re-scoped the slice artifacts to the workflow-hardening work and refreshed the closeout report into a human-facing format.
+  - Restored the feature route docs to the approved scope and added cycle-02 fix artifacts plus a truthful closeout summary.
 
 4. Verification Evidence
 
-- Machine Verification: `node --check skills/governed-feature-runtime.mjs`
-- Machine Verification: `node --check skills/implement-plan/scripts/implement-plan-helper.mjs`
-- Machine Verification: `node --check skills/merge-queue/scripts/merge-queue-helper.mjs`
-- Machine Verification: `git diff --check`
-- Machine Verification: targeted `implement-plan-helper` smoke confirmed `help --project-root <feature-worktree>` now resolves the canonical `C:/ADF/.codex/implement-plan/features-index.json` entry instead of the worktree-local `.codex` index.
-- Machine Verification: earlier targeted helper smokes for this slice already proved:
-  - `merge-ready` rejects missing `last_commit_sha`
-  - `merge-ready` freezes `approved_commit_sha` when commit evidence exists
-  - `merge-queue` blocks missing approved SHAs after fetch
-  - blocked requests can be retried or requeued
-  - dirty shared-root sync falls back to `clean_worktree_ready` while preserving `shared_root_sync_status=skipped_dirty_checkout`
-- Machine Verification: `node skills/manage-skills.mjs install --target codex`
-- Human Verification Requirement: `Required: false`
-- Human Verification Status: `not required`
-- Review-Cycle Status: not run in this execution
-- Merge Status: `not_ready`
-- Local Target Sync Status: `not_started`
+Machine Verification: passed
+Human Verification Requirement: false
+Human Verification Status: not required
+Review-Cycle Status: cycle-02 fix-plan and fix-report completed; commit/push intentionally not run
+- `node --check skills/governed-feature-runtime.mjs`
+- `node --check skills/implement-plan/scripts/implement-plan-helper.mjs`
+- `node --check skills/merge-queue/scripts/merge-queue-helper.mjs`
+- `git diff --exit-code 5dd4783 -- docs/phase1/implement-plan-review-cycle-kpi-enforcement/README.md docs/phase1/implement-plan-review-cycle-kpi-enforcement/context.md docs/phase1/implement-plan-review-cycle-kpi-enforcement/implement-plan-brief.md docs/phase1/implement-plan-review-cycle-kpi-enforcement/implement-plan-contract.md docs/phase1/implement-plan-review-cycle-kpi-enforcement/implement-plan-state.json skills/governed-feature-runtime.mjs skills/implement-plan/SKILL.md skills/implement-plan/references/prompt-templates.md skills/implement-plan/references/workflow-contract.md skills/implement-plan/scripts/implement-plan-helper.mjs skills/merge-queue/SKILL.md skills/merge-queue/references/prompt-templates.md skills/merge-queue/references/workflow-contract.md skills/merge-queue/scripts/merge-queue-helper.mjs`
+- `node C:/ADF/skills/review-cycle/scripts/review-cycle-helper.mjs prepare --phase-number 1 --feature-slug implement-plan-review-cycle-kpi-enforcement --task-summary "Close the reported failure classes within the approved route boundary and complete cycle-02 fix artifacts without commit/push." --repo-root C:/ADF/.codex/implement-plan/worktrees/phase1/implement-plan-review-cycle-kpi-enforcement`
+  - reported `current_cycle_state=fix_report_complete_commit_push_pending`
+  - reported `fix_report_exists=true`
+- carried-forward approved-route proof in `cycle-01/fix-report.md`
 
 5. Feature Artifacts Updated
 
@@ -51,16 +42,18 @@
 - `implement-plan-contract.md`
 - `implement-plan-brief.md`
 - `implement-plan-state.json`
+- `review-cycle-state.json`
+- `cycle-02/fix-plan.md`
+- `cycle-02/fix-report.md`
 - `completion-summary.md`
 
 6. Commit And Push Result
 
-- Workflow-hardening implementation changes were committed in `827f028` with a detailed operator-facing message.
-- This closeout artifact revision is intended to be committed separately so the implementation delta and the operator summary remain easy to review independently.
-- Review and merge-queue handoff were not executed in this artifact revision.
+- No commit or push was performed in this execution.
+- The worktree intentionally stops after repo edits, verification, and cycle-02 fix artifacts, per instruction.
 
 7. Remaining Non-Goals / Debt
 
-- No COO runtime KPI route work or product telemetry work was done in this slice.
-- Review-cycle and merge-queue handoff are still a separate next step after the feature branch push.
-- The canonical-root fix was extended to `implement-plan` helper entrypoints discovered during execution; no broader workflow redesign was attempted beyond the approved scope.
+- No new merge-queue hardening is attempted in this stream.
+- No new shared-runtime/base-branch hardening is attempted in this stream.
+- No review-cycle redesign is attempted in this stream.

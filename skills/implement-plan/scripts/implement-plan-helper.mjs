@@ -21,7 +21,6 @@ import {
   formatDuration,
   gitRefExists,
   gitRun,
-  inferCanonicalProjectRoot,
   installBrokenPipeGuards,
   isFilled,
   isPlainObject,
@@ -157,7 +156,6 @@ const LOCAL_TARGET_SYNC_STATUSES = new Set([
   "not_started",
   "fetched_only",
   "fast_forwarded",
-  "clean_worktree_ready",
   "skipped_dirty_checkout",
   "skipped_branch_not_checked_out",
   "failed"
@@ -368,9 +366,9 @@ async function listFeatures(args) {
 
 async function prepareFeature(input) {
   const paths = buildPaths(input.projectRoot, input.phaseNumber, input.featureSlug);
-  const setup = await loadSetup(paths.canonicalProjectRoot);
-  const registry = await loadAgentRegistry(paths.canonicalProjectRoot);
-  const featuresIndex = await loadFeaturesIndex(paths.canonicalProjectRoot);
+  const setup = await loadSetup(input.projectRoot);
+  const registry = await loadAgentRegistry(input.projectRoot);
+  const featuresIndex = await loadFeaturesIndex(input.projectRoot);
 
   const featureLockResult = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
     await mkdir(paths.featureRoot, { recursive: true });
@@ -402,7 +400,7 @@ async function prepareFeature(input) {
       changed = true;
     }
     if (!nextState.base_branch) {
-      nextState.base_branch = detectDefaultBaseBranch(paths.canonicalProjectRoot);
+      nextState.base_branch = detectDefaultBaseBranch(input.projectRoot);
       changed = true;
     }
     if (!nextState.feature_branch) {
@@ -512,14 +510,14 @@ async function prepareFeature(input) {
 
     nextState.artifacts = {
       ...(nextState.artifacts ?? {}),
-      readme_path: canonicalizeProjectPath(paths, paths.readmePath),
-      context_path: canonicalizeProjectPath(paths, paths.contextPath),
-      state_path: canonicalizeProjectPath(paths, paths.statePath),
-      contract_path: canonicalizeProjectPath(paths, paths.contractPath),
-      pushback_path: canonicalizeProjectPath(paths, paths.pushbackPath),
-      brief_path: canonicalizeProjectPath(paths, paths.briefPath),
-      completion_summary_path: canonicalizeProjectPath(paths, paths.completionSummaryPath),
-      implementation_run_dir: canonicalizeProjectPath(paths, paths.implementationRunDir),
+      readme_path: normalizeSlashes(paths.readmePath),
+      context_path: normalizeSlashes(paths.contextPath),
+      state_path: normalizeSlashes(paths.statePath),
+      contract_path: normalizeSlashes(paths.contractPath),
+      pushback_path: normalizeSlashes(paths.pushbackPath),
+      brief_path: normalizeSlashes(paths.briefPath),
+      completion_summary_path: normalizeSlashes(paths.completionSummaryPath),
+      implementation_run_dir: normalizeSlashes(paths.implementationRunDir),
       worktree_path: nextState.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths))
     };
 
@@ -545,8 +543,8 @@ async function prepareFeature(input) {
   await syncAgentRegistry(paths, state);
   await syncFeaturesIndex(paths, state);
 
-  const settingsSummary = await getSettingsCore(paths.canonicalProjectRoot);
-  const openFeatures = await loadFeaturesIndex(paths.canonicalProjectRoot);
+  const settingsSummary = await getSettingsCore(input.projectRoot);
+  const openFeatures = await loadFeaturesIndex(input.projectRoot);
   const executionAction = decideExecutionAction(
     state.implementor_execution_id,
     featureLockResult.recreateDueToWeakerAccess,
@@ -562,12 +560,10 @@ async function prepareFeature(input) {
 
   return {
     command: "prepare",
-    project_root: paths.canonicalProjectRoot,
-    execution_project_root: paths.executionProjectRoot,
+    project_root: input.projectRoot,
     phase_number: input.phaseNumber,
     feature_slug: input.featureSlug,
-    feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-    execution_feature_root: normalizeSlashes(paths.featureRoot),
+    feature_root: normalizeSlashes(paths.featureRoot),
     skill_state_root: normalizeSlashes(paths.skillStateRoot),
     worktrees_root: normalizeSlashes(paths.worktreesRoot),
     setup_path: normalizeSlashes(paths.setupPath),
@@ -628,10 +624,8 @@ async function prepareFeature(input) {
     context_input_pack: featureLockResult.inputPack,
     integrity_precheck: featureLockResult.integrity,
     detected_status_summary: {
-      detected_project_root: paths.canonicalProjectRoot,
-      detected_execution_project_root: paths.executionProjectRoot,
-      detected_feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-      detected_execution_feature_root: normalizeSlashes(paths.featureRoot),
+      detected_project_root: input.projectRoot,
+      detected_feature_root: normalizeSlashes(paths.featureRoot),
       feature_status: state.feature_status,
       active_run_status: state.active_run_status,
       base_branch: state.base_branch ?? null,
@@ -709,9 +703,8 @@ async function updateState(input) {
 
   return {
     command: "update-state",
-    project_root: paths.canonicalProjectRoot,
-    execution_project_root: paths.executionProjectRoot,
-    state_path: canonicalizeProjectPath(paths, paths.statePath),
+    project_root: input.projectRoot,
+    state_path: normalizeSlashes(paths.statePath),
     state: featureResult
   };
 }
@@ -728,21 +721,18 @@ async function recordEvent(input) {
     const currentBranch = detectCurrentBranch(input.projectRoot);
     const existing = await loadOrInitializeState({ paths, input, registryEntry: null, indexEntry: null, currentBranch });
     const next = { ...existing.state };
-    if (input.event === "merge-ready" && !isFilled(input.lastCommitSha) && !isFilled(next.last_commit_sha)) {
-      fail("Refusing to record merge-ready without last_commit_sha evidence.");
-    }
     next.run_timestamps = { ...(next.run_timestamps ?? {}) };
     next.event_log = Array.isArray(next.event_log) ? [...next.event_log] : [];
     next.event_log.push({ event: input.event, timestamp, note: input.note ?? null });
     next.event_log = next.event_log.slice(-100);
 
+    applyEventTransition(next, input.event, timestamp);
     if (input.lastCommitSha) {
       next.last_commit_sha = input.lastCommitSha;
     }
     if (input.currentBranch) {
       next.current_branch = input.currentBranch;
     }
-    applyEventTransition(next, input.event, timestamp);
     next.updated_at = nowIso();
     await writeJsonAtomic(paths.statePath, next);
     return next;
@@ -753,10 +743,8 @@ async function recordEvent(input) {
 
   return {
     command: "record-event",
-    project_root: paths.canonicalProjectRoot,
-    execution_project_root: paths.executionProjectRoot,
-    feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-    execution_feature_root: normalizeSlashes(paths.featureRoot),
+    project_root: input.projectRoot,
+    feature_root: normalizeSlashes(paths.featureRoot),
     event: input.event,
     timestamp,
     state
@@ -810,11 +798,9 @@ async function markComplete(input) {
 
   return {
     command: "mark-complete",
-    project_root: paths.canonicalProjectRoot,
-    execution_project_root: paths.executionProjectRoot,
-    feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-    execution_feature_root: normalizeSlashes(paths.featureRoot),
-    completion_summary_path: canonicalizeProjectPath(paths, paths.completionSummaryPath),
+    project_root: input.projectRoot,
+    feature_root: normalizeSlashes(paths.featureRoot),
+    completion_summary_path: normalizeSlashes(paths.completionSummaryPath),
     last_commit_sha: state.last_commit_sha,
     feature_status: state.feature_status,
     active_run_status: state.active_run_status
@@ -844,12 +830,10 @@ async function buildCompletionSummary(input) {
 
   return {
     command: "completion-summary",
-    project_root: paths.canonicalProjectRoot,
-    execution_project_root: paths.executionProjectRoot,
-    feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-    execution_feature_root: normalizeSlashes(paths.featureRoot),
-    state_path: canonicalizeProjectPath(paths, paths.statePath),
-    completion_summary_path: canonicalizeProjectPath(paths, paths.completionSummaryPath),
+    project_root: input.projectRoot,
+    feature_root: normalizeSlashes(paths.featureRoot),
+    state_path: normalizeSlashes(paths.statePath),
+    completion_summary_path: normalizeSlashes(paths.completionSummaryPath),
     completion_summary_exists: Boolean(completionText),
     completion_summary_valid: validation.valid,
     completion_summary_error: validation.error,
@@ -910,21 +894,15 @@ async function buildCompletionSummary(input) {
 }
 
 function buildPaths(projectRoot, phaseNumber, featureSlug) {
-  const executionProjectRoot = normalizeProjectRoot(projectRoot);
-  const canonicalProjectRoot = inferCanonicalProjectRoot(executionProjectRoot);
-  const featureRoot = resolveFeatureRoot(executionProjectRoot, phaseNumber, featureSlug);
-  const canonicalFeatureRoot = resolveFeatureRoot(canonicalProjectRoot, phaseNumber, featureSlug);
-  const skillStateRoot = resolveSkillStateRoot(canonicalProjectRoot, "implement-plan");
+  const featureRoot = resolveFeatureRoot(projectRoot, phaseNumber, featureSlug);
+  const skillStateRoot = resolveSkillStateRoot(projectRoot, "implement-plan");
   return {
-    projectRoot: executionProjectRoot,
-    executionProjectRoot,
-    canonicalProjectRoot,
+    projectRoot,
     phaseNumber,
     featureSlug,
     featureRoot,
-    canonicalFeatureRoot,
-    phaseRoot: join(executionProjectRoot, "docs", "phase" + phaseNumber),
-    docsRoot: join(executionProjectRoot, "docs"),
+    phaseRoot: join(projectRoot, "docs", "phase" + phaseNumber),
+    docsRoot: join(projectRoot, "docs"),
     skillStateRoot,
     setupPath: join(skillStateRoot, "setup.json"),
     registryPath: join(skillStateRoot, "agent-registry.json"),
@@ -942,23 +920,9 @@ function buildPaths(projectRoot, phaseNumber, featureSlug) {
     briefPath: join(featureRoot, "implement-plan-brief.md"),
     completionSummaryPath: join(featureRoot, "completion-summary.md"),
     implementationRunDir: join(featureRoot, "implementation-run"),
-    templatesRoot: join(canonicalProjectRoot, "skills", "implement-plan"),
-    referencesRoot: join(canonicalProjectRoot, "skills", "implement-plan", "references")
+    templatesRoot: "C:/ADF/skills/implement-plan",
+    referencesRoot: "C:/ADF/skills/implement-plan/references"
   };
-}
-
-function canonicalizeProjectPath(paths, filePath) {
-  const normalized = normalizeSlashes(filePath);
-  const executionRoot = normalizeSlashes(paths.executionProjectRoot);
-  const canonicalRoot = normalizeSlashes(paths.canonicalProjectRoot);
-
-  if (normalized === executionRoot) {
-    return canonicalRoot;
-  }
-  if (normalized.startsWith(executionRoot + "/")) {
-    return canonicalRoot + normalized.slice(executionRoot.length);
-  }
-  return normalized;
 }
 
 function buildFeatureBranchName(phaseNumber, featureSlug) {
@@ -1008,11 +972,11 @@ function ensureFeatureWorktree(paths, baseBranch, featureBranch, requestedPath) 
     };
   }
 
-  const baseRef = resolveBaseRef(paths.canonicalProjectRoot, baseBranch);
-  const args = gitRefExists(paths.canonicalProjectRoot, "refs/heads/" + featureBranch)
+  const baseRef = resolveBaseRef(paths.projectRoot, baseBranch);
+  const args = gitRefExists(paths.projectRoot, "refs/heads/" + featureBranch)
     ? ["worktree", "add", worktreePath, featureBranch]
     : ["worktree", "add", "-b", featureBranch, worktreePath, baseRef];
-  const result = gitRun(paths.canonicalProjectRoot, args, { timeoutMs: 30000 });
+  const result = gitRun(paths.projectRoot, args, { timeoutMs: 30000 });
 
   if (result.status !== 0) {
     return {
@@ -1038,8 +1002,7 @@ function ensureFeatureWorktree(paths, baseBranch, featureBranch, requestedPath) 
 }
 
 async function loadSetup(projectRoot) {
-  const canonicalProjectRoot = inferCanonicalProjectRoot(projectRoot);
-  const path = join(resolveSkillStateRoot(canonicalProjectRoot, "implement-plan"), "setup.json");
+  const path = join(resolveSkillStateRoot(projectRoot, "implement-plan"), "setup.json");
   if (!(await pathExists(path))) {
     return {
       exists: false,
@@ -1053,7 +1016,7 @@ async function loadSetup(projectRoot) {
 
   try {
     const data = await readJson(path);
-    const validation = validateSetupObject(data, canonicalProjectRoot);
+    const validation = validateSetupObject(data, projectRoot);
     return {
       exists: true,
       complete: validation.complete,
@@ -1075,7 +1038,6 @@ async function loadSetup(projectRoot) {
 }
 
 function validateSetupObject(setup, projectRoot) {
-  const canonicalProjectRoot = inferCanonicalProjectRoot(projectRoot);
   const errors = [];
   const warnings = [];
 
@@ -1099,7 +1061,7 @@ function validateSetupObject(setup, projectRoot) {
   }
   validateEnum(setup.persistent_execution_strategy, PERSISTENT_EXECUTION_STRATEGIES, "persistent_execution_strategy", errors);
 
-  if (isFilled(setup.project_root) && normalizeProjectRoot(setup.project_root) !== canonicalProjectRoot) {
+  if (isFilled(setup.project_root) && normalizeProjectRoot(setup.project_root) !== projectRoot) {
     errors.push("project_root must match the requested project root.");
   }
   if (setup.preferred_execution_access_mode === "codex_cli_full_auto_bypass" && setup.preferred_execution_runtime !== "codex_cli_exec") {
@@ -1120,8 +1082,7 @@ function validateSetupObject(setup, projectRoot) {
 }
 
 async function loadAgentRegistry(projectRoot) {
-  const canonicalProjectRoot = inferCanonicalProjectRoot(projectRoot);
-  const path = join(resolveSkillStateRoot(canonicalProjectRoot, "implement-plan"), "agent-registry.json");
+  const path = join(resolveSkillStateRoot(projectRoot, "implement-plan"), "agent-registry.json");
   const empty = { version: 1, features: {} };
   if (!(await pathExists(path))) {
     return { exists: false, path, index: empty, validation_errors: [], validation_warnings: [] };
@@ -1151,8 +1112,7 @@ async function loadAgentRegistry(projectRoot) {
 }
 
 async function loadFeaturesIndex(projectRoot) {
-  const canonicalProjectRoot = inferCanonicalProjectRoot(projectRoot);
-  const path = join(resolveSkillStateRoot(canonicalProjectRoot, "implement-plan"), "features-index.json");
+  const path = join(resolveSkillStateRoot(projectRoot, "implement-plan"), "features-index.json");
   const empty = { version: 1, updated_at: null, features: {} };
   if (!(await pathExists(path))) {
     return { exists: false, path, index: empty, validation_errors: [], validation_warnings: [] };
@@ -1203,28 +1163,17 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
     state.feature_status = indexEntry?.feature_status ?? "active";
     repairs.push("feature_status was invalid and reset.");
   }
-  if (["completed", "closed"].includes(indexEntry?.feature_status) && state.feature_status !== indexEntry.feature_status) {
-    state.feature_status = indexEntry.feature_status;
-    repairs.push("feature_status was synchronized to terminal features-index state.");
-  }
   if (!IMPLEMENT_PLAN_ACTIVE_RUN_STATUSES.has(state.active_run_status)) {
     state.active_run_status = state.feature_status === "blocked" ? "blocked" : "idle";
     repairs.push("active_run_status was invalid and reset.");
   }
-  if (["completed", "closed"].includes(indexEntry?.feature_status)) {
-    state.active_run_status = indexEntry?.active_run_status ?? "completed";
-    state.last_completed_step = indexEntry?.last_completed_step ?? state.last_completed_step ?? "marked_complete";
-    state.last_commit_sha = indexEntry?.last_commit_sha ?? state.last_commit_sha ?? null;
-    state.merge_status = indexEntry?.merge_status ?? state.merge_status ?? "merged";
-  }
 
   state.phase_number = input.phaseNumber;
   state.feature_slug = input.featureSlug;
-  state.project_root = inferCanonicalProjectRoot(state.project_root ?? paths.canonicalProjectRoot);
-  state.execution_project_root = normalizeProjectRoot(state.execution_project_root ?? input.projectRoot);
+  state.project_root = input.projectRoot;
   state.feature_registry_key = paths.registryKey;
   state.current_branch = state.current_branch ?? currentBranch ?? null;
-  state.base_branch = state.base_branch ?? detectDefaultBaseBranch(paths.canonicalProjectRoot);
+  state.base_branch = state.base_branch ?? detectDefaultBaseBranch(input.projectRoot);
   state.feature_branch = state.feature_branch ?? buildFeatureBranchName(input.phaseNumber, input.featureSlug);
   state.worktree_path = state.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths));
   if (!WORKTREE_STATUSES.has(state.worktree_status)) {
@@ -1275,8 +1224,7 @@ function buildInitialState(paths, input, registryEntry, indexEntry, currentBranc
   return {
     phase_number: input.phaseNumber,
     feature_slug: input.featureSlug,
-    project_root: paths.canonicalProjectRoot,
-    execution_project_root: normalizeProjectRoot(input.projectRoot),
+    project_root: input.projectRoot,
     feature_registry_key: paths.registryKey,
     feature_status: input.featureStatusOverride ?? indexEntry?.feature_status ?? "active",
     implementor_execution_id: registryEntry?.implementor_execution_id ?? null,
@@ -1287,7 +1235,7 @@ function buildInitialState(paths, input, registryEntry, indexEntry, currentBranc
     resolved_runtime_permission_model: registryEntry?.resolved_runtime_permission_model ?? null,
     resolved_runtime_capabilities: {},
     current_branch: currentBranch ?? null,
-    base_branch: detectDefaultBaseBranch(paths.canonicalProjectRoot),
+    base_branch: detectDefaultBaseBranch(input.projectRoot),
     feature_branch: buildFeatureBranchName(input.phaseNumber, input.featureSlug),
     worktree_path: normalizeSlashes(resolveFeatureWorktreePath(paths)),
     worktree_status: "missing",
@@ -1364,10 +1312,8 @@ async function ensureFeatureContext(paths, input, inputPack, currentBranch) {
     "",
     "- phase_number: " + input.phaseNumber,
     "- feature_slug: " + input.featureSlug,
-    "- project_root: " + normalizeSlashes(paths.canonicalProjectRoot),
-    "- execution_project_root: " + normalizeSlashes(input.projectRoot),
-    "- feature_root: " + normalizeSlashes(paths.canonicalFeatureRoot),
-    "- execution_feature_root: " + normalizeSlashes(paths.featureRoot),
+    "- project_root: " + normalizeSlashes(input.projectRoot),
+    "- feature_root: " + normalizeSlashes(paths.featureRoot),
     "- current_branch: " + (currentBranch ?? "Unknown"),
     "",
     "## Task Summary",
@@ -1399,7 +1345,7 @@ async function buildInputPack(paths, input) {
   const authorities = [];
   const addAuthority = (kind, filePath) => {
     if (!filePath) return;
-    const normalized = canonicalizeProjectPath(paths, filePath);
+    const normalized = normalizeSlashes(filePath);
     if (!authorities.find((entry) => entry.path === normalized)) {
       authorities.push({ kind, path: normalized });
     }
@@ -1822,9 +1768,7 @@ async function syncAgentRegistry(paths, state) {
       next.features[paths.registryKey] = {
         phase_number: paths.phaseNumber,
         feature_slug: paths.featureSlug,
-        feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-        project_root: paths.canonicalProjectRoot,
-        execution_project_root: paths.executionProjectRoot,
+        feature_root: normalizeSlashes(paths.featureRoot),
         implementor_execution_id: state.implementor_execution_id ?? existing.implementor_execution_id ?? null,
         implementor_execution_access_mode: state.implementor_execution_access_mode ?? existing.implementor_execution_access_mode ?? null,
         implementor_execution_runtime: state.implementor_execution_runtime ?? existing.implementor_execution_runtime ?? null,
@@ -1849,20 +1793,10 @@ async function syncFeaturesIndex(paths, state) {
     next.features[paths.registryKey] = {
       phase_number: paths.phaseNumber,
       feature_slug: paths.featureSlug,
-      feature_root: normalizeSlashes(paths.canonicalFeatureRoot),
-      project_root: paths.canonicalProjectRoot,
-      execution_project_root: paths.executionProjectRoot,
+      feature_root: normalizeSlashes(paths.featureRoot),
       feature_status: state.feature_status,
       active_run_status: state.active_run_status,
-      base_branch: state.base_branch ?? null,
-      feature_branch: state.feature_branch ?? null,
-      worktree_path: state.worktree_path ?? null,
-      merge_required: state.merge_required ?? false,
       merge_status: state.merge_status ?? null,
-      approved_commit_sha: state.approved_commit_sha ?? null,
-      merge_commit_sha: state.merge_commit_sha ?? null,
-      merge_queue_request_id: state.merge_queue_request_id ?? null,
-      local_target_sync_status: state.local_target_sync_status ?? null,
       last_completed_step: state.last_completed_step ?? null,
       last_commit_sha: state.last_commit_sha ?? null,
       updated_at: nowIso()
@@ -1971,10 +1905,6 @@ function applyEventTransition(state, event, timestamp) {
   if (event === "merge-ready") {
     state.merge_required = true;
     state.merge_status = "ready_to_queue";
-    state.approved_commit_sha = state.last_commit_sha ?? state.approved_commit_sha ?? null;
-    state.merge_commit_sha = null;
-    state.merge_queue_request_id = null;
-    state.local_target_sync_status = "not_started";
   } else if (event === "merge-queued") {
     state.merge_required = true;
     state.merge_status = "queued";

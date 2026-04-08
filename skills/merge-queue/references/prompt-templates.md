@@ -7,5 +7,4 @@ Output discipline:
 
 - show concise JSON-backed status for help, settings, status, enqueue, and process-next
 - do not claim merge success without a concrete merge commit SHA and push evidence
-- do not claim feature completion unless local implement-plan operational state was updated successfully
-- for blocked or failed queue results, include a human-facing current outcome, blocker, and next safe action instead of only returning a generic helper-failed string
+- do not claim feature completion unless implement-plan state was updated successfully

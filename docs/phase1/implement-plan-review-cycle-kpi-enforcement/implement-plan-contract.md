@@ -1,40 +1,27 @@
 1. Implementation Objective
 
-Harden repo-owned `implement-plan`, `merge-queue`, and shared governed-runtime helpers so approved-commit freeze, canonical root vs execution root, blocked-request recovery, clean target sync, and human-facing failure output are deterministic and no longer depend on post-approval tracked-file rewrites.
+Upgrade the repo-owned `implement-plan` and `review-cycle` workflows so the system-wide KPI instrumentation rule becomes an explicit workflow gate instead of soft guidance. Applicable implementation slices must not close without a frozen KPI contract, KPI proof, or an approved temporary exception, and workflow reports must stay human-facing rather than dense blobs of text.
 
 2. Slice Scope
 
-- Strengthen repo-owned `implement-plan` authorities under [implement-plan](/C:/ADF/skills/implement-plan) so merge-ready handoff freezes the approved feature-branch commit automatically and stores operational handoff data in `.codex` local state instead of depending on mutable tracked feature artifacts.
-- Strengthen repo-owned `merge-queue` authorities under [merge-queue](/C:/ADF/skills/merge-queue) so enqueue and process-next derive handoff data from local operational state, fetch and validate the exact approved SHA before merge, support retry or requeue of blocked entries, and report failures in a human-facing operator shape.
-- Strengthen shared workflow runtime helpers under [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs) only where canonical-root inference and structured subprocess failure reporting are truly shared.
+- Strengthen repo-owned workflow authorities under [implement-plan](/C:/ADF/skills/implement-plan) so `prepare` and `run` treat KPI applicability and KPI closure as integrity-gate requirements.
+- Strengthen repo-owned workflow authorities under [review-cycle](/C:/ADF/skills/review-cycle) so audit, review, and implementation passes explicitly freeze and judge KPI applicability, KPI closure proof, and exception handling.
 - Keep the slice bounded to:
-  - deterministic helper behavior
-  - workflow contracts and prompt templates
-  - local `.codex` operational state shape
-  - feature artifacts required to keep the slice truthful
+  - skill contracts
+  - prompt templates
+  - deterministic helper validation where the helper already owns validation
+  - feature artifacts and supporting governance notes required to keep the workflow truthful
+- Include the human-facing reporting rule only where it materially affects workflow reports produced by these skills.
 
 3. Required Deliverables
 
-- `implement-plan-helper.mjs` state and index behavior that:
-  - distinguishes canonical repo root from execution repo root
-  - keeps committed feature-state paths canonical to the repo root instead of temporary worktree paths
-  - freezes `approved_commit_sha` automatically when `merge-ready` is recorded
-  - stores enough local operational handoff data in `.codex/implement-plan/features-index.json` for merge-queue to run without depending on post-push tracked-doc mutations
-- `merge-queue-helper.mjs` behavior that:
-  - fetches the target base ref and feature ref before merge
-  - proves the approved SHA exists locally before merge
-  - proves the approved SHA is still reachable from the fetched feature ref before merge
-  - supports `retry-request` for blocked entries
-  - supports `requeue-request` when a blocked request must be replaced or superseded
-  - preserves prior blocked history instead of forcing manual queue JSON edits
-  - uses a clean target-sync worktree or equivalent clean local checkout path when the shared root checkout is dirty or on a different branch
-  - stops rewriting tracked feature artifacts after enqueue, process, block, or merge success
-- Human-facing operator failure output for queue/helper failures that includes:
-  - what failed
-  - whether merge landed
-  - whether local operational state was updated
-  - the next safe action
-- Updated repo-owned workflow contracts and prompt templates for `implement-plan` and `merge-queue` so the documented behavior matches the helper behavior.
+- `implement-plan` workflow contract and prompt-template updates that require a KPI applicability decision for every slice.
+- `implement-plan-helper.mjs` integrity enforcement that hard-stops slices when KPI applicability or required KPI contract details are missing, weak, or contradictory.
+- `review-cycle` workflow and prompt updates that require:
+  - KPI applicability to be frozen in `fix-plan.md`
+  - KPI closure or exception state to be judged explicitly in auditor/reviewer reports
+  - KPI proof or explicit remaining KPI gap to be named before closure
+- Human-facing report-quality updates for these workflows so user-facing reports remain structured, concise, and easy to scan.
 - Updated feature artifacts for this stream, including the normalized contract, brief, state, and completion summary.
 
 4. Allowed Edits
@@ -43,93 +30,85 @@ Harden repo-owned `implement-plan`, `merge-queue`, and shared governed-runtime h
 - [workflow-contract.md](/C:/ADF/skills/implement-plan/references/workflow-contract.md)
 - [prompt-templates.md](/C:/ADF/skills/implement-plan/references/prompt-templates.md)
 - [implement-plan-helper.mjs](/C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs)
-- [SKILL.md](/C:/ADF/skills/merge-queue/SKILL.md)
-- [workflow-contract.md](/C:/ADF/skills/merge-queue/references/workflow-contract.md)
-- [prompt-templates.md](/C:/ADF/skills/merge-queue/references/prompt-templates.md)
-- [merge-queue-helper.mjs](/C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs)
-- [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs)
+- [SKILL.md](/C:/ADF/skills/review-cycle/SKILL.md)
+- [workflow-contract.md](/C:/ADF/skills/review-cycle/references/workflow-contract.md)
+- [prompt-templates.md](/C:/ADF/skills/review-cycle/references/prompt-templates.md)
+- Repo-owned skill install/update helpers only if needed to refresh generated installed copies after source changes
 - This feature root under [implement-plan-review-cycle-kpi-enforcement](/C:/ADF/docs/phase1/implement-plan-review-cycle-kpi-enforcement)
-- Supporting governance notes under [docs/v0/context](/C:/ADF/docs/v0/context) only if required to keep the new workflow rule chain explicit
+- Supporting governance notes under [docs/v0/context](/C:/ADF/docs/v0/context) only when required to keep the rule chain explicit
 
 5. Forbidden Edits
 
 - Do not widen into COO runtime KPI route changes or new product telemetry work.
-- Do not redesign unrelated workflow engines beyond approved-commit handoff, queue recovery, canonical roots, clean target sync, and human-facing closeout reporting.
-- Do not weaken KPI gating or human-facing reporting rules already established for `implement-plan` and `review-cycle`.
-- Do not reintroduce dependence on mutable tracked feature artifacts after approval or merge just to keep local queue state updated.
-- Do not silently replace deterministic helper enforcement with prompt-only guidance where the helper can enforce the rule directly.
+- Do not redesign unrelated workflow engines beyond KPI gating and human-facing reporting quality for these two skills.
+- Do not weaken exact heading contracts, split-verdict handling, resume/closeout truth, or merge-queue truth.
+- Do not introduce a vague checklist that replaces deterministic or prompt-level enforcement already available in these workflows.
+- Do not add a new workflow artifact type unless the existing contract, brief, fix-plan, and fix-report shapes cannot carry the requirement.
 
 6. Acceptance Gates
 
-1. `implement-plan` records `approved_commit_sha` automatically when `merge-ready` is recorded and refuses that transition when no truthful `last_commit_sha` exists.
-2. `implement-plan` keeps committed feature-state paths canonical to the repo root while still remembering the execution repo root and feature worktree path as operational metadata.
-3. `.codex/implement-plan/features-index.json` stores enough per-feature operational handoff data to let `merge-queue` derive:
-   - base branch
-   - feature branch
-   - worktree path
-   - approved commit SHA
-   - canonical feature root
-4. `merge-queue` fetches the base ref and feature ref before merge and blocks the request if the approved SHA cannot be found locally after fetch.
-5. `merge-queue` blocks the request if the approved SHA is not reachable from the fetched feature ref.
-6. `merge-queue` exposes first-class `retry-request` and `requeue-request` actions so blocked entries do not require manual queue JSON repair.
-7. `merge-queue` preserves request history for blocked or requeued entries instead of overwriting the evidence of failure.
-8. `merge-queue` no longer rewrites tracked feature artifacts after enqueue, process, block, or merge success; post-approval operational closeout lives in local `.codex` state.
-9. Dirty shared-root checkouts do not downgrade a successful merge into an ambiguous failure state; the helper either fast-forwards the shared root safely or records a truthful clean-worktree sync result.
-10. Queue/helper failure output stays human-facing and clearly states the current outcome, blocker, and next safe action instead of collapsing to a generic helper-failed message.
-11. `KPI Applicability: not required`
-12. `KPI Route / Touched Path: not required for this workflow-only slice; the touched production-like paths are repo-owned skill helpers and workflow docs, not COO runtime routes`
-13. `KPI Raw-Truth Source: local workflow helper behavior and local `.codex` operational state under C:/ADF/.codex`
-14. `KPI Coverage / Proof: targeted helper smoke checks must prove merge-ready approved-SHA freeze, exact-SHA fetch and reachability validation, blocked-request retry/requeue, and local closeout without tracked post-approval rewrites`
-15. `KPI Production / Proof Partition: proof runs in isolated feature and merge-queue worktrees; the fix must keep local operational `.codex` closeout separate from committed tracked artifacts`
-16. `KPI Non-Applicability Rationale: this slice hardens internal workflow orchestration and local state management; it does not add or change a COO production route that requires new KPI telemetry instrumentation`
-17. `KPI Exception Owner: None.`
-18. `KPI Exception Expiry: None.`
-19. `KPI Exception Production Status: None.`
-20. `KPI Compensating Control: None.`
-21. `Machine Verification Plan`
-    - `node --check` on modified helper and runtime files
-    - targeted `implement-plan-helper.mjs` smoke proving merge-ready freezes `approved_commit_sha`
-    - targeted `merge-queue-helper.mjs` smoke proving:
-      - missing approved SHA is blocked
-      - missing fetched feature ref is blocked
-      - unreachable approved SHA is blocked
-      - blocked entries can be retried
-      - requeue creates a new queued entry without erasing the blocked request
-    - targeted queue processing smoke proving successful merge processing updates local `.codex` operational state without dirty tracked feature artifacts
-- `Human Verification Plan`
-  - `Required: false`
-  - Reason: this slice changes internal workflow helpers and local orchestration semantics rather than a separate user-facing product route; machine verification and truthful artifact review are the right closure gates here.
+KPI Applicability: not required
+KPI Route / Touched Path: Not applicable.
+KPI Raw-Truth Source: Not applicable.
+KPI Coverage / Proof: Not applicable.
+KPI Production / Proof Partition: Not applicable.
+KPI Non-Applicability Rationale: This slice changes repo-owned workflow contracts, prompt templates, helper validation, and report formatting. It does not introduce or change a product/runtime route whose closure depends on new KPI telemetry instrumentation.
+KPI Exception Owner: Not applicable.
+KPI Exception Expiry: Not applicable.
+KPI Exception Production Status: Not applicable.
+KPI Compensating Control: Not applicable.
+
+1. `implement-plan` requires an explicit KPI applicability decision before implementation may start.
+2. When KPI is required, `implement-plan` integrity fails unless the normalized contract or equivalent authority set explicitly defines the route or touched path, the KPI raw-truth source, the KPI coverage/proof required, and the production/proof partition handling.
+3. When KPI is not required, the contract must say why the slice is outside the KPI rule instead of silently omitting KPI discussion.
+4. When a temporary KPI exception is used, the contract must include explicit owner, explicit expiry, explicit compensating control, and an explicit not-production-complete statement.
+5. `review-cycle` route contracts and review outputs explicitly state whether KPI closure is `Closed`, `Partial`, `Open`, or covered by a valid temporary exception.
+6. `review-cycle` rejects closure for applicable slices when KPI proof is missing, when proof does not match the claimed route, or when exception details are incomplete.
+7. User-facing reports produced by these workflow contracts remain human-facing:
+   - lead with the most important outcome
+   - use short sections and concise bullets where appropriate
+   - separate status, findings, and next actions
+   - avoid dense wall-of-text output
+8. The updated workflow stays truthful about what is actually enforced by helper validation versus what is enforced through prompt/template judgment.
+9. Installed Codex skill output is refreshed if repo-owned source changes materially.
+
+Machine Verification Plan
+- Run `node --check` on modified helper and script files.
+- Run targeted `implement-plan-helper.mjs prepare` smoke checks that prove:
+  - missing KPI contract details fail for a KPI-required slice
+  - a valid KPI-required contract passes integrity
+  - a valid explicit non-applicable rationale does not fail as missing KPI
+- Run targeted `review-cycle-helper.mjs prepare` smoke checks if helper-facing status/reporting behavior changes.
+- Refresh installed skill output through the repo-owned skill-management route if repo-owned source files changed materially.
+
+Human Verification Plan
+- Required: false
+- Reason: this slice changes internal workflow governance, helper validation, and report formatting rather than a separate end-user product route. Closure should be proven through machine verification plus governed review rather than separate manual product testing.
 
 7. Observability / Audit
 
-- The workflow must make approved-commit authority explicit instead of silently falling back to `last_commit_sha`.
-- The workflow must make it visible whether queue state comes from canonical local operational state or from tracked feature artifacts.
-- Queue failure output must name the exact missing proof:
-  - missing approved SHA
-  - missing fetched feature ref
-  - approved SHA not reachable from feature ref
-  - shared-root sync skipped in favor of clean-worktree sync
-- Feature artifacts and final reports must stay human-facing:
-  - lead with outcome
-  - separate findings and next actions
-  - avoid dense wall-of-text failure dumps
+- The workflow must make KPI applicability visible instead of leaving it implicit.
+- The workflow must make it visible whether KPI closure is satisfied, deferred by approved exception, or still open.
+- Implement-plan pushback and completion summaries must clearly say when KPI gating is the blocker or when KPI gating was satisfied.
+- Review-cycle reports must clearly expose KPI closure state in human-facing wording instead of forcing readers to infer it from a long narrative.
+- Report formatting quality is part of report completeness for these workflow artifacts.
 
 8. Dependencies / Constraints
 
-- Preserve the KPI governance rule in [kpi-instrumentation-requirement.md](/C:/ADF/docs/v0/kpi-instrumentation-requirement.md).
+- Preserve the locked rule in [kpi-instrumentation-requirement.md](/C:/ADF/docs/v0/kpi-instrumentation-requirement.md).
 - Preserve the human-facing reporting rule recorded in [2026-04-03-human-facing-reporting-rule.md](/C:/ADF/docs/v0/context/2026-04-03-human-facing-reporting-rule.md).
-- Keep `implement-plan` as the feature-slice integrity and handoff owner.
-- Keep `merge-queue` as the exact-SHA landing and local operational closeout owner.
-- Do not rely on Brain MCP writes because the current runtime still lacks the `project-brain` MCP tool surface.
-- Keep the fix compatible with the dirty shared root checkout currently present at `C:/ADF`.
+- Keep `implement-plan` as the deterministic integrity gate owner.
+- Keep `review-cycle` as the route-closure judgment owner.
+- Do not claim that `review-cycle-helper.mjs` performs semantic KPI review if the actual enforcement remains prompt/template driven.
+- Keep exception handling explicit and bounded; do not create a silent fallback path that lets KPI-unsafe slices look complete.
 
 9. Non-Goals
 
 - No COO runtime KPI code changes.
 - No dashboard or analytics UI work.
-- No broad review-cycle redesign.
-- No git history rewriting or destructive cleanup of unrelated user work.
-- No new workflow artifact family beyond the existing feature docs plus local `.codex` operational state already owned by these skills.
+- No generic repo-wide style rewrite beyond workflow report readability where this slice touches it.
+- No redesign of merge-queue beyond the normal closeout path for this feature.
+- No new Brain MCP integration work beyond repo-backed fallback notes already required by current runtime limits.
 
 10. Source Authorities
 
@@ -137,12 +116,11 @@ Harden repo-owned `implement-plan`, `merge-queue`, and shared governed-runtime h
 - [context.md](/C:/ADF/docs/phase1/implement-plan-review-cycle-kpi-enforcement/context.md)
 - [kpi-instrumentation-requirement.md](/C:/ADF/docs/v0/kpi-instrumentation-requirement.md)
 - [2026-04-03-human-facing-reporting-rule.md](/C:/ADF/docs/v0/context/2026-04-03-human-facing-reporting-rule.md)
+- [context.md](/C:/ADF/docs/phase1/coo-kpi-instrumentation/context.md)
 - [SKILL.md](/C:/ADF/skills/implement-plan/SKILL.md)
 - [workflow-contract.md](/C:/ADF/skills/implement-plan/references/workflow-contract.md)
 - [prompt-templates.md](/C:/ADF/skills/implement-plan/references/prompt-templates.md)
 - [implement-plan-helper.mjs](/C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs)
-- [SKILL.md](/C:/ADF/skills/merge-queue/SKILL.md)
-- [workflow-contract.md](/C:/ADF/skills/merge-queue/references/workflow-contract.md)
-- [prompt-templates.md](/C:/ADF/skills/merge-queue/references/prompt-templates.md)
-- [merge-queue-helper.mjs](/C:/ADF/skills/merge-queue/scripts/merge-queue-helper.mjs)
-- [governed-feature-runtime.mjs](/C:/ADF/skills/governed-feature-runtime.mjs)
+- [SKILL.md](/C:/ADF/skills/review-cycle/SKILL.md)
+- [workflow-contract.md](/C:/ADF/skills/review-cycle/references/workflow-contract.md)
+- [prompt-templates.md](/C:/ADF/skills/review-cycle/references/prompt-templates.md)
