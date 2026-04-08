@@ -1,8 +1,8 @@
 # ADF Phase 1 Pre-MCP-Boxing Baseline Gap Report
 
-Audit date: 2026-04-08 (fourth revision)
-Audit baseline commit: `dd17128` (origin/main)
-Prior baselines: `884452e`, `d929715`, `192ad0b`, `6478c6c`
+Audit date: 2026-04-08 (fifth revision)
+Audit baseline commit: `a5ca7b8` (origin/main)
+Prior baselines: `dd17128`, `884452e`, `d929715`, `192ad0b`, `6478c6c`
 Purpose: Identify code-level defects, pattern inconsistencies, and structural debt on `main` that the MCP boxing model will inherit if not fixed before boxing slice-02 begins.
 
 This report is written for a contextless agent. Every finding includes context, evidence, related slices, dependency chains, and suggested fix approach. Fix approaches are SUGGESTIONS — the fixer agent must verify the full dependency chain before acting.
@@ -19,18 +19,34 @@ This report is written for a contextless agent. Every finding includes context, 
 
 ---
 
-## Governance state summary (as of dd17128)
+## Governance state summary (as of a5ca7b8)
 
-All feature slices with `implement-plan-state.json` on main now show `feature_status: completed`. Zero open slices remain in the governed pipeline.
+The bounded approval and local-sync hardening prerequisite is now finished on `main`.
 
-The `coo-live-executive-status-wiring` slice was completed and merged during this audit session (was the last open slice). State on main now shows `completed / merged / marked_complete`.
+Canonical completed truth for `governed-approval-gates-and-local-sync-hardening`:
+
+- approved feature commit: `3881d85f6b6e69933c8a20abb87aba6d357bb1b3`
+- merge commit: `ab2f68e565bb03e19a3c084400dbfeaf9fa7ef5c`
+- feature status: `completed`
+- active run status: `completed`
+- local target sync status: `fast_forwarded`
 
 Important caveat for contextless agents:
 
-- main-side feature-local truth and local control-plane projections are not always the same thing
-- `mcp-boxing/slice-01-dev-team-bootstrap` is completed and merged in its own `implement-plan-state.json` on main
-- but local `.codex/implement-plan/features-index.json` can still lag in some workspaces
-- when those projections disagree, trust slice-local main truth first, then git truth, and treat the local control-plane projection as potentially stale
+- main-side feature-local truth, merge-queue truth, and local control-plane projections are not always aligned
+- the current `.codex/implement-plan/features-index.json` still lists several slices as active even when prior evidence shows some of those entries are stale post-merge projections
+- when projections disagree, trust in this order:
+  1. slice-local truth on `main`
+  2. git ancestry / merge truth
+  3. merge-queue request history
+  4. local control-plane projection files
+
+Current planning implication:
+
+- do not spend the next bounded handoff on `governed-approval-gates-and-local-sync-hardening`; it is already landed
+- the next highest-value ready handoff slice is `governed-state-writer-serialization`
+- `implement-plan-provider-neutral-run-contract` remains the next boxed-interface prerequisite after that
+- `governed-single-entry-implementation-skill` now exists as a real slice, but it is still blocked at implement-plan integrity and is not the next handoff target
 
 Verify:
 ```
@@ -371,10 +387,11 @@ Expected if cleaned: no output
 
 ## Recommended action sequence
 
-1. **Finish `governed-approval-gates-and-local-sync-hardening`** — this is now the highest-value bounded hardening slice because it directly fixes approval truth, split-review truth, pre-refresh, and dirty-local-sync preservation without widening into general cleanup.
-2. **Proceed with `mcp-boxing/slice-02-lane-admission-and-artifact-bridge`** — Step 2 explicitly keeps full downstream implementation, review, merge, and full approval-gate implementation out of scope.
-3. **Investigate and fix 1.3 and 1.4 if still relevant to Slice 02 intake/setup behavior** — these are independent and smaller in scope than the approval/local-sync hardening route.
-4. **Treat P2 and P3 items as later cleanup unless they become a direct blocker for boxing** — do not let them delay the bounded Step 2 admission/bridge route by default.
+1. **Hand off `governed-state-writer-serialization` next** — this is the next context-ready bounded slice and it targets the state/projection instability that still shows up across root feature docs, merge-queue history, and local control-plane views.
+2. **Then hand off `implement-plan-provider-neutral-run-contract`** — this remains the clearest machine-facing prerequisite before deeper MCP service boxing.
+3. **Only then proceed with `mcp-boxing/slice-02-lane-admission-and-artifact-bridge`** — Step 2 is still bounded, but it should start from the more stable governed-state substrate rather than inherit known projection drift.
+4. **Keep `governed-single-entry-implementation-skill` out of the critical path for now** — it is a valid future direction, but the slice is intentionally blocked until its contract includes full deliverables, forbidden edits, machine verification, human verification, KPI applicability, and compatibility truth.
+5. **Treat P2 and P3 items as later cleanup unless they become a direct blocker for boxing** — do not let them delay the bounded state/runtime prerequisites by default.
 
 ---
 
@@ -382,9 +399,9 @@ Expected if cleaned: no output
 
 When re-auditing this report:
 
-1. Start from baseline commit `dd17128`. Run `git log --oneline dd17128..HEAD` to see what changed.
+1. Start from baseline commit `a5ca7b8`. Run `git log --oneline a5ca7b8..HEAD` to see what changed.
 2. Run every "Verify" command. Compare output to the expected values. Mark each finding as FIXED or STILL OPEN.
 3. For FIXED findings, update the summary table status and add the fixing commit SHA.
-4. Re-check whether `governed-approval-gates-and-local-sync-hardening` is still active or has landed, because it is now the primary bounded precondition slice for safer boxing intake.
+4. Re-check whether `governed-state-writer-serialization` has advanced, because it is now the primary next bounded precondition slice for safer boxing intake.
 5. If new slices or branches were created after `dd17128`, audit those separately and append findings.
 6. After completing the re-audit, update the "Audit date" and "Audit baseline commit" at the top of this file.
