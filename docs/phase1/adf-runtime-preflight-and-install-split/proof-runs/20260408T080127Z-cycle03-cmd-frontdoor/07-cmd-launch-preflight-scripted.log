@@ -1,0 +1,33 @@
+Marked launcher artifacts stale:
+- /c/ADF/COO/dist/COO/controller/cli.js
+- /c/ADF/COO/dist/COO/controller/memory-engine-client.js
+- /c/ADF/components/memory-engine/dist/server.js
+Running preflight checks...
+Running preflight checks... PASSED
+Repairing missing prerequisites...
+memory-engine: build artifacts ...
+COO: build artifacts ...
+memory-engine: build artifacts OK
+COO: build artifacts OK
+Recording install state...
+Recording install state... PASSED
+Running preflight checks...
+Running preflight checks... PASSED
+ADF preflight OK
+
+--- Launching COO ---
+  mode: built
+  cwd:  /c/ADF/COO
+  cmd:  node dist/COO/controller/cli.js --scope assafyavnai/adf --enable-onion --test-proof-mode
+
+ADF COO - Interactive CLI
+Brain MCP: connected
+Type your message, press Enter. Type 'exit' to quit.
+
+Scope: assafyavnai/adf
+Requirements-gathering onion: enabled (feature gate)
+LLM invoker: test-proof-mode (guarded)
+Multiline mode: type /multi to start, /send to submit, /cancel to discard.
+
+
+Session ended.

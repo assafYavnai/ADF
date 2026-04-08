@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "repo_root": "C:\\ADF",
+  "launch_mode": "tsx-direct",
+  "host_os": "windows",
+  "workflow_shell": "bash",
+  "execution_shell": "bash",
+  "terminal_shell_hint": "msys2-ucrt64",
+  "execution_environment": {
+    "node_platform": "win32",
+    "cwd": "C:\\ADF",
+    "term_program": "vscode",
+    "msystem": "UCRT64",
+    "shell_env": "C:\\Program Files\\msys64\\usr\\bin\\bash.exe",
+    "bash_env": null
+  },
+  "control_plane": {
+    "kind": "windows-cmd-trampoline",
+    "entrypoint": "adf.cmd",
+    "entrypoint_is_direct_bash": false
+  },
+  "shell_contract": {
+    "canonical_shell": "bash",
+    "approved_bash_runtime": "msys2-ucrt64",
+    "bash_path": "/usr/bin/bash",
+    "bash_working": true,
+    "command_construction_mode": "windows-nonbash-control-plane-into-bash",
+    "bash_write_style": "Issue ADF workflow commands as bash commands, but treat the control plane as non-bash. If quoting is complex, regex-heavy, or multiline, write a temporary .sh script and run it through bash instead of nesting fragile bash -lc strings.",
+    "path_style": "mixed-windows-msys",
+    "windows_native_leaf_shell": "powershell-or-cmd-for-leaf-tasks-only"
+  },
+  "commands": {
+    "node": {
+      "command_name": "node",
+      "available": true,
+      "path": "/c/Program Files/nodejs/node"
+    },
+    "npm": {
+      "command_name": "npm.cmd",
+      "available": true,
+      "path": "/c/Program Files/nodejs/npm.cmd"
+    },
+    "npx": {
+      "command_name": "npx.cmd",
+      "available": true,
+      "path": "/c/Program Files/nodejs/npx.cmd"
+    },
+    "rg": {
+      "command_name": "rg",
+      "available": true,
+      "path": "/c/Users/sufin/AppData/Local/Microsoft/WinGet/Links/rg"
+    },
+    "pg_isready": {
+      "command_name": "pg_isready",
+      "available": true,
+      "path": "/c/Program Files/PostgreSQL/16/bin/pg_isready"
+    }
+  },
+  "llm_tools": {
+    "codex": {
+      "command_name": "codex",
+      "available": true,
+      "path": "/c/Users/sufin/AppData/Roaming/npm/codex",
+      "version": "codex-cli 0.118.0",
+      "autonomous_invoke": "codex exec --full-auto --dangerously-auto-approve"
+    },
+    "claude": {
+      "command_name": "claude",
+      "available": true,
+      "path": "/c/Users/sufin/.local/bin/claude",
+      "version": "2.1.85 (Claude Code)",
+      "autonomous_invoke": "claude --dangerously-skip-permissions"
+    },
+    "gemini": {
+      "command_name": "gemini",
+      "available": true,
+      "path": "/c/Users/sufin/AppData/Roaming/npm/gemini",
+      "version": "0.36.0",
+      "autonomous_invoke": "gemini"
+    }
+  },
+  "postgresql": {
+    "reachable": true,
+    "detail": "PostgreSQL did not confirm readiness on localhost:5432."
+  },
+  "artifacts": {
+    "coo_tsx_shim": {
+      "path": "C:\\ADF\\COO\\node_modules\\.bin\\tsx.cmd",
+      "exists": true
+    },
+    "coo_dist": {
+      "path": "C:\\ADF\\COO\\dist\\COO\\controller\\cli.js",
+      "exists": true
+    },
+    "memory_engine_dist": {
+      "path": "C:\\ADF\\components\\memory-engine\\dist\\server.js",
+      "exists": true
+    },
+    "mcp_sdk_client": {
+      "path": "C:\\ADF\\components\\memory-engine\\node_modules\\@modelcontextprotocol\\sdk\\dist\\esm\\client\\index.js",
+      "exists": true
+    }
+  },
+  "install_state": {
+    "path": "C:\\ADF\\.codex\\runtime\\install-state.json",
+    "exists": true,
+    "last_success_at": "2026-04-08T07:57:00.563Z"
+  },
+  "brain_mcp": {
+    "transport": "stdio",
+    "availability_status": "available",
+    "verification_status": "doctor_required",
+    "detail": "Runtime preflight confirmed that the Brain MCP route artifacts are present. Full Brain verification is intentionally deferred to doctor.",
+    "coo_memory_engine_client": {
+      "path": "C:\\ADF\\COO\\dist\\COO\\controller\\memory-engine-client.js",
+      "exists": true
+    },
+    "connect_smoke_script": {
+      "path": "C:\\ADF\\tools\\doctor-brain-connect-smoke.mjs",
+      "exists": true
+    },
+    "doctor_audit_script": {
+      "path": "C:\\ADF\\tools\\doctor-brain-audit.mjs",
+      "exists": true
+    },
+    "last_verified_at": null,
+    "verification_command": "adf.cmd --doctor"
+  },
+  "recommended_commands": {
+    "runtime_preflight": "adf.cmd --runtime-preflight --json",
+    "install": "adf.cmd --install",
+    "doctor": "adf.cmd --doctor",
+    "launch": "adf.cmd [flags] [-- <COO args>]"
+  },
+  "checks": [
+    {
+      "name": "host OS",
+      "status": "pass",
+      "detail": "Detected windows.",
+      "fix": null
+    },
+    {
+      "name": "workflow shell",
+      "status": "pass",
+      "detail": "ADF workflow shell is bash via /usr/bin/bash.",
+      "fix": null
+    },
+    {
+      "name": "control-plane entrypoint",
+      "status": "pass",
+      "detail": "Runtime preflight was entered through adf.cmd (windows-cmd-trampoline).",
+      "fix": null
+    },
+    {
+      "name": "node",
+      "status": "pass",
+      "detail": "node is available via /c/Program Files/nodejs/node.",
+      "fix": null
+    },
+    {
+      "name": "npm.cmd",
+      "status": "pass",
+      "detail": "npm.cmd is available via /c/Program Files/nodejs/npm.cmd.",
+      "fix": null
+    },
+    {
+      "name": "npx.cmd",
+      "status": "pass",
+      "detail": "npx.cmd is available via /c/Program Files/nodejs/npx.cmd.",
+      "fix": null
+    },
+    {
+      "name": "ripgrep",
+      "status": "pass",
+      "detail": "rg is available via /c/Users/sufin/AppData/Local/Microsoft/WinGet/Links/rg.",
+      "fix": null
+    },
+    {
+      "name": "memory-engine dist",
+      "status": "pass",
+      "detail": "Found C:\\ADF\\components\\memory-engine\\dist\\server.js.",
+      "fix": null
+    },
+    {
+      "name": "MCP SDK client",
+      "status": "pass",
+      "detail": "Found C:\\ADF\\components\\memory-engine\\node_modules\\@modelcontextprotocol\\sdk\\dist\\esm\\client\\index.js.",
+      "fix": null
+    },
+    {
+      "name": "COO tsx shim",
+      "status": "pass",
+      "detail": "Found C:\\ADF\\COO\\node_modules\\.bin\\tsx.cmd.",
+      "fix": null
+    },
+    {
+      "name": "PostgreSQL reachability",
+      "status": "pass",
+      "detail": "PostgreSQL is accepting connections on localhost:5432.",
+      "fix": null
+    },
+    {
+      "name": "install state",
+      "status": "pass",
+      "detail": "Found C:\\ADF\\.codex\\runtime\\install-state.json.",
+      "fix": null
+    },
+    {
+      "name": "Brain MCP route",
+      "status": "pass",
+      "detail": "Runtime preflight confirmed that the Brain MCP route artifacts are present. Full Brain verification is intentionally deferred to doctor.",
+      "fix": "Use adf.cmd --doctor when you need full bash + Brain verification."
+    }
+  ],
+  "overall_status": "pass",
+  "recommended_next_action": "Runtime preflight passed. Launch through adf.cmd [flags] [-- <COO args>]."
+}

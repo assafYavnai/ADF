@@ -21,8 +21,10 @@ What it does:
   - runs runtime-preflight on the authoritative bash route
   - runs the Windows trampoline preflight route when available
   - deliberately makes existing launcher artifacts stale before install proof
+  - proves the Windows cmd-trampoline install route when available
   - reruns runtime-preflight after install
   - deliberately makes artifacts stale again before normal launch preflight proof
+  - proves the Windows cmd-trampoline launch route when available
   - captures proof-partition launcher KPI evidence for the exercised routes
   - records logs and a proof summary under docs/phase1/adf-runtime-preflight-and-install-split/proof-runs/
 EOF
@@ -195,6 +197,51 @@ require_log_not_contains() {
   fi
 }
 
+validate_install_route_log() {
+  local log_path="$1"
+  local label="$2"
+  local expected_control_plane_detail="${3:-}"
+
+  if ! require_log_contains "$log_path" "build artifacts" "$label did not rebuild stale existing artifacts."; then
+    cat "$log_path"
+    return 1
+  fi
+  if ! require_log_not_contains "$log_path" "command not found" "$label still emitted a shell command failure."; then
+    cat "$log_path"
+    return 1
+  fi
+  if ! require_log_contains "$log_path" "ADF install/bootstrap OK" "$label did not complete successfully."; then
+    cat "$log_path"
+    return 1
+  fi
+  if [[ -n "$expected_control_plane_detail" ]] && ! require_log_contains "$log_path" "$expected_control_plane_detail" "$label did not preserve the expected control-plane detail."; then
+    cat "$log_path"
+    return 1
+  fi
+}
+
+validate_launch_route_log() {
+  local log_path="$1"
+  local label="$2"
+
+  if ! require_log_contains "$log_path" "build artifacts" "$label did not rebuild stale existing artifacts."; then
+    cat "$log_path"
+    return 1
+  fi
+  if ! require_log_not_contains "$log_path" "command not found" "$label still emitted a shell command failure."; then
+    cat "$log_path"
+    return 1
+  fi
+  if ! require_log_contains "$log_path" "ADF preflight OK" "$label did not pass preflight."; then
+    cat "$log_path"
+    return 1
+  fi
+  if ! require_log_contains "$log_path" "Session ended." "$label did not exit cleanly."; then
+    cat "$log_path"
+    return 1
+  fi
+}
+
 ensure_launcher_artifacts_exist() {
   [[ -f "$COO_CLI_ARTIFACT" ]] || { echo "Missing launcher artifact: $COO_CLI_ARTIFACT" >&2; return 1; }
   [[ -f "$COO_MEMORY_ENGINE_CLIENT_ARTIFACT" ]] || { echo "Missing launcher artifact: $COO_MEMORY_ENGINE_CLIENT_ARTIFACT" >&2; return 1; }
@@ -251,16 +298,25 @@ step_install() {
     cat "$tmp_log"
     return 1
   fi
-  if ! require_log_contains "$tmp_log" "build artifacts" "Install proof did not rebuild stale existing artifacts."; then
+  if ! validate_install_route_log "$tmp_log" "Install proof"; then
+    return 1
+  fi
+  cat "$tmp_log"
+}
+
+step_cmd_install() {
+  cd "$REPO_ROOT"
+  local adf_cmd_win
+  local tmp_log="$run_dir/_cmd-install.tmp.log"
+
+  adf_cmd_win="$(to_windows_path "$REPO_ROOT/adf.cmd")"
+
+  mark_launcher_artifacts_stale
+  if ! cmd.exe //c "$adf_cmd_win --install" >"$tmp_log" 2>&1; then
     cat "$tmp_log"
     return 1
   fi
-  if ! require_log_not_contains "$tmp_log" "command not found" "Install proof still emitted a shell command failure."; then
-    cat "$tmp_log"
-    return 1
-  fi
-  if ! require_log_contains "$tmp_log" "ADF install/bootstrap OK" "Install proof did not complete successfully."; then
-    cat "$tmp_log"
+  if ! validate_install_route_log "$tmp_log" "Cmd install proof" "Runtime preflight was entered through adf.cmd (windows-cmd-trampoline)."; then
     return 1
   fi
   cat "$tmp_log"
@@ -275,20 +331,27 @@ step_launch_preflight_scripted() {
     cat "$tmp_log"
     return 1
   fi
-  if ! require_log_contains "$tmp_log" "build artifacts" "Normal launch proof did not rebuild stale existing artifacts."; then
+  if ! validate_launch_route_log "$tmp_log" "Normal launch proof"; then
+    return 1
+  fi
+  cat "$tmp_log"
+}
+
+step_cmd_launch_preflight_scripted() {
+  cd "$REPO_ROOT"
+  local adf_cmd_win
+  local empty_parser_updates_win
+  local tmp_log="$run_dir/_cmd-launch-preflight-scripted.tmp.log"
+
+  adf_cmd_win="$(to_windows_path "$REPO_ROOT/adf.cmd")"
+  empty_parser_updates_win="$(to_windows_path "$empty_parser_updates_path")"
+
+  mark_launcher_artifacts_stale
+  if ! ADF_COO_TEST_PARSER_UPDATES_FILE="$empty_parser_updates_win" cmd.exe //c "echo exit| $adf_cmd_win --built -- --test-proof-mode" >"$tmp_log" 2>&1; then
     cat "$tmp_log"
     return 1
   fi
-  if ! require_log_not_contains "$tmp_log" "command not found" "Normal launch proof still emitted a shell command failure."; then
-    cat "$tmp_log"
-    return 1
-  fi
-  if ! require_log_contains "$tmp_log" "ADF preflight OK" "Normal launch preflight did not pass."; then
-    cat "$tmp_log"
-    return 1
-  fi
-  if ! require_log_contains "$tmp_log" "Session ended." "Normal launch proof did not exit cleanly."; then
-    cat "$tmp_log"
+  if ! validate_launch_route_log "$tmp_log" "Cmd launch proof"; then
     return 1
   fi
   cat "$tmp_log"
@@ -296,7 +359,18 @@ step_launch_preflight_scripted() {
 
 step_kpi_proof() {
   cd "$REPO_ROOT"
-  node "$REPO_ROOT/tools/launcher-route-telemetry-proof.mjs" --repo-root "$REPO_ROOT" --proof-run-id "$run_name"
+  local -a args
+  args=(
+    "$REPO_ROOT/tools/launcher-route-telemetry-proof.mjs"
+    --repo-root "$REPO_ROOT"
+    --proof-run-id "$run_name"
+  )
+
+  if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* || "$(uname -s)" == CYGWIN* ]]; then
+    args+=(--expect-cmd-frontdoor true)
+  fi
+
+  node "${args[@]}"
 }
 
 step_help() {
@@ -318,13 +392,23 @@ else
 fi
 
 run_step "03-install" "Make existing artifacts stale, then run the explicit install/bootstrap route and prove it rebuilds them." "03-install.log" step_install
-run_step "04-runtime-preflight-post-install" "Run runtime-preflight again after install/bootstrap." "04-runtime-preflight-post-install.log" step_runtime_preflight
-run_step "05-launch-preflight-scripted" "Make artifacts stale again, then run a scripted normal launch to prove bounded launch repair plus preflight truth." "05-launch-preflight-scripted.log" step_launch_preflight_scripted
-run_step "06-kpi-proof" "Query proof-partition launcher telemetry for the exercised launcher routes in this bundle." "06-kpi-proof.log" step_kpi_proof
-run_step "07-help" "Run launcher help after the split routes are in place." "07-help.log" step_help
+if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* || "$(uname -s)" == CYGWIN* ]]; then
+  run_step "04-cmd-install" "Make existing artifacts stale, then run the explicit install route through the Windows cmd trampoline." "04-cmd-install.log" step_cmd_install
+else
+  record_step "04-cmd-install" "SKIP" "04-cmd-install.log" "Windows cmd install route not applicable on this host."
+fi
+run_step "05-runtime-preflight-post-install" "Run runtime-preflight again after install/bootstrap." "05-runtime-preflight-post-install.log" step_runtime_preflight
+run_step "06-launch-preflight-scripted" "Make artifacts stale again, then run a scripted normal launch to prove bounded launch repair plus preflight truth." "06-launch-preflight-scripted.log" step_launch_preflight_scripted
+if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* || "$(uname -s)" == CYGWIN* ]]; then
+  run_step "07-cmd-launch-preflight-scripted" "Make artifacts stale again, then run a scripted normal launch through the Windows cmd trampoline." "07-cmd-launch-preflight-scripted.log" step_cmd_launch_preflight_scripted
+else
+  record_step "07-cmd-launch-preflight-scripted" "SKIP" "07-cmd-launch-preflight-scripted.log" "Windows cmd launch route not applicable on this host."
+fi
+run_step "08-kpi-proof" "Query proof-partition launcher telemetry for the exercised launcher routes in this bundle." "08-kpi-proof.log" step_kpi_proof
+run_step "09-help" "Run launcher help after the split routes are in place." "09-help.log" step_help
 
 if $RUN_DOCTOR; then
-  run_step "08-doctor" "Run doctor to prove full repair plus Brain verification still works." "08-doctor.log" step_doctor
+  run_step "10-doctor" "Run doctor to prove full repair plus Brain verification still works." "10-doctor.log" step_doctor
 fi
 
 write_summary

@@ -28,20 +28,20 @@
     "codex_cli_bypass_supported": true
   },
   "current_branch": "main",
-  "last_completed_cycle": 1,
-  "last_commit_sha": "59dc2e5e9fb50453395cdc672d5e08204feac41c",
-  "active_cycle_number": 2,
+  "last_completed_cycle": 2,
+  "last_commit_sha": "42bf725a04c96f0b89fcf1a1e591cff0f72d6abb",
+  "active_cycle_number": 3,
   "cycle_runtime": {
-    "cycle_number": 2,
-    "cycle_name": "cycle-02",
+    "cycle_number": 3,
+    "cycle_name": "cycle-03",
     "status": "fix_report_complete_commit_push_pending",
-    "cycle_started_at": "2026-04-08T06:58:30.412Z",
-    "review_requested_at": "2026-04-08T06:59:21.446Z",
-    "auditor_finished_at": "2026-04-08T07:09:37.131Z",
-    "reviewer_finished_at": "2026-04-08T07:10:54.257Z",
-    "implementor_started_at": "2026-04-08T07:21:40.740Z",
-    "implementor_finished_at": "2026-04-08T07:31:49.831Z",
-    "verification_finished_at": "2026-04-08T07:32:57.819Z",
+    "cycle_started_at": "2026-04-08T07:41:29.202Z",
+    "review_requested_at": "2026-04-08T07:51:59.010Z",
+    "auditor_finished_at": "2026-04-08T07:53:53.715Z",
+    "reviewer_finished_at": "2026-04-08T07:51:59.010Z",
+    "implementor_started_at": "2026-04-08T07:56:20.000Z",
+    "implementor_finished_at": "2026-04-08T08:03:11.307Z",
+    "verification_finished_at": "2026-04-08T08:03:11.307Z",
     "cycle_finished_at": null,
     "report_ready": {
       "auditor": true,
@@ -52,33 +52,33 @@
       "reviewer": true
     },
     "report_surface_order": [
-      "auditor",
-      "reviewer"
+      "reviewer",
+      "auditor"
     ],
     "lane_verdicts": {
       "auditor": "reject",
-      "reviewer": "reject"
+      "reviewer": "approve"
     },
     "recreated_executions": {
       "auditor": false,
       "reviewer": false,
       "implementor": false
     },
-    "last_note": "Cycle-02 reviewer report surfaced to the user."
+    "last_note": null
   },
   "split_review_continuity": {
-    "mode": "full_pair",
-    "approving_lane": null,
-    "rejecting_lane": null,
+    "mode": "rejecting_lane_only",
+    "approving_lane": "reviewer",
+    "rejecting_lane": "auditor",
     "final_sanity_lane": null,
-    "carried_from_cycle": null,
+    "carried_from_cycle": 3,
     "final_sanity_completed": false,
-    "updated_at": null,
-    "note": null
+    "updated_at": "2026-04-08T07:53:53.715Z",
+    "note": "Split verdict detected. Reuse the approving lane and rerun only the rejecting lane next cycle."
   },
   "created_at": "2026-04-03T10:46:03.017Z",
-  "updated_at": "2026-04-08T07:38:07.128Z",
-  "__gsw_revision": 19,
-  "__gsw_write_id": "gsw-e778cd85-a8bb-4e72-bb1a-0ddeb4c4730f",
-  "__gsw_timestamp": "2026-04-08T07:38:51.927Z"
+  "updated_at": "2026-04-08T08:04:17.768Z",
+  "__gsw_revision": 30,
+  "__gsw_write_id": "gsw-1d626e38-600e-434e-b267-867e8e929249",
+  "__gsw_timestamp": "2026-04-08T08:04:45.956Z"
 }

@@ -3,15 +3,13 @@
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { buildValidation, summarizeOperations } from "./launcher-route-telemetry-proof-lib.mjs";
+
 const args = parseArgs(process.argv.slice(2));
 const repoRoot = resolve(args["repo-root"] ?? process.cwd());
 const proofRunId = requiredArg(args, "proof-run-id");
 const sourcePathPrefix = args["source-path-prefix"] ?? "ADF/launcher/";
-const requiredOperations = [
-  "launcher_runtime_preflight",
-  "launcher_install",
-  "launcher_launch_preflight",
-];
+const expectCmdFrontdoor = parseOptionalBoolean(args["expect-cmd-frontdoor"]) === true;
 
 const { pool } = await import(pathToFileURL(join(repoRoot, "components", "memory-engine", "dist", "db", "connection.js")).href);
 
@@ -56,27 +54,17 @@ try {
   const rows = rowsResult.rows;
   const partitionCounts = partitionResult.rows;
   const operationSummary = summarizeOperations(rows);
-  const missingOperations = requiredOperations.filter((operation) => !operationSummary.some((entry) => entry.operation === operation));
-  const hasProofRows = partitionCounts.some((entry) => entry.telemetry_partition === "proof" && Number(entry.total_events ?? 0) > 0);
-  const hasCmdProof = rows.some((row) =>
-    row.operation === "launcher_runtime_preflight"
-    && row.control_plane_kind === "windows-cmd-trampoline"
-    && row.entrypoint === "adf.cmd"
-  );
+  const validation = buildValidation(rows, partitionCounts, { expectCmdFrontdoor });
 
   const payload = {
     proof_run_id: proofRunId,
     source_path_prefix: sourcePathPrefix,
+    expect_cmd_frontdoor: expectCmdFrontdoor,
     total_events: rows.length,
     partition_counts: partitionCounts,
     operations: operationSummary,
     rows,
-    validation: {
-      has_proof_rows: hasProofRows,
-      missing_required_operations: missingOperations,
-      has_cmd_trampoline_runtime_preflight: hasCmdProof,
-      valid: hasProofRows && missingOperations.length === 0 && hasCmdProof,
-    },
+    validation,
   };
 
   process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
@@ -119,39 +107,15 @@ function requiredArg(argsMap, key) {
   return String(value);
 }
 
-function summarizeOperations(rows) {
-  const summaries = new Map();
-
-  for (const row of rows) {
-    if (!summaries.has(row.operation)) {
-      summaries.set(row.operation, {
-        operation: row.operation,
-        total_events: 0,
-        success_count: 0,
-        failure_count: 0,
-        route_stages: new Set(),
-        step_names: new Set(),
-      });
-    }
-
-    const summary = summaries.get(row.operation);
-    summary.total_events += 1;
-    summary.success_count += row.success ? 1 : 0;
-    summary.failure_count += row.success ? 0 : 1;
-    if (row.route_stage) {
-      summary.route_stages.add(row.route_stage);
-    }
-    if (row.step_name) {
-      summary.step_names.add(row.step_name);
-    }
+function parseOptionalBoolean(value) {
+  if (value === undefined) {
+    return null;
   }
-
-  return Array.from(summaries.values()).map((summary) => ({
-    operation: summary.operation,
-    total_events: summary.total_events,
-    success_count: summary.success_count,
-    failure_count: summary.failure_count,
-    route_stages: Array.from(summary.route_stages.values()),
-    step_names: Array.from(summary.step_names.values()),
-  }));
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`Expected optional boolean value to be true or false, got '${value}'.`);
 }
