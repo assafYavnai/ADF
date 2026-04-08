@@ -1,0 +1,36 @@
+1. Findings
+
+Overall Verdict: REJECTED
+
+1. failure class: governed review-handoff truth divergence reopened after the cycle-03 closeout sync.
+broken route invariant: the branch tip must keep one explicit current approval-handoff marker across `implement-plan-state.json`, `review-cycle-state.json`, and `completion-summary.md`, matching the cycle-03 contract and its claimed closure proof.
+exact route: `355ead3 cycle-03 lineage-freeze fix -> 138f45c cycle-03 closeout sync -> 929dc7d cycle-04 approval request -> implement-plan-state.json -> review-cycle-state.json -> completion-summary.md`.
+exact file/line references: [fix-plan.md#L7](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/cycle-03/fix-plan.md#L7), [fix-plan.md#L8](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/cycle-03/fix-plan.md#L8), [fix-report.md#L7](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/cycle-03/fix-report.md#L7), [fix-report.md#L33](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/cycle-03/fix-report.md#L33), [fix-report.md#L35](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/cycle-03/fix-report.md#L35), [implement-plan-state.json#L39](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json#L39), [implement-plan-state.json#L52](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json#L52), [review-cycle-state.json#L31](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/review-cycle-state.json#L31), [review-cycle-state.json#L33](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/review-cycle-state.json#L33), [review-cycle-state.json#L39](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/review-cycle-state.json#L39), [completion-summary.md#L58](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/completion-summary.md#L58), [completion-summary.md#L59](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/completion-summary.md#L59).
+concrete operational impact: on clean branch tip `929dc7df83a6350d862f5b6f0c66059cfe523e0e`, both state files now mark cycle-04 and `review_requested_at = 2026-04-08T18:58:56.971Z`, but the committed completion summary still says the “current approval handoff” is `2026-04-08T18:44:10.201Z`; the branch therefore still exposes two competing live review markers.
+KPI applicability: not required.
+KPI closure state: Closed.
+KPI proof or exception gap: None; the open gap is governed handoff truth, not KPI proof.
+Compatibility verdict: Incompatible (against the Vision, Phase 1, Master-Plan, and current gap-closure authority chain, because the cycle-03 contract froze `completion-summary.md` as part of the active handoff truth and the current tip no longer satisfies that freeze).
+sweep scope: feature-local closeout-to-next-cycle state writers, completion-summary emission on review rollover, and sibling governed review streams that advance cycle state after a fix-pass closeout.
+closure proof: the committed branch tip must either make [completion-summary.md#L59](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/completion-summary.md#L59) reflect the same cycle-04 handoff timestamp and cycle number carried by [implement-plan-state.json#L52](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/implement-plan-state.json#L52) and [review-cycle-state.json#L39](/C:/ADF/.codex/implement-plan/worktrees/phase1/brain-ops-skill-and-codex-claude-wiring/docs/phase1/brain-ops-skill-and-codex-claude-wiring/review-cycle-state.json#L39), or explicitly demote `2026-04-08T18:44:10.201Z` to historical cycle-03 evidence so no artifact still presents it as current.
+shared-surface expansion risk: present in the governed state-projection surface spanning `implement-plan` state, `review-cycle` state, and completion-summary closeout text.
+negative proof required: disprove the same stale-“current handoff” pattern on sibling review streams and on the next closeout-to-review rollover for this feature.
+live/proof isolation risk: present because the cycle-03 fix-report proof snapshot is historical while the live branch tip has already advanced to cycle-04.
+claimed-route vs proved-route mismatch risk: present because the claimed closure route says the active handoff is cycle-03 at `2026-04-08T18:44:10.201Z`, while the current branch tip proves the active handoff is cycle-04 at `2026-04-08T18:58:56.971Z`.
+status: regression
+
+2. Conceptual Root Cause
+
+1. The closeout route updates helper-written state on cycle rollover, but the same rollover did not update or demote the completion summary’s “current approval handoff” claim. One governed artifact is still speaking in live-present tense about a historical snapshot.
+2. The cycle-03 closure proof was snapshot-specific rather than durable. It proved alignment at the time of `355ead3`, but the route does not preserve that invariant when a later committed review-request advances the stream.
+
+3. High-Level View Of System Routes That Still Need Work
+
+1. `cycle-03 closeout sync -> cycle-04 approval request -> completion-summary refresh`
+what must be frozen before implementation: one authoritative definition of “current approval handoff” and whether `completion-summary.md` is a live state surface or only a historical ledger.
+why endpoint-only fixes will fail: editing only one JSON file or only the summary would fix this tip but would not close the route that can reintroduce stale “current” wording on the next rollover.
+the minimal layers that must change to close the route: feature-local completion-summary emission plus the closeout-to-next-cycle state transition that writes `implement-plan-state.json` and `review-cycle-state.json`.
+explicit non-goals, so scope does not widen into general refactoring: no `brain-ops` product changes, no bootstrap changes, no generic review-cycle architecture rewrite, no merge-queue work.
+what done looks like operationally: on a clean committed tip, all governed artifacts either point to cycle-04 `review_requested_at = 2026-04-08T18:58:56.971Z` as current, or clearly label `2026-04-08T18:44:10.201Z` as historical cycle-03 proof with no competing live claim.
+
+Final Verdict: REJECTED

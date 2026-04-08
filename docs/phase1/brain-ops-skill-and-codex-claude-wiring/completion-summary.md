@@ -56,7 +56,8 @@
 - Cycle-02 closeout-state sync was committed and pushed as `4e2f3ab96718d38aec1350d4e2169dde7b2ccc1e`; that SHA is the governed `last_commit_sha` carried by both `implement-plan-state.json` and `review-cycle-state.json`.
 - Branch tip `930426b6a11e62b37328815ce6e2f36504e2fcae` only aligned the branch-tip state to the cycle-02 closeout lineage before the next approval review; it is not a competing product change.
 - Cycle-03 lineage-freeze fix pass was committed and pushed as `355ead3b56604cf5a65960bd6150b50721599657`.
-- The governed review-request timestamp for the current approval handoff is `2026-04-08T18:44:10.201Z`, and cycle-04 is the next approval review cycle on the corrected branch tip.
+- The governed review-request timestamp for the current approval handoff is `2026-04-08T18:58:56.971Z`, and cycle-04 is the active approval review cycle on the corrected branch tip.
+- The prior cycle-03 approval handoff at `2026-04-08T18:44:10.201Z` remains historical proof from the lineage-freeze pass; it is no longer the live review marker.
 
 7. Remaining Non-Goals / Debt
 
