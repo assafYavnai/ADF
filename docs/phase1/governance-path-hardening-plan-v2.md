@@ -21,9 +21,9 @@ Changes from prior review cycles (full diff in git history):
 5. **review-cycle boundary is a frozen contract rule** — written in `skills/review-cycle/references/workflow-contract.md`, not just inline comments.
 6. **validate-pre-commit checks physical authority** — fails if worktree is being read as authority when repo-root should be canonical.
 7. **`fresh_base_ref_sha` persisted in queue request record** — consumed by closeout/readiness checks, documented in merge-queue contract.
-8. **`.superseded` marker backward compat** — no marker on old worktrees = "legacy/unresolved"; repo-root still wins after merge_status leaves `not_ready`.
+8. **`.superseded` marker backward compat** — no marker on old worktrees = "legacy/unresolved"; repo-root still wins once `merge_commit_sha != null`.
 9. **Phase 1 canonical-root selector is non-circular** — reads repo-root state first (always exists), then decides whether worktree state is also needed. Covers all 6 full-pattern + 3 partial sites.
-10. **`reconciliation_sha` persisted via post-commit state update** — not inside the committed artifacts. No hidden second commit needed.
+10. **`reconciliation_sha` is derived from git history (Option A)** — not a committed artifact field. Recovered deterministically from governed closeout commit message pattern. No hidden second commit needed.
 11. **Closeout stages feature root + canonical cache paths** — `.codex/implement-plan/features-index.json` and `.codex/implement-plan/agent-registry.json` are explicitly included.
 12. **Fixed governed-feature-runtime.mjs path** — actual location is `skills/governed-feature-runtime.mjs`, not under `implement-plan/scripts/`.
 13. **Added `skills/review-cycle/references/workflow-contract.md` and `skills/merge-queue/references/workflow-contract.md`** to modified-files list.
@@ -202,7 +202,7 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
 3. **Also update 3 partial sites** (lines 562, 727, 946) — These store worktree paths in state. Add comments that these are execution-time references, not authority sources.
 
 4. **Worktree retirement** — In `mark-complete`, after `feature_status = "completed"`, write `.superseded` marker to worktree feature artifact directory.
-   - **Backward compat**: Old worktrees without marker are treated as "legacy/unresolved" — repo-root still wins per I-1 (merge_status rule).
+   - **Backward compat**: Old worktrees without marker are treated as "legacy/unresolved" — repo-root still wins per I-1 (`merge_commit_sha != null` rule).
 
 5. **Canonical global cache writes** — In `syncFeaturesIndex()` and `syncAgentRegistry()`:
    - Resolve canonical project root via `git worktree list --porcelain` if current projectRoot is a worktree
@@ -361,6 +361,7 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
    - Instead, it is **deterministically recoverable** from git history: the governed closeout commit is identifiable by its message pattern (`docs(phase<N>/<feature-slug>): governed closeout [merge:<sha>]`) on the base branch after `merge_commit_sha`
    - `reconcile` and status readers recover it via: `git log --format=%H --grep="governed closeout" <merge_commit_sha>..HEAD -- <feature-root>` (bounded, deterministic, no ambiguity)
    - The return value from `commit-closeout` provides the SHA to callers in the same session; future sessions derive it from git
+   - **Ambiguity rule (fail-closed)**: if the git-log query returns zero candidates or more than one candidate, `reconcile` and status readers must block and surface the ambiguity — never guess. Zero = closeout commit missing or message pattern corrupted. More than one = multiple closeout commits for the same feature (requires manual resolution). The tie-break rule is: use the **first** governed closeout commit that is a direct descendant of `merge_commit_sha` on the base branch. If that still yields ambiguity, block.
    - This means `reconciliation_sha` is governed runtime truth derived from committed git evidence, not a committed artifact field
 
    **Semantic rule**: `reconciliation_sha` is the ONLY field for the closeout commit. One field, one commit, one meaning. Callers that previously used `closeout_commit_sha` should read `reconciliation_sha` instead.
@@ -406,7 +407,7 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
    - `last_error` is null if feature is completed (Issue P)
 
    **Physical authority violations (Issue Q):**
-   - If `merge_status != "not_ready"` but worktree is being read as authority → fail
+   - If `merge_commit_sha != null` but worktree is being read as authority → fail
    - If feature is completed but worktree exists without `.superseded` marker → warn (legacy compat)
    - If features-index.json or agent-registry.json were written under a worktree path → fail
 
@@ -471,7 +472,7 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
 
 4. **Phase 3**: Known contradictions → reconcile aligns all, reports per-field provenance.
 
-5. **Phase 4**: Full enqueue → process-next → closeout → `reconciliation_sha` set via post-commit update. Staged files include feature root + canonical caches. Worktree superseded.
+5. **Phase 4**: Full enqueue → process-next → closeout → `reconciliation_sha` returned in-session from `commit-closeout`, recoverable from git history in future sessions. Staged files include feature root + canonical caches. Worktree superseded. Verify git-log recovery query returns exactly one candidate on a fresh clone.
 
 6. **Phase 5**: Contradictory artifacts → validator catches. Physical authority violation → validator catches. Completed feature with stale `last_error` → caught.
 
