@@ -28,19 +28,19 @@
     "codex_cli_bypass_supported": true
   },
   "current_branch": "implement-plan/phase1/develop-shell-help-settings-status-governor",
-  "last_completed_cycle": 3,
-  "last_commit_sha": "c544bd7",
-  "active_cycle_number": 4,
+  "last_completed_cycle": 4,
+  "last_commit_sha": "938ebf8",
+  "active_cycle_number": 5,
   "cycle_runtime": {
-    "cycle_number": 4,
-    "cycle_name": "cycle-04",
-    "status": "implementation_finished_pending_verification",
-    "cycle_started_at": "2026-04-09T18:52:12.589Z",
-    "review_requested_at": "2026-04-09T18:52:47.748Z",
-    "auditor_finished_at": "2026-04-09T18:56:46.868Z",
-    "reviewer_finished_at": "2026-04-09T19:01:00.076Z",
-    "implementor_started_at": "2026-04-09T19:01:32.189Z",
-    "implementor_finished_at": "2026-04-09T19:17:44.254Z",
+    "cycle_number": 5,
+    "cycle_name": "cycle-05",
+    "status": "reviews_surfaced_ready_for_fix_plan",
+    "cycle_started_at": "2026-04-09T19:18:49.385Z",
+    "review_requested_at": "2026-04-09T19:19:11.775Z",
+    "auditor_finished_at": "2026-04-09T19:24:21.735Z",
+    "reviewer_finished_at": "2026-04-09T19:22:01.110Z",
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
     "verification_finished_at": null,
     "cycle_finished_at": null,
     "report_ready": {
@@ -52,33 +52,33 @@
       "reviewer": true
     },
     "report_surface_order": [
-      "auditor",
-      "reviewer"
+      "reviewer",
+      "auditor"
     ],
     "lane_verdicts": {
       "auditor": "approve",
-      "reviewer": "reject"
+      "reviewer": "approve"
     },
     "recreated_executions": {
       "auditor": false,
       "reviewer": false,
-      "implementor": true
+      "implementor": false
     },
-    "last_note": "final_regression_sanity reviewer dispatch after auditor approval"
+    "last_note": "final_regression_sanity auditor dispatch after reviewer approval"
   },
   "split_review_continuity": {
-    "mode": "rejecting_lane_only",
+    "mode": "final_regression_sanity",
     "approving_lane": "auditor",
     "rejecting_lane": "reviewer",
-    "final_sanity_lane": null,
+    "final_sanity_lane": "auditor",
     "carried_from_cycle": 4,
-    "final_sanity_completed": false,
-    "updated_at": "2026-04-09T19:01:00.076Z",
-    "note": "Final regression_sanity reopened the split verdict. Rerun only the rejecting lane next cycle."
+    "final_sanity_completed": true,
+    "updated_at": "2026-04-09T19:24:21.735Z",
+    "note": "Split verdict cleared after final regression_sanity by auditor."
   },
   "created_at": "2026-04-09T17:35:54.688Z",
-  "updated_at": "2026-04-09T19:17:44.254Z",
-  "__gsw_revision": 50,
-  "__gsw_write_id": "gsw-e1637049-761d-408b-9127-00ec784b7ae3",
-  "__gsw_timestamp": "2026-04-09T19:17:44.461Z"
+  "updated_at": "2026-04-09T19:24:27.067Z",
+  "__gsw_revision": 58,
+  "__gsw_write_id": "gsw-a19276c0-067e-4c7e-b8f1-a5ec6cae668e",
+  "__gsw_timestamp": "2026-04-09T19:24:27.071Z"
 }
