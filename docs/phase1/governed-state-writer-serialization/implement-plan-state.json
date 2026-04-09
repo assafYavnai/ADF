@@ -34,12 +34,12 @@
   "approved_commit_sha": "fb6a90f",
   "merge_commit_sha": "5834712edeba2268a9b678364857fc526770c0af",
   "merge_queue_request_id": "merge-main-1-governed-state-writer-serialization-1775411811547",
-  "local_target_sync_status": "skipped_dirty_checkout",
+  "local_target_sync_status": "skipped_branch_not_checked_out",
   "last_completed_step": "marked_complete",
-  "last_commit_sha": "5834712edeba2268a9b678364857fc526770c0af",
+  "last_commit_sha": "692819b6db74f7ba121815d5bf6c62209a2abcdd",
   "active_run_status": "completed",
   "created_at": "2026-04-05T11:13:28.261Z",
-  "updated_at": "2026-04-05T17:57:10.721Z",
+  "updated_at": "2026-04-09T08:14:33.394Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-05T11:13:28.305Z",
     "worktree_prepared_at": "2026-04-05T11:17:38.447Z",
@@ -53,7 +53,7 @@
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": "2026-04-05T17:57:10.581Z",
-    "closeout_finished_at": "2026-04-05T17:57:10.721Z"
+    "closeout_finished_at": "2026-04-09T08:13:35.113Z"
   },
   "event_log": [
     {
@@ -298,6 +298,33 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-05T17:57:10.721Z",
       "note": "Merged via merge-queue after approval."
+    },
+    {
+      "event_id": "event-84a64eb1-0168-4c90-a244-73330f5c0454",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T08:13:28.101Z",
+      "note": null
+    },
+    {
+      "event_id": "event-49923938-4238-462b-871d-34deaf156da3",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T08:13:35.113Z",
+      "note": "Truthful governed closeout completed after review approval."
+    },
+    {
+      "event_id": "event-50bf4547-7a0e-4512-9cba-71ec2f631fe7",
+      "event_type": "state-patched",
+      "run_id": "run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T08:14:33.394Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -329,7 +356,7 @@
         "lifecycle_status": "completed",
         "terminal_status": "completed",
         "contract_schema_version": 1,
-        "contract_revision": 24,
+        "contract_revision": 27,
         "feature_contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/governed-state-writer-serialization/implementation-run/run-d6865164-1f94-4e4f-b88a-3d0cdd5449e7/run-projection.v1.json",
@@ -352,15 +379,15 @@
             "status": "completed",
             "terminal_status": "completed",
             "started_at": "2026-04-05T11:13:28.291Z",
-            "updated_at": "2026-04-05T17:57:10.721Z",
+            "updated_at": "2026-04-09T08:14:33.394Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
               "step": "merge_queue",
               "status": "completed",
-              "reason": "Merged via merge-queue after approval.",
-              "updated_at": "2026-04-05T17:57:10.722Z"
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-09T08:14:33.394Z"
             },
             "step_status": {
               "implementation": {
@@ -434,13 +461,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-05T17:57:10.722Z",
-            "last_event_at": "2026-04-05T17:57:10.721Z"
+            "last_checkpoint_at": "2026-04-09T08:14:33.394Z",
+            "last_event_at": "2026-04-09T08:14:33.394Z"
           }
         },
         "created_at": "2026-04-05T11:13:28.291Z",
-        "updated_at": "2026-04-05T17:57:10.727Z",
-        "last_event_at": "2026-04-05T17:57:10.721Z",
+        "updated_at": "2026-04-09T08:14:33.399Z",
+        "last_event_at": "2026-04-09T08:14:33.394Z",
         "kpi_projection": {
           "terminal_status": "completed",
           "per_step_timing": {
@@ -491,7 +518,10 @@
       }
     }
   },
-  "__gsw_revision": 1,
-  "__gsw_write_id": "gsw-e0ba74a8-35ab-4852-a53a-71a1dba52090",
-  "__gsw_timestamp": "2026-04-05T17:23:28.487Z"
+  "__gsw_revision": 4,
+  "__gsw_write_id": "gsw-28f5925f-b616-41f6-8d68-39c8b43f536c",
+  "__gsw_timestamp": "2026-04-09T08:14:33.400Z",
+  "human_verification_status": null,
+  "human_verification_approved_at": null,
+  "human_verification_approved_commit_sha": null
 }
