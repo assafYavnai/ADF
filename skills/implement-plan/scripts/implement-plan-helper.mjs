@@ -4295,7 +4295,9 @@ function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, work
     attempt,
     legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status, state.merge_status),
     legacyResumeCheckpointStatus(state.active_run_status),
-    "Resume from the last truthful normal-mode checkpoint."
+    state.active_run_status === "completed"
+      ? "Truthful governed closeout completed after review approval."
+      : "Resume from the last truthful normal-mode checkpoint."
   );
   run.lifecycle_status = state.active_run_status === "completed"
     ? "completed"
