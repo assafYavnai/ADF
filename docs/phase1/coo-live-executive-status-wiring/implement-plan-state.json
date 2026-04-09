@@ -4,33 +4,44 @@
   "feature_slug": "coo-live-executive-status-wiring",
   "project_root": "C:/ADF",
   "feature_registry_key": "phase1/coo-live-executive-status-wiring",
-  "feature_status": "completed",
+  "feature_status": "active",
   "implementor_execution_id": null,
-  "implementor_execution_access_mode": null,
-  "implementor_execution_runtime": null,
-  "implementor_provider": null,
-  "implementor_model": "gpt-5.4",
+  "implementor_execution_access_mode": "claude_code_skip_permissions",
+  "implementor_execution_runtime": "codex_cli_exec",
+  "implementor_provider": "codex",
+  "implementor_model": "gpt-5.3-codex-spark",
   "implementor_reasoning_effort": null,
-  "resolved_runtime_permission_model": null,
-  "resolved_runtime_capabilities": {},
-  "current_branch": "main",
+  "resolved_runtime_permission_model": "claude_code_skip_permissions",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "implement-plan/phase1/coo-live-executive-status-wiring",
   "base_branch": "main",
   "feature_branch": "implement-plan/phase1/coo-live-executive-status-wiring",
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-live-executive-status-wiring",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "merged",
-  "approved_commit_sha": "5cb553c4831a99d384b828c5c21d68946a4f500d",
-  "merge_commit_sha": "b7c8967b7bf445b43d804fc86bc71c30b7a1ac73",
-  "merge_queue_request_id": "merge-main-1-coo-live-executive-status-wiring-1775660860565",
-  "local_target_sync_status": "skipped_dirty_checkout",
-  "last_completed_step": "marked_complete",
-  "last_commit_sha": "b7c8967b7bf445b43d804fc86bc71c30b7a1ac73",
-  "active_run_status": "completed",
+  "merge_status": "blocked",
+  "approved_commit_sha": "025d67f0d36c9ec66aaa4b2647dd0da66090f575",
+  "merge_commit_sha": null,
+  "merge_queue_request_id": "merge-main-1-coo-live-executive-status-wiring-1775719387061",
+  "local_target_sync_status": "not_started",
+  "last_completed_step": "merge_blocked",
+  "last_commit_sha": "025d67f0d36c9ec66aaa4b2647dd0da66090f575",
+  "active_run_status": "merge_blocked",
   "created_at": "2026-04-08T14:17:03.526Z",
-  "updated_at": "2026-04-08T15:07:51.642Z",
+  "updated_at": "2026-04-09T07:47:13.631Z",
   "run_timestamps": {
-    "context_collected_at": null,
+    "context_collected_at": "2026-04-09T06:20:03.551Z",
     "worktree_prepared_at": "2026-04-08T15:04:23.773Z",
     "integrity_passed_at": null,
     "integrity_failed_at": "2026-04-08T14:17:03.526Z",
@@ -38,11 +49,11 @@
     "implementor_started_at": "2026-04-08T15:04:28.267Z",
     "implementor_finished_at": "2026-04-08T15:04:32.572Z",
     "verification_finished_at": "2026-04-08T15:04:36.701Z",
-    "review_requested_at": "2026-04-08T15:04:40.770Z",
+    "review_requested_at": "2026-04-09T07:08:47.133Z",
     "human_verification_requested_at": null,
-    "merge_started_at": "2026-04-08T15:04:36.701Z",
-    "merge_finished_at": "2026-04-08T15:07:51.498Z",
-    "closeout_finished_at": "2026-04-08T15:07:51.642Z"
+    "merge_started_at": null,
+    "merge_finished_at": null,
+    "closeout_finished_at": null
   },
   "event_log": [
     {
@@ -139,22 +150,91 @@
       "note": "Completion summary rewritten to the required 7-heading contract with truthful pre-merge branch status."
     },
     {
-      "event_id": "event-0e761f22-230d-4394-b318-ad84ad9d82a7",
+      "event_id": "event-844435a0-0996-4785-b6ec-55f7b667c496",
       "event_type": "state-patched",
       "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
       "run_mode": "normal",
       "attempt_id": "attempt-001",
-      "timestamp": "2026-04-08T15:07:51.513Z",
+      "timestamp": "2026-04-08T15:07:40.701Z",
       "note": null
     },
     {
-      "event_id": "event-f44682f9-919f-493b-be00-9fa6f27fefea",
-      "event_type": "terminal-status-recorded",
+      "event_id": "event-6321b342-a126-447f-b8d9-9f3b22f495cd",
+      "event_type": "state-patched",
       "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
       "run_mode": "normal",
       "attempt_id": "attempt-001",
-      "timestamp": "2026-04-08T15:07:51.642Z",
-      "note": "Merged via merge-queue after approval."
+      "timestamp": "2026-04-08T15:07:45.466Z",
+      "note": null
+    },
+    {
+      "event_id": "event-88bc7c6d-bb47-4bdb-8a6c-732b45482219",
+      "event_type": "contract-materialized",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T06:20:03.557Z",
+      "note": null
+    },
+    {
+      "event": "feature-reopened",
+      "timestamp": "2026-04-09T06:20:02.416Z",
+      "note": "Reopening the landed COO status slice to repair the live /status regression and reconcile governed closeout truthfully."
+    },
+    {
+      "event_id": "event-db698791-eced-4576-b662-ff183a8bfbd2",
+      "event_type": "step-transition",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T06:20:02.416Z",
+      "note": "Reopening the landed COO status slice to repair the live /status regression and reconcile governed closeout truthfully."
+    },
+    {
+      "event": "review-requested",
+      "timestamp": "2026-04-09T06:20:33.242Z",
+      "note": "Cycle-08 full_pair review requested before implementation for the reopened /status regression."
+    },
+    {
+      "event_id": "event-f02e7b79-86fb-4d62-acb6-3b629f155759",
+      "event_type": "step-transition",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T06:20:33.242Z",
+      "note": "Cycle-08 full_pair review requested before implementation for the reopened /status regression."
+    },
+    {
+      "event": "review-requested",
+      "timestamp": "2026-04-09T07:08:47.133Z",
+      "note": "Cycle-09"
+    },
+    {
+      "event_id": "event-ac0dd177-131b-44ac-a822-21a84a986ed2",
+      "event_type": "step-transition",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:08:47.133Z",
+      "note": "Cycle-09"
+    },
+    {
+      "event_id": "event-87f4cabe-e444-486f-905f-195cab0684f4",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:44:20.410Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f1449f04-ede0-4502-97d8-8272391b6153",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:47:13.631Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -171,7 +251,7 @@
     "implementation_run_dir": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-live-executive-status-wiring"
   },
-  "last_error": null,
+  "last_error": "Merge failed: Auto-merging docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
   "current_run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
   "current_attempt_id": "attempt-001",
   "execution_runs": {
@@ -183,10 +263,10 @@
       "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z": {
         "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
         "run_mode": "normal",
-        "lifecycle_status": "completed",
-        "terminal_status": "completed",
+        "lifecycle_status": "active",
+        "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 10,
+        "contract_revision": 16,
         "feature_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json",
@@ -206,18 +286,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "completed",
-            "terminal_status": "completed",
+            "status": "blocked",
+            "terminal_status": null,
             "started_at": "2026-04-08T14:17:03.526Z",
-            "updated_at": "2026-04-08T15:07:51.642Z",
+            "updated_at": "2026-04-09T07:47:13.631Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
               "step": "merge_queue",
-              "status": "completed",
-              "reason": "Merged via merge-queue after approval.",
-              "updated_at": "2026-04-08T15:07:51.642Z"
+              "status": "blocked",
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-09T07:47:13.631Z"
             },
             "step_status": {
               "implementation": {
@@ -236,7 +316,7 @@
               },
               "review_cycle": {
                 "status": "in_progress",
-                "started_at": "2026-04-08T15:04:40.770Z",
+                "started_at": "2026-04-09T07:08:47.133Z",
                 "completed_at": null,
                 "duration_seconds": null,
                 "note": null
@@ -249,10 +329,10 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "completed",
-                "started_at": "2026-04-08T15:04:36.701Z",
-                "completed_at": "2026-04-08T15:07:51.498Z",
-                "duration_seconds": 195,
+                "status": "blocked",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
                 "note": null
               }
             },
@@ -274,11 +354,11 @@
                 "worker_id": "implementor/default",
                 "lane_id": null,
                 "role": "implementor",
-                "provider": null,
-                "runtime": null,
-                "model": "gpt-5.4",
+                "provider": "codex",
+                "runtime": "codex_cli_exec",
+                "model": "gpt-5.3-codex-spark",
                 "reasoning_effort": null,
-                "access_mode": null,
+                "access_mode": "claude_code_skip_permissions",
                 "execution_id": null,
                 "bound_at": "2026-04-08T14:53:34.848Z",
                 "selection_source": {
@@ -291,15 +371,15 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-08T15:07:51.642Z",
-            "last_event_at": "2026-04-08T15:07:51.642Z"
+            "last_checkpoint_at": "2026-04-09T07:47:13.631Z",
+            "last_event_at": "2026-04-09T07:47:13.631Z"
           }
         },
         "created_at": "2026-04-08T14:17:03.526Z",
-        "updated_at": "2026-04-08T15:07:51.649Z",
-        "last_event_at": "2026-04-08T15:07:51.642Z",
+        "updated_at": "2026-04-09T07:47:13.636Z",
+        "last_event_at": "2026-04-09T07:47:13.631Z",
         "kpi_projection": {
-          "terminal_status": "completed",
+          "terminal_status": null,
           "per_step_timing": {
             "implementation": {
               "status": "completed",
@@ -315,7 +395,7 @@
             },
             "review_cycle": {
               "status": "in_progress",
-              "started_at": "2026-04-08T15:04:40.770Z",
+              "started_at": "2026-04-09T07:08:47.133Z",
               "completed_at": null,
               "duration_seconds": null
             },
@@ -326,10 +406,10 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "completed",
-              "started_at": "2026-04-08T15:04:36.701Z",
-              "completed_at": "2026-04-08T15:07:51.498Z",
-              "duration_seconds": 195
+              "status": "blocked",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
             }
           },
           "governance_call_metrics": {
@@ -514,7 +594,10 @@
       }
     }
   },
-  "__gsw_revision": 15,
-  "__gsw_write_id": "gsw-08b15a6d-ee58-4dcc-9055-0da179aea173",
-  "__gsw_timestamp": "2026-04-08T15:07:51.653Z"
+  "__gsw_revision": 21,
+  "__gsw_write_id": "gsw-eb248c97-4710-40b4-a40c-658bbd6cee81",
+  "__gsw_timestamp": "2026-04-09T07:47:13.638Z",
+  "human_verification_status": "approved",
+  "human_verification_approved_at": "2026-04-09T07:40:43.897Z",
+  "human_verification_approved_commit_sha": "025d67f0d36c9ec66aaa4b2647dd0da66090f575"
 }
