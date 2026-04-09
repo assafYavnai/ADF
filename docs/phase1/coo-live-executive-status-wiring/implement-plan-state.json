@@ -10,7 +10,7 @@
   "implementor_execution_runtime": "codex_cli_exec",
   "implementor_provider": "codex",
   "implementor_model": "gpt-5.3-codex-spark",
-  "implementor_reasoning_effort": "xhigh",
+  "implementor_reasoning_effort": null,
   "resolved_runtime_permission_model": "claude_code_skip_permissions",
   "resolved_runtime_capabilities": {
     "native_agent_spawning_available": false,
@@ -30,16 +30,16 @@
   "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-live-executive-status-wiring",
   "worktree_status": "ready",
   "merge_required": true,
-  "merge_status": "not_ready",
-  "approved_commit_sha": "5cb553c4831a99d384b828c5c21d68946a4f500d",
+  "merge_status": "blocked",
+  "approved_commit_sha": "a5f24c36bfbb9076a1b8c9f92219b76a04370ae7",
   "merge_commit_sha": null,
-  "merge_queue_request_id": "merge-main-1-coo-live-executive-status-wiring-1775660860565",
+  "merge_queue_request_id": "merge-main-1-coo-live-executive-status-wiring-1775719387061",
   "local_target_sync_status": "not_started",
-  "last_completed_step": "review_requested",
+  "last_completed_step": "merge_blocked",
   "last_commit_sha": null,
-  "active_run_status": "review_pending",
+  "active_run_status": "merge_blocked",
   "created_at": "2026-04-08T14:17:03.526Z",
-  "updated_at": "2026-04-09T07:08:47.233Z",
+  "updated_at": "2026-04-09T07:26:10.308Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-09T06:20:03.551Z",
     "worktree_prepared_at": "2026-04-08T15:04:23.773Z",
@@ -217,6 +217,51 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-09T07:08:47.133Z",
       "note": "Cycle-09"
+    },
+    {
+      "event_id": "event-eaff815b-458c-4852-a038-24d3421be7de",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:18:18.971Z",
+      "note": null
+    },
+    {
+      "event_id": "event-a054cdaf-f523-4f06-9464-c70c10d87a7a",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:23:07.179Z",
+      "note": null
+    },
+    {
+      "event_id": "event-5494a720-180d-4b6a-8533-099d8b2b5109",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:23:14.225Z",
+      "note": null
+    },
+    {
+      "event_id": "event-681e515e-83c7-4e03-beb5-04fcf6e29cdb",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:23:17.497Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c1577420-d824-4ae4-aebd-a9195af412b9",
+      "event_type": "state-patched",
+      "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T07:26:10.308Z",
+      "note": null
     }
   ],
   "artifacts": {
@@ -233,7 +278,7 @@
     "implementation_run_dir": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/coo-live-executive-status-wiring"
   },
-  "last_error": null,
+  "last_error": "Merge failed: Auto-merging docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json\\nCONFLICT (content): Merge conflict in docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json\\nAuto-merging docs/phase1/coo-live-executive-status-wiring/implement-plan-state.json\\nCONFLICT (content): Merge conflict in docs/phase1/coo-live-executive-status-wiring/implement-plan-state.json\\nAuto-merging docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json\\nCONFLICT (content): Merge conflict in docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json\\nAuto-merging docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json\\nCONFLICT (content): Merge conflict in docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json\\nAutomatic merge failed; fix conflicts and then commit the result.",
   "current_run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
   "current_attempt_id": "attempt-001",
   "execution_runs": {
@@ -248,7 +293,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 14,
+        "contract_revision": 19,
         "feature_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json",
@@ -268,18 +313,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "review_pending",
+            "status": "blocked",
             "terminal_status": null,
             "started_at": "2026-04-08T14:17:03.526Z",
-            "updated_at": "2026-04-09T07:08:47.230Z",
+            "updated_at": "2026-04-09T07:26:10.308Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "review_cycle",
-              "status": "ready",
+              "step": "merge_queue",
+              "status": "blocked",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-09T07:08:47.230Z"
+              "updated_at": "2026-04-09T07:26:10.308Z"
             },
             "step_status": {
               "implementation": {
@@ -311,7 +356,7 @@
                 "note": null
               },
               "merge_queue": {
-                "status": "not_started",
+                "status": "blocked",
                 "started_at": null,
                 "completed_at": null,
                 "duration_seconds": null,
@@ -339,7 +384,7 @@
                 "provider": "codex",
                 "runtime": "codex_cli_exec",
                 "model": "gpt-5.3-codex-spark",
-                "reasoning_effort": "xhigh",
+                "reasoning_effort": null,
                 "access_mode": "claude_code_skip_permissions",
                 "execution_id": null,
                 "bound_at": "2026-04-08T14:53:34.848Z",
@@ -353,13 +398,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-09T07:08:47.230Z",
-            "last_event_at": "2026-04-09T07:08:47.133Z"
+            "last_checkpoint_at": "2026-04-09T07:26:10.308Z",
+            "last_event_at": "2026-04-09T07:26:10.308Z"
           }
         },
         "created_at": "2026-04-08T14:17:03.526Z",
-        "updated_at": "2026-04-09T07:08:47.238Z",
-        "last_event_at": "2026-04-09T07:08:47.133Z",
+        "updated_at": "2026-04-09T07:26:10.313Z",
+        "last_event_at": "2026-04-09T07:26:10.308Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
@@ -388,7 +433,7 @@
               "duration_seconds": null
             },
             "merge_queue": {
-              "status": "not_started",
+              "status": "blocked",
               "started_at": null,
               "completed_at": null,
               "duration_seconds": null
@@ -576,10 +621,10 @@
       }
     }
   },
-  "__gsw_revision": 19,
-  "__gsw_write_id": "gsw-8a0dcb6b-4c13-408d-bd9d-ac01be79994d",
-  "__gsw_timestamp": "2026-04-09T07:08:47.240Z",
-  "human_verification_status": null,
-  "human_verification_approved_at": null,
-  "human_verification_approved_commit_sha": null
+  "__gsw_revision": 24,
+  "__gsw_write_id": "gsw-5c13e724-275f-4cb1-a18c-82dd2adfe948",
+  "__gsw_timestamp": "2026-04-09T07:26:10.316Z",
+  "human_verification_status": "approved",
+  "human_verification_approved_at": "2026-04-09T07:18:18.971Z",
+  "human_verification_approved_commit_sha": "a5f24c36bfbb9076a1b8c9f92219b76a04370ae7"
 }
