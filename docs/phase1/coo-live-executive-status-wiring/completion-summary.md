@@ -2,9 +2,8 @@
 
 - The CEO-facing COO `/status` route now renders as a compact executive brief instead of a raw operational field report.
 - Systemic KPI findings are grouped into one decision item with short evidence bridges, active governed slice visibility is preserved, and non-KPI issue classes remain distinct.
-- The implementation is complete on the feature branch and review-cycle is closed through cycle-07; merge to `main` has not happened yet.
+- The implementation and governed review are complete; cycle-12 approved and closed, and the approved feature commit landed on `main`.
 - Repo-owned completion truth now matches the approved review and merged feature lifecycle.
-- Final closeout reflects cycle-07 completed and merge commit b7c8967b7bf445b43d804fc86bc71c30b7a1ac73.
 - Final closeout reflects cycle-12 approved and closed and merge commit a9426c3c8046ce295fd7aa8fa1b2d0b7d0cf63f1.
 
 2. Deliverables Produced
@@ -66,4 +65,3 @@
 
 - This slice does not fix the underlying implement-plan KPI closeout persistence bug; it makes that systemic issue visible and decision-ready in the COO brief.
 - This slice does not restore missing review evidence for older landed work; it keeps that concern separate from the KPI issue.
-- Final merge-queue landing and implement-plan completion still need to run through the governed closeout path.
