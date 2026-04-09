@@ -181,8 +181,23 @@ const LOCAL_TARGET_SYNC_STATUSES = new Set([
   "fetched_only",
   "fast_forwarded",
   "skipped_dirty_checkout",
+  "preserve_restore_succeeded",
+  "preserve_restore_failed",
   "skipped_branch_not_checked_out",
   "failed"
+]);
+const COMPLETION_ELIGIBLE_LOCAL_TARGET_SYNC_STATUSES = new Set([
+  "fetched_only",
+  "fast_forwarded",
+  "preserve_restore_succeeded",
+  "skipped_branch_not_checked_out"
+]);
+const HUMAN_VERIFICATION_STATUSES = new Set([
+  "not_required",
+  "pending",
+  "approved",
+  "rejected",
+  "stale"
 ]);
 
 const EXECUTION_CONTRACT_SCHEMA_VERSION = 1;
@@ -345,6 +360,9 @@ async function main() {
       mergeCommitSha: args.values["merge-commit-sha"],
       mergeQueueRequestId: args.values["merge-queue-request-id"],
       localTargetSyncStatus: args.values["local-target-sync-status"],
+      humanVerificationStatus: args.values["human-verification-status"],
+      humanVerificationApprovedAt: args.values["human-verification-approved-at"],
+      humanVerificationApprovedCommitSha: args.values["human-verification-approved-commit-sha"],
       lastCompletedStep: args.values["last-completed-step"],
       lastCommitSha: args.values["last-commit-sha"],
       activeRunStatus: args.values["active-run-status"],
@@ -548,6 +566,60 @@ async function prepareFeature(input) {
     let artifactRootKind = "project"; // observability: "worktree" or "project"
 
     if (input.runMode === "normal") {
+      const originRefresh = refreshFeatureOriginTruth(input.projectRoot, earlyBaseBranch, earlyFeatureBranch);
+      if (!originRefresh.ok) {
+        const failIntegrity = { blocking_issues: [], next_safe_move: "Refresh origin truth and retry." };
+        failIntegrity.blocking_issues.push(issue(
+          "origin-refresh-failed",
+          "The governed route could not refresh origin truth before implementation resumed.",
+          [input.projectRoot],
+          originRefresh.message
+        ));
+        await mkdir(paths.featureRoot, { recursive: true });
+        await writePushbackArtifact(paths.pushbackPath, failIntegrity);
+        const failState = buildInitialState(
+          paths, input,
+          registry.index.features[paths.registryKey] ?? null,
+          featuresIndex.index.features[paths.registryKey] ?? null,
+          currentBranch
+        );
+        failState.base_branch = earlyBaseBranch;
+        failState.feature_branch = earlyFeatureBranch;
+        failState.worktree_path = earlyWorktreePath;
+        failState.worktree_status = "error";
+        failState.active_run_status = failState.feature_status === "blocked" ? "blocked" : "integrity_failed";
+        failState.last_completed_step = "integrity_precheck_failed";
+        failState.last_error = originRefresh.message;
+        failState.run_timestamps = { integrity_failed_at: nowIso() };
+        failState.updated_at = nowIso();
+        await writeImplementPlanState(paths.statePath, input.featureSlug, failState);
+        return {
+          readmeCreated: false,
+          contextCreated: false,
+          state: failState,
+          stateCreated: true,
+          stateRepairs: [],
+          integrity: failIntegrity,
+          inputPack: { authorities: [], feature_artifacts: { readme: { exists: false }, context: { exists: false }, contract: { exists: false }, pushback: { exists: false }, brief: { exists: false }, completion_summary: { exists: false } } },
+          recreateDueToWeakerAccess: false,
+          requiredAccessMode: null,
+          workerSelection: { resolved: {} },
+          executionContract: { contract_revision: 0, artifacts: {} },
+          executionRun: { run_id: null, run_mode: input.runMode, lifecycle_status: "blocked", kpi_projection: null, benchmark_context: null },
+          executionAttempt: { attempt_id: null, status: "blocked", resume_checkpoint: null },
+          verificationPlanState: { has_verification_plan: false },
+          artifactRootKind: "project",
+          worktreeResult: {
+            worktree_path: earlyWorktreePath,
+            feature_branch: earlyFeatureBranch,
+            base_branch: earlyBaseBranch,
+            worktree_status: "error",
+            created: false,
+            reused: false,
+            message: originRefresh.message
+          }
+        };
+      }
       worktree = ensureFeatureWorktree(paths, earlyBaseBranch, earlyFeatureBranch, earlyWorktreePath);
       if (worktree.worktree_status !== "ready") {
         // Worktree creation failed — stop truthfully, do NOT fall back to main checkout.
@@ -1150,6 +1222,18 @@ async function updateState(input) {
       next.local_target_sync_status = parseOptionalLocalTargetSyncStatus(input.localTargetSyncStatus, "local-target-sync-status") ?? next.local_target_sync_status;
       changedFields.push("local_target_sync_status");
     }
+    if (input.humanVerificationStatus !== undefined) {
+      next.human_verification_status = parseOptionalHumanVerificationStatus(input.humanVerificationStatus, "human-verification-status");
+      changedFields.push("human_verification_status");
+    }
+    if (input.humanVerificationApprovedAt !== undefined) {
+      next.human_verification_approved_at = emptyToNull(input.humanVerificationApprovedAt);
+      changedFields.push("human_verification_approved_at");
+    }
+    if (input.humanVerificationApprovedCommitSha !== undefined) {
+      next.human_verification_approved_commit_sha = emptyToNull(input.humanVerificationApprovedCommitSha);
+      changedFields.push("human_verification_approved_commit_sha");
+    }
     if (input.lastCompletedStep !== undefined) {
       next.last_completed_step = emptyToNull(input.lastCompletedStep);
       changedFields.push("last_completed_step");
@@ -1165,6 +1249,41 @@ async function updateState(input) {
     if (input.lastError !== undefined) {
       next.last_error = emptyToNull(input.lastError);
       changedFields.push("last_error");
+    }
+    if (changedFields.includes("approved_commit_sha")) {
+      if (next.human_verification_status === "approved" && isFilled(next.approved_commit_sha)) {
+        if (isFilled(next.human_verification_approved_commit_sha) && next.human_verification_approved_commit_sha !== next.approved_commit_sha) {
+          next.human_verification_status = "stale";
+          next.last_error = "Human approval became stale because approved_commit_sha changed after human verification.";
+          if (!changedFields.includes("human_verification_status")) changedFields.push("human_verification_status");
+          if (!changedFields.includes("last_error")) changedFields.push("last_error");
+        } else if (!isFilled(next.human_verification_approved_commit_sha)) {
+          next.human_verification_approved_commit_sha = next.approved_commit_sha;
+          if (!changedFields.includes("human_verification_approved_commit_sha")) changedFields.push("human_verification_approved_commit_sha");
+        }
+      } else if (next.human_verification_status === "approved" && !isFilled(next.approved_commit_sha)) {
+        next.human_verification_status = "stale";
+        next.last_error = "Human approval became stale because approved_commit_sha is missing.";
+        if (!changedFields.includes("human_verification_status")) changedFields.push("human_verification_status");
+        if (!changedFields.includes("last_error")) changedFields.push("last_error");
+      }
+    }
+    if (next.human_verification_status === "approved") {
+      if (!isFilled(next.human_verification_approved_commit_sha)) {
+        next.human_verification_approved_commit_sha = next.approved_commit_sha ?? next.last_commit_sha ?? null;
+        if (!changedFields.includes("human_verification_approved_commit_sha")) changedFields.push("human_verification_approved_commit_sha");
+      }
+      if (!isFilled(next.human_verification_approved_at)) {
+        next.human_verification_approved_at = nowIso();
+        if (!changedFields.includes("human_verification_approved_at")) changedFields.push("human_verification_approved_at");
+      }
+    } else if (["pending", "rejected", "stale", "not_required", null].includes(next.human_verification_status ?? null)) {
+      if (next.human_verification_status !== "stale") {
+        next.human_verification_approved_at = null;
+        next.human_verification_approved_commit_sha = null;
+        if (!changedFields.includes("human_verification_approved_at")) changedFields.push("human_verification_approved_at");
+        if (!changedFields.includes("human_verification_approved_commit_sha")) changedFields.push("human_verification_approved_commit_sha");
+      }
     }
     if (input.capabilityPairs.length > 0) {
       next.resolved_runtime_capabilities = {
@@ -1304,6 +1423,20 @@ async function recordEvent(input) {
 
     const run = resolveRunForMutation(next, input.runMode ?? "normal", input.runId ?? null);
     const attempt = resolveAttemptForMutation(run, input.attemptId ?? null);
+    const requestedStep = input.step ?? payload.step ?? null;
+    const requestedStepStatus = input.stepStatus ?? payload.status ?? null;
+    const requestsMergeReadyPromotion = input.event === "merge-ready"
+      || (input.event === "step-transition" && requestedStep === "merge_queue" && requestedStepStatus === "ready")
+      || (input.event === "terminal-status-recorded" && emptyToNull(payload.terminal_status) === "completed");
+    if (requestsMergeReadyPromotion) {
+      const governanceTruth = await evaluateCloseoutGovernanceTruth({
+        paths: eventArtifactPaths,
+        state: next
+      });
+      if (governanceTruth.blockers.length > 0) {
+        fail("Refusing to advance governed closeout truth because approval gates are incomplete: " + governanceTruth.blockers.join("; "));
+      }
+    }
     if (EXECUTION_EVENT_TYPES.has(input.event)) {
       if (!run || !attempt) {
         fail("Structured execution events require an active run and attempt. Prepare the feature first or pass --run-id/--attempt-id.");
@@ -1345,6 +1478,11 @@ async function recordEvent(input) {
       next.event_log.push({ event: input.event, timestamp, note: input.note ?? null });
       next.event_log = next.event_log.slice(-100);
       applyEventTransition(next, input.event, timestamp);
+      if (input.event === "human-verification-requested") {
+        next.human_verification_status = "pending";
+        next.human_verification_approved_at = null;
+        next.human_verification_approved_commit_sha = null;
+      }
       if (run && attempt && run.run_mode === "normal") {
         syncNormalRunProjectionFromState({
           state: next,
@@ -1597,6 +1735,10 @@ async function markComplete(input) {
   const completionValidation = completionText
     ? validateHeadingContract(completionText, COMPLETION_HEADINGS)
     : { valid: false, error: "completion-summary.md is missing." };
+  const governanceTruth = await evaluateCloseoutGovernanceTruth({
+    paths: completeArtifactPaths,
+    completionText
+  });
 
   const state = await withLock(paths.featureLocksRoot, input.featureSlug, async () => {
     const currentBranch = detectCurrentBranch(input.projectRoot);
@@ -1616,11 +1758,20 @@ async function markComplete(input) {
     if (!completionValidation.valid) {
       fail("Refusing to mark complete because completion-summary.md is missing or invalid: " + completionValidation.error);
     }
+    if (governanceTruth.blockers.length > 0) {
+      fail("Refusing to mark complete because governed approval truth is incomplete: " + governanceTruth.blockers.join("; "));
+    }
     if (next.merge_required === true && next.merge_status !== "merged") {
       fail("Refusing to mark complete because merge_status is '" + (next.merge_status ?? "unknown") + "' instead of 'merged'.");
     }
-    if (!hasRecordedLocalTargetSyncStatus(next.local_target_sync_status)) {
-      fail("Refusing to mark complete because local_target_sync_status is '" + (next.local_target_sync_status ?? "unknown") + "'. A recorded local target sync outcome is required before completion.");
+    if (!isCompletionEligibleLocalTargetSyncStatus(next.local_target_sync_status)) {
+      fail("Refusing to mark complete because local_target_sync_status is '" + (next.local_target_sync_status ?? "unknown") + "'. Completion requires a successful preserve/sync outcome.");
+    }
+
+    // Stale-language validation: reject closeout when generated artifacts still carry pre-merge or in-progress language
+    const stalePatterns = detectStaleCloseoutLanguage(completionText);
+    if (stalePatterns.length > 0) {
+      fail("Refusing to mark complete because completion-summary.md still contains stale closeout language: " + stalePatterns.join(", ") + ". Normalize or regenerate the completion summary before marking complete.");
     }
 
     next.feature_status = "completed";
@@ -1723,6 +1874,12 @@ async function markComplete(input) {
 async function finalizeCompletionSummary({ paths, state, existingText, mergeCommitSha, completionNote }) {
   const sections = extractCompletionSections(existingText);
   const reviewState = await loadJsonIfExists(join(paths.featureRoot, "review-cycle-state.json"));
+  const governanceTruth = await evaluateCloseoutGovernanceTruth({
+    paths,
+    state,
+    completionText: existingText,
+    reviewState
+  });
   const objectiveSection = normalizeSection(
     buildFinalObjectiveSection({
       existingSection: sections["1. Objective Completed"],
@@ -1740,7 +1897,8 @@ async function finalizeCompletionSummary({ paths, state, existingText, mergeComm
       existingSection: sections["4. Verification Evidence"],
       state,
       reviewState,
-      mergeCommitSha
+      mergeCommitSha,
+      governanceTruth
     })
   );
   const artifactsSection = normalizeSection(
@@ -2002,6 +2160,12 @@ async function validateCloseoutReadiness(input) {
     if (!approvedSha) {
       blockers.push("No approved_commit_sha evidence in feature state. Pre-merge readiness requires a reviewed approved commit.");
     }
+    const governanceTruth = await evaluateCloseoutGovernanceTruth({
+      paths: artifactPaths,
+      state,
+      completionText
+    });
+    blockers.push(...governanceTruth.blockers);
   }
 
   const ready = blockers.length === 0;
@@ -2016,6 +2180,160 @@ async function validateCloseoutReadiness(input) {
     completion_summary_valid: completionValidation.valid,
     completion_summary_error: completionValidation.error
   };
+}
+
+async function evaluateCloseoutGovernanceTruth({ paths, state = null, completionText = null, reviewState = null }) {
+  const resolvedState = state ?? await loadStateIfExists(paths.statePath);
+  const resolvedReviewState = reviewState ?? await loadJsonIfExists(join(paths.featureRoot, "review-cycle-state.json"));
+  const contractText = await readTextIfExists(paths.contractPath);
+  const readmeText = await readTextIfExists(paths.readmePath);
+  const contextText = await readTextIfExists(paths.contextPath);
+  const verificationSource = [contractText, readmeText, contextText].filter(Boolean).join("\n\n");
+  const verificationPlanState = evaluateVerificationPlanState(verificationSource);
+  const verificationSection = completionText ? extractHeadingSection(completionText, "4. Verification Evidence") : "";
+  const summaryHumanRequired = parseHumanVerificationRequirementLabel(
+    extractLabeledValue(verificationSection, "Human Verification Requirement")
+  );
+  const reviewGate = evaluateReviewCycleGate(resolvedReviewState);
+  const blockers = [];
+
+  let humanRequired = verificationPlanState.human_required;
+  if (humanRequired === null) {
+    humanRequired = summaryHumanRequired;
+  }
+  if (verificationPlanState.human_required !== null
+    && summaryHumanRequired !== null
+    && verificationPlanState.human_required !== summaryHumanRequired) {
+    blockers.push("Human Verification Requirement disagrees between implement-plan contract and completion summary.");
+  }
+
+  if (reviewGate.present && !reviewGate.approved && isFilled(reviewGate.blocker)) {
+    blockers.push(reviewGate.blocker);
+  }
+
+  const humanStatus = normalizeHumanVerificationStatus(resolvedState?.human_verification_status ?? null);
+  const humanApprovedCommitSha = emptyToNull(resolvedState?.human_verification_approved_commit_sha ?? null);
+  const approvedCommitSha = emptyToNull(resolvedState?.approved_commit_sha ?? null);
+
+  if (humanRequired === true) {
+    if (!reviewGate.present) {
+      blockers.push("Human verification is required but review-cycle evidence is missing.");
+    }
+    if (humanStatus === null) {
+      blockers.push("Human verification is required but no durable human_verification_status is recorded in feature state.");
+    } else if (humanStatus === "pending") {
+      blockers.push("Human verification is required but still pending.");
+    } else if (humanStatus === "rejected") {
+      blockers.push("Human verification was rejected and must be re-requested after fixes.");
+    } else if (humanStatus === "stale") {
+      blockers.push("Human verification is stale and must be re-approved for the current approved commit.");
+    } else if (humanStatus === "not_required") {
+      blockers.push("Human verification is required by the slice contract, but feature state says not_required.");
+    } else if (humanStatus === "approved") {
+      if (!humanApprovedCommitSha) {
+        blockers.push("Human verification is marked approved, but no human_verification_approved_commit_sha was recorded.");
+      } else if (!approvedCommitSha) {
+        blockers.push("Human verification is marked approved, but approved_commit_sha is missing from feature state.");
+      } else if (humanApprovedCommitSha !== approvedCommitSha) {
+        blockers.push("Human verification approved commit " + humanApprovedCommitSha + " does not match current approved_commit_sha " + approvedCommitSha + ".");
+      }
+    }
+  }
+
+  return {
+    human_required: humanRequired,
+    human_status: humanRequired === false ? "not_required" : humanStatus,
+    human_verification_approved_commit_sha: humanApprovedCommitSha,
+    review_gate: reviewGate,
+    blockers: Array.from(new Set(blockers))
+  };
+}
+
+function evaluateReviewCycleGate(reviewState) {
+  if (!isPlainObject(reviewState)) {
+    return {
+      present: false,
+      approved: false,
+      cycle_status: null,
+      lane_verdicts: { auditor: null, reviewer: null },
+      blocker: null
+    };
+  }
+
+  const cycleStatus = emptyToNull(reviewState.cycle_runtime?.status ?? null);
+  const laneVerdicts = isPlainObject(reviewState.cycle_runtime?.lane_verdicts) ? reviewState.cycle_runtime.lane_verdicts : {};
+  const auditorVerdict = normalizeReviewLaneVerdict(laneVerdicts.auditor);
+  const reviewerVerdict = normalizeReviewLaneVerdict(laneVerdicts.reviewer);
+  const approved = cycleStatus === "completed" && auditorVerdict === "approve" && reviewerVerdict === "approve";
+
+  let blocker = null;
+  if (cycleStatus !== "completed") {
+    blocker = "Review-cycle has not completed.";
+  } else if (!approved) {
+    blocker = "Review-cycle does not have clean dual approval (auditor=" + (auditorVerdict ?? "unknown")
+      + ", reviewer=" + (reviewerVerdict ?? "unknown") + ").";
+  }
+
+  return {
+    present: true,
+    approved,
+    cycle_status: cycleStatus,
+    lane_verdicts: {
+      auditor: auditorVerdict,
+      reviewer: reviewerVerdict
+    },
+    blocker
+  };
+}
+
+function parseHumanVerificationRequirementLabel(value) {
+  if (!isFilled(value)) return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized.includes("not required") || normalized === "false" || normalized === "not applicable") return false;
+  if (normalized.includes("required") || normalized === "true") return true;
+  return null;
+}
+
+function normalizeReviewLaneVerdict(value) {
+  if (!isFilled(value)) return null;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "approve" || normalized === "approved") return "approve";
+  if (normalized === "reject" || normalized === "rejected") return "reject";
+  return null;
+}
+
+function normalizeHumanVerificationStatus(value) {
+  if (!isFilled(value)) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/[\s-]+/g, "_");
+  if (HUMAN_VERIFICATION_STATUSES.has(normalized)) {
+    return normalized;
+  }
+  return null;
+}
+
+function formatHumanVerificationRequirementLabel(value) {
+  if (value === true) return "required";
+  if (value === false) return "not required";
+  return "unknown";
+}
+
+function formatHumanVerificationStatusSummary(governanceTruth) {
+  if (governanceTruth.human_required === false) {
+    return "not required";
+  }
+  if (governanceTruth.human_status === "approved") {
+    return "approved for current approved commit " + (governanceTruth.human_verification_approved_commit_sha ?? "unknown");
+  }
+  if (governanceTruth.human_status === "stale") {
+    return "stale";
+  }
+  if (governanceTruth.human_status === "rejected") {
+    return "rejected";
+  }
+  if (governanceTruth.human_status === "pending") {
+    return "pending";
+  }
+  return "missing durable approval evidence";
 }
 
 function buildPaths(projectRoot, phaseNumber, featureSlug) {
@@ -2088,6 +2406,53 @@ function resolveBaseRef(projectRoot, baseBranch) {
     return "origin/" + baseBranch;
   }
   return baseBranch;
+}
+
+function refreshFeatureOriginTruth(projectRoot, baseBranch, featureBranch) {
+  const fetchResult = gitRun(projectRoot, ["fetch", "--prune", "origin"], { timeoutMs: 30000 });
+  if (fetchResult.status !== 0) {
+    return {
+      ok: false,
+      message: fetchResult.stderr || fetchResult.stdout || "git fetch --prune origin failed."
+    };
+  }
+
+  if (!gitRefExists(projectRoot, "refs/remotes/origin/" + baseBranch) && !gitRefExists(projectRoot, "refs/heads/" + baseBranch)) {
+    return {
+      ok: false,
+      message: "Base branch '" + baseBranch + "' is not available locally after origin refresh."
+    };
+  }
+
+  if (gitRefExists(projectRoot, "refs/heads/" + featureBranch) && gitRefExists(projectRoot, "refs/remotes/origin/" + featureBranch)) {
+    const compareResult = gitRun(projectRoot, ["rev-list", "--left-right", "--count", featureBranch + "...origin/" + featureBranch], { timeoutMs: 10000 });
+    if (compareResult.status !== 0) {
+      return {
+        ok: false,
+        message: compareResult.stderr || compareResult.stdout || "Failed to compare the local feature branch with origin."
+      };
+    }
+    const [aheadCountRaw, behindCountRaw] = String(compareResult.stdout ?? "").trim().split(/\s+/);
+    const aheadCount = safeInteger(aheadCountRaw, 0);
+    const behindCount = safeInteger(behindCountRaw, 0);
+    if (behindCount > 0 && aheadCount > 0) {
+      return {
+        ok: false,
+        message: "Feature branch '" + featureBranch + "' diverged from origin/" + featureBranch + " after origin refresh. Sync it before resuming governed implementation."
+      };
+    }
+    if (behindCount > 0) {
+      return {
+        ok: false,
+        message: "Feature branch '" + featureBranch + "' is behind origin/" + featureBranch + " after origin refresh. Sync it before resuming governed implementation."
+      };
+    }
+  }
+
+  return {
+    ok: true,
+    message: "Origin truth refreshed before governed implementation."
+  };
 }
 
 function ensureFeatureWorktree(paths, baseBranch, featureBranch, requestedPath) {
@@ -2340,6 +2705,9 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
     state.local_target_sync_status = "not_started";
     repairs.push("local_target_sync_status was invalid and reset.");
   }
+  state.human_verification_status = parseOptionalHumanVerificationStatus(state.human_verification_status, "human_verification_status");
+  state.human_verification_approved_at = emptyToNull(state.human_verification_approved_at);
+  state.human_verification_approved_commit_sha = emptyToNull(state.human_verification_approved_commit_sha);
   state.created_at = state.created_at ?? nowIso();
   state.updated_at = nowIso();
   state.run_timestamps = isPlainObject(state.run_timestamps) ? state.run_timestamps : {};
@@ -2447,6 +2815,9 @@ function buildInitialState(paths, input, registryEntry, indexEntry, currentBranc
     merge_commit_sha: null,
     merge_queue_request_id: null,
     local_target_sync_status: "not_started",
+    human_verification_status: null,
+    human_verification_approved_at: null,
+    human_verification_approved_commit_sha: null,
     last_completed_step: null,
     last_commit_sha: null,
     active_run_status: input.featureStatusOverride === "blocked" ? "blocked" : "idle",
@@ -4115,6 +4486,42 @@ function hasRecordedLocalTargetSyncStatus(localTargetSyncStatus) {
   return isFilled(localTargetSyncStatus) && localTargetSyncStatus !== "not_started";
 }
 
+function isCompletionEligibleLocalTargetSyncStatus(localTargetSyncStatus) {
+  return isFilled(localTargetSyncStatus) && COMPLETION_ELIGIBLE_LOCAL_TARGET_SYNC_STATUSES.has(localTargetSyncStatus);
+}
+
+const STALE_CLOSEOUT_LANGUAGE_PATTERNS = [
+  { pattern: /\bnot_ready\b/i, label: "not_ready" },
+  { pattern: /\bcloseout_pending\b/i, label: "closeout_pending" },
+  { pattern: /\breview_cycle in progress\b/i, label: "review_cycle in progress" },
+  { pattern: /\breview.cycle in.progress\b/i, label: "review-cycle in progress" },
+  { pattern: /\bapproval[_-]pending\b/i, label: "approval-pending" },
+  { pattern: /\bmerge_blocked\b/i, label: "merge_blocked" },
+  { pattern: /\bmerge_queued\b/i, label: "merge_queued" },
+  { pattern: /\bmerge_in_progress\b/i, label: "merge_in_progress" }
+];
+
+function detectStaleCloseoutLanguage(completionText) {
+  if (!completionText) return [];
+  // Strip backtick-fenced code blocks and inline code spans before scanning
+  const stripped = stripCodeContent(completionText);
+  const found = [];
+  for (const { pattern, label } of STALE_CLOSEOUT_LANGUAGE_PATTERNS) {
+    if (pattern.test(stripped)) {
+      found.push(label);
+    }
+  }
+  return found;
+}
+
+function stripCodeContent(text) {
+  // Remove fenced code blocks (```...```)
+  let result = text.replace(/```[\s\S]*?```/g, "");
+  // Remove inline code spans (`...`)
+  result = result.replace(/`[^`\n]+`/g, "");
+  return result;
+}
+
 function hasGuardedNormalCompletionEvidence(state) {
   const completionCommit = emptyToNull(state.merge_commit_sha ?? state.last_commit_sha ?? null);
   return state.feature_status === "completed"
@@ -4122,7 +4529,7 @@ function hasGuardedNormalCompletionEvidence(state) {
     && state.last_completed_step === "marked_complete"
     && state.merge_status === "merged"
     && isFilled(completionCommit)
-    && hasRecordedLocalTargetSyncStatus(state.local_target_sync_status);
+    && isCompletionEligibleLocalTargetSyncStatus(state.local_target_sync_status);
 }
 
 function resolveRunForMutation(state, runMode = "normal", explicitRunId = null) {
@@ -4505,6 +4912,12 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
   }
   if (contractSource.type === "missing") {
     blockingIssues.push(issue("missing-contract-authority", "No valid implementation contract or equivalent authority set was found.", [], "Provide a normalized contract or enough authoritative source docs to derive one safely."));
+  }
+
+  // Authority-freeze guard: detect base-branch changes to frozen authority files
+  const authorityFreezeIssues = checkAuthorityFreeze({ state, input, inputPack });
+  for (const freezeIssue of authorityFreezeIssues) {
+    blockingIssues.push(freezeIssue);
   }
 
   const combinedText = [
@@ -4987,8 +5400,10 @@ function uniqueLines(lines) {
   return result;
 }
 
-function buildFinalVerificationSection({ existingSection, state, reviewState, mergeCommitSha }) {
+function buildFinalVerificationSection({ existingSection, state, reviewState, governanceTruth, mergeCommitSha }) {
   const preservedLines = filterSectionLines(existingSection, [
+    /^(?:-\s*)?Human Verification Requirement\s*:/i,
+    /^(?:-\s*)?Human Verification Status\s*:/i,
     /^(?:-\s*)?Review-Cycle Status\s*:/i,
     /^(?:-\s*)?Merge Status\s*:/i,
     /^(?:-\s*)?Local Target Sync Status\s*:/i,
@@ -5001,6 +5416,8 @@ function buildFinalVerificationSection({ existingSection, state, reviewState, me
   const lines = uniqueLines([
     ...preservedLines,
     "- Execution Contract / Run Projection Proof: repo-owned state, execution contract, and run projection now point at canonical C:/ADF artifact paths.",
+    "- Human Verification Requirement: " + formatHumanVerificationRequirementLabel(governanceTruth.human_required),
+    "- Human Verification Status: " + formatHumanVerificationStatusSummary(governanceTruth),
     "- Review-Cycle Status: " + buildReviewCycleStatusSummary(reviewState),
     "- Merge Status: " + buildMergeStatusSummary(state, mergeCommitSha),
     "- Local Target Sync Status: " + (state.local_target_sync_status ?? "unknown")
@@ -5062,8 +5479,13 @@ function buildReviewCycleStatusSummary(reviewState) {
   const cycleName = cycleNumber ? "cycle-" + String(cycleNumber).padStart(2, "0") : reviewState.cycle_runtime?.cycle_name ?? "review-cycle";
   const cycleStatus = reviewState.cycle_runtime?.status ?? null;
   const laneVerdicts = isPlainObject(reviewState.cycle_runtime?.lane_verdicts) ? reviewState.cycle_runtime.lane_verdicts : {};
-  if (cycleStatus === "completed" && laneVerdicts.auditor === "approve" && laneVerdicts.reviewer === "approve") {
+  const auditorVerdict = normalizeReviewLaneVerdict(laneVerdicts.auditor);
+  const reviewerVerdict = normalizeReviewLaneVerdict(laneVerdicts.reviewer);
+  if (cycleStatus === "completed" && auditorVerdict === "approve" && reviewerVerdict === "approve") {
     return cycleName + " approved and closed";
+  }
+  if (cycleStatus === "completed" && (auditorVerdict || reviewerVerdict)) {
+    return cycleName + " completed without dual approval (auditor=" + (auditorVerdict ?? "unknown") + ", reviewer=" + (reviewerVerdict ?? "unknown") + ")";
   }
   if (cycleStatus === "completed") {
     return cycleName + " completed";
@@ -5293,6 +5715,94 @@ async function loadStateIfExists(statePath) {
   return readJson(statePath);
 }
 
+function checkAuthorityFreeze({ state, input, inputPack }) {
+  const issues = [];
+  const baseBranch = state.base_branch ?? "main";
+  const featureBranch = state.feature_branch ?? null;
+  const projectRoot = input?.projectRoot ?? state.project_root ?? state.worktree_path ?? null;
+  if (!projectRoot || !featureBranch) return issues;
+
+  // Extract frozen authority paths from BOTH the brief and the contract
+  const briefText = inputPack.feature_artifacts?.brief?.text ?? "";
+  const contractText = inputPack.feature_artifacts?.contract?.text ?? "";
+  const authorityPaths = extractFrozenAuthorityPaths(briefText, projectRoot, contractText);
+  if (authorityPaths.length === 0) return issues;
+
+  // Compute merge-base between feature branch and base branch
+  const baseRef = gitRefExists(projectRoot, "refs/remotes/origin/" + baseBranch)
+    ? "origin/" + baseBranch
+    : baseBranch;
+  if (!gitRefExists(projectRoot, "refs/heads/" + featureBranch) && !gitRefExists(projectRoot, "refs/remotes/origin/" + featureBranch)) {
+    return issues;
+  }
+  const featureRef = gitRefExists(projectRoot, "refs/heads/" + featureBranch) ? featureBranch : "origin/" + featureBranch;
+  const mergeBaseResult = gitRun(projectRoot, ["merge-base", featureRef, baseRef], { timeoutMs: 10000 });
+  if (mergeBaseResult.status !== 0 || !mergeBaseResult.stdout) return issues;
+  const mergeBase = mergeBaseResult.stdout;
+
+  // Check for changed authority files between merge-base and current base
+  const diffResult = gitRun(projectRoot, ["diff", "--name-only", mergeBase, baseRef], { timeoutMs: 10000 });
+  if (diffResult.status !== 0) return issues;
+  const changedFiles = new Set(
+    String(diffResult.stdout ?? "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+  );
+
+  const conflicting = authorityPaths.filter((authorityPath) => {
+    for (const changed of changedFiles) {
+      if (normalizeSlashes(changed) === authorityPath || changed === authorityPath) return true;
+    }
+    return false;
+  });
+
+  if (conflicting.length > 0) {
+    issues.push(issue(
+      "authority-freeze-divergence",
+      "Frozen authority files have been modified on the base branch since this feature branched. The implementation contract may be based on stale assumptions.",
+      conflicting,
+      "Refresh the implementation contract to incorporate the base-branch authority changes before proceeding."
+    ));
+  }
+
+  return issues;
+}
+
+function extractFrozenAuthorityPaths(briefText, projectRoot, contractText) {
+  const paths = [];
+  const normalizedRoot = normalizeSlashes(projectRoot).replace(/\/$/, "");
+
+  // Parse from brief: "Inputs / Authorities Read" section
+  extractAuthorityPathsFromSection(briefText, /Inputs\s*\/\s*Authorities\s+Read[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i, normalizedRoot, paths);
+
+  // Parse from contract: "Source Authorities" section
+  extractAuthorityPathsFromSection(contractText, /Source\s+Authorities[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i, normalizedRoot, paths);
+
+  // Parse from contract: "Inputs / Authorities Read" if present (some contracts use this heading)
+  extractAuthorityPathsFromSection(contractText, /Inputs\s*\/\s*Authorities\s+Read[\s\S]*?(?=\n##?\s|\n\d+\.\s|$)/i, normalizedRoot, paths);
+
+  return paths;
+}
+
+function extractAuthorityPathsFromSection(text, sectionPattern, normalizedRoot, paths) {
+  if (!text) return;
+  const sectionMatch = text.match(sectionPattern);
+  if (!sectionMatch) return;
+  const section = sectionMatch[0];
+  const linePattern = /[`"]?([A-Za-z]:\/[^\s`"]+|[./][^\s`"]+)[`"]?/g;
+  let match;
+  while ((match = linePattern.exec(section)) !== null) {
+    let filePath = match[1].replace(/[`"]/g, "");
+    const normalizedFilePath = normalizeSlashes(filePath);
+    if (normalizedFilePath.startsWith(normalizedRoot + "/")) {
+      filePath = normalizedFilePath.slice(normalizedRoot.length + 1);
+    } else {
+      filePath = normalizedFilePath;
+    }
+    if (filePath && !paths.includes(filePath)) {
+      paths.push(filePath);
+    }
+  }
+}
+
 function issue(issueClass, why, evidence, requiredRepair) {
   return {
     issue_class: issueClass,
@@ -5428,6 +5938,15 @@ function parseOptionalLocalTargetSyncStatus(value, label) {
     fail("Invalid value for --" + label + ". Allowed values: " + Array.from(LOCAL_TARGET_SYNC_STATUSES).join(", ") + ".");
   }
   return value;
+}
+
+function parseOptionalHumanVerificationStatus(value, label) {
+  if (!isFilled(value)) return null;
+  const normalized = normalizeHumanVerificationStatus(value);
+  if (!normalized) {
+    fail("Invalid value for --" + label + ". Allowed values: " + Array.from(HUMAN_VERIFICATION_STATUSES).join(", ") + ".");
+  }
+  return normalized;
 }
 
 function parseOptionalRuntime(value, label) {

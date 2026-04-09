@@ -260,6 +260,18 @@ If integrity passes:
 - write `implement-plan-brief.md`
 - spawn or resume the implementor
 
+## Authoritative requirement-freeze guard
+
+When a feature stream has an active implementation slice, the governed route must guard against independent authoritative requirement introduction on both the base branch and the feature branch.
+
+Rules:
+
+- if the feature's `implement-plan-contract.md` or `implement-plan-brief.md` freezes specific authority files (requirements docs, context docs, decision docs), the route must not silently accept new or changed authority files that were not present when the contract was frozen
+- before spawning or resuming the implementor, the invoker should verify that no new or modified authority files on the base branch conflict with the frozen slice contract
+- if new authority files have appeared on the base branch that overlap the slice scope, the invoker must surface a pushback instead of silently proceeding with stale assumptions
+- this guard protects against the case where requirements are updated independently on `main` while a feature branch is in flight, leading to silent divergence
+- the guard does not block feature-branch-internal authority file updates that are part of the slice itself
+
 ## Worker policy
 
 When integrity passes, use the strongest truthful autonomous worker mode available.
@@ -281,6 +293,7 @@ Rules:
 
 - validate or refresh setup internally
 - normalize the context/input pack
+- refresh origin truth before creating or reusing the governed feature worktree
 - run integrity verification
 - if weak, write the pushback artifact and stop
 - if solid, materialize the execution contract, run projection, and implementation brief
@@ -315,7 +328,7 @@ Rules:
 - persist feature completion in state and index only after merge success evidence exists
 - keep merged-but-not-completed closeout state internally consistent before final completion is recorded
 - remove the feature from active/open output
-- do not silently mark complete if closeout evidence is missing
+- do not silently mark complete if governed approval truth, merge truth, or closeout evidence is missing
 
 ## Helper scripts
 

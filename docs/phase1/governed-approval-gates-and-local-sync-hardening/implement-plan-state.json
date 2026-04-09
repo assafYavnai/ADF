@@ -1,0 +1,420 @@
+{
+  "state_schema_version": 2,
+  "phase_number": 1,
+  "feature_slug": "governed-approval-gates-and-local-sync-hardening",
+  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening",
+  "feature_registry_key": "phase1/governed-approval-gates-and-local-sync-hardening",
+  "feature_status": "active",
+  "implementor_execution_id": null,
+  "implementor_execution_access_mode": "claude_code_skip_permissions",
+  "implementor_execution_runtime": "claude_code_exec",
+  "implementor_provider": "claude",
+  "implementor_model": "claude-opus-4-6",
+  "implementor_reasoning_effort": null,
+  "resolved_runtime_permission_model": "claude_code_skip_permissions",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "implement-plan/phase1/governed-approval-gates-and-local-sync-hardening",
+  "base_branch": "main",
+  "feature_branch": "implement-plan/phase1/governed-approval-gates-and-local-sync-hardening",
+  "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening",
+  "worktree_status": "ready",
+  "merge_required": true,
+  "merge_status": "ready_to_queue",
+  "approved_commit_sha": "58aaef3eb8a616884e2c4c1ebb3fca9a9dc86b28",
+  "merge_commit_sha": "aea98570b680eee0c842689bb64d1d8a7f9a6619",
+  "merge_queue_request_id": "merge-main-1-governed-approval-gates-and-local-sync-hardening-1775673683167",
+  "local_target_sync_status": "not_started",
+  "last_completed_step": "completion_summary_written",
+  "last_commit_sha": "47fbeec113fb380728ac55266becfaec3185a6d4",
+  "active_run_status": "closeout_pending",
+  "created_at": "2026-04-08T15:50:04.688Z",
+  "updated_at": "2026-04-08T18:49:58.664Z",
+  "run_timestamps": {
+    "context_collected_at": "2026-04-08T15:50:04.750Z",
+    "worktree_prepared_at": "2026-04-08T15:53:05.779Z",
+    "integrity_passed_at": null,
+    "integrity_failed_at": "2026-04-08T15:50:04.750Z",
+    "brief_written_at": null,
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": "2026-04-08T17:47:51.509Z",
+    "review_requested_at": null,
+    "human_verification_requested_at": null,
+    "merge_started_at": "2026-04-08T17:47:51.509Z",
+    "merge_finished_at": "2026-04-08T18:04:43.430Z",
+    "closeout_finished_at": null
+  },
+  "event_log": [
+    {
+      "event_id": "event-36134e35-2e84-4855-ac26-8d7b74c3f00a",
+      "event_type": "run-initialized",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:50:04.755Z",
+      "note": "Created a new normal execution run."
+    },
+    {
+      "event_id": "event-e0414656-e2ad-4fec-9b68-afaf999ea0ec",
+      "event_type": "attempt-started",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:50:04.756Z",
+      "note": "Created the first attempt for this execution run."
+    },
+    {
+      "event_id": "event-5b20ae61-52a9-4565-9d8e-1ff2e5a64860",
+      "event_type": "worker-bound",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:50:04.758Z",
+      "note": null
+    },
+    {
+      "event_id": "event-fccd098e-2354-4457-8052-c6089d5c996c",
+      "event_type": "contract-materialized",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:50:04.758Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7bbb5026-2003-40c7-956f-f10b0ad4ebc5",
+      "event_type": "contract-materialized",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T15:53:05.784Z",
+      "note": null
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-08T17:47:51.509Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7e4c50e3-5f1a-4374-b5fe-a8d1015c0e46",
+      "event_type": "step-transition",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:47:51.509Z",
+      "note": "Legacy event mirrored into the execution projection: verification-finished."
+    },
+    {
+      "event_id": "event-fefa2eee-7bcc-4c83-985d-dbf343c27171",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:49:17.164Z",
+      "note": null
+    },
+    {
+      "event": "merge-ready",
+      "timestamp": "2026-04-08T17:49:41.173Z",
+      "note": null
+    },
+    {
+      "event_id": "event-a217d835-3705-4834-9627-64655fc1fcc0",
+      "event_type": "step-transition",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:49:41.173Z",
+      "note": "Legacy event mirrored into the execution projection: merge-ready."
+    },
+    {
+      "event_id": "event-8d73d895-88a9-478d-91bf-02b15559cea0",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:50:44.967Z",
+      "note": null
+    },
+    {
+      "event_id": "event-7d5ca8cb-564a-4c89-90f5-e304f9c56d53",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:51:08.275Z",
+      "note": null
+    },
+    {
+      "event_id": "event-2f95900a-8dc2-425b-9028-10ac9ad9d671",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T17:51:17.592Z",
+      "note": null
+    },
+    {
+      "event_id": "event-3fb16fae-586a-4656-ae86-55832133ea1c",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T18:04:43.441Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c70997d7-ef78-4c3b-8f38-66df2e53f134",
+      "event_type": "terminal-status-recorded",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T18:04:46.574Z",
+      "note": "Merged via merge-queue after preserve/sync/restore local main reconciliation."
+    },
+    {
+      "event_id": "event-07ffca4d-1332-4ef6-bf31-30f5356101e6",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T18:46:56.438Z",
+      "note": null
+    },
+    {
+      "event_id": "event-c1313d38-70c5-458c-8f39-3122c98b9e1c",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T18:46:56.650Z",
+      "note": null
+    },
+    {
+      "event_id": "event-db660251-e5a0-4ef7-ab9b-f13ffc810acd",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T18:46:57.525Z",
+      "note": null
+    },
+    {
+      "event_id": "event-3c341be3-92d9-4127-a188-b426143704c7",
+      "event_type": "state-patched",
+      "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-08T18:49:58.664Z",
+      "note": null
+    }
+  ],
+  "artifacts": {
+    "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/README.md",
+    "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/context.md",
+    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-state.json",
+    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/run-projection.v1.json",
+    "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening"
+  },
+  "last_error": "Resume from the last truthful normal-mode checkpoint.",
+  "current_run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+      "benchmarking": null
+    },
+    "runs": {
+      "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3": {
+        "run_id": "run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+        "run_mode": "normal",
+        "lifecycle_status": "active",
+        "terminal_status": null,
+        "contract_schema_version": 1,
+        "contract_revision": 14,
+        "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/execution-contract.v1.json",
+        "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3/run-projection.v1.json",
+        "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/governed-approval-gates-and-local-sync-hardening/docs/phase1/governed-approval-gates-and-local-sync-hardening/implementation-run/run-9a8e19af-ee1d-454d-980a-5cb0ae2194c3",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [
+          "implementor/default"
+        ],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "closeout_pending",
+            "terminal_status": null,
+            "started_at": "2026-04-08T15:50:04.730Z",
+            "updated_at": "2026-04-08T18:49:58.664Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "machine_verification",
+              "status": "completed",
+              "reason": "Resume from the last truthful normal-mode checkpoint.",
+              "updated_at": "2026-04-08T18:49:58.664Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "machine_verification": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": "2026-04-08T17:47:51.509Z",
+                "duration_seconds": null,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "completed",
+                "started_at": "2026-04-08T17:47:51.509Z",
+                "completed_at": "2026-04-08T18:04:43.430Z",
+                "duration_seconds": 1012,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 0,
+            "self_fix_cycle_count": 0,
+            "blockers": [],
+            "worker_bindings": {
+              "implementor/default": {
+                "worker_id": "implementor/default",
+                "lane_id": null,
+                "role": "implementor",
+                "provider": "claude",
+                "runtime": "claude_code_exec",
+                "model": "claude-opus-4-6",
+                "reasoning_effort": null,
+                "access_mode": "claude_code_skip_permissions",
+                "execution_id": null,
+                "bound_at": "2026-04-08T15:50:04.730Z",
+                "selection_source": {
+                  "provider": "persisted_continuity",
+                  "runtime": "persisted_continuity",
+                  "access_mode": "persisted_continuity",
+                  "model": "persisted_continuity",
+                  "reasoning_effort": "persisted_continuity"
+                },
+                "recreated_due_to_access": false
+              }
+            },
+            "last_checkpoint_at": "2026-04-08T18:49:58.664Z",
+            "last_event_at": "2026-04-08T18:49:58.664Z"
+          }
+        },
+        "created_at": "2026-04-08T15:50:04.730Z",
+        "updated_at": "2026-04-08T18:49:58.669Z",
+        "last_event_at": "2026-04-08T18:49:58.664Z",
+        "kpi_projection": {
+          "terminal_status": null,
+          "per_step_timing": {
+            "implementation": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "machine_verification": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": "2026-04-08T17:47:51.509Z",
+              "duration_seconds": null
+            },
+            "review_cycle": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "completed",
+              "started_at": "2026-04-08T17:47:51.509Z",
+              "completed_at": "2026-04-08T18:04:43.430Z",
+              "duration_seconds": 1012
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 0,
+          "self_fix_cycle_count": 0,
+          "blocker_history": []
+        }
+      }
+    }
+  },
+  "__gsw_revision": 14,
+  "__gsw_write_id": "gsw-276c2ca6-42bf-4974-9e56-091f2b55cbbd",
+  "__gsw_timestamp": "2026-04-08T18:49:58.671Z",
+  "human_verification_status": null,
+  "human_verification_approved_at": null,
+  "human_verification_approved_commit_sha": null
+}

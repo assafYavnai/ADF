@@ -52,6 +52,39 @@ Treat these output fields as authority:
 
 The `llm_tools` section reports which sibling LLM CLI tools are installed on this host and how to invoke them for autonomous worker execution. Before claiming a sibling CLI tool is unavailable, check this section. When a skill or user requests a specific LLM tool as a worker (e.g., "reviewers must be codex"), use the `autonomous_invoke` command from preflight to spawn it via Bash.
 
+### Sibling-worker invocation examples (Windows host + bash workflow)
+
+When spawning a sibling CLI tool as an autonomous worker on a Windows host with bash as the workflow shell, use the `autonomous_invoke` command from preflight output:
+
+```bash
+# Claude Code as autonomous implementor worker
+bash -c 'claude --dangerously-skip-permissions "Implement the bounded slice described in docs/phase1/feature-slug/implement-plan-brief.md"'
+
+# Codex CLI as autonomous reviewer worker
+bash -c 'codex exec --full-auto --dangerously-auto-approve "Review the feature changes on branch implement-plan/phase1/feature-slug"'
+
+# Gemini CLI as autonomous auditor worker (when available)
+bash -c 'gemini "Audit the route changes in skills/review-cycle/"'
+```
+
+For multiline or quote-heavy prompts, write the prompt to a temporary file and invoke from file:
+
+```bash
+# Write the prompt to a temp file, then invoke the worker
+cat > /tmp/worker-prompt.txt << 'PROMPT'
+Implement the bounded product slice exactly as described.
+Read the brief at docs/phase1/feature-slug/implement-plan-brief.md.
+PROMPT
+bash -c 'claude --dangerously-skip-permissions "$(cat /tmp/worker-prompt.txt)"'
+```
+
+Rules:
+
+- always use the `autonomous_invoke` string from preflight `llm_tools`; do not construct invocation strings manually
+- on Windows, wrap all worker invocations in `bash -c '...'` to stay inside the ADF workflow shell
+- check `llm_tools.<name>.available` before attempting to spawn a worker
+- prefer writing a temp `.sh` or `.txt` prompt file when the prompt is multiline or contains special characters
+
 If runtime preflight fails:
 
 - use `--install` for bounded dependency/build/bootstrap repair
@@ -98,19 +131,43 @@ Use `semantic_weight: 0` (keyword-only) unless Ollama is running for embeddings.
 
 Do not ask the CEO to restate context that the Brain already holds.
 
+## Brain Fallback Route
+
+- Preferred path is always MCP calls to `project-brain` in the assistant/runtime layer.
+- When the current runtime does not expose a working `project-brain` MCP surface, use the repo-backed fallback route through `brain-ops` instead of skipping Brain work.
+- For shell automation, smoke checks, or MCP-unavailable fallback capture/read/search/trust proof, use:
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs connect-smoke --project-root C:/ADF`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs search --project-root C:/ADF --scope assafyavnai/adf --query "..."`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs capture --project-root C:/ADF --scope assafyavnai/adf --content-type finding --title "..." --summary "..."`
+  - `node skills/brain-ops/scripts/brain-ops-helper.mjs trust --project-root C:/ADF --scope assafyavnai/adf --memory-id <id> --action promote|cleanup`
+- Do not import or call memory-engine internals directly. Route all fallback writes through this helper.
+
 ## Brain Capture Discipline
 
 The Brain is the company's durable memory. Capture knowledge as you work, without being asked.
 
 ### When to capture
 
-All captures use MCP tools (prefix `mcp__project-brain__`). Do NOT import code.
+Preferred capture route is MCP tools (prefix `mcp__project-brain__`) when the current runtime exposes them.
+If the current runtime does not expose a working `project-brain` MCP surface, use the repo-backed `brain-ops` fallback route instead of skipping capture.
+Do NOT import code.
 
-1. **Decision made** — `mcp__project-brain__log_decision` immediately after CEO approval
-2. **Convention or rule established** — `mcp__project-brain__capture_memory` with content_type=convention
-3. **Lesson learned** — `mcp__project-brain__capture_memory` with content_type=lesson
-4. **Discussion with substance** — `mcp__project-brain__discussion_append` (structured summary, not transcript)
-5. **Requirements shaped or frozen** — `mcp__project-brain__requirements_manage` with action=create
+1. **Decision made**
+   - preferred: `mcp__project-brain__log_decision`
+   - fallback when MCP is unavailable: `brain-ops-helper.mjs capture` with a decision-shaped summary, then promote trust if appropriate
+2. **Convention or rule established**
+   - preferred: `mcp__project-brain__capture_memory` with `content_type=convention`
+   - fallback when MCP is unavailable: `brain-ops-helper.mjs capture --content-type convention`
+3. **Lesson learned**
+   - preferred: `mcp__project-brain__capture_memory` with `content_type=lesson`
+   - fallback when MCP is unavailable: `brain-ops-helper.mjs capture --content-type lesson`
+4. **Discussion with substance**
+   - preferred: `mcp__project-brain__discussion_append`
+   - fallback when MCP write surfaces are blocked: persist the summary in repo-backed truth and flag the MCP failure
+5. **Requirements shaped or frozen**
+   - preferred: `mcp__project-brain__requirements_manage` with `action=create`
+   - fallback when MCP is unavailable: persist the requirement truth in repo-backed governed artifacts, then capture a requirement summary through `brain-ops` when possible
 
 **Known issue:** The project-brain MCP wrapper has a provenance bug that blocks some write operations (discussion_append, discussion_import_from_text). If a write fails with "legacy sentinel provenance" error, log what you would have captured in a `docs/v0/context/` markdown file as a fallback, and flag the failure to the CEO.
 

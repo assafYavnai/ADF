@@ -58,6 +58,8 @@ const LOCAL_SYNC_STATUSES = new Set([
   "not_started",
   "fetched_only",
   "fast_forwarded",
+  "preserve_restore_succeeded",
+  "preserve_restore_failed",
   "skipped_dirty_checkout",
   "skipped_branch_not_checked_out",
   "failed"
@@ -106,8 +108,17 @@ async function main() {
     }));
     return;
   }
+  if (command === "resume-blocked") {
+    printJson(await resumeBlocked({
+      projectRoot: normalizeProjectRoot(requiredArg(args, "project-root")),
+      requestId: requiredArg(args, "request-id"),
+      approvedCommitSha: args.values["approved-commit-sha"] ?? null,
+      baseBranch: args.values["base-branch"] ?? null
+    }));
+    return;
+  }
 
-  fail("Unknown command '" + command + "'. Use help, get-settings, status, enqueue, or process-next.");
+  fail("Unknown command '" + command + "'. Use help, get-settings, status, enqueue, process-next, or resume-blocked.");
 }
 
 async function renderHelp(args) {
@@ -120,9 +131,12 @@ async function renderHelp(args) {
     project_root: controlProjectRoot,
     requested_project_root: requestedProjectRoot === controlProjectRoot ? undefined : requestedProjectRoot,
     purpose: "Queue and land approved feature merges FIFO per target branch using isolated merge worktrees and truthful completion handoff.",
-    actions: ["help", "get-settings", "status", "enqueue", "process-next"],
+    actions: ["help", "get-settings", "status", "enqueue", "process-next", "resume-blocked"],
     required_inputs_for_enqueue: ["project_root", "phase_number", "feature_slug"],
     optional_enqueue_inputs: ["approved_commit_sha", "base_branch", "feature_branch", "worktree_path", "queue_note"],
+    required_inputs_for_resume_blocked: ["project_root", "request_id"],
+    optional_resume_blocked_inputs: ["approved_commit_sha", "base_branch"],
+    blocked_merge_recovery: "Use resume-blocked to transition a blocked merge request back to queued after fixing the blocker. Do not use manual merge worktrees as the recovery path.",
     transparent_setup_behavior: "The main skill validates setup internally and refreshes it when missing or invalid before merge work starts.",
     current_settings_summary: settings.summary,
     queue_summary: status.summary
@@ -221,6 +235,10 @@ async function enqueueRequest(input) {
 
   if (!approvedCommitSha) {
     fail("Cannot enqueue merge without an approved commit SHA.");
+  }
+  const closeoutReadiness = await validateCloseoutReadinessBeforeMerge(input.projectRoot, input.phaseNumber, input.featureSlug);
+  if (!closeoutReadiness.ready) {
+    fail("Cannot enqueue merge because governed closeout readiness is not satisfied: " + closeoutReadiness.blockers.join("; "));
   }
   const forbiddenSetupChanges = detectForbiddenLocalOperationalSetupChanges(controlProjectRoot, baseBranch, approvedCommitSha);
   if (forbiddenSetupChanges.length > 0) {
@@ -421,7 +439,7 @@ async function processNext(input) {
         mergeCommitSha,
         requestId: selected.request_id,
         localTargetSyncStatus: sync.status,
-        closeoutErrorDetail: sync.detail && sync.status === "failed" ? sync.detail : ""
+        closeoutErrorDetail: sync.detail && (sync.status === "failed" || sync.status === "preserve_restore_failed") ? sync.detail : ""
       });
     } catch (error) {
       preserveMergeWorktree = closeoutProjectRoot === mergeWorktreePath;
@@ -467,6 +485,118 @@ async function processNext(input) {
   }
 }
 
+async function resumeBlocked(input) {
+  const controlProjectRoot = resolveControlProjectRoot(input.projectRoot);
+  const paths = buildPaths(controlProjectRoot);
+
+  const result = await withLock(paths.projectLocksRoot, "queue", async () => {
+    const queue = await loadQueue(controlProjectRoot);
+    const request = findRequest(queue.data, input.requestId);
+    if (!request) {
+      fail("Queue request '" + input.requestId + "' does not exist.");
+    }
+    if (request.status !== "blocked") {
+      fail("Queue request '" + input.requestId + "' has status '" + request.status + "', not 'blocked'. Only blocked requests can be resumed.");
+    }
+
+    // Classify the blocker to enforce blocker-specific requirements
+    const blockerClass = classifyBlocker(request.last_error);
+    const newApprovedSha = input.approvedCommitSha ?? null;
+    const effectiveSha = newApprovedSha ?? request.approved_commit_sha ?? null;
+
+    if (!effectiveSha) {
+      fail("Cannot resume blocked request without an approved commit SHA. Supply --approved-commit-sha.");
+    }
+
+    // For stale_commit or merge_conflict blockers, require a NEW approved commit SHA
+    if ((blockerClass === "stale_commit" || blockerClass === "merge_conflict") && (!newApprovedSha || newApprovedSha === request.approved_commit_sha)) {
+      fail("Cannot resume a " + blockerClass.replace(/_/g, "-") + " blocked request with the same approved commit SHA '" + (request.approved_commit_sha ?? "null") + "'. Supply a new --approved-commit-sha from the corrected feature branch.");
+    }
+
+    const baseBranch = input.baseBranch ?? request.base_branch;
+
+    // Validate the approved SHA is not already merged
+    const baseRef = gitRefExists(controlProjectRoot, "refs/remotes/origin/" + baseBranch)
+      ? "origin/" + baseBranch
+      : baseBranch;
+    if (gitRefExists(controlProjectRoot, "refs/heads/" + baseBranch) || gitRefExists(controlProjectRoot, "refs/remotes/origin/" + baseBranch)) {
+      const ancestorCheck = gitRun(controlProjectRoot, ["merge-base", "--is-ancestor", effectiveSha, baseRef], { timeoutMs: 10000 });
+      if (ancestorCheck.status === 0) {
+        fail("Approved commit " + effectiveSha + " is already an ancestor of " + baseBranch + ". Supply a newer approved commit SHA.");
+      }
+    }
+
+    // Lane migration: if base_branch changed, move the request between lanes
+    const oldLaneKey = normalizeLaneKey(request.base_branch);
+    const newLaneKey = normalizeLaneKey(baseBranch);
+    if (oldLaneKey !== newLaneKey) {
+      const oldLane = queue.data.lanes[oldLaneKey];
+      if (oldLane) {
+        oldLane.requests = (oldLane.requests ?? []).filter((r) => r.request_id !== request.request_id);
+        if (oldLane.requests.length === 0) {
+          delete queue.data.lanes[oldLaneKey];
+        }
+      }
+      const newLane = queue.data.lanes[newLaneKey] ?? { base_branch: baseBranch, requests: [] };
+      newLane.base_branch = baseBranch;
+      newLane.requests = Array.isArray(newLane.requests) ? newLane.requests : [];
+      newLane.requests.push(request);
+      queue.data.lanes[newLaneKey] = newLane;
+    }
+
+    request.status = "queued";
+    request.approved_commit_sha = effectiveSha;
+    request.base_branch = baseBranch;
+    request.blocker_class = blockerClass;
+    request.blocked_at = null;
+    request.last_error = null;
+    request.started_at = null;
+    request.merged_at = null;
+    request.merge_commit_sha = null;
+    request.local_target_sync_status = "not_started";
+    queue.data.updated_at = nowIso();
+    await writeJsonAtomic(paths.queuePath, queue.data);
+    return request;
+  });
+
+  await updateImplementPlanFeatureState(
+    resolveRequestFeatureProjectRoot(result, input.projectRoot),
+    result.phase_number,
+    result.feature_slug,
+    {
+      merge_status: "queued",
+      merge_required: "true",
+      merge_queue_request_id: result.request_id,
+      approved_commit_sha: result.approved_commit_sha,
+      active_run_status: "merge_queued",
+      last_completed_step: "merge_queued",
+      last_error: null
+    }
+  );
+
+  return {
+    command: "resume-blocked",
+    project_root: controlProjectRoot,
+    request_id: result.request_id,
+    feature_registry_key: result.feature_registry_key,
+    approved_commit_sha: result.approved_commit_sha,
+    base_branch: result.base_branch,
+    blocker_class: result.blocker_class,
+    resumed: true
+  };
+}
+
+function classifyBlocker(lastError) {
+  if (!lastError) return "unknown";
+  const lower = String(lastError).toLowerCase();
+  if (lower.includes("already an ancestor")) return "stale_commit";
+  if (lower.includes("merge failed") || lower.includes("conflict")) return "merge_conflict";
+  if (lower.includes("closeout readiness")) return "closeout_readiness";
+  if (lower.includes("push failed")) return "push_failure";
+  if (lower.includes("fetch") || lower.includes("worktree")) return "infrastructure";
+  return "unknown";
+}
+
 function syncLocalTargetBranch(projectRoot, baseBranch) {
   const fetchResult = gitRun(projectRoot, ["fetch", "--prune", "origin", baseBranch], { timeoutMs: 30000 });
   if (fetchResult.status !== 0) {
@@ -486,9 +616,60 @@ function syncLocalTargetBranch(projectRoot, baseBranch) {
 
   const dirty = gitRun(projectRoot, ["status", "--porcelain"]).stdout;
   if (dirty) {
+    const preservableDirtyPaths = collectPreservableDirtyPaths(projectRoot);
+    let stashRef = null;
+    if (preservableDirtyPaths.length > 0) {
+      const stashMessage = "merge-queue-preserve-sync-" + sanitizePathSegment(baseBranch) + "-" + Date.now();
+      const stashResult = gitRun(projectRoot, ["stash", "push", "--include-untracked", "-m", stashMessage, "--", ...preservableDirtyPaths], { timeoutMs: 30000 });
+      if (stashResult.status !== 0) {
+        return {
+          status: "failed",
+          detail: stashResult.stderr || stashResult.stdout || "Failed to preserve local changes before fast-forward."
+        };
+      }
+      stashRef = resolveStashRef(projectRoot, stashMessage);
+      if (!stashRef) {
+        return {
+          status: "failed",
+          detail: "Local changes were detected, but the governed preserve-sync stash could not be resolved."
+        };
+      }
+    }
+
+    const ffResult = gitRun(projectRoot, ["merge", "--ff-only", "origin/" + baseBranch], { timeoutMs: 30000 });
+    if (ffResult.status !== 0) {
+      if (!stashRef) {
+        return {
+          status: "failed",
+          detail: ffResult.stderr || ffResult.stdout || "Fast-forward of the local target branch failed."
+        };
+      }
+      const restoreResult = restorePreservedLocalState(projectRoot, stashRef);
+      return {
+        status: restoreResult.ok ? "failed" : "preserve_restore_failed",
+        detail: restoreResult.ok
+          ? "Fast-forward of the local target branch failed after preserving local changes in " + stashRef + ", and the preserved state was restored."
+          : "Fast-forward failed after preserving local changes in " + stashRef + ", and restore also failed: " + restoreResult.detail
+      };
+    }
+
+    if (!stashRef) {
+      return {
+        status: "fast_forwarded",
+        detail: "Fetched and fast-forwarded the local '" + baseBranch + "' checkout while leaving local operational .codex state in place."
+      };
+    }
+
+    const restoreResult = restorePreservedLocalState(projectRoot, stashRef);
+    if (!restoreResult.ok) {
+      return {
+        status: "preserve_restore_failed",
+        detail: "Fast-forwarded the local '" + baseBranch + "' checkout, but restore of preserved local changes failed. Recovery stash: " + stashRef + ". " + restoreResult.detail
+      };
+    }
     return {
-      status: "skipped_dirty_checkout",
-      detail: "Fetched origin/" + baseBranch + ", but the local checkout is dirty and was not fast-forwarded."
+      status: "preserve_restore_succeeded",
+      detail: "Preserved tracked and untracked local changes outside .codex, fast-forwarded the local '" + baseBranch + "' checkout, and restored local state."
     };
   }
 
@@ -575,7 +756,80 @@ function resolveRequestFeatureProjectRoot(request, fallbackProjectRoot) {
 }
 
 function chooseCloseoutProjectRoot(controlProjectRoot, mergeWorktreePath, localTargetSyncStatus) {
-  return localTargetSyncStatus === "fast_forwarded" ? controlProjectRoot : mergeWorktreePath;
+  return localTargetSyncStatus === "fast_forwarded" || localTargetSyncStatus === "preserve_restore_succeeded"
+    ? controlProjectRoot
+    : mergeWorktreePath;
+}
+
+function resolveStashRef(projectRoot, stashMessage) {
+  const listResult = gitRun(projectRoot, ["stash", "list", "--format=%gd%x09%s"], { timeoutMs: 10000 });
+  if (listResult.status !== 0) {
+    return null;
+  }
+  for (const line of String(listResult.stdout ?? "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const [ref, message] = trimmed.split(/\t/, 2);
+    const normalizedMessage = String(message ?? "").trim();
+    if (
+      normalizedMessage === stashMessage
+      || normalizedMessage.endsWith(": " + stashMessage)
+      || normalizedMessage.includes(stashMessage)
+    ) {
+      return ref;
+    }
+  }
+  return null;
+}
+
+function collectPreservableDirtyPaths(projectRoot) {
+  const paths = new Set();
+  for (const dirtyPath of readGitPathList(projectRoot, ["diff", "--name-only"])) {
+    if (!shouldExcludeFromGovernedPreserve(dirtyPath)) {
+      paths.add(dirtyPath);
+    }
+  }
+  for (const dirtyPath of readGitPathList(projectRoot, ["diff", "--cached", "--name-only"])) {
+    if (!shouldExcludeFromGovernedPreserve(dirtyPath)) {
+      paths.add(dirtyPath);
+    }
+  }
+  for (const dirtyPath of readGitPathList(projectRoot, ["ls-files", "--others", "--exclude-standard"])) {
+    if (!shouldExcludeFromGovernedPreserve(dirtyPath)) {
+      paths.add(dirtyPath);
+    }
+  }
+  return Array.from(paths).sort();
+}
+
+function readGitPathList(projectRoot, args) {
+  const result = gitRun(projectRoot, args, { timeoutMs: 10000 });
+  if (result.status !== 0) {
+    return [];
+  }
+  return String(result.stdout ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => normalizeSlashes(line));
+}
+
+function shouldExcludeFromGovernedPreserve(path) {
+  return normalizeSlashes(path).startsWith(".codex/");
+}
+
+function restorePreservedLocalState(projectRoot, stashRef) {
+  const popResult = gitRun(projectRoot, ["stash", "pop", "--index", stashRef], { timeoutMs: 30000 });
+  if (popResult.status !== 0) {
+    return {
+      ok: false,
+      detail: popResult.stderr || popResult.stdout || ("Restore from " + stashRef + " failed.")
+    };
+  }
+  return {
+    ok: true,
+    detail: "Restored local state from " + stashRef + "."
+  };
 }
 
 async function persistMergedFeatureCloseout({
@@ -936,7 +1190,7 @@ async function runNodeHelper(scriptPath, args, workdir) {
     timeout: 60000
   });
   if (result.status !== 0) {
-    fail((result.stderr || result.stdout || "Node helper failed.").trim());
+    throw new Error((result.stderr || result.stdout || "Node helper failed.").trim());
   }
   return result.stdout?.trim() ?? "";
 }
