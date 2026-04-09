@@ -518,6 +518,19 @@ Before Phase 1 implementation starts, run a repo-wide search for at least:
 
 No phase is complete until all sibling authority sites in scope are accounted for.
 
+### Implementation-preflight execution gate
+
+Before the first production code change in any phase:
+
+1. run the repo-wide search gate above
+2. expand the route inventory with any newly discovered readers, writers, validators, derivation paths, or recovery paths
+3. record which files and routes are explicitly in-scope for the current phase
+4. identify which hostile cases and negative proofs belong to that phase
+5. block implementation start if any ownership-bearing site is still unclassified
+
+This is a real gate, not advisory preparation.
+If the preflight inventory is incomplete, the implementation slice is not ready to start.
+
 ---
 
 ## Implementation Phases
@@ -648,11 +661,11 @@ Changes:
    - resolve canonical root first
    - load artifacts from canonical source
    - apply domain-scoped precedence, not a global ladder
-    - block on cross-domain contradictions instead of silently overriding
-    - clear stale `last_error` on successful completion
-    - hydrate derived `reconciliation_sha` and compatibility `last_commit_sha`
-    - sync caches to canonical root only
-    - write `.superseded` as local hint when appropriate
+   - block on cross-domain contradictions instead of silently overriding
+   - clear stale `last_error` on successful completion
+   - hydrate derived `reconciliation_sha` and compatibility `last_commit_sha`
+   - sync caches to canonical root only
+   - write `.superseded` as local hint when appropriate
 3. Add `validate-pre-commit` and make it check:
    - truth-source correctness
    - physical-authority correctness
@@ -814,6 +827,19 @@ Before declaring the plan review-ready, verify all of the following:
    - no verification text proving an older route than the one being changed
 
 If any checklist item cannot be answered explicitly, the route is not yet fully planned.
+
+### Implementation-review emphasis
+
+During implementation review, inspect especially for:
+
+- illegal persisted writes of runtime-derived fields
+- reintroduced writable compatibility aliases
+- collapse from domain-scoped precedence back into a global ladder
+- validators that ignore one authority plane
+- compatibility bridges that restore retired authority
+- workspace mirrors or projections being treated as source truth
+
+If any of those appear, treat the finding as a defect-class regression, not a local cleanup item.
 
 ---
 
