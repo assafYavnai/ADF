@@ -214,7 +214,7 @@ Current Gap-Closure Compatibility: Compatible. It creates the public surface tha
 
 Later-Company Check: no
 
-Compatibility Decision: compatible
+Compatibility Decision: incompatible
 
 Compatibility Evidence: The delivery plan commits to this exact slice scope. The architecture proposal defines the 4-layer model that this slice implements at Layers 1 and 2. The shell is bounded, additive, and does not modify existing engines.
 

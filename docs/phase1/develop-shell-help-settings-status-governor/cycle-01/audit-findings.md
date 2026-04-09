@@ -1,0 +1,60 @@
+1. Findings
+Overall Verdict: REJECTED
+
+Finding 1: PUBLIC_FRONT_DOOR_NOT_IMPLEMENTED
+failure class: PUBLIC_FRONT_DOOR_NOT_IMPLEMENTED
+broken route invariant in one sentence: Slice A requires a single public `develop` boundary with help, settings, status, and guarded implement/fix entrypoints, but `main` has no `develop` skill tree or manifest registration and still exposes internal engines directly.
+exact route (A -> B -> C): invoker -> `C:/ADF/skills/manifest.json` discovery -> `C:/ADF/skills/develop/SKILL.md` -> `C:/ADF/skills/develop/scripts/develop-helper.mjs` -> `develop help|settings|status|implement|fix`
+exact file/line references: `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/context.md:21-27`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/context.md:41-49`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/context.md:99-103`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:19-29`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:42-57`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:135-141`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:323-329`; `C:/ADF/docs/phase1/develop-boxed-front-door-delivery-plan.md:18-19`; `C:/ADF/docs/phase1/develop-boxed-front-door-delivery-plan.md:29-37`; `C:/ADF/docs/phase1/develop-boxed-front-door-delivery-plan.md:242-253`; `C:/ADF/skills/manifest.json:6-73`; `C:/ADF/skills/implement-plan/SKILL.md:2-3`; `C:/ADF/skills/implement-plan/SKILL.md:8`; `C:/ADF/skills/implement-plan/SKILL.md:28-35`. Repo inspection on 2026-04-09: `Test-Path C:/ADF/skills/develop` returned `False`.
+concrete operational impact: There is no public `develop` command surface for invokers, no `develop help` guidance, no `develop settings` or `develop status` path, and the repo still leaves `implement-plan` as the only visible implementation entrypoint on `main`.
+KPI applicability: required
+KPI closure state: Open
+KPI proof or exception gap: Machine checks V-01 through V-08 and V-21 in `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:223-244` cannot run because the public route files and registry entry do not exist.
+Compatibility verdict: Incompatible
+sweep scope: `C:/ADF/skills/manifest.json`; `C:/ADF/skills/implement-plan/SKILL.md`; `C:/ADF/skills/review-cycle/SKILL.md`; `C:/ADF/skills/merge-queue/SKILL.md`; the missing `C:/ADF/skills/develop/**` tree; any future public discovery or bootstrap docs that claim `develop` exists.
+closure proof: `C:/ADF/skills/develop/SKILL.md`, `C:/ADF/skills/develop/agents/openai.yaml`, and the required reference files must exist; `skills/manifest.json` must register `develop`; `develop help` must return the documented guide; `develop implement` and `develop fix` must resolve through the helper and return the guarded Slice A unavailable messages after validation; human verification evidence must show the help surface is usable.
+shared-surface expansion risk: none
+negative proof required: Prove an invoker can reach the Slice A public behaviors through `develop` without needing direct public use of `implement-plan`, `review-cycle`, or `merge-queue` as the primary route.
+live/proof isolation risk: none
+claimed-route vs proved-route mismatch risk: present and why: the Slice A docs freeze a public `develop` boundary, but the current repo proves only internal skill registration and no `develop` implementation tree.
+status: live defect
+
+Finding 2: DETERMINISTIC_GOVERNOR_AND_TRUTH_ROUTE_NOT_IMPLEMENTED
+failure class: DETERMINISTIC_GOVERNOR_AND_TRUTH_ROUTE_NOT_IMPLEMENTED
+broken route invariant in one sentence: Slice A requires script-owned prerequisite, integrity, lane-conflict, settings, and status truth, but `main` has no `develop-helper.mjs`, `develop-governor.mjs`, `develop-setup-helper.mjs`, or `.codex/develop` state surface to own that behavior.
+exact route (A -> B -> C): `develop settings|status|implement|fix` -> `C:/ADF/skills/develop/scripts/develop-helper.mjs` -> `C:/ADF/skills/develop/scripts/develop-governor.mjs` and `C:/ADF/skills/develop/scripts/develop-setup-helper.mjs` -> `C:/ADF/.codex/develop/{settings.json,settings-history.json,setup.json,lanes/*}` -> governed feature-local truth under `C:/ADF/docs/phase1/<feature-slug>/`
+exact file/line references: `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/context.md:51-88`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:49-83`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:101-129`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:143-153`; `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:266-271`; `C:/ADF/docs/phase1/develop-boxed-front-door-implementation-plan.md:37-46`; `C:/ADF/docs/phase1/develop-boxed-front-door-implementation-plan.md:71-79`; `C:/ADF/docs/phase1/develop-boxed-front-door-implementation-plan.md:119-164`; `C:/ADF/docs/phase1/develop-boxed-front-door-implementation-plan.md:196-225`; `C:/ADF/docs/phase1/develop-boxed-front-door-implementation-plan.md:237-239`; `C:/ADF/docs/phase1/develop-boxed-front-door-implementation-plan.md:298-332`. Repo inspection on 2026-04-09: `Test-Path C:/ADF/.codex/develop` returned `False`.
+concrete operational impact: There is no deterministic prerequisite validation, no integrity validation, no lane-conflict check, no settings persistence or append-only settings history, no truthful `develop status` hierarchy, no `truth_sources` output, and no guarded stub logging proving validation ran before reporting Slice B/C unavailability.
+KPI applicability: required
+KPI closure state: Open
+KPI proof or exception gap: Machine checks V-04 through V-20 and observability requirements in `C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:266-271` are currently impossible because the scripts and disk-backed state surface do not exist.
+Compatibility verdict: Incompatible
+sweep scope: the missing `C:/ADF/skills/develop/scripts/**` route; the missing `C:/ADF/skills/develop/references/**` contract surface; the missing `C:/ADF/.codex/develop/**` operational state; read-only integration seams in `C:/ADF/skills/governed-feature-runtime.mjs` and `C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs` that Slice A must consume once the route exists.
+closure proof: `node --check` must pass for the three Slice A scripts; direct governor calls must return structured JSON for pass and fail cases; `develop settings` must persist atomically, reject unknown keys, and append `settings-history.json`; `develop status` must prove committed truth beats projections, must work with and without `closeout-receipt.v1.json`, and must emit `truth_sources`; guarded `develop implement` and `develop fix` must validate prerequisites before returning the Slice B/C unavailable messages.
+shared-surface expansion risk: none
+negative proof required: Prove lane projections never override committed closeout truth, unknown settings keys are rejected, and the governor route stays deterministic with no LLM-owned lifecycle decision path.
+live/proof isolation risk: present and why: the contract requires both real feature-directory production checks and isolated proof fixtures (`C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:193-196`), but the live route does not exist yet, so helper-only proof would not close the class.
+claimed-route vs proved-route mismatch risk: present and why: the docs claim script-owned settings, status, and governor behavior, but the repo proves neither the scripts nor the `.codex/develop` state surface exist on `main`.
+status: live defect
+
+2. Conceptual Root Cause
+The public boxing contract exists only as documentation. The missing enforced route invariant is that invokers must enter governed development through a real Layer 1 `develop` boundary instead of discovering and using internal engines directly. Because that boundary was never materialized in `skills/develop/**` or `skills/manifest.json`, the repo still exposes the old open-surface operating model that Slice A was supposed to start boxing.
+
+The deterministic governance contract also exists only as documentation. The missing enforced route invariant is that prerequisite truth, integrity truth, settings truth, and status truth must be owned by script code plus disk-backed state instead of by prompt discipline or ad hoc operator knowledge. Because no Layer 2 scripts or `.codex/develop` state were added, the status hierarchy, structured governor outputs, settings history, and guarded stub behavior all remain unimplemented route promises rather than runnable system behavior.
+
+3. High-Level View Of System Routes That Still Need Work
+Route: public admission and invoker guidance
+what must be frozen before implementation: the exact Slice A public command contract, the public/internal boundary, the manifest registration shape, and the required invoker reference set (`invoker-guide.md`, `artifact-templates.md`, `settings-contract.md`, `kpi-contract.md`, `workflow-contract.md`).
+why endpoint-only fixes will fail: adding only a `SKILL.md` shim or only a manifest entry would still leave no usable help surface, no templates, and no actual boxed admission route for invokers.
+the minimal layers that must change to close the route: `C:/ADF/skills/develop/SKILL.md`; `C:/ADF/skills/develop/agents/openai.yaml`; `C:/ADF/skills/develop/references/**`; `C:/ADF/skills/manifest.json`.
+explicit non-goals, so scope does not widen into general refactoring: no worker spawning, no review-cycle delegation, no merge-queue delegation, no MCP bridge, no public reset, no redesign of existing engines.
+what done looks like operationally: `develop` is discoverable on `main`, `develop help` returns the documented guide and template pointers, and an invoker can understand the Slice A surface without reading internal engine skill docs.
+
+Route: deterministic governor, settings, and truthful status synthesis
+what must be frozen before implementation: the helper/governor/setup script boundaries, the settings schema and append-only history contract, the status truth hierarchy and `truth_sources` schema, and the structured JSON return shape for prerequisite, integrity, and lane-conflict checks.
+why endpoint-only fixes will fail: adding text-only command handlers without deterministic scripts and disk-backed state would still leave lifecycle truth prompt-owned, would not prove the hierarchy against contradictory projections, and would not satisfy the required machine-verification matrix.
+the minimal layers that must change to close the route: `C:/ADF/skills/develop/scripts/develop-helper.mjs`; `C:/ADF/skills/develop/scripts/develop-governor.mjs`; `C:/ADF/skills/develop/scripts/develop-setup-helper.mjs`; `C:/ADF/.codex/develop/{settings.json,settings-history.json,setup.json,lanes/*}`; read-only imports from `C:/ADF/skills/governed-feature-runtime.mjs` and heading constants from `C:/ADF/skills/implement-plan/scripts/implement-plan-helper.mjs` or equivalent shared runtime exports.
+explicit non-goals, so scope does not widen into general refactoring: no full implement orchestration, no lane runner or step sequencer, no KPI capture implementation beyond contract definition, no Brain persistence integration, no generic governance cleanup outside Slice A.
+what done looks like operationally: the governor returns structured pass/fail JSON; settings persist atomically and log history; `develop status` resolves committed truth over receipt, merge truth, and projections without fake progress; `develop implement` and `develop fix` validate prerequisites before returning the bounded Slice B/C unavailable messages.
+
+Final Verdict: REJECTED

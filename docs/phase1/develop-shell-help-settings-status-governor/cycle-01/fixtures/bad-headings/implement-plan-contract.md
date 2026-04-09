@@ -1,41 +1,6 @@
 1. Implementation Objective
 
-Create the first public `develop` skill shell with help, settings, status, and deterministic governor surfaces as the boxed governed implementation entry point for ADF.
-
-This slice delivers:
-
-- a thin public SKILL.md entry point
-- a develop entry script handling help, settings, status, and guarded implement/fix stubs
-- a deterministic governor script that validates prerequisites and integrity without LLM involvement
-- a setup detection helper
-- reference documentation for invokers (guide, templates, settings contract, KPI contract)
-- truthful status rendering using the committed truth hierarchy
-- manifest registration
-
-This slice does not deliver full A-to-Z implement orchestration, worker spawning, review-cycle delegation, merge-queue delegation, or MCP bridge work.
-
-2. Slice Scope
-
-- `skills/develop/SKILL.md` -- public entry point, under 100 lines, routes to entry script
-- `skills/develop/scripts/` -- entry script, governor script, setup helper (exact filenames frozen below)
-- `skills/develop/references/invoker-guide.md` -- help text returned by `develop help`
-- `skills/develop/references/artifact-templates.md` -- contract.md and context.md templates with validation rules
-- `skills/develop/references/settings-contract.md` -- allowed settings surface and schema
-- `skills/develop/references/kpi-contract.md` -- KPI model definition for later slices
-- `skills/develop/references/workflow-contract.md` -- frozen internal route contract for command routing, governor behavior, truth hierarchy, status rendering, settings handling, and guarded stub behavior
-- `skills/develop/agents/openai.yaml` -- agent interface definition
-- `skills/manifest.json` -- register develop skill entry
-- `.codex/develop/settings.json` -- settings persistence (created by entry script at runtime)
-- `.codex/develop/setup.json` -- setup detection output (created by setup helper at runtime)
-- `docs/phase1/develop-shell-help-settings-status-governor/**` -- slice artifacts
-
-Frozen script names for this slice:
-
-- `skills/develop/scripts/develop-helper.mjs` -- entry script
-- `skills/develop/scripts/develop-governor.mjs` -- deterministic governor
-- `skills/develop/scripts/develop-setup-helper.mjs` -- setup detection
-
-These names are frozen by this contract. Names for later-slice scripts (lane runner, etc.) are not frozen here.
+Fixture contract with deliberately missing headings for prerequisite validation proof.
 
 3. Required Deliverables
 

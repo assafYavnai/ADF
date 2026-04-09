@@ -212,7 +212,7 @@ Master-Plan Compatibility: Compatible. It improves the startup's ability to box 
 
 Current Gap-Closure Compatibility: Compatible. It creates the public surface that closes the gap between raw internal skill exposure and a properly boxed implementation front door.
 
-Later-Company Check: no
+Later-Company Check: yes
 
 Compatibility Decision: compatible
 
