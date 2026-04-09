@@ -35,14 +35,14 @@
   "merge_commit_sha": null,
   "merge_queue_request_id": null,
   "local_target_sync_status": "not_started",
-  "human_verification_status": null,
+  "human_verification_status": "pending",
   "human_verification_approved_at": null,
   "human_verification_approved_commit_sha": null,
-  "last_completed_step": "completion_summary_written",
+  "last_completed_step": "human_verification_requested",
   "last_commit_sha": "a8dd2de",
-  "active_run_status": "closeout_pending",
+  "active_run_status": "human_verification_pending",
   "created_at": "2026-04-09T17:33:10.778Z",
-  "updated_at": "2026-04-09T19:27:42.151Z",
+  "updated_at": "2026-04-09T20:06:28.114Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-09T17:33:11.049Z",
     "worktree_prepared_at": "2026-04-09T17:34:48.442Z",
@@ -53,11 +53,10 @@
     "implementor_finished_at": "2026-04-09T19:17:44.124Z",
     "verification_finished_at": "2026-04-09T19:17:44.208Z",
     "review_requested_at": "2026-04-09T18:05:22.463Z",
-    "human_verification_requested_at": null,
+    "human_verification_requested_at": "2026-04-09T20:06:28.015Z",
     "merge_started_at": null,
     "merge_finished_at": null,
-    "closeout_finished_at": null,
-    "completion_summary_written_at": "2026-04-09T19:27:41.860Z"
+    "closeout_finished_at": null
   },
   "event_log": [
     {
@@ -336,6 +335,20 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-09T19:27:41.860Z",
       "note": "Legacy event mirrored into the execution projection: completion-summary-written."
+    },
+    {
+      "event": "human-verification-requested",
+      "timestamp": "2026-04-09T20:06:28.015Z",
+      "note": "Final review approvals are recorded; slice is handed off for required human verification."
+    },
+    {
+      "event_id": "event-169c3b04-1e1a-4267-aa38-d1017cac7976",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T20:06:28.015Z",
+      "note": "Final review approvals are recorded; slice is handed off for required human verification."
     }
   ],
   "artifacts": {
@@ -367,7 +380,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 20,
+        "contract_revision": 21,
         "feature_contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/execution-contract.v1.json",
         "projection_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/run-projection.v1.json",
@@ -387,18 +400,18 @@
           "attempt-001": {
             "attempt_id": "attempt-001",
             "attempt_number": 1,
-            "status": "closeout_pending",
+            "status": "human_testing_pending",
             "terminal_status": null,
             "started_at": "2026-04-09T17:33:10.805Z",
-            "updated_at": "2026-04-09T19:27:42.149Z",
+            "updated_at": "2026-04-09T20:06:28.112Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
             "resume_checkpoint": {
-              "step": "machine_verification",
-              "status": "completed",
+              "step": "human_testing",
+              "status": "ready",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-09T19:27:42.149Z"
+              "updated_at": "2026-04-09T20:06:28.112Z"
             },
             "step_status": {
               "implementation": {
@@ -423,8 +436,8 @@
                 "note": null
               },
               "human_testing": {
-                "status": "not_started",
-                "started_at": null,
+                "status": "in_progress",
+                "started_at": "2026-04-09T20:06:28.015Z",
                 "completed_at": null,
                 "duration_seconds": null,
                 "note": null
@@ -472,13 +485,13 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-09T19:27:42.149Z",
-            "last_event_at": "2026-04-09T19:27:41.860Z"
+            "last_checkpoint_at": "2026-04-09T20:06:28.112Z",
+            "last_event_at": "2026-04-09T20:06:28.015Z"
           }
         },
         "created_at": "2026-04-09T17:33:10.805Z",
-        "updated_at": "2026-04-09T19:27:42.155Z",
-        "last_event_at": "2026-04-09T19:27:41.860Z",
+        "updated_at": "2026-04-09T20:06:28.117Z",
+        "last_event_at": "2026-04-09T20:06:28.015Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
@@ -501,8 +514,8 @@
               "duration_seconds": null
             },
             "human_testing": {
-              "status": "not_started",
-              "started_at": null,
+              "status": "in_progress",
+              "started_at": "2026-04-09T20:06:28.015Z",
               "completed_at": null,
               "duration_seconds": null
             },
@@ -529,7 +542,7 @@
       }
     }
   },
-  "__gsw_revision": 20,
-  "__gsw_write_id": "gsw-899d0a68-bcf7-4598-a906-58f99510b5d7",
-  "__gsw_timestamp": "2026-04-09T19:27:42.157Z"
+  "__gsw_revision": 21,
+  "__gsw_write_id": "gsw-449f6501-9656-4a2b-9d81-2faeb42e4227",
+  "__gsw_timestamp": "2026-04-09T20:06:28.119Z"
 }

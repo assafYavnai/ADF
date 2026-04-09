@@ -24,8 +24,8 @@
 
 - Machine Verification: `node --check skills/develop/scripts/develop-helper.mjs` passed, and live route proof showed repair-only read history append, invalid-persisted-plus-payload update history truth, valid no-op read history stability, and unchanged `develop status` summary-only truth for `implementation-benchmark-wiring-gate`.
 - Human Verification Requirement: Required before implement-plan completion.
-- Human Verification Status: Not yet durably recorded.
-- Review-Cycle Status: Cycle-05 reviewer and auditor approvals are surfaced; the review stream is ready for approval closeout commit and state reconciliation.
+- Human Verification Status: Pending; the required testing handoff has been durably recorded.
+- Review-Cycle Status: Cycle-05 reviewer and auditor approvals are recorded; the slice is now awaiting durable human verification on the approved feature commit.
 - Merge Status: Merge required; the approved feature-branch code is not yet landed on `main` or `origin/main`.
 - Local Target Sync Status: `not_started`.
 - Concrete Evidence:
@@ -48,12 +48,12 @@
 
 6. Commit And Push Result
 
-- The governed feature branch has pushed review/fix history for this slice, including the cycle-03 and cycle-04 route-fix closeout commits.
+- The governed feature branch has pushed review/fix history for this slice, including the cycle-03 and cycle-04 route-fix closeout commits, and the human-verification handoff is now durably recorded.
 - Merge to `main` / `origin/main` has not happened yet.
 - Implement-plan completion has not been marked yet.
 
 7. Remaining Non-Goals / Debt
 
-- Durable human verification is still required before truthful implement-plan completion.
+- Durable human approval is still required before truthful implement-plan completion.
 - Merge-queue landing and target-branch sync proof are still outstanding.
 - `cycle-04/fix-plan.md` and `cycle-04/fix-report.md` are not helper-reusable because their heading shape differs from the strict artifact contract; they remain preserved as historical evidence but may need cleanup if the stream is reopened again.
