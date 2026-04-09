@@ -4,7 +4,7 @@
   "feature_registry_key": "phase1/coo-live-executive-status-wiring",
   "run_id": "legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z",
   "run_mode": "normal",
-  "updated_at": "2026-04-09T12:47:06.053Z",
+  "updated_at": "2026-04-09T13:28:11.451Z",
   "artifacts": {
     "execution_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
     "run_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
@@ -17,7 +17,7 @@
     "lifecycle_status": "completed",
     "terminal_status": "completed",
     "contract_schema_version": 1,
-    "contract_revision": 21,
+    "contract_revision": 23,
     "feature_contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implement-plan-execution-contract.v1.json",
     "contract_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/execution-contract.v1.json",
     "projection_path": "C:/ADF/docs/phase1/coo-live-executive-status-wiring/implementation-run/legacy-normal-phase1-coo-live-executive-status-wiring-2026-04-08T14-17-03.526Z/run-projection.v1.json",
@@ -40,15 +40,15 @@
         "status": "completed",
         "terminal_status": "completed",
         "started_at": "2026-04-08T14:17:03.526Z",
-        "updated_at": "2026-04-09T12:47:06.048Z",
+        "updated_at": "2026-04-09T08:04:10.638Z",
         "reset_at": null,
         "reset_reason": null,
         "superseded_by_attempt_id": null,
         "resume_checkpoint": {
           "step": "merge_queue",
           "status": "completed",
-          "reason": "Resume from the last truthful normal-mode checkpoint.",
-          "updated_at": "2026-04-09T12:47:06.048Z"
+          "reason": "Truthful governed closeout completed after review approval.",
+          "updated_at": "2026-04-09T13:28:11.446Z"
         },
         "step_status": {
           "implementation": {
@@ -66,17 +66,17 @@
             "note": null
           },
           "review_cycle": {
-            "status": "in_progress",
+            "status": "completed",
             "started_at": "2026-04-09T07:08:47.133Z",
-            "completed_at": null,
-            "duration_seconds": null,
-            "note": null
+            "completed_at": "2026-04-09T07:56:09.838Z",
+            "duration_seconds": 2843,
+            "note": "Cycle-12 approved and closed."
           },
           "human_testing": {
             "status": "not_started",
             "started_at": null,
             "completed_at": null,
-            "duration_seconds": null,
+            "duration_seconds": 0,
             "note": null
           },
           "merge_queue": {
@@ -122,13 +122,13 @@
             "recreated_due_to_access": false
           }
         },
-        "last_checkpoint_at": "2026-04-09T12:47:06.048Z",
-        "last_event_at": "2026-04-09T12:47:06.048Z"
+        "last_checkpoint_at": "2026-04-09T13:28:11.446Z",
+        "last_event_at": "2026-04-09T08:04:10.638Z"
       }
     },
     "created_at": "2026-04-08T14:17:03.526Z",
-    "updated_at": "2026-04-09T12:47:06.053Z",
-    "last_event_at": "2026-04-09T12:47:06.048Z",
+    "updated_at": "2026-04-09T13:28:11.450Z",
+    "last_event_at": "2026-04-09T08:04:10.638Z",
     "kpi_projection": {
       "terminal_status": "completed",
       "per_step_timing": {
@@ -145,16 +145,16 @@
           "duration_seconds": 4
         },
         "review_cycle": {
-          "status": "in_progress",
+          "status": "completed",
           "started_at": "2026-04-09T07:08:47.133Z",
-          "completed_at": null,
-          "duration_seconds": null
+          "completed_at": "2026-04-09T07:56:09.838Z",
+          "duration_seconds": 2843
         },
         "human_testing": {
           "status": "not_started",
           "started_at": null,
           "completed_at": null,
-          "duration_seconds": null
+          "duration_seconds": 0
         },
         "merge_queue": {
           "status": "completed",
