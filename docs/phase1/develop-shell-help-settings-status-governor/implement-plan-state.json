@@ -2,7 +2,7 @@
   "state_schema_version": 2,
   "phase_number": 1,
   "feature_slug": "develop-shell-help-settings-status-governor",
-  "project_root": "C:/ADF",
+  "project_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor",
   "feature_registry_key": "phase1/develop-shell-help-settings-status-governor",
   "feature_status": "active",
   "implementor_execution_id": "019d7347-d059-7b72-b907-2761f5f3db37",
@@ -42,17 +42,17 @@
   "last_commit_sha": null,
   "active_run_status": "closeout_pending",
   "created_at": "2026-04-09T17:33:10.778Z",
-  "updated_at": "2026-04-09T18:03:35.469Z",
+  "updated_at": "2026-04-09T18:28:40.747Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-09T17:33:11.049Z",
     "worktree_prepared_at": "2026-04-09T17:34:48.442Z",
     "integrity_passed_at": null,
     "integrity_failed_at": "2026-04-09T17:34:37.118Z",
     "brief_written_at": null,
-    "implementor_started_at": "2026-04-09T18:03:35.043Z",
-    "implementor_finished_at": "2026-04-09T18:03:35.197Z",
-    "verification_finished_at": "2026-04-09T18:03:35.368Z",
-    "review_requested_at": null,
+    "implementor_started_at": "2026-04-09T18:13:21.655Z",
+    "implementor_finished_at": "2026-04-09T18:28:40.468Z",
+    "verification_finished_at": "2026-04-09T18:28:40.682Z",
+    "review_requested_at": "2026-04-09T18:05:22.463Z",
     "human_verification_requested_at": null,
     "merge_started_at": null,
     "merge_finished_at": null,
@@ -163,20 +163,76 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-09T18:03:35.368Z",
       "note": "Machine verification passed: node --check x3, settings/status/governor matrix, guarded implement/fix, and git diff --check."
+    },
+    {
+      "event": "review-requested",
+      "timestamp": "2026-04-09T18:05:22.463Z",
+      "note": "Cycle-02 auditor and reviewer requested against pushed feature-branch commit 0f5ece5aa9753e6162f918449e462a99759df769."
+    },
+    {
+      "event_id": "event-bb30ef8e-df07-4486-ab5b-b034c5cdc101",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:05:22.463Z",
+      "note": "Cycle-02 auditor and reviewer requested against pushed feature-branch commit 0f5ece5aa9753e6162f918449e462a99759df769."
+    },
+    {
+      "event": "implementor-started",
+      "timestamp": "2026-04-09T18:13:21.655Z",
+      "note": "Cycle-02 implementor delta-only fix pass started against the surfaced rejected reports."
+    },
+    {
+      "event_id": "event-3855da56-8742-4699-929e-cb12f8b5d2a1",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:13:21.655Z",
+      "note": "Cycle-02 implementor delta-only fix pass started against the surfaced rejected reports."
+    },
+    {
+      "event": "implementor-finished",
+      "timestamp": "2026-04-09T18:28:40.468Z",
+      "note": null
+    },
+    {
+      "event_id": "event-e5a63e0c-7461-47bd-bda5-ba896ae598e8",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:28:40.468Z",
+      "note": "Legacy event mirrored into the execution projection: implementor-finished."
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-09T18:28:40.682Z",
+      "note": null
+    },
+    {
+      "event_id": "event-3364c734-43d9-44ea-bb4e-e83482e4576f",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:28:40.682Z",
+      "note": "Legacy event mirrored into the execution projection: verification-finished."
     }
   ],
   "artifacts": {
-    "readme_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/README.md",
-    "context_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/context.md",
-    "state_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-state.json",
-    "contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md",
-    "execution_contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-execution-contract.v1.json",
-    "execution_run_contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/execution-contract.v1.json",
-    "execution_run_projection_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/run-projection.v1.json",
-    "pushback_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-pushback.md",
-    "brief_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-brief.md",
-    "completion_summary_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/completion-summary.md",
-    "implementation_run_dir": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run",
+    "readme_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/README.md",
+    "context_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/context.md",
+    "state_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-state.json",
+    "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/run-projection.v1.json",
+    "pushback_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run",
     "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor"
   },
   "last_error": null,
@@ -194,11 +250,11 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 7,
-        "feature_contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-execution-contract.v1.json",
-        "contract_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/execution-contract.v1.json",
-        "projection_path": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/run-projection.v1.json",
-        "run_root": "C:/ADF/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+        "contract_revision": 11,
+        "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/execution-contract.v1.json",
+        "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/run-projection.v1.json",
+        "run_root": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253",
         "benchmark_context": {
           "benchmark_run_id": null,
           "benchmark_suite_id": null,
@@ -217,7 +273,7 @@
             "status": "closeout_pending",
             "terminal_status": null,
             "started_at": "2026-04-09T17:33:10.805Z",
-            "updated_at": "2026-04-09T18:03:35.467Z",
+            "updated_at": "2026-04-09T18:28:40.745Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
@@ -225,26 +281,26 @@
               "step": "machine_verification",
               "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-09T18:03:35.468Z"
+              "updated_at": "2026-04-09T18:28:40.745Z"
             },
             "step_status": {
               "implementation": {
                 "status": "completed",
-                "started_at": "2026-04-09T18:03:35.043Z",
-                "completed_at": "2026-04-09T18:03:35.197Z",
-                "duration_seconds": 0,
+                "started_at": "2026-04-09T18:13:21.655Z",
+                "completed_at": "2026-04-09T18:28:40.468Z",
+                "duration_seconds": 919,
                 "note": null
               },
               "machine_verification": {
                 "status": "completed",
-                "started_at": "2026-04-09T18:03:35.197Z",
-                "completed_at": "2026-04-09T18:03:35.368Z",
+                "started_at": "2026-04-09T18:28:40.468Z",
+                "completed_at": "2026-04-09T18:28:40.682Z",
                 "duration_seconds": 0,
                 "note": null
               },
               "review_cycle": {
-                "status": "not_started",
-                "started_at": null,
+                "status": "in_progress",
+                "started_at": "2026-04-09T18:05:22.463Z",
                 "completed_at": null,
                 "duration_seconds": null,
                 "note": null
@@ -274,7 +330,7 @@
               "total_tokens_estimated": 0
             },
             "verification_outcomes": [],
-            "review_cycle_count": 0,
+            "review_cycle_count": 1,
             "self_fix_cycle_count": 0,
             "blockers": [],
             "worker_bindings": {
@@ -299,31 +355,31 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-09T18:03:35.468Z",
-            "last_event_at": "2026-04-09T18:03:35.368Z"
+            "last_checkpoint_at": "2026-04-09T18:28:40.745Z",
+            "last_event_at": "2026-04-09T18:28:40.682Z"
           }
         },
         "created_at": "2026-04-09T17:33:10.805Z",
-        "updated_at": "2026-04-09T18:03:35.474Z",
-        "last_event_at": "2026-04-09T18:03:35.368Z",
+        "updated_at": "2026-04-09T18:28:40.751Z",
+        "last_event_at": "2026-04-09T18:28:40.682Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
             "implementation": {
               "status": "completed",
-              "started_at": "2026-04-09T18:03:35.043Z",
-              "completed_at": "2026-04-09T18:03:35.197Z",
-              "duration_seconds": 0
+              "started_at": "2026-04-09T18:13:21.655Z",
+              "completed_at": "2026-04-09T18:28:40.468Z",
+              "duration_seconds": 919
             },
             "machine_verification": {
               "status": "completed",
-              "started_at": "2026-04-09T18:03:35.197Z",
-              "completed_at": "2026-04-09T18:03:35.368Z",
+              "started_at": "2026-04-09T18:28:40.468Z",
+              "completed_at": "2026-04-09T18:28:40.682Z",
               "duration_seconds": 0
             },
             "review_cycle": {
-              "status": "not_started",
-              "started_at": null,
+              "status": "in_progress",
+              "started_at": "2026-04-09T18:05:22.463Z",
               "completed_at": null,
               "duration_seconds": null
             },
@@ -349,14 +405,14 @@
             "total_tokens_estimated": 0
           },
           "verification_outcomes": [],
-          "review_cycle_count": 0,
+          "review_cycle_count": 1,
           "self_fix_cycle_count": 0,
           "blocker_history": []
         }
       }
     }
   },
-  "__gsw_revision": 7,
-  "__gsw_write_id": "gsw-279c0080-6480-4f05-9b73-618e257b5a73",
-  "__gsw_timestamp": "2026-04-09T18:03:35.476Z"
+  "__gsw_revision": 11,
+  "__gsw_write_id": "gsw-80d884dc-26a6-442d-af5e-b5d27c583c97",
+  "__gsw_timestamp": "2026-04-09T18:28:40.753Z"
 }

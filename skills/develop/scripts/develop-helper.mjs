@@ -31,6 +31,8 @@ const SETTINGS_KEYS = new Set([
   "max_review_cycles"
 ]);
 
+const HUMAN_VERIFICATION_STATUSES = new Set(["pending", "approved", "rejected", "stale", "not_required"]);
+
 function parseJsonInput(raw, label) {
   try {
     return JSON.parse(raw);
@@ -51,6 +53,34 @@ function latestEvent(committedState) {
   return events[events.length - 1].event_type ?? null;
 }
 
+function normalizeHumanVerificationStatus(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return HUMAN_VERIFICATION_STATUSES.has(normalized) ? normalized : null;
+}
+
+function humanVerificationInputRequired(committedState) {
+  const humanStatus = normalizeHumanVerificationStatus(committedState?.human_verification_status ?? null);
+  if (humanStatus === "pending") {
+    return true;
+  }
+  return humanStatus === null
+    && String(committedState?.active_run_status ?? "").toLowerCase() === "human_verification_pending";
+}
+
+function nextHumanVerificationTransition(committedState) {
+  const humanStatus = normalizeHumanVerificationStatus(committedState?.human_verification_status ?? null);
+  if (humanStatus === null || humanStatus === "pending") {
+    return "human_testing";
+  }
+  if (humanStatus === "approved" || humanStatus === "not_required") {
+    return "merge_queue";
+  }
+  if (humanStatus === "rejected" || humanStatus === "stale") {
+    return "implementation";
+  }
+  return "unknown";
+}
+
 function nextTransition(committedState) {
   const status = String(committedState.active_run_status ?? "").toLowerCase();
   switch (status) {
@@ -58,12 +88,12 @@ function nextTransition(committedState) {
       return "implementation";
     case "implementation_running":
       return "machine_verification";
+    case "human_verification_pending":
+      return nextHumanVerificationTransition(committedState);
     case "verification_pending":
       return "review_cycle";
     case "review_pending":
       return "human_verification";
-    case "human_verification_pending":
-      return "merge_queue";
     case "merge_ready":
     case "merge_queued":
     case "merge_in_progress":
@@ -77,7 +107,21 @@ function nextTransition(committedState) {
   }
 }
 
-async function laneSummaries(projectRoot, featureSlug = null) {
+function summaryToCommittedResult({ phaseNumber, featureSlug }) {
+  return {
+    slice_identity: { phase_number: phaseNumber, feature_slug: featureSlug },
+    current_stage: "completed",
+    current_status: "completed",
+    current_blocker: null,
+    latest_durable_event: "completion_summary_written",
+    latest_review_verdicts: null,
+    human_input_required: false,
+    next_expected_transition: "none",
+    merge_truth: null
+  };
+}
+
+async function laneSummaries(projectRoot, featureSlug = null, phaseNumber = null) {
   const lanesRoot = join(projectRoot, ".codex", "develop", "lanes");
   if (!(await pathExists(lanesRoot))) {
     return [];
@@ -90,9 +134,14 @@ async function laneSummaries(projectRoot, featureSlug = null) {
     const laneState = await readJsonIfExists(laneStatePath, null);
     if (!laneState) continue;
     if (featureSlug && laneState.feature_slug !== featureSlug) continue;
+    if (phaseNumber !== null) {
+      const lanePhase = Number(laneState.phase_number);
+      if (!Number.isInteger(lanePhase) || lanePhase !== phaseNumber) continue;
+    }
     lanes.push({
       lane_id: entry.name,
       feature_slug: laneState.feature_slug ?? null,
+      phase_number: laneState.phase_number ?? null,
       status: laneState.status ?? "unknown"
     });
   }
@@ -146,8 +195,29 @@ function validateSettingsPayload(payload) {
   if ("schema_version" in payload && payload.schema_version !== 1) {
     return "schema_version must be 1.";
   }
+  if ("implementor_model" in payload && typeof payload.implementor_model !== "string") {
+    return "implementor_model must be a string.";
+  }
+  if ("implementor_effort" in payload && typeof payload.implementor_effort !== "string") {
+    return "implementor_effort must be a string.";
+  }
+  if ("auditor_model" in payload && typeof payload.auditor_model !== "string") {
+    return "auditor_model must be a string.";
+  }
+  if ("auditor_effort" in payload && typeof payload.auditor_effort !== "string") {
+    return "auditor_effort must be a string.";
+  }
+  if ("reviewer_model" in payload && typeof payload.reviewer_model !== "string") {
+    return "reviewer_model must be a string.";
+  }
+  if ("reviewer_effort" in payload && typeof payload.reviewer_effort !== "string") {
+    return "reviewer_effort must be a string.";
+  }
   if ("max_review_cycles" in payload) {
-    const value = Number(payload.max_review_cycles);
+    if (!Number.isInteger(payload.max_review_cycles)) {
+      return "max_review_cycles must be a positive integer.";
+    }
+    const value = payload.max_review_cycles;
     if (!Number.isInteger(value) || value < 1) {
       return "max_review_cycles must be a positive integer.";
     }
@@ -246,7 +316,7 @@ async function handleStatus(projectRoot, args) {
   const reviewState = await readJsonIfExists(reviewStatePath, null);
   const receipt = await readJsonIfExists(receiptPath, null);
   const summaryExists = await pathExists(completionSummaryPath);
-  const lanes = await laneSummaries(projectRoot, featureSlug);
+  const lanes = await laneSummaries(projectRoot, featureSlug, phaseNumber);
   const truthSources = {
     consulted: [
       committedState ? committedStatePath.replace(/\\/g, "/") : null,
@@ -267,7 +337,7 @@ async function handleStatus(projectRoot, args) {
       current_blocker: committedState.last_error ?? null,
       latest_durable_event: latestEvent(committedState),
       latest_review_verdicts: reviewState?.cycle_runtime?.lane_verdicts ?? null,
-      human_input_required: committedState.human_verification_status === "requested",
+      human_input_required: humanVerificationInputRequired(committedState),
       next_expected_transition: nextTransition(committedState),
       merge_truth: await mergeTruth(
         projectRoot,
@@ -280,6 +350,16 @@ async function handleStatus(projectRoot, args) {
       status: committedStatePath.replace(/\\/g, "/"),
       blocker: committedStatePath.replace(/\\/g, "/"),
       review_verdicts: reviewState ? reviewStatePath.replace(/\\/g, "/") : committedStatePath.replace(/\\/g, "/")
+    };
+  } else if (summaryExists) {
+    result = {
+      ...summaryToCommittedResult({ phaseNumber, featureSlug }),
+      slice_identity: { phase_number: phaseNumber, feature_slug: featureSlug },
+      truth_sources: truthSources
+    };
+    truthSources.authoritative = {
+      stage: completionSummaryPath.replace(/\\/g, "/"),
+      status: completionSummaryPath.replace(/\\/g, "/")
     };
   } else if (receipt) {
     result = {

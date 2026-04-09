@@ -28,12 +28,12 @@ Each returns structured JSON with:
 
 `develop status` resolves fields in this priority order:
 
-1. committed feature-local artifacts
+1. committed feature-local artifacts (`implement-plan-state.json` and `completion-summary.md`)
 2. `closeout-receipt.v1.json`
 3. merge truth
 4. lane projections
-
 Committed truth wins over projections.
+Projection lookups are always scoped by both `phase_number` and `feature_slug`.
 
 ## Status Output Contract
 
