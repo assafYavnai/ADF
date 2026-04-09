@@ -1,429 +1,804 @@
-# Fix implement-plan Governance Path: A-to-Z Sweep
+# Production Plan: Governance Path Hardening
 
-## Context
+## Objective
 
-The implement-plan governance path from feature initiation through merge-to-main has accumulated systemic defects that compound with each slice. The implementor post-mortem for `coo-live-executive-status-wiring`, audit findings (cycles 08-10), run post-mortems (010, 017, 018), and five executive plan reviews confirm: the product bugs are straightforward, but governance closeout repair consumes most cycle time. The backlog grows instead of shrinking.
+Fix the governance path from `implement-plan` initiation through merge-to-main closeout so that future slices land cleanly without post-merge artifact repair.
 
-**Root cause**: Split physical authority across four planes — truth source, storage root, commit workspace, and remote durability proof — combined with multiple uncoordinated writers and no frozen ownership model. Prior plan revisions fixed individual endpoints but left sibling defects alive in the same class, causing repeated review cycles.
+This plan is intentionally route-complete, not endpoint-driven.
+It is derived from:
 
-**Goal**: One sweep (Phases 0-5) that fixes the runtime governance path. Backfill is a separate bounded follow-up. This revision was rebuilt from a complete field/artifact ownership model rather than patching prior text.
+- live code behavior in `implement-plan`, `merge-queue`, and `review-cycle`
+- repeated review feedback on earlier plan drafts
+- the recurring repo failure pattern where the claimed route, the mutated route, and the proved route drift apart
 
-**Review history**: Full diff of all prior review cycles is in git history. This revision does not carry forward stale wording — it was rewritten from the ownership model below.
+Backfill of already-landed feature streams is a separate bounded follow-up after the runtime path is hardened.
 
 ---
 
-## Artifact & Field Ownership Model
+## Why Prior Revisions Failed
 
-This model is the single source from which every phase, invariant, verification step, and backward-compat rule is derived. If a section contradicts this model, this model wins.
+Earlier revisions kept finding new sibling defects because they mostly repaired the visible endpoint while leaving the underlying defect class alive.
 
-### Truth Classes
+The recurring meta-failure was:
 
-| Class | Definition | Durability | Example |
-|-------|-----------|------------|---------|
-| **Committed lifecycle truth** | Stored in feature-local artifacts, pushed to origin | Survives fresh clone | `approved_commit_sha`, `merge_status`, `feature_status` |
-| **Committed execution truth** | Append-only execution events, pushed to origin | Survives fresh clone | Structured events under `implementation-run/` |
-| **Runtime-derived truth** | Deterministically recoverable from committed evidence | Must be re-derived after clone | `reconciliation_sha` (from git log), `last_commit_sha` (from SHA matrix) |
-| **Committed operational residue** | Stored in committed state but not authoritative for lifecycle decisions | Survives clone but readers must not treat as lifecycle truth | `local_target_sync_status`, `last_error` |
-| **Local operational hint** | Valid only in current checkout, not committed | Lost on fresh clone | `.superseded` marker, `fresh_base_ref_sha` (in-process only) |
-| **Projection/cache** | Aggregated from authoritative sources, rebuildable | Can be deleted and rebuilt | `features-index.json`, `agent-registry.json`, `run-projection.v1.json` |
-| **Human-readable output** | Documentation, never authoritative over machine state | Committed but not truth | `completion-summary.md` |
-| **Review-only evidence** | Verdict/approval facts from review-cycle | Committed but scoped | `review-cycle-state.json` (verdicts only) |
+1. the route was described one way in docs
+2. the route was mutated a different way in code
+3. the proof plan still verified an older or narrower route
 
-### Field Ownership Matrix
+That created repeated review/fix loops.
 
-| Field | Truth Class | Sole Writer | Allowed Readers | Physical Root | Remote Proof | Proposed Change |
-|-------|------------|-------------|-----------------|---------------|-------------|-----------------|
-| `approved_commit_sha` | Committed lifecycle | implement-plan `update-state` | merge-queue enqueue, process-next, closeout validation, mark-complete | Feature root in state.json | origin/feature-branch ancestry | No change — already correct |
-| `merge_commit_sha` | Committed lifecycle | merge-queue `process-next` only | implement-plan mark-complete, closeout, status | Feature root in state.json | origin/base-branch ancestry | No change — already correct |
-| `review_closeout_sha` | Committed lifecycle | implement-plan `update-state` (new) | reconcile, status | Feature root in state.json | origin/feature-branch ancestry | **New field** |
-| `reconciliation_sha` | **Runtime-derived** | Never written to artifacts | reconcile, status (derive from git log) | Not stored — derived from `git log --grep` on base branch after merge_commit_sha | origin/base-branch commit message pattern | **New field, Option A** |
-| `last_commit_sha` | **Runtime-derived** (compatibility alias) | Never directly authored by new code | Legacy callers only | Derived on read from SHA precedence chain | Derived from other fields | **Change: derived-only** |
-| `base_branch` | Committed lifecycle | implement-plan `prepare` (set once) | All merge-queue operations, closeout, status | Feature root in state.json | refs/remotes/origin/{base_branch} | **Change: immutable after set, derived from origin/HEAD not checkout** |
-| `merge_status` | Committed lifecycle | merge-queue (all transitions) | implement-plan canonical-root decision, mark-complete, status | Feature root in state.json | Implicit in state on origin | No change to semantics |
-| `feature_status` | Committed lifecycle | implement-plan lifecycle commands only | Everywhere | Feature root in state.json | State on origin | No change |
-| `active_run_status` | Committed lifecycle | implement-plan only (sole writer; structured events contribute via `syncLegacyNormalStateFromRun()` inside implement-plan, not as an independent writer) | State machine driver | Feature root in state.json | State on origin | **Change: events inform run-step values through implement-plan's sync function; events never write state directly** |
-| `local_target_sync_status` | Committed operational residue | merge-queue sync step | mark-complete eligibility check (but not lifecycle authority) | Feature root in state.json | Committed but not authoritative | No change to storage; **readers must not treat as lifecycle truth** |
-| `last_error` | Committed operational residue | Multiple (validation failures, git errors) | Status, debugging (but not lifecycle authority) | Feature root in state.json | Committed but not authoritative | **Change: cleared on completion by reconcile** |
-| `fresh_base_ref_sha` | **In-process ephemeral** (not persisted anywhere) | merge-queue `process-next` (new) | merge-base check, worktree creation within same execution | In-memory only — not in queue, not in state | Not stored | **New, ephemeral to process-next execution only** |
+This plan is designed to stop that pattern by freezing:
 
-### Artifact Ownership Matrix
+- truth classes
+- field ownership
+- artifact ownership
+- route boundaries
+- authority planes
+- contradiction gates
+- hostile-case proofs
 
-| Artifact | Truth Class | Sole Writer(s) | Physical Root | Lock | Durability |
-|----------|------------|-----------------|---------------|------|------------|
-| `implement-plan-state.json` | Committed lifecycle | implement-plan GSW, merge-queue via update-state | Feature root (canonical per I-1) | Feature-slug lock | Pushed to origin |
-| `review-cycle-state.json` | Review-only evidence | review-cycle skill | Feature root | None (no contention) | Pushed to origin |
-| `run-projection.v1.json` | Projection/cache | implement-plan | Per-run dir under feature root | None | Rebuildable |
-| `execution-contract.v1.json` | Committed execution | implement-plan prepare | Feature root + per-run copy | None | Pushed to origin |
-| `completion-summary.md` | Human-readable output | Implementation agent, normalize command | Feature root | None | Pushed to origin |
-| `features-index.json` | Projection/cache | implement-plan sync (project-level lock) | Canonical project root only | `features-index` lock | Rebuildable |
-| `agent-registry.json` | Projection/cache | implement-plan sync (project-level lock) | Canonical project root only | `agent-registry` lock | Rebuildable |
-| `.superseded` marker | Local operational | mark-complete, reconcile, commit-closeout | Worktree feature dir | None | Not pushed — local hint only |
+---
 
-### Four Authority Planes
+## Primary Root Causes
 
-Every artifact and transition must be evaluated across all four:
+These are the root causes the implementation and review must keep using as a search lens.
+If a future change reintroduces any of them, that change is defective even if the immediate endpoint looks correct.
 
-| Plane | Question | Rule |
-|-------|----------|------|
-| **Truth source** | Which copy is authoritative for reads? | Per I-1: repo-root once `merge_commit_sha != null` |
-| **Storage root** | Where does the authoritative copy physically live? | Feature root under canonical project root |
-| **Commit workspace** | Which checkout stages the governed commit? | Whichever is clean (merge worktree or synced main) |
-| **Remote durability** | What proves the truth survived? | origin/base-branch ancestry for merge/closeout commits |
+### 1. Authority-plane collapse
+
+The system keeps collapsing distinct questions into one:
+
+- What is authoritative for reads?
+- Where does the authoritative copy physically live?
+- Which checkout stages the commit?
+- What proves the truth survived remotely?
+
+Those are four different planes:
+
+1. truth source
+2. storage root
+3. commit workspace
+4. remote durability proof
+
+Most historical governance bugs came from treating one of those planes as a proxy for another.
+
+### 2. Hybrid fields and hybrid artifacts
+
+Several fields and artifacts have been used for more than one meaning.
+That creates sibling defects because one site treats a value as lifecycle truth while another treats the same value as operational residue, execution progress, or a compatibility alias.
+
+Examples of dangerous categories:
+
+- runtime-derived value treated as persisted truth
+- compatibility alias treated as first-class authority
+- review evidence treated as lifecycle authority
+- execution progress treated as merge-route status
+- projections or caches treated as source truth
+
+### 3. Incomplete ownership expansion
+
+A field is not fully planned when only the obvious writer is fixed.
+It must also be expanded through:
+
+- all writers
+- all readers
+- all validators
+- all derivation paths
+- all migration paths
+- all recovery paths
+- all status/reporting consumers
+
+If one of those still carries old semantics, the defect class is still alive.
+
+### 4. Proxy evidence replacing first-class evidence
+
+The route has repeatedly inferred "what probably happened" from nearby clues:
+
+- current checkout branch
+- stale local refs
+- overloaded `last_commit_sha`
+- free-form closeout commit identity inference
+
+The hardened route must prefer first-class evidence and block on ambiguity rather than guessing.
+
+### 5. Semantic drift after model changes
+
+When the model changes in one section but old meaning survives in another section, implementation becomes non-deterministic.
+
+This plan therefore requires a contradiction sweep across:
+
+- ownership tables
+- invariants
+- phase steps
+- verification plan
+- failure isolation
+- backward compatibility notes
+- helper usage docs
+
+One concept must have one meaning everywhere.
+
+---
+
+## Scope
+
+### In scope
+
+- `implement-plan` runtime path after `prepare`
+- `merge-queue` enqueue, process-next, resume-blocked, closeout handoff
+- `review-cycle` state/evidence boundary
+- feature-local state
+- canonical cache writers
+- closeout commit/push behavior
+- route validators
+- schema normalization and legacy handling needed to keep the new route safe
+
+### Out of scope for the core hardening slice
+
+- bulk backfill of all existing feature streams
+- Brain hygiene and review-finding lifecycle cleanup
+- operational doc cleanup unrelated to the governance route
+
+Those remain separate bounded follow-up work after the runtime path is correct.
+
+---
+
+## Non-negotiable Design Decisions
+
+These decisions are frozen by this plan.
+
+1. `reconciliation_sha` is runtime-derived only.
+   - It is never stored in the persisted feature state schema.
+   - It is recovered only from durable git evidence on `origin/<base_branch>`.
+
+2. `last_commit_sha` is a compatibility view only.
+   - It is never directly authored by the hardened route.
+   - New write paths must not accept it as authority input.
+   - Any legacy use is confined to migration or read-time hydration.
+
+3. Execution progress and merge-route status must not share one authoritative field.
+   - Introduce an explicit persisted execution-domain field.
+   - Remove merge-queue authority over execution-domain status.
+   - Keep any broad compatibility status as a derived view only.
+
+4. `implement-plan-state.json` is a heterogeneous container.
+   - Artifact-level labels never override field-level ownership.
+   - Readers must consult the field contract, not assume the whole file is one truth class.
+
+5. Commit workspace is staging material, not authority.
+   - Canonical truth is reconciled first.
+   - The workspace receives a mirrored copy only for staging the governed commit.
+   - The workspace copy must never become a second source of truth.
+
+6. All derived or recovered truth must fail closed.
+   - zero results -> block
+   - multiple results -> block
+   - stale or wrong-root proof -> block
+   - no guessing
+
+7. Backward compatibility is a full design surface, not a footnote.
+   - old worktrees
+   - old state schema
+   - old summaries
+   - old cache locations
+   - legacy compatibility aliases
+   all require explicit authority, normalization, retirement, and proof rules.
+
+---
+
+## Truth Classes
+
+Every field and artifact must belong to exactly one primary truth class.
+If a value needs two classes, split it.
+
+| Truth class | Definition | Durability | Example |
+| --- | --- | --- | --- |
+| Committed lifecycle truth | Persisted feature state used for lifecycle decisions | survives fresh clone | `approved_commit_sha`, `merge_commit_sha`, `merge_status`, `feature_status`, `base_branch` |
+| Committed execution truth | Persisted execution/run state and append-only execution events | survives fresh clone | structured events, new persisted execution status |
+| Runtime-derived truth | Deterministically recovered from committed evidence | re-derived after clone | `reconciliation_sha`, compatibility `last_commit_sha`, derived route status |
+| Committed operational residue | Persisted for operator visibility but not lifecycle authority | survives fresh clone but cannot drive lifecycle truth | `local_target_sync_status`, `last_error` |
+| Local operational hint | Valid only in the local checkout or process | not durable | `.superseded`, in-process `fresh_base_ref_sha` |
+| Projection/cache | Rebuildable aggregate of authoritative sources | rebuildable | `features-index.json`, `agent-registry.json`, `run-projection.v1.json` |
+| Review-only evidence | Review verdict/approval facts scoped to review-cycle | survives fresh clone but not lifecycle authority | `review-cycle-state.json` verdict fields |
+| Human-readable output | Documentation generated from machine state | survives fresh clone but never authoritative | `completion-summary.md` |
+
+---
+
+## Persisted Schema vs Hydrated Runtime View
+
+This split is mandatory.
+It is the main defense against semantic overload.
+
+### Persisted feature state schema
+
+Persist only values that are authoritative or intentionally retained as committed operational residue.
+
+Persisted lifecycle fields:
+
+- `approved_commit_sha`
+- `merge_commit_sha`
+- `review_closeout_sha`
+- `base_branch`
+- `merge_status`
+- `feature_status`
+
+Persisted execution fields:
+
+- `execution_status` (new authoritative execution-domain field)
+- run timestamps / attempt state / last completed execution step
+
+Persisted operational residue:
+
+- `local_target_sync_status`
+- `last_error`
+
+Not persisted in the hardened schema:
+
+- `reconciliation_sha`
+- `last_commit_sha`
+- `active_run_status` as an authoritative field
+
+### Hydrated runtime view
+
+Hydrated on read by helper/status/reporting code only:
+
+- `reconciliation_sha`
+- compatibility `last_commit_sha`
+- compatibility `active_run_status`
+- derived route summaries
+
+Hydrated values may be emitted in helper output for compatibility, but they are never authoritative inputs to state transitions.
+
+---
+
+## Field Ownership Matrix
+
+This is the governing field contract.
+
+| Field | Truth class | Sole writer | Allowed readers | Notes |
+| --- | --- | --- | --- | --- |
+| `approved_commit_sha` | committed lifecycle truth | `implement-plan update-state` | merge-queue enqueue/process-next, mark-complete, validators | sole pre-merge landing authority |
+| `merge_commit_sha` | committed lifecycle truth | `merge-queue process-next` only | mark-complete, reconcile, status, validators | sole merge-result truth |
+| `review_closeout_sha` | committed lifecycle truth | `implement-plan update-state` | reconcile, status | explicit review closeout evidence |
+| `base_branch` | committed lifecycle truth | `implement-plan prepare` only | all merge and closeout routes | immutable after initial set |
+| `merge_status` | committed lifecycle truth | merge-queue only | canonical-root decision, validators, status | merge-route truth only |
+| `feature_status` | committed lifecycle truth | implement-plan lifecycle commands | all status and completion logic | feature lifecycle truth only |
+| `execution_status` | committed execution truth | implement-plan only | execution state machine, status renderers | new authoritative execution-domain status |
+| `active_run_status` | runtime-derived compatibility view | never directly written | legacy readers only | derived from `execution_status`, `merge_status`, and `feature_status` |
+| `reconciliation_sha` | runtime-derived truth | never directly written | reconcile, status, compatibility hydration | recovered from durable git evidence only |
+| `last_commit_sha` | runtime-derived compatibility view | never directly written | legacy readers only | derived from `reconciliation_sha ?? merge_commit_sha ?? approved_commit_sha ?? review_closeout_sha` |
+| `local_target_sync_status` | committed operational residue | merge-queue sync path | mark-complete guard, status | never lifecycle authority |
+| `last_error` | committed operational residue | shared governed error-write helper used by validators and route failure handlers | status, debugging | cleared on successful completion reconcile |
+| `fresh_base_ref_sha` | local operational hint | in-process `process-next` only | merge-base and worktree creation in same execution | never persisted |
+
+### Review-cycle boundary
+
+`review-cycle-state.json` contributes:
+
+- verdict
+- approval evidence
+- review lane status
+
+It does not contribute:
+
+- lifecycle truth
+- merge truth
+- commit authority
+
+`review-cycle last_commit_sha` is local operational state for review-cycle only and must never be consumed as lifecycle authority by implement-plan.
+
+### Status-field split
+
+To eliminate hybrid semantics:
+
+- add `execution_status` as the only persisted execution-domain status
+- stop merge-queue from writing `active_run_status`
+- compute compatibility `active_run_status` on read from authoritative inputs
+
+This closes the current class of bug where one field is used as both execution progress and merge-route state.
+
+---
+
+## Artifact Ownership Matrix
+
+| Artifact | Truth class | Sole writer(s) | Storage root | Lock | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `implement-plan-state.json` | heterogeneous container with field-level ownership | implement-plan governed state writer; merge-queue only through bounded implement-plan update calls | canonical feature root per invariant I-1 | feature lock | field-level contract always wins |
+| `review-cycle-state.json` | review-only evidence | review-cycle | feature root | none | no lifecycle authority |
+| structured execution events | committed execution truth | implement-plan record-event route | feature run directory | append-only discipline | execution domain only |
+| `run-projection.v1.json` | projection/cache | implement-plan | feature run directory | none | rebuildable |
+| `execution-contract.v1.json` | committed execution truth | implement-plan prepare | feature root and per-run copy | none | input contract, not lifecycle override |
+| `completion-summary.md` | human-readable output | implementation agent, normalize command | feature root | none | never authoritative |
+| `features-index.json` | projection/cache | implement-plan sync | canonical project root only | project lock | rebuildable, never written from worktree root |
+| `agent-registry.json` | projection/cache | implement-plan sync | canonical project root only | project lock | rebuildable, never written from worktree root |
+| `.superseded` | local operational hint | mark-complete, reconcile, commit-closeout | worktree feature dir only | none | local hint only, never committed |
+
+---
+
+## Four Authority Planes
+
+Every changed route must answer all four questions separately.
+
+| Plane | Required question |
+| --- | --- |
+| Truth source | Which copy is authoritative for reads? |
+| Storage root | Where does the authoritative copy physically live? |
+| Commit workspace | Which checkout stages the governed commit? |
+| Remote durability proof | What proves the truth survived remotely? |
+
+If two planes are silently treated as the same thing, the route is not hardened.
 
 ---
 
 ## Frozen Invariants
 
-Derived from the ownership model. If a phase or section contradicts these, the invariant wins.
+### I-1. Canonical root rule
 
-**I-1. Canonical Root Rule:**
+- Before `merge_commit_sha` exists, the feature worktree is authoritative for active execution artifacts on post-prepare routes.
+- Once `merge_commit_sha != null`, repo-root feature artifacts are authoritative for lifecycle truth.
+- Pre-merge queue states do not flip authority by themselves.
+- `.superseded` is a local accelerator only. Its absence never overrides `merge_commit_sha`.
 
-*Truth source* (which copy is authoritative for reads):
-- Before `merge_commit_sha` exists (null): worktree is canonical for active execution artifacts
-- Once `merge_commit_sha != null`: repo-root is canonical for all lifecycle truth
-- Pre-merge states (`ready_to_queue`, `queued`, `in_progress`, `blocked`) do NOT flip authority — the feature is not yet merge-backed
-- `.superseded` is a local operational hint that accelerates the decision; its absence means "legacy/unresolved" — repo-root still wins if `merge_commit_sha != null`
-- Scope: only applies to post-prepare governed routes
+### I-2. Commit workspace mirror rule
 
-*Commit workspace* (which checkout creates the governed commit):
-- Closeout may execute from merge worktree or synced main (whichever is clean)
-- `commit-closeout` reconciles canonical state first, THEN copies reconciled state into commit workspace, THEN validates the workspace copy
-- Commit workspace is NOT an authority source — it is a staging mirror of already-reconciled canonical truth
-- Workspace copy does NOT create a second truth source — it is consumed by the commit and then irrelevant
+- `commit-closeout` reconciles canonical state first.
+- Only after reconcile succeeds may it mirror canonical feature artifacts and canonical caches into the commit workspace.
+- The workspace copy is staging material only.
+- If workspace copy and canonical root diverge, canonical root wins.
+- No later reader or validator may treat the workspace mirror as a second truth source.
 
-**I-2. SHA Authority Matrix:**
-```
-approved_commit_sha   → Committed lifecycle truth. Set by implement-plan. Sole pre-merge landing authority.
-merge_commit_sha      → Committed lifecycle truth. Set by merge-queue only. Sole merge-result truth.
-review_closeout_sha   → Committed lifecycle truth. Set by implement-plan. Review-cycle closeout artifact commit.
-reconciliation_sha    → Runtime-derived truth. NEVER stored in artifacts. Derived from git log on base branch.
-last_commit_sha       → Runtime-derived compatibility alias. NEVER directly authored. Derived on read:
-                         reconciliation_sha ?? merge_commit_sha ?? approved_commit_sha ?? review_closeout_sha
-```
+### I-3. Domain-scoped precedence only
 
-**I-3. Review-Cycle Boundary:**
-- review-cycle-state.json contributes verdict and approval evidence ONLY
-- implement-plan-state.json owns lifecycle truth
-- review-cycle `last_commit_sha` is local operational state, never lifecycle authority
-- `evaluateCloseoutGovernanceTruth()` reads verdict/approval fields, ignores review-cycle `last_commit_sha`
+There is no single global priority ladder.
 
-**I-4. Fresh-Ref Rule:**
-- Merge authorization requires a successful `git fetch`. Stale local refs are never sufficient.
-- `fresh_base_ref_sha` is captured after fetch and used within that `process-next` execution. It is ephemeral — not persisted in queue state, not consumed by later operations.
+Execution domain:
 
-**I-5. Base-Branch Immutability:**
-- `base_branch` is resolved from `origin/HEAD` (never checkout state), set once during `prepare`, and immutable for the feature's lifecycle.
-- merge-queue `resume-blocked` cannot retarget to a different base branch. To change lane, cancel and re-enqueue.
+- structured events
+- execution projections
+- persisted execution compatibility state
 
-**I-6. `reconciliation_sha` Recovery:**
-- Derived via: `git log --format=%H --grep="governed closeout \[merge:<merge_commit_sha_short>\]" <merge_commit_sha>..origin/<base_branch> -- <feature-root>`
-- **Success**: exactly one result
-- **Zero results**: closeout commit missing or message pattern corrupted → block, surface error
-- **Multiple results**: ambiguous → use first direct descendant of `merge_commit_sha` on base branch. If still ambiguous → block, surface error
-- **Never guess**. Ambiguity is a first-class failure mode.
+Lifecycle domain:
+
+- explicit lifecycle fields in canonical feature state
+
+Review domain:
+
+- verdict and approval evidence only
+
+Non-authoritative outputs:
+
+- caches
+- summaries
+- compatibility views
+
+No domain may silently override another.
+Cross-domain contradictions block and surface; they do not auto-resolve by ladder simplification.
+
+### I-4. Derived values are read-only
+
+- `reconciliation_sha` is derived-only
+- `last_commit_sha` is derived-only
+- compatibility `active_run_status` is derived-only
+
+New write paths must not accept these as authoritative inputs.
+
+### I-5. Base-branch immutability
+
+- `base_branch` is resolved from `origin/HEAD`, never from checkout state
+- it is set once during `prepare`
+- `resume-blocked` cannot retarget the lane
+
+### I-6. Fresh-ref rule
+
+- merge authorization requires a successful fetch
+- no stale local fallback
+- any temporary fresh-base ref evidence is scoped to the current `process-next` execution only
+
+### I-7. Closeout uniqueness rule
+
+At most one governed closeout commit may exist per merged feature route.
+
+If recovery finds:
+
+- zero candidates -> block
+- more than one candidate -> block
+
+The route must not guess.
+
+### I-8. Mixed-container rule
+
+`implement-plan-state.json` may contain multiple field classes, but field-level ownership always wins.
+No reader may infer truth class from the file name alone.
+
+### I-9. Compatibility is a controlled bridge
+
+Legacy fields and legacy worktree artifacts may be read for normalization.
+They may not regain authority after normalization.
 
 ---
 
 ## Forbidden Defect Classes
 
-Every phase must be checked against these. If a change introduces any of these, it is a defect regardless of which endpoint it fixes.
+If implementation introduces any of these, the route is still defective even if the immediate endpoint appears fixed.
 
-1. **Mutable route authority from local checkout state** — any field or decision derived from `git branch --show-current` or equivalent
-2. **Field authored by more than one tool without frozen ownership** — violates sole-writer rule in ownership matrix
-3. **Derived alias still writable directly** — `last_commit_sha` must never be set, only computed
-4. **Runtime-derived truth not fail-closed on ambiguity** — zero or multiple candidates must block
-5. **Cache or shared registry written from non-canonical root** — caches go to canonical project root only
-6. **Validator checks one domain but ignores sibling domains** — every validator must check all four authority planes
-7. **Proxy evidence replacing first-class evidence** — inferring "what probably happened" instead of proving "what did happen"
-8. **Route widened without reopening route contract and proof plan** — every changed route gets a proof obligation
-
----
-
-## Phase 0: Route Authority (Wrong-Code-Landing Blockers)
-
-**Issues**: Stale-fetch bypass (merge-queue-helper.mjs:367), mutable base-branch (governed-feature-runtime.mjs:733), resume-blocked lane retargeting (merge-queue-helper.mjs:516-549)
-
-**File: `skills/merge-queue/scripts/merge-queue-helper.mjs`**
-
-1. **Fail-closed fetch** (line 367-368) — `if (fetchResult.status !== 0)` → block request. No stale-ref fallback.
-
-2. **Capture `fresh_base_ref_sha`** — After fetch, `git rev-parse origin/<base_branch>`. Use in merge-base check (line 372) and worktree creation (line 399). Ephemeral to this process-next execution.
-
-3. **Block resume-blocked lane migration** (line 516-549) — Remove `input.baseBranch` override. Blocked requests can get new `approved_commit_sha` but cannot change `base_branch`. Lane retarget requires cancel + re-enqueue.
-
-**File: `skills/governed-feature-runtime.mjs`**
-
-4. **Fix base-branch resolution** (line 733) — `detectOriginHeadBranch(projectRoot) ?? "main"`. Remove `detectCurrentBranch()` from chain.
-
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
-
-5. **Base-branch immutability guard** — In `update-state`, reject changes to `base_branch` after initial set.
-
-**File: `skills/implement-plan/references/workflow-contract.md`**
-
-6. Document I-4, I-5, and the route authority invariants.
-
-**Proof obligations**: Fetch failure + stale refs → blocked. Wrong checkout branch → base_branch unaffected. Resume-blocked with new base_branch → rejected.
+1. Mutable authority derived from local checkout state
+2. Authority-bearing field with more than one unfrozen writer
+3. Derived alias accepted as a direct writer input
+4. Runtime-derived truth without explicit zero-result and multi-result blocking
+5. Cache or registry write from non-canonical root
+6. Workspace mirror treated as authority
+7. Validator that checks one authority plane while ignoring siblings
+8. Route mutation without corresponding proof-plan mutation
+9. Backward compatibility path that restores retired authority
 
 ---
 
-## Phase 1: Physical Authority
+## Recovery Identity for `reconciliation_sha`
 
-**Issues**: 6 full-pattern worktree-preference sites (lines 1126, 1407, 1563, 1728, 2071, 2130), 3 partial sites (562, 727, 946), no worktree retirement, duplicated global caches
+`reconciliation_sha` must be recovered from durable remote proof, not local `HEAD`.
 
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
+The governed closeout commit must carry stable trailers:
 
-1. **Non-circular canonical-root selector** — `resolveCanonicalStatePaths(paths, input)`:
-   - Read repo-root `merge_commit_sha` (always exists after prepare — this phase only covers post-prepare routes)
-   - If `merge_commit_sha` is null AND worktree exists AND no `.superseded` → worktree canonical
-   - If `merge_commit_sha` is non-null → repo-root canonical
-   - If resolution fails → fail closed
+- `Governance-Action: closeout`
+- `Governance-Feature: phase<N>/<feature-slug>`
+- `Governance-Merge-SHA: <full merge commit sha>`
 
-2. **Refactor all 6 full-pattern sites** — Replace worktree-preference conditional with `resolveCanonicalStatePaths()`.
+Recovery rule:
 
-3. **Annotate 3 partial sites** (562, 727, 946) — Comment that these are execution-time worktree references, not authority sources.
+- query only `origin/<base_branch>`
+- match all three trailers
+- require exactly one matching commit
+- zero or more than one is blocking ambiguity
 
-4. **Worktree retirement** — `mark-complete` writes `.superseded` (local operational, not committed). Old worktrees without marker: repo-root wins via `merge_commit_sha` rule.
-
-5. **Canonical-only cache writes** — `syncFeaturesIndex()` and `syncAgentRegistry()` resolve canonical project root via `git worktree list --porcelain`. Fail closed if resolution fails.
-
-**File: `skills/implement-plan/references/workflow-contract.md`**
-
-6. Document I-1 with the four-plane model.
-
-**Proof obligations**: Feature in queued state → worktree still canonical. Feature with merge_commit_sha → repo-root canonical. Old worktree without `.superseded` → repo-root wins. Cache write from worktree → resolves to canonical root or fails.
+This is stronger than using a loose subject-line grep and keeps the derivation route deterministic.
 
 ---
 
-## Phase 2: SHA Model + Truth Domains
+## Mandatory Route Inventory Before Coding
 
-**Issues**: `last_commit_sha` overload (13/6/3 split across streams), no SHA normalization, review-cycle uncoordinated writer, skipLock, mixed truth domains
+Before implementation begins, expand every authority-bearing field and artifact across all affected routes.
 
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
+### Writers, readers, validators, derivations, and recovery surfaces to audit
 
-1. **Bump schema to v3** (line 205)
+Implement-plan:
 
-2. **Add field**: `review_closeout_sha: null` (committed lifecycle truth per ownership model). `reconciliation_sha` is NOT added to the persisted schema — it is runtime-derived per I-6 and hydrated on read, never stored on disk.
+- `prepare`
+- `update-state`
+- `record-event`
+- `reset-attempt`
+- `mark-complete`
+- `normalize-completion-summary`
+- `validate-closeout-readiness`
+- state load and normalization
+- state hydration for status/reporting
+- `reconcile`
+- `commit-closeout`
+- `validate-pre-commit`
+- features-index sync
+- agent-registry sync
 
-3. **SHA normalization** — `canonicalizeSha(projectRoot, sha)`: `git rev-parse` → 40-char, fallback `git cat-file -t`, reject on failure. Applied at ALL write paths: lines 1241, 1519, 1754, new fields.
+Merge-queue:
 
-4. **v2→v3 migration** — Default new fields to null. Derive `last_commit_sha` per I-2. Opportunistically canonicalize abbreviated SHAs on load.
+- `enqueue`
+- `process-next`
+- `resume-blocked`
+- `validateCloseoutReadinessBeforeMerge`
+- `persistMergedFeatureCloseout`
+- closeout workspace selection
 
-5. **Freeze I-2 as code constants**
+Review-cycle:
 
-6. **`markComplete()` (line 1754)** — `input.mergeCommitSha ?? next.merge_commit_sha ?? input.lastCommitSha ?? next.last_commit_sha`
+- state writes
+- verdict/approval readers
+- any helper or doc path that still implies review-cycle commit authority
 
-7. **Remove `skipLock: true`** (line 281) — Use feature-level lock.
+Status/reporting:
 
-8. **Narrow structured-events domain** (`syncLegacyNormalStateFromRun()` ~line 4382):
-   - Events own: `active_run_status`, `run_timestamps`, `attempt.*`, `last_completed_step` (run/attempt steps)
-   - Events do NOT own: `merge_status`, `merge_commit_sha`, `approved_commit_sha`, `feature_status`, `base_branch`, `local_target_sync_status`
+- helper JSON output
+- summary generators
+- index builders
+- any direct state-file readers found by repo-wide search
 
-**File: `skills/merge-queue/scripts/merge-queue-helper.mjs`**
+### Repo-wide search gate
 
-9. Line 856: `merge_commit_sha: mergeCommitSha` (not `last_commit_sha`)
-10. Line 860: Pass `--merge-commit-sha`
+Before Phase 1 implementation starts, run a repo-wide search for at least:
 
-**File: `skills/review-cycle/scripts/review-cycle-helper.mjs`**
+- `detectCurrentBranch(`
+- `last_commit_sha`
+- `active_run_status`
+- `review-cycle-state.json`
+- `features-index.json`
+- `agent-registry.json`
+- `git log`
+- `origin/HEAD`
+- worktree-root artifact path selection
 
-11. Boundary comments at lines 788 and 909
-
-**File: `skills/review-cycle/references/workflow-contract.md`**
-
-12. Freeze I-3 as contract rule
-
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
-
-13. **Code-path enforcement** — `evaluateCloseoutGovernanceTruth()` explicitly ignores review-cycle `last_commit_sha`.
-
-**File: `skills/implement-plan/references/workflow-contract.md`**
-
-14. Schema docs for all fields per ownership matrix
-
-**Proof obligations**: v2 state loads correctly. Abbreviated SHA canonicalized. `last_commit_sha` never directly set. Concurrent writes serialized. Events cannot set merge_status/merge_commit_sha. review-cycle last_commit_sha ignored in closeout evaluation.
-
----
-
-## Phase 3: Reconcile + Artifact Precedence
-
-**Issues**: No reconcile command, no precedence rules, stale fields survive completion
-
-**File: `skills/implement-plan/references/workflow-contract.md`**
-
-1. **Domain-scoped artifact precedence** (NOT a single global chain — each domain resolves independently):
-
-   **Execution domain** (run/attempt/timestamp fields):
-   - Structured events → run-projection → execution-contract → state compatibility fields
-   - Only `reconcile` may propagate execution truth into lifecycle state
-
-   **Lifecycle domain** (feature_status, merge_status, SHA fields, base_branch):
-   - implement-plan-state.json explicit lifecycle facts only
-   - Execution events cannot override lifecycle fields
-   - merge-queue callbacks are the sole writer for merge_status/merge_commit_sha
-
-   **Review domain** (verdicts, approval evidence):
-   - review-cycle-state.json verdict/approval fields only
-   - review-cycle `last_commit_sha` is NOT consumed as lifecycle truth
-
-   **Cross-domain rule**: no domain may override another. If reconcile detects a field where execution truth contradicts lifecycle truth, it surfaces the contradiction as `"blocked"` — it does not auto-resolve across domain boundaries.
-
-   **Non-authoritative artifacts** (projections, caches, summaries):
-   - Never override any domain's truth
-   - Rebuilt from authoritative sources
-
-2. **Helper usage guide**: `update-state` (lifecycle), `record-event` (execution), `reconcile` (post-merge alignment), `commit-closeout` (governed closeout)
-
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
-
-3. **`reconcile` command** — Under feature lock:
-   1. Resolve canonical paths per I-1
-   2. Load all artifacts from canonical source
-   3. Apply precedence per domain (run truth, lifecycle truth, review evidence)
-   4. Per field: `{ field, truth_class, authoritative_source, old_value, new_value, action }`
-   5. Clean stale `last_error` if completed
-   6. Recompute derived fields (`last_commit_sha`, attempt to derive `reconciliation_sha` per I-6)
-   7. Write state atomically
-   8. Sync caches to canonical project root
-   9. Write `.superseded` if completed/merged and worktree exists
-   10. Return contradiction report with per-field provenance
-
-**File: `skills/implement-plan/SKILL.md`**
-
-4. Document `reconcile`
-
-**Proof obligations**: Known contradictions → all repaired with provenance. Stale `last_error` → cleared. `reconciliation_sha` → derived from git or surfaced as missing. Caches → canonical root only.
+No phase is complete until all sibling authority sites in scope are accounted for.
 
 ---
 
-## Phase 4: Governed Closeout
+## Implementation Phases
 
-**Issues**: Raw git in closeout (merge-queue-helper.mjs:890-922), dirty checkout interference
+## Phase 0: Contract Freeze and Contradiction Gate
 
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
+Purpose:
 
-1. **`commit-closeout` command** — Accepts: `--project-root`, `--phase-number`, `--feature-slug`, `--base-branch`, `--merge-commit-sha`
+- freeze the ownership model
+- freeze the route inventory
+- stop semantic drift before code changes start
 
-   Steps:
-   1. Refuse if `--base-branch` differs from persisted state (I-5)
-   2. Call `reconcileSlice()` on canonical project root first (ensures canonical truth is consistent before any copy)
-   3. Determine commit workspace (merge worktree if main dirty, synced main otherwise)
-   4. Copy reconciled canonical feature-root state AND canonical caches into commit workspace (workspace is now a mirror of already-reconciled truth)
-   5. Call `validatePreCommit()` in commit workspace — fail if contradictions (catches any copy/sync errors)
-   6. Stage: `git add --all -- <feature-root>` + `git add -- .codex/implement-plan/features-index.json .codex/implement-plan/agent-registry.json`
-   7. Commit: `docs(phase<N>/<feature-slug>): governed closeout [merge:<merge_sha_short>]`
-   8. Push to `origin/<base-branch>`
-   9. On push failure → fail closed, do not record reconciliation_sha locally
-   10. On push success → `reconciliation_sha` returned in-session; future reads derive per I-6
-   11. Write `.superseded` if worktree exists
-   12. Return `{ reconciliation_sha, push_status, contradictions_repaired }`
+Changes:
 
-   **Crash analysis** (per step boundary):
-   - After step 2 (reconcile on canonical), before copy → canonical state improved, workspace not yet touched, no harm
-   - After step 4 (copy), before validate → workspace has a snapshot of canonical truth; if process dies, workspace is stale but canonical is consistent
-   - After step 5 (validate), before commit → validation passed, commit not yet created, no harm
-   - After step 6 (commit), before push → local commit exists in workspace but not durable; next reader cannot recover `reconciliation_sha` from origin (correct)
-   - After step 7 (push), before `.superseded` → push landed, `.superseded` missing is harmless because `merge_commit_sha` rule governs authority
-   - Multiple retry attempts → each governed closeout commit has unique merge SHA in message pattern; I-6 tie-break selects first descendant of `merge_commit_sha`
+1. Update `skills/implement-plan/references/workflow-contract.md` with the truth classes, field ownership, artifact ownership, four authority planes, and frozen invariants from this plan.
+2. Update `skills/merge-queue/references/workflow-contract.md` with base-branch immutability, fresh-ref rules, closeout durability rules, and blocked-lane restrictions.
+3. Update `skills/review-cycle/references/workflow-contract.md` to freeze the review-only evidence boundary and explicitly de-authorize review-cycle commit fields as lifecycle truth.
+4. Add a mandatory contradiction gate to the plan delivery checklist:
+   - ownership tables vs phase steps
+   - claimed route vs mutated route vs proved route
+   - invariants vs backward compatibility notes
+   - verification vs implementation route
+   - persisted schema vs hydrated view
+   - recovery rules vs durability rules
 
-**File: `skills/merge-queue/scripts/merge-queue-helper.mjs`**
+Proof obligations:
 
-2. **Delete `commitAndPushFeatureCloseout()`** (line 890-922). Replace with `commit-closeout` call.
+- one concept has one meaning in all docs
+- all changed routes and sibling branches are listed
+- any remaining internal contradiction blocks implementation start
 
-3. **Simplify `persistMergedFeatureCloseout()`** (line 835): update-state → mark-complete → commit-closeout.
+## Phase 1: Wrong-code-landing blockers
 
-**File: `skills/implement-plan/SKILL.md`**
+Purpose:
 
-4. Closeout policy: raw git prohibited in closeout path.
+Remove any route that can land the wrong code on main before deeper refactors begin.
 
-**Proof obligations**: Closeout from merge worktree stages canonical state (not stale workspace). Push failure → no false `reconciliation_sha`. `reconciliation_sha` recoverable from fresh clone via I-6 query (exactly one result). Staged files include feature root + caches.
+Changes:
+
+1. In `skills/merge-queue/scripts/merge-queue-helper.mjs`, remove stale-ref fallback after failed fetch.
+2. In `skills/governed-feature-runtime.mjs`, resolve default base branch from `origin/HEAD` only.
+3. In `skills/implement-plan/scripts/implement-plan-helper.mjs`, reject `base_branch` mutations after initial set.
+4. In `skills/merge-queue/scripts/merge-queue-helper.mjs`, remove `resume-blocked` lane retargeting.
+5. Keep any fresh base ref evidence in-process only. Do not persist it into queue state or feature state.
+
+Proof obligations:
+
+- fetch failure with local refs present blocks
+- wrong checkout branch does not affect `base_branch`
+- blocked request cannot change lane
+
+Failure isolation:
+
+- if work stops here, wrong-code-landing risk is removed even though the old closeout path still exists
+
+## Phase 2: Physical authority and canonical storage
+
+Purpose:
+
+Resolve split physical authority before changing field semantics.
+
+Changes:
+
+1. Add `resolveCanonicalStatePaths()` to `skills/implement-plan/scripts/implement-plan-helper.mjs`.
+2. Refactor all full-pattern worktree-preference sites to use canonical-root resolution.
+3. Refactor partial sites so worktree paths remain execution-time references only, never authority selectors.
+4. Make cache writers resolve canonical project root only and fail closed if canonical resolution fails.
+5. Keep `.superseded` as a local-only hint written in the worktree feature directory only.
+6. Ensure post-merge readers never regain worktree authority even when stale worktree artifacts still exist.
+
+Proof obligations:
+
+- queued feature with no `merge_commit_sha` reads from worktree
+- feature with `merge_commit_sha` reads from repo-root
+- cache writes from worktree context resolve to canonical root or fail
+- `.superseded` absence does not beat `merge_commit_sha`
+
+Failure isolation:
+
+- if work stops here, the route has one physical authority source even though older schema semantics still remain
+
+## Phase 3: State model hardening and semantic split
+
+Purpose:
+
+Eliminate hybrid field semantics and separate persisted schema from runtime hydration.
+
+Changes:
+
+1. Bump the persisted state schema version.
+2. Add `review_closeout_sha` as explicit committed lifecycle truth.
+3. Add `execution_status` as the only persisted execution-domain status.
+4. Remove persisted authority semantics for:
+   - `reconciliation_sha`
+   - `last_commit_sha`
+   - `active_run_status`
+5. Hydrate compatibility `last_commit_sha` and compatibility `active_run_status` on read only.
+6. Remove merge-queue writes to `active_run_status`; merge-queue writes only its owned lifecycle fields.
+7. Narrow event sync so structured events influence execution-domain fields only through implement-plan-owned sync logic.
+8. Normalize SHAs through a single canonicalization function.
+9. Remove direct writer acceptance of `--last-commit-sha` in new code paths.
+10. Migrate old states by:
+    - reading legacy `last_commit_sha` only to infer missing explicit fields when unambiguous
+    - reading legacy `active_run_status` only to map execution-domain values into `execution_status`
+    - refusing to let legacy aliases regain authority after normalization
+
+Proof obligations:
+
+- persisted schema contains no `reconciliation_sha`
+- new writers do not set `last_commit_sha`
+- merge-queue no longer writes execution-domain status
+- old states normalize correctly without restoring alias authority
+
+Failure isolation:
+
+- if work stops here, state semantics are cleaner and safer even before reconcile/closeout refactor lands
+
+## Phase 4: Domain-scoped reconcile and multi-plane validation
+
+Purpose:
+
+Create one governed repair path and one validator that reasons across all authority planes.
+
+Changes:
+
+1. Add `reconcile` to `skills/implement-plan/scripts/implement-plan-helper.mjs`.
+2. Make reconcile:
+   - resolve canonical root first
+   - load artifacts from canonical source
+   - apply domain-scoped precedence, not a global ladder
+   - block on cross-domain contradictions instead of silently overriding
+   - clear stale `last_error` on successful completion
+   - hydrate derived `reconciliation_sha` and compatibility `last_commit_sha`
+   - sync caches to canonical root only
+   - write `.superseded` as local hint when appropriate
+3. Add `validate-pre-commit` and make it check:
+   - truth-source correctness
+   - physical-authority correctness
+   - remote-durability correctness
+   - derivation ambiguity correctness
+   - backward compatibility normalization correctness
+4. Wire validator into:
+   - `commit-closeout`
+   - merge-queue readiness checks
+
+Proof obligations:
+
+- reconcile repairs same-domain contradictions with provenance
+- cross-domain contradictions block and surface
+- validator fails on wrong-root, wrong-plane, stale, or ambiguous proof
+
+Failure isolation:
+
+- if work stops here, a governed repair path exists and bad states are fail-safe blocked
+
+## Phase 5: Governed closeout and remote durability
+
+Purpose:
+
+Replace raw closeout git with a governed, remotely provable closeout route.
+
+Changes:
+
+1. Add `commit-closeout` to `skills/implement-plan/scripts/implement-plan-helper.mjs`.
+2. Sequence it strictly:
+   1. reconcile canonical root
+   2. choose commit workspace
+   3. mirror reconciled canonical feature artifacts and canonical caches into workspace
+   4. validate workspace mirror
+   5. stage feature root and canonical caches
+   6. create governed closeout commit with stable trailers
+   7. push to `origin/<base_branch>`
+   8. on success, return runtime-derived `reconciliation_sha`
+   9. write local `.superseded` hint best-effort
+3. Remove raw `git add/commit/push` closeout logic from `merge-queue`.
+4. Make recovery of `reconciliation_sha` use `origin/<base_branch>`, never local `HEAD`.
+5. Enforce the closeout uniqueness rule:
+   - exactly one matching remote closeout commit per merged feature route
+   - extra candidates are blocking defects, not tie-break candidates to silently choose from
+
+Proof obligations:
+
+- push failure does not create false durable closeout truth
+- fresh clone can derive `reconciliation_sha` from remote proof
+- workspace mirror never becomes a second truth source
+- staging always reflects reconciled canonical state
+
+Failure isolation:
+
+- if work stops here, closeout is fully governed and durable proof no longer depends on local state
+
+## Phase 6: Backfill, retirement, and cleanup
+
+Purpose:
+
+Converge existing streams and remove temporary compatibility bridges after the runtime route is proven.
+
+Changes:
+
+1. Run reconcile across all existing feature streams and produce a convergence report.
+2. Rewrite or rebuild caches from canonical sources.
+3. Remove or retire remaining direct file consumers of legacy aliases.
+4. Remove temporary compatibility bridges once all in-repo readers are migrated.
+5. Close model-retirement docs that previously claimed conflicting authority models.
+
+Proof obligations:
+
+- all existing streams converge without manual repair
+- no repo-internal route still relies on persisted `last_commit_sha` or persisted `active_run_status`
+
+This phase is intentionally separate from the runtime hardening release.
 
 ---
 
-## Phase 5: Drift Validator
+## Hostile-case Proof Matrix
 
-**Issues**: No pre-commit validation, stale fields survive, no physical authority checks
+Every hardened route must have explicit hostile-case coverage.
 
-**File: `skills/implement-plan/scripts/implement-plan-helper.mjs`**
-
-1. **`validate-pre-commit` command** — Checks across all four authority planes:
-
-   **Truth-source checks:**
-   - Review-cycle completion vs implement-plan review gate
-   - All SHA fields internally consistent per I-2
-   - Merge truth consistent (`merge_commit_sha` ↔ `merge_status` ↔ `local_target_sync_status`)
-   - Events own only run-truth fields, not lifecycle fields
-   - `last_error` null if completed
-
-   **Physical-authority checks:**
-   - If `merge_commit_sha != null` but worktree is being read as authority → fail
-   - If caches exist under worktree path → fail
-   - If completed but worktree exists without `.superseded` → warn (legacy compat)
-
-   **Remote-durability checks:**
-   - `approved_commit_sha` must be ancestry of origin/feature-branch (if verifiable)
-   - `merge_commit_sha` must be ancestry of origin/base-branch (if verifiable)
-
-   Returns: `{ valid, contradictions: [{ field, expected, actual, source_a, source_b, plane: "truth"|"physical"|"remote" }] }`
-
-2. Wired into `commit-closeout` (Phase 4 step 5) and `validateCloseoutReadinessBeforeMerge()` in merge-queue.
-
-**File: `skills/implement-plan/references/workflow-contract.md`**
-
-3. Hostile-state proof catalog: fetch failure, wrong branch, merged-but-unsynced, stale worktree, stale workspace, concurrent writes, push failure, ambiguous recovery.
-
-**Proof obligations**: Each forbidden defect class from the list above has at least one hostile-case test. Validator catches truth, physical, and remote violations.
+- fetch fails while stale local refs exist -> block
+- local checkout on wrong branch -> base-branch authority unaffected
+- blocked request tries to retarget lane -> reject
+- feature queued but not merged -> worktree authoritative
+- feature merged but stale worktree still exists -> repo-root authoritative
+- cache write attempted from worktree root -> resolve to canonical root or fail
+- old state file contains legacy `last_commit_sha` only -> normalize without restoring alias authority
+- old state file contains legacy merge-route `active_run_status` -> map to owned lifecycle fields and derived compatibility view, not authoritative status
+- reconcile sees execution-vs-lifecycle contradiction -> block, do not auto-resolve across domains
+- closeout commit exists locally but push fails -> not durable, do not derive `reconciliation_sha`
+- recovery query finds zero closeout commits -> block
+- recovery query finds multiple closeout commits -> block
+- workspace mirror becomes stale after copy -> canonical root still wins
+- `.superseded` missing after successful push -> harmless, no authority regression
 
 ---
 
-## Phase 6: Operational Hygiene — SEPARATE BOUNDED FOLLOW-UP
+## Mandatory Final Contradiction Sweep
 
-Not part of core runtime fix. Planned and executed after Phases 0-5 land and are verified.
+No implementation or revised plan is review-ready until this sweep passes.
 
-Scope: Brain dedup, helper usage docs, findings triage lifecycle, stale discussion cleanup, model retirement notes, backfill reconcile on all 26 streams.
+Check for:
 
----
+- old model wording surviving anywhere
+- one field or artifact carrying two meanings
+- phase steps contradicting ownership tables
+- persisted schema contradicting hydrated view
+- validation proving an older route than the route being changed
+- backward-compat notes restoring retired authority
+- recovery rules using local proof when remote proof is required
+- workspace mirror described as anything stronger than staging material
 
-## Files Modified
-
-| File | Phases | Nature |
-|------|--------|--------|
-| `skills/merge-queue/scripts/merge-queue-helper.mjs` | 0,2,4,5 | Fail-closed fetch, block lane retarget, explicit SHA fields, delegate closeout, wire validation |
-| `skills/governed-feature-runtime.mjs` | 0 | Base-branch from origin/HEAD only |
-| `skills/implement-plan/scripts/implement-plan-helper.mjs` | 0,1,2,3,4,5 | Base-branch immutability, canonical-root selector (9 sites), SHA fields+normalization, remove skipLock, narrow events domain, reconcile, commit-closeout, validate-pre-commit |
-| `skills/review-cycle/scripts/review-cycle-helper.mjs` | 2 | Boundary comments |
-| `skills/review-cycle/references/workflow-contract.md` | 2 | Frozen boundary contract (I-3) |
-| `skills/merge-queue/references/workflow-contract.md` | 0 | Route authority docs |
-| `skills/implement-plan/references/workflow-contract.md` | 0,1,2,3,4,5 | All invariants, ownership model, precedence, hostile proofs |
-| `skills/implement-plan/SKILL.md` | 3,4 | New commands, closeout policy |
+If any contradiction remains, the plan is not ready for execution.
 
 ---
 
-## Verification Plan
+## Definition of Done
 
-Each bullet proves the claimed route, not just the happy path.
+The runtime hardening is done only when all of the following are true:
 
-**Phase 0**: Fetch fails + local ref exists → blocked. Checkout on wrong branch → base_branch from origin/HEAD. Persisted base_branch change attempt → rejected. Resume-blocked with new base_branch → rejected (must cancel + re-enqueue).
-
-**Phase 1**: Feature with `merge_commit_sha == null` in queued state → worktree canonical. Feature with `merge_commit_sha != null` → repo-root canonical. Old worktree without `.superseded` + `merge_commit_sha` set → repo-root wins. Cache write from worktree context → resolves to canonical root or fails closed.
-
-**Phase 2**: v2 state → v3 defaults. Abbreviated SHA → 40-char canonicalized. `last_commit_sha` derived, never set. `skipLock` removed → concurrent writes serialized. Events try to set `merge_status` → rejected. `evaluateCloseoutGovernanceTruth()` → ignores review-cycle `last_commit_sha`.
-
-**Phase 3**: Known contradictions → reconcile repairs all, reports per-field provenance. `last_error` on completed feature → cleared. `reconciliation_sha` → derived from git per I-6 or surfaced as missing.
-
-**Phase 4**: Reconcile runs on canonical root first → then copied to workspace → then validated in workspace → then staged and committed. Push failure → no false `reconciliation_sha`. Push success → `reconciliation_sha` returned in-session, recoverable from fresh clone via I-6. Staged files = feature root + caches. Crash after reconcile but before copy → canonical improved, workspace untouched. Crash after copy but before push → workspace stale, canonical consistent. Crash after push → `.superseded` missing is harmless.
-
-**Phase 5**: Truth contradiction → caught. Physical authority violation (worktree read after merge) → caught. Cache under worktree path → caught. Completed feature with stale `last_error` → caught. Each forbidden defect class has a hostile-case proof.
-
-**Backfill (Phase 6)**: Reconcile on all 26 streams → convergence report → no manual repair needed.
+1. Wrong-code-landing blockers are removed.
+2. Canonical root selection is consistent across all in-scope read/write paths.
+3. Persisted schema and hydrated runtime view are explicitly separated.
+4. `reconciliation_sha` is runtime-derived only.
+5. `last_commit_sha` is no longer a writable authority path.
+6. merge-queue no longer writes execution-domain status.
+7. Reconcile exists and is domain-scoped.
+8. Validator covers truth source, physical authority, remote durability, and ambiguity.
+9. Closeout is governed, remotely provable, and fail-safe on push failure.
+10. A final contradiction sweep passes.
 
 ---
 
-## Failure Isolation
+## Files In Scope
 
-- **Phase 0 alone**: Wrong-code-landing risk eliminated. All existing closeout unchanged.
-- **Phase 1 alone** (after 0): Split-authority resolved. Pre-merge features unaffected. Old worktrees handled by `merge_commit_sha` rule.
-- **Phase 2 alone** (after 0-1): SHA model tightened. `last_commit_sha` still populated via derivation.
-- **Phase 3 alone** (after 0-2): `reconcile` available. Does not change any route unless called.
-- **Phase 4 alone** (after 0-3): Closeout fully governed. Merge-queue error handling catches `commit-closeout` failures.
-- **Phase 5 alone** (after 0-4): Pre-commit checks block bad commits. Fail-safe by design.
-- **Phase 6**: Separate follow-up. No runtime impact.
+Core implementation files:
+
+- `skills/implement-plan/scripts/implement-plan-helper.mjs`
+- `skills/merge-queue/scripts/merge-queue-helper.mjs`
+- `skills/governed-feature-runtime.mjs`
+- `skills/review-cycle/scripts/review-cycle-helper.mjs`
+
+Core contract files:
+
+- `skills/implement-plan/references/workflow-contract.md`
+- `skills/merge-queue/references/workflow-contract.md`
+- `skills/review-cycle/references/workflow-contract.md`
+- `skills/implement-plan/SKILL.md`
+
+This plan file itself is part of the contract surface and must stay consistent with the implementation contracts.
