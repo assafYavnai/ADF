@@ -14,7 +14,7 @@ The implement-plan governance path from feature initiation through merge-to-main
 
 Changes from prior review cycles (full diff in git history):
 
-1. **Canonical-root rule simplified to one invariant** — `merge_status != "not_ready"` means repo-root is canonical. No active_run_status mixing.
+1. **Canonical-root rule simplified to one invariant** — `merge_commit_sha != null` (i.e., merge-backed truth exists) means repo-root is canonical. Pre-merge states (queued, blocked) stay on worktree.
 2. **Eliminated `closeout_commit_sha`** — only `reconciliation_sha` exists. One field, one commit, one meaning.
 3. **Canonical-root discovery fails closed** — if canonical project root cannot be resolved, cache writes fail rather than silently writing to worktree.
 4. **Backfill separated** — Phase 6 is now an explicitly separate bounded follow-up, not part of the core runtime fix.
@@ -27,6 +27,12 @@ Changes from prior review cycles (full diff in git history):
 11. **Closeout stages feature root + canonical cache paths** — `.codex/implement-plan/features-index.json` and `.codex/implement-plan/agent-registry.json` are explicitly included.
 12. **Fixed governed-feature-runtime.mjs path** — actual location is `skills/governed-feature-runtime.mjs`, not under `implement-plan/scripts/`.
 13. **Added `skills/review-cycle/references/workflow-contract.md` and `skills/merge-queue/references/workflow-contract.md`** to modified-files list.
+14. **Authority flip condition tightened** — changed from `merge_status != "not_ready"` (too early, captures pre-merge states like queued/blocked) to `merge_commit_sha != null` (actual merge-backed truth). Pre-merge states stay on worktree. Separates read-authority from physical write-location.
+15. **`reconciliation_sha` durability resolved** — chosen Option A: `reconciliation_sha` is deterministically derived from git history, not committed artifact truth. `reconcile` and status readers recover it from `git log` on the canonical closeout commit. No second commit needed, no local-only state gap.
+16. **Resume-blocked base-branch retargeting blocked** — merge-queue `resume-blocked` lane migration (merge-queue-helper.mjs:529-544) now rejected when base-branch immutability is enforced. Blocked requests can get new approved SHAs but cannot change target lane.
+17. **Authority vs write-location separated** — canonical-root rule governs read authority. Physical writes during closeout happen in whichever checkout is executing (merge worktree or synced main), then caches are synced to canonical project root before staging.
+18. **Phase 1 scope clarified** — only covers post-prepare governed routes. Pre-prepare features have no worktree yet.
+19. **Phase 2 review-cycle code path** — `evaluateCloseoutGovernanceTruth()` explicitly skips review-cycle `last_commit_sha` when reading verdict evidence.
 
 ---
 
@@ -87,11 +93,20 @@ Changes from prior review cycles (full diff in git history):
 
 These rules are stated once and reused by every phase:
 
-**I-1. Canonical Root Rule:**
-- Before `merge_status` leaves `not_ready`: worktree may be canonical for active execution artifacts
-- Once `merge_status` is anything other than `not_ready`: repo-root is canonical for all lifecycle truth
+**I-1. Canonical Root Rule (read authority vs physical write location):**
+
+*Read authority* (which copy is truth):
+- Before `merge_commit_sha` exists: worktree may be canonical for active execution artifacts
+- Once `merge_commit_sha != null` (merge-backed truth exists): repo-root is canonical for all lifecycle truth
+- Pre-merge states (`ready_to_queue`, `queued`, `in_progress`, `blocked`) stay on worktree — they are not yet merge-backed
 - Once feature is completed or reconciled: worktree is never authoritative again
-- `.superseded` marker is an accelerator; absence means "legacy/unresolved" — repo-root still wins per the merge_status rule above
+- `.superseded` marker is an accelerator; absence means "legacy/unresolved" — repo-root still wins per the `merge_commit_sha` rule above
+- This rule only covers post-prepare governed routes. Pre-prepare features have no worktree yet.
+
+*Physical write location* (where closeout commits happen):
+- Closeout may execute from merge worktree or synced main checkout (whichever is clean)
+- Global caches (features-index, agent-registry) are always synced to canonical project root before staging
+- Read authority is independent of which checkout performed the closeout commit
 
 **I-2. SHA Authority Matrix:**
 ```
@@ -144,6 +159,8 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
 
 4. **Base-branch immutability guard** — In implement-plan-helper.mjs `update-state`, reject changes to `base_branch` after initial set.
 
+5. **Block resume-blocked lane migration** (line 516-549) — Remove the `input.baseBranch` override path in `resume-blocked`. Blocked requests can receive a new `approved_commit_sha` but cannot change `base_branch` or migrate between lanes. If a lane retarget is genuinely needed, the request must be cancelled and re-enqueued with a new contract.
+
 **File: `skills/merge-queue/references/workflow-contract.md`**
 
 5. Document `fresh_base_ref_sha` as a persisted request field with schema and consumption points.
@@ -164,10 +181,11 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
 
 1. **Non-circular canonical-root selector** — New function `resolveCanonicalStatePaths(paths, input)`:
    - **Always** read repo-root state first (it always exists after prepare)
-   - Check `merge_status` from repo-root state
-   - If `merge_status === "not_ready"` AND worktree exists AND no `.superseded` marker → worktree is canonical
-   - Otherwise → repo-root is canonical
+   - Check `merge_commit_sha` from repo-root state
+   - If `merge_commit_sha` is null AND worktree exists AND no `.superseded` marker → worktree is canonical (feature is pre-merge)
+   - If `merge_commit_sha` is non-null → repo-root is canonical (merge-backed truth exists)
    - If canonical root cannot be resolved → fail closed with error (never silently fall back to worktree for cache writes)
+   - Scope: only applies to post-prepare governed routes. Pre-prepare features have no worktree.
 
    This is non-circular because the decision input (repo-root state) is independent of the decision output (which paths to use).
 
@@ -260,6 +278,8 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
 
 13. Update schema docs: SHA fields, derivation rule, normalization, domain-narrowed events rule
 
+14. **Code-path enforcement** — In `evaluateCloseoutGovernanceTruth()`, when reading review-cycle-state for verdict evidence, explicitly skip/ignore `last_commit_sha` from review-cycle-state. Read only verdict, approval, and lane status fields.
+
 ---
 
 ## Phase 3: Reconcile Command + Artifact Precedence (Issues H, M)
@@ -332,12 +352,16 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
       - `git add -- .codex/implement-plan/features-index.json .codex/implement-plan/agent-registry.json`
    6. Create governed commit: `docs(phase<N>/<feature-slug>): governed closeout [merge:<merge_sha_short>]`
    7. Push to `origin/<base-branch>`
-   8. **Post-commit state update** (NOT inside the committed artifacts):
-      - `git rev-parse HEAD` → get the closeout commit SHA
-      - Write `reconciliation_sha` into state via `update-state`
-      - This is a local state update only — the SHA is persisted in state for future reads, but the committed artifacts in this push do NOT contain it (avoiding the circular dependency of needing the SHA before the commit exists)
+   8. `git rev-parse HEAD` → capture the closeout commit SHA as `reconciliation_sha`
    9. If worktree exists, write `.superseded` marker
    10. Return `{ reconciliation_sha, push_status, contradictions_repaired: [...] }`
+
+   **Durability rule for `reconciliation_sha` (Option A — derived from git history):**
+   - `reconciliation_sha` is NOT stored inside committed feature-local artifacts (avoiding the circular dependency of needing the SHA before the commit exists)
+   - Instead, it is **deterministically recoverable** from git history: the governed closeout commit is identifiable by its message pattern (`docs(phase<N>/<feature-slug>): governed closeout [merge:<sha>]`) on the base branch after `merge_commit_sha`
+   - `reconcile` and status readers recover it via: `git log --format=%H --grep="governed closeout" <merge_commit_sha>..HEAD -- <feature-root>` (bounded, deterministic, no ambiguity)
+   - The return value from `commit-closeout` provides the SHA to callers in the same session; future sessions derive it from git
+   - This means `reconciliation_sha` is governed runtime truth derived from committed git evidence, not a committed artifact field
 
    **Semantic rule**: `reconciliation_sha` is the ONLY field for the closeout commit. One field, one commit, one meaning. Callers that previously used `closeout_commit_sha` should read `reconciliation_sha` instead.
 
@@ -354,7 +378,7 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
    - Replace raw closeout with `commit-closeout` call
    - Read `reconciliation_sha` from result
 
-4. **Ephemeral checkout** — `chooseCloseoutProjectRoot()` uses merge worktree when main is dirty. `commit-closeout` uses persisted `base_branch` (I-5), never infers from checkout state.
+4. **Ephemeral checkout + cache sync** — `chooseCloseoutProjectRoot()` uses merge worktree when main is dirty. Before staging, `commit-closeout` syncs global caches (features-index, agent-registry) from canonical project root into the committing worktree's `.codex/implement-plan/` directory, so staged files reflect canonical truth regardless of which checkout runs the closeout. `commit-closeout` uses persisted `base_branch` (I-5), never infers from checkout state.
 
 **File: `skills/implement-plan/SKILL.md`**
 
@@ -460,14 +484,18 @@ last_commit_sha       → DERIVED compatibility alias only, never directly autho
 - Abbreviated SHA → canonicalized
 - Concurrent writes → serialized
 - Canonical-root discovery fails → fail closed
-- Old worktree without `.superseded` → repo-root wins per merge_status rule
+- Old worktree without `.superseded` → repo-root wins per merge_commit_sha rule
+- Feature in queued/blocked state → worktree still canonical (pre-merge)
+- Feature with merge_commit_sha set → repo-root canonical regardless of worktree state
+- Resume-blocked with new base_branch → rejected (must cancel and re-enqueue)
+- `reconciliation_sha` recovery from fresh clone → deterministic git log query succeeds
 
 ---
 
 ## Failure Isolation
 
 - **Phase 0 alone**: Wrong-code-landing risk eliminated. All existing closeout unchanged.
-- **Phase 1 alone** (after 0): Split-authority resolved. Old worktrees without `.superseded` handled by merge_status rule fallback.
+- **Phase 1 alone** (after 0): Split-authority resolved. Old worktrees without `.superseded` handled by `merge_commit_sha` rule fallback.
 - **Phase 2 alone** (after 0-1): SHA model tightened. `last_commit_sha` still populated for compat.
 - **Phase 3 alone** (after 0-2): `reconcile` available for manual or governed use.
 - **Phase 4 alone** (after 0-3): Closeout fully governed. Merge-queue error handling catches failures.
