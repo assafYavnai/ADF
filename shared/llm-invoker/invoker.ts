@@ -662,11 +662,12 @@ async function runCodexCommand(params: InvocationParams, args: string[]) {
 
   return await runManagedProcess({
     command: "codex",
-    args: [...args, params.prompt],
+    args: [...args, "-"],
     timeoutMs: params.timeout_ms ?? 120_000,
     label: "codex",
     cwd: params.working_directory,
     env: { ...process.env },
+    stdinText: params.prompt,
   });
 }
 
