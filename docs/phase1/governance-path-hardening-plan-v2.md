@@ -149,6 +149,8 @@ These decisions are frozen by this plan.
 1. `reconciliation_sha` is runtime-derived only.
    - It is never stored in the persisted feature state schema.
    - It is recovered only from durable git evidence on `origin/<base_branch>`.
+   - Reconcile, status, hydration, migration, and normalization paths may materialize it in memory only.
+   - No state-save path may write it back into persisted feature state, even as a convenience cache.
 
 2. `last_commit_sha` is a compatibility view only.
    - It is never directly authored by the hardened route.
@@ -372,6 +374,7 @@ Non-authoritative outputs:
 
 No domain may silently override another.
 Cross-domain contradictions block and surface; they do not auto-resolve by ladder simplification.
+Reintroducing a simplified global precedence ladder is a defect by class, even if it appears to fix a local contradiction.
 
 ### I-4. Derived values are read-only
 
@@ -426,9 +429,10 @@ If implementation introduces any of these, the route is still defective even if 
 4. Runtime-derived truth without explicit zero-result and multi-result blocking
 5. Cache or registry write from non-canonical root
 6. Workspace mirror treated as authority
-7. Validator that checks one authority plane while ignoring siblings
-8. Route mutation without corresponding proof-plan mutation
-9. Backward compatibility path that restores retired authority
+7. Domain-scoped precedence collapsed back into a global ladder
+8. Validator that checks one authority plane while ignoring siblings
+9. Route mutation without corresponding proof-plan mutation
+10. Backward compatibility path that restores retired authority
 
 ---
 
@@ -644,11 +648,11 @@ Changes:
    - resolve canonical root first
    - load artifacts from canonical source
    - apply domain-scoped precedence, not a global ladder
-   - block on cross-domain contradictions instead of silently overriding
-   - clear stale `last_error` on successful completion
-   - hydrate derived `reconciliation_sha` and compatibility `last_commit_sha`
-   - sync caches to canonical root only
-   - write `.superseded` as local hint when appropriate
+    - block on cross-domain contradictions instead of silently overriding
+    - clear stale `last_error` on successful completion
+    - hydrate derived `reconciliation_sha` and compatibility `last_commit_sha`
+    - sync caches to canonical root only
+    - write `.superseded` as local hint when appropriate
 3. Add `validate-pre-commit` and make it check:
    - truth-source correctness
    - physical-authority correctness
@@ -663,6 +667,8 @@ Proof obligations:
 
 - reconcile repairs same-domain contradictions with provenance
 - cross-domain contradictions block and surface
+- review evidence, caches, projections, and summaries never become lifecycle tie-breakers
+- `reconciliation_sha` is hydrated in-memory only and never written back by reconcile or status paths
 - validator fails on wrong-root, wrong-plane, stale, or ambiguous proof
 
 Failure isolation:
@@ -765,6 +771,49 @@ Check for:
 - workspace mirror described as anything stronger than staging material
 
 If any contradiction remains, the plan is not ready for execution.
+
+---
+
+## Review-Readiness Checklist
+
+Before declaring the plan review-ready, verify all of the following:
+
+1. For every authority-bearing field and artifact:
+   - truth class
+   - sole writer
+   - all readers
+   - all validators
+   - all derivation paths
+   - all migration and normalization paths
+   - all failure modes
+
+2. For each implementation phase:
+   - which route changes
+   - which sibling branches are in scope
+   - which route power is added or removed
+   - which hostile cases are covered
+   - why the phase is route-complete rather than endpoint-only
+
+3. For every derived or recovered value:
+   - success path
+   - zero-result behavior
+   - multi-result behavior
+   - stale or missing proof behavior
+   - wrong-root behavior
+   - explicit fail-closed blocking behavior
+
+4. For every copied or mirrored artifact:
+   - whether it is authority or staging
+   - whether it is durable or temporary
+   - whether any later route could mistake it for source truth
+
+5. For the whole plan:
+   - no stale wording from an older model
+   - no duplicate concept carrying two meanings
+   - no ownership table contradicting a phase step
+   - no verification text proving an older route than the one being changed
+
+If any checklist item cannot be answered explicitly, the route is not yet fully planned.
 
 ---
 
