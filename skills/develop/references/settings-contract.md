@@ -25,3 +25,4 @@ History:
 
 - append each successful change to `.codex/develop/settings-history.json`
 - each entry records timestamp, previous value, new value, and source
+- repair-mutation writes from invalid persisted `schema_version: 1` settings are also treated as successful changes and must append history entries using source `develop settings`

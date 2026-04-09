@@ -158,14 +158,15 @@ async function ensureSettings(projectRoot) {
       return {
         settingsPath,
         settings: existing,
+        repair: null,
         setup
       };
     }
     const repairedSettings = normalizePersistedSettings(existing, setup.defaults);
-    await writeJsonAtomic(settingsPath, repairedSettings);
     return {
       settingsPath,
       settings: repairedSettings,
+      repair: existing,
       setup
     };
   }
@@ -177,8 +178,14 @@ async function ensureSettings(projectRoot) {
   return {
     settingsPath,
     settings,
+    repair: null,
     setup
   };
+}
+
+async function updateSettingsDocument(projectRoot, settingsPath, previousValue, nextValue, source) {
+  await writeJsonAtomic(settingsPath, nextValue);
+  await appendSettingsHistory(projectRoot, previousValue, nextValue, source);
 }
 
 async function appendSettingsHistory(projectRoot, previousValue, nextValue, source) {
@@ -308,8 +315,11 @@ async function handleSettings(projectRoot, rawPayload) {
   await mkdir(lockRoot, { recursive: true });
 
   await withLock(lockRoot, "develop-settings", async () => {
-    const { settingsPath, settings } = await ensureSettings(projectRoot);
+    const { settingsPath, settings, repair } = await ensureSettings(projectRoot);
     if (!rawPayload) {
+      if (repair) {
+        await updateSettingsDocument(projectRoot, settingsPath, repair, settings, "develop settings");
+      }
       printJson({
         command: "settings",
         status: "ok",
@@ -335,8 +345,8 @@ async function handleSettings(projectRoot, rawPayload) {
       ...parsed,
       schema_version: 1
     };
-    await writeJsonAtomic(settingsPath, nextSettings);
-    await appendSettingsHistory(projectRoot, settings, nextSettings, "develop settings");
+    const previousValue = repair ?? settings;
+    await updateSettingsDocument(projectRoot, settingsPath, previousValue, nextSettings, "develop settings");
     printJson({
       command: "settings",
       status: "ok",
