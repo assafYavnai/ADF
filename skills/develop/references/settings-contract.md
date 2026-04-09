@@ -19,6 +19,7 @@ Validation rules:
 - governance behavior is not overridable
 - `schema_version` must be `1`
 - `max_review_cycles` must be a positive integer
+- existing persisted `schema_version: 1` settings are validated before return; invalid or partial persisted values are repaired to defaults plus contract-valid fields so invalid siblings are not preserved.
 
 History:
 

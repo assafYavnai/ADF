@@ -42,16 +42,16 @@
   "last_commit_sha": null,
   "active_run_status": "closeout_pending",
   "created_at": "2026-04-09T17:33:10.778Z",
-  "updated_at": "2026-04-09T18:28:40.747Z",
+  "updated_at": "2026-04-09T18:49:08.723Z",
   "run_timestamps": {
     "context_collected_at": "2026-04-09T17:33:11.049Z",
     "worktree_prepared_at": "2026-04-09T17:34:48.442Z",
     "integrity_passed_at": null,
     "integrity_failed_at": "2026-04-09T17:34:37.118Z",
     "brief_written_at": null,
-    "implementor_started_at": "2026-04-09T18:13:21.655Z",
-    "implementor_finished_at": "2026-04-09T18:28:40.468Z",
-    "verification_finished_at": "2026-04-09T18:28:40.682Z",
+    "implementor_started_at": "2026-04-09T18:42:08.841Z",
+    "implementor_finished_at": "2026-04-09T18:49:08.464Z",
+    "verification_finished_at": "2026-04-09T18:49:08.668Z",
     "review_requested_at": "2026-04-09T18:05:22.463Z",
     "human_verification_requested_at": null,
     "merge_started_at": null,
@@ -219,6 +219,48 @@
       "attempt_id": "attempt-001",
       "timestamp": "2026-04-09T18:28:40.682Z",
       "note": "Legacy event mirrored into the execution projection: verification-finished."
+    },
+    {
+      "event": "implementor-started",
+      "timestamp": "2026-04-09T18:42:08.841Z",
+      "note": null
+    },
+    {
+      "event_id": "event-038dea2a-67ea-4ade-a8dc-6a256d77f37d",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:42:08.841Z",
+      "note": "Legacy event mirrored into the execution projection: implementor-started."
+    },
+    {
+      "event": "implementor-finished",
+      "timestamp": "2026-04-09T18:49:08.464Z",
+      "note": null
+    },
+    {
+      "event_id": "event-f4dadcaa-3e98-4f0b-9bb5-f419c001a264",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:49:08.464Z",
+      "note": "Legacy event mirrored into the execution projection: implementor-finished."
+    },
+    {
+      "event": "verification-finished",
+      "timestamp": "2026-04-09T18:49:08.668Z",
+      "note": null
+    },
+    {
+      "event_id": "event-cfa6dfda-dc74-413f-8f0e-a44464c6f6ea",
+      "event_type": "step-transition",
+      "run_id": "run-9e2b78df-7e84-49c0-baba-03d8a716c253",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T18:49:08.668Z",
+      "note": "Legacy event mirrored into the execution projection: verification-finished."
     }
   ],
   "artifacts": {
@@ -250,7 +292,7 @@
         "lifecycle_status": "active",
         "terminal_status": null,
         "contract_schema_version": 1,
-        "contract_revision": 11,
+        "contract_revision": 14,
         "feature_contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-execution-contract.v1.json",
         "contract_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/execution-contract.v1.json",
         "projection_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implementation-run/run-9e2b78df-7e84-49c0-baba-03d8a716c253/run-projection.v1.json",
@@ -273,7 +315,7 @@
             "status": "closeout_pending",
             "terminal_status": null,
             "started_at": "2026-04-09T17:33:10.805Z",
-            "updated_at": "2026-04-09T18:28:40.745Z",
+            "updated_at": "2026-04-09T18:49:08.721Z",
             "reset_at": null,
             "reset_reason": null,
             "superseded_by_attempt_id": null,
@@ -281,20 +323,20 @@
               "step": "machine_verification",
               "status": "completed",
               "reason": "Resume from the last truthful normal-mode checkpoint.",
-              "updated_at": "2026-04-09T18:28:40.745Z"
+              "updated_at": "2026-04-09T18:49:08.721Z"
             },
             "step_status": {
               "implementation": {
                 "status": "completed",
-                "started_at": "2026-04-09T18:13:21.655Z",
-                "completed_at": "2026-04-09T18:28:40.468Z",
-                "duration_seconds": 919,
+                "started_at": "2026-04-09T18:42:08.841Z",
+                "completed_at": "2026-04-09T18:49:08.464Z",
+                "duration_seconds": 420,
                 "note": null
               },
               "machine_verification": {
                 "status": "completed",
-                "started_at": "2026-04-09T18:28:40.468Z",
-                "completed_at": "2026-04-09T18:28:40.682Z",
+                "started_at": "2026-04-09T18:49:08.464Z",
+                "completed_at": "2026-04-09T18:49:08.668Z",
                 "duration_seconds": 0,
                 "note": null
               },
@@ -355,26 +397,26 @@
                 "recreated_due_to_access": false
               }
             },
-            "last_checkpoint_at": "2026-04-09T18:28:40.745Z",
-            "last_event_at": "2026-04-09T18:28:40.682Z"
+            "last_checkpoint_at": "2026-04-09T18:49:08.721Z",
+            "last_event_at": "2026-04-09T18:49:08.668Z"
           }
         },
         "created_at": "2026-04-09T17:33:10.805Z",
-        "updated_at": "2026-04-09T18:28:40.751Z",
-        "last_event_at": "2026-04-09T18:28:40.682Z",
+        "updated_at": "2026-04-09T18:49:08.727Z",
+        "last_event_at": "2026-04-09T18:49:08.668Z",
         "kpi_projection": {
           "terminal_status": null,
           "per_step_timing": {
             "implementation": {
               "status": "completed",
-              "started_at": "2026-04-09T18:13:21.655Z",
-              "completed_at": "2026-04-09T18:28:40.468Z",
-              "duration_seconds": 919
+              "started_at": "2026-04-09T18:42:08.841Z",
+              "completed_at": "2026-04-09T18:49:08.464Z",
+              "duration_seconds": 420
             },
             "machine_verification": {
               "status": "completed",
-              "started_at": "2026-04-09T18:28:40.468Z",
-              "completed_at": "2026-04-09T18:28:40.682Z",
+              "started_at": "2026-04-09T18:49:08.464Z",
+              "completed_at": "2026-04-09T18:49:08.668Z",
               "duration_seconds": 0
             },
             "review_cycle": {
@@ -412,7 +454,7 @@
       }
     }
   },
-  "__gsw_revision": 11,
-  "__gsw_write_id": "gsw-80d884dc-26a6-442d-af5e-b5d27c583c97",
-  "__gsw_timestamp": "2026-04-09T18:28:40.753Z"
+  "__gsw_revision": 14,
+  "__gsw_write_id": "gsw-e1244f56-c769-4c56-9339-d1d6d8051b9e",
+  "__gsw_timestamp": "2026-04-09T18:49:08.729Z"
 }

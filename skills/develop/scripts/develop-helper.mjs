@@ -152,10 +152,20 @@ async function ensureSettings(projectRoot) {
   const { setup } = await ensureSetup({ projectRoot });
   const settingsPath = join(projectRoot, ".codex", "develop", "settings.json");
   const existing = await readJsonIfExists(settingsPath, null);
-  if (existing && existing.schema_version === 1) {
+  if (existing && existing.schema_version === 1 && typeof existing === "object" && !Array.isArray(existing)) {
+    const existingValidationError = validateSettingsPayload(existing);
+    if (!existingValidationError) {
+      return {
+        settingsPath,
+        settings: existing,
+        setup
+      };
+    }
+    const repairedSettings = normalizePersistedSettings(existing, setup.defaults);
+    await writeJsonAtomic(settingsPath, repairedSettings);
     return {
       settingsPath,
-      settings: existing,
+      settings: repairedSettings,
       setup
     };
   }
@@ -182,6 +192,39 @@ async function appendSettingsHistory(projectRoot, previousValue, nextValue, sour
     source
   });
   await writeJsonAtomic(historyPath, history);
+}
+
+function normalizePersistedSettings(payload, defaults) {
+  const normalized = {
+    schema_version: 1,
+    ...defaults
+  };
+
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return normalized;
+  }
+  if (typeof payload.implementor_model === "string") {
+    normalized.implementor_model = payload.implementor_model;
+  }
+  if (typeof payload.implementor_effort === "string") {
+    normalized.implementor_effort = payload.implementor_effort;
+  }
+  if (typeof payload.auditor_model === "string") {
+    normalized.auditor_model = payload.auditor_model;
+  }
+  if (typeof payload.auditor_effort === "string") {
+    normalized.auditor_effort = payload.auditor_effort;
+  }
+  if (typeof payload.reviewer_model === "string") {
+    normalized.reviewer_model = payload.reviewer_model;
+  }
+  if (typeof payload.reviewer_effort === "string") {
+    normalized.reviewer_effort = payload.reviewer_effort;
+  }
+  if (Number.isInteger(payload.max_review_cycles) && payload.max_review_cycles >= 1) {
+    normalized.max_review_cycles = payload.max_review_cycles;
+  }
+  return normalized;
 }
 
 function validateSettingsPayload(payload) {

@@ -1,0 +1,35 @@
+1. Findings
+Overall Verdict: REJECTED
+
+Finding 1: SETTINGS_PERSISTED_STATE_INGRESS_NOT_VALIDATED
+failure class: SETTINGS_PERSISTED_STATE_INGRESS_NOT_VALIDATED
+broken route invariant in one sentence: `develop settings` is required to read, validate, persist, and return bounded settings, but the current route validates only new payloads and trusts any existing `settings.json` that has `schema_version: 1`.
+exact route (A -> B -> C): invoker -> `skills/develop/scripts/develop-helper.mjs settings` -> `ensureSettings()` existing-settings fast path -> structured settings response and merged writes to `.codex/develop/settings.json`
+exact file/line references: `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:49-57`; `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/docs/phase1/develop-shell-help-settings-status-governor/implement-plan-contract.md:101-111`; `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/skills/develop/references/workflow-contract.md:54-58`; `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/skills/develop/references/settings-contract.md:5-25`; `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/skills/develop/scripts/develop-helper.mjs:151-171`; `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/skills/develop/scripts/develop-helper.mjs:187-226`; `C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/skills/develop/scripts/develop-helper.mjs:263-303`
+concrete operational impact: During this audit, after temporarily restoring a `schema_version: 1` settings file with `implementor_model: 5`, `node C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor/skills/develop/scripts/develop-helper.mjs settings --project-root C:/ADF/.codex/implement-plan/worktrees/phase1/develop-shell-help-settings-status-governor` returned `status: "ok"` and echoed the invalid numeric `implementor_model`. A subsequent valid partial update also returned `status: "ok"` while preserving the invalid numeric field. That means any previously persisted bad state from the cycle-02 write-path bug, manual edits, or external tooling is still treated as authoritative bounded configuration.
+KPI applicability: required
+KPI closure state: Partial
+KPI proof or exception gap: The current fix closes the write-path type checks for new payloads, but there is still no proof that existing persisted settings are validated or repaired before read and merge. No temporary KPI exception exists for this remaining ingress gap.
+Compatibility verdict: Incompatible. The public Slice A front door is now present and the status/setup deltas are materially closed, but the bounded settings surface is still not fully script-authoritative because previously persisted invalid state is accepted as valid configuration.
+sweep scope: `ensureSettings()` existing-settings fast path; `handleSettings()` merge behavior; `.codex/develop/settings.json`; `.codex/develop/settings-history.json`; any later Slice A or later-slice caller that consumes settings defaults and assumes they satisfy the documented schema.
+closure proof: `develop settings` must reject or repair an existing invalid `schema_version: 1` settings file before returning it, and a valid partial update must not preserve invalid sibling fields. Proof must cover: existing invalid read, existing invalid plus partial valid update, existing invalid plus valid full replacement, and existing valid read/write stability.
+shared-surface expansion risk: present and where: `.codex/develop/settings.json` is a shared operational configuration surface for the public `develop` route, and `.codex/develop/settings-history.json` can currently record updates applied on top of invalid retained state.
+negative proof required: Prove that a previously corrupted or manually edited `schema_version: 1` settings file cannot survive a read or a partial valid update with invalid field types still present.
+live/proof isolation risk: present and why: the current proof set covers fresh invalid payload rejection, but not persisted invalid-state ingress, so the live shared settings surface is still wider than the proved route.
+claimed-route vs proved-route mismatch risk: present and why: the Slice A contract says the settings route reads, validates, persists, and returns bounded settings, but the current implementation only validates the incoming payload and not the already persisted state it reads and merges.
+status: live defect
+
+2. Conceptual Root Cause
+The remaining root cause is a missing persisted-state ingress invariant on the settings route. The cycle-02 fix hardened the write boundary for new payloads, but the route still assumes any existing `schema_version: 1` file is trustworthy. That leaves the shared settings surface only partially governed: new writes are validated, while previously persisted invalid values are still accepted and preserved.
+
+There is no remaining root cause in the other two audited cycle-02 classes. The summary-only committed-truth status route is now closed, and the setup helper now derives capability/runtime truth from runtime preflight rather than ad hoc command probing.
+
+3. High-Level View Of System Routes That Still Need Work
+Route: persisted settings normalization on read and partial update
+what must be frozen before implementation: the exact rule for handling an existing invalid `schema_version: 1` settings file, including whether the route fail-closes with a structured error or repairs to defaults before returning, and whether partial updates are allowed to coexist with invalid untouched sibling fields.
+why endpoint-only fixes will fail: patching only the incoming payload validator will not close the shared-surface defect because the bad state already lives behind the read path and merge path; the route remains open until persisted-state ingress is governed too.
+the minimal layers that must change to close the route: `skills/develop/scripts/develop-helper.mjs` in `ensureSettings()` and the `handleSettings()` merge path; no changes to `develop-governor.mjs`, `develop-setup-helper.mjs`, internal engines, or broader Slice B/C surfaces are required.
+explicit non-goals, so scope does not widen into general refactoring: no worker spawning, no review-cycle delegation, no merge-queue delegation, no status-route redesign, no setup-helper redesign, and no new global configuration system outside the existing `.codex/develop/settings.json` surface.
+what done looks like operationally: `develop settings` returns only contract-valid settings, rejects or repairs an invalid persisted `schema_version: 1` file before treating it as authoritative, and a valid partial update cannot leave invalid sibling fields behind.
+
+Final Verdict: REJECTED
