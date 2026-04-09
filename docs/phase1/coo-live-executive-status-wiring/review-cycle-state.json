@@ -34,34 +34,37 @@
   "cycle_runtime": {
     "cycle_number": 12,
     "cycle_name": "cycle-12",
-    "status": "review_not_started",
+    "status": "fix_report_complete_commit_push_pending",
     "cycle_started_at": "2026-04-09T07:48:51.668Z",
-    "review_requested_at": null,
-    "auditor_finished_at": null,
-    "reviewer_finished_at": null,
-    "implementor_started_at": null,
-    "implementor_finished_at": null,
-    "verification_finished_at": null,
+    "review_requested_at": "2026-04-09T07:50:15.473Z",
+    "auditor_finished_at": "2026-04-09T07:51:34.151Z",
+    "reviewer_finished_at": "2026-04-09T07:51:48.770Z",
+    "implementor_started_at": "2026-04-09T07:53:25.672Z",
+    "implementor_finished_at": "2026-04-09T07:53:32.371Z",
+    "verification_finished_at": "2026-04-09T07:53:04.700Z",
     "cycle_finished_at": null,
     "report_ready": {
-      "auditor": false,
-      "reviewer": false
+      "auditor": true,
+      "reviewer": true
     },
     "report_surfaced": {
-      "auditor": false,
-      "reviewer": false
+      "auditor": true,
+      "reviewer": true
     },
-    "report_surface_order": [],
+    "report_surface_order": [
+      "auditor",
+      "reviewer"
+    ],
     "lane_verdicts": {
-      "auditor": "unknown",
-      "reviewer": "unknown"
+      "auditor": "approve",
+      "reviewer": "approve"
     },
     "recreated_executions": {
       "auditor": false,
       "reviewer": false,
       "implementor": false
     },
-    "last_note": null
+    "last_note": "Bounded verification passed on head 10dd127: the four repaired governed JSON projections parsed cleanly, shared/llm-invoker had no diff vs 025d67f0d36c9ec66aaa4b2647dd0da66090f575, and cycle-10 remains the authoritative live /status smoke proof set."
   },
   "split_review_continuity": {
     "mode": "full_pair",
@@ -74,8 +77,8 @@
     "note": null
   },
   "created_at": "2026-04-04T16:49:04.885Z",
-  "updated_at": "2026-04-09T07:48:51.701Z",
-  "__gsw_revision": 71,
-  "__gsw_write_id": "gsw-9d543988-d034-444e-8f84-646cd789344d",
-  "__gsw_timestamp": "2026-04-09T07:48:51.703Z"
+  "updated_at": "2026-04-09T07:53:43.716Z",
+  "__gsw_revision": 83,
+  "__gsw_write_id": "gsw-04c97020-cebf-481c-adc6-f4135514e4cd",
+  "__gsw_timestamp": "2026-04-09T07:53:43.720Z"
 }
