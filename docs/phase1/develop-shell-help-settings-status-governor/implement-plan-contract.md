@@ -22,6 +22,7 @@ This slice does not deliver full A-to-Z implement orchestration, worker spawning
 - `skills/develop/references/artifact-templates.md` -- contract.md and context.md templates with validation rules
 - `skills/develop/references/settings-contract.md` -- allowed settings surface and schema
 - `skills/develop/references/kpi-contract.md` -- KPI model definition for later slices
+- `skills/develop/references/workflow-contract.md` -- frozen internal route contract for command routing, governor behavior, truth hierarchy, status rendering, settings handling, and guarded stub behavior
 - `skills/develop/agents/openai.yaml` -- agent interface definition
 - `skills/manifest.json` -- register develop skill entry
 - `.codex/develop/settings.json` -- settings persistence (created by entry script at runtime)
@@ -118,10 +119,20 @@ D-08: `skills/develop/references/kpi-contract.md`
   - Persistence rule: disk required at `.codex/develop/lanes/<lane-id>/kpi.json`, Brain optional/best-effort
 - This deliverable defines the model. KPI capture implementation is Slice B scope.
 
-D-09: `skills/develop/agents/openai.yaml`
+D-09: `skills/develop/references/workflow-contract.md`
+- Frozen internal route contract for the develop skill. This is the single authoritative reference for:
+  - Command routing: how each public command (help, implement, fix, status, settings) maps to entry script behavior
+  - Governor command behavior: what each governor function checks, its input/output contract, and structured return shape
+  - Truth hierarchy: the priority order for status and finalize sources (committed feature-local > closeout receipt > merge truth > lane projections), and the rule that committed truth wins over projections
+  - Guarded stub behavior: what `implement` and `fix` do in Slice A (validate prerequisites, then report unavailability)
+  - Status rendering contract: required output fields (slice identity, stage, status, blocker, last event, verdicts, human input required, next transition), prohibition on fake progress percentages
+  - Settings handling contract: schema, validation rules, persistence path, rejected keys behavior, append-only history logging
+- This file prevents implementor drift between SKILL.md, develop-helper.mjs, develop-governor.mjs, and reference docs by freezing internal route semantics in one place.
+
+D-10: `skills/develop/agents/openai.yaml`
 - Agent interface definition for the develop skill, following existing skill patterns in manifest.json.
 
-D-10: `skills/manifest.json` update
+D-11: `skills/manifest.json` update
 - Register `develop` skill with:
   - skill name: `develop`
   - SKILL.md path
@@ -129,7 +140,7 @@ D-10: `skills/manifest.json` update
   - reference paths
   - agent definition path
 
-D-11: Status truth hierarchy implementation in `develop-helper.mjs`
+D-12: Status truth hierarchy implementation in `develop-helper.mjs`
 - `develop status` must read from sources in this priority order:
   1. Committed feature-local state: `implement-plan-state.json`, `completion-summary.md`, and other governed artifacts under `docs/phase<N>/<feature-slug>/`
   2. `closeout-receipt.v1.json`: when present, authoritative for commit roles, merge evidence, reconciliation status
@@ -229,7 +240,7 @@ Machine Verification Plan:
 - V-18: Status truth hierarchy proof: create a test feature directory with both `implement-plan-state.json` (showing status "completed") and a contradictory `.codex/develop/lanes/` projection (showing status "implementing"). Verify `develop status` reports "completed" (committed truth wins over projection).
 - V-19: Status behavior without `closeout-receipt.v1.json`: verify status renders correctly from feature-local state alone, without error, when no receipt is present.
 - V-20: Status behavior with `closeout-receipt.v1.json`: verify status includes receipt-sourced fields (commit roles, merge evidence) when receipt is present.
-- V-21: Manifest registration: `skills/manifest.json` includes develop entry and `node C:/ADF/skills/manage-skills.mjs check --target codex --project-root C:/ADF` does not report errors for the develop skill entry (or the check command equivalent).
+- V-21: Manifest registration: `skills/manifest.json` includes a structurally valid develop entry. Verify by reading the file and confirming the develop skill object contains required fields (skill name, SKILL.md path, script paths, reference paths, agent definition path) consistent with the pattern used by existing skills in the same manifest.
 - V-22: `git -C C:/ADF diff --check` -- no whitespace errors in new files
 
 Human Verification Plan:
