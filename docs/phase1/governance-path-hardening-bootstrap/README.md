@@ -13,7 +13,7 @@ This is the bootstrap/manual-governance landing for that effort. It freezes the 
 - Current `implement-plan`, `review-cycle`, and `merge-queue` helpers are authoritative source material to repair, but they are not sufficient final authority for closing this slice.
 - The first landing must stop for manual review before any code changes start.
 - The seeded operational artifacts intentionally freeze the slice in repo-native `blocked` state after the brief is written. The last truthful executable checkpoint remains `brief_ready`, but current helpers must encounter a machine-enforced manual-bootstrap hold until approval is recorded.
-- `implement-plan-pushback.md` is the sole bootstrap approval record for clearing that hold. Until that record is stamped approved, the slice must not reopen to implementation and must not advertise `review_pending`, `review_requested`, or a governed `review-cycle` handoff before real post-implementation review exists.
+- `bootstrap-approval.v1.json` is the sole bootstrap approval record for clearing that hold. Until that record is stamped approved, the slice must not reopen to implementation and must not advertise `review_pending`, `review_requested`, or a governed `review-cycle` handoff before real post-implementation review exists.
 - Trust may return to the governed route only after the acceptance gates in this slice are proven on the repaired path.
 
 ## Why This Slice Exists Now
@@ -54,7 +54,7 @@ Explicitly deferred:
 ## Required Deliverables
 
 - repo-native slice docs that freeze truth classes, field ownership, artifact ownership, four authority planes, frozen invariants, implementation order, hostile-case proofs, and definition of done
-- a single bootstrap approval record in `implement-plan-pushback.md` that is the only authority allowed to clear the initial manual-bootstrap hold
+- a single bootstrap approval record in `bootstrap-approval.v1.json` that is the only authority allowed to clear the initial manual-bootstrap hold
 - a Phase 0 contract-freeze pass that updates the workflow contracts and contradiction gates before production code changes
 - a Phase 1 wrong-code-landing pass that removes stale-ref fallback, checkout-derived base-branch authority, and blocked-lane retargeting before deeper refactors
 - an explicit route inventory covering writers, readers, validators, derivation paths, migration paths, recovery paths, and status consumers
@@ -116,6 +116,7 @@ Explicitly deferred:
 - `implement-plan-state.json`
 - `implement-plan-pushback.md`
 - `implement-plan-brief.md`
+- `bootstrap-approval.v1.json`
 - `implement-plan-execution-contract.v1.json`
 - `implementation-run/`
 

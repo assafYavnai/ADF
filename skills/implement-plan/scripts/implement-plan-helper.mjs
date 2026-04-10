@@ -250,6 +250,7 @@ const RUN_LIFECYCLE_STATUSES = new Set([
   "completed",
   "supervisor_deferred"
 ]);
+const BOOTSTRAP_APPROVAL_STATUSES = new Set(["pending", "approved", "rejected"]);
 const EXECUTION_EVENT_TYPES = new Set([
   "run-initialized",
   "attempt-started",
@@ -792,7 +793,8 @@ async function prepareFeature(input) {
       requiredAccessMode
     );
 
-    const integrity = evaluateIntegrity({
+    const integrity = await evaluateIntegrity({
+      paths,
       setup,
       state: nextState,
       input,
@@ -804,19 +806,45 @@ async function prepareFeature(input) {
       await writePushbackArtifact(artifactPaths.pushbackPath, integrity);
       finalInputPack = await buildInputPack(artifactPaths, input);
       if (input.runMode === "normal") {
+        nextState.worktree_path = worktree?.worktree_path ?? nextState.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths));
+        nextState.worktree_status = worktree?.worktree_status ?? nextState.worktree_status ?? "missing";
+        nextState.merge_required = true;
+        nextState.merge_status = nextState.merge_status === "merged" ? "merged" : "not_ready";
+        nextState.local_target_sync_status = nextState.local_target_sync_status ?? "not_started";
+        nextState.current_branch = nextState.feature_branch ?? nextState.current_branch ?? currentBranch ?? null;
+        nextState.last_error = null;
         nextState.active_run_status = nextState.feature_status === "blocked" ? "blocked" : "integrity_failed";
-        nextState.last_completed_step = "integrity_precheck_failed";
+        nextState.last_completed_step = nextState.feature_status === "blocked"
+          ? (integrity.bootstrap_approval?.manual_bootstrap ? "feature_blocked" : (nextState.last_completed_step ?? "feature_blocked"))
+          : "integrity_precheck_failed";
         nextState.run_timestamps = {
           ...(nextState.run_timestamps ?? {}),
           context_collected_at: nextState.run_timestamps?.context_collected_at ?? nowIso(),
-          integrity_failed_at: nowIso()
+          worktree_prepared_at: worktree?.worktree_status === "ready"
+            ? (nextState.run_timestamps?.worktree_prepared_at ?? nowIso())
+            : nextState.run_timestamps?.worktree_prepared_at ?? null,
+          integrity_failed_at: nextState.feature_status === "blocked"
+            ? nextState.run_timestamps?.integrity_failed_at ?? null
+            : nowIso(),
+          feature_blocked_at: nextState.feature_status === "blocked"
+            ? (nextState.run_timestamps?.feature_blocked_at ?? nowIso())
+            : nextState.run_timestamps?.feature_blocked_at ?? null
         };
+        syncNormalRunProjectionFromState({
+          state: nextState,
+          run: executionContext.run,
+          attempt: executionContext.attempt,
+          workerKey: executionContext.worker_key,
+          workerSelection,
+          checkpointReason: deriveNormalBlockedCheckpointReason(paths, integrity, integrity.bootstrap_approval)
+        });
+      } else {
+        syncBenchmarkingProjection({
+          run: executionContext.run,
+          attempt: executionContext.attempt,
+          integrity
+        });
       }
-      syncBenchmarkingProjection({
-        run: executionContext.run,
-        attempt: executionContext.attempt,
-        integrity
-      });
       changed = true;
     } else if (input.runMode === "normal") {
       // Worktree was already created before artifact writes (worktree-first).
@@ -939,6 +967,7 @@ async function prepareFeature(input) {
       execution_contract_path: executionContract.artifacts.execution_contract_path,
       execution_run_contract_path: executionContract.artifacts.run_contract_path,
       execution_run_projection_path: runProjectionPath,
+      bootstrap_approval_path: normalizeSlashes(paths.bootstrapApprovalPath),
       pushback_path: normalizeSlashes(artifactPaths.pushbackPath),
       brief_path: normalizeSlashes(artifactPaths.briefPath),
       completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
@@ -1425,6 +1454,13 @@ async function recordEvent(input) {
     const attempt = resolveAttemptForMutation(run, input.attemptId ?? null);
     const requestedStep = input.step ?? payload.step ?? null;
     const requestedStepStatus = input.stepStatus ?? payload.status ?? null;
+    const bootstrapApproval = input.event === "feature-reopened"
+      ? await resolveBootstrapApprovalContext(
+          paths,
+          (await readTextIfExists(paths.contractPath)) ?? (await readTextIfExists(eventArtifactPaths.contractPath)) ?? "",
+          paths.registryKey
+        )
+      : null;
     const requestsMergeReadyPromotion = input.event === "merge-ready"
       || (input.event === "step-transition" && requestedStep === "merge_queue" && requestedStepStatus === "ready")
       || (input.event === "terminal-status-recorded" && emptyToNull(payload.terminal_status) === "completed");
@@ -1435,6 +1471,17 @@ async function recordEvent(input) {
       });
       if (governanceTruth.blockers.length > 0) {
         fail("Refusing to advance governed closeout truth because approval gates are incomplete: " + governanceTruth.blockers.join("; "));
+      }
+    }
+    if (input.event === "feature-reopened" && bootstrapApproval?.manual_bootstrap) {
+      if (!bootstrapApproval.approval?.exists) {
+        fail("Refusing to reopen because the bootstrap approval artifact is missing at " + normalizeSlashes(paths.bootstrapApprovalPath) + ".");
+      }
+      if (!bootstrapApproval.approval.valid) {
+        fail("Refusing to reopen because the bootstrap approval artifact is invalid at " + normalizeSlashes(paths.bootstrapApprovalPath) + ": " + bootstrapApproval.approval.error);
+      }
+      if (bootstrapApproval.approval.approval_status !== "approved") {
+        fail("Refusing to reopen because bootstrap approval is " + bootstrapApproval.approval.approval_status + " in " + normalizeSlashes(paths.bootstrapApprovalPath) + ".");
       }
     }
     if (EXECUTION_EVENT_TYPES.has(input.event)) {
@@ -1478,6 +1525,9 @@ async function recordEvent(input) {
       next.event_log.push({ event: input.event, timestamp, note: input.note ?? null });
       next.event_log = next.event_log.slice(-100);
       applyEventTransition(next, input.event, timestamp);
+      if (input.event === "feature-reopened") {
+        next.last_error = null;
+      }
       if (input.event === "human-verification-requested") {
         next.human_verification_status = "pending";
         next.human_verification_approved_at = null;
@@ -1497,7 +1547,10 @@ async function recordEvent(input) {
               model: next.implementor_model ?? null,
               reasoning_effort: next.implementor_reasoning_effort ?? null
             }
-          }
+          },
+          checkpointReason: input.event === "feature-reopened" && bootstrapApproval?.manual_bootstrap
+            ? "Bootstrap approval recorded in " + normalizeSlashes(paths.bootstrapApprovalPath) + ". Resume implementation from the prepared brief."
+            : null
         });
         run.kpi_projection = buildRunKpiProjection(run);
         await appendExecutionAuditEvent({
@@ -2360,6 +2413,7 @@ function buildPaths(projectRoot, phaseNumber, featureSlug) {
     statePath: join(featureRoot, "implement-plan-state.json"),
     contractPath: join(featureRoot, "implement-plan-contract.md"),
     executionContractPath: join(featureRoot, "implement-plan-execution-contract.v1.json"),
+    bootstrapApprovalPath: join(featureRoot, "bootstrap-approval.v1.json"),
     pushbackPath: join(featureRoot, "implement-plan-pushback.md"),
     briefPath: join(featureRoot, "implement-plan-brief.md"),
     completionSummaryPath: join(featureRoot, "completion-summary.md"),
@@ -2391,6 +2445,244 @@ function buildArtifactPaths(paths, state, explicitProjectRoot = null) {
 
 function buildFeatureBranchName(phaseNumber, featureSlug) {
   return "implement-plan/phase" + phaseNumber + "/" + featureSlug.replace(/\//g, "-");
+}
+
+function resolveBootstrapApprovalArtifactPath(paths, state = null, existingContract = null) {
+  return normalizeSlashes(
+    emptyToNull(state?.artifacts?.bootstrap_approval_path)
+    ?? emptyToNull(existingContract?.artifacts?.bootstrap_approval_path)
+    ?? paths.bootstrapApprovalPath
+  );
+}
+
+function evaluateBootstrapGovernanceState(text) {
+  const modeRaw = extractLabeledValue(text, "Bootstrap Governance Mode");
+  const approvalArtifactRaw = extractLabeledValue(text, "Bootstrap Approval Artifact");
+  const approvalRequiredRaw = extractLabeledValue(text, "Bootstrap Approval Required Before Reopen");
+  const normalizedMode = emptyToNull(modeRaw)?.toLowerCase() ?? null;
+  return {
+    mode_raw: modeRaw,
+    mode: normalizedMode,
+    approval_artifact_raw: approvalArtifactRaw,
+    approval_required_before_reopen_raw: approvalRequiredRaw,
+    manual_bootstrap:
+      normalizedMode === "manual-bootstrap"
+      || isFilled(approvalArtifactRaw)
+      || /^true$/i.test(String(approvalRequiredRaw ?? "").trim())
+  };
+}
+
+async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
+  const artifactPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  if (!(await pathExists(paths.bootstrapApprovalPath))) {
+    return {
+      exists: false,
+      valid: false,
+      approval_status: null,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact is missing."
+    };
+  }
+
+  let record = null;
+  try {
+    record = await readJson(paths.bootstrapApprovalPath);
+  } catch {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: null,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact is not valid JSON."
+    };
+  }
+
+  if (!isPlainObject(record)) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: null,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact must be a JSON object."
+    };
+  }
+
+  const schemaVersion = safeInteger(record.schema_version, null);
+  const recordKind = emptyToNull(record.record_kind);
+  const approvalStatus = emptyToNull(record.approval_status);
+  const approvedBy = emptyToNull(record.approved_by);
+  const approvedAt = emptyToNull(record.approved_at);
+  const approvalBasis = emptyToNull(record.approval_basis);
+  const artifactFeatureRegistryKey = emptyToNull(record.feature_registry_key);
+
+  if (schemaVersion !== 1) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact must declare schema_version=1."
+    };
+  }
+  if (recordKind !== "bootstrap-approval") {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact must declare record_kind=bootstrap-approval."
+    };
+  }
+  if (!BOOTSTRAP_APPROVAL_STATUSES.has(approvalStatus)) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact must use approval_status pending, approved, or rejected."
+    };
+  }
+  if (isFilled(featureRegistryKey) && isFilled(artifactFeatureRegistryKey) && artifactFeatureRegistryKey !== featureRegistryKey) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact feature_registry_key does not match the current feature."
+    };
+  }
+  if (!isFilled(approvalBasis)) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Bootstrap approval artifact must include approval_basis."
+    };
+  }
+  if ((approvalStatus === "approved" || approvalStatus === "rejected") && (!isFilled(approvedBy) || !isFilled(approvedAt))) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Approved or rejected bootstrap approval artifacts must include approved_by and approved_at."
+    };
+  }
+  if (approvalStatus === "pending" && (approvedBy !== null || approvedAt !== null)) {
+    return {
+      exists: true,
+      valid: false,
+      approval_status: approvalStatus,
+      artifact_path: artifactPath,
+      error: "Pending bootstrap approval artifacts must not pre-fill approved_by or approved_at."
+    };
+  }
+
+  return {
+    exists: true,
+    valid: true,
+    approval_status: approvalStatus,
+    artifact_path: artifactPath,
+    record
+  };
+}
+
+async function resolveBootstrapApprovalContext(paths, contractText, featureRegistryKey) {
+  const governance = evaluateBootstrapGovernanceState(contractText);
+  const approval = governance.manual_bootstrap
+    ? await readBootstrapApprovalArtifact(paths, featureRegistryKey)
+    : null;
+  return {
+    ...governance,
+    approval
+  };
+}
+
+function deriveBootstrapFeatureBlockedIssue(paths, bootstrapApproval) {
+  const approvalPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  const approvalState = bootstrapApproval?.approval?.approval_status ?? null;
+
+  if (!bootstrapApproval?.approval?.exists) {
+    return issue(
+      "feature-blocked",
+      "Feature status is intentionally blocked for bootstrap/manual-governance, but the approval artifact is missing.",
+      [paths.registryKey, approvalPath],
+      "Restore " + approvalPath + " and keep the slice blocked until manual bootstrap approval is explicit."
+    );
+  }
+  if (!bootstrapApproval.approval.valid) {
+    return issue(
+      "feature-blocked",
+      "Feature status is intentionally blocked for bootstrap/manual-governance, but the approval artifact is invalid.",
+      [paths.registryKey, approvalPath],
+      "Repair " + approvalPath + " so the approval state is unambiguous before reopening."
+    );
+  }
+  if (approvalState === "approved") {
+    return issue(
+      "feature-blocked",
+      "Feature status is intentionally blocked until the approved bootstrap gate is reopened.",
+      [paths.registryKey, approvalPath],
+      "Record the deliberate feature-reopened transition to resume implementation from brief_ready."
+    );
+  }
+  if (approvalState === "rejected") {
+    return issue(
+      "feature-blocked",
+      "Feature status is intentionally blocked because bootstrap approval is currently rejected.",
+      [paths.registryKey, approvalPath],
+      "Resolve the rejection or replace it with an approved bootstrap record before reopening."
+    );
+  }
+  return issue(
+    "feature-blocked",
+    "Feature status is intentionally blocked until manual bootstrap approval is recorded.",
+    [paths.registryKey, approvalPath],
+    "Record manual bootstrap approval in " + approvalPath + " and then record the deliberate feature-reopened transition before implementation."
+  );
+}
+
+function deriveBootstrapNextSafeMove(paths, bootstrapApproval) {
+  const approvalPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  if (!bootstrapApproval?.approval?.exists) {
+    return "write pushback and stop; restore the bootstrap approval artifact at " + approvalPath + " before reopening.";
+  }
+  if (!bootstrapApproval.approval.valid) {
+    return "write pushback and stop; repair the malformed bootstrap approval artifact at " + approvalPath + " before reopening.";
+  }
+  if (bootstrapApproval.approval.approval_status === "approved") {
+    return "write pushback and stop; bootstrap approval is already approved in " + approvalPath + " and the next move is the deliberate feature-reopened transition.";
+  }
+  if (bootstrapApproval.approval.approval_status === "rejected") {
+    return "write pushback and stop; bootstrap approval is rejected in " + approvalPath + " until manual review changes that record.";
+  }
+  return "write pushback and stop; manual bootstrap approval is pending in " + approvalPath + " before the deliberate feature-reopened transition.";
+}
+
+function deriveNormalBlockedCheckpointReason(paths, integrity, bootstrapApproval) {
+  const approvalPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  if (bootstrapApproval?.manual_bootstrap) {
+    if (!bootstrapApproval?.approval?.exists) {
+      return "Bootstrap approval artifact is missing at " + approvalPath + ". The slice stays blocked until that record exists and a deliberate feature-reopened transition is recorded.";
+    }
+    if (!bootstrapApproval.approval.valid) {
+      return "Bootstrap approval artifact is invalid at " + approvalPath + ". The slice stays blocked until that record is repaired and a deliberate feature-reopened transition is recorded.";
+    }
+    if (bootstrapApproval.approval.approval_status === "approved") {
+      return "Bootstrap approval is already approved in " + approvalPath + ". Record the deliberate feature-reopened transition to resume implementation from brief_ready.";
+    }
+    if (bootstrapApproval.approval.approval_status === "rejected") {
+      return "Bootstrap approval is rejected in " + approvalPath + ". The slice remains blocked until manual review changes that record.";
+    }
+    return "Manual bootstrap approval remains pending in " + approvalPath + ". The slice stays blocked until that record is stamped approved and a deliberate feature-reopened transition is recorded.";
+  }
+
+  const firstBlocker = integrity.blocking_issues?.[0] ?? null;
+  if (!firstBlocker) {
+    return "Normal run blocked at integrity gate.";
+  }
+  return firstBlocker.why + (isFilled(firstBlocker.required_repair) ? " " + firstBlocker.required_repair : "");
 }
 
 function resolveFeatureWorktreePath(paths) {
@@ -3791,6 +4083,7 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
       run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
       execution_run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id)),
       event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, attempt.attempt_id)),
+      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state),
       worktree_path: state.worktree_path ?? null
     }
   };
@@ -4136,6 +4429,7 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
       run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
       execution_run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id)),
       event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, attempt.attempt_id)),
+      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state, existingContract),
       worktree_path: state.worktree_path ?? null
     }
   };
@@ -4170,6 +4464,7 @@ async function syncLiveNormalExecutionArtifacts({ paths, state, run, attempt, wo
     execution_contract_path: executionContract.artifacts.execution_contract_path,
     execution_run_contract_path: executionContract.artifacts.run_contract_path,
     execution_run_projection_path: runProjectionPath,
+    bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state),
     pushback_path: normalizeSlashes(artifactPaths.pushbackPath),
     brief_path: normalizeSlashes(artifactPaths.briefPath),
     completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
@@ -4260,7 +4555,7 @@ function updateAttemptCheckpoint(attempt, step, status, reason) {
   attempt.last_checkpoint_at = attempt.resume_checkpoint.updated_at;
 }
 
-function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, workerSelection }) {
+function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, workerSelection, checkpointReason = null }) {
   attempt.status = legacyActiveRunStatusToAttemptStatus(state.active_run_status);
   attempt.terminal_status = state.active_run_status === "completed" ? "completed" : state.active_run_status === "blocked" ? "blocked" : null;
   attempt.updated_at = nowIso();
@@ -4295,9 +4590,9 @@ function syncNormalRunProjectionFromState({ state, run, attempt, workerKey, work
     attempt,
     legacyLastCompletedStepToResumeStep(state.last_completed_step, state.active_run_status, state.merge_status),
     legacyResumeCheckpointStatus(state.active_run_status),
-    state.active_run_status === "completed"
+    checkpointReason ?? (state.active_run_status === "completed"
       ? "Truthful governed closeout completed after review approval."
-      : "Resume from the last truthful normal-mode checkpoint."
+      : "Resume from the last truthful normal-mode checkpoint.")
   );
   run.lifecycle_status = state.active_run_status === "completed"
     ? "completed"
@@ -4397,7 +4692,17 @@ function syncLegacyNormalStateFromRun({ state, run, preserveFeatureStatus = true
   state.merge_status = deriveLegacyMergeStatusFromAttempt(attempt, state.merge_status ?? null);
   state.local_target_sync_status = state.local_target_sync_status ?? "not_started";
   state.last_commit_sha = state.last_commit_sha ?? null;
-  state.last_error = state.active_run_status === "blocked" ? (attempt.resume_checkpoint?.reason ?? state.last_error ?? null) : state.last_error ?? null;
+  const bootstrapApprovalPath = emptyToNull(state.artifacts?.bootstrap_approval_path);
+  const blockedReason = emptyToNull(attempt.resume_checkpoint?.reason ?? null);
+  const suppressBootstrapBlockedLastError =
+    state.active_run_status === "blocked"
+    && state.last_completed_step === "feature_blocked"
+    && isFilled(bootstrapApprovalPath)
+    && isFilled(blockedReason)
+    && blockedReason.includes(bootstrapApprovalPath);
+  state.last_error = state.active_run_status === "blocked"
+    ? (suppressBootstrapBlockedLastError ? null : (blockedReason ?? state.last_error ?? null))
+    : state.last_error ?? null;
 
   if (!preserveFeatureStatus) {
     state.feature_status = attempt.terminal_status === "completed"
@@ -4422,6 +4727,7 @@ function syncLegacyNormalStateFromRun({ state, run, preserveFeatureStatus = true
 
   state.artifacts = {
     ...(state.artifacts ?? {}),
+    bootstrap_approval_path: state.artifacts?.bootstrap_approval_path ?? null,
     execution_contract_path: run.feature_contract_path ?? state.artifacts?.execution_contract_path ?? null,
     execution_run_contract_path: run.contract_path ?? state.artifacts?.execution_run_contract_path ?? null,
     execution_run_projection_path: run.projection_path ?? state.artifacts?.execution_run_projection_path ?? null
@@ -4480,7 +4786,7 @@ function deriveLegacyMergeStatusFromAttempt(attempt, fallbackMergeStatus) {
   if (attempt.terminal_status === "completed" || mergeStep.status === "completed") return "merged";
   if (mergeStep.status === "in_progress") return "in_progress";
   if (mergeStep.status === "ready") return "ready_to_queue";
-  if (mergeStep.status === "blocked" || attempt.status === "blocked") return "blocked";
+  if (mergeStep.status === "blocked") return "blocked";
   return fallbackMergeStatus ?? "not_ready";
 }
 
@@ -4879,7 +5185,7 @@ async function buildInputPack(paths, input) {
   };
 }
 
-function evaluateIntegrity({ setup, state, input, inputPack }) {
+async function evaluateIntegrity({ paths, setup, state, input, inputPack }) {
   const blockingIssues = [];
   const warnings = [];
   const contractArtifact = inputPack.feature_artifacts.contract;
@@ -4906,9 +5212,6 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
   if (!setup.complete) {
     blockingIssues.push(issue("setup-incomplete", "Setup is missing or invalid.", [setup.path], "Refresh setup before worker execution."));
   }
-  if (state.feature_status === "blocked") {
-    blockingIssues.push(issue("feature-blocked", "Feature status is blocked.", [state.feature_registry_key], "Resolve the blocker or reopen as active before implementation."));
-  }
   if (["completed", "closed"].includes(state.feature_status)) {
     blockingIssues.push(issue("feature-not-open", STATUS_MESSAGES[state.feature_status], [state.feature_registry_key], "Reopen or clone the feature stream before running implement-plan."));
   }
@@ -4932,8 +5235,35 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
     ...inputPack.review_cycle_artifacts.flatMap((cycle) => cycle.artifacts.map((artifact) => artifact.text ?? ""))
   ].join("\n\n").toLowerCase();
   const verificationSourceText = String(contractArtifact.valid ? (contractArtifact.text ?? combinedText) : combinedText);
+  const bootstrapApproval = await resolveBootstrapApprovalContext(paths, contractArtifact.text ?? verificationSourceText, state.feature_registry_key);
   const verificationPlanState = evaluateVerificationPlanState(verificationSourceText);
   const kpiPlanState = evaluateKpiPlanState(verificationSourceText);
+
+  if (bootstrapApproval.manual_bootstrap) {
+    if (!bootstrapApproval.approval?.exists) {
+      blockingIssues.push(issue(
+        "missing-bootstrap-approval-artifact",
+        "The contract declares manual-bootstrap governance, but the bootstrap approval artifact is missing.",
+        [normalizeSlashes(paths.bootstrapApprovalPath)],
+        "Restore " + normalizeSlashes(paths.bootstrapApprovalPath) + " before attempting to reopen the slice."
+      ));
+    } else if (!bootstrapApproval.approval.valid) {
+      blockingIssues.push(issue(
+        "invalid-bootstrap-approval-artifact",
+        "The contract declares manual-bootstrap governance, but the bootstrap approval artifact is invalid.",
+        [normalizeSlashes(paths.bootstrapApprovalPath)],
+        "Repair " + normalizeSlashes(paths.bootstrapApprovalPath) + " so approval state is unambiguous before reopening."
+      ));
+    }
+  }
+
+  if (state.feature_status === "blocked") {
+    blockingIssues.push(
+      bootstrapApproval.manual_bootstrap
+        ? deriveBootstrapFeatureBlockedIssue(paths, bootstrapApproval)
+        : issue("feature-blocked", "Feature status is blocked.", [state.feature_registry_key], "Resolve the blocker or reopen as active before implementation.")
+    );
+  }
 
   const requiredSignals = [
     { key: "deliverables", patterns: [/deliverable/, /output/, /produce/] },
@@ -5135,7 +5465,9 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
   const readyForChecker = contractSource.type !== "missing" && !["completed", "closed"].includes(state.feature_status);
   const readyForWorker = blockingIssues.length === 0;
   const nextSafeMove = blockingIssues.length > 0
-    ? "write pushback and stop"
+    ? (bootstrapApproval.manual_bootstrap && state.feature_status === "blocked"
+        ? deriveBootstrapNextSafeMove(paths, bootstrapApproval)
+        : "write pushback and stop")
     : contractSource.type === "normalized_contract"
       ? "proceed to implementor brief"
       : "materialize normalized contract and proceed to implementor brief";
@@ -5147,7 +5479,8 @@ function evaluateIntegrity({ setup, state, input, inputPack }) {
     normalized_contract_required: contractSource.type !== "normalized_contract",
     blocking_issues: blockingIssues,
     warnings,
-    next_safe_move: nextSafeMove
+    next_safe_move: nextSafeMove,
+    bootstrap_approval: bootstrapApproval
   };
 }
 
@@ -5362,7 +5695,7 @@ function extractCompletionSections(text) {
 
 function extractLabeledValue(text, label) {
   if (!text) return null;
-  const expression = new RegExp("^" + escapeRegex(label) + "\\s*:\\s*(.+)$", "im");
+  const expression = new RegExp("^\\s*(?:[-*]\\s*)?" + escapeRegex(label) + "\\s*:\\s*(.+)$", "im");
   const match = expression.exec(text);
   return match ? match[1].trim() : null;
 }
@@ -5580,7 +5913,7 @@ function applyEventTransition(state, event, timestamp) {
     "completion-summary-written": { activeRunStatus: "closeout_pending", lastCompletedStep: "completion_summary_written", timestampKey: "completion_summary_written_at" },
     "closeout-finished": { activeRunStatus: "completed", lastCompletedStep: "closeout_finished", timestampKey: "closeout_finished_at" },
     "feature-blocked": { activeRunStatus: "blocked", lastCompletedStep: "feature_blocked", timestampKey: "feature_blocked_at", featureStatus: "blocked" },
-    "feature-reopened": { activeRunStatus: "idle", lastCompletedStep: "feature_reopened", timestampKey: "feature_reopened_at", featureStatus: "active" }
+    "feature-reopened": { activeRunStatus: "brief_ready", lastCompletedStep: "feature_reopened", timestampKey: "feature_reopened_at", featureStatus: "active" }
   };
   const transition = transitions[event];
   if (!transition) return;

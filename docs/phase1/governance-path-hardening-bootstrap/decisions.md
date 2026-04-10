@@ -118,7 +118,7 @@ Why: manual bootstrap contract approval before code starts is not the same thing
 
 ## Decision D-015 - One artifact owns bootstrap approval
 
-Decision: `implement-plan-pushback.md` is the sole authoritative record for bootstrap approval status, approver, approval time, and approval basis.
+Decision: `bootstrap-approval.v1.json` is the sole authoritative record for bootstrap approval status, approver, approval time, and approval basis.
 
 Status: accepted
 

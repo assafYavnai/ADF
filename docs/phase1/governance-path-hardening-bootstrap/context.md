@@ -46,7 +46,7 @@ This slice exists to prevent another endpoint-only hardening pass.
 
 - `implement-plan`, `merge-queue`, and closeout governance are the code paths being repaired.
 - Because those paths cannot yet certify their own first landing, the first implementation pass for this slice must remain manually governed from contract review through merge.
-- The slice therefore seeds repo-native state and execution artifacts with an explicit blocked manual-bootstrap gate after brief creation. The last truthful implementation checkpoint remains `brief_ready`, but `feature_status` stays `blocked` until approval is recorded in `implement-plan-pushback.md`.
+- The slice therefore seeds repo-native state and execution artifacts with an explicit blocked manual-bootstrap gate after brief creation. The last truthful implementation checkpoint remains `brief_ready`, but `feature_status` stays `blocked` until approval is recorded in `bootstrap-approval.v1.json`.
 
 ## Frozen Route-Level Decisions Carried Forward
 
@@ -183,4 +183,4 @@ Artifact set, naming, and documentation style were checked against:
 ## Notes
 
 - This slice intentionally does not modify the hardening plan text. The plan already carries the route-level design decisions; this slice translates them into repo-native execution artifacts.
-- The seeded operational artifacts intentionally preserve `brief_ready` only as the last truthful pre-implementation checkpoint. Live operational state stays `blocked` until the bootstrap approval record in `implement-plan-pushback.md` is stamped approved, and the slice does not advertise governed `review_cycle` state or use `last_error` to carry the hold.
+- The seeded operational artifacts intentionally preserve `brief_ready` only as the last truthful pre-implementation checkpoint. Live operational state stays `blocked` until the bootstrap approval record in `bootstrap-approval.v1.json` is stamped approved, and the slice does not advertise governed `review_cycle` state or use `last_error` to carry the hold.

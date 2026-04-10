@@ -72,7 +72,7 @@ Explicit exclusions for this slice:
   - all migration and normalization paths
   - all recovery paths
   - all status/reporting consumers
-- Seeded operational artifacts that preserve `brief_ready` only as the last truthful pre-implementation checkpoint, then freeze the slice in repo-native `blocked` state until bootstrap approval is recorded in `implement-plan-pushback.md`.
+- Seeded operational artifacts that preserve `brief_ready` only as the last truthful pre-implementation checkpoint, then freeze the slice in repo-native `blocked` state until bootstrap approval is recorded in `bootstrap-approval.v1.json`.
 - Proof artifacts and targeted tests that cover both the allowed path and the hostile path for every changed route.
 
 4. Allowed Edits
@@ -187,16 +187,18 @@ Machine Verification Plan:
 - run a final contradiction sweep across docs, contracts, implementation, and proof before closure
 
 Human Verification Plan:
-Required: true
+Required: false
 
 Reason:
-This is a bootstrap/manual-governance slice repairing the route that would normally certify its own implementation and merge. The first landing must therefore undergo manual contract review, manual proof review, and manual merge authorization even though the touched code is primarily workflow-governance logic.
-
-That requirement is an out-of-band bootstrap governance control. It must not be seeded into the operational artifacts as governed `review_cycle` or helper `human_testing` state before implementation exists.
+Standard governed `human_testing` is not the approval surface for this slice.
+Bootstrap/manual governance for the first landing is enforced separately through the bootstrap approval artifact and the gated `feature-reopened` transition.
 
 Bootstrap Approval Record:
 
-- authoritative surface: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-pushback.md`
+- Bootstrap Governance Mode: manual-bootstrap
+- Bootstrap Approval Artifact: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap/bootstrap-approval.v1.json`
+- Bootstrap Approval Required Before Reopen: true
+- authoritative surface: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap/bootstrap-approval.v1.json`
 - required fields: `approval_status`, `approved_by`, `approved_at`, `approval_basis`
 - initial state for this slice: `approval_status=pending`
 - hold-clearing rule: only after that record is updated to `approved` may the slice-owned operational artifacts record a deliberate `feature-reopened` transition that reopens `feature_status=active`, `active_run_status=brief_ready`, run lifecycle `active`, and attempt status `ready_for_implementation`

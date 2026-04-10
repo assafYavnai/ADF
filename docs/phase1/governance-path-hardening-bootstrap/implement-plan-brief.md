@@ -50,7 +50,7 @@ Implement the governance hardening frozen in `implement-plan-contract.md` withou
 - the current route under repair is not trusted to certify its own first landing
 - manual governance review is required before the first production code change
 - the seeded operational artifacts preserve `brief_ready` only as the last truthful pre-implementation checkpoint while live operational state stays blocked
-- `implement-plan-pushback.md` is the sole bootstrap approval record, and the hold is cleared only after that artifact is stamped approved and a deliberate `feature-reopened` transition is recorded
+- `bootstrap-approval.v1.json` is the sole bootstrap approval record, and the hold is cleared only after that artifact is stamped approved and a deliberate `feature-reopened` transition is recorded
 - Brain context for this session was loaded through the documented repo fallback route after preflight/doctor exposed a bash-route defect
 - the current route inventory in `context.md` is the minimum in-scope surface and must expand further if new sibling authority sites are discovered during implementation-preflight
 
@@ -79,7 +79,7 @@ Implement the governance hardening frozen in `implement-plan-contract.md` withou
 
 - do not treat the current governed route as sufficient closeout authority for the first landing
 - stop for manual review before starting production code changes
-- do not clear the bootstrap hold except through the approval record in `implement-plan-pushback.md` followed by the deliberate reopen transition defined in `implement-plan-contract.md`
+- do not clear the bootstrap hold except through the approval record in `bootstrap-approval.v1.json` followed by the deliberate reopen transition defined in `implement-plan-contract.md`
 - during implementation review, emphasize:
   - illegal persisted writes of runtime-derived fields
   - writable compatibility aliases

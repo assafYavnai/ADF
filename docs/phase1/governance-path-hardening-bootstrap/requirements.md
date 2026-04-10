@@ -11,7 +11,7 @@ Scope: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap`
 - Slice creation, implementation, verification, approval, and first merge must remain manually governed.
 - The first implementation pass must stop for manual review before any production code change starts.
 - The seed must preserve `brief_ready` as the last truthful pre-implementation checkpoint, but the live operational state must stay `blocked` until manual bootstrap approval is recorded.
-- `implement-plan-pushback.md` is the sole authoritative bootstrap approval record for clearing that hold.
+- `bootstrap-approval.v1.json` is the sole authoritative bootstrap approval record for clearing that hold.
 - Clearing the hold requires updating that approval record first and then recording a deliberate reopen transition across the slice-owned operational artifacts.
 - Seeded operational artifacts must not advertise governed `review_pending` or `review_requested` state before post-implementation review actually exists.
 - The slice must preserve the route-level design decisions from `C:/ADF/docs/phase1/governance-path-hardening-plan-v2.md` without widening or paraphrasing away their authority.
@@ -34,7 +34,7 @@ Scope: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap`
 - Ambiguity must fail closed on zero results, multiple results, stale proof, or wrong-root proof.
 - Manual bootstrap approval must not be encoded as governed `review_cycle` state before implementation exists.
 - Manual bootstrap approval must not be stored in `last_error`; operational residue fields stay reserved for actual route errors.
-- Manual bootstrap approval must not be considered effective unless the approval record in `implement-plan-pushback.md` is explicitly stamped approved.
+- Manual bootstrap approval must not be considered effective unless the approval record in `bootstrap-approval.v1.json` is explicitly stamped approved.
 
 ## Route Inventory Requirements
 
