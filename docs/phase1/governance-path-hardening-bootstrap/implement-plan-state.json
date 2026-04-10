@@ -1,0 +1,297 @@
+{
+  "state_schema_version": 2,
+  "phase_number": 1,
+  "feature_slug": "governance-path-hardening-bootstrap",
+  "project_root": "C:/ADF",
+  "feature_registry_key": "phase1/governance-path-hardening-bootstrap",
+  "feature_status": "blocked",
+  "implementor_execution_id": null,
+  "implementor_execution_access_mode": null,
+  "implementor_execution_runtime": null,
+  "implementor_provider": null,
+  "implementor_model": null,
+  "implementor_reasoning_effort": null,
+  "resolved_runtime_permission_model": "claude_code_skip_permissions",
+  "resolved_runtime_capabilities": {
+    "native_agent_spawning_available": false,
+    "native_agent_access_configurable": false,
+    "native_agent_inherits_runtime_access": false,
+    "native_agent_resume_available": false,
+    "native_agent_send_input_available": false,
+    "native_agent_wait_available": false,
+    "native_parallel_wait_available": false,
+    "codex_cli_available": true,
+    "codex_cli_full_auto_supported": true,
+    "codex_cli_bypass_supported": true
+  },
+  "current_branch": "main",
+  "base_branch": "main",
+  "feature_branch": "implement-plan/phase1/governance-path-hardening-bootstrap",
+  "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governance-path-hardening-bootstrap",
+  "worktree_status": "missing",
+  "merge_required": true,
+  "merge_status": "not_ready",
+  "approved_commit_sha": null,
+  "merge_commit_sha": null,
+  "merge_queue_request_id": null,
+  "local_target_sync_status": "not_started",
+  "human_verification_status": null,
+  "human_verification_approved_at": null,
+  "human_verification_approved_commit_sha": null,
+  "last_completed_step": "feature_blocked",
+  "last_commit_sha": null,
+  "active_run_status": "blocked",
+  "created_at": "2026-04-09T23:34:02.576Z",
+  "updated_at": "2026-04-09T23:34:02.601Z",
+  "run_timestamps": {
+    "context_collected_at": "2026-04-09T23:34:02.576Z",
+    "worktree_prepared_at": null,
+    "integrity_passed_at": null,
+    "integrity_failed_at": null,
+    "brief_written_at": "2026-04-09T23:34:02.600Z",
+    "implementor_started_at": null,
+    "implementor_finished_at": null,
+    "verification_finished_at": null,
+    "review_requested_at": null,
+    "human_verification_requested_at": null,
+    "merge_started_at": null,
+    "merge_finished_at": null,
+    "closeout_finished_at": null,
+    "feature_blocked_at": "2026-04-09T23:34:02.601Z"
+  },
+  "event_log": [
+    {
+      "event_id": "event-1d70d89e-bfd5-41fb-9e24-8d2a5f1d9e8a",
+      "event_type": "run-initialized",
+      "run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T23:34:02.576Z",
+      "note": "Created a new normal execution run."
+    },
+    {
+      "event_id": "event-a0bf5600-6fb4-46cb-9733-5b7c5cfaf0b6",
+      "event_type": "attempt-started",
+      "run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T23:34:02.578Z",
+      "note": "Created the first attempt for this execution run."
+    },
+    {
+      "event_id": "event-4148b3fb-62fd-4eca-b454-cdf54a1aa95d",
+      "event_type": "contract-materialized",
+      "run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T23:34:02.582Z",
+      "note": null
+    },
+    {
+      "event_id": "event-58ce1225-cf24-4170-8a93-a6e85c8f3f9c",
+      "event_type": "step-transition",
+      "run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T23:34:02.600Z",
+      "note": "Bootstrap slice artifacts written. The manual bootstrap hold is owned by implement-plan-pushback.md."
+    },
+    {
+      "event_id": "event-3f7dcca5-82c6-4c3d-89b6-e7c4792417ae",
+      "event_type": "feature-blocked",
+      "run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+      "run_mode": "normal",
+      "attempt_id": "attempt-001",
+      "timestamp": "2026-04-09T23:34:02.601Z",
+      "note": "Manual bootstrap approval remains pending in implement-plan-pushback.md. The slice stays blocked until that record is stamped approved and a deliberate feature-reopened transition is recorded."
+    }
+  ],
+  "artifacts": {
+    "readme_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/README.md",
+    "context_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/context.md",
+    "state_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-state.json",
+    "contract_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-contract.md",
+    "execution_contract_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-execution-contract.v1.json",
+    "execution_run_contract_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implementation-run/run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3/execution-contract.v1.json",
+    "execution_run_projection_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implementation-run/run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3/run-projection.v1.json",
+    "pushback_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-pushback.md",
+    "brief_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-brief.md",
+    "completion_summary_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/completion-summary.md",
+    "implementation_run_dir": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implementation-run",
+    "worktree_path": "C:/ADF/.codex/implement-plan/worktrees/phase1/governance-path-hardening-bootstrap"
+  },
+  "last_error": null,
+  "current_run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+  "current_attempt_id": "attempt-001",
+  "execution_runs": {
+    "active_by_mode": {
+      "normal": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+      "benchmarking": null
+    },
+    "runs": {
+      "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3": {
+        "run_id": "run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+        "run_mode": "normal",
+        "lifecycle_status": "blocked",
+        "terminal_status": "blocked",
+        "contract_schema_version": 1,
+        "contract_revision": 1,
+        "feature_contract_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-execution-contract.v1.json",
+        "contract_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implementation-run/run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3/execution-contract.v1.json",
+        "projection_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implementation-run/run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3/run-projection.v1.json",
+        "run_root": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implementation-run/run-8d3b07b8-fb30-4eaf-9560-4b919f27f9f3",
+        "benchmark_context": {
+          "benchmark_run_id": null,
+          "benchmark_suite_id": null,
+          "lane_id": null,
+          "lane_label": null
+        },
+        "worker_keys": [],
+        "current_attempt_id": "attempt-001",
+        "attempt_counter": 1,
+        "attempts": {
+          "attempt-001": {
+            "attempt_id": "attempt-001",
+            "attempt_number": 1,
+            "status": "blocked",
+            "terminal_status": "blocked",
+            "started_at": "2026-04-09T23:34:02.576Z",
+            "updated_at": "2026-04-09T23:34:02.601Z",
+            "reset_at": null,
+            "reset_reason": null,
+            "superseded_by_attempt_id": null,
+            "resume_checkpoint": {
+              "step": "implementation",
+              "status": "blocked",
+              "reason": "Manual bootstrap approval remains pending in implement-plan-pushback.md. The slice stays blocked until that record is stamped approved and a deliberate feature-reopened transition is recorded.",
+              "updated_at": "2026-04-09T23:34:02.601Z"
+            },
+            "step_status": {
+              "implementation": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": "Blocked pending manual bootstrap approval recorded in implement-plan-pushback.md."
+              },
+              "machine_verification": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "review_cycle": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "human_testing": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              },
+              "merge_queue": {
+                "status": "not_started",
+                "started_at": null,
+                "completed_at": null,
+                "duration_seconds": null,
+                "note": null
+              }
+            },
+            "governance_calls": [],
+            "governance_metrics": {
+              "call_count": 0,
+              "total_duration_ms": 0,
+              "total_estimated_cost_usd": 0,
+              "total_prompt_tokens_estimated": 0,
+              "total_completion_tokens_estimated": 0,
+              "total_tokens_estimated": 0
+            },
+            "verification_outcomes": [],
+            "review_cycle_count": 0,
+            "self_fix_cycle_count": 0,
+            "blockers": [
+              {
+                "issue_class": "feature-blocked",
+                "why": "Feature status is intentionally blocked until manual bootstrap approval is recorded in implement-plan-pushback.md.",
+                "evidence": [
+                  "phase1/governance-path-hardening-bootstrap",
+                  "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-pushback.md"
+                ],
+                "required_repair": "Manual reviewer records approval in implement-plan-pushback.md and then a deliberate feature-reopened transition reopens implementation."
+              }
+            ],
+            "worker_bindings": {},
+            "last_checkpoint_at": "2026-04-09T23:34:02.601Z",
+            "last_event_at": "2026-04-09T23:34:02.601Z"
+          }
+        },
+        "created_at": "2026-04-09T23:34:02.576Z",
+        "updated_at": "2026-04-09T23:34:02.601Z",
+        "last_event_at": "2026-04-09T23:34:02.601Z",
+        "kpi_projection": {
+          "terminal_status": "blocked",
+          "per_step_timing": {
+            "implementation": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "machine_verification": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "review_cycle": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "human_testing": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            },
+            "merge_queue": {
+              "status": "not_started",
+              "started_at": null,
+              "completed_at": null,
+              "duration_seconds": null
+            }
+          },
+          "governance_call_metrics": {
+            "call_count": 0,
+            "total_duration_ms": 0,
+            "total_estimated_cost_usd": 0,
+            "total_prompt_tokens_estimated": 0,
+            "total_completion_tokens_estimated": 0,
+            "total_tokens_estimated": 0
+          },
+          "verification_outcomes": [],
+          "review_cycle_count": 0,
+          "self_fix_cycle_count": 0,
+          "blocker_history": [
+            {
+              "issue_class": "feature-blocked",
+              "why": "Feature status is intentionally blocked until manual bootstrap approval is recorded in implement-plan-pushback.md.",
+              "evidence": [
+                "phase1/governance-path-hardening-bootstrap",
+                "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-pushback.md"
+              ],
+              "required_repair": "Manual reviewer records approval in implement-plan-pushback.md and then a deliberate feature-reopened transition reopens implementation."
+            }
+          ]
+        }
+      }
+    }
+  }
+}
