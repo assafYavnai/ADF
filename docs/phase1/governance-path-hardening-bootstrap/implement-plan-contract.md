@@ -198,6 +198,7 @@ Bootstrap Approval Record:
 - Bootstrap Governance Mode: manual-bootstrap
 - Bootstrap Approval Artifact: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap/bootstrap-approval.v1.json`
 - Bootstrap Approval Required Before Reopen: true
+- enforcement switch: structured `bootstrap_governance` persisted in `implement-plan-state.json`, `implement-plan-execution-contract.v1.json`, and the active run execution contract; these markdown labels are documentary and must not be the only switch that turns the gate on
 - authoritative surface: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap/bootstrap-approval.v1.json`
 - required fields: `approval_status`, `approved_by`, `approved_at`, `approval_basis`
 - initial state for this slice: `approval_status=pending`

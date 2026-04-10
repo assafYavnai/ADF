@@ -800,6 +800,7 @@ async function prepareFeature(input) {
       input,
       inputPack: refreshedInputPack
     });
+    nextState.bootstrap_governance = buildBootstrapGovernanceState(paths, integrity.bootstrap_approval, nextState);
 
     let finalInputPack = refreshedInputPack;
     if (integrity.blocking_issues.length > 0) {
@@ -967,7 +968,7 @@ async function prepareFeature(input) {
       execution_contract_path: executionContract.artifacts.execution_contract_path,
       execution_run_contract_path: executionContract.artifacts.run_contract_path,
       execution_run_projection_path: runProjectionPath,
-      bootstrap_approval_path: normalizeSlashes(paths.bootstrapApprovalPath),
+      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, nextState, executionContract, executionContract.bootstrap_governance),
       pushback_path: normalizeSlashes(artifactPaths.pushbackPath),
       brief_path: normalizeSlashes(artifactPaths.briefPath),
       completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
@@ -1455,12 +1456,24 @@ async function recordEvent(input) {
     const requestedStep = input.step ?? payload.step ?? null;
     const requestedStepStatus = input.stepStatus ?? payload.status ?? null;
     const bootstrapApproval = input.event === "feature-reopened"
-      ? await resolveBootstrapApprovalContext(
+      ? await resolveBootstrapApprovalContext({
           paths,
-          (await readTextIfExists(paths.contractPath)) ?? (await readTextIfExists(eventArtifactPaths.contractPath)) ?? "",
-          paths.registryKey
-        )
+          state: next,
+          contractText: (await readTextIfExists(paths.contractPath)) ?? (await readTextIfExists(eventArtifactPaths.contractPath)) ?? "",
+          featureRegistryKey: paths.registryKey
+        })
       : null;
+    const bootstrapApprovalPath = resolveBootstrapApprovalMessagePath(paths, bootstrapApproval);
+    const bootstrapGovernanceState = input.event === "feature-reopened"
+      ? buildBootstrapGovernanceState(paths, bootstrapApproval, next)
+      : next.bootstrap_governance ?? null;
+    next.bootstrap_governance = bootstrapGovernanceState;
+    if (bootstrapGovernanceState?.approval_artifact_path) {
+      next.artifacts = {
+        ...(next.artifacts ?? {}),
+        bootstrap_approval_path: bootstrapGovernanceState.approval_artifact_path
+      };
+    }
     const requestsMergeReadyPromotion = input.event === "merge-ready"
       || (input.event === "step-transition" && requestedStep === "merge_queue" && requestedStepStatus === "ready")
       || (input.event === "terminal-status-recorded" && emptyToNull(payload.terminal_status) === "completed");
@@ -1475,13 +1488,13 @@ async function recordEvent(input) {
     }
     if (input.event === "feature-reopened" && bootstrapApproval?.manual_bootstrap) {
       if (!bootstrapApproval.approval?.exists) {
-        fail("Refusing to reopen because the bootstrap approval artifact is missing at " + normalizeSlashes(paths.bootstrapApprovalPath) + ".");
+        fail("Refusing to reopen because the bootstrap approval artifact is missing at " + bootstrapApprovalPath + ".");
       }
       if (!bootstrapApproval.approval.valid) {
-        fail("Refusing to reopen because the bootstrap approval artifact is invalid at " + normalizeSlashes(paths.bootstrapApprovalPath) + ": " + bootstrapApproval.approval.error);
+        fail("Refusing to reopen because the bootstrap approval artifact is invalid at " + bootstrapApprovalPath + ": " + bootstrapApproval.approval.error);
       }
       if (bootstrapApproval.approval.approval_status !== "approved") {
-        fail("Refusing to reopen because bootstrap approval is " + bootstrapApproval.approval.approval_status + " in " + normalizeSlashes(paths.bootstrapApprovalPath) + ".");
+        fail("Refusing to reopen because bootstrap approval is " + bootstrapApproval.approval.approval_status + " in " + bootstrapApprovalPath + ".");
       }
     }
     if (EXECUTION_EVENT_TYPES.has(input.event)) {
@@ -1549,7 +1562,7 @@ async function recordEvent(input) {
             }
           },
           checkpointReason: input.event === "feature-reopened" && bootstrapApproval?.manual_bootstrap
-            ? "Bootstrap approval recorded in " + normalizeSlashes(paths.bootstrapApprovalPath) + ". Resume implementation from the prepared brief."
+            ? "Bootstrap approval recorded in " + bootstrapApprovalPath + ". Resume implementation from the prepared brief."
             : null
         });
         run.kpi_projection = buildRunKpiProjection(run);
@@ -2447,10 +2460,142 @@ function buildFeatureBranchName(phaseNumber, featureSlug) {
   return "implement-plan/phase" + phaseNumber + "/" + featureSlug.replace(/\//g, "-");
 }
 
-function resolveBootstrapApprovalArtifactPath(paths, state = null, existingContract = null) {
+function normalizeBooleanish(value) {
+  if (value === true || value === false) return value;
+  const normalized = emptyToNull(value)?.toLowerCase() ?? null;
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+  return null;
+}
+
+function normalizeBootstrapGovernanceMode(value) {
+  const normalized = emptyToNull(value)
+    ?.toLowerCase()
+    .replace(/[_\s]+/g, "-")
+    ?? null;
+  if (normalized === "manual-bootstrap") {
+    return "manual-bootstrap";
+  }
+  return null;
+}
+
+function unwrapQuotedLiteral(value) {
+  let normalized = emptyToNull(value);
+  if (!normalized) return null;
+  normalized = normalized.trim();
+  while (
+    normalized.length >= 2
+    && (
+      (normalized.startsWith("`") && normalized.endsWith("`"))
+      || (normalized.startsWith("\"") && normalized.endsWith("\""))
+      || (normalized.startsWith("'") && normalized.endsWith("'"))
+    )
+  ) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+  return emptyToNull(normalized);
+}
+
+function normalizeBootstrapApprovalArtifactPath(value) {
+  const normalized = unwrapQuotedLiteral(value);
+  return normalized ? normalizeSlashes(normalized) : null;
+}
+
+function normalizeBootstrapGovernanceRecord(record) {
+  const source = isPlainObject(record) ? record : {};
+  const mode = normalizeBootstrapGovernanceMode(source.mode ?? null);
+  const approvalRequiredBeforeReopen = normalizeBooleanish(source.approval_required_before_reopen ?? null);
+  const approvalArtifactPath = normalizeBootstrapApprovalArtifactPath(source.approval_artifact_path ?? null);
+
+  if (mode === null && approvalRequiredBeforeReopen === null && !approvalArtifactPath) {
+    return null;
+  }
+
+  return {
+    mode,
+    approval_required_before_reopen: approvalRequiredBeforeReopen,
+    approval_artifact_path: approvalArtifactPath
+  };
+}
+
+function resolveStructuredBootstrapGovernanceState(state = null, existingContract = null) {
+  const stateRecord = normalizeBootstrapGovernanceRecord(state?.bootstrap_governance ?? null);
+  const contractRecord = normalizeBootstrapGovernanceRecord(existingContract?.bootstrap_governance ?? null);
+  const artifactPathFromArtifacts =
+    normalizeBootstrapApprovalArtifactPath(state?.artifacts?.bootstrap_approval_path ?? null)
+    ?? normalizeBootstrapApprovalArtifactPath(existingContract?.artifacts?.bootstrap_approval_path ?? null)
+    ?? null;
+
+  const rawMode = stateRecord?.mode ?? contractRecord?.mode ?? null;
+  const rawApprovalRequiredBeforeReopen =
+    stateRecord?.approval_required_before_reopen
+    ?? contractRecord?.approval_required_before_reopen
+    ?? null;
+  const explicitArtifactPath =
+    stateRecord?.approval_artifact_path
+    ?? contractRecord?.approval_artifact_path
+    ?? artifactPathFromArtifacts
+    ?? null;
+  const manualBootstrap =
+    rawMode === "manual-bootstrap"
+    || rawApprovalRequiredBeforeReopen === true
+    || isFilled(explicitArtifactPath);
+  const mode = rawMode ?? (manualBootstrap ? "manual-bootstrap" : null);
+  const approvalRequiredBeforeReopen =
+    rawApprovalRequiredBeforeReopen
+    ?? (manualBootstrap ? true : null);
+  const present = Boolean(stateRecord || contractRecord || artifactPathFromArtifacts);
+
+  return {
+    present,
+    mode,
+    approval_required_before_reopen: approvalRequiredBeforeReopen,
+    approval_artifact_path: explicitArtifactPath,
+    manual_bootstrap: manualBootstrap
+  };
+}
+
+function resolveBootstrapApprovalArtifactPath(paths, state = null, existingContract = null, documentedGovernance = null) {
+  const structuredGovernance = resolveStructuredBootstrapGovernanceState(state, existingContract);
+  const artifactPathFromArtifacts =
+    normalizeBootstrapApprovalArtifactPath(state?.artifacts?.bootstrap_approval_path ?? null)
+    ?? normalizeBootstrapApprovalArtifactPath(existingContract?.artifacts?.bootstrap_approval_path ?? null)
+    ?? null;
+  const documentedArtifactPath =
+    normalizeBootstrapApprovalArtifactPath(documentedGovernance?.approval_artifact_path ?? null)
+    ?? null;
+  const shouldUseDefaultPath =
+    structuredGovernance.manual_bootstrap
+    || documentedGovernance?.manual_bootstrap === true;
+  const candidate =
+    structuredGovernance.approval_artifact_path
+    ?? (structuredGovernance.manual_bootstrap ? artifactPathFromArtifacts : null)
+    ?? documentedArtifactPath
+    ?? (shouldUseDefaultPath ? normalizeSlashes(paths.bootstrapApprovalPath) : null);
+
+  return candidate ? normalizeSlashes(candidate) : null;
+}
+
+function buildBootstrapGovernanceState(paths, bootstrapApproval, state = null, existingContract = null) {
+  if (!bootstrapApproval?.manual_bootstrap) {
+    return null;
+  }
+
+  return {
+    mode: bootstrapApproval.mode ?? "manual-bootstrap",
+    approval_required_before_reopen:
+      bootstrapApproval.approval_required_before_reopen ?? true,
+    approval_artifact_path:
+      bootstrapApproval.approval_artifact_path
+      ?? resolveBootstrapApprovalArtifactPath(paths, state, existingContract, bootstrapApproval)
+      ?? normalizeSlashes(paths.bootstrapApprovalPath)
+  };
+}
+
+function resolveBootstrapApprovalMessagePath(paths, bootstrapApproval) {
   return normalizeSlashes(
-    emptyToNull(state?.artifacts?.bootstrap_approval_path)
-    ?? emptyToNull(existingContract?.artifacts?.bootstrap_approval_path)
+    bootstrapApproval?.approval?.artifact_path
+    ?? bootstrapApproval?.approval_artifact_path
     ?? paths.bootstrapApprovalPath
   );
 }
@@ -2459,40 +2604,44 @@ function evaluateBootstrapGovernanceState(text) {
   const modeRaw = extractLabeledValue(text, "Bootstrap Governance Mode");
   const approvalArtifactRaw = extractLabeledValue(text, "Bootstrap Approval Artifact");
   const approvalRequiredRaw = extractLabeledValue(text, "Bootstrap Approval Required Before Reopen");
-  const normalizedMode = emptyToNull(modeRaw)?.toLowerCase() ?? null;
+  const normalizedMode = normalizeBootstrapGovernanceMode(modeRaw);
+  const approvalRequiredBeforeReopen = normalizeBooleanish(approvalRequiredRaw);
+  const approvalArtifactPath = normalizeBootstrapApprovalArtifactPath(approvalArtifactRaw);
   return {
     mode_raw: modeRaw,
     mode: normalizedMode,
     approval_artifact_raw: approvalArtifactRaw,
     approval_required_before_reopen_raw: approvalRequiredRaw,
+    approval_artifact_path: approvalArtifactPath,
+    approval_required_before_reopen: approvalRequiredBeforeReopen,
     manual_bootstrap:
       normalizedMode === "manual-bootstrap"
-      || isFilled(approvalArtifactRaw)
-      || /^true$/i.test(String(approvalRequiredRaw ?? "").trim())
+      || isFilled(approvalArtifactPath)
+      || approvalRequiredBeforeReopen === true
   };
 }
 
-async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
-  const artifactPath = normalizeSlashes(paths.bootstrapApprovalPath);
-  if (!(await pathExists(paths.bootstrapApprovalPath))) {
+async function readBootstrapApprovalArtifact(artifactPath, featureRegistryKey) {
+  const normalizedArtifactPath = normalizeSlashes(artifactPath);
+  if (!(await pathExists(artifactPath))) {
     return {
       exists: false,
       valid: false,
       approval_status: null,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact is missing."
     };
   }
 
   let record = null;
   try {
-    record = await readJson(paths.bootstrapApprovalPath);
+    record = await readJson(artifactPath);
   } catch {
     return {
       exists: true,
       valid: false,
       approval_status: null,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact is not valid JSON."
     };
   }
@@ -2502,7 +2651,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: null,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact must be a JSON object."
     };
   }
@@ -2520,7 +2669,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact must declare schema_version=1."
     };
   }
@@ -2529,7 +2678,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact must declare record_kind=bootstrap-approval."
     };
   }
@@ -2538,7 +2687,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact must use approval_status pending, approved, or rejected."
     };
   }
@@ -2547,7 +2696,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact feature_registry_key does not match the current feature."
     };
   }
@@ -2556,7 +2705,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Bootstrap approval artifact must include approval_basis."
     };
   }
@@ -2565,7 +2714,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Approved or rejected bootstrap approval artifacts must include approved_by and approved_at."
     };
   }
@@ -2574,7 +2723,7 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
       exists: true,
       valid: false,
       approval_status: approvalStatus,
-      artifact_path: artifactPath,
+      artifact_path: normalizedArtifactPath,
       error: "Pending bootstrap approval artifacts must not pre-fill approved_by or approved_at."
     };
   }
@@ -2583,24 +2732,44 @@ async function readBootstrapApprovalArtifact(paths, featureRegistryKey) {
     exists: true,
     valid: true,
     approval_status: approvalStatus,
-    artifact_path: artifactPath,
+    artifact_path: normalizedArtifactPath,
     record
   };
 }
 
-async function resolveBootstrapApprovalContext(paths, contractText, featureRegistryKey) {
-  const governance = evaluateBootstrapGovernanceState(contractText);
-  const approval = governance.manual_bootstrap
-    ? await readBootstrapApprovalArtifact(paths, featureRegistryKey)
+async function resolveBootstrapApprovalContext({ paths, state = null, existingContract = null, contractText = "", featureRegistryKey }) {
+  const documentedGovernance = evaluateBootstrapGovernanceState(contractText);
+  const structuredGovernance = resolveStructuredBootstrapGovernanceState(state, existingContract);
+  const manualBootstrap =
+    structuredGovernance.manual_bootstrap
+    || (!structuredGovernance.present && documentedGovernance.manual_bootstrap);
+  const approvalArtifactPath = manualBootstrap
+    ? resolveBootstrapApprovalArtifactPath(paths, state, existingContract, documentedGovernance)
+    : null;
+  const approval = manualBootstrap
+    ? await readBootstrapApprovalArtifact(approvalArtifactPath, featureRegistryKey)
     : null;
   return {
-    ...governance,
+    ...documentedGovernance,
+    structured_governance: structuredGovernance,
+    mode: structuredGovernance.mode ?? documentedGovernance.mode ?? null,
+    approval_required_before_reopen:
+      structuredGovernance.approval_required_before_reopen
+      ?? documentedGovernance.approval_required_before_reopen
+      ?? null,
+    approval_artifact_path: approvalArtifactPath,
+    enforcement_source: structuredGovernance.present
+      ? "structured"
+      : documentedGovernance.manual_bootstrap
+        ? "documentation"
+        : "none",
+    manual_bootstrap: manualBootstrap,
     approval
   };
 }
 
 function deriveBootstrapFeatureBlockedIssue(paths, bootstrapApproval) {
-  const approvalPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  const approvalPath = resolveBootstrapApprovalMessagePath(paths, bootstrapApproval);
   const approvalState = bootstrapApproval?.approval?.approval_status ?? null;
 
   if (!bootstrapApproval?.approval?.exists) {
@@ -2644,7 +2813,7 @@ function deriveBootstrapFeatureBlockedIssue(paths, bootstrapApproval) {
 }
 
 function deriveBootstrapNextSafeMove(paths, bootstrapApproval) {
-  const approvalPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  const approvalPath = resolveBootstrapApprovalMessagePath(paths, bootstrapApproval);
   if (!bootstrapApproval?.approval?.exists) {
     return "write pushback and stop; restore the bootstrap approval artifact at " + approvalPath + " before reopening.";
   }
@@ -2661,7 +2830,7 @@ function deriveBootstrapNextSafeMove(paths, bootstrapApproval) {
 }
 
 function deriveNormalBlockedCheckpointReason(paths, integrity, bootstrapApproval) {
-  const approvalPath = normalizeSlashes(paths.bootstrapApprovalPath);
+  const approvalPath = resolveBootstrapApprovalMessagePath(paths, bootstrapApproval);
   if (bootstrapApproval?.manual_bootstrap) {
     if (!bootstrapApproval?.approval?.exists) {
       return "Bootstrap approval artifact is missing at " + approvalPath + ". The slice stays blocked until that record exists and a deliberate feature-reopened transition is recorded.";
@@ -2984,6 +3153,8 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
   state.base_branch = state.base_branch ?? detectDefaultBaseBranch(input.projectRoot);
   state.feature_branch = state.feature_branch ?? buildFeatureBranchName(input.phaseNumber, input.featureSlug);
   state.worktree_path = state.worktree_path ?? normalizeSlashes(resolveFeatureWorktreePath(paths));
+  state.artifacts = isPlainObject(state.artifacts) ? state.artifacts : {};
+  state.bootstrap_governance = normalizeBootstrapGovernanceRecord(state.bootstrap_governance ?? null);
   if (!WORKTREE_STATUSES.has(state.worktree_status)) {
     state.worktree_status = "missing";
     repairs.push("worktree_status was invalid and reset.");
@@ -3045,6 +3216,32 @@ async function loadOrInitializeState({ paths, input, registryEntry, indexEntry, 
   }
   if (!isFilled(state.resolved_runtime_permission_model) && registryEntry?.resolved_runtime_permission_model) {
     state.resolved_runtime_permission_model = registryEntry.resolved_runtime_permission_model;
+  }
+
+  const normalizedBootstrapApprovalPath = resolveBootstrapApprovalArtifactPath(paths, state, null);
+  if (normalizedBootstrapApprovalPath) {
+    if (state.artifacts.bootstrap_approval_path !== normalizedBootstrapApprovalPath) {
+      repairs.push("bootstrap_approval_path was normalized to the canonical approval artifact.");
+    }
+    state.artifacts.bootstrap_approval_path = normalizedBootstrapApprovalPath;
+    const normalizedBootstrapGovernance = buildBootstrapGovernanceState(
+      paths,
+      {
+        manual_bootstrap: true,
+        mode: "manual-bootstrap",
+        approval_required_before_reopen: true,
+        approval_artifact_path: normalizedBootstrapApprovalPath,
+        approval: {
+          artifact_path: normalizedBootstrapApprovalPath
+        }
+      },
+      state,
+      null
+    );
+    if (JSON.stringify(normalizedBootstrapGovernance) !== JSON.stringify(state.bootstrap_governance ?? null)) {
+      repairs.push("bootstrap_governance was normalized from structured approval authority.");
+    }
+    state.bootstrap_governance = normalizedBootstrapGovernance;
   }
 
   const executionTracking = normalizeExecutionRunsState({ state, paths });
@@ -3117,6 +3314,7 @@ function buildInitialState(paths, input, registryEntry, indexEntry, currentBranc
     updated_at: nowIso(),
     run_timestamps: {},
     event_log: [],
+    bootstrap_governance: null,
     artifacts: {},
     last_error: null,
     current_run_id: null,
@@ -3998,6 +4196,7 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
   const artifactPaths = buildArtifactPaths(paths, state, input.canonicalProjectRoot ?? input.projectRoot);
   const reviewRequiredByHumanPlan = verificationPlanState.human_required === true;
   const effectiveReviewMaxCycles = input.postSendToReview && input.reviewUntilComplete ? (input.reviewMaxCycles ?? 5) : null;
+  const bootstrapGovernance = buildBootstrapGovernanceState(paths, integrity.bootstrap_approval, state);
   return {
     schema_version: EXECUTION_CONTRACT_SCHEMA_VERSION,
     contract_kind: "implement-plan-execution",
@@ -4075,6 +4274,7 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
       blocking_issue_classes: integrity.blocking_issues.map((item) => item.issue_class),
       next_safe_move: integrity.next_safe_move
     },
+    bootstrap_governance: bootstrapGovernance,
     artifacts: {
       state_path: normalizeSlashes(artifactPaths.statePath),
       markdown_contract_path: normalizeSlashes(artifactPaths.contractPath),
@@ -4083,7 +4283,7 @@ function buildExecutionContract({ paths, state, input, setup, integrity, workerS
       run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
       execution_run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id)),
       event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, attempt.attempt_id)),
-      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state),
+      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state, null, bootstrapGovernance),
       worktree_path: state.worktree_path ?? null
     }
   };
@@ -4335,6 +4535,12 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
   const artifacts = isPlainObject(existingContract?.artifacts) ? existingContract.artifacts : {};
   const invokerRuntime = isPlainObject(existingContract?.invoker_runtime) ? existingContract.invoker_runtime : {};
   const workerSelection = buildLiveContractWorkerSelection(existingContract, state);
+  const bootstrapGovernance = buildBootstrapGovernanceState(
+    paths,
+    resolveStructuredBootstrapGovernanceState(state, existingContract),
+    state,
+    existingContract
+  );
 
   return {
     schema_version: EXECUTION_CONTRACT_SCHEMA_VERSION,
@@ -4420,6 +4626,7 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
       terminal_status_enabled: kpiPolicy.terminal_status_enabled ?? true
     },
     integrity,
+    bootstrap_governance: bootstrapGovernance,
     artifacts: {
       ...artifacts,
       state_path: normalizeSlashes(artifactPaths.statePath),
@@ -4429,7 +4636,7 @@ function buildLiveExecutionContract({ paths, state, run, attempt, workerKey, exi
       run_projection_path: normalizeSlashes(resolveRunProjectionPath(artifactPaths, run.run_id)),
       execution_run_root: normalizeSlashes(resolveRunRootPath(artifactPaths, run.run_id)),
       event_root: normalizeSlashes(resolveAttemptEventsRoot(artifactPaths, run.run_id, attempt.attempt_id)),
-      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state, existingContract),
+      bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state, existingContract, bootstrapGovernance),
       worktree_path: state.worktree_path ?? null
     }
   };
@@ -4464,7 +4671,7 @@ async function syncLiveNormalExecutionArtifacts({ paths, state, run, attempt, wo
     execution_contract_path: executionContract.artifacts.execution_contract_path,
     execution_run_contract_path: executionContract.artifacts.run_contract_path,
     execution_run_projection_path: runProjectionPath,
-    bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state),
+    bootstrap_approval_path: resolveBootstrapApprovalArtifactPath(paths, state, executionContract, executionContract.bootstrap_governance),
     pushback_path: normalizeSlashes(artifactPaths.pushbackPath),
     brief_path: normalizeSlashes(artifactPaths.briefPath),
     completion_summary_path: normalizeSlashes(artifactPaths.completionSummaryPath),
@@ -4732,6 +4939,13 @@ function syncLegacyNormalStateFromRun({ state, run, preserveFeatureStatus = true
     execution_run_contract_path: run.contract_path ?? state.artifacts?.execution_run_contract_path ?? null,
     execution_run_projection_path: run.projection_path ?? state.artifacts?.execution_run_projection_path ?? null
   };
+  if (bootstrapApprovalPath) {
+    state.bootstrap_governance = {
+      mode: "manual-bootstrap",
+      approval_required_before_reopen: true,
+      approval_artifact_path: bootstrapApprovalPath
+    };
+  }
 }
 
 function deriveLegacyActiveRunStatusFromAttempt(attempt, state) {
@@ -5235,24 +5449,30 @@ async function evaluateIntegrity({ paths, setup, state, input, inputPack }) {
     ...inputPack.review_cycle_artifacts.flatMap((cycle) => cycle.artifacts.map((artifact) => artifact.text ?? ""))
   ].join("\n\n").toLowerCase();
   const verificationSourceText = String(contractArtifact.valid ? (contractArtifact.text ?? combinedText) : combinedText);
-  const bootstrapApproval = await resolveBootstrapApprovalContext(paths, contractArtifact.text ?? verificationSourceText, state.feature_registry_key);
+  const bootstrapApproval = await resolveBootstrapApprovalContext({
+    paths,
+    state,
+    contractText: contractArtifact.text ?? verificationSourceText,
+    featureRegistryKey: state.feature_registry_key
+  });
   const verificationPlanState = evaluateVerificationPlanState(verificationSourceText);
   const kpiPlanState = evaluateKpiPlanState(verificationSourceText);
+  const bootstrapApprovalPath = resolveBootstrapApprovalMessagePath(paths, bootstrapApproval);
 
   if (bootstrapApproval.manual_bootstrap) {
     if (!bootstrapApproval.approval?.exists) {
       blockingIssues.push(issue(
         "missing-bootstrap-approval-artifact",
         "The contract declares manual-bootstrap governance, but the bootstrap approval artifact is missing.",
-        [normalizeSlashes(paths.bootstrapApprovalPath)],
-        "Restore " + normalizeSlashes(paths.bootstrapApprovalPath) + " before attempting to reopen the slice."
+        [bootstrapApprovalPath],
+        "Restore " + bootstrapApprovalPath + " before attempting to reopen the slice."
       ));
     } else if (!bootstrapApproval.approval.valid) {
       blockingIssues.push(issue(
         "invalid-bootstrap-approval-artifact",
         "The contract declares manual-bootstrap governance, but the bootstrap approval artifact is invalid.",
-        [normalizeSlashes(paths.bootstrapApprovalPath)],
-        "Repair " + normalizeSlashes(paths.bootstrapApprovalPath) + " so approval state is unambiguous before reopening."
+        [bootstrapApprovalPath],
+        "Repair " + bootstrapApprovalPath + " so approval state is unambiguous before reopening."
       ));
     }
   }

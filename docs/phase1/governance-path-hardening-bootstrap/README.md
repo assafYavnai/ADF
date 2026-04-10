@@ -14,6 +14,7 @@ This is the bootstrap/manual-governance landing for that effort. It freezes the 
 - The first landing must stop for manual review before any code changes start.
 - The seeded operational artifacts intentionally freeze the slice in repo-native `blocked` state after the brief is written. The last truthful executable checkpoint remains `brief_ready`, but current helpers must encounter a machine-enforced manual-bootstrap hold until approval is recorded.
 - `bootstrap-approval.v1.json` is the sole bootstrap approval record for clearing that hold. Until that record is stamped approved, the slice must not reopen to implementation and must not advertise `review_pending`, `review_requested`, or a governed `review-cycle` handoff before real post-implementation review exists.
+- The enforceable governance switch lives in structured slice state and execution contracts via `bootstrap_governance`; markdown labels document the gate, but loss or regeneration of those labels must not disable enforcement.
 - Trust may return to the governed route only after the acceptance gates in this slice are proven on the repaired path.
 
 ## Why This Slice Exists Now

@@ -133,6 +133,11 @@
     ],
     "next_safe_move": "write pushback and stop; manual bootstrap approval must be recorded in bootstrap-approval.v1.json before a deliberate feature-reopened transition."
   },
+  "bootstrap_governance": {
+    "mode": "manual-bootstrap",
+    "approval_required_before_reopen": true,
+    "approval_artifact_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/bootstrap-approval.v1.json"
+  },
   "artifacts": {
     "state_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-state.json",
     "markdown_contract_path": "C:/ADF/docs/phase1/governance-path-hardening-bootstrap/implement-plan-contract.md",

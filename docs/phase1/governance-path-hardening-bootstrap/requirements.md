@@ -12,6 +12,7 @@ Scope: `C:/ADF/docs/phase1/governance-path-hardening-bootstrap`
 - The first implementation pass must stop for manual review before any production code change starts.
 - The seed must preserve `brief_ready` as the last truthful pre-implementation checkpoint, but the live operational state must stay `blocked` until manual bootstrap approval is recorded.
 - `bootstrap-approval.v1.json` is the sole authoritative bootstrap approval record for clearing that hold.
+- Structured `bootstrap_governance` in slice state and execution contracts is the enforceable governance-mode signal; markdown labels may document the gate but must not be able to disable it.
 - Clearing the hold requires updating that approval record first and then recording a deliberate reopen transition across the slice-owned operational artifacts.
 - Seeded operational artifacts must not advertise governed `review_pending` or `review_requested` state before post-implementation review actually exists.
 - The slice must preserve the route-level design decisions from `C:/ADF/docs/phase1/governance-path-hardening-plan-v2.md` without widening or paraphrasing away their authority.

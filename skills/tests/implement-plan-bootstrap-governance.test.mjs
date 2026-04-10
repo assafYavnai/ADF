@@ -73,6 +73,22 @@ function parseJson(result) {
   }
 }
 
+async function clearFeatureLock(repoPath) {
+  await rm(join(repoPath, ".codex", "implement-plan", "locks", "features", featureSlug + ".lock"), {
+    recursive: true,
+    force: true
+  });
+}
+
+async function stripBootstrapLabels(contractPath) {
+  const text = await readFile(contractPath, "utf8");
+  const next = text
+    .replace(/^-\s*Bootstrap Governance Mode:.*\r?\n/gm, "")
+    .replace(/^-\s*Bootstrap Approval Artifact:.*\r?\n/gm, "")
+    .replace(/^-\s*Bootstrap Approval Required Before Reopen:.*\r?\n/gm, "");
+  await writeFile(contractPath, next, "utf8");
+}
+
 async function copySliceArtifact(name, featureRoot, projectRootNormalized) {
   const sourcePath = join(sourceSliceRoot, name);
   const destinationPath = join(featureRoot, name);
@@ -147,6 +163,11 @@ function buildSeedState(repoPath) {
       feature_blocked_at: timestamp
     },
     event_log: [],
+    bootstrap_governance: {
+      mode: "manual-bootstrap",
+      approval_required_before_reopen: true,
+      approval_artifact_path: featureRoot + "/bootstrap-approval.v1.json"
+    },
     artifacts: {
       readme_path: featureRoot + "/README.md",
       context_path: featureRoot + "/context.md",
@@ -320,10 +341,7 @@ await runTest("blocked bootstrap prepare stays truthful and reopen requires appr
   assert(pendingReopen.status !== 0, "feature-reopened should fail while bootstrap approval is pending");
   const pendingMessage = (pendingReopen.stderr || pendingReopen.stdout || "").toLowerCase();
   assert(pendingMessage.includes("bootstrap approval is pending"), "pending reopen should explain that approval is still pending");
-  await rm(join(repoPath, ".codex", "implement-plan", "locks", "features", featureSlug + ".lock"), {
-    recursive: true,
-    force: true
-  });
+  await clearFeatureLock(repoPath);
 
   const approvalRecord = JSON.parse(await readFile(bootstrapApprovalPath, "utf8"));
   approvalRecord.approval_status = "approved";
@@ -381,6 +399,81 @@ await runTest("blocked bootstrap prepare stays truthful and reopen requires appr
   assert(
     preparedAfterReopenState.project_root !== projectRoot,
     "normal prepare after reopen should move feature-local runtime artifacts into the isolated worktree"
+  );
+});
+
+await runTest("reopen fails closed when bootstrap labels are removed from the contract", async (dir) => {
+  const { repoPath, featureRoot, bootstrapApprovalPath } = await setupRepo(dir);
+  const contractPath = join(featureRoot, "implement-plan-contract.md");
+  await stripBootstrapLabels(contractPath);
+
+  const reopenResult = runHelper(repoPath, [
+    "record-event",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--event", "feature-reopened"
+  ]);
+  assert(reopenResult.status !== 0, "feature-reopened should still fail while approval is pending even without bootstrap labels");
+  const pendingMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
+  assert(pendingMessage.includes("bootstrap approval is pending"), "reopen should stay fail-closed on the approval artifact when labels are removed");
+  await clearFeatureLock(repoPath);
+
+  const prepareResult = runHelper(repoPath, [
+    "prepare",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--task-summary", "Bootstrap manual-governance slice for governance path hardening"
+  ]);
+  assert(prepareResult.status === 0, "prepare should still succeed with structured bootstrap authority");
+  const prepareJson = parseJson(prepareResult);
+  assert(prepareJson !== null, "prepare should return JSON after bootstrap labels are removed");
+  const blockingIssues = prepareJson.integrity_precheck?.blocking_issues ?? [];
+  assert(blockingIssues.some((issue) => issue.issue_class === "feature-blocked"), "prepare should still surface the truthful bootstrap blocker");
+  const checkpointReason = prepareJson.execution_projection?.resume_checkpoint?.reason ?? "";
+  assert(checkpointReason.includes("bootstrap-approval.v1.json"), "prepare should keep the checkpoint tied to the approval artifact after label loss");
+  const preparedState = JSON.parse(await readFile(prepareJson.state_path, "utf8"));
+  assert(
+    preparedState.bootstrap_governance?.approval_artifact_path === normalizePath(bootstrapApprovalPath),
+    "prepare should preserve structured bootstrap governance after label loss"
+  );
+});
+
+await runTest("reopen fails closed when the markdown contract is missing", async (dir) => {
+  const { repoPath, featureRoot, bootstrapApprovalPath } = await setupRepo(dir);
+  await rm(join(featureRoot, "implement-plan-contract.md"), { force: true });
+
+  const reopenResult = runHelper(repoPath, [
+    "record-event",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--event", "feature-reopened"
+  ]);
+  assert(reopenResult.status !== 0, "feature-reopened should fail while approval is pending even when the contract file is missing");
+  const pendingMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
+  assert(pendingMessage.includes("bootstrap approval is pending"), "missing contract should not disable bootstrap approval enforcement");
+  await clearFeatureLock(repoPath);
+
+  const prepareResult = runHelper(repoPath, [
+    "prepare",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--task-summary", "Bootstrap manual-governance slice for governance path hardening"
+  ]);
+  assert(prepareResult.status === 0, "prepare should still succeed when the contract file is missing");
+  const prepareJson = parseJson(prepareResult);
+  assert(prepareJson !== null, "prepare should return JSON when the contract file is missing");
+  const blockingIssues = prepareJson.integrity_precheck?.blocking_issues ?? [];
+  assert(blockingIssues.some((issue) => issue.issue_class === "feature-blocked"), "prepare should still surface the bootstrap blocker when the contract is missing");
+  const checkpointReason = prepareJson.execution_projection?.resume_checkpoint?.reason ?? "";
+  assert(checkpointReason.includes("bootstrap-approval.v1.json"), "missing contract should not genericize the bootstrap checkpoint reason");
+  const preparedState = JSON.parse(await readFile(prepareJson.state_path, "utf8"));
+  assert(
+    preparedState.bootstrap_governance?.approval_artifact_path === normalizePath(bootstrapApprovalPath),
+    "prepare should preserve structured bootstrap governance when the contract is missing"
   );
 });
 
