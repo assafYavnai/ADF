@@ -63,12 +63,20 @@ Read this first to understand:
 - the broad rationale behind the reset
 - the high-level decisions already taken before the mission statement was drafted
 
-### 2. `adf-v2/00-mission-foundation/context/DECISIONS.md`
+### 2. `adf-v2/00-mission-foundation/context/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+
+Read this second.
+It explains:
+- the actual v1 pain that triggered the reset
+- why continued v1 hardening stopped looking like the right main path
+- what v2 is trying to resolve at the foundation level
+
+### 3. `adf-v2/00-mission-foundation/context/DECISIONS.md`
 
 Read this next to get the concise frozen decision log.
 This is the short authoritative summary of the decisions made while defining the mission foundation.
 
-### 3. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+### 4. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
 
 Read this third.
 It is the current draft executive charter for ADF v2.
@@ -82,14 +90,14 @@ It contains the agreed sections for:
 - core operating roles
 - success test
 
-### 4. `adf-v2/00-mission-foundation/context/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
+### 5. `adf-v2/00-mission-foundation/context/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 
 Read this fourth.
 This is not mission content.
 It is a reusable high-level baseline for future CTO requirement gathering, derived from what worked in this session.
 Use it as process guidance when defining the next foundation documents.
 
-### 5. Individual decision files under `adf-v2/00-mission-foundation/context/`
+### 6. Individual decision files under `adf-v2/00-mission-foundation/context/`
 
 Read these only if needed.
 They contain the detailed freeze notes and wording rationale for specific decisions.
@@ -108,6 +116,7 @@ They are useful when the next session needs to understand **why** something was 
 ### Context / decision files
 
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
+- `adf-v2/00-mission-foundation/context/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 - `adf-v2/00-mission-foundation/context/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 - `adf-v2/00-mission-foundation/context/decision-004-identity.md`
 - `adf-v2/00-mission-foundation/context/decision-005-core-promise-direction.md`

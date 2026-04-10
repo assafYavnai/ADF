@@ -16,6 +16,9 @@ The current repo contains valuable learning, docs, patterns, and some useful sub
 
 The goal of this document is to let a new chat continue from that decision without re-litigating the same questions from scratch.
 
+For the explicit v1 pain statement and the reason v2 was forked instead of continuing to patch v1 as the main path, also read:
+- `adf-v2/00-mission-foundation/context/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+
 ---
 
 ## Decisions Already Taken
