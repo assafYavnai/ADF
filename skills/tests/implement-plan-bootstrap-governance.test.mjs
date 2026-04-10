@@ -89,6 +89,22 @@ async function stripBootstrapLabels(contractPath) {
   await writeFile(contractPath, next, "utf8");
 }
 
+async function updateJsonFile(filePath, updater) {
+  const current = JSON.parse(await readFile(filePath, "utf8"));
+  const next = await updater(current);
+  await writeFile(filePath, JSON.stringify(next, null, 2), "utf8");
+}
+
+function commitAndPush(repoPath, message) {
+  git(repoPath, ["add", "."]);
+  git(repoPath, ["commit", "-m", message]);
+  git(repoPath, ["push", "origin", "main"]);
+}
+
+function deleteLocalFeatureBranch(repoPath) {
+  git(repoPath, ["branch", "-D", featureBranch]);
+}
+
 async function copySliceArtifact(name, featureRoot, projectRootNormalized) {
   const sourcePath = join(sourceSliceRoot, name);
   const destinationPath = join(featureRoot, name);
@@ -406,6 +422,7 @@ await runTest("reopen fails closed when bootstrap labels are removed from the co
   const { repoPath, featureRoot, bootstrapApprovalPath } = await setupRepo(dir);
   const contractPath = join(featureRoot, "implement-plan-contract.md");
   await stripBootstrapLabels(contractPath);
+  commitAndPush(repoPath, "strip bootstrap labels");
 
   const reopenResult = runHelper(repoPath, [
     "record-event",
@@ -418,6 +435,7 @@ await runTest("reopen fails closed when bootstrap labels are removed from the co
   const pendingMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
   assert(pendingMessage.includes("bootstrap approval is pending"), "reopen should stay fail-closed on the approval artifact when labels are removed");
   await clearFeatureLock(repoPath);
+  deleteLocalFeatureBranch(repoPath);
 
   const prepareResult = runHelper(repoPath, [
     "prepare",
@@ -443,6 +461,7 @@ await runTest("reopen fails closed when bootstrap labels are removed from the co
 await runTest("reopen fails closed when the markdown contract is missing", async (dir) => {
   const { repoPath, featureRoot, bootstrapApprovalPath } = await setupRepo(dir);
   await rm(join(featureRoot, "implement-plan-contract.md"), { force: true });
+  commitAndPush(repoPath, "remove markdown contract");
 
   const reopenResult = runHelper(repoPath, [
     "record-event",
@@ -455,6 +474,7 @@ await runTest("reopen fails closed when the markdown contract is missing", async
   const pendingMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
   assert(pendingMessage.includes("bootstrap approval is pending"), "missing contract should not disable bootstrap approval enforcement");
   await clearFeatureLock(repoPath);
+  deleteLocalFeatureBranch(repoPath);
 
   const prepareResult = runHelper(repoPath, [
     "prepare",
@@ -474,6 +494,190 @@ await runTest("reopen fails closed when the markdown contract is missing", async
   assert(
     preparedState.bootstrap_governance?.approval_artifact_path === normalizePath(bootstrapApprovalPath),
     "prepare should preserve structured bootstrap governance when the contract is missing"
+  );
+});
+
+await runTest("malformed structured bootstrap governance in state stays fail-closed", async (dir) => {
+  const { repoPath, featureRoot, bootstrapApprovalPath } = await setupRepo(dir);
+  const statePath = join(featureRoot, "implement-plan-state.json");
+  await updateJsonFile(statePath, (state) => {
+    state.bootstrap_governance = {
+      approval_required_before_reopen: false
+    };
+    state.artifacts.bootstrap_approval_path = null;
+    return state;
+  });
+  commitAndPush(repoPath, "corrupt bootstrap governance state");
+
+  const reopenResult = runHelper(repoPath, [
+    "record-event",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--event", "feature-reopened"
+  ]);
+  assert(reopenResult.status !== 0, "malformed state bootstrap_governance must not allow reopen");
+  const reopenMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
+  assert(reopenMessage.includes("structured bootstrap governance is invalid"), "reopen should fail on invalid structured bootstrap governance");
+  await clearFeatureLock(repoPath);
+  deleteLocalFeatureBranch(repoPath);
+
+  const prepareResult = runHelper(repoPath, [
+    "prepare",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--task-summary", "Bootstrap manual-governance slice for governance path hardening"
+  ]);
+  assert(prepareResult.status === 0, "prepare should still return JSON for malformed structured state");
+  const prepareJson = parseJson(prepareResult);
+  assert(prepareJson !== null, "prepare should parse for malformed structured state");
+  const blockingIssues = prepareJson.integrity_precheck?.blocking_issues ?? [];
+  assert(blockingIssues.some((issue) => issue.issue_class === "invalid-bootstrap-governance-authority"), "prepare should surface invalid structured bootstrap authority");
+  const featureBlocked = blockingIssues.find((issue) => issue.issue_class === "feature-blocked");
+  assert(featureBlocked, "prepare should still keep the bootstrap route blocked");
+  assert(
+    String(featureBlocked.why ?? "").toLowerCase().includes("bootstrap/manual-governance"),
+    "prepare should keep bootstrap-specific blocked wording for malformed structured state"
+  );
+  assert(
+    String(featureBlocked.required_repair ?? "").includes("bootstrap-approval.v1.json"),
+    "prepare should keep the repair path anchored to the approval artifact"
+  );
+  const checkpointReason = prepareJson.execution_projection?.resume_checkpoint?.reason ?? "";
+  assert(
+    checkpointReason.toLowerCase().includes("structured bootstrap governance is invalid"),
+    "checkpoint reason should stay bootstrap-specific for malformed structured state"
+  );
+  const preparedState = JSON.parse(await readFile(prepareJson.state_path, "utf8"));
+  assert(
+    preparedState.bootstrap_governance?.approval_artifact_path === normalizePath(bootstrapApprovalPath),
+    "prepare may repair malformed state, but it must preserve the canonical approval artifact path"
+  );
+});
+
+await runTest("malformed structured bootstrap governance in execution contract stays fail-closed", async (dir) => {
+  const { repoPath, featureRoot } = await setupRepo(dir);
+  const executionContractPath = join(featureRoot, "implement-plan-execution-contract.v1.json");
+  await writeFile(
+    executionContractPath,
+    JSON.stringify({
+      bootstrap_governance: {
+        approval_required_before_reopen: false
+      },
+      artifacts: {
+        bootstrap_approval_path: normalizePath(join(featureRoot, "bootstrap-approval.v1.json"))
+      }
+    }, null, 2),
+    "utf8"
+  );
+
+  const reopenResult = runHelper(repoPath, [
+    "record-event",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--event", "feature-reopened"
+  ]);
+  assert(reopenResult.status !== 0, "malformed execution-contract bootstrap_governance must not allow reopen");
+  const reopenMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
+  assert(reopenMessage.includes("structured bootstrap governance is invalid"), "reopen should fail on malformed execution-contract structured authority");
+});
+
+await runTest("structured bootstrap governance missing approval path stays fail-closed", async (dir) => {
+  const { repoPath, featureRoot } = await setupRepo(dir);
+  const statePath = join(featureRoot, "implement-plan-state.json");
+  await updateJsonFile(statePath, (state) => {
+    state.bootstrap_governance = {
+      mode: "manual-bootstrap",
+      approval_required_before_reopen: true
+    };
+    state.artifacts.bootstrap_approval_path = null;
+    return state;
+  });
+  commitAndPush(repoPath, "remove bootstrap approval path");
+
+  const reopenResult = runHelper(repoPath, [
+    "record-event",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--event", "feature-reopened"
+  ]);
+  assert(reopenResult.status !== 0, "missing approval path must not allow reopen");
+  const reopenMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
+  assert(reopenMessage.includes("structured bootstrap governance is invalid"), "reopen should fail because structured approval path is missing");
+  await clearFeatureLock(repoPath);
+  deleteLocalFeatureBranch(repoPath);
+
+  const prepareResult = runHelper(repoPath, [
+    "prepare",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--task-summary", "Bootstrap manual-governance slice for governance path hardening"
+  ]);
+  assert(prepareResult.status === 0, "prepare should still return JSON when structured approval path is missing");
+  const prepareJson = parseJson(prepareResult);
+  assert(prepareJson !== null, "prepare should parse when structured approval path is missing");
+  const blockingIssues = prepareJson.integrity_precheck?.blocking_issues ?? [];
+  const featureBlocked = blockingIssues.find((issue) => issue.issue_class === "feature-blocked");
+  assert(featureBlocked, "prepare should keep the feature blocked when structured approval path is missing");
+  assert(
+    String(featureBlocked.why ?? "").toLowerCase().includes("bootstrap/manual-governance"),
+    "prepare should not degrade to generic blocked wording when structured approval path is missing"
+  );
+});
+
+await runTest("contradictory structured bootstrap governance across state and execution contract fails closed", async (dir) => {
+  const { repoPath, featureRoot, bootstrapApprovalPath } = await setupRepo(dir);
+  const executionContractPath = join(featureRoot, "implement-plan-execution-contract.v1.json");
+  await writeFile(
+    executionContractPath,
+    JSON.stringify({
+      bootstrap_governance: {
+        mode: "manual-bootstrap",
+        approval_required_before_reopen: true,
+        approval_artifact_path: normalizePath(join(featureRoot, "alternate-bootstrap-approval.v1.json"))
+      },
+      artifacts: {
+        bootstrap_approval_path: normalizePath(join(featureRoot, "alternate-bootstrap-approval.v1.json"))
+      }
+    }, null, 2),
+    "utf8"
+  );
+  commitAndPush(repoPath, "introduce contradictory bootstrap governance");
+
+  const reopenResult = runHelper(repoPath, [
+    "record-event",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--event", "feature-reopened"
+  ]);
+  assert(reopenResult.status !== 0, "contradictory state vs execution-contract bootstrap governance must not allow reopen");
+  const reopenMessage = (reopenResult.stderr || reopenResult.stdout || "").toLowerCase();
+  assert(reopenMessage.includes("structured bootstrap governance is invalid"), "reopen should fail closed on contradictory structured authority");
+  await clearFeatureLock(repoPath);
+  deleteLocalFeatureBranch(repoPath);
+
+  const prepareResult = runHelper(repoPath, [
+    "prepare",
+    "--project-root", repoPath,
+    "--phase-number", String(phaseNumber),
+    "--feature-slug", featureSlug,
+    "--task-summary", "Bootstrap manual-governance slice for governance path hardening"
+  ]);
+  assert(prepareResult.status === 0, "prepare should still return JSON on contradictory structured authority");
+  const prepareJson = parseJson(prepareResult);
+  assert(prepareJson !== null, "prepare should parse on contradictory structured authority");
+  const blockingIssues = prepareJson.integrity_precheck?.blocking_issues ?? [];
+  assert(blockingIssues.some((issue) => issue.issue_class === "invalid-bootstrap-governance-authority"), "prepare should fail closed on contradictory structured authority");
+  const featureBlocked = blockingIssues.find((issue) => issue.issue_class === "feature-blocked");
+  assert(featureBlocked, "prepare should keep the contradictory route blocked");
+  assert(
+    String(featureBlocked.required_repair ?? "").includes(normalizePath(bootstrapApprovalPath)),
+    "repair guidance should stay anchored to the canonical approval artifact despite contradictory structured authority"
   );
 });
 
