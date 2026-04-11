@@ -63,3 +63,29 @@ For the remainder of the `00-mission-foundation` work:
 - every frozen decision should be recorded here
 - `context/HANDOFF.md` remains the broad session bridge and restart pack
 - `DECISIONS.md` remains the concise authoritative log of frozen choices
+
+---
+
+## Decision D-025 — CTO role/rules sit above the context layers
+
+Frozen decision:
+- CTO context includes a governing `Layer 0` for role and rules above the 3 working context layers
+
+Why:
+- the context layers explain what CTO is holding, not how CTO must behave
+- this keeps the operating contract separate from the active work context
+
+---
+
+## Decision D-026 — CTO context uses system graph, task subgraph, issue stack
+
+Frozen decision:
+- below `Layer 0`, the working model is:
+  1. system graph
+  2. current task subgraph
+  3. current issue stack
+
+Why:
+- the system layer needs relationship awareness
+- the task layer is the focused slice of that system context
+- the issue layer is temporary and FILO
