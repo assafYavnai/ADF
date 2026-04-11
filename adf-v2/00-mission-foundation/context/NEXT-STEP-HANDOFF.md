@@ -23,6 +23,74 @@ The next session should continue from those frozen decisions rather than reopeni
 
 ---
 
+## Current Checkpoint
+
+Checkpoint date:
+- `2026-04-12`
+
+Last agent reference:
+- `cf84254d-33c9-41d1-a6de-e811dc1fc286`
+
+Current local state at this checkpoint:
+- `DELIVERY-COMPLETION-DEFINITION.md` does **not** exist yet as a draft artifact
+- the delivery-completion work exists only as frozen decision files under `context/decisions/`
+- `TRUST-MODEL.md` exists as a first-draft working artifact under `context/artifacts/`
+- additional trust decisions `D-027` through `D-036` have been written locally under `context/decisions/`
+- the decision log `context/DECISIONS.md` has been updated locally to include those new trust decisions
+
+Important boundary at this checkpoint:
+- the current main task is still to define `DELIVERY-COMPLETION-DEFINITION.md`
+- only the narrow delivery-boundary meaning of trust belongs inside that document
+- the broader trust-model questions have been parked in `context/artifacts/TRUST-MODEL.md`
+
+Important local uncommitted files at this checkpoint:
+- `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
+- `adf-v2/00-mission-foundation/context/DECISIONS.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-027-trust-is-a-core-system-concept.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-028-trust-model-is-separate-from-delivery-completion.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-029-delivery-completion-uses-only-boundary-trust.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-030-trust-is-bidirectional.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-031-trust-is-edge-based-in-a-workflow-graph.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-032-upward-box-trust-is-not-self-published.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-033-box-trust-uses-weakest-critical-edge-direction.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-034-trust-is-primarily-governance-owned.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-035-low-trust-requires-action.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-036-trust-supports-self-healing-and-self-improvement.md`
+
+Recommended first move for the next agent:
+- review the uncommitted trust files above
+- preserve them rather than rediscovering the same trust decisions from chat
+- then return to the still-undrafted `DELIVERY-COMPLETION-DEFINITION.md`
+
+Current decision boundary:
+- frozen:
+  - the mission-foundation decisions already saved under `context/decisions/`
+  - the narrower rule that `DELIVERY-COMPLETION-DEFINITION.md` should consume only the delivery-boundary meaning of trust
+- drafted only:
+  - `context/artifacts/TRUST-MODEL.md`
+- still open:
+  - the unresolved trust-model questions parked in `TRUST-MODEL.md`
+  - the actual draft and wording of `DELIVERY-COMPLETION-DEFINITION.md`
+
+Immediate next unresolved question:
+- what is the exact delivery-boundary definition of trust that must appear inside `DELIVERY-COMPLETION-DEFINITION.md`, without widening back into the full trust model
+
+Do-not-repeat rules for the next agent:
+- do not treat `TRUST-MODEL.md` as frozen canon
+- do not widen `DELIVERY-COMPLETION-DEFINITION.md` into the full trust model
+- do not reopen already frozen trust decisions unless the CEO explicitly reopens them
+- do not lose the open trust questions parked in `TRUST-MODEL.md`
+- do not assume the local trust files are already committed
+
+Commit-state reminder:
+- the trust draft and trust decision files listed above are local-only at this checkpoint
+- they must be intentionally reviewed and committed if the next agent chooses to preserve them durably
+
+CEO protocol reminder:
+- the next agent should stay minimal, decision-shaped, and must not freeze new content without explicit approval
+
+---
+
 ## Current Strategic Direction
 
 ### Repo decision
