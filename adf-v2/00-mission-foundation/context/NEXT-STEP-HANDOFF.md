@@ -1,25 +1,8 @@
-# ADF v2 — Next-Step Handoff
+# ADF v2 - Next-Step Handoff
 
-Status: restart handoff for the next session  
+Status: active restart handoff  
 Scope: `adf-v2/00-mission-foundation/`  
-Purpose: let a new agent resume the v2 mission-foundation work quickly, with minimal drift and no need to reconstruct this session from chat history
-
----
-
-## What This Handoff Is For
-
-This file is the handoff point for the **next planning step** after the mission statement draft.
-
-The prior session did three important things:
-
-1. decided that `adf-v2/` should be built as a **new source of truth inside the same repo**
-2. created the first mission-foundation documents for v2
-3. established and recorded a reusable **requirement-gathering baseline** for future CTO-facing requirement definition
-
-This area now also depends on a separate cross-agent working contract:
-- `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
-
-The next session should continue from those frozen decisions rather than reopening them casually.
+Purpose: let the next agent resume the mission-foundation work from the current real state, without reconstructing this session from chat
 
 ---
 
@@ -31,63 +14,41 @@ Checkpoint date:
 Last agent reference:
 - `cf84254d-33c9-41d1-a6de-e811dc1fc286`
 
-Current local state at this checkpoint:
-- `DELIVERY-COMPLETION-DEFINITION.md` does **not** exist yet as a draft artifact
-- the delivery-completion work exists only as frozen decision files under `context/decisions/`
-- `TRUST-MODEL.md` exists as a first-draft working artifact under `context/artifacts/`
-- additional trust decisions `D-027` through `D-036` have been written locally under `context/decisions/`
-- the decision log `context/DECISIONS.md` has been updated locally to include those new trust decisions
+Current branch state:
+- the trust-model draft is committed
+- trust decisions `D-027` through `D-036` are committed
+- the first draft of `DELIVERY-COMPLETION-DEFINITION.md` now exists
 
-Important boundary at this checkpoint:
-- the current main task is still to define `DELIVERY-COMPLETION-DEFINITION.md`
-- only the narrow delivery-boundary meaning of trust belongs inside that document
-- the broader trust-model questions have been parked in `context/artifacts/TRUST-MODEL.md`
+Current main task:
+- refine and freeze `DELIVERY-COMPLETION-DEFINITION.md`
 
-Important local uncommitted files at this checkpoint:
-- `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/DECISIONS.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-027-trust-is-a-core-system-concept.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-028-trust-model-is-separate-from-delivery-completion.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-029-delivery-completion-uses-only-boundary-trust.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-030-trust-is-bidirectional.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-031-trust-is-edge-based-in-a-workflow-graph.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-032-upward-box-trust-is-not-self-published.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-033-box-trust-uses-weakest-critical-edge-direction.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-034-trust-is-primarily-governance-owned.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-035-low-trust-requires-action.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-036-trust-supports-self-healing-and-self-improvement.md`
-
-Recommended first move for the next agent:
-- review the uncommitted trust files above
-- preserve them rather than rediscovering the same trust decisions from chat
-- then return to the still-undrafted `DELIVERY-COMPLETION-DEFINITION.md`
+Current task boundary:
+- only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
+- the broader trust-model questions remain parked in `context/artifacts/TRUST-MODEL.md`
 
 Current decision boundary:
 - frozen:
-  - the mission-foundation decisions already saved under `context/decisions/`
-  - the narrower rule that `DELIVERY-COMPLETION-DEFINITION.md` should consume only the delivery-boundary meaning of trust
+  - the mission-foundation decisions under `context/decisions/`
+  - the rule that `DELIVERY-COMPLETION-DEFINITION.md` should consume only boundary trust
 - drafted only:
+  - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
   - `context/artifacts/TRUST-MODEL.md`
 - still open:
-  - the unresolved trust-model questions parked in `TRUST-MODEL.md`
-  - the actual draft and wording of `DELIVERY-COMPLETION-DEFINITION.md`
+  - the final freeze wording of `DELIVERY-COMPLETION-DEFINITION.md`
+  - the unresolved broader trust-model questions parked in `TRUST-MODEL.md`
 
 Immediate next unresolved question:
-- what is the exact delivery-boundary definition of trust that must appear inside `DELIVERY-COMPLETION-DEFINITION.md`, without widening back into the full trust model
+- what exact delivery-boundary definition of trust should appear in `DELIVERY-COMPLETION-DEFINITION.md`, without widening back into the full trust model
 
 Do-not-repeat rules for the next agent:
 - do not treat `TRUST-MODEL.md` as frozen canon
+- do not treat the delivery-completion draft as frozen canon
 - do not widen `DELIVERY-COMPLETION-DEFINITION.md` into the full trust model
 - do not reopen already frozen trust decisions unless the CEO explicitly reopens them
 - do not lose the open trust questions parked in `TRUST-MODEL.md`
-- do not assume the local trust files are already committed
-
-Commit-state reminder:
-- the trust draft and trust decision files listed above are local-only at this checkpoint
-- they must be intentionally reviewed and committed if the next agent chooses to preserve them durably
 
 CEO protocol reminder:
-- the next agent should stay minimal, decision-shaped, and must not freeze new content without explicit approval
+- stay minimal, decision-shaped, and do not freeze new content without explicit approval
 
 ---
 
@@ -95,9 +56,9 @@ CEO protocol reminder:
 
 ### Repo decision
 
-- `adf-v2/` lives in the **same repo** as legacy ADF
-- legacy ADF is **reference only** for v2, not source of truth
-- v2 is intended to become the **new architectural source of truth**
+- `adf-v2/` lives in the same repo as legacy ADF
+- legacy ADF is reference only for v2, not source of truth
+- v2 is intended to become the new architectural source of truth
 
 ### High-level v2 direction
 
@@ -126,228 +87,116 @@ No separate foundational PM layer was chosen for v2 Phase 1.
 
 Read in this order:
 
-### 1. `adf-v2/LAYER-LIFECYCLE.md`
+1. `adf-v2/LAYER-LIFECYCLE.md`
+2. `adf-v2/00-mission-foundation/context/HANDOFF.md`
+3. `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+4. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+5. `adf-v2/00-mission-foundation/context/DECISIONS.md`
+6. `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
+7. `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
+8. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+9. `adf-v2/CTO-ROLE.md`
+10. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
+11. `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+12. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
 
-Read this first.
-It defines the folder lifecycle and promotion model that all v2 layers should follow, including `00-mission-foundation`.
-
-### 2. `adf-v2/00-mission-foundation/context/HANDOFF.md`
-
-Read this first to understand:
-- why `adf-v2/` was started
-- the 5-step startup sequence that was proposed
-- the broad rationale behind the reset
-- the high-level decisions already taken before the mission statement was drafted
-
-### 3. `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
-
-Read this second.
-It explains:
-- the actual v1 pain that triggered the reset
-- why continued v1 hardening stopped looking like the right main path
-- what v2 is trying to resolve at the foundation level
-
-### 4. `adf-v2/00-mission-foundation/context/DECISIONS.md`
-
-Read this next to get the concise frozen decision log.
-This is the short authoritative summary of the decisions made while defining the mission foundation.
-
-### 5. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
-
-Read this third.
-It is the current draft executive charter for ADF v2.
-It contains the agreed sections for:
-- identity
-- core promise
-- foundational approach
-- Phase 1 mission
-- Phase 1 scope
-- Phase 1 out of scope
-- core operating roles
-- success test
-
-### 6. `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
-
-Read this next.
-This is not mission content.
-It is a reusable high-level baseline for future CTO requirement gathering, derived from what worked in this session.
-Use it as process guidance when defining the next foundation documents.
-
-### 7. `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
-
-Read this next.
-It defines the layered context model CTO should use while operating: role/rules, system context, task context, and issue stack.
-
-### 8. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
-
-Read this next when working directly with the CEO.
-It defines the required approval loop, trust-preservation rules, and the rule that agents must stay minimal and decision-shaped unless more depth is requested.
-
-### 9. Individual decision files under `adf-v2/00-mission-foundation/context/decisions/`
-
-Read these only if needed.
-They contain the detailed freeze notes and wording rationale for specific decisions.
-They are useful when the next session needs to understand **why** something was frozen a certain way.
+Reading intent:
+- items `1` through `9` define the current governing frame
+- `TRUST-MODEL.md` is the broader trust draft and must not be treated as frozen canon
+- `DELIVERY-COMPLETION-DEFINITION.md` is the current main draft artifact
 
 ---
 
-## Files Created In This Area
+## Files In This Area
 
 ### Main files
 
 - `adf-v2/LAYER-LIFECYCLE.md`
+- `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+- `adf-v2/CTO-ROLE.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
 - `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 - `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 - `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
-- `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 
-### Context / decision files
+### Context support files
 
 - `adf-v2/00-mission-foundation/context/HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-004-identity.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-005-core-promise-direction.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-006-core-promise-wording.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-007-phase1-mission.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-008-phase1-scope-center.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-009-phase1-scope.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-010-phase1-out-of-scope.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-011-core-operating-roles.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-012-success-test.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-013-delivery-completion-definition-level.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-014-delivery-definition-as-service-contract.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-015-input-boundary-is-a-well-defined-request-package.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-016-output-boundary-is-a-truthful-terminal-result.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-017-complete-is-returned-artifact-with-no-leaked-burden.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-018-leaked-operational-burden-definition.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-019-trust-is-the-umbrella-burden-rule.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-020-production-ready-is-a-quality-indicator.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-021-document-covers-artifact-quality-and-service-trust.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-022-system-owns-the-route-after-handoff.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-023-queryability-and-resumability-are-explicit.md`
-- `adf-v2/00-mission-foundation/context/decisions/decision-024-environment-isolation-is-explicit.md`
+
+### Draft artifacts
+
+- `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
+- `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/context/artifacts/README.md`
 
-Note:
-- earlier decisions such as file naming, thin-doc style, and mission structure are also preserved in `DECISIONS.md`
+### Decision files
+
+- all frozen decision files under `adf-v2/00-mission-foundation/context/decisions/`
+- this includes trust decisions `D-027` through `D-036`
 
 ---
 
 ## What Was Actually Frozen
 
-### Mission document identity
+The key frozen strategic conclusions already accepted are:
 
-The first mission document for v2 is:
-- `MISSION-STATEMENT.md`
-
-It is intentionally **thin**.
-It is an executive charter, not an architecture spec or implementation plan.
-
-### Mission document structure
-
-The draft mission statement uses this structure:
-1. Identity
-2. Core promise
-3. Foundational approach
-4. Phase 1 mission
-5. Phase 1 scope
-6. Phase 1 out of scope
-7. Core operating roles
-8. Success test
-
-### Key content direction
-
-Important strategic conclusions already accepted:
-- v2 must be **boxed and contract-based**
-- roles and workflows should be treated as **assemblies built from components**
-- Phase 1 is not only about building a delivery engine; it is about defining the startup model and proving it with the first complete delivery chain
-- the real IP of ADF is the scaffolding: roles, workflows, contracts, obligations, structure, and truth model
+- v2 must be boxed and contract-based
+- roles and workflows should be treated as assemblies built from components
+- the startup model is the focus of Phase 1
+- trust is a core system concept
+- the full trust model is separate from delivery completion
+- delivery completion should consume only boundary trust
 
 ---
 
 ## What The Next Session Should Do
 
-The next session should **not** restart from first principles.
-It should assume the mission-foundation work is already underway and continue from it.
+The next session should not restart from first principles.
+It should continue from the current drafts and frozen decisions.
 
-Recommended next step:
+### Immediate next step
 
-### Define the next foundation documents after `MISSION-STATEMENT.md`
+Refine and freeze `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`.
 
-Most likely next documents:
-- `DELIVERY-COMPLETION-DEFINITION.md`
+That freeze pass should:
+- keep the document high level but concrete
+- define complete as a trustworthy returned result
+- define production-ready as artifact quality
+- define only the narrow delivery-boundary trust needed for completion
+- avoid importing the full trust-model mechanics
+
+### After that
+
+Then continue with:
 - `SYSTEM-OBLIGATIONS.md`
 - `BOXED-COMPONENT-MODEL.md`
 - `ROLE-MODEL.md`
 - `WORKFLOW-MODEL.md`
 
-The immediate recommended next step is:
-
-### 1. Define `DELIVERY-COMPLETION-DEFINITION.md`
-
-Why this should be next:
-- the mission statement intentionally leaves `truly complete, production-ready delivery` undefined
-- the success test depends on that definition
-- without it, later docs may drift in what “complete” means
-
-That document should define at high level:
-- what counts as complete delivery
-- what counts as production-ready
-- what must be true before completion can be declared
-- what must not remain afterward
-- how the CEO -> CTO -> governed dev-team trust chain is preserved
-
-### 2. Then define `SYSTEM-OBLIGATIONS.md`
-
-Why:
-- the session clarified that audit trail, KPIs, git discipline, Brain/memory policy, status, and similar items are not mission scope items
-- they are **cross-cutting obligations** that every component and flow must obey
-
-### 3. Then define the universal boxed component model
-
-Likely file:
-- `BOXED-COMPONENT-MODEL.md`
-
-Why:
-- the session established that this is part of the real ADF IP
-- later role/workflow definitions should sit on top of that universal model
-
 ---
 
 ## Important Boundaries For The Next Agent
 
-### Do not do these yet
-
-Do not widen into:
+Do not do these yet:
 - broad architecture design for all of v2
 - detailed schemas too early
 - detailed implementation planning for every subsystem
 - recreating legacy ADF compatibility behavior
 - later-company roles and departments
+- full trust-governance mechanics inside the delivery-completion document
 
-### Do keep doing these
-
-- keep the docs thin at the right level
+Do keep doing these:
+- keep docs thin at the right level
 - freeze one decision at a time
-- record decisions durably in `context/decisions/`
-- keep in-progress working artifacts in `context/artifacts/`
+- record frozen decisions in `context/decisions/`
+- keep drafts in `context/artifacts/`
 - separate mission vs scope vs spec vs plan
 - treat the current requirement-gathering method as part of the reusable v2 foundation
 
 ---
 
-## Key Open Gap To Carry Forward
-
-The most important intentionally unresolved item is:
-
-**What exactly does `truly complete, production-ready delivery` mean in ADF v2?**
-
-That is the clearest next hole to close.
-
----
-
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation has been started; the mission statement is drafted, the strategic direction is boxed and contract-based, the role model is thin, the startup model is the focus of Phase 1, and the next session should define completion meaning before widening into broader v2 specifications.
+ADF v2 mission foundation is active, trust is now split into a broader trust draft and frozen trust decisions, the first draft of `DELIVERY-COMPLETION-DEFINITION.md` exists, and the next agent should refine that draft to a frozen delivery-boundary definition without widening back into the full trust model.
