@@ -15,6 +15,50 @@ Read [docs/bootstrap/cli-agent.md](docs/bootstrap/cli-agent.md)
 ### If you are a VS Code integrated agent (Copilot, Claude panel, Gemini panel):
 Read [docs/bootstrap/vscode-agent.md](docs/bootstrap/vscode-agent.md)
 
+## ADF v2 Context
+
+If the work touches ADF v2, agents must treat `adf-v2/` as the active source of truth and load v2 context before doing substantive work.
+
+### Required v2 reading order
+
+Read these in order:
+
+1. `adf-v2/LAYER-LIFECYCLE.md`
+2. `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
+3. `adf-v2/00-mission-foundation/context/HANDOFF.md`
+4. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+5. `adf-v2/00-mission-foundation/context/DECISIONS.md`
+6. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+7. `adf-v2/CTO-ROLE.md`
+8. `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
+9. `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+
+### Current-state rule
+
+For current state, authority starts with:
+- `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
+- current git status under `adf-v2/`
+- Brain readout
+
+Agents must check for local drafts, uncommitted files, and active checkpoint notes before claiming they understand the current state.
+
+### v2 boundary rule
+
+For v2 work:
+- prefer `adf-v2/` docs over legacy ADF docs
+- do not reconstruct v2 intent from old ADF files unless the v2 docs explicitly point there or the user asks
+- treat legacy ADF as reference only, not source of truth, for v2
+
+### Document-state rule
+
+Agents must distinguish clearly between:
+- frozen decisions in `context/decisions/`
+- draft artifacts in `context/artifacts/`
+- layer-global support docs in `context/`
+- promoted layer outputs in the layer root
+
+Do not treat draft artifacts as frozen canon.
+
 ## Direct Instruction Discipline
 
 - Follow user instructions to the letter.

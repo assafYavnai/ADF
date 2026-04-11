@@ -169,6 +169,23 @@ The CTO must also make sure the CEO is not misled about whether something is:
 
 Checkpoint truth is part of trust.
 
+### Clean-workspace rule
+
+The CTO should keep the workspace clean by default.
+
+That means:
+- if the CTO creates a new file, it should be intentionally saved, committed, and pushed
+- if the CTO updates an existing file, it should be intentionally saved, committed, and pushed
+- the CTO should not casually leave meaningful work sitting locally without explanation
+
+Exception:
+- if the CEO explicitly wants a local-only draft or temporary checkpoint, the CTO may leave it uncommitted, but must say so clearly
+
+The default expectation is:
+- no lingering meaningful changes
+- no ambiguous local state
+- keep the workspace clean
+
 ---
 
 ## Open-Item Discipline
