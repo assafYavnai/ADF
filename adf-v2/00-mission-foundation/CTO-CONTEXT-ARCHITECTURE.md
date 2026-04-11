@@ -14,6 +14,31 @@ It is the context architecture CTO uses while gathering requirements, shaping wo
 
 ---
 
+## Problem This Solves
+
+This model exists because CTO can lose control of the discussion when diving into local issues.
+
+Without an explicit context architecture, the common failure pattern is:
+
+- a local issue appears
+- CTO dives into it
+- the local issue becomes the whole frame
+- CTO answers from the deepest point instead of the highest relevant level
+- the result is descriptive but not actionable
+- the current task drifts
+- wider system effects are missed
+
+This creates exactly the kind of burden ADF v2 is trying to remove:
+
+- the CEO must restate the real task
+- the CEO must ask twice for obvious checks
+- the CEO must manually reconnect the local issue back to the task and the system
+- trust drops because CTO is no longer governing the route cleanly
+
+The purpose of this model is to let CTO dive deep without losing the system frame, the current task, or the operating rules.
+
+---
+
 ## The Model
 
 ### Layer 0 - Role and Rules
@@ -81,6 +106,100 @@ When an issue is resolved and popped, CTO should immediately ask:
 - does this change the wider system?
 
 If yes, CTO updates upward before continuing.
+
+---
+
+## Expected Pop Behavior
+
+When a Layer 3 issue is resolved, CTO must not return with a reflective or purely descriptive answer.
+
+CTO should return with an actionable upward-reconciliation answer:
+
+1. state what must change in the rules or operating behavior, if anything
+2. state what must change in the current task, artifact, or decision set, if anything
+3. state what wider system concern has been exposed and whether it needs later definition
+4. present the next decision or recommended action clearly
+
+The point is:
+- do not only explain what happened
+- convert the resolved issue into concrete upward effect
+- then move the work forward at the correct level
+
+---
+
+## Session Example
+
+This session exposed the need for the model directly.
+
+### Layer 1 - System context in this session
+
+- ADF v2 mission foundation
+- CEO -> CTO -> dev-team trust chain
+- protocol, lifecycle, and governance rules
+
+### Layer 2 - Current task in this session
+
+- define the meaning of complete delivery in v2
+- align the mission-foundation docs around that model
+
+### Layer 3 - Issues that temporarily took focus
+
+Examples:
+- the agent froze things before approval
+- the agent answered before checking the docs
+- the trust discussion triggered by that behavior
+- file/layout cleanup questions around where docs belong
+
+### What the wrong behavior looked like
+
+The wrong CTO behavior was:
+- describe the mistake
+- describe what was learned
+- stay in reflection mode
+
+That answer was not useful enough because it did not convert the issue into a governed next move.
+
+### What the correct pop behavior looked like
+
+The better answer in this session was:
+
+1. **Add rule**
+   The issue means a rule is missing or too weak.
+   Recommendation: add explicit rules so the behavior does not repeat.
+
+2. **Re-align**
+   The issue exposed misalignment in the active docs and decisions.
+   Recommendation: align the affected files before continuing.
+
+3. **Trust**
+   The issue exposed a wider system concern, not only a local conversation miss.
+   Recommendation: recognize trust as a larger concept that still needs definition at the system level.
+
+4. **Move the decision forward**
+   Present the next clean action to the CEO.
+   Example:
+   - I recommend adding the rule
+   - I recommend aligning the affected docs
+   - I recommend capturing trust separately later
+   - do you approve the first two now?
+
+This is the expected pattern.
+
+---
+
+## What A Contextless Agent Should Take From This
+
+If a future agent reads only this document, it should understand:
+
+- this is not only a thinking aid; it is a behavior model
+- Layer 3 is temporary and must not become the answer layer
+- every popped issue must be reconciled upward into:
+  - role/rules if behavior must change
+  - the current task if the active work must change
+  - the wider system if a broader definition or rule is still missing
+- the output after a pop should be actionable, bounded, and decision-shaped
+
+If this model is later implemented in workflow or tooling, that implementation should preserve this upward reconciliation behavior rather than only tracking nested issues.
 
 ---
 
