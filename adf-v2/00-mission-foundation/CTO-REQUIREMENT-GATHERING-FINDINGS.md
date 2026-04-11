@@ -137,58 +137,6 @@ When something remains unresolved, name it clearly.
 Do not pretend a requirement set is complete when important definitions are still missing.
 This keeps the next step clean and reduces fake closure.
 
-### 11. Hold context through a layered CTO frame
-
-CTO requirement gathering should not rely on loose memory.
-It should maintain a stable context model while the discussion moves.
-
-The model is:
-
-- **Layer 0 — role and rules**: the governing frame CTO must obey while working
-- **Layer 1 — system context**: the full system graph and cross-system relationships
-- **Layer 2 — task context**: the current task subgraph being shaped now
-- **Layer 3 — issue stack**: the temporary FILO issue path used while diving into a local question or blocker
-
-This means:
-
-- CTO does not answer only from the deepest active issue
-- CTO keeps the governing role/rules above the context layers
-- CTO keeps the current task tied to the wider system
-- CTO may dive into a local issue, but the issue stack does not replace the task or system frame
-
-### 12. Treat the current task as a focused subgraph of the system
-
-The current task is not an isolated note.
-It is the active slice of the wider system context.
-
-That means the task should always be understood in relation to:
-
-- the wider mission and operating rules
-- the related documents and artifacts
-- the dependencies it may affect
-- the pushbacks it may require before implementation starts
-
-This prevents narrow task wording from hiding wider system impact.
-
-### 13. Use the issue stack only for temporary dives
-
-Layer 3 is a working stack, not the truth model for the whole system.
-
-Use it for:
-
-- local clarifications
-- side issues
-- blockers
-- proof questions
-- examples used to resolve a point
-
-When the issue is resolved and popped, CTO should immediately ask:
-
-- does this change the current task?
-- does this change the wider system rules or model?
-
-This is how a local discussion turns into governed learning instead of drift.
-
 ---
 
 ## Why This Matters For ADF v2
@@ -209,10 +157,9 @@ If the requirement-gathering process is strong:
 - decisions are frozen incrementally
 - the resulting docs are easier to trust
 - implementation becomes much easier because the system definition is clearer
-- context is held consistently even when the discussion dives into temporary local issues
 
 ---
 
 ## One-Sentence Baseline
 
-A good CTO requirement-gathering process starts from a driver, classifies what kind of change is needed, defines what must become true, keeps abstraction levels separate, holds context through role/rules plus system-task-issue layers, and freezes one decision at a time into durable artifacts.
+A good CTO requirement-gathering process starts from a driver, classifies what kind of change is needed, defines what must become true, keeps abstraction levels separate, and freezes one decision at a time into durable artifacts.

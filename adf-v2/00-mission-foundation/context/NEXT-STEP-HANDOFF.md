@@ -105,12 +105,17 @@ This is not mission content.
 It is a reusable high-level baseline for future CTO requirement gathering, derived from what worked in this session.
 Use it as process guidance when defining the next foundation documents.
 
-### 7. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+### 7. `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
+
+Read this next.
+It defines the layered context model CTO should use while operating: role/rules, system context, task context, and issue stack.
+
+### 8. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 
 Read this next when working directly with the CEO.
 It defines the required approval loop, trust-preservation rules, and the rule that agents must stay minimal and decision-shaped unless more depth is requested.
 
-### 8. Individual decision files under `adf-v2/00-mission-foundation/context/decisions/`
+### 9. Individual decision files under `adf-v2/00-mission-foundation/context/decisions/`
 
 Read these only if needed.
 They contain the detailed freeze notes and wording rationale for specific decisions.
@@ -126,6 +131,7 @@ They are useful when the next session needs to understand **why** something was 
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
 - `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 - `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
+- `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
 - `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 
 ### Context / decision files
