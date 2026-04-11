@@ -16,6 +16,9 @@ The prior session did three important things:
 2. created the first mission-foundation documents for v2
 3. established and recorded a reusable **requirement-gathering baseline** for future CTO-facing requirement definition
 
+This area now also depends on a separate cross-agent working contract:
+- `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+
 The next session should continue from those frozen decisions rather than reopening them casually.
 
 ---
@@ -97,7 +100,12 @@ This is not mission content.
 It is a reusable high-level baseline for future CTO requirement gathering, derived from what worked in this session.
 Use it as process guidance when defining the next foundation documents.
 
-### 6. Individual decision files under `adf-v2/00-mission-foundation/context/`
+### 6. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+
+Read this next when working directly with the CEO.
+It defines the required approval loop, trust-preservation rules, and the rule that agents must stay minimal and decision-shaped unless more depth is requested.
+
+### 7. Individual decision files under `adf-v2/00-mission-foundation/context/`
 
 Read these only if needed.
 They contain the detailed freeze notes and wording rationale for specific decisions.
@@ -112,6 +120,7 @@ They are useful when the next session needs to understand **why** something was 
 - `adf-v2/00-mission-foundation/HANDOFF.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
 - `adf-v2/00-mission-foundation/NEXT-STEP-HANDOFF.md`
+- `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 
 ### Context / decision files
 
@@ -127,6 +136,18 @@ They are useful when the next session needs to understand **why** something was 
 - `adf-v2/00-mission-foundation/context/decision-010-phase1-out-of-scope.md`
 - `adf-v2/00-mission-foundation/context/decision-011-core-operating-roles.md`
 - `adf-v2/00-mission-foundation/context/decision-012-success-test.md`
+- `adf-v2/00-mission-foundation/context/decision-013-delivery-completion-definition-level.md`
+- `adf-v2/00-mission-foundation/context/decision-014-delivery-definition-as-service-contract.md`
+- `adf-v2/00-mission-foundation/context/decision-015-input-boundary-is-a-well-defined-request-package.md`
+- `adf-v2/00-mission-foundation/context/decision-016-output-boundary-is-a-truthful-terminal-result.md`
+- `adf-v2/00-mission-foundation/context/decision-017-complete-is-returned-artifact-with-no-leaked-burden.md`
+- `adf-v2/00-mission-foundation/context/decision-018-leaked-operational-burden-definition.md`
+- `adf-v2/00-mission-foundation/context/decision-019-trust-is-the-umbrella-burden-rule.md`
+- `adf-v2/00-mission-foundation/context/decision-020-production-ready-is-a-quality-indicator.md`
+- `adf-v2/00-mission-foundation/context/decision-021-document-covers-artifact-quality-and-service-trust.md`
+- `adf-v2/00-mission-foundation/context/decision-022-system-owns-the-route-after-handoff.md`
+- `adf-v2/00-mission-foundation/context/decision-023-queryability-and-resumability-are-explicit.md`
+- `adf-v2/00-mission-foundation/context/decision-024-environment-isolation-is-explicit.md`
 
 Note:
 - earlier decisions such as file naming, thin-doc style, and mission structure are also preserved in `DECISIONS.md`
@@ -195,6 +216,7 @@ That document should define at high level:
 - what counts as production-ready
 - what must be true before completion can be declared
 - what must not remain afterward
+- how the CEO -> CTO -> governed dev-team trust chain is preserved
 
 ### 2. Then define `SYSTEM-OBLIGATIONS.md`
 

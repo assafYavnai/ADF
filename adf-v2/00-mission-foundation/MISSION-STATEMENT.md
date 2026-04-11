@@ -48,13 +48,16 @@ Phase 1 builds the minimum reliable implementation startup for the CEO: CTO-led 
 
 ## Success test
 
-- the CEO can hand off a well-defined requirements package without managing technical delivery
-- after handoff, no manual cleanup, reruns, or hidden repair work are required
+- the CEO can stay at vision, priorities, and approval level without managing technical delivery
+- the CTO can turn CEO-approved intent into a well-defined implementation request package and certify delivery truthfully upward
+- after implementation handoff, no manual cleanup, reruns, hidden repair work, or state repair should leak upward to the CEO
 - governance is predictable and deterministic: the same slice may produce different implementations, but the process, states, controls, and KPIs remain consistent
 - slices can be implemented safely in parallel
 - merge handles multiple slice requests through a governed FIFO merge queue
 - local `main` stays clean at all times: no modified or untracked files; implementation runs in isolated worktrees
 - no broken statuses, state, or leftover operational damage remain after execution
+- internal execution pushback is contained and governed before delivery is declared complete
 - every component has full audit trail, KPI visibility, and defined status/error history
 - every component passes standalone tests
+- required human testing is completed before approval
 - the first end-to-end delivery chain reaches truly complete, production-ready delivery

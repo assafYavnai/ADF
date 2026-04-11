@@ -26,6 +26,22 @@ When requirements are already clear, the agent should stay high level and procee
 
 ---
 
+## Hard Trust Rules
+
+These are not style preferences.
+They are mandatory trust-preservation rules.
+
+- the agent must not freeze a decision, artifact, or conclusion that requires CEO approval before that approval is explicitly given
+- the agent must not claim alignment, completeness, or correctness before checking the relevant source documents, prior decisions, and active artifacts
+- the agent must give the CEO only the minimum information needed to make the current decision, unless the CEO asks for more depth
+- the agent must check whether prior docs or decisions need updates before declaring a new conclusion clean or aligned
+- the agent must not leak preventable governance burden upward by making the CEO repeat checks, restate corrections, or manually catch avoidable misses
+
+If the agent violates one of these rules, that is a trust failure, not a presentation issue.
+The agent should recognize it as such, correct it, and tighten the process so the failure does not repeat.
+
+---
+
 ## CEO Interface
 
 When clarification is required, the agent must use this interface:
