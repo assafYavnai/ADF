@@ -58,7 +58,12 @@ No separate foundational PM layer was chosen for v2 Phase 1.
 
 Read in this order:
 
-### 1. `adf-v2/00-mission-foundation/HANDOFF.md`
+### 1. `adf-v2/LAYER-LIFECYCLE.md`
+
+Read this first.
+It defines the folder lifecycle and promotion model that all v2 layers should follow, including `00-mission-foundation`.
+
+### 2. `adf-v2/00-mission-foundation/context/HANDOFF.md`
 
 Read this first to understand:
 - why `adf-v2/` was started
@@ -66,7 +71,7 @@ Read this first to understand:
 - the broad rationale behind the reset
 - the high-level decisions already taken before the mission statement was drafted
 
-### 2. `adf-v2/00-mission-foundation/context/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+### 3. `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 
 Read this second.
 It explains:
@@ -74,12 +79,12 @@ It explains:
 - why continued v1 hardening stopped looking like the right main path
 - what v2 is trying to resolve at the foundation level
 
-### 3. `adf-v2/00-mission-foundation/context/DECISIONS.md`
+### 4. `adf-v2/00-mission-foundation/context/DECISIONS.md`
 
 Read this next to get the concise frozen decision log.
 This is the short authoritative summary of the decisions made while defining the mission foundation.
 
-### 4. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+### 5. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
 
 Read this third.
 It is the current draft executive charter for ADF v2.
@@ -93,19 +98,19 @@ It contains the agreed sections for:
 - core operating roles
 - success test
 
-### 5. `adf-v2/00-mission-foundation/context/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
+### 6. `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 
-Read this fourth.
+Read this next.
 This is not mission content.
 It is a reusable high-level baseline for future CTO requirement gathering, derived from what worked in this session.
 Use it as process guidance when defining the next foundation documents.
 
-### 6. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+### 7. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 
 Read this next when working directly with the CEO.
 It defines the required approval loop, trust-preservation rules, and the rule that agents must stay minimal and decision-shaped unless more depth is requested.
 
-### 7. Individual decision files under `adf-v2/00-mission-foundation/context/`
+### 8. Individual decision files under `adf-v2/00-mission-foundation/context/decisions/`
 
 Read these only if needed.
 They contain the detailed freeze notes and wording rationale for specific decisions.
@@ -117,37 +122,39 @@ They are useful when the next session needs to understand **why** something was 
 
 ### Main files
 
-- `adf-v2/00-mission-foundation/HANDOFF.md`
+- `adf-v2/LAYER-LIFECYCLE.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
-- `adf-v2/00-mission-foundation/NEXT-STEP-HANDOFF.md`
+- `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+- `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 - `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 
 ### Context / decision files
 
+- `adf-v2/00-mission-foundation/context/HANDOFF.md`
+- `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
-- `adf-v2/00-mission-foundation/context/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
-- `adf-v2/00-mission-foundation/context/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
-- `adf-v2/00-mission-foundation/context/decision-004-identity.md`
-- `adf-v2/00-mission-foundation/context/decision-005-core-promise-direction.md`
-- `adf-v2/00-mission-foundation/context/decision-006-core-promise-wording.md`
-- `adf-v2/00-mission-foundation/context/decision-007-phase1-mission.md`
-- `adf-v2/00-mission-foundation/context/decision-008-phase1-scope-center.md`
-- `adf-v2/00-mission-foundation/context/decision-009-phase1-scope.md`
-- `adf-v2/00-mission-foundation/context/decision-010-phase1-out-of-scope.md`
-- `adf-v2/00-mission-foundation/context/decision-011-core-operating-roles.md`
-- `adf-v2/00-mission-foundation/context/decision-012-success-test.md`
-- `adf-v2/00-mission-foundation/context/decision-013-delivery-completion-definition-level.md`
-- `adf-v2/00-mission-foundation/context/decision-014-delivery-definition-as-service-contract.md`
-- `adf-v2/00-mission-foundation/context/decision-015-input-boundary-is-a-well-defined-request-package.md`
-- `adf-v2/00-mission-foundation/context/decision-016-output-boundary-is-a-truthful-terminal-result.md`
-- `adf-v2/00-mission-foundation/context/decision-017-complete-is-returned-artifact-with-no-leaked-burden.md`
-- `adf-v2/00-mission-foundation/context/decision-018-leaked-operational-burden-definition.md`
-- `adf-v2/00-mission-foundation/context/decision-019-trust-is-the-umbrella-burden-rule.md`
-- `adf-v2/00-mission-foundation/context/decision-020-production-ready-is-a-quality-indicator.md`
-- `adf-v2/00-mission-foundation/context/decision-021-document-covers-artifact-quality-and-service-trust.md`
-- `adf-v2/00-mission-foundation/context/decision-022-system-owns-the-route-after-handoff.md`
-- `adf-v2/00-mission-foundation/context/decision-023-queryability-and-resumability-are-explicit.md`
-- `adf-v2/00-mission-foundation/context/decision-024-environment-isolation-is-explicit.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-004-identity.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-005-core-promise-direction.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-006-core-promise-wording.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-007-phase1-mission.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-008-phase1-scope-center.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-009-phase1-scope.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-010-phase1-out-of-scope.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-011-core-operating-roles.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-012-success-test.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-013-delivery-completion-definition-level.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-014-delivery-definition-as-service-contract.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-015-input-boundary-is-a-well-defined-request-package.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-016-output-boundary-is-a-truthful-terminal-result.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-017-complete-is-returned-artifact-with-no-leaked-burden.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-018-leaked-operational-burden-definition.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-019-trust-is-the-umbrella-burden-rule.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-020-production-ready-is-a-quality-indicator.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-021-document-covers-artifact-quality-and-service-trust.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-022-system-owns-the-route-after-handoff.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-023-queryability-and-resumability-are-explicit.md`
+- `adf-v2/00-mission-foundation/context/decisions/decision-024-environment-isolation-is-explicit.md`
+- `adf-v2/00-mission-foundation/context/artifacts/README.md`
 
 Note:
 - earlier decisions such as file naming, thin-doc style, and mission structure are also preserved in `DECISIONS.md`
@@ -250,7 +257,8 @@ Do not widen into:
 
 - keep the docs thin at the right level
 - freeze one decision at a time
-- record decisions durably in `context/`
+- record decisions durably in `context/decisions/`
+- keep in-progress working artifacts in `context/artifacts/`
 - separate mission vs scope vs spec vs plan
 - treat the current requirement-gathering method as part of the reusable v2 foundation
 

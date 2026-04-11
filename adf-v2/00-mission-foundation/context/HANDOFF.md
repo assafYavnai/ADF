@@ -1,7 +1,7 @@
 # ADF v2 — Mission Foundation Handoff
 
 Status: working handoff for the next architecture/planning session  
-Location purpose: first durable document under `adf-v2/` for restarting the effort on a thinner foundation  
+Location purpose: layer-global handoff for restarting the effort on a thinner foundation  
 Audience: next agent / architect / CEO review session
 
 ---
@@ -17,7 +17,7 @@ The current repo contains valuable learning, docs, patterns, and some useful sub
 The goal of this document is to let a new chat continue from that decision without re-litigating the same questions from scratch.
 
 For the explicit v1 pain statement and the reason v2 was forked instead of continuing to patch v1 as the main path, also read:
-- `adf-v2/00-mission-foundation/context/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+- `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 
 ---
 
@@ -337,7 +337,7 @@ The exact names can still change, but the current recommendation is to grow `adf
 
 Example:
 
-- `adf-v2/00-mission-foundation/HANDOFF.md`  ← this file
+- `adf-v2/00-mission-foundation/context/HANDOFF.md`  ← this file
 - `adf-v2/00-mission-foundation/VISION.md`
 - `adf-v2/00-mission-foundation/PHASE1.md`
 - `adf-v2/01-architecture/ARCHITECTURE.md`

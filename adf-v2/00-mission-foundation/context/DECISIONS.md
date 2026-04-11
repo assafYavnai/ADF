@@ -27,7 +27,7 @@ Frozen decision:
 - keep `MISSION-STATEMENT.md` **thin**
 
 Why:
-- `HANDOFF.md` already carries the wider context and session rationale
+- `context/HANDOFF.md` already carries the wider context and session rationale
 - the mission document should be an executive charter, not a strategy dump
 - architecture, migration, and control-plane detail belong in later documents
 
@@ -61,5 +61,5 @@ Why:
 
 For the remainder of the `00-mission-foundation` work:
 - every frozen decision should be recorded here
-- `HANDOFF.md` remains the broad session bridge and restart pack
+- `context/HANDOFF.md` remains the broad session bridge and restart pack
 - `DECISIONS.md` remains the concise authoritative log of frozen choices

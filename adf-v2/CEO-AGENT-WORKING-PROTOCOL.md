@@ -115,7 +115,7 @@ The CEO-facing interface above is the required external protocol.
 
 The internal guidance for how to execute that process well is summarized in:
 
-- `adf-v2/00-mission-foundation/context/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
+- `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 
 That document is not the CEO-facing protocol itself.
 It is the internal guide for the agent.
