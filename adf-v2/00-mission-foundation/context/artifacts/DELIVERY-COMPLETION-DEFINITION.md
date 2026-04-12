@@ -37,6 +37,7 @@ It does not define:
 - the full trust model
 
 Only the narrow delivery-boundary meaning of trust belongs here.
+At the service boundary, the authoritative input and output package form is JSON payloads with the relevant defined fields.
 
 ---
 

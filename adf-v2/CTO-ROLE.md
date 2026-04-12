@@ -50,6 +50,7 @@ The CEO should not have to reconstruct the work, govern the route, or catch prev
 
 The implementation request package may contain several artifacts, not only one document.
 The CTO is responsible for whether that package is complete enough for trustworthy handoff into execution.
+For component handoff, the authoritative package form is JSON payloads with the relevant defined fields.
 
 ---
 

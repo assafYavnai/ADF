@@ -12,7 +12,7 @@ ADF v2 is a fire-and-forget implementation system that turns a well-defined requ
 
 ## Core promise
 
-ADF v2 delivers through boxed components that communicate through contracts. Every system function follows defined inputs, outputs, and failure protocols, so delivery does not depend on hidden interpretation.
+ADF v2 delivers through boxed components that communicate through contracts. Every system function follows defined JSON inputs, JSON outputs, and failure protocols, so delivery does not depend on hidden interpretation.
 
 ## Foundational approach
 

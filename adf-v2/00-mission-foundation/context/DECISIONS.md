@@ -251,3 +251,16 @@ Frozen decision:
 Why:
 - this keeps the terminal model truthful
 - it avoids creating a separate top-level state when the real meaning is still that completion cannot be certified from the current state
+
+---
+
+## Decision D-042 - Component inputs and outputs use JSON payloads
+
+Frozen decision:
+- all component-to-component inputs and outputs are JSON payloads with defined relevant fields
+- human-readable explanation may accompany a payload when useful, but the JSON payload is the authoritative package form
+
+Why:
+- this keeps contracts machine-readable, structured, and durable across component boundaries
+- it makes package transfer, validation, logging, persistence, and recovery more reliable
+- it avoids hidden interpretation at handoff boundaries

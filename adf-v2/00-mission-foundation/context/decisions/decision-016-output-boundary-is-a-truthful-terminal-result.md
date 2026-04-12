@@ -7,6 +7,7 @@ What that means:
 - the return contract is not defined only as a happy-path artifact
 - the service must end in a terminal result that truthfully reflects what happened
 - completion remains one possible terminal result, but the output boundary is broader than the happy path alone
+- for component handoff, that truthful terminal result is returned as a JSON payload with the relevant defined fields
 
 Why this was accepted:
 - keeps the service contract truthful
