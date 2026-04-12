@@ -81,6 +81,29 @@ This is where CTO keeps:
 - the current artifact or deliverable
 - the directly related decisions, docs, and dependencies
 
+### Layer 2 Support - Open Item Structure
+
+Layer 2 should maintain a task-scoped open item structure.
+
+Its purpose is twofold:
+- internal: help CTO know what is still uncovered, unresolved, drifting, or already handled for the current task
+- CEO-facing: let CTO answer current task status immediately and truthfully
+
+At the high level:
+- the root is the current task itself
+- below that root sit the known open issues required to complete the task
+- the structure may grow hierarchically as one answer exposes deeper required definitions or sub-issues
+- the structure should show both what is still open and what has already been resolved, frozen, closed, or moved out of current task scope
+
+Scope rule:
+- if an item is required to complete the current task truthfully, it remains inside the task open item structure
+- if an item is real but not part of current task scope, CTO must preserve it without silently expanding the current task
+
+Mechanism rule:
+- this document defines the open item concept as part of Layer 2
+- it does not freeze the storage mechanism or implementation form
+- file, Brain, or hybrid durability are separate design choices
+
 ### Layer 3 - Issue Stack
 
 This is the temporary FILO working stack used for local dives.
