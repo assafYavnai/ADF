@@ -18,6 +18,8 @@ Current branch state:
 - the trust-model draft is committed
 - trust decisions `D-027` through `D-036` are committed
 - the first draft of `DELIVERY-COMPLETION-DEFINITION.md` now exists
+- delivery-boundary trust decisions `D-037` and `D-038` now exist
+- `context/OPEN-ITEMS.md` now exists as the canonical parking and checklist file for mission-foundation open items
 
 Current main task:
 - refine and freeze `DELIVERY-COMPLETION-DEFINITION.md`
@@ -25,6 +27,7 @@ Current main task:
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
 - the broader trust-model questions remain parked in `context/artifacts/TRUST-MODEL.md`
+- anything important that falls outside the active document should be parked in `context/OPEN-ITEMS.md`
 
 Current decision boundary:
 - frozen:
@@ -33,12 +36,14 @@ Current decision boundary:
 - drafted only:
   - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
   - `context/artifacts/TRUST-MODEL.md`
+  - `context/OPEN-ITEMS.md`
 - still open:
   - the final freeze wording of `DELIVERY-COMPLETION-DEFINITION.md`
   - the unresolved broader trust-model questions parked in `TRUST-MODEL.md`
+  - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what exact delivery-boundary definition of trust should appear in `DELIVERY-COMPLETION-DEFINITION.md`, without widening back into the full trust model
+- what exact final delivery-boundary definition of trust should appear in `DELIVERY-COMPLETION-DEFINITION.md`, now that justified CEO doubt and scope fidelity are frozen as part of that boundary, without widening back into the full trust model
 
 Do-not-repeat rules for the next agent:
 - do not treat `TRUST-MODEL.md` as frozen canon
@@ -46,6 +51,7 @@ Do-not-repeat rules for the next agent:
 - do not widen `DELIVERY-COMPLETION-DEFINITION.md` into the full trust model
 - do not reopen already frozen trust decisions unless the CEO explicitly reopens them
 - do not lose the open trust questions parked in `TRUST-MODEL.md`
+- do not lose the out-of-scope open items parked in `OPEN-ITEMS.md`
 
 CEO protocol reminder:
 - stay minimal, decision-shaped, and do not freeze new content without explicit approval
@@ -97,12 +103,14 @@ Read in this order:
 8. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 9. `adf-v2/CTO-ROLE.md`
 10. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-11. `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
-12. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
+11. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
+12. `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+13. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
 
 Reading intent:
 - items `1` through `9` define the current governing frame
 - `TRUST-MODEL.md` is the broader trust draft and must not be treated as frozen canon
+- `OPEN-ITEMS.md` is the canonical parking and checklist register for unresolved items
 - `DELIVERY-COMPLETION-DEFINITION.md` is the current main draft artifact
 
 ---
@@ -124,6 +132,7 @@ Reading intent:
 - `adf-v2/00-mission-foundation/context/HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
+- `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 ### Draft artifacts
 
@@ -166,6 +175,7 @@ That freeze pass should:
 - define production-ready as artifact quality
 - define only the narrow delivery-boundary trust needed for completion
 - avoid importing the full trust-model mechanics
+- use `OPEN-ITEMS.md` as the checklist so parked issues are not lost while the document stays narrow
 
 ### After that
 

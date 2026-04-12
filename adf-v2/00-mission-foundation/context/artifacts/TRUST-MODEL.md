@@ -451,6 +451,30 @@ This draft should eventually connect to:
 
 ---
 
+## This Document Should Own
+
+To avoid losing trust work between adjacent documents, this document should explicitly own the trust topics that do not belong inside `DELIVERY-COMPLETION-DEFINITION.md`.
+
+This document should own:
+
+- the canonical definition of `trust`
+- the canonical definition of `trust level`
+- the difference between edge trust, box trust, and any later workflow or chain trust
+- trust ownership rules, including who assesses whom, who can see what, and what may go upward versus stay internal
+- the aggregation rule for box trust
+- trust thresholds and the required action bands
+- the principled signal model for what raises and lowers trust
+
+This document should not try to fully own:
+
+- the operational enforcement mechanics, audit pipelines, and runtime truth plumbing of trust
+- the component reporting shape that later boxes must expose
+- the full workflow-model structure that gives trust edges their concrete runtime topology
+
+Those should be connected from here into later documents rather than left implicit.
+
+---
+
 ## Open Questions To Freeze
 
 These are the unresolved items that still need explicit freezing before trust can become a canonical foundation rule.

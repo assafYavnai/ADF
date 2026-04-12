@@ -190,3 +190,25 @@ Frozen decision:
 
 Why:
 - trust should help the system learn and improve, not only escalate
+
+---
+
+## Decision D-037 - Delivery-boundary trust includes justified CEO doubt
+
+Frozen decision:
+- at the delivery boundary, trust includes not only absence of visible manual repair work, but also absence of justified CEO doubt that supervision, verification, reconstruction, resume-driving, or repair might still be required
+
+Why:
+- justified CEO doubt is itself leaked operational burden
+- completion should not leave the CEO needing to check whether the route is truly safe to rely on
+
+---
+
+## Decision D-038 - Delivery-boundary trust includes scope fidelity
+
+Frozen decision:
+- at the delivery boundary, trust includes scope fidelity: the system must return the approved implementation package truthfully, not a silently reinterpreted substitute
+
+Why:
+- a clean-looking return is not trustworthy if the CEO still has to inspect whether the requested thing was quietly changed in meaning
+- silent reinterpretation is a form of leaked burden because it pushes validation of scope truth back upward
