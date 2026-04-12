@@ -67,7 +67,7 @@ At high level, `complete` means all of the following are true:
 5. the working environment is clean
 6. no delivery-boundary trust condition has failed
 7. the result does not depend on hidden follow-up work from above
-8. the CTO can truthfully certify the result upward
+8. the CTO can truthfully certify the result upward from governed system truth rather than belief, memory, or manual reconstruction
 
 If any of those are not true, the result is not fully complete.
 
@@ -239,8 +239,6 @@ Examples of later obligation topics:
 ## Open Questions Still To Freeze
 
 This draft still leaves some delivery-specific questions open:
-
-- whether CTO certification should be stated explicitly as resting on governed system truth rather than informal belief or manual reconstruction
 
 These should be resolved in the freeze pass for this document.
 

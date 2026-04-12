@@ -311,6 +311,10 @@ At this stage, that action means:
 - state the problem at the right level
 - recommend corrective action
 
+Trust should also influence verification intensity:
+- lower-trust boundaries require deeper governed verification before upward certification
+- initial implementation should assume governed verification by default until trust is earned
+
 In later stages, the system may evolve toward:
 - self-healing
 - self-improvement

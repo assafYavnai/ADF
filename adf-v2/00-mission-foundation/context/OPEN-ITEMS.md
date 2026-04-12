@@ -115,7 +115,7 @@ Notes:
 ### O-006 - Whether to state certification basis explicitly
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - it is still unresolved whether the document should say explicitly that CTO certification must rest on governed system truth rather than informal belief or manual reconstruction
@@ -230,6 +230,7 @@ State:
 
 Why it is open:
 - the draft contains suggested thresholds, but the mandatory action model is not yet frozen
+- this includes how verification depth changes by trust level, including low-trust verification intensity
 
 Target document:
 - `context/artifacts/TRUST-MODEL.md`

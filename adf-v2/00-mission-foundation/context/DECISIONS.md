@@ -310,3 +310,17 @@ Why:
 - this keeps the meaning of complete tied to both artifact return and trustworthy delivery conditions
 - it makes cleanliness and trust-preservation part of completion rather than optional polish
 - it lets the document stay high level while still making `complete` materially testable
+
+---
+
+## Decision D-046 - CTO certification rests on governed system truth
+
+Frozen decision:
+- CTO certification should explicitly rest on governed system truth rather than belief, memory, or manual reconstruction after the fact
+- when trust is low, governed verification is required before certification
+- for the initial implementation stage, this should be treated as required by default
+
+Why:
+- this keeps upward certification trustworthy
+- it prevents “looks fine” or reconstructed confidence from counting as completion
+- it leaves the detailed trust-threshold verification matrix for later trust-model work
