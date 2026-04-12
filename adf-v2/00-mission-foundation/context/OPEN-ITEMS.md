@@ -96,6 +96,7 @@ Notes:
   - `blocked`
 - `pushback` is a blocked reason, not a top-level state
 - blocked reasons are component-specific and are not required to be identical across all components
+- blocked may represent either external waiting or an internal failure that prevents truthful completion from the current state
 
 ### O-005 - How explicit to be about true terminal return into the production tree
 

@@ -239,3 +239,15 @@ Why:
 - this keeps the top-level terminal model thin for a fire-and-forget system
 - it preserves truthful status while letting each component expose only the blocked reasons that actually make sense for its boundary
 - it avoids inflating the top-level terminal-state set with what are really blocked variants
+
+---
+
+## Decision D-041 - Blocked may be external or internal
+
+Frozen decision:
+- `blocked` does not mean only waiting on something external to the system
+- `blocked` may also represent an internally detected terminal failure when the system cannot truthfully complete from the current state without explicit resolution
+
+Why:
+- this keeps the terminal model truthful
+- it avoids creating a separate top-level state when the real meaning is still that completion cannot be certified from the current state
