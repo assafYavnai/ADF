@@ -96,17 +96,33 @@ The current governed direct routes are:
 - current status
 - implementation readiness
 - what is still missing / gaps remain
+- health / did you encounter problems running `$CTO`
 
 These routes are implemented through:
 
 - `cto-helper.mjs status`
 - `cto-helper.mjs readiness`
 - `cto-helper.mjs gaps`
+- `cto-helper.mjs health`
 - `cto-launcher.mjs` for file-based request/response transport
 
 For these routes, using raw repo inspection before the governor is a contract violation.
 
 For these routes, the answer must keep `Broader work`, `Current task`, and `Next step` aligned to the same governed source pass.
+
+## Health Scope
+
+For the direct health route, scope means `$CTO` itself, not every unrelated repo or host-runtime issue the agent happened to notice while starting up.
+
+If the governed `$CTO` answer path succeeds, then:
+
+- answer only about `$CTO` wiring, launcher behavior, governed-route reliability, and document-resolution behavior
+- do not widen into general ADF runtime-preflight failures, Brain availability, plugin warnings, or host shell defects
+- mention broader environment problems only if they actually blocked the governed `$CTO` answer itself
+
+Health hard failure:
+
+- saying `$CTO` had problems when the governed route worked and the only issues were broader runtime/bootstrap conditions outside the `$CTO` path
 
 ## Guided CTO Routes
 
