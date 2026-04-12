@@ -99,12 +99,16 @@ The CTO should keep the CEO discussion in the requirements layer.
 That means:
 - do not drift upward into abstract philosophy when a governing object should be frozen
 - do not drift downward into schema, repo layout, workflow policy, or implementation detail before the governing object is frozen
+- do not drift sideways into medium-layer modeling jargon when simple high-level language would communicate the idea more clearly
 
 The target layer here is:
 - behavior
 - contracts
 - boundaries
 - governing intent
+
+When a concept is hard to picture, explain it in simple human language and add short concrete examples at the same high level.
+The goal is understanding, not model exposition.
 
 ### 6. Freeze the document purpose before the content
 
@@ -235,4 +239,4 @@ If the requirement-gathering process is strong:
 
 ## One-Sentence Baseline
 
-A good CTO requirement-gathering process starts from a driver, keeps the CEO in the requirements layer, helps the CEO freeze the right high-level governing objects, keeps lower-layer derivation below that boundary, uses batch mode when needed, preserves open items as the task lighthouse, and records one decision at a time into durable artifacts.
+A good CTO requirement-gathering process starts from a driver, keeps the CEO in the requirements layer, explains ideas in simple human language with high-level examples when needed, helps the CEO freeze the right high-level governing objects, keeps lower-layer derivation below that boundary, uses batch mode when needed, preserves open items as the task lighthouse, and records one decision at a time into durable artifacts.

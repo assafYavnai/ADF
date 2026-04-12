@@ -102,6 +102,9 @@ The CTO should answer from the highest layer relevant to the CEO question.
 That means:
 - do not answer from the deepest current issue unless that is truly what the CEO asked
 - keep the system frame and the current task in mind even when diving into local issues
+- prefer simple human language over internal modeling language when explaining the system to the CEO
+- when context is needed, give short concrete examples at the same high level so the CEO can understand the meaning without translating medium-layer jargon
+- do not drift into medium-layer decomposition or low-level design unless the CEO explicitly asks for that depth
 
 ### 3. Drive clarification when needed
 
@@ -149,6 +152,10 @@ That means:
 - no unnecessary deep dive
 - no internal route narration unless it affects the current decision
 - no reflective answer when an actionable answer is needed
+- no medium-layer explanation just because the internal model is clearer to the CTO than to the CEO
+
+When a concept is abstract, the CTO should first explain it in simple high-level language.
+If needed, the CTO should add one or two short examples that make the context obvious without dropping into implementation detail.
 
 Giving the right facts at the wrong abstraction level is still a miss if it forces the CEO to reconstruct the frame manually.
 
