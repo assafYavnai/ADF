@@ -20,14 +20,27 @@ const SKILL_DIR = dirname(SCRIPT_DIR);
 const CODEX_HOME = process.env.CODEX_HOME
   ? resolve(process.env.CODEX_HOME)
   : resolve(process.env.USERPROFILE ?? process.env.HOME ?? ".", ".codex");
+const IS_MAIN = process.argv[1] ? resolve(process.argv[1]) === SCRIPT_PATH : false;
 
-main().catch((error) => {
-  fail(error instanceof Error ? error.stack ?? error.message : String(error));
-});
+if (IS_MAIN) {
+  main().catch((error) => {
+    fail(error instanceof Error ? error.stack ?? error.message : String(error));
+  });
+}
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const projectRoot = normalizeProjectRoot(resolve(args.values["project-root"] ?? process.cwd()));
+  const runtimePreflightMode = String(args.values["runtime-preflight"] ?? "deferred").toLowerCase();
+  const result = await runCtoSelfCheck({
+    projectRoot,
+    runtimePreflightMode
+  });
+  printJson(result);
+}
+
+export async function runCtoSelfCheck(input = {}) {
+  const projectRoot = normalizeProjectRoot(resolve(input.projectRoot ?? process.cwd()));
   const installedSkillDir = join(CODEX_HOME, "skills", "cto");
   const missionFoundationRoot = join(projectRoot, "adf-v2", "00-mission-foundation");
   const repoSkillDir = join(projectRoot, "skills", "cto");
@@ -36,7 +49,18 @@ async function main() {
   const workingModePath = join(projectRoot, "adf-v2", "CTO-CEO-WORKING-MODE.md");
   const deliveryPromotedPath = join(missionFoundationRoot, "DELIVERY-COMPLETION-DEFINITION.md");
   const deliveryDraftPath = join(missionFoundationRoot, "context", "artifacts", "DELIVERY-COMPLETION-DEFINITION.md");
-  const preflight = runRuntimePreflight(projectRoot);
+  const runtimePreflightMode = String(input.runtimePreflightMode ?? "deferred").toLowerCase();
+  const preflight = runtimePreflightMode === "run"
+    ? runRuntimePreflight(projectRoot)
+    : {
+      invoked: false,
+      mode: "deferred",
+      command: "adf.cmd --runtime-preflight --json",
+      exit_status: null,
+      valid_json: null,
+      overall_status: null,
+      detail: "Deferred by cto-self-check so governed `$CTO` health does not depend on nested launcher preflight spawning."
+    };
 
   const checks = await Promise.all([
     makeCheck("repo_skill_dir", repoSkillDir),
@@ -68,11 +92,11 @@ async function main() {
   if (deliveryResolution.state === "missing") {
     warnings.push("DELIVERY-COMPLETION-DEFINITION.md is missing in both promoted and draft-artifact locations.");
   }
-  if (!preflight.valid_json) {
+  if (runtimePreflightMode === "run" && !preflight.valid_json) {
     warnings.push("Runtime preflight did not return usable JSON through the repo launcher.");
   }
 
-  printJson({
+  return {
     command: "cto-self-check",
     project_root: normalizeSlashes(projectRoot),
     codex_home: normalizeSlashes(CODEX_HOME),
@@ -85,7 +109,7 @@ async function main() {
     recommendation: warnings.length === 0
       ? "Skill source and runtime locations look consistent enough for governed `$CTO` use."
       : "Resolve the warnings before relying on `$CTO` for a fresh governed run."
-  });
+  };
 }
 
 async function makeCheck(name, path) {
@@ -180,6 +204,7 @@ function normalizePreflightResult(commandText, result) {
     const parsed = JSON.parse(stdout);
     return {
       invoked: true,
+      mode: "run",
       command: commandText,
       exit_status: result.status,
       valid_json: true,
@@ -190,6 +215,7 @@ function normalizePreflightResult(commandText, result) {
   } catch {
     return {
       invoked: true,
+      mode: "run",
       command: commandText,
       exit_status: result.status,
       valid_json: false,

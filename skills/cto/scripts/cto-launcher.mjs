@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 
-import { dirname, join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
 import { parseArgs, fail } from "../../governed-feature-runtime.mjs";
+import { governPromptRequest } from "./cto-governor.mjs";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
-const SCRIPT_DIR = dirname(SCRIPT_PATH);
-const GOVERNOR_PATH = join(SCRIPT_DIR, "cto-governor.mjs");
+const IS_MAIN = process.argv[1] ? resolve(process.argv[1]) === SCRIPT_PATH : false;
 
-main().catch((error) => {
-  fail(error instanceof Error ? error.stack ?? error.message : String(error));
-});
+if (IS_MAIN) {
+  main().catch((error) => {
+    fail(error instanceof Error ? error.stack ?? error.message : String(error));
+  });
+}
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
+export async function runLauncher(argv = process.argv.slice(2)) {
+  const args = parseArgs(argv);
   const inputFile = args.values["input-file"] ?? args.values["prompt-file"];
   const outputFile = args.values["output-file"];
   const projectRoot = args.values["project-root"];
@@ -26,28 +27,13 @@ async function main() {
     fail("Missing required argument --output-file.");
   }
 
-  const cliArgs = [
-    GOVERNOR_PATH,
-    "--prompt-file",
-    resolve(inputFile),
-    "--output-file",
-    resolve(outputFile)
-  ];
-
-  if (projectRoot) {
-    cliArgs.push("--project-root", projectRoot);
-  }
-
-  const result = spawnSync(process.execPath, cliArgs, {
-    cwd: projectRoot ? resolve(projectRoot) : process.cwd(),
-    encoding: "utf8",
-    windowsHide: true,
-    timeout: 30000
+  return governPromptRequest({
+    promptFile: resolve(inputFile),
+    outputFile: resolve(outputFile),
+    projectRoot: projectRoot ? resolve(projectRoot) : process.cwd()
   });
+}
 
-  if (result.status !== 0) {
-    throw new Error(result.stderr?.trim() || `cto-governor exited ${result.status}`);
-  }
-
-  process.stdout.write(result.stdout);
+async function main() {
+  await runLauncher(process.argv.slice(2));
 }

@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,12 +14,13 @@ import {
   printJson,
   requiredArg
 } from "../../governed-feature-runtime.mjs";
+import { runCtoSelfCheck } from "./cto-self-check.mjs";
 
 const HELPER_VERSION = 3;
 const SCOPE = "adf-v2";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SCRIPT_DIR = dirname(SCRIPT_PATH);
-const SELF_CHECK_PATH = join(SCRIPT_DIR, "cto-self-check.mjs");
+const IS_MAIN = process.argv[1] ? resolve(process.argv[1]) === SCRIPT_PATH : false;
 const DOC_MEANINGS = {
   "DELIVERY-COMPLETION-DEFINITION.md": "define what complete means at the delivery boundary",
   "TRUST-MODEL.md": "freeze the broader trust model",
@@ -39,9 +39,11 @@ const FOUNDATION_OUTPUT_ORDER = [
   "WORKFLOW-MODEL.md"
 ];
 
-main().catch((error) => {
-  fail(error instanceof Error ? error.stack ?? error.message : String(error));
-});
+if (IS_MAIN) {
+  main().catch((error) => {
+    fail(error instanceof Error ? error.stack ?? error.message : String(error));
+  });
+}
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -78,7 +80,7 @@ async function main() {
   }
 
   if (command === "health") {
-    printJson(renderHealthPayload(context, projectRoot));
+    printJson(await renderHealthPayload(context, projectRoot));
     return;
   }
 
@@ -119,7 +121,7 @@ function renderHelp() {
   };
 }
 
-async function resolveRepoRoot(inputPath) {
+export async function resolveRepoRoot(inputPath) {
   let current = resolve(inputPath);
 
   while (true) {
@@ -147,7 +149,7 @@ async function readOptionalText(filePath) {
   return readFile(filePath, "utf8");
 }
 
-async function loadMissionFoundationContext(projectRoot) {
+export async function loadMissionFoundationContext(projectRoot) {
   const startedAt = nowIso();
   const missionFoundationRoot = join(projectRoot, "adf-v2", "00-mission-foundation");
   const nextStepPath = join(missionFoundationRoot, "context", "NEXT-STEP-HANDOFF.md");
@@ -330,7 +332,7 @@ async function loadMissionFoundationContext(projectRoot) {
   };
 }
 
-function renderStatusPayload(context) {
+export function renderStatusPayload(context) {
   return {
     command: "status",
     helper_version: HELPER_VERSION,
@@ -353,7 +355,7 @@ function renderStatusPayload(context) {
   };
 }
 
-function renderReadinessPayload(context) {
+export function renderReadinessPayload(context) {
   const blockers = context.current_task_items
     .filter((item) => item.state !== "resolved" && item.state !== "moved")
     .slice(0, 4)
@@ -385,7 +387,7 @@ function renderReadinessPayload(context) {
   };
 }
 
-function renderGapPayload(context, options) {
+export function renderGapPayload(context, options) {
   const activeGaps = context.current_task_items
     .filter((item) => item.state !== "resolved" && item.state !== "moved")
     .slice(0, options.limit)
@@ -427,7 +429,7 @@ function renderGapPayload(context, options) {
   };
 }
 
-function renderContextPayload(context) {
+export function renderContextPayload(context) {
   const firstGap = context.current_task_items.find((item) => item.state !== "resolved" && item.state !== "moved") ?? null;
   const layer0 = {
     status: "defined",
@@ -532,26 +534,37 @@ function renderContextPayload(context) {
   };
 }
 
-function renderHealthPayload(context, projectRoot) {
-  const selfCheck = runJsonHelper(SELF_CHECK_PATH, ["--project-root", projectRoot], projectRoot);
+export async function renderHealthPayload(context, projectRoot) {
+  const selfCheck = await runCtoSelfCheck({
+    projectRoot,
+    runtimePreflightMode: "deferred"
+  });
   const preflight = selfCheck.runtime_preflight ?? {};
   const skillWiring = selfCheck.skill_wiring ?? {};
   const lines = [];
 
-  lines.push("Yes. A few reliability issues were worth fixing around `$CTO`.");
+  if (selfCheck.ready) {
+    lines.push("No. The governed `$CTO` route is now running cleanly from the repo skill.");
+  } else {
+    lines.push("Yes. A few `$CTO` runtime issues still need cleanup.");
+  }
 
   if (skillWiring.state === "pointer") {
-    lines.push("The installed Codex skill is now thin wiring back to the repo skill, so the main logic stays under ADF instead of living as a second active copy under `.codex`.");
+    lines.push("The installed Codex skill is thin wiring back to `skills/cto` in ADF, so the live logic stays under repo control instead of drifting as a second active copy under `.codex`.");
   } else if (selfCheck.ready) {
-    lines.push("The main avoidable problem is drift between the repo copy and the installed runtime copy of the skill. Edit `skills/cto` in the repo, reinstall after meaningful changes, and run `cto-self-check` before first use in a fresh checkout.");
+    lines.push("The main remaining risk would be repo-vs-installed drift. Keep editing `skills/cto` in ADF and reinstall only as thin wiring.");
   } else {
     lines.push(`There are still runtime setup warnings to clear before trusting a fresh CTO run: ${joinWithCommasAnd(selfCheck.warnings ?? [])}.`);
   }
 
-  lines.push("Lifecycle drift was another real risk: governed docs can live either as draft artifacts or promoted layer-root canon. The helper now resolves both so document promotion should not break `$CTO` routes by itself.");
+  lines.push("The governed route no longer depends on a nested launcher-to-governor-to-helper-to-self-check process chain for normal answers, so the Windows control-plane `EPERM` issue from deep child-process nesting is removed from the common `$CTO` path.");
 
-  if (preflight.valid_json && preflight.overall_status === "fail") {
-    lines.push("Runtime preflight itself is working as a truth source here: it returns usable JSON, and it is correctly reporting that the broader runtime still has blocking install or Brain issues.");
+  lines.push("Lifecycle drift is also covered: the helper resolves governed documents from promoted canon first and draft-artifact fallback second, so document promotion should not break `$CTO` routes by itself.");
+
+  if (preflight.mode === "deferred") {
+    lines.push("Runtime preflight is still the ADF startup authority, but `$CTO` health no longer shells into it by default. That keeps the skill health check focused on `$CTO` integration instead of broader repo bootstrap state.");
+  } else if (preflight.valid_json && preflight.overall_status === "fail") {
+    lines.push("Runtime preflight itself is working as a truth source here: it returns usable JSON, and it is correctly reporting broader repo install or Brain issues outside the `$CTO` route.");
   } else if (preflight.valid_json) {
     lines.push("Runtime preflight itself is not currently broken here. The repo launcher returns usable JSON in this checkout.");
   } else {
@@ -1033,25 +1046,6 @@ function parseOptionalPositiveInteger(value) {
 
 function uniqueList(items) {
   return [...new Set(items.filter(Boolean))];
-}
-
-function runJsonHelper(scriptPath, args, cwd) {
-  const result = spawnSync(process.execPath, [scriptPath, ...args], {
-    cwd,
-    encoding: "utf8",
-    windowsHide: true,
-    timeout: 60000
-  });
-
-  if (result.status !== 0) {
-    throw new Error(result.stderr?.trim() || `Helper '${scriptPath}' exited ${result.status}`);
-  }
-
-  try {
-    return JSON.parse(result.stdout);
-  } catch (error) {
-    throw new Error(`Failed to parse JSON from '${scriptPath}': ${error instanceof Error ? error.message : String(error)}`);
-  }
 }
 
 function joinWithCommasAnd(items) {

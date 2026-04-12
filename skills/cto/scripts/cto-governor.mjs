@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { readFile, writeFile } from "node:fs/promises";
-import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   fail,
+  isFilled,
   normalizeProjectRoot,
   normalizeSlashes,
   parseArgs,
@@ -13,24 +13,36 @@ import {
   printJson,
   requiredArg
 } from "../../governed-feature-runtime.mjs";
+import { loadMissionFoundationContext, renderContextPayload, renderGapPayload, renderHealthPayload, renderReadinessPayload, renderStatusPayload } from "./cto-helper.mjs";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SCRIPT_DIR = dirname(SCRIPT_PATH);
-const HELPER_PATH = join(SCRIPT_DIR, "cto-helper.mjs");
 const ROLE_CONTRACT_PATH = join(dirname(SCRIPT_DIR), "references", "role-contract.xml");
+const IS_MAIN = process.argv[1] ? resolve(process.argv[1]) === SCRIPT_PATH : false;
 
-main().catch((error) => {
-  fail(error instanceof Error ? error.stack ?? error.message : String(error));
-});
+if (IS_MAIN) {
+  main().catch((error) => {
+    fail(error instanceof Error ? error.stack ?? error.message : String(error));
+  });
+}
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const prompt = await resolvePrompt(args);
-  const projectRoot = await resolveRepoRoot(args.values["project-root"] ?? process.cwd());
+  await governPromptRequest({
+    promptFile: args.values["prompt-file"],
+    prompt: args.values.prompt,
+    outputFile: args.values["output-file"],
+    projectRoot: args.values["project-root"] ?? process.cwd()
+  });
+}
+
+export async function governPromptRequest(input) {
+  const prompt = await resolvePrompt(input);
+  const projectRoot = await resolveRepoRoot(input.projectRoot ?? process.cwd());
   const route = detectRoute(prompt);
+  const helperOutput = await runHelper(route.helper_action, projectRoot, route.helper_args);
 
   if (route.answer_mode === "direct") {
-    const helperOutput = runHelper(route.helper_action, projectRoot, route.helper_args);
     const finalAnswer = helperOutput?.ceo_default_response?.text;
     if (!finalAnswer) {
       fail("Helper did not return ceo_default_response.text.");
@@ -46,15 +58,11 @@ async function main() {
       final_answer: finalAnswer,
       helper_output: helperOutput
     };
-    await emitResult(payload, args);
-    return;
+    await emitResult(payload, input.outputFile);
+    return payload;
   }
 
-  const [helperOutput, roleContract] = await Promise.all([
-    Promise.resolve(runHelper(route.helper_action, projectRoot, route.helper_args)),
-    readFile(ROLE_CONTRACT_PATH, "utf8")
-  ]);
-
+  const roleContract = await readFile(ROLE_CONTRACT_PATH, "utf8");
   const promptPacket = buildPromptPacket({
     prompt,
     route,
@@ -72,7 +80,8 @@ async function main() {
     prompt_packet: promptPacket,
     helper_output: helperOutput
   };
-  await emitResult(payload, args);
+  await emitResult(payload, input.outputFile);
+  return payload;
 }
 
 async function resolveRepoRoot(inputPath) {
@@ -96,9 +105,9 @@ async function resolveRepoRoot(inputPath) {
   fail(`Unable to resolve the ADF repo root from '${inputPath}'.`);
 }
 
-async function resolvePrompt(args) {
-  const promptFile = args.values["prompt-file"];
-  const inlinePrompt = args.values.prompt;
+async function resolvePrompt(input) {
+  const promptFile = input.promptFile;
+  const inlinePrompt = input.prompt;
 
   if (promptFile && inlinePrompt) {
     fail("Use either --prompt or --prompt-file, not both.");
@@ -112,11 +121,14 @@ async function resolvePrompt(args) {
     return String(promptText).trim();
   }
 
-  return requiredArg(args, "prompt");
+  if (!isFilled(inlinePrompt)) {
+    fail("Missing required argument --prompt.");
+  }
+
+  return String(inlinePrompt).trim();
 }
 
-async function emitResult(payload, args) {
-  const outputFile = args.values["output-file"];
+async function emitResult(payload, outputFile) {
   if (outputFile) {
     await writeFile(resolve(outputFile), JSON.stringify(payload, null, 2) + "\n", "utf8");
   }
@@ -220,28 +232,37 @@ function detectWorkflowMode(normalizedPrompt) {
   return "executive-guidance";
 }
 
-function runHelper(action, projectRoot, helperArgs = {}) {
-  const cliArgs = [HELPER_PATH, action, "--project-root", projectRoot];
-  for (const [key, value] of Object.entries(helperArgs)) {
-    cliArgs.push(`--${key}`, String(value));
+async function runHelper(action, projectRoot, helperArgs = {}) {
+  const context = await loadMissionFoundationContext(projectRoot);
+  if (action === "status") {
+    return renderStatusPayload(context);
   }
-
-  const result = spawnSync(process.execPath, cliArgs, {
-    cwd: projectRoot,
-    encoding: "utf8",
-    windowsHide: true,
-    timeout: 30000
-  });
-
-  if (result.status !== 0) {
-    throw new Error(result.stderr?.trim() || `cto-helper exited ${result.status}`);
+  if (action === "readiness") {
+    return renderReadinessPayload(context);
   }
-
-  try {
-    return JSON.parse(result.stdout);
-  } catch (error) {
-    throw new Error(`Failed to parse cto-helper JSON output: ${error instanceof Error ? error.message : String(error)}`);
+  if (action === "gaps") {
+    return renderGapPayload(context, {
+      limit: parseHelperLimit(helperArgs.limit) ?? 10
+    });
   }
+  if (action === "context") {
+    return renderContextPayload(context);
+  }
+  if (action === "health") {
+    return renderHealthPayload(context, projectRoot);
+  }
+  fail(`Unknown helper action '${action}'.`);
+}
+
+function parseHelperLimit(value) {
+  if (!isFilled(value)) {
+    return null;
+  }
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    fail("--limit must be a positive integer.");
+  }
+  return parsed;
 }
 
 function buildPromptPacket(input) {
