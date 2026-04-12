@@ -141,7 +141,32 @@ It should do exactly this:
 2. Use `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` in the layer root as frozen mission-foundation source of truth.
 3. Keep broader trust-model questions in `context/artifacts/TRUST-MODEL.md`.
 4. Keep out-of-scope but important items in `context/OPEN-ITEMS.md`.
-5. Re-decide the correct next post-box-model artifact before continuing the foundation sequence.
+5. Use the current working completion sequence below as the restart frame for finishing phase `00`.
+
+## Current Working Completion Sequence For Phase `00`
+
+This is the current recommended list for finishing the mission-foundation layer.
+
+It is a working sequence, not yet a frozen decision.
+
+1. define the top-level governing entities and boundaries
+   naming is still open, but this is the thin high-level doc that should replace the earlier `ROLE-MODEL.md` idea
+2. define the main workflows
+   example: request -> shaping -> execution -> verification -> return as `complete` or `blocked`
+3. derive the needed building blocks from those workflows
+   this is the component inventory
+4. define how those building blocks are allowed to connect
+   this is the allowed wiring and boundary model
+5. finalize the trust model on top of that real structure
+6. run one final phase-`00` consistency and freeze-read pass across all outputs
+
+In plain language:
+- first define who exists at the top
+- then define how work moves
+- then define what lego blocks are needed
+- then define how those blocks may connect
+- then define trust across that real structure
+- then close the layer cleanly
 
 ---
 
@@ -188,11 +213,13 @@ For `OPEN-ITEMS.md`:
 The biggest remaining open questions are no longer about whether v2 should exist.
 
 They are now mostly about:
-- what the correct post-box-model artifact is
-- what abstraction level that artifact should live at
+- the exact name and final shape of the top-level governing-entity document
+- the workflow model
+- the component inventory derived from the workflows
+- the connection model derived from the workflows and components
 - broader trust-model definition
 - trust thresholds and governance mechanics
-- later component and workflow formalization
+- the final phase-`00` closeout pass
 
 Those should be resolved in their own artifacts, not by reopening the core mission foundation.
 
@@ -226,4 +253,4 @@ The naming goal is:
 ADF v2 mission foundation is already underway.
 
 Do not restart mission drafting from scratch.
-Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, and first re-decide the correct next artifact instead of assuming `ROLE-MODEL.md`.
+Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, and use the current working completion sequence to finish phase `00` without reviving the old `ROLE-MODEL.md` assumption.

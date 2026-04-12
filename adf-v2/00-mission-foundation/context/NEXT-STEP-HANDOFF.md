@@ -37,7 +37,7 @@ Current branch state:
 - decisions `D-062` and `D-063` record those freeze approvals and promotions
 
 Current main task:
-- decide the correct next post-box-model artifact and naming
+- use the current working phase-`00` completion sequence and decide the exact top-level governing-entity artifact name
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -56,7 +56,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what document should come next after `BOXED-COMPONENT-MODEL.md`, at what abstraction level, and with what name
+- what is the exact name and frozen boundary of the thin top-level governing-entity document that comes next
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
@@ -183,9 +183,16 @@ It should continue from the current drafts and frozen decisions.
 
 ### Immediate next step
 
-Use the frozen mission-foundation outputs now in the layer root to decide the correct next artifact after `BOXED-COMPONENT-MODEL.md`.
+Use the frozen mission-foundation outputs now in the layer root and the current working completion sequence:
+- top-level governing entities and boundaries
+- workflow model
+- component inventory
+- connection model
+- trust model finalization
+- final phase-`00` freeze-read pass
 
-Do not assume `ROLE-MODEL.md` is the next canonical output until that sequencing and naming decision is explicitly reapproved.
+Do not assume the old `ROLE-MODEL.md` framing is the right next output.
+The next immediate decision is only the exact name and boundary of the thin top-level governing-entity document.
 
 ### After that
 
@@ -215,4 +222,4 @@ Do keep doing these:
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, trust is still split between frozen boundary decisions and the broader draft trust model, and the next agent should first re-decide the correct post-box-model artifact instead of assuming `ROLE-MODEL.md` is next.
+ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, phase `00` now has a current working completion sequence, and the next agent should decide the exact name and boundary of the thin top-level governing-entity document instead of reviving the old `ROLE-MODEL.md` assumption.
