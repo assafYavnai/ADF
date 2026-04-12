@@ -74,12 +74,14 @@ The current approved structural baseline for boxes is:
    - KPI and reporting surface
 3. every box uses one universal outer JSON envelope with standard fields, and box-specific content lives inside a nested payload section
 4. the universal outer envelope must provide standard field families for identity, status, blocked, payload, KPI, audit refs, checkpoint refs, and contract version
-5. every box output includes KPI truth for the current invocation
-6. every box preserves durable long-term audit evidence and change history for later inspection
-7. every box follows a shared structural layout with standard governed areas for contracts, runtime state, audit history, tests, and internal artifacts
-8. every box is self-contained inside its own governed folder or module boundary
-9. outward interaction happens only through authoritative contracts plus approved shared system tools
-10. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
+5. `blocked` is a universal envelope field family for all boxes
+6. `resolve package` is universal-optional: it appears only for boxes that support governed continuation after blocking
+7. every box output includes KPI truth for the current invocation
+8. every box preserves durable long-term audit evidence and change history for later inspection
+9. every box follows a shared structural layout with standard governed areas for contracts, runtime state, audit history, tests, and internal artifacts
+10. every box is self-contained inside its own governed folder or module boundary
+11. outward interaction happens only through authoritative contracts plus approved shared system tools
+12. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
 
 This approved baseline is the working reading guide for the sections below.
 
@@ -119,11 +121,15 @@ Recommendation now approved:
   - audit refs
   - checkpoint refs
   - contract version
+- `blocked` is a universal field family for every box
+- `resolve package` is universal-optional and appears only when that box supports governed continuation after blocking
 
 This means:
 - contract consistency should come from the common outer shape
 - specialization should happen inside the nested payload, not by reinventing the whole top-level contract per box
 - status, blocked reason, KPI truth, audit references, and checkpoint references should appear in a consistent governed location across the system
+- all boxes can truthfully report blocked state in the same governed outer shape
+- only continuation-capable boxes are required to return resolve-package content
 
 This document freezes the structural rule, not the final field list.
 
