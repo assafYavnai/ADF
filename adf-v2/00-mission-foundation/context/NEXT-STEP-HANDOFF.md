@@ -23,6 +23,7 @@ Current branch state:
 - later delivery-boundary decisions `D-039` through `D-046` are committed
 - decision `D-047` records the freeze approval and promotion of `DELIVERY-COMPLETION-DEFINITION.md`
 - `context/artifacts/SYSTEM-OBLIGATIONS.md` now exists as the first working draft for the next canonical mission-foundation output
+- decision `D-050` records the approved universal obligation baseline for governed components
 
 Current main task:
 - shape and freeze `SYSTEM-OBLIGATIONS.md`

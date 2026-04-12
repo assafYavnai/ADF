@@ -84,6 +84,27 @@ The universal obligation set below is the current draft baseline.
 
 ---
 
+## Approved Requirement Baseline
+
+The current approved requirement baseline for governed components and governed routes is:
+
+1. every component must accept and return authoritative JSON contracts
+2. terminal truth is `complete` or `blocked`; the system must not fake success
+3. execution happens only in project-governed isolated working areas, never in hidden agent-private areas
+4. repo and worktree state stay clean; meaningful CRUD batches trigger commit and push
+5. commit messages must be descriptive enough that a reader of history can understand the high-level change without scanning code first
+6. KPI truth must measure usage, effort and time, and cost, so bottlenecks can be improved from evidence over time
+7. everything is boxed, self-contained, standalone-testable, and connected only through contracts plus approved shared system tools
+8. components are workflow-agnostic building blocks that can be reused, reordered, repeated, and run in parallel
+9. everything must be concurrency-safe and parallel-safe
+10. components must be retry-safe and re-invocation-safe
+11. every run must leave durable audit truth for both success and failure
+12. contract evolution must be explicit and governed
+
+This approved baseline is the practical reading guide for the obligation sections below.
+
+---
+
 ## 1. Contract Obligations
 
 Every governed component boundary must operate through explicit contracts.
@@ -101,6 +122,9 @@ This includes:
 - blocked packages
 - resolve packages
 - later resume or recovery packages where needed
+
+Contract evolution must also be explicit and governed.
+Changes to a contract must not silently break neighboring components or force hidden interpretation.
 
 ---
 
@@ -133,6 +157,8 @@ This obligation is the operational counterpart of:
 - checkpoint truth
 - durable state continuity
 
+Every run must leave durable audit truth for both success and failure.
+
 ---
 
 ## 4. KPI Visibility Obligations
@@ -143,6 +169,16 @@ At high level, that means:
 - every governed component or governed route must produce enough measurable operational truth to support KPI visibility
 - KPI visibility must come from governed evidence, not retrospective storytelling
 - KPI visibility must remain consistent even when implementations vary
+
+At minimum, KPI truth must support:
+- usage measurement
+- effort and elapsed-time measurement
+- cost measurement, including token cost where applicable
+- evidence-based detection of bottlenecks over time
+
+Effort and time visibility should cover both:
+- agentic work
+- script-governed work
 
 This draft does not yet define the shared KPI schema.
 That later structural shape should be defined in `BOXED-COMPONENT-MODEL.md`.
@@ -160,6 +196,9 @@ At high level, that means:
 - interruption, refresh, transient breakage, or malformed intermediate state must not force hidden manual route repair above governed execution
 
 For ended states that are not resumed in place, the system must still return enough structured truth to drive the next safe step.
+
+Components must also be retry-safe and re-invocation-safe.
+Repeated invocation must not silently corrupt state or create inconsistent duplicate effects.
 
 ---
 
@@ -182,11 +221,14 @@ This obligation preserves fire-and-forget by turning failure or waiting into gov
 The system must preserve execution cleanliness and environment isolation.
 
 At high level, that means:
+- execution happens only in project-governed isolated working areas, never in hidden agent-private areas
 - implementation activity must not pollute the CEO's normal working environment
 - implementation activity must not leave hidden cleanup for the CTO after upward declaration
 - local `main` must stay clean
 - implementation should happen in isolated execution contexts where required by the model
 - completion is not truthful while the result is still stranded outside the production tree
+- meaningful CRUD batches trigger commit and push
+- commit messages must be descriptive enough that a reader of history can understand the high-level change without scanning code first
 
 This obligation covers:
 - workspace cleanliness
@@ -226,7 +268,56 @@ The broader trust scoring, thresholds, and governance mechanics still belong in 
 
 ---
 
-## 10. Lower-Layer Derivation Obligations
+## 10. Boxed Component Obligations
+
+Everything should be boxed.
+
+At high level, that means:
+- each component is self-contained
+- each component is standalone-testable
+- each component should work within its own governed folder or module structure rather than through hidden cross-cutting sprawl
+- components connect through authoritative contracts plus approved shared system tools
+- components must not rely on hidden neighbor-specific behavior outside those contracts and approved shared tools
+
+Approved shared system tools may include governed assets such as:
+- Brain
+- git
+- other later system-level governed tools explicitly approved by the framework
+
+The later `BOXED-COMPONENT-MODEL.md` should define the exact structural shape that carries these obligations.
+
+---
+
+## 11. Workflow-Agnostic Composition Obligations
+
+Components should be workflow-agnostic building blocks.
+
+At high level, that means:
+- a component should not be hard-wired to one specific chain ordering
+- a component should be reusable in more than one workflow
+- a component should be able to be invoked multiple times where the workflow requires it
+- a component should be usable in parallel with other components where the workflow allows it
+
+This does not mean every workflow uses every component identically.
+It means composition should be governed by contracts and workflow assembly, not by hidden one-off coupling.
+
+---
+
+## 12. Concurrency Safety Obligations
+
+The system must be concurrency-safe and parallel-safe.
+
+At high level, that means:
+- parallel execution must not corrupt shared state
+- one run must not contaminate another run
+- concurrent or overlapping work must not create hidden race-condition burden above governed execution
+- safe parallel operation is a mandatory system property, not optional optimization
+
+This is the operational reading of the requirement that everything be safe to use as lego-like building blocks inside larger governed assemblies.
+
+---
+
+## 13. Lower-Layer Derivation Obligations
 
 The system definition must support lower-layer derivation without pushing decomposition back onto the CEO.
 
