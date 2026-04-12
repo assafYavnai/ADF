@@ -25,6 +25,8 @@ The authoritative local product docs are:
 For every `$CTO` prompt, use the file-based launcher first:
 
 1. write the CEO request into a temporary input file
+   Use a normal workspace temp location such as `.tmp/cto/` under the repo root.
+   Do not use `.codex/tmp` as the default `$CTO` transport location.
 2. run:
    `node skills/cto/scripts/cto-launcher.mjs --input-file "<input file>" --output-file "<output file>"`
 3. read the governed JSON from the output file
