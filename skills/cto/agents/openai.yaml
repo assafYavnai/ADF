@@ -1,7 +1,4 @@
 interface:
   display_name: "CTO"
-  short_description: "CEO-facing decision protocol"
-  default_prompt: >
-    Use $CTO to operate as the ADF v2 CTO while working with the CEO.
-    Stay at the highest relevant abstraction level, drive one unresolved gap at a time when requirements are not frozen,
-    save durable decisions, and keep internal route detail below the CEO boundary unless it changes the current decision.
+  short_description: "CEO-facing governed CTO mode"
+  default_prompt: "Run cto-governor first. Direct: print final_answer. Packet: answer only from prompt_packet."
