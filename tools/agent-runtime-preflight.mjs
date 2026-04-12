@@ -81,6 +81,22 @@ function manualPathLookup(command, { platform, env }) {
   return null;
 }
 
+function defaultBashCommand({ platform, env }) {
+  if (platform !== "win32") {
+    return String(env.BASH ?? env.SHELL ?? "bash");
+  }
+
+  if (env.ADF_RESOLVED_BASH_EXE) {
+    return String(env.ADF_RESOLVED_BASH_EXE);
+  }
+
+  if (env.BASH) {
+    return String(env.BASH);
+  }
+
+  return "bash";
+}
+
 function commandLookupScript(command) {
   return `command -v '${String(command).replace(/'/g, `'\\''`)}'`;
 }
@@ -422,12 +438,14 @@ export function buildRuntimePreflightReport({
 } = {}) {
   const resolvedRepoRoot = resolve(repoRoot ?? join(__dirname, ".."));
   const hostOs = classifyHostOs(platform);
-  const bashCommand = String(env.BASH ?? env.SHELL ?? "bash");
+  const bashCommand = defaultBashCommand({ platform, env });
   const lookup = (name) => (commandLookup ?? ((value) => defaultCommandLookup(value, { processRunner, bashCommand, platform, env })))(name);
 
   const controlPlaneKind = classifyControlPlaneKind(hostOs, env);
   const controlPlaneEntrypoint = classifyControlPlaneEntrypoint(env);
-  const bashPath = lookup("bash") ?? normalizeSpawnCommand(env.BASH || env.SHELL || "bash", { platform, env }) ?? null;
+  const bashPath = hostOs === "windows"
+    ? env.ADF_RESOLVED_BASH_EXE ?? lookup("bash") ?? normalizeSpawnCommand(env.BASH || "bash", { platform, env }) ?? null
+    : lookup("bash") ?? normalizeSpawnCommand(env.BASH || env.SHELL || "bash", { platform, env }) ?? null;
   const bashVersion = bashPath
     ? processRunner(normalizeSpawnCommand(bashPath, { platform, env }), ["--version"])
     : { status: 1, stdout: "", stderr: "bash not found" };
