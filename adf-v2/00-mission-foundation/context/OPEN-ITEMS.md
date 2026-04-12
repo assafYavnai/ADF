@@ -294,10 +294,10 @@ Notes:
 ### O-202 - Component reporting shape for trust-bearing boxes
 
 State:
-- `open`
+- `moved`
 
 Why it is open:
-- later box definitions will need a reporting and obligation shape that trust can attach to
+- the issue has now been moved into the active `BOXED-COMPONENT-MODEL.md` draft so the shared reporting and audit surfaces can be shaped there without losing the trust connection
 
 Target document:
 - `BOXED-COMPONENT-MODEL.md`
