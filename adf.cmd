@@ -29,6 +29,9 @@ if errorlevel 1 (
   exit /b 1
 )
 
+set "ADF_RESOLVED_BASH_EXE=%BASH_EXE%"
+call :prepare_bash_runtime
+
 set "ADF_ENTRYPOINT=adf.cmd"
 set "ADF_CONTROL_PLANE_KIND=windows-cmd-trampoline"
 "%BASH_EXE%" "%SCRIPT_DIR%adf.sh" %*
@@ -61,3 +64,17 @@ for /f "delims=" %%F in ('where bash.exe 2^>nul') do (
   if defined BASH_EXE exit /b 0
 )
 exit /b 1
+
+:prepare_bash_runtime
+set "NORMALIZED=!BASH_EXE!"
+set "MSYS_MATCH=!NORMALIZED:\msys64\=!"
+if /I "!MSYS_MATCH!"=="!NORMALIZED!" exit /b 0
+
+for %%I in ("!BASH_EXE!") do set "BASH_DIR=%%~dpI"
+for %%I in ("!BASH_DIR!..\..") do set "MSYS2_ROOT=%%~fI"
+if not defined MSYSTEM set "MSYSTEM=UCRT64"
+set "CHERE_INVOKING=1"
+set "MSYS2_PATH_TYPE=inherit"
+if exist "!MSYS2_ROOT!\usr\bin" set "PATH=!MSYS2_ROOT!\usr\bin;!PATH!"
+if exist "!MSYS2_ROOT!\ucrt64\bin" set "PATH=!MSYS2_ROOT!\ucrt64\bin;!PATH!"
+exit /b 0
