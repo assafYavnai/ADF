@@ -534,3 +534,30 @@ Why:
 - this keeps `SYSTEM-OBLIGATIONS.md` at the right abstraction level
 - it avoids mixing workflow policy into the foundation guarantee layer
 - it resolves the freeze-read pushback on low-level policy leakage
+
+---
+
+## Decision D-060 - Frozen requirement language uses must while permitted exceptions use may
+
+Frozen decision:
+- in mission-foundation documents, frozen universal or structural rules must use `must`
+- `should` is reserved for non-frozen guidance or explanatory intent
+- `may` or `optional` is reserved for permitted exceptions such as shared tools or substrate and continuation-specific resolve-package presence
+
+Why:
+- this removes normative ambiguity at freeze time
+- it keeps the mandatory contract readable as mandatory rather than advisory
+- it resolves the remaining freeze-read blocker around wording softness
+
+---
+
+## Decision D-061 - Verification and certification truth has an explicit structural home
+
+Frozen decision:
+- the box model must explicitly carry governed verification and certification evidence or references as part of its structural surfaces
+- that truth belongs within the box's audit, checkpoint, and reporting surfaces rather than in hidden narration
+
+Why:
+- the system obligations already require governed verification and truthful upward certification
+- the box model needs an explicit structural home for that truth
+- this closes the remaining clarity gap without forcing exact schema design

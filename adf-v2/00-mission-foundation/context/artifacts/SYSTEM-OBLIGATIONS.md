@@ -75,7 +75,7 @@ In particular, this draft must preserve:
 
 ## Core Obligation Model
 
-ADF v2 should treat obligations as mandatory guarantees, not as aspirations.
+ADF v2 must treat obligations as mandatory guarantees, not as aspirations.
 
 At high level:
 - if an obligation is required here, the system must satisfy it
@@ -193,12 +193,12 @@ At minimum, KPI truth must support:
 - cost measurement, including token cost where applicable
 - evidence-based detection of bottlenecks over time
 
-Effort and time visibility should cover both:
+Effort and time visibility must cover both:
 - agentic work
 - script-governed work
 
 This draft does not yet define the shared KPI schema.
-That aligned structural shape should be defined in `BOXED-COMPONENT-MODEL.md`.
+That aligned structural shape must be defined in `BOXED-COMPONENT-MODEL.md`.
 
 ---
 
@@ -226,7 +226,7 @@ The system must preserve truthful non-complete outcomes.
 At high level, that means:
 - when completion is not truthful, the system must return `blocked` rather than pretending success
 - blocked outputs must carry the relevant reason for that boundary
-- when the boundary supports continuation after correction, the blocked output should carry a resolve package or equivalent structured next-step truth
+- when the boundary supports continuation after correction, the blocked output must carry a resolve package or equivalent structured next-step truth
 - not every component must support the same blocked reasons, but every supported blocked reason must be truthful and operationally useful
 
 This obligation preserves fire-and-forget by turning failure or waiting into governed outputs instead of hidden burden.
@@ -242,7 +242,7 @@ At high level, that means:
 - implementation activity must not pollute the CEO's normal working environment
 - implementation activity must not leave hidden cleanup for the CTO after upward declaration
 - local `main` must stay clean
-- implementation should happen in isolated execution contexts where required by the model
+- implementation must happen in isolated execution contexts where required by the model
 - completion is not truthful while the result is still stranded outside the production tree
 - governed execution must leave truthful, inspectable traceability rather than hidden activity
 
@@ -264,7 +264,7 @@ At high level, that means:
 - required human testing must be completed before upward `complete` certification when that boundary requires it
 - governed verification must exist before upward certification
 - lower trust may require deeper governed verification
-- the initial implementation stage should assume governed verification is required by default
+- the initial implementation stage must assume governed verification is required by default
 
 The system must not allow certification to depend on belief, manual reconstruction after the fact, or person-specific rescue knowledge.
 
@@ -287,13 +287,13 @@ The broader trust scoring, thresholds, and governance mechanics still belong in 
 
 ## 11. Boxed Component Obligations
 
-Core governed execution units should be boxed.
+Core governed execution units must be boxed.
 
 At high level, that means:
 - each component is self-contained
 - each component is standalone-testable
-- each component should work within its own governed logical boundary rather than through hidden cross-cutting sprawl
-- components connect through authoritative contracts plus approved shared system tools
+- each component must work within its own governed logical boundary rather than through hidden cross-cutting sprawl
+- components connect through authoritative contracts plus approved shared system tools or governed substrate interfaces
 - components must not rely on hidden neighbor-specific behavior outside those contracts and approved shared tools
 
 Approved shared system tools or substrate may exist as a separate governed class.
@@ -304,22 +304,22 @@ That separate governed class may include assets such as:
 - git
 - other later system-level governed tools explicitly approved by the framework
 
-The aligned `BOXED-COMPONENT-MODEL.md` should define the logical structural shape that carries these obligations.
+The aligned `BOXED-COMPONENT-MODEL.md` must define the logical structural shape that carries these obligations.
 
 ---
 
 ## 12. Workflow-Agnostic Composition Obligations
 
-Components should be workflow-agnostic building blocks.
+Components must be workflow-agnostic building blocks.
 
 At high level, that means:
-- a component should not be hard-wired to one specific chain ordering
-- a component should be reusable in more than one workflow
-- a component should be able to be invoked multiple times where the workflow requires it
-- a component should be usable in parallel with other components where the workflow allows it
+- a component must not be hard-wired to one specific chain ordering
+- a component must be reusable in more than one workflow
+- a component must be able to be invoked multiple times where the workflow requires it
+- a component must be usable in parallel with other components where the workflow allows it
 
 This does not mean every workflow uses every component identically.
-It means composition should be governed by contracts and workflow assembly, not by hidden one-off coupling.
+It means composition must be governed by contracts and workflow assembly, not by hidden one-off coupling.
 
 ---
 
@@ -342,8 +342,8 @@ This is the operational reading of the requirement that everything be safe to us
 The system definition must support lower-layer derivation without pushing decomposition back onto the CEO.
 
 At high level, that means:
-- the universal obligations should be clear enough that later box, role, and workflow docs can inherit them
-- later docs should refine structure and specialization without redefining these guarantees
+- the universal obligations must be clear enough that later box, role, and workflow docs can inherit them
+- later docs must refine structure and specialization without redefining these guarantees
 - if a later doc specializes an obligation, it must remain compatible with the universal obligation rather than silently weakening it
 
 This is how the foundation prevents implementation drift while keeping the CEO at the correct abstraction level.
@@ -352,10 +352,10 @@ This is how the foundation prevents implementation drift while keeping the CEO a
 
 ## Relationship To Later Documents
 
-This draft should align directly with:
+This draft aligns directly with:
 
 - `BOXED-COMPONENT-MODEL.md`
-  because the shared box structure should expose how obligations appear in logical input, output, reporting, KPI, scope-fidelity, and checkpoint surfaces
+  because the shared box structure must expose how obligations appear in logical input, output, reporting, KPI, scope-fidelity, and checkpoint surfaces
 
 - `ROLE-MODEL.md`
   because role boundaries determine who is accountable for satisfying, checking, or acting on obligations
@@ -370,4 +370,4 @@ This draft should align directly with:
 
 ## Current Draft Summary
 
-ADF v2 should treat system obligations as universal mandatory guarantees over governed components and governed routes: truthful contracts, scope fidelity to the approved package, truthful status, durable audit truth, KPI visibility, queryability and recovery, truthful blocked outputs, clean execution, and governed verification strong enough to support truthful upward completion.
+ADF v2 must treat system obligations as universal mandatory guarantees over governed components and governed routes: truthful contracts, scope fidelity to the approved package, truthful status, durable audit truth, KPI visibility, queryability and recovery, truthful blocked outputs, clean execution, and governed verification strong enough to support truthful upward completion.

@@ -31,6 +31,7 @@ Current branch state:
 - decision `D-054` records the standard field families the universal outer box envelope must provide
 - decision `D-055` records that `blocked` is universal while `resolve package` is universal-optional
 - decisions `D-056` through `D-059` fix the freeze-read blockers: scope fidelity is now operational and structural, the box model is logical rather than repo-policy driven, the obligations and box docs are aligned siblings, and low-level git policy is removed from universal-obligation wording
+- decisions `D-060` and `D-061` tighten normative language to `must` for frozen rules and make verification/certification truth structurally explicit in the box model
 
 Current main task:
 - shape and freeze `BOXED-COMPONENT-MODEL.md`
@@ -54,7 +55,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- whether `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are now ready for promotion review after the freeze-read blocker fixes
+- whether `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are now ready for promotion review after the final normative-language and verification-surface fixes
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
