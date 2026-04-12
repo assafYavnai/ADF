@@ -10,6 +10,14 @@ Audience: next agent / architect / CEO review session
 
 This file preserves the mission-foundation restart logic for ADF v2 in a way a new agent can use without reconstructing the earlier chat history.
 
+This file is the canonical startup authority for the mission-foundation layer.
+It should carry the 3-layer restart frame directly:
+- broader work
+- current task
+- next step
+
+Later-step detail and open items should also point back here rather than replacing this frame.
+
 The core restart decision remains:
 
 **ADF v2 should be built as a thinner architectural restart under `adf-v2/`, not as continued patching of legacy ADF as the source of truth.**
@@ -131,6 +139,47 @@ It is intentionally not yet defining:
 
 ---
 
+## Restart Frame
+
+### Broader work
+
+Finish phase `00` from outside to inside:
+- who exists at the top
+- how work moves through the system
+- what building blocks are needed
+- how those building blocks may connect
+- how trust works across that real structure
+- final phase-`00` consistency and freeze-read
+
+### Current task
+
+Define who exists at the top.
+
+This is not yet the workflow model, the component inventory, the connection model, or the trust freeze pass.
+It is the thin top-level governing-entity definition only.
+
+### Next step
+
+Shape and freeze the thin top-level governing-entity document:
+- define the top-level entities for phase `1`
+- define their boundaries at the same high level
+- do not widen into workflows, components, connection topology, or trust mechanics
+
+The exact filename is still open and should not replace the real current task in startup answers.
+
+### Later steps and open items
+
+After the top-level governing-entity document:
+- define the workflow model
+- derive the component inventory from those workflows
+- define the allowed connection model between those components
+- finalize the trust model on top of that structure
+- run the final phase-`00` freeze-read pass
+
+The exact filename and final shape of the thin top-level governing-entity document remain open until explicitly frozen.
+
+---
+
 ## What Should Happen Next
 
 The next session should not restart the foundation.
@@ -150,7 +199,7 @@ This is the current recommended list for finishing the mission-foundation layer.
 It is a working sequence, not yet a frozen decision.
 
 1. define the top-level governing entities and boundaries
-   naming is still open, but this is the thin high-level doc that should replace the earlier `ROLE-MODEL.md` idea
+   this is the thin high-level doc for who exists at the top
 2. define the main workflows
    example: request -> shaping -> execution -> verification -> return as `complete` or `blocked`
 3. derive the needed building blocks from those workflows

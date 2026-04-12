@@ -35,14 +35,14 @@ It does not define:
 - the full trust model
 - the full box schema or reporting schema
 - workflow topology
-- role topology
+- top-level governing-entity topology
 
 Those remain split across:
 - `MISSION-STATEMENT.md`
 - `DELIVERY-COMPLETION-DEFINITION.md`
 - `context/artifacts/TRUST-MODEL.md`
 - aligned sibling `BOXED-COMPONENT-MODEL.md`
-- later `ROLE-MODEL.md`
+- later thin top-level governing-entity document
 - later `WORKFLOW-MODEL.md`
 
 This means:
@@ -342,7 +342,7 @@ This is the operational reading of the requirement that everything be safe to us
 The system definition must support lower-layer derivation without pushing decomposition back onto the CEO.
 
 At high level, that means:
-- the universal obligations must be clear enough that later box, role, and workflow docs can inherit them
+- the universal obligations must be clear enough that later box, top-level governing-entity, and workflow docs can inherit them
 - later docs must refine structure and specialization without redefining these guarantees
 - if a later doc specializes an obligation, it must remain compatible with the universal obligation rather than silently weakening it
 
@@ -357,8 +357,8 @@ This draft aligns directly with:
 - `BOXED-COMPONENT-MODEL.md`
   because the shared box structure must expose how obligations appear in logical input, output, reporting, KPI, scope-fidelity, and checkpoint surfaces
 
-- `ROLE-MODEL.md`
-  because role boundaries determine who is accountable for satisfying, checking, or acting on obligations
+- later thin top-level governing-entity document
+  because high-level governing-entity boundaries determine who is accountable for satisfying, checking, or acting on obligations
 
 - `WORKFLOW-MODEL.md`
   because workflow topology determines how obligations behave across routes, retries, merge, pushback, and handoff paths

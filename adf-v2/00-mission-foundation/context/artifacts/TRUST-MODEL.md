@@ -453,7 +453,7 @@ This draft should eventually connect to:
 - `BOXED-COMPONENT-MODEL.md`
   because trust should likely become part of the obligations and reporting shape of each box
 
-- `ROLE-MODEL.md` and `WORKFLOW-MODEL.md`
+- the later thin top-level governing-entity document and `WORKFLOW-MODEL.md`
   because trust edges are meaningful only across defined roles and workflow relationships
 
 ---
@@ -547,7 +547,7 @@ We still need to freeze exactly how trust connects to:
 - `DELIVERY-COMPLETION-DEFINITION.md`
 - `SYSTEM-OBLIGATIONS.md`
 - `BOXED-COMPONENT-MODEL.md`
-- `ROLE-MODEL.md`
+- the later thin top-level governing-entity document
 - `WORKFLOW-MODEL.md`
 
 ### 7. Governance Mechanics

@@ -1,12 +1,18 @@
 # ADF v2 - Next-Step Handoff
 
-Status: active restart handoff  
+Status: active checkpoint companion  
 Scope: `adf-v2/00-mission-foundation/`  
-Purpose: let the next agent resume the mission-foundation work from the current real state, without reconstructing this session from chat
+Purpose: provide a thin checkpoint companion to `HANDOFF.md` without replacing its canonical startup authority
 
 ---
 
 ## Current Checkpoint
+
+Canonical startup authority:
+- `adf-v2/00-mission-foundation/context/HANDOFF.md`
+
+This file is only the thin checkpoint companion.
+It must stay aligned to `HANDOFF.md` and must not replace the broader-work frame stored there.
 
 Checkpoint date:
 - `2026-04-12`
@@ -37,7 +43,7 @@ Current branch state:
 - decisions `D-062` and `D-063` record those freeze approvals and promotions
 
 Current main task:
-- use the current working phase-`00` completion sequence and decide the exact top-level governing-entity artifact name
+- define who exists at the top
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -56,7 +62,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what is the exact name and frozen boundary of the thin top-level governing-entity document that comes next
+- what are the top-level governing entities of phase `1`, and where do the high-level boundaries sit between them
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
@@ -192,7 +198,8 @@ Use the frozen mission-foundation outputs now in the layer root and the current 
 - final phase-`00` freeze-read pass
 
 Do not assume the old `ROLE-MODEL.md` framing is the right next output.
-The next immediate decision is only the exact name and boundary of the thin top-level governing-entity document.
+The next immediate task is to define who exists at the top.
+The exact filename remains open and belongs in later/open-item handling until explicitly frozen.
 
 ### After that
 
@@ -222,4 +229,4 @@ Do keep doing these:
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, phase `00` now has a current working completion sequence, and the next agent should decide the exact name and boundary of the thin top-level governing-entity document instead of reviving the old `ROLE-MODEL.md` assumption.
+ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, `HANDOFF.md` is the canonical startup authority, and the next agent should define who exists at the top instead of reviving the old `ROLE-MODEL.md` assumption.

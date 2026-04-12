@@ -323,3 +323,14 @@ Why it is open:
 
 Target document:
 - `WORKFLOW-MODEL.md`
+
+### O-205 - Exact filename and final shape of the thin top-level governing-entity document
+
+State:
+- `open`
+
+Why it is open:
+- the current task is to define who exists at the top, but the exact filename and final document-shape wording should not replace that real task in startup answers
+
+Target document:
+- `TBD thin top-level governing-entity document`

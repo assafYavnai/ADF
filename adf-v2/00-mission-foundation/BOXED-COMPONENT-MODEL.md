@@ -20,7 +20,7 @@ Its job is to define:
 
 Its job is not to define:
 - the full workflow topology
-- the full role model
+- the full top-level governing-entity model
 - the full trust model
 - exact JSON schemas
 - exact KPI field names
@@ -256,8 +256,8 @@ This draft aligns directly with:
 - `context/artifacts/TRUST-MODEL.md`
   because trust later needs reporting and audit surfaces to attach to
 
-- later `ROLE-MODEL.md`
-  because roles must be assemblies built from governed boxes
+- later thin top-level governing-entity document
+  because the top-level governing entities must later be expressed as assemblies built from governed boxes
 
 - later `WORKFLOW-MODEL.md`
   because workflows must compose boxes without redefining the box contract
