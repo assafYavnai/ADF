@@ -101,6 +101,24 @@ Important distinction:
 - runtime-preflight does not claim full Brain health
 - `--doctor` is still the only supported route for full bash + Brain verification
 
+### Direct `$CTO` Route Exception
+
+For the governed direct `$CTO` routes that are doc-only and repo-truth-only:
+
+- current status
+- implementation readiness
+- what is still missing / gaps remain
+- `$CTO` health
+
+runtime-preflight is still startup authority, but it is not itself the answer surface unless it blocks the governed route.
+
+Rules:
+
+- run the governed `$CTO` launcher first for these direct routes
+- if the governed route succeeds, do not widen the CEO-facing answer into general runtime-preflight, bash, Brain, plugin, or host bootstrap diagnostics
+- only surface broader runtime issues when they blocked the governed `$CTO` answer itself or when the CEO explicitly asked about the environment
+- do not let a doc-only governed `$CTO` answer turn into a repo bootstrap incident report by habit
+
 ## Shell Guidance
 - ADF's canonical shell is `bash` on every host OS.
 - On Windows, the host OS is still Windows, but the ADF shell remains `bash`. Agents must stay aware of Windows path and process behavior without treating PowerShell as an equivalent workflow shell.
@@ -134,6 +152,11 @@ For deeper context on a specific topic, call `mcp__project-brain__search_memory`
 Use `semantic_weight: 0` (keyword-only) unless Ollama is running for embeddings.
 
 Do not ask the CEO to restate context that the Brain already holds.
+
+Exception for direct `$CTO` routes:
+
+- if the current task is one of the governed direct `$CTO` routes above and Brain MCP is unavailable, do not widen the answer into a Brain incident report
+- use the governed repo route, keep the answer scoped to `$CTO`, and mention Brain availability only if it blocked the governed result or the CEO asked for environment status
 
 ## Brain Fallback Route
 
