@@ -264,3 +264,36 @@ Why:
 - this keeps contracts machine-readable, structured, and durable across component boundaries
 - it makes package transfer, validation, logging, persistence, and recovery more reliable
 - it avoids hidden interpretation at handoff boundaries
+
+---
+
+## Decision D-043 - Current bundled trust and contract assumptions
+
+Frozen decision:
+- `blocked` is a terminal outcome for the current component run
+- `user verification` is a reserved blocked reason used when that boundary requires human verification before progress can continue
+- trust is defined primarily by whether the current boundary is safe to rely on now; longer-term interaction quality is supporting evidence, not the primary definition
+- every component contract has one canonical pair of JSON payloads: input payload and output payload
+- blocked reasons and resolve packages are part of the output contract
+- recoverable blocked states should be resumable from governed state
+- ended blocked states such as `cancelled`, `superseded`, and some `failed` cases do not require in-place resume, but must still return enough structured truth to drive the next step safely
+
+Why:
+- this keeps the trust and contract model oriented around truthful current-state delegation
+- it preserves a thin top-level system model while still making blocked outcomes operationally useful
+- it keeps resumability strong where it matters without pretending every ended state should reopen in place
+
+---
+
+## Decision D-044 - Low-level decisions use batched executive approval
+
+Frozen decision:
+- when a task reaches small or low-level decision points, CTO should present them in executive batches of up to 5 items at a time
+- each item must include a recommendation
+- the CEO may either explicitly approve an item or comment for further discussion
+- no explicit approval means discussion, not silent acceptance
+
+Why:
+- this reduces approval noise without silently freezing low-level assumptions
+- it keeps the CEO interaction high level while still preserving explicit decision control
+- it prevents accidental closure from ambiguity or non-response

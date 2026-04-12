@@ -78,6 +78,9 @@ ADF v2 needs a model that exposes this early, without becoming heavy bureaucracy
 
 `Trust` is justified confidence that the adjacent box will carry out its obligations reliably, truthfully, and predictably.
 
+Its primary meaning is whether that boundary is safe to rely on now.
+Longer-term interaction quality matters as supporting evidence, but it is not the primary definition.
+
 ### Trust Level
 
 `Trust Level` is the current executive health of that adjacent relationship.

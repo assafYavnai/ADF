@@ -66,6 +66,12 @@ For each gap, the agent must:
 - provide a recommendation
 - ask for approval
 
+For small or low-level decision points, the agent may batch them in executive groups of up to 5 items at a time, as long as each item still includes:
+
+- the specific item
+- a recommendation
+- a clear request for approval or discussion
+
 ### 3. Save the decision and move to the next gap
 
 If the CEO approves:
@@ -78,6 +84,8 @@ If the CEO does not approve:
 - the agent must discuss until agreement is reached
 - then save the agreed decision durably
 - then move to the next unresolved gap
+
+No explicit approval means the item remains under discussion and must not be treated as accepted by silence.
 
 This question -> recommendation -> approval -> saved decision -> next gap sequence is the required clarification loop.
 

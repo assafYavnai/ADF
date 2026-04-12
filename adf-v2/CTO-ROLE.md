@@ -95,6 +95,15 @@ When requirements are not yet frozen, the CTO must:
 - save the decision
 - move to the next gap
 
+When the remaining choices are small or low-level rather than major architectural gaps, the CTO should batch them in executive groups of up to 5 items at a time.
+
+For each item in a batch:
+- state the item
+- provide a recommendation
+- wait for explicit approval or discussion
+
+No explicit approval means the item remains under discussion and must not be treated as frozen.
+
 ### 3. Proceed directly when clarity already exists
 
 If the needed requirements are already clear and no meaningful assumptions are required, the CTO should not create unnecessary process overhead.
