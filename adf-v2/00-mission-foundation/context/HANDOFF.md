@@ -88,6 +88,9 @@ The mission foundation is no longer at the stage of imagining `VISION.md` and `P
 
 The current authoritative foundation package already includes:
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+- `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+- `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
+- `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
 - `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 - `adf-v2/CTO-ROLE.md`
 - `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
@@ -96,8 +99,6 @@ The current authoritative foundation package already includes:
 
 The main remaining draft artifacts in this layer are:
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/artifacts/SYSTEM-OBLIGATIONS.md`
-- `adf-v2/00-mission-foundation/context/artifacts/BOXED-COMPONENT-MODEL.md`
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 This means the next session should continue from the existing mission-foundation package, not restart mission drafting from scratch.
@@ -137,19 +138,12 @@ The next session should not restart the foundation.
 It should do exactly this:
 
 1. Review the current mission-foundation package and current drafts.
-2. Use `DELIVERY-COMPLETION-DEFINITION.md` in the layer root as the frozen delivery-completion source of truth.
-3. Treat `context/artifacts/SYSTEM-OBLIGATIONS.md` as the approved obligation baseline already available for downstream structure work.
-4. Shape and freeze `context/artifacts/BOXED-COMPONENT-MODEL.md` as the current canonical mission-foundation task.
-5. Keep broader trust-model questions in `context/artifacts/TRUST-MODEL.md`.
-6. Keep out-of-scope but important items in `context/OPEN-ITEMS.md`.
-7. Continue the foundation sequence into:
+2. Use `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` in the layer root as frozen mission-foundation source of truth.
+3. Keep broader trust-model questions in `context/artifacts/TRUST-MODEL.md`.
+4. Keep out-of-scope but important items in `context/OPEN-ITEMS.md`.
+5. Continue the foundation sequence into:
    - `ROLE-MODEL.md`
    - `WORKFLOW-MODEL.md`
-
-Current alignment note:
-- `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` should now be treated as aligned sibling foundation docs, not as a parent-child pair
-- `SYSTEM-OBLIGATIONS.md` owns the universal guarantee layer
-- `BOXED-COMPONENT-MODEL.md` owns the logical common carrier shape for those guarantees
 
 ---
 
@@ -232,4 +226,4 @@ The naming goal is:
 ADF v2 mission foundation is already underway.
 
 Do not restart mission drafting from scratch.
-Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md` as frozen layer canon, use `SYSTEM-OBLIGATIONS.md` as the approved obligation baseline, freeze `BOXED-COMPONENT-MODEL.md` next, and only then widen into later role and workflow documents.
+Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, and move next into `ROLE-MODEL.md` and then `WORKFLOW-MODEL.md`.

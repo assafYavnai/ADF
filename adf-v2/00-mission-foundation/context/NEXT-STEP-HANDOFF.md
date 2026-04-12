@@ -22,9 +22,9 @@ Current branch state:
 - `context/OPEN-ITEMS.md` now exists as the canonical parking and checklist file for mission-foundation open items
 - later delivery-boundary decisions `D-039` through `D-046` are committed
 - decision `D-047` records the freeze approval and promotion of `DELIVERY-COMPLETION-DEFINITION.md`
-- `context/artifacts/SYSTEM-OBLIGATIONS.md` now exists as the first working draft for the next canonical mission-foundation output
+- `SYSTEM-OBLIGATIONS.md` now exists in the layer root as a frozen canonical mission-foundation output
 - decision `D-050` records the approved universal obligation baseline for governed components
-- `context/artifacts/BOXED-COMPONENT-MODEL.md` now exists as the first working draft for the shared boxed-component structure
+- `BOXED-COMPONENT-MODEL.md` now exists in the layer root as a frozen canonical mission-foundation output
 - decision `D-051` records the approved boxed-component structural baseline
 - decision `D-052` records that all boxes use one universal outer JSON envelope with nested box-specific payload content
 - decision `D-053` records that all boxes inherit one governed shared layout with standard areas for contracts, runtime state, audit history, tests, and internal artifacts
@@ -32,9 +32,12 @@ Current branch state:
 - decision `D-055` records that `blocked` is universal while `resolve package` is universal-optional
 - decisions `D-056` through `D-059` fix the freeze-read blockers: scope fidelity is now operational and structural, the box model is logical rather than repo-policy driven, the obligations and box docs are aligned siblings, and low-level git policy is removed from universal-obligation wording
 - decisions `D-060` and `D-061` tighten normative language to `must` for frozen rules and make verification/certification truth structurally explicit in the box model
+- `SYSTEM-OBLIGATIONS.md` is now approved for freeze and promoted to the layer root
+- `BOXED-COMPONENT-MODEL.md` is now approved for freeze and promoted to the layer root
+- decisions `D-062` and `D-063` record those freeze approvals and promotions
 
 Current main task:
-- shape and freeze `BOXED-COMPONENT-MODEL.md`
+- shape and freeze `ROLE-MODEL.md`
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -47,15 +50,13 @@ Current decision boundary:
   - the rule that `DELIVERY-COMPLETION-DEFINITION.md` should consume only boundary trust
 - drafted only:
   - `context/artifacts/TRUST-MODEL.md`
-  - `context/artifacts/SYSTEM-OBLIGATIONS.md`
-  - `context/artifacts/BOXED-COMPONENT-MODEL.md`
   - `context/OPEN-ITEMS.md`
 - still open:
   - the unresolved broader trust-model questions parked in `TRUST-MODEL.md`
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- whether `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are now ready for promotion review after the final normative-language and verification-surface fixes
+- what high-level role-boundary rules must be frozen before `ROLE-MODEL.md` can become the next canonical mission-foundation output
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
@@ -114,19 +115,17 @@ Read in this order:
 8. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 9. `adf-v2/CTO-ROLE.md`
 10. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-11. `adf-v2/00-mission-foundation/context/artifacts/SYSTEM-OBLIGATIONS.md`
-12. `adf-v2/00-mission-foundation/context/artifacts/BOXED-COMPONENT-MODEL.md`
-13. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
-14. `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+11. `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+12. `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
+13. `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
+14. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 15. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
 
 Reading intent:
 - items `1` through `9` define the current governing frame
 - `TRUST-MODEL.md` is the broader trust draft and must not be treated as frozen canon
-- `SYSTEM-OBLIGATIONS.md` is the approved obligation baseline draft that later structure work should inherit
-- `BOXED-COMPONENT-MODEL.md` is the current active draft artifact for the next canonical layer output
+- `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are now frozen canonical layer outputs
 - `OPEN-ITEMS.md` is the canonical parking and checklist register for unresolved items
-- `DELIVERY-COMPLETION-DEFINITION.md` is the frozen canonical delivery-completion definition for this layer
 
 ---
 
@@ -139,6 +138,8 @@ Reading intent:
 - `adf-v2/CTO-ROLE.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
 - `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+- `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
+- `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
 - `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 - `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 - `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
@@ -153,8 +154,6 @@ Reading intent:
 ### Draft artifacts
 
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/artifacts/SYSTEM-OBLIGATIONS.md`
-- `adf-v2/00-mission-foundation/context/artifacts/BOXED-COMPONENT-MODEL.md`
 - `adf-v2/00-mission-foundation/context/artifacts/README.md`
 
 ### Decision files
@@ -184,7 +183,7 @@ It should continue from the current drafts and frozen decisions.
 
 ### Immediate next step
 
-Use the frozen mission, delivery-completion truth, and approved system-obligation baseline to shape and freeze `context/artifacts/BOXED-COMPONENT-MODEL.md` as the next canonical mission-foundation output.
+Use the frozen mission-foundation outputs now in the layer root to shape and freeze `ROLE-MODEL.md` as the next canonical mission-foundation output.
 
 ### After that
 
@@ -216,4 +215,4 @@ Do keep doing these:
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md` is frozen layer canon, `SYSTEM-OBLIGATIONS.md` is the approved obligation baseline draft, `BOXED-COMPONENT-MODEL.md` is now the active draft artifact, trust is still split between frozen boundary decisions and the broader draft trust model, and the next agent should continue freezing the remaining foundation outputs without reopening the frozen delivery definition.
+ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, trust is still split between frozen boundary decisions and the broader draft trust model, and the next agent should continue with `ROLE-MODEL.md` without reopening the frozen foundation documents.

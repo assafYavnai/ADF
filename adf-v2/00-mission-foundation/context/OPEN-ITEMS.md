@@ -294,10 +294,10 @@ Notes:
 ### O-202 - Component reporting shape for trust-bearing boxes
 
 State:
-- `moved`
+- `resolved`
 
 Why it is open:
-- the issue has now been moved into the active `BOXED-COMPONENT-MODEL.md` draft so the shared reporting and audit surfaces can be shaped there without losing the trust connection
+- resolved in `BOXED-COMPONENT-MODEL.md` by giving boxes explicit logical structural surfaces for reporting, audit, checkpoint, scope-fidelity, trust attachment, and governed verification/certification evidence
 
 Target document:
 - `BOXED-COMPONENT-MODEL.md`
