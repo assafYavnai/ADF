@@ -60,11 +60,14 @@ After handoff, the system owns the route until it reaches a truthful terminal re
 
 At high level, `complete` means all of the following are true:
 
-1. the requested thing has actually been returned
-2. it has been returned into the production tree
-3. the return is truthful, not merely nominal
-4. the result does not depend on hidden follow-up work from above
-5. the CTO can truthfully certify the result upward
+1. the status is truthfully `complete`
+2. the requested thing has actually been returned
+3. it has been returned into the production tree
+4. the return is truthful, not merely nominal
+5. the working environment is clean
+6. no delivery-boundary trust condition has failed
+7. the result does not depend on hidden follow-up work from above
+8. the CTO can truthfully certify the result upward
 
 If any of those are not true, the result is not fully complete.
 
@@ -137,6 +140,7 @@ That includes:
 - manual environment hygiene repair
 - hidden follow-up needed to make the result truly usable
 - hidden doubt about whether the return is actually trustworthy
+- invisible person-specific rescue work or hidden heroics that were required to make completion appear true
 
 If those still remain, completion has not really happened.
 
@@ -236,9 +240,7 @@ Examples of later obligation topics:
 
 This draft still leaves some delivery-specific questions open:
 
-- what exact wording should be used for the final definition of complete
 - whether CTO certification should be stated explicitly as resting on governed system truth rather than informal belief or manual reconstruction
-- whether the document should explicitly name that completion must not depend on invisible person-specific rescue or hidden heroics
 
 These should be resolved in the freeze pass for this document.
 

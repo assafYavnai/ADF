@@ -297,3 +297,16 @@ Why:
 - this reduces approval noise without silently freezing low-level assumptions
 - it keeps the CEO interaction high level while still preserving explicit decision control
 - it prevents accidental closure from ambiguity or non-response
+
+---
+
+## Decision D-045 - Complete means complete status with no trust failures
+
+Frozen decision:
+- `complete` means the status is `complete`, the artifact has returned into the production tree, the working environment is clean, and no delivery-boundary trust condition has failed
+- this may stay high level; the document does not need to expand into a low-level checklist here
+
+Why:
+- this keeps the meaning of complete tied to both artifact return and trustworthy delivery conditions
+- it makes cleanliness and trust-preservation part of completion rather than optional polish
+- it lets the document stay high level while still making `complete` materially testable

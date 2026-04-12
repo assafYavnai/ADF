@@ -71,7 +71,7 @@ Notes:
 ### O-003 - Final wording of `complete`
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the draft still needs a final approved wording for the exact definition of `complete`
@@ -126,7 +126,7 @@ Target document:
 ### O-007 - Whether to name `no hidden heroics` explicitly
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - it is still unresolved whether the delivery boundary should explicitly say completion must not depend on invisible person-specific cleanup, memory, or rescue work
