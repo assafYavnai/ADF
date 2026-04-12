@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   fail,
   isFilled,
@@ -16,6 +18,9 @@ import {
 
 const HELPER_VERSION = 3;
 const SCOPE = "adf-v2";
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+const SCRIPT_DIR = dirname(SCRIPT_PATH);
+const SELF_CHECK_PATH = join(SCRIPT_DIR, "cto-self-check.mjs");
 const DOC_MEANINGS = {
   "DELIVERY-COMPLETION-DEFINITION.md": "define what complete means at the delivery boundary",
   "TRUST-MODEL.md": "freeze the broader trust model",
@@ -72,7 +77,12 @@ async function main() {
     return;
   }
 
-  fail(`Unknown command '${command}'. Use help, status, readiness, gaps, or context.`);
+  if (command === "health") {
+    printJson(renderHealthPayload(context, projectRoot));
+    return;
+  }
+
+  fail(`Unknown command '${command}'. Use help, status, readiness, gaps, context, or health.`);
 }
 
 function resolveCommand(args) {
@@ -91,18 +101,20 @@ function renderHelp() {
     helper_version: HELPER_VERSION,
     scope: SCOPE,
     purpose: "Gather deterministic ADF v2 mission-foundation context so $CTO answers from governed packets instead of raw repo improvisation.",
-    supported_commands: ["help", "status", "readiness", "gaps", "context"],
+    supported_commands: ["help", "status", "readiness", "gaps", "context", "health"],
     default_routes: {
       status: "node skills/cto/scripts/cto-helper.mjs status [--project-root <repo>]",
       readiness: "node skills/cto/scripts/cto-helper.mjs readiness [--project-root <repo>]",
       gaps: "node skills/cto/scripts/cto-helper.mjs gaps [--project-root <repo>] [--limit <n>]",
-      context: "node skills/cto/scripts/cto-helper.mjs context [--project-root <repo>]"
+      context: "node skills/cto/scripts/cto-helper.mjs context [--project-root <repo>]",
+      health: "node skills/cto/scripts/cto-helper.mjs health [--project-root <repo>]"
     },
     notes: [
       "status returns the default CEO-facing three-layer status pack",
       "readiness returns implementation-readiness truth for the current checkpoint",
       "gaps returns unresolved active-task gaps in question plus recommendation form",
-      "context returns the 4-layer CTO packet basis with explicit stubs where implementation is still undefined"
+      "context returns the 4-layer CTO packet basis with explicit stubs where implementation is still undefined",
+      "health returns deterministic `$CTO` runtime-health truth and next improvements"
     ]
   };
 }
@@ -515,6 +527,41 @@ function renderContextPayload(context) {
         context.derived_lines.current_task,
         context.derived_lines.next_step
       ].join("\n")
+    },
+    context_summary: context
+  };
+}
+
+function renderHealthPayload(context, projectRoot) {
+  const selfCheck = runJsonHelper(SELF_CHECK_PATH, ["--project-root", projectRoot], projectRoot);
+  const preflight = selfCheck.runtime_preflight ?? {};
+  const lines = [];
+
+  lines.push("Yes. A few reliability issues were worth fixing around `$CTO`.");
+
+  if (selfCheck.ready) {
+    lines.push("The main avoidable problem is drift between the repo copy and the installed runtime copy of the skill. Edit `skills/cto` in the repo, reinstall after meaningful changes, and run `cto-self-check` before first use in a fresh checkout.");
+  } else {
+    lines.push(`There are still runtime setup warnings to clear before trusting a fresh CTO run: ${joinWithCommasAnd(selfCheck.warnings ?? [])}.`);
+  }
+
+  lines.push("Lifecycle drift was another real risk: governed docs can live either as draft artifacts or promoted layer-root canon. The helper now resolves both so document promotion should not break `$CTO` routes by itself.");
+
+  if (preflight.valid_json) {
+    lines.push("Runtime preflight itself is not currently broken here. The repo launcher returns usable JSON in this checkout.");
+  } else {
+    lines.push("Runtime preflight is still a live problem here because the repo launcher did not return usable JSON. Recommendation: make the launcher fail closed on empty or non-JSON preflight output.");
+  }
+
+  return {
+    command: "health",
+    helper_version: HELPER_VERSION,
+    scope: SCOPE,
+    project_root: context.project_root,
+    self_check: selfCheck,
+    ceo_default_response: {
+      lines,
+      text: lines.join("\n")
     },
     context_summary: context
   };
@@ -981,6 +1028,25 @@ function parseOptionalPositiveInteger(value) {
 
 function uniqueList(items) {
   return [...new Set(items.filter(Boolean))];
+}
+
+function runJsonHelper(scriptPath, args, cwd) {
+  const result = spawnSync(process.execPath, [scriptPath, ...args], {
+    cwd,
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 60000
+  });
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr?.trim() || `Helper '${scriptPath}' exited ${result.status}`);
+  }
+
+  try {
+    return JSON.parse(result.stdout);
+  } catch (error) {
+    throw new Error(`Failed to parse JSON from '${scriptPath}': ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 function joinWithCommasAnd(items) {

@@ -8,7 +8,7 @@ The CEO provides vision, goals, and decisions. The COO translates that into exec
 
 For CEO-facing shaping or freeze work in `adf-v2/`, the explicit repo skill entrypoint is `$CTO`.
 When the runtime supports skill invocation, use `$CTO` for CTO-role behavior instead of inventing an ad-hoc protocol.
-Authoritative repo source: `C:/ADF/skills/cto/SKILL.md`.
+Authoritative repo source: `skills/cto/SKILL.md` under the current repo root.
 
 ## Key directories
 - `COO/` — controller + reasoning layer (TypeScript)

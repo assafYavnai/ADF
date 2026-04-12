@@ -165,6 +165,23 @@ function detectRoute(prompt) {
     };
   }
 
+  if (
+    (normalized.includes("problems running") && normalized.includes("$cto"))
+    || (normalized.includes("problems running cto"))
+    || (normalized.includes("encounter") && normalized.includes("$cto"))
+    || (normalized.includes("encounter") && normalized.includes("cto"))
+    || (normalized.includes("avoid in the future") && normalized.includes("$cto"))
+    || (normalized.includes("avoid in the future") && normalized.includes("cto"))
+    || (normalized.includes("improve") && normalized.includes("$cto"))
+  ) {
+    return {
+      name: "health",
+      helper_action: "health",
+      helper_args: {},
+      answer_mode: "direct"
+    };
+  }
+
   return {
     name: "guided-cto",
     helper_action: "context",

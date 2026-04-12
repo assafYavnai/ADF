@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -33,6 +35,7 @@ async function main() {
   const workingModePath = join(projectRoot, "adf-v2", "CTO-CEO-WORKING-MODE.md");
   const deliveryPromotedPath = join(missionFoundationRoot, "DELIVERY-COMPLETION-DEFINITION.md");
   const deliveryDraftPath = join(missionFoundationRoot, "context", "artifacts", "DELIVERY-COMPLETION-DEFINITION.md");
+  const preflight = runRuntimePreflight(projectRoot);
 
   const checks = await Promise.all([
     makeCheck("repo_skill_dir", repoSkillDir),
@@ -60,6 +63,9 @@ async function main() {
   if (deliveryResolution.state === "missing") {
     warnings.push("DELIVERY-COMPLETION-DEFINITION.md is missing in both promoted and draft-artifact locations.");
   }
+  if (!preflight.valid_json) {
+    warnings.push("Runtime preflight did not return usable JSON through the repo launcher.");
+  }
 
   printJson({
     command: "cto-self-check",
@@ -67,6 +73,7 @@ async function main() {
     codex_home: normalizeSlashes(CODEX_HOME),
     checks,
     delivery_definition_resolution: deliveryResolution,
+    runtime_preflight: preflight,
     ready: warnings.length === 0,
     warnings,
     recommendation: warnings.length === 0
@@ -100,4 +107,67 @@ function resolveDeliveryState(checkMap) {
     state: "missing",
     path: null
   };
+}
+
+function runRuntimePreflight(projectRoot) {
+  const adfCmdPath = join(projectRoot, "adf.cmd");
+  const adfShPath = join(projectRoot, "adf.sh");
+
+  if (process.platform === "win32" && existsSync(adfCmdPath)) {
+    const commandText = `"${normalizeSlashes(adfCmdPath)}" --runtime-preflight --json`;
+    const result = spawnSync("cmd.exe", ["/d", "/c", adfCmdPath, "--runtime-preflight", "--json"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 60000
+    });
+    return normalizePreflightResult(commandText, result);
+  }
+
+  if (existsSync(adfShPath)) {
+    const commandText = `${normalizeSlashes(adfShPath)} --runtime-preflight --json`;
+    const result = spawnSync("bash", [adfShPath, "--runtime-preflight", "--json"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 60000
+    });
+    return normalizePreflightResult(commandText, result);
+  }
+
+  return {
+    invoked: false,
+    command: null,
+    exit_status: null,
+    valid_json: false,
+    overall_status: null,
+    detail: "No supported ADF launcher was found for runtime preflight."
+  };
+}
+
+function normalizePreflightResult(commandText, result) {
+  const stdout = String(result.stdout ?? "").trim();
+  const stderr = String(result.stderr ?? "").trim();
+
+  try {
+    const parsed = JSON.parse(stdout);
+    return {
+      invoked: true,
+      command: commandText,
+      exit_status: result.status,
+      valid_json: true,
+      overall_status: parsed.overall_status ?? null,
+      recommended_next_action: parsed.recommended_next_action ?? null,
+      detail: stderr || null
+    };
+  } catch {
+    return {
+      invoked: true,
+      command: commandText,
+      exit_status: result.status,
+      valid_json: false,
+      overall_status: null,
+      detail: stderr || stdout || "Runtime preflight did not emit JSON."
+    };
+  }
 }
