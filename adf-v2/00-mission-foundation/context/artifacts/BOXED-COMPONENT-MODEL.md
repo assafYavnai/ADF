@@ -72,12 +72,13 @@ The current approved structural baseline for boxes is:
    - blocked reason and resolve-package surface where applicable
    - audit and checkpoint surface
    - KPI and reporting surface
-3. every box output includes KPI truth for the current invocation
-4. every box preserves durable long-term audit evidence and change history for later inspection
-5. every box follows a shared structural layout so components look and behave consistently at the governance level
-6. every box is self-contained inside its own governed folder or module boundary
-7. outward interaction happens only through authoritative contracts plus approved shared system tools
-8. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
+3. every box uses one universal outer JSON envelope with standard fields, and box-specific content lives inside a nested payload section
+4. every box output includes KPI truth for the current invocation
+5. every box preserves durable long-term audit evidence and change history for later inspection
+6. every box follows a shared structural layout so components look and behave consistently at the governance level
+7. every box is self-contained inside its own governed folder or module boundary
+8. outward interaction happens only through authoritative contracts plus approved shared system tools
+9. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
 
 This approved baseline is the working reading guide for the sections below.
 
@@ -100,7 +101,25 @@ This document freezes the existence of these surfaces, not their final schema de
 
 ---
 
-## 2. Output And Current-Invocation KPI Truth
+## 2. Universal Contract Envelope
+
+Every box should use one shared outer JSON envelope.
+
+Recommendation now approved:
+- the outer envelope is universal across boxes
+- standard cross-box fields live in that envelope
+- box-specific content lives inside a nested payload section
+
+This means:
+- contract consistency should come from the common outer shape
+- specialization should happen inside the nested payload, not by reinventing the whole top-level contract per box
+- status, blocked reason, KPI truth, audit references, and checkpoint references should appear in a consistent governed location across the system
+
+This document freezes the structural rule, not the final field list.
+
+---
+
+## 3. Output And Current-Invocation KPI Truth
 
 Every box output should include KPI data for the current invocation.
 
@@ -115,7 +134,7 @@ It should carry the current invocation truth plus the governed references needed
 
 ---
 
-## 3. Durable Audit And Change History
+## 4. Durable Audit And Change History
 
 Every box should preserve durable long-term audit evidence.
 
@@ -131,7 +150,7 @@ The rule here is durable governed audit evidence, not uncontrolled retention of 
 
 ---
 
-## 4. Shared Structural Layout
+## 5. Shared Structural Layout
 
 Every box should inherit a shared structural layout.
 
@@ -147,7 +166,7 @@ The exact folder names, file names, and storage arrangement can be specialized l
 
 ---
 
-## 5. Boundary Rule
+## 6. Boundary Rule
 
 A box should be self-contained inside its own governed folder or module boundary.
 
@@ -160,7 +179,7 @@ This prevents hidden neighbor-specific coupling, hidden manual conventions, and 
 
 ---
 
-## 6. Standalone Capability
+## 7. Standalone Capability
 
 Every box should be runnable, inspectable, and testable as a standalone governed unit.
 
@@ -170,7 +189,7 @@ Workflow reuse should come from composing boxes, not from weakening the box boun
 
 ---
 
-## 7. Relationship To Trust
+## 8. Relationship To Trust
 
 This document should reserve structural space for trust-relevant reporting without freezing the full trust model here.
 
