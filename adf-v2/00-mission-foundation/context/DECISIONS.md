@@ -587,3 +587,34 @@ Why:
 - this turns the approved box model into one canonical layer source of truth
 - it removes ambiguity between working-draft and frozen locations
 - it completes the current mission-foundation box-definition pass and clears the way for role modeling next
+
+---
+
+## Decision D-064 - CTO requirement gathering stays in the requirements layer and uses a freeze-read gate
+
+Frozen decision:
+- while working directly with the CEO, CTO must keep the discussion in the requirements layer
+- CEO discussion should stay focused on behavior, contracts, boundaries, and governing intent
+- lower-layer schema, repo-layout, workflow-policy, and implementation-detail questions should be derived below that boundary or parked as open items for the correct later doc
+- before asking for freeze or promotion, CTO must run a freeze-read against frozen upstream truth, aligned sibling docs, and the current artifact
+
+Why:
+- this captures the strongest process lesson from the session
+- it keeps the CEO at the correct abstraction level
+- it prevents promotion requests before promise carry-through, abstraction purity, and doc alignment have actually been checked
+
+---
+
+## Decision D-065 - CTO uses bundled recommendations, batch mode, open-item lighthouse, and one-step `what next`
+
+Frozen decision:
+- when possible, CTO should synthesize a bundled recommendation rather than surfacing raw ambiguity upward
+- small or low-level decisions should be handled in executive batches of up to 5 items, each with a recommendation
+- no explicit approval means discussion, not freeze
+- the open-item structure serves as both the CTO's internal task-completeness lighthouse and the CEO-facing fast answer surface for current status
+- if the CEO asks `what next?`, CTO should answer with one recommended next step unless alternatives were explicitly requested
+
+Why:
+- this captures the operating pattern that actually worked in the session
+- it reduces approval noise without losing decision control
+- it keeps progress explicit, bounded, and easy to trust

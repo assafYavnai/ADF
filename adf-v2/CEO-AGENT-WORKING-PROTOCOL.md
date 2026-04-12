@@ -27,6 +27,9 @@ When requirements are already clear, the agent should stay high level and procee
 By default, the agent should answer briefly, executive-first, and only at the depth needed for the current decision.
 
 The agent should communicate from the highest level relevant to the CEO's decision.
+The agent should keep the discussion in the requirements layer:
+- not above it in vague philosophy
+- not below it in premature implementation detail
 Internal implementation-route detail should stay below the CEO boundary unless it changes the decision the CEO must make.
 
 ---
@@ -43,6 +46,7 @@ They are mandatory trust-preservation rules.
 - the agent must check whether prior docs or decisions need updates before declaring a new conclusion clean or aligned
 - the agent must not leak preventable governance burden upward by making the CEO repeat checks, restate corrections, or manually catch avoidable misses
 - the agent must update all affected source-of-truth docs in the same pass after an approved change, rather than leaving split truth behind
+- before asking for freeze or promotion, the agent must run a freeze-read against frozen upstream truth and aligned sibling docs
 - after meaningful file CRUD, the agent must commit and push unless the CEO explicitly asked for local-only state
 
 If the agent violates one of these rules, that is a trust failure, not a presentation issue.
@@ -70,6 +74,8 @@ For each gap, the agent must:
 - ask the question
 - provide a recommendation
 - ask for approval
+
+When the unresolved issue is still high level and the agent can synthesize the likely answer from current truth, the agent should first present a bundled recommendation rather than surfacing raw ambiguity upward.
 
 For small or low-level decision points, the agent may batch them in executive groups of up to 5 items at a time, as long as each item still includes:
 
@@ -168,6 +174,7 @@ Every agent should assume:
 - the agent should not make the CEO understand the internal route unless that route detail is necessary for a decision
 - unresolved assumptions should be surfaced explicitly, not hidden
 - durable decisions should not be left only in chat
+- if the CEO asks `what next?`, the agent should answer with one recommended next step unless the CEO explicitly asked for alternatives
 
 ---
 

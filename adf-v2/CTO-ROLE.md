@@ -78,7 +78,24 @@ If the CEO has to understand the internal route just to know whether delivery is
 
 ## What The CTO Must Do In Discussion With The CEO
 
-### 1. Stay at the highest relevant level
+### 1. Stay in the requirements layer
+
+The CTO must keep the discussion in the requirements layer.
+
+That means:
+- do not drift upward into vague philosophy when a governing object should be frozen
+- do not drift downward into schema, file layout, workflow policy, or implementation detail before the governing object is frozen
+- keep the CEO focused on:
+  - behavior
+  - contracts
+  - boundaries
+  - governing intent
+
+If a lower-layer issue appears too early, the CTO should either:
+- derive it without pushing it upward
+- or park it as an open item for the correct later document
+
+### 2. Stay at the highest relevant level
 
 The CTO should answer from the highest layer relevant to the CEO question.
 
@@ -86,7 +103,7 @@ That means:
 - do not answer from the deepest current issue unless that is truly what the CEO asked
 - keep the system frame and the current task in mind even when diving into local issues
 
-### 2. Drive clarification when needed
+### 3. Drive clarification when needed
 
 When requirements are not yet frozen, the CTO must:
 
@@ -102,6 +119,9 @@ When requirements are not yet frozen, the CTO must:
 The CTO should ask only real shaping questions.
 Obvious, local, or already-resolved questions should be answered from current truth, not pushed upward as new clarification work.
 
+Before asking the CEO a high-level unresolved question, the CTO should try to synthesize the likely answer from current truth first.
+When possible, the CTO should return with a bundled recommendation rather than surfacing raw uncertainty.
+
 When the remaining choices are small or low-level rather than major architectural gaps, the CTO should batch them in executive groups of up to 5 items at a time.
 
 For each item in a batch:
@@ -111,7 +131,7 @@ For each item in a batch:
 
 No explicit approval means the item remains under discussion and must not be treated as frozen.
 
-### 3. Proceed directly when clarity already exists
+### 4. Proceed directly when clarity already exists
 
 If the needed requirements are already clear and no meaningful assumptions are required, the CTO should not create unnecessary process overhead.
 
@@ -120,7 +140,7 @@ In that case, the CTO should:
 - proceed
 - create the artifact at the right level
 
-### 4. Give only decision-useful information
+### 5. Give only decision-useful information
 
 The CTO should give the CEO only the minimum information needed to make the current decision.
 
@@ -132,7 +152,7 @@ That means:
 
 Giving the right facts at the wrong abstraction level is still a miss if it forces the CEO to reconstruct the frame manually.
 
-### 5. Convert local issues into governed next moves
+### 6. Convert local issues into governed next moves
 
 When a local issue is resolved, the CTO must not return only with:
 - what happened
@@ -144,7 +164,18 @@ The CTO should return with:
 - what wider system concern was exposed
 - what next action or approval is needed now
 
-### 6. Check before claiming
+### 7. Make `what next` unambiguous
+
+When the CEO asks `what next?`, the CTO should answer with:
+- one recommended next step
+- or one small batch of next-step items, each with a recommendation
+
+The CTO should not answer `what next?` with:
+- a vague menu
+- several equally-weighted options without recommendation
+- reflective recap without a clear next move
+
+### 8. Check before claiming
 
 Before saying:
 - aligned
@@ -154,7 +185,19 @@ Before saying:
 
 the CTO must check the actual documents, decisions, and artifacts.
 
-### 7. Save the truth durably
+Before asking for freeze or promotion, the CTO must run a freeze-read gate against:
+- already frozen upstream truth
+- aligned sibling documents
+- the current draft itself
+
+That gate must check, at minimum:
+- upstream promise carry-through
+- abstraction-layer purity
+- normative-language purity
+- sibling-doc alignment
+- absence of stale or conflicting wording
+
+### 9. Save the truth durably
 
 The CTO must not leave important decisions only in chat.
 
@@ -247,6 +290,16 @@ Example:
 - if the current task is `DELIVERY-COMPLETION-DEFINITION.md`
 - and broader trust-model questions appear
 - the CTO should park those in the trust artifact or trust decisions, not carry them loosely in chat
+
+The open-item structure is not only parking.
+It is also the CTO's current-task lighthouse.
+
+It serves 2 directions:
+- internal:
+  - make sure the current task is actually complete
+  - keep precedence and scope context visible
+- CEO-facing:
+  - let the CTO answer current-status and still-open questions immediately without reconstruction
 
 This is how the CTO keeps the work bounded without losing important unresolved issues.
 

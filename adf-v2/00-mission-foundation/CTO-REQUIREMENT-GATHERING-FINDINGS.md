@@ -92,7 +92,21 @@ Keep them separate:
 - **spec** — what must be defined in detail
 - **plan** — in what order it will be built
 
-### 5. Freeze the document purpose before the content
+### 5. Stay in the requirements layer
+
+The CTO should keep the CEO discussion in the requirements layer.
+
+That means:
+- do not drift upward into abstract philosophy when a governing object should be frozen
+- do not drift downward into schema, repo layout, workflow policy, or implementation detail before the governing object is frozen
+
+The target layer here is:
+- behavior
+- contracts
+- boundaries
+- governing intent
+
+### 6. Freeze the document purpose before the content
 
 One more separation matters before moving on:
 - **high-level governing objects** are what the CEO should decide
@@ -109,7 +123,7 @@ Before defining the requirement itself, decide:
 This prevents one document from becoming a mission, architecture spec, plan, and backlog all at once.
 It also prevents CTO from asking the CEO to solve decomposition questions that should be resolved later by the derived lower-level docs.
 
-### 6. Work one decision at a time
+### 7. Work one decision at a time
 
 For each topic:
 - ask one focused question
@@ -124,7 +138,16 @@ This is one of the strongest anti-drift mechanisms.
 The decision should stay at the highest level that still governs the lower layers cleanly.
 Once that level is clear enough, CTO should derive the downstream artifacts instead of escalating lower-layer design questions unnecessarily.
 
-### 7. Look for the reusable core
+### 8. Use executive batch mode for smaller decisions
+
+When the remaining decisions are small or low-level rather than major architectural gaps:
+- batch them in groups of up to 5 items
+- give a recommendation for each item
+- wait for explicit approval or discussion
+
+No explicit approval means discussion, not freeze.
+
+### 9. Look for the reusable core
 
 Do not stop at visible functionality.
 
@@ -135,7 +158,7 @@ Ask:
 
 This often reveals that the real value is the model, structure, contracts, or workflows rather than the current code.
 
-### 8. Prefer principles over closed lists
+### 10. Prefer principles over closed lists
 
 When possible, define:
 - universal operating principles
@@ -150,18 +173,41 @@ Principles and shared models age better.
 This matters because high-level principles, guarantees, and contract capabilities are exactly the objects the CEO should be deciding.
 Lower-level field sets, doc expansions, and implementation-facing artifacts should usually be derived afterward by CTO.
 
-### 9. Record frozen decisions durably
+### 11. Record frozen decisions durably
 
 Do not rely on chat memory or session continuity.
 
 Requirement gathering is only reusable if decisions are written down and can be resumed by a new agent later.
 
-### 10. End with explicit open gaps
+### 12. Use open items as the task lighthouse
+
+Open items are not only parking.
+
+They are the CTO's lighthouse for:
+- what is still open in the current task
+- what belongs later and must not be lost
+- what answer should be given immediately when the CEO asks for status
+
+### 13. End with explicit open gaps
 
 When something remains unresolved, name it clearly.
 
 Do not pretend a requirement set is complete when important definitions are still missing.
 This keeps the next step clean and reduces fake closure.
+
+### 14. Run a freeze-read before promotion
+
+Before asking for freeze or promotion, the CTO should run a freeze-read against:
+- already frozen upstream truth
+- aligned sibling docs
+- the current artifact itself
+
+That pass should check:
+- promise carry-through
+- abstraction-level purity
+- normative-language purity
+- sibling-doc alignment
+- stale wording
 
 ---
 
@@ -189,4 +235,4 @@ If the requirement-gathering process is strong:
 
 ## One-Sentence Baseline
 
-A good CTO requirement-gathering process starts from a driver, helps the CEO freeze the right high-level governing objects, keeps lower-layer derivation below that boundary, and records one decision at a time into durable artifacts.
+A good CTO requirement-gathering process starts from a driver, keeps the CEO in the requirements layer, helps the CEO freeze the right high-level governing objects, keeps lower-layer derivation below that boundary, uses batch mode when needed, preserves open items as the task lighthouse, and records one decision at a time into durable artifacts.
