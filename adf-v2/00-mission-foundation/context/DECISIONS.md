@@ -212,3 +212,30 @@ Frozen decision:
 Why:
 - a clean-looking return is not trustworthy if the CEO still has to inspect whether the requested thing was quietly changed in meaning
 - silent reinterpretation is a form of leaked burden because it pushes validation of scope truth back upward
+
+---
+
+## Decision D-039 - Completion requires return into the production tree
+
+Frozen decision:
+- delivery is not complete while the result remains only in a side worktree, temporary branch state, or other pre-production-tree holding state
+- completion requires that the requested artifact has actually returned into the production tree
+
+Why:
+- otherwise the result remains pre-terminal
+- pre-production-tree state still leaves doubt about whether delivery has truly finished
+
+---
+
+## Decision D-040 - Terminal states are complete and blocked
+
+Frozen decision:
+- the only top-level terminal states are `complete` and `blocked`
+- `pushback` is not its own top-level state; it is a `blocked` reason
+- `blocked` carries a reason or substate such as `pushback`, `waiting for user verification`, `missing input`, `failed`, `cancelled`, or `superseded`
+- not all components are required to support all blocked reasons; valid blocked reasons depend on the component and boundary
+
+Why:
+- this keeps the top-level terminal model thin for a fire-and-forget system
+- it preserves truthful status while letting each component expose only the blocked reasons that actually make sense for its boundary
+- it avoids inflating the top-level terminal-state set with what are really blocked variants

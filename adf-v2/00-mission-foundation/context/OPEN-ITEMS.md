@@ -82,25 +82,34 @@ Target document:
 ### O-004 - Naming and framing of truthful non-complete terminal outcomes
 
 State:
-- `open`
+- `frozen-upstream-needs-incorporation`
 
 Why it is open:
-- the document still needs final language for legitimate non-complete terminal results without weakening the meaning of completion
+- the state model direction is now frozen, but the delivery-completion draft does not yet fully reflect it
 
 Target document:
 - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+
+Notes:
+- top-level terminal states are now:
+  - `complete`
+  - `blocked`
+- `pushback` is a blocked reason, not a top-level state
+- blocked reasons are component-specific and are not required to be identical across all components
 
 ### O-005 - How explicit to be about true terminal return into the production tree
 
 State:
-- `open`
+- `frozen-upstream-needs-incorporation`
 
 Why it is open:
-- the document still needs a final choice on how directly to name production-tree or merge-end reality as part of true completion
-- the chat direction strongly suggests that true completion is not reached until the artifact has returned into the production tree rather than remaining only in an implementation worktree or pre-merge state
+- the production-tree rule is now frozen, but the delivery-completion draft does not yet fully reflect it
 
 Target document:
 - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+
+Notes:
+- completion requires actual return into the production tree
 
 ### O-006 - Whether to state certification basis explicitly
 
