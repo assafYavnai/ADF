@@ -97,6 +97,7 @@ State:
 
 Why it is open:
 - the document still needs a final choice on how directly to name production-tree or merge-end reality as part of true completion
+- the chat direction strongly suggests that true completion is not reached until the artifact has returned into the production tree rather than remaining only in an implementation worktree or pre-merge state
 
 Target document:
 - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
@@ -119,6 +120,41 @@ State:
 
 Why it is open:
 - it is still unresolved whether the delivery boundary should explicitly say completion must not depend on invisible person-specific cleanup, memory, or rescue work
+
+Target document:
+- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+
+### O-008 - Whether fire-and-forget should explicitly include queryability, resumability, and error-only upward surfacing
+
+State:
+- `open`
+
+Why it is open:
+- the chat clarified fire-and-forget from the CEO experience, not only from internal route mechanics
+- it is still unresolved how explicitly the completion document should say that the route must remain queryable and safely resumable at any point, while only errors, blockers, pushback, or terminal outcomes should surface upward
+
+Target document:
+- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+
+### O-009 - Whether required human testing should be named explicitly as part of trustworthy approval readiness
+
+State:
+- `open`
+
+Why it is open:
+- the mission material already implies required human testing before approval, but the delivery-completion wording has not yet decided how explicitly to name it as a trust-preservation condition of approval readiness
+
+Target document:
+- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+
+### O-010 - Whether the completion document should state that the CEO need not understand the internal route
+
+State:
+- `open`
+
+Why it is open:
+- the chat clarified that the CEO should care about the returned result and whether it is safe to rely on, not about the internal implementation mechanics
+- it is still unresolved whether that should be stated directly inside the delivery-completion framing or left implicit in the role/protocol docs
 
 Target document:
 - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
