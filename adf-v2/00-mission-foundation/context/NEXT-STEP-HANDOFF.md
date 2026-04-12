@@ -30,6 +30,7 @@ Current branch state:
 - decision `D-053` records that all boxes inherit one governed shared layout with standard areas for contracts, runtime state, audit history, tests, and internal artifacts
 - decision `D-054` records the standard field families the universal outer box envelope must provide
 - decision `D-055` records that `blocked` is universal while `resolve package` is universal-optional
+- decisions `D-056` through `D-059` fix the freeze-read blockers: scope fidelity is now operational and structural, the box model is logical rather than repo-policy driven, the obligations and box docs are aligned siblings, and low-level git policy is removed from universal-obligation wording
 
 Current main task:
 - shape and freeze `BOXED-COMPONENT-MODEL.md`
@@ -53,7 +54,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- whether the standard field families frozen so far are enough to promote `BOXED-COMPONENT-MODEL.md`, or whether one more high-level box-structure decision is still missing
+- whether `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are now ready for promotion review after the freeze-read blocker fixes
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon

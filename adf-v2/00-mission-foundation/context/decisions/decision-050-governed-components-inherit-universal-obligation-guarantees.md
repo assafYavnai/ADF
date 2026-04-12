@@ -18,3 +18,7 @@ Why:
 - this locks the practical universal guarantee layer the system must satisfy before lower-level schema and workflow details are defined
 - it keeps later component, role, and workflow work from drifting away from the approved fire-and-forget building-block model
 - it gives implementation one explicit requirement baseline without forcing the CEO to design lower-level schemas
+
+Later alignment:
+- for mission-foundation wording, the cleanliness and traceability part of this decision should now be read at a high level
+- later decisions `D-056` through `D-059` clarify that scope fidelity is explicit, the box model stays logical, `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are aligned sibling docs, and low-level git workflow policy does not belong in the universal-obligation wording

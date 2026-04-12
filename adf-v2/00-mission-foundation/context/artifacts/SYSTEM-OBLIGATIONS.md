@@ -41,13 +41,14 @@ Those remain split across:
 - `MISSION-STATEMENT.md`
 - `DELIVERY-COMPLETION-DEFINITION.md`
 - `context/artifacts/TRUST-MODEL.md`
-- later `BOXED-COMPONENT-MODEL.md`
+- aligned sibling `BOXED-COMPONENT-MODEL.md`
 - later `ROLE-MODEL.md`
 - later `WORKFLOW-MODEL.md`
 
 This means:
 - this document defines what must be guaranteed
-- later box and workflow docs define how those guarantees are structurally carried by components and routes
+- the aligned box-model document defines the common logical carrier shape for those guarantees
+- later role and workflow docs define how those guarantees behave in assemblies and routes
 
 ---
 
@@ -62,6 +63,7 @@ It operationalizes already frozen or already promoted truth from:
 
 In particular, this draft must preserve:
 - contract-based JSON interaction
+- fidelity to the approved implementation request package
 - truthful status and truthful terminal outcomes
 - queryability and resumability
 - cleanliness and environment isolation
@@ -91,10 +93,10 @@ The current approved requirement baseline for governed components and governed r
 1. every component must accept and return authoritative JSON contracts
 2. terminal truth is `complete` or `blocked`; the system must not fake success
 3. execution happens only in project-governed isolated working areas, never in hidden agent-private areas
-4. repo and worktree state stay clean; meaningful CRUD batches trigger commit and push
-5. commit messages must be descriptive enough that a reader of history can understand the high-level change without scanning code first
+4. the system must preserve fidelity to the approved implementation request package; scope change must surface as governed truth rather than silent reinterpretation
+5. governed execution must preserve cleanliness and truthful traceability
 6. KPI truth must measure usage, effort and time, and cost, so bottlenecks can be improved from evidence over time
-7. everything is boxed, self-contained, standalone-testable, and connected only through contracts plus approved shared system tools
+7. core governed execution units are boxed, self-contained, standalone-testable, and connected only through contracts plus approved shared system tools or substrate
 8. components are workflow-agnostic building blocks that can be reused, reordered, repeated, and run in parallel
 9. everything must be concurrency-safe and parallel-safe
 10. components must be retry-safe and re-invocation-safe
@@ -116,6 +118,7 @@ At high level, that means:
 - free-form prose may accompany a package, but it must not replace the authoritative payload
 
 The system must not rely on hidden interpretation at handoff boundaries.
+The system must also not silently reinterpret the approved implementation request package as it moves through governed execution.
 
 This includes:
 - normal success packages
@@ -128,7 +131,21 @@ Changes to a contract must not silently break neighboring components or force hi
 
 ---
 
-## 2. Status Truth Obligations
+## 2. Scope-Fidelity Obligations
+
+The system must preserve fidelity to the approved implementation request package.
+
+At high level, that means:
+- governed execution must preserve the approved package meaning rather than silently changing it
+- scope change must not be hidden inside nominal forward progress
+- if scope, semantics, or requested outcome need to change, that change must surface as governed truth
+- the truthful path for scope change is explicit pushback, blocked output, or explicit re-approval, not silent reinterpretation
+
+This is the operational counterpart of the delivery-boundary rule that the returned result must remain faithful to the approved package.
+
+---
+
+## 3. Status Truth Obligations
 
 The system must preserve truthful status.
 
@@ -142,7 +159,7 @@ For `complete`, the system must not permit upward certification unless the actua
 
 ---
 
-## 3. Audit And Durable Truth Obligations
+## 4. Audit And Durable Truth Obligations
 
 The system must preserve durable operational truth.
 
@@ -161,7 +178,7 @@ Every run must leave durable audit truth for both success and failure.
 
 ---
 
-## 4. KPI Visibility Obligations
+## 5. KPI Visibility Obligations
 
 The system must preserve KPI visibility for governed execution.
 
@@ -181,11 +198,11 @@ Effort and time visibility should cover both:
 - script-governed work
 
 This draft does not yet define the shared KPI schema.
-That later structural shape should be defined in `BOXED-COMPONENT-MODEL.md`.
+That aligned structural shape should be defined in `BOXED-COMPONENT-MODEL.md`.
 
 ---
 
-## 5. Queryability, Checkpoint, And Recovery Obligations
+## 6. Queryability, Checkpoint, And Recovery Obligations
 
 The system must preserve queryability and safe continuity during execution.
 
@@ -202,7 +219,7 @@ Repeated invocation must not silently corrupt state or create inconsistent dupli
 
 ---
 
-## 6. Blocked And Resolve-Package Obligations
+## 7. Blocked And Resolve-Package Obligations
 
 The system must preserve truthful non-complete outcomes.
 
@@ -216,7 +233,7 @@ This obligation preserves fire-and-forget by turning failure or waiting into gov
 
 ---
 
-## 7. Clean Execution Obligations
+## 8. Clean Execution Obligations
 
 The system must preserve execution cleanliness and environment isolation.
 
@@ -227,18 +244,18 @@ At high level, that means:
 - local `main` must stay clean
 - implementation should happen in isolated execution contexts where required by the model
 - completion is not truthful while the result is still stranded outside the production tree
-- meaningful CRUD batches trigger commit and push
-- commit messages must be descriptive enough that a reader of history can understand the high-level change without scanning code first
+- governed execution must leave truthful, inspectable traceability rather than hidden activity
 
 This obligation covers:
 - workspace cleanliness
 - git cleanliness
+- governed traceability
 - production-tree integrity
 - safe parallel operation
 
 ---
 
-## 8. Verification And Certification Obligations
+## 9. Verification And Certification Obligations
 
 The system must preserve truthful upward certification.
 
@@ -253,7 +270,7 @@ The system must not allow certification to depend on belief, manual reconstructi
 
 ---
 
-## 9. Trust-Handling Obligations
+## 10. Trust-Handling Obligations
 
 The system must preserve the operational behavior required by trust-sensitive delivery, even before the full trust model is frozen.
 
@@ -268,27 +285,30 @@ The broader trust scoring, thresholds, and governance mechanics still belong in 
 
 ---
 
-## 10. Boxed Component Obligations
+## 11. Boxed Component Obligations
 
-Everything should be boxed.
+Core governed execution units should be boxed.
 
 At high level, that means:
 - each component is self-contained
 - each component is standalone-testable
-- each component should work within its own governed folder or module structure rather than through hidden cross-cutting sprawl
+- each component should work within its own governed logical boundary rather than through hidden cross-cutting sprawl
 - components connect through authoritative contracts plus approved shared system tools
 - components must not rely on hidden neighbor-specific behavior outside those contracts and approved shared tools
 
-Approved shared system tools may include governed assets such as:
+Approved shared system tools or substrate may exist as a separate governed class.
+They are not forced to be boxes merely because boxes depend on them.
+
+That separate governed class may include assets such as:
 - Brain
 - git
 - other later system-level governed tools explicitly approved by the framework
 
-The later `BOXED-COMPONENT-MODEL.md` should define the exact structural shape that carries these obligations.
+The aligned `BOXED-COMPONENT-MODEL.md` should define the logical structural shape that carries these obligations.
 
 ---
 
-## 11. Workflow-Agnostic Composition Obligations
+## 12. Workflow-Agnostic Composition Obligations
 
 Components should be workflow-agnostic building blocks.
 
@@ -303,7 +323,7 @@ It means composition should be governed by contracts and workflow assembly, not 
 
 ---
 
-## 12. Concurrency Safety Obligations
+## 13. Concurrency Safety Obligations
 
 The system must be concurrency-safe and parallel-safe.
 
@@ -317,7 +337,7 @@ This is the operational reading of the requirement that everything be safe to us
 
 ---
 
-## 13. Lower-Layer Derivation Obligations
+## 14. Lower-Layer Derivation Obligations
 
 The system definition must support lower-layer derivation without pushing decomposition back onto the CEO.
 
@@ -332,10 +352,10 @@ This is how the foundation prevents implementation drift while keeping the CEO a
 
 ## Relationship To Later Documents
 
-This draft should later connect to:
+This draft should align directly with:
 
 - `BOXED-COMPONENT-MODEL.md`
-  because the shared box structure should expose how obligations appear in inputs, outputs, reporting, KPI surfaces, and checkpoint/report shapes
+  because the shared box structure should expose how obligations appear in logical input, output, reporting, KPI, scope-fidelity, and checkpoint surfaces
 
 - `ROLE-MODEL.md`
   because role boundaries determine who is accountable for satisfying, checking, or acting on obligations
@@ -350,4 +370,4 @@ This draft should later connect to:
 
 ## Current Draft Summary
 
-ADF v2 should treat system obligations as universal mandatory guarantees over governed components and governed routes: truthful contracts, truthful status, durable audit truth, KPI visibility, queryability and recovery, truthful blocked outputs, clean execution, and governed verification strong enough to support truthful upward completion.
+ADF v2 should treat system obligations as universal mandatory guarantees over governed components and governed routes: truthful contracts, scope fidelity to the approved package, truthful status, durable audit truth, KPI visibility, queryability and recovery, truthful blocked outputs, clean execution, and governed verification strong enough to support truthful upward completion.

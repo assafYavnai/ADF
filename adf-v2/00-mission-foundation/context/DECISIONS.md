@@ -478,3 +478,59 @@ Why:
 - this preserves one truthful blocked-reporting shape across the whole system
 - it avoids forcing fake or meaningless resolve content on boxes that cannot continue from the current state
 - it keeps continuation support explicit and governed without weakening the shared contract structure
+
+---
+
+## Decision D-056 - Scope fidelity is a universal system obligation and box surface
+
+Frozen decision:
+- the system must preserve fidelity to the approved implementation request package
+- if scope, semantics, or requested outcome need to change, that change must surface as governed truth through blocked, pushback, or explicit re-approval rather than silent reinterpretation
+- the box model must reserve a structural place for approved-package fidelity and scope-preservation truth
+
+Why:
+- scope fidelity is already part of delivery-boundary trust and must therefore be carried operationally and structurally below that boundary
+- this prevents silent semantic drift after handoff
+- it keeps fidelity truth machine-carrying rather than leaving it to manual interpretation
+
+---
+
+## Decision D-057 - Box model stays logical and box exceptions remain governed
+
+Frozen decision:
+- `BOXED-COMPONENT-MODEL.md` defines the logical governed component structure, not physical repository layout, source-control evolution policy, or implementation workflow policy
+- core governed execution units are boxes
+- approved shared system tools or substrate may exist as a separate governed class and are not forced into the box type merely because boxes depend on them
+
+Why:
+- this keeps the box model at the correct abstraction level
+- it prevents repository or workflow policy from leaking into the runtime component definition
+- it preserves the boxed execution model without overconstraining framework-level governed assets
+
+---
+
+## Decision D-058 - System obligations and box model are aligned sibling foundation docs
+
+Frozen decision:
+- `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` should be treated as aligned sibling foundation documents
+- `SYSTEM-OBLIGATIONS.md` defines the universal guarantee layer
+- `BOXED-COMPONENT-MODEL.md` defines the logical common carrier shape for those guarantees
+- neither document should be written as though the other were already a lower-layer implementation detail
+
+Why:
+- this removes the unstable dependency wording between the two drafts
+- it makes freeze order less ambiguous
+- it keeps the guarantee layer and carrier-shape layer distinct without splitting them into conflicting abstractions
+
+---
+
+## Decision D-059 - Universal obligation wording stays high-level at mission-foundation level
+
+Frozen decision:
+- at mission-foundation level, universal obligation wording must stay at the level of cleanliness, isolation, and truthful traceability
+- specific git workflow rules such as commit-push cadence or commit-message policy belong in lower-layer governance or implementation-facing documents rather than the universal obligation wording
+
+Why:
+- this keeps `SYSTEM-OBLIGATIONS.md` at the right abstraction level
+- it avoids mixing workflow policy into the foundation guarantee layer
+- it resolves the freeze-read pushback on low-level policy leakage

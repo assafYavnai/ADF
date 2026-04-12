@@ -146,6 +146,11 @@ It should do exactly this:
    - `ROLE-MODEL.md`
    - `WORKFLOW-MODEL.md`
 
+Current alignment note:
+- `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` should now be treated as aligned sibling foundation docs, not as a parent-child pair
+- `SYSTEM-OBLIGATIONS.md` owns the universal guarantee layer
+- `BOXED-COMPONENT-MODEL.md` owns the logical common carrier shape for those guarantees
+
 ---
 
 ## Strong Recommendations For The Next Agent
