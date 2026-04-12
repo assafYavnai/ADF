@@ -1,6 +1,6 @@
 # ADF v2 - Delivery Completion Definition
 
-Status: first-draft working artifact  
+Status: frozen layer output  
 Scope: `adf-v2/00-mission-foundation/`  
 Purpose: define, at high level, what it means for delivery to be truly complete and production-ready in ADF v2 Phase 1
 
@@ -8,12 +8,11 @@ Purpose: define, at high level, what it means for delivery to be truly complete 
 
 ## What This Document Is
 
-This document is a first draft.
+This document is the frozen mission-foundation definition of delivery completion for ADF v2 Phase 1.
 
-It is not yet the frozen foundation version.
-It turns the already frozen delivery-completion decisions into one coherent working draft.
+It turns the already frozen delivery-completion decisions into one canonical layer output.
 
-Its job is to give the next agent a real artifact to refine and freeze, instead of forcing them to reconstruct the document from decision files only.
+Its job is to give later layers one stable source of truth for what `complete` means at the delivery boundary, without forcing reconstruction from individual decision files.
 
 ---
 

@@ -17,14 +17,14 @@ Last agent reference:
 Current branch state:
 - the trust-model draft is committed
 - trust decisions `D-027` through `D-036` are committed
-- the first draft of `DELIVERY-COMPLETION-DEFINITION.md` now exists
+- `DELIVERY-COMPLETION-DEFINITION.md` is now approved for freeze and promoted to the layer root
 - delivery-boundary trust decisions `D-037` and `D-038` now exist
 - `context/OPEN-ITEMS.md` now exists as the canonical parking and checklist file for mission-foundation open items
 - later delivery-boundary decisions `D-039` through `D-046` are committed
-- the current pass is aligning the delivery-completion draft, the open-item register, and the handoff files with the latest frozen decisions and review findings
+- decision `D-047` records the freeze approval and promotion of `DELIVERY-COMPLETION-DEFINITION.md`
 
 Current main task:
-- close the remaining review-alignment issues on `DELIVERY-COMPLETION-DEFINITION.md` and prepare it for promotion
+- continue mission foundation from the next unresolved canonical outputs after delivery completion freeze
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -36,7 +36,6 @@ Current decision boundary:
   - the mission-foundation decisions under `context/decisions/`
   - the rule that `DELIVERY-COMPLETION-DEFINITION.md` should consume only boundary trust
 - drafted only:
-  - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
   - `context/artifacts/TRUST-MODEL.md`
   - `context/OPEN-ITEMS.md`
 - still open:
@@ -44,11 +43,10 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- whether `DELIVERY-COMPLETION-DEFINITION.md` should now be promoted after the current review-alignment pass is verified
+- which next canonical mission-foundation document should be frozen after delivery completion
 
 Do-not-repeat rules for the next agent:
-- do not treat `TRUST-MODEL.md` as frozen canon
-- do not treat the delivery-completion draft as frozen canon
+- do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
 - do not widen `DELIVERY-COMPLETION-DEFINITION.md` into the full trust model
 - do not reopen already frozen trust decisions unless the CEO explicitly reopens them
 - do not lose the open trust questions parked in `TRUST-MODEL.md`
@@ -105,14 +103,14 @@ Read in this order:
 9. `adf-v2/CTO-ROLE.md`
 10. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
 11. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
-12. `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+12. `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 13. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
 
 Reading intent:
 - items `1` through `9` define the current governing frame
 - `TRUST-MODEL.md` is the broader trust draft and must not be treated as frozen canon
 - `OPEN-ITEMS.md` is the canonical parking and checklist register for unresolved items
-- `DELIVERY-COMPLETION-DEFINITION.md` is the current main draft artifact
+- `DELIVERY-COMPLETION-DEFINITION.md` is the frozen canonical delivery-completion definition for this layer
 
 ---
 
@@ -124,6 +122,7 @@ Reading intent:
 - `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 - `adf-v2/CTO-ROLE.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+- `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 - `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 - `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
@@ -138,7 +137,6 @@ Reading intent:
 ### Draft artifacts
 
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/context/artifacts/README.md`
 
 ### Decision files
@@ -168,15 +166,7 @@ It should continue from the current drafts and frozen decisions.
 
 ### Immediate next step
 
-Refine and freeze `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`.
-
-That freeze pass should:
-- keep the document high level but concrete
-- define complete as a trustworthy returned result
-- define production-ready as artifact quality
-- define only the narrow delivery-boundary trust needed for completion
-- avoid importing the full trust-model mechanics
-- use `OPEN-ITEMS.md` as the checklist so parked issues are not lost while the document stays narrow
+Use the now-frozen `DELIVERY-COMPLETION-DEFINITION.md` as canonical mission-foundation truth and continue to the next layer outputs that still remain draft.
 
 ### After that
 
@@ -210,4 +200,4 @@ Do keep doing these:
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, trust is now split into a broader trust draft and frozen trust decisions, the first draft of `DELIVERY-COMPLETION-DEFINITION.md` exists, and the next agent should refine that draft to a frozen delivery-boundary definition without widening back into the full trust model.
+ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md` is now frozen layer canon, trust is still split between frozen boundary decisions and the broader draft trust model, and the next agent should continue the remaining foundation outputs without reopening the frozen delivery definition.

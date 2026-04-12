@@ -42,7 +42,7 @@ Rationale:
 - resolved in `DELIVERY-COMPLETION-DEFINITION.md` by making the no-leak rule explicit above governed execution while keeping the trust wording narrow
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 Notes:
 - the final wording must stay narrow and not widen into the full trust model
@@ -59,7 +59,7 @@ Why it is open:
 - several trust conditions are already frozen in decisions but are not yet fully and clearly reflected in `DELIVERY-COMPLETION-DEFINITION.md`
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 Notes:
 - this includes, at minimum:
@@ -79,7 +79,7 @@ Why it is open:
 - the draft still needs a final approved wording for the exact definition of `complete`
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-004 - Naming and framing of truthful non-complete terminal outcomes
 
@@ -90,7 +90,7 @@ Why it is open:
 - the state model direction is now frozen, but the delivery-completion draft does not yet fully reflect it
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 Notes:
 - top-level terminal states are now:
@@ -109,7 +109,7 @@ Why it is open:
 - the production-tree rule is now frozen, but the delivery-completion draft does not yet fully reflect it
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 Notes:
 - completion requires actual return into the production tree
@@ -123,7 +123,7 @@ Why it is open:
 - it is still unresolved whether the document should say explicitly that CTO certification must rest on governed system truth rather than informal belief or manual reconstruction
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-007 - Whether to name `no hidden heroics` explicitly
 
@@ -134,7 +134,7 @@ Why it is open:
 - it is still unresolved whether the delivery boundary should explicitly say completion must not depend on invisible person-specific cleanup, memory, or rescue work
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-008 - Whether fire-and-forget should explicitly include queryability, resumability, and error-only upward surfacing
 
@@ -146,7 +146,7 @@ Why it is open:
 - it is still unresolved how explicitly the completion document should say that the route must remain queryable and safely resumable at any point, while only errors, blockers, pushback, or terminal outcomes should surface upward
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-009 - Whether required human testing should be named explicitly as part of trustworthy approval readiness
 
@@ -157,7 +157,7 @@ Why it is open:
 - this item tracked whether the delivery-completion wording should name required human testing explicitly before upward `complete` certification
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-010 - Whether the completion document should state that the CEO need not understand the internal route
 
@@ -169,7 +169,7 @@ Why it is open:
 - it is still unresolved whether that should be stated directly inside the delivery-completion framing or left implicit in the role/protocol docs
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ---
 

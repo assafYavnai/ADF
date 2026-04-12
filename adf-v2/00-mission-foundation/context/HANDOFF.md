@@ -96,7 +96,6 @@ The current authoritative foundation package already includes:
 
 The main remaining draft artifacts in this layer are:
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 This means the next session should continue from the existing mission-foundation package, not restart mission drafting from scratch.
@@ -136,7 +135,7 @@ The next session should not restart the foundation.
 It should do exactly this:
 
 1. Review the current mission-foundation package and current drafts.
-2. Finish freezing and promoting `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`.
+2. Use `DELIVERY-COMPLETION-DEFINITION.md` in the layer root as the frozen delivery-completion source of truth.
 3. Keep broader trust-model questions in `context/artifacts/TRUST-MODEL.md`.
 4. Keep out-of-scope but important items in `context/OPEN-ITEMS.md`.
 5. Continue the foundation sequence into:
@@ -205,9 +204,9 @@ The exact later filenames can still evolve, but the current growth pattern is:
 
 - `adf-v2/00-mission-foundation/context/HANDOFF.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+- `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/01-architecture/ARCHITECTURE.md`
 - `adf-v2/01-architecture/CONTROL-PLANE.md`
 - `adf-v2/02-migration/MIGRATION.md`
@@ -225,4 +224,4 @@ The naming goal is:
 ADF v2 mission foundation is already underway.
 
 Do not restart mission drafting from scratch.
-Continue from the current package, finish freezing the remaining foundation draft artifacts, and only then widen into later obligation, component, role, and workflow documents.
+Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md` as frozen layer canon, and only then widen into later obligation, component, role, and workflow documents.
