@@ -310,6 +310,28 @@ The question must stay at the correct level:
 - CEO approves governing objects
 - CTO derives lower-level artifacts after that
 
+### RQ-09a - Approval gate
+
+The default packet-mode behavior must be requirements discussion, not drafting.
+
+No explicit approval means discussion, not freeze.
+
+Until explicit approval exists, `$CTO` must not:
+
+- create a new artifact
+- materially rewrite an existing artifact
+- update handoff, current-state, or open-item truth as accepted progress
+
+### RQ-09b - Review gate after drafting
+
+If drafting is allowed after explicit approval, `$CTO` must present the result as a draft and then ask for review or freeze-read before treating the work as accepted progress.
+
+### RQ-09c - Current task meaning beats packaging
+
+The packet and the answer must keep the real current task primary.
+
+Filename, document naming, packaging, or future-doc questions may appear only as later or open items unless they truly change the current task boundary or behavior.
+
 ### RQ-10 - Explicit stubs
 
 Undefined future pieces must be surfaced as stubs, not hidden.

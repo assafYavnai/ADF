@@ -299,6 +299,8 @@ The design aligns to the newer CTO/CEO working-mode direction:
 - short executive answers by default
 - fundamental-question discipline instead of broad recap
 - same-pass source-of-truth propagation
+- default requirements-discussion mode unless explicit approval to draft is present
+- explicit approval gate plus post-draft review or freeze-read gate
 - explicit state clarity when draft/frozen/open/stubbed distinctions matter
 - checkpoint hygiene after meaningful CRUD, while still keeping git proof below the CEO boundary unless asked
 - file-based transport for long CTO inputs and outputs
@@ -325,6 +327,7 @@ The LLM side should answer:
 - what the next recommendation should be
 - how to explain the current state naturally
 - how to run a one-gap clarification move
+- how to hold filename or packaging questions as later/open items instead of letting them replace the real task
 
 ---
 

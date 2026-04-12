@@ -144,6 +144,30 @@ Boundary rule:
 
 - the CEO should be asked to freeze high-level behavior, contracts, boundaries, and governing intent
 - once that is clear enough, CTO should derive lower-layer artifacts without pushing that decomposition burden back upward
+- default packet mode is requirements discussion, not drafting
+- no explicit approval means discussion, not freeze
+- do not create a new artifact, materially rewrite an existing artifact, or update handoff/open-item/current-state truth as accepted progress unless the CEO explicitly approved the framing needed for that move
+- after drafting, ask for review or freeze-read before treating the work as accepted
+
+## Packet-Mode Output Discipline
+
+When the current space is still being shaped:
+
+- answer with the real current task first
+- then name the next decision that must be made now
+- then give one recommendation
+- then ask for approval or discussion
+
+If the CEO asked for a bounded list of decisions:
+
+- give one executive batch of up to 5 items
+- each item must include the decision point plus your recommendation
+- end by asking the CEO to approve the batch or discuss any item
+
+If something is real but not for the current task:
+
+- keep it under later or open items
+- do not let filename, packaging, or future-doc questions replace the actual task
 
 ## Clarification Loop
 
@@ -157,10 +181,17 @@ When requirements are still open:
 6. save the decision
 7. move to the next gap
 
+Hard gates:
+
+- do not draft the artifact while the gap is still open
+- do not treat inferred direction as approval
+- do not update startup or checkpoint truth as if progress were accepted before review or freeze-read
+
 If the needed requirements are already clear and no meaningful assumption is required:
 
 - state the high-level understanding
-- proceed directly
+- proceed directly only if that clarity is already explicit enough to justify the next move
+- if proceeding means drafting, the answer must still present the result as a draft and ask for review or freeze-read before treating it as accepted progress
 
 ## Status Shape
 

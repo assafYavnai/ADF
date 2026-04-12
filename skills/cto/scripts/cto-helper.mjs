@@ -205,6 +205,7 @@ export async function loadMissionFoundationContext(projectRoot) {
   });
   const activeTaskStateCounts = summarizeStates(currentTaskItems);
   const activeTaskThemeList = summarizeActiveTaskThemes(currentTaskItems);
+  const laterOpenItemsSummary = summarizeLaterOpenItems(laterDocumentItems);
   const currentTaskPurpose = extractSingleBulletAfterLabel(nextStepText, "Current task purpose")
     || handoffCurrentTaskPurpose;
   const nextStepMeaning = humanizeTask(handoffNextStep || extractSingleBulletAfterLabel(nextStepText, "Next step"));
@@ -285,6 +286,7 @@ export async function loadMissionFoundationContext(projectRoot) {
     broader_trust_items: broaderTrustItems,
     later_document_items: laterDocumentItems,
     active_task_theme_list: activeTaskThemeList,
+    later_open_items_summary: laterOpenItemsSummary,
     trust_model_purpose: trustModelPurpose,
     derived_lines: {
       broader_work: broaderWorkLine,
@@ -431,7 +433,10 @@ export function renderContextPayload(context) {
     core_obligations: [
       "protect the CEO boundary",
       "drive one gap at a time when requirements are still open",
+      "stay in discussion mode until the CEO explicitly approves the shaping decision",
       "give minimum information needed for the current decision",
+      "do not draft a new artifact or materially rewrite accepted truth before explicit approval",
+      "after drafting, ask for review or freeze-read before treating the work as accepted progress",
       "save durable truth instead of leaving important state only in chat",
       "keep status, task, and next step aligned to the same checked source pass",
       "end substantive answers with the explicit next move and recommendation"
@@ -465,6 +470,12 @@ export function renderContextPayload(context) {
     current_focus_summary: context.derived_lines.current_task,
     next_question: context.derived_actions.next_question,
     recommendation: context.derived_actions.recommendation,
+    later_open_items: context.later_open_items_summary,
+    current_task_guardrails: [
+      "keep the current task on meaning, not filename or packaging",
+      "park later or out-of-scope questions instead of silently absorbing them into the current task",
+      "treat no explicit approval as discussion, not freeze"
+    ],
     leading_gap: firstGap ? {
       id: firstGap.id,
       title: firstGap.title,
@@ -504,6 +515,7 @@ export function renderContextPayload(context) {
       next_step: context.derived_lines.next_step,
       next_question: context.derived_actions.next_question,
       recommendation: context.derived_actions.recommendation,
+      later_open_items: context.later_open_items_summary,
       source_alignment: context.source_alignment
     },
     ceo_default_response: {
@@ -623,23 +635,7 @@ function summarizeStates(items) {
 
 function selectCurrentTaskItems(input) {
   const activeTaskItems = input.active_task_items ?? [];
-  const laterDocumentItems = input.later_document_items ?? [];
   const unresolvedActiveItems = activeTaskItems.filter((item) => item.state !== "resolved" && item.state !== "moved");
-  const normalizedCurrentTask = stripTrailingPunctuation(String(input.current_task_meaning ?? "")).toLowerCase();
-
-  if (unresolvedActiveItems.length > 0) {
-    return unresolvedActiveItems;
-  }
-
-  if (normalizedCurrentTask === "define who exists at the top") {
-    return laterDocumentItems.filter((item) => {
-      const haystack = `${item.title} ${item.target_document}`.toLowerCase();
-      return haystack.includes("top-level governing-entity")
-        || haystack.includes("filename")
-        || haystack.includes("final shape");
-    });
-  }
-
   return unresolvedActiveItems;
 }
 
@@ -669,6 +665,33 @@ function summarizeActiveTaskThemes(items) {
   }
 
   return uniqueList(themes).slice(0, 4);
+}
+
+function summarizeLaterOpenItems(items) {
+  const themes = [];
+  for (const item of items) {
+    const lower = `${item.title} ${item.target_document}`.toLowerCase();
+    if (lower.includes("filename") || lower.includes("naming") || lower.includes("final shape")) {
+      themes.push("the exact filename and final packaging stay parked until the current task is frozen");
+      continue;
+    }
+    if (lower.includes("workflow")) {
+      themes.push("the workflow pass is later work, not part of the current task");
+      continue;
+    }
+    if (lower.includes("component")) {
+      themes.push("the component pass is later work, not part of the current task");
+      continue;
+    }
+    if (lower.includes("trust")) {
+      themes.push("broader trust work stays parked until the structural passes are defined");
+    }
+  }
+
+  return {
+    count: items.length,
+    themes: uniqueList(themes).slice(0, 5)
+  };
 }
 
 function buildGapQuestion(item) {

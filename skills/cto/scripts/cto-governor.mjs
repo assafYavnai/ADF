@@ -207,14 +207,18 @@ function detectRoute(prompt) {
     helper_action: "context",
     helper_args: {},
     answer_mode: "packet",
-    workflow_mode: detectWorkflowMode(normalized)
+    workflow_mode: detectWorkflowMode(normalized),
+    governance_mode: detectGovernanceMode(normalized),
+    batch_requested: detectBatchRequested(normalized)
   };
 }
 
 function detectWorkflowMode(normalizedPrompt) {
   if (
-    normalizedPrompt.includes("freeze")
+    normalizedPrompt.includes("define ")
     || normalizedPrompt.includes("what needs to be decided")
+    || normalizedPrompt.includes("what still needs to be decided")
+    || normalizedPrompt.includes("freeze")
     || normalizedPrompt.includes("still needs to be decided")
     || normalizedPrompt.includes("clarify")
     || normalizedPrompt.includes("missing before")
@@ -239,6 +243,46 @@ function detectWorkflowMode(normalizedPrompt) {
   }
 
   return "executive-guidance";
+}
+
+function detectGovernanceMode(normalizedPrompt) {
+  if (
+    normalizedPrompt.includes("review/freeze-read")
+    || normalizedPrompt.includes("freeze-read")
+    || normalizedPrompt.includes("review this draft")
+    || normalizedPrompt.includes("review the draft")
+    || normalizedPrompt.includes("is this ready to freeze")
+  ) {
+    return "review-freeze-read";
+  }
+
+  if (
+    normalizedPrompt.includes("approved to draft")
+    || normalizedPrompt.includes("i approve drafting")
+    || normalizedPrompt.includes("go ahead and draft")
+    || normalizedPrompt.includes("go ahead and write")
+    || normalizedPrompt.includes("write the draft")
+    || normalizedPrompt.includes("create the draft")
+    || normalizedPrompt.includes("draft the document")
+    || normalizedPrompt.includes("draft it")
+    || normalizedPrompt.includes("prepare the draft")
+  ) {
+    return "draft-after-approval";
+  }
+
+  return "requirements-discussion";
+}
+
+function detectBatchRequested(normalizedPrompt) {
+  return (
+    normalizedPrompt.includes("what still needs to be decided")
+    || normalizedPrompt.includes("what needs to be decided")
+    || normalizedPrompt.includes("what is missing")
+    || normalizedPrompt.includes("what's missing")
+    || normalizedPrompt.includes("gaps")
+    || normalizedPrompt.includes("list")
+    || normalizedPrompt.includes("batch")
+  );
 }
 
 async function runHelper(action, projectRoot, helperArgs = {}) {
@@ -278,12 +322,19 @@ function buildPromptPacket(input) {
   const nextStep = input.helperOutput.response_basis?.next_step
     ?? input.helperOutput.ceo_default_response?.lines?.at(-1)
     ?? "";
+  const governanceState = buildGovernanceState(input.route);
+  const answerBlueprint = buildAnswerBlueprint({
+    workflowMode: input.route.workflow_mode ?? "executive-guidance",
+    governanceMode: governanceState.mode,
+    batchRequested: input.route.batch_requested === true
+  });
 
   return {
-    contract_version: 2,
+    contract_version: 3,
     user_request: input.prompt,
     route: input.route.name,
     workflow_mode: input.route.workflow_mode ?? "executive-guidance",
+    governance_mode: governanceState.mode,
     answer_goal: "Give the CEO the minimum truthful information needed to reach the next correct decision.",
     role_contract: input.roleContract.trim(),
     response_contract: {
@@ -295,19 +346,37 @@ function buildPromptPacket(input) {
         "keep the CEO at high-level behavior, contract, boundary, and governing-intent decisions",
         "derive lower-layer artifacts below that boundary instead of pushing them back upward",
         "keep broader work, current task, and next step aligned to the same packet truth",
+        "hold the restart frame clearly as broader work, current task, next step, and later or open items",
         "identify the fundamental next question when work is still open",
         "push the work forward with the next move when possible",
-        "preserve draft vs frozen vs open vs stubbed truth"
+        "preserve draft vs frozen vs open vs stubbed truth",
+        "treat no explicit approval as discussion, not freeze",
+        "stay in requirements mode unless explicit approval to draft is present",
+        "when the space is still open, give one recommended next step or one bounded recommendation batch of up to 5 items",
+        "park out-of-scope issues in later or open items instead of silently absorbing them into the current task",
+        "if a draft is created after approval, present it as a draft and ask for review or freeze-read before treating it as accepted progress"
       ],
       must_not_do: [
         "do not dump file paths, filenames, branch state, or repo audits unless proof was requested",
         "do not widen into raw repo narration when the packet already contains sufficient context",
         "do not treat a local issue as the whole frame",
-        "do not stop at recap without an explicit next step and recommendation"
+        "do not stop at recap without an explicit next step and recommendation",
+        "do not let filename, document packaging, or future-doc naming replace the real current task",
+        "do not draft a new artifact or materially rewrite existing artifacts when the approval gate is still closed",
+        "do not update handoff, current-state, open-items, or similar repo truth as accepted progress before explicit review and approval",
+        "do not present inferred direction as if the CEO already approved it"
       ]
+    },
+    approval_gate: governanceState,
+    decision_batching: {
+      default_limit: 5,
+      batch_requested: input.route.batch_requested === true,
+      rule: "If several low-level choices are needed, present them in one executive batch of up to 5 items, each with recommendation plus approval or discussion request."
     },
     context_layers: input.helperOutput.context_layers ?? {},
     response_basis: input.helperOutput.response_basis ?? null,
+    later_open_items: input.helperOutput.response_basis?.later_open_items ?? null,
+    answer_blueprint: answerBlueprint,
     suggested_opening: input.helperOutput.ceo_default_response?.lines?.[0] ?? "",
     suggested_next_move: nextStep,
     fundamental_next_question: input.helperOutput.response_basis?.next_question ?? "",
@@ -316,5 +385,101 @@ function buildPromptPacket(input) {
       "Layer 3 durable issue-stack storage is still a stub in this reference implementation.",
       "Broader CTO route coverage beyond the current governor set is intentionally not complete yet."
     ]
+  };
+}
+
+function buildGovernanceState(route) {
+  const mode = route.governance_mode ?? "requirements-discussion";
+  const draftingAllowed = mode === "draft-after-approval";
+  const reviewRequested = mode === "review-freeze-read";
+
+  return {
+    mode,
+    explicit_approval_detected_in_request: draftingAllowed,
+    explicit_review_or_freeze_read_requested: reviewRequested,
+    drafting_allowed_now: draftingAllowed,
+    accepted_progress_update_allowed_now: false,
+    rule: "No explicit approval means discussion.",
+    review_rule: "After drafting, ask for review or freeze-read before treating the work as accepted progress.",
+    allowed_now: draftingAllowed
+      ? [
+          "state the approved high-level framing you are drafting from",
+          "produce a bounded draft or proposed wording",
+          "mark it clearly as draft",
+          "ask for review or freeze-read"
+        ]
+      : reviewRequested
+        ? [
+            "review the draft against the approved framing",
+            "report the smallest blocking issues or confirm it is ready for freeze decision",
+            "ask for explicit freeze approval or requested changes"
+          ]
+        : [
+            "explain the real current task",
+            "ask the next shaping question",
+            "give a recommendation",
+            "ask for approval or discussion",
+            "park later issues explicitly"
+          ],
+    blocked_now: draftingAllowed
+      ? [
+          "do not present the draft as frozen or accepted",
+          "do not advance repo truth as if review already happened"
+        ]
+      : reviewRequested
+        ? [
+            "do not silently mark the draft frozen without explicit approval",
+            "do not widen review into unrelated future work"
+          ]
+        : [
+            "do not create or materially update an artifact as if the framing were already approved",
+            "do not update handoff, current-state, or open-items as accepted progress",
+            "do not replace the current task with filename or packaging discussion"
+          ]
+  };
+}
+
+function buildAnswerBlueprint(input) {
+  if (input.governanceMode === "draft-after-approval") {
+    return {
+      default_shape: [
+        "Approved framing: one short line",
+        "Proposed draft: short bounded content or wording",
+        "Review request: ask for review or freeze-read"
+      ],
+      default_count_limit: 3
+    };
+  }
+
+  if (input.governanceMode === "review-freeze-read") {
+    return {
+      default_shape: [
+        "Current task: one short line",
+        "Review result: ready or not ready",
+        "Next step: one recommended approval or change request"
+      ],
+      default_count_limit: 3
+    };
+  }
+
+  if (input.batchRequested || input.workflowMode === "clarification-loop") {
+    return {
+      default_shape: [
+        "Current task: one short line",
+        "Decision batch: up to 5 items, each with recommendation",
+        "Approval ask: ask the CEO to approve or discuss this batch"
+      ],
+      default_count_limit: 5
+    };
+  }
+
+  return {
+    default_shape: [
+      "Current task: one short line",
+      "Next decision: one short line",
+      "Recommendation: one short line",
+      "Approval ask: approve or discuss"
+    ],
+    default_count_limit: 4
   };
 }
