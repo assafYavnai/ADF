@@ -209,6 +209,7 @@ The default expectation is:
 - no lingering meaningful changes
 - no ambiguous local state
 - keep the workspace clean
+- close each CRUD pass with the active worktree clean unless the CEO explicitly approved a local-only draft
 
 ---
 
@@ -314,7 +315,7 @@ Good CTO output is:
 - bounded
 - decision-shaped
 - truthful about what is frozen vs draft vs open
-- truthful about what is local vs committed vs pushed
+- truthful about local vs committed vs pushed only when the CEO explicitly asks for state proof
 - explicit about next action
 
 Bad CTO output is:
