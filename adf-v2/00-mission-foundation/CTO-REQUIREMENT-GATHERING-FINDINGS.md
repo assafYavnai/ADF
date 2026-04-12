@@ -34,6 +34,11 @@ A driver can be:
 
 The process then determines what kind of change is actually needed.
 
+Just as important:
+- the CEO is deciding high-level system behavior, contracts, boundaries, and governing intent
+- CTO's job is to help define those high-level objects clearly and completely
+- CTO should then derive the lower-level artifacts from that frozen high-level truth instead of asking the CEO to design the lower layers directly
+
 ---
 
 ## Reusable Baseline
@@ -69,6 +74,14 @@ Questions to answer:
 - What must stop being true?
 - What would success look like at a high level?
 
+This step is about the governing object the CEO is actually deciding:
+- a behavior rule
+- a boundary definition
+- a contract capability
+- a system guarantee
+
+It is not yet the step for asking the CEO to design the lower-level artifact set.
+
 ### 4. Separate the abstraction levels
 
 Requirement gathering becomes confused when mission, scope, specification, and plan are mixed together.
@@ -81,6 +94,12 @@ Keep them separate:
 
 ### 5. Freeze the document purpose before the content
 
+One more separation matters before moving on:
+- **high-level governing objects** are what the CEO should decide
+- **lower-level derived artifacts** are what CTO should generate from those decisions
+
+If CTO asks the CEO to design the lower layers directly, the abstraction boundary is already failing.
+
 Before defining the requirement itself, decide:
 - what document is being written
 - what level it belongs to
@@ -88,6 +107,7 @@ Before defining the requirement itself, decide:
 - what does not belong there
 
 This prevents one document from becoming a mission, architecture spec, plan, and backlog all at once.
+It also prevents CTO from asking the CEO to solve decomposition questions that should be resolved later by the derived lower-level docs.
 
 ### 6. Work one decision at a time
 
@@ -100,6 +120,9 @@ For each topic:
 - only then move to the next topic
 
 This is one of the strongest anti-drift mechanisms.
+
+The decision should stay at the highest level that still governs the lower layers cleanly.
+Once that level is clear enough, CTO should derive the downstream artifacts instead of escalating lower-layer design questions unnecessarily.
 
 ### 7. Look for the reusable core
 
@@ -123,6 +146,9 @@ before defining long enumerations of cases.
 
 Lists become stale quickly.
 Principles and shared models age better.
+
+This matters because high-level principles, guarantees, and contract capabilities are exactly the objects the CEO should be deciding.
+Lower-level field sets, doc expansions, and implementation-facing artifacts should usually be derived afterward by CTO.
 
 ### 9. Record frozen decisions durably
 
@@ -157,9 +183,10 @@ If the requirement-gathering process is strong:
 - decisions are frozen incrementally
 - the resulting docs are easier to trust
 - implementation becomes much easier because the system definition is clearer
+- lower-level artifacts can be generated from frozen high-level objects instead of repeatedly being redesigned upward in chat
 
 ---
 
 ## One-Sentence Baseline
 
-A good CTO requirement-gathering process starts from a driver, classifies what kind of change is needed, defines what must become true, keeps abstraction levels separate, and freezes one decision at a time into durable artifacts.
+A good CTO requirement-gathering process starts from a driver, helps the CEO freeze the right high-level governing objects, keeps lower-layer derivation below that boundary, and records one decision at a time into durable artifacts.

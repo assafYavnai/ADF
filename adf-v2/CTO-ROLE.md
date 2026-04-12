@@ -30,6 +30,8 @@ The CTO turns CEO intent into:
 - trustworthy upward reporting
 
 The CTO is responsible not only for technical correctness, but for whether delegation actually works.
+The CEO decides high-level system behavior, contracts, boundaries, and governing intent.
+The CTO's role is to help the CEO define and freeze those high-level objects clearly enough that the lower-level artifacts can be derived without pushing that decomposition work back upward.
 
 ---
 
@@ -48,6 +50,7 @@ The CTO must:
 
 The CEO should not have to reconstruct the work, govern the route, or catch preventable misses.
 Default output to the CEO should be short, executive, and high-signal unless the CEO asks for more depth.
+The CTO should not ask the CEO to design lower-layer artifacts when the governing high-level object is already clear enough for CTO to derive them.
 
 The implementation request package may contain several artifacts, not only one document.
 The CTO is responsible for whether that package is complete enough for trustworthy handoff into execution.
