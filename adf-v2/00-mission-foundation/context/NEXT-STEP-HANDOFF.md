@@ -1,12 +1,18 @@
 # ADF v2 - Next-Step Handoff
 
-Status: active restart handoff  
+Status: active checkpoint companion
 Scope: `adf-v2/00-mission-foundation/`  
-Purpose: let the next agent resume the mission-foundation work from the current real state, without reconstructing this session from chat
+Purpose: provide a thin checkpoint companion to `HANDOFF.md` without replacing its canonical startup authority
 
 ---
 
 ## Current Checkpoint
+
+Canonical startup authority:
+- `adf-v2/00-mission-foundation/context/HANDOFF.md`
+
+This file is only the thin checkpoint companion.
+It must stay aligned to `HANDOFF.md` and must not replace the broader-work frame stored there.
 
 Checkpoint date:
 - `2026-04-12`
@@ -17,12 +23,27 @@ Last agent reference:
 Current branch state:
 - the trust-model draft is committed
 - trust decisions `D-027` through `D-036` are committed
-- the first draft of `DELIVERY-COMPLETION-DEFINITION.md` now exists
+- `DELIVERY-COMPLETION-DEFINITION.md` is now approved for freeze and promoted to the layer root
 - delivery-boundary trust decisions `D-037` and `D-038` now exist
 - `context/OPEN-ITEMS.md` now exists as the canonical parking and checklist file for mission-foundation open items
+- later delivery-boundary decisions `D-039` through `D-046` are committed
+- decision `D-047` records the freeze approval and promotion of `DELIVERY-COMPLETION-DEFINITION.md`
+- `SYSTEM-OBLIGATIONS.md` now exists in the layer root as a frozen canonical mission-foundation output
+- decision `D-050` records the approved universal obligation baseline for governed components
+- `BOXED-COMPONENT-MODEL.md` now exists in the layer root as a frozen canonical mission-foundation output
+- decision `D-051` records the approved boxed-component structural baseline
+- decision `D-052` records that all boxes use one universal outer JSON envelope with nested box-specific payload content
+- decision `D-053` records that all boxes inherit one governed shared layout with standard areas for contracts, runtime state, audit history, tests, and internal artifacts
+- decision `D-054` records the standard field families the universal outer box envelope must provide
+- decision `D-055` records that `blocked` is universal while `resolve package` is universal-optional
+- decisions `D-056` through `D-059` fix the freeze-read blockers: scope fidelity is now operational and structural, the box model is logical rather than repo-policy driven, the obligations and box docs are aligned siblings, and low-level git policy is removed from universal-obligation wording
+- decisions `D-060` and `D-061` tighten normative language to `must` for frozen rules and make verification/certification truth structurally explicit in the box model
+- `SYSTEM-OBLIGATIONS.md` is now approved for freeze and promoted to the layer root
+- `BOXED-COMPONENT-MODEL.md` is now approved for freeze and promoted to the layer root
+- decisions `D-062` and `D-063` record those freeze approvals and promotions
 
 Current main task:
-- refine and freeze `DELIVERY-COMPLETION-DEFINITION.md`
+- define who exists at the top
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -34,20 +55,17 @@ Current decision boundary:
   - the mission-foundation decisions under `context/decisions/`
   - the rule that `DELIVERY-COMPLETION-DEFINITION.md` should consume only boundary trust
 - drafted only:
-  - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
   - `context/artifacts/TRUST-MODEL.md`
   - `context/OPEN-ITEMS.md`
 - still open:
-  - the final freeze wording of `DELIVERY-COMPLETION-DEFINITION.md`
   - the unresolved broader trust-model questions parked in `TRUST-MODEL.md`
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what exact final delivery-boundary definition of trust should appear in `DELIVERY-COMPLETION-DEFINITION.md`, now that justified CEO doubt and scope fidelity are frozen as part of that boundary, without widening back into the full trust model
+- what are the top-level governing entities of phase `1`, and where do the high-level boundaries sit between them
 
 Do-not-repeat rules for the next agent:
-- do not treat `TRUST-MODEL.md` as frozen canon
-- do not treat the delivery-completion draft as frozen canon
+- do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
 - do not widen `DELIVERY-COMPLETION-DEFINITION.md` into the full trust model
 - do not reopen already frozen trust decisions unless the CEO explicitly reopens them
 - do not lose the open trust questions parked in `TRUST-MODEL.md`
@@ -103,15 +121,17 @@ Read in this order:
 8. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 9. `adf-v2/CTO-ROLE.md`
 10. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-11. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
-12. `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
-13. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
+11. `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+12. `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
+13. `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
+14. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
+15. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
 
 Reading intent:
 - items `1` through `9` define the current governing frame
 - `TRUST-MODEL.md` is the broader trust draft and must not be treated as frozen canon
+- `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are now frozen canonical layer outputs
 - `OPEN-ITEMS.md` is the canonical parking and checklist register for unresolved items
-- `DELIVERY-COMPLETION-DEFINITION.md` is the current main draft artifact
 
 ---
 
@@ -123,6 +143,9 @@ Reading intent:
 - `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 - `adf-v2/CTO-ROLE.md`
 - `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
+- `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+- `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
+- `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
 - `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 - `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
 - `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
@@ -137,7 +160,6 @@ Reading intent:
 ### Draft artifacts
 
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-- `adf-v2/00-mission-foundation/context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/context/artifacts/README.md`
 
 ### Decision files
@@ -167,23 +189,21 @@ It should continue from the current drafts and frozen decisions.
 
 ### Immediate next step
 
-Refine and freeze `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`.
+Use the frozen mission-foundation outputs now in the layer root and the current working completion sequence:
+- top-level governing entities and boundaries
+- workflow model
+- component inventory
+- connection model
+- trust model finalization
+- final phase-`00` freeze-read pass
 
-That freeze pass should:
-- keep the document high level but concrete
-- define complete as a trustworthy returned result
-- define production-ready as artifact quality
-- define only the narrow delivery-boundary trust needed for completion
-- avoid importing the full trust-model mechanics
-- use `OPEN-ITEMS.md` as the checklist so parked issues are not lost while the document stays narrow
+Do not assume the old `ROLE-MODEL.md` framing is the right next output.
+The next immediate task is to define who exists at the top.
+The exact filename remains open and belongs in later/open-item handling until explicitly frozen.
 
 ### After that
 
-Then continue with:
-- `SYSTEM-OBLIGATIONS.md`
-- `BOXED-COMPONENT-MODEL.md`
-- `ROLE-MODEL.md`
-- `WORKFLOW-MODEL.md`
+Then continue with the next artifact sequence only after that decision is made explicitly.
 
 ---
 
@@ -209,4 +229,4 @@ Do keep doing these:
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, trust is now split into a broader trust draft and frozen trust decisions, the first draft of `DELIVERY-COMPLETION-DEFINITION.md` exists, and the next agent should refine that draft to a frozen delivery-boundary definition without widening back into the full trust model.
+ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, `HANDOFF.md` is the canonical startup authority, and the next agent should define who exists at the top instead of reviving the old `ROLE-MODEL.md` assumption.

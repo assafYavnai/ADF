@@ -119,6 +119,12 @@ Rules:
 - only surface broader runtime issues when they blocked the governed `$CTO` answer itself or when the CEO explicitly asked about the environment
 - do not let a doc-only governed `$CTO` answer turn into a repo bootstrap incident report by habit
 
+For ADF v2 mission-foundation startup and status framing:
+
+- treat `adf-v2/00-mission-foundation/context/HANDOFF.md` as the canonical startup authority
+- expect `HANDOFF.md` to carry broader work, current task, next step, and later-step/open-item framing together
+- treat `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md` as a thin checkpoint companion only
+
 ## Shell Guidance
 - ADF's canonical shell is `bash` on every host OS.
 - On Windows, the host OS is still Windows, but the ADF shell remains `bash`. Agents must stay aware of Windows path and process behavior without treating PowerShell as an equivalent workflow shell.

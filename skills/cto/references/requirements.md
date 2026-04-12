@@ -29,6 +29,7 @@ This requirement set is derived from:
 - frozen CEO/CTO boundary decision `D-049`
 - `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
 - `adf-v2/00-mission-foundation/CTO-REQUIREMENT-GATHERING-FINDINGS.md`
+- `adf-v2/00-mission-foundation/context/HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 - `COO/requirements-gathering/engine/conversation-state.ts`
@@ -76,6 +77,7 @@ When the user invokes `$CTO`, the system should:
 7. keep status, task, and next step aligned to the same authoritative source pass
 8. move CTO request and response transport through files by default
 9. keep the CEO at the high-level governing-object boundary and derive lower layers below it
+10. treat `HANDOFF.md` as the canonical startup frame and `NEXT-STEP-HANDOFF.md` as a thin companion that must not replace it
 
 ---
 
@@ -364,6 +366,16 @@ Expected outcome:
 - answer states readiness clearly
 - answer explains the missing definition in plain language
 - answer ends with the next question that would resolve readiness
+
+### EX-02a - Next step in v2
+
+Prompt:
+- `$CTO what is our next step in v2?`
+
+Expected outcome:
+- answer carries the broader phase-00 sequence in plain language
+- answer names the current task as the top-level governing-entity definition pass
+- answer gives the immediate next step and recommendation without collapsing the whole answer into document naming
 
 ### EX-03 - General shaping
 

@@ -18,8 +18,10 @@ Use it when:
 
 Each item should say:
 - current state
-- why it is open
+- rationale
 - target document
+
+For resolved items, the rationale may record the issue the item was tracking rather than restating a still-open problem.
 
 State meanings:
 - `open` = still unresolved
@@ -34,13 +36,13 @@ State meanings:
 ### O-001 - Final narrow trust wording for delivery completion
 
 State:
-- `open`
+- `resolved`
 
-Why it is open:
-- `DELIVERY-COMPLETION-DEFINITION.md` still needs one final freeze-ready statement of delivery-boundary trust
+Rationale:
+- resolved in `DELIVERY-COMPLETION-DEFINITION.md` by making the no-leak rule explicit above governed execution while keeping the trust wording narrow
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 Notes:
 - the final wording must stay narrow and not widen into the full trust model
@@ -51,13 +53,13 @@ Notes:
 ### O-002 - Incorporate already frozen delivery-boundary trust conditions into the completion document
 
 State:
-- `frozen-upstream-needs-incorporation`
+- `resolved`
 
 Why it is open:
 - several trust conditions are already frozen in decisions but are not yet fully and clearly reflected in `DELIVERY-COMPLETION-DEFINITION.md`
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 Notes:
 - this includes, at minimum:
@@ -71,93 +73,103 @@ Notes:
 ### O-003 - Final wording of `complete`
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the draft still needs a final approved wording for the exact definition of `complete`
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-004 - Naming and framing of truthful non-complete terminal outcomes
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
-- the document still needs final language for legitimate non-complete terminal results without weakening the meaning of completion
+- the state model direction is now frozen, but the delivery-completion draft does not yet fully reflect it
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
+
+Notes:
+- top-level terminal states are now:
+  - `complete`
+  - `blocked`
+- `pushback` is a blocked reason, not a top-level state
+- blocked reasons are component-specific and are not required to be identical across all components
+- blocked may represent either external waiting or an internal failure that prevents truthful completion from the current state
 
 ### O-005 - How explicit to be about true terminal return into the production tree
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
-- the document still needs a final choice on how directly to name production-tree or merge-end reality as part of true completion
-- the chat direction strongly suggests that true completion is not reached until the artifact has returned into the production tree rather than remaining only in an implementation worktree or pre-merge state
+- the production-tree rule is now frozen, but the delivery-completion draft does not yet fully reflect it
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
+
+Notes:
+- completion requires actual return into the production tree
 
 ### O-006 - Whether to state certification basis explicitly
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - it is still unresolved whether the document should say explicitly that CTO certification must rest on governed system truth rather than informal belief or manual reconstruction
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-007 - Whether to name `no hidden heroics` explicitly
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - it is still unresolved whether the delivery boundary should explicitly say completion must not depend on invisible person-specific cleanup, memory, or rescue work
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-008 - Whether fire-and-forget should explicitly include queryability, resumability, and error-only upward surfacing
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the chat clarified fire-and-forget from the CEO experience, not only from internal route mechanics
 - it is still unresolved how explicitly the completion document should say that the route must remain queryable and safely resumable at any point, while only errors, blockers, pushback, or terminal outcomes should surface upward
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-009 - Whether required human testing should be named explicitly as part of trustworthy approval readiness
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
-- the mission material already implies required human testing before approval, but the delivery-completion wording has not yet decided how explicitly to name it as a trust-preservation condition of approval readiness
+- this item tracked whether the delivery-completion wording should name required human testing explicitly before upward `complete` certification
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ### O-010 - Whether the completion document should state that the CEO need not understand the internal route
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the chat clarified that the CEO should care about the returned result and whether it is safe to rely on, not about the internal implementation mechanics
 - it is still unresolved whether that should be stated directly inside the delivery-completion framing or left implicit in the role/protocol docs
 
 Target document:
-- `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
+- `DELIVERY-COMPLETION-DEFINITION.md`
 
 ---
 
@@ -220,6 +232,7 @@ State:
 
 Why it is open:
 - the draft contains suggested thresholds, but the mandatory action model is not yet frozen
+- this includes how verification depth changes by trust level, including low-trust verification intensity
 
 Target document:
 - `context/artifacts/TRUST-MODEL.md`
@@ -281,10 +294,10 @@ Notes:
 ### O-202 - Component reporting shape for trust-bearing boxes
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
-- later box definitions will need a reporting and obligation shape that trust can attach to
+- resolved in `BOXED-COMPONENT-MODEL.md` by giving boxes explicit logical structural surfaces for reporting, audit, checkpoint, scope-fidelity, trust attachment, and governed verification/certification evidence
 
 Target document:
 - `BOXED-COMPONENT-MODEL.md`
@@ -298,7 +311,7 @@ Why it is open:
 - some trust visibility and escalation questions depend on role boundaries and should be solved where the role model is explicit
 
 Target document:
-- `ROLE-MODEL.md`
+- `TBD after workflow and component inventory sequencing is re-decided`
 
 ### O-204 - Concrete workflow topology for trust edges
 
@@ -310,3 +323,14 @@ Why it is open:
 
 Target document:
 - `WORKFLOW-MODEL.md`
+
+### O-205 - Exact filename and final shape of the thin top-level governing-entity document
+
+State:
+- `open`
+
+Why it is open:
+- the current task is to define who exists at the top, but the exact filename and final document-shape wording should not replace that real task in startup answers
+
+Target document:
+- `TBD thin top-level governing-entity document`

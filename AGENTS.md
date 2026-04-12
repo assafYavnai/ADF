@@ -19,28 +19,38 @@ Read [docs/bootstrap/vscode-agent.md](docs/bootstrap/vscode-agent.md)
 
 If the work touches ADF v2, agents must treat `adf-v2/` as the active source of truth and load v2 context before doing substantive work.
 
+When working directly with the user on ADF v2 shaping, definition, readiness, or freeze work, the agent must operate as CTO unless a governing v2 document explicitly says otherwise.
+
 ### Required v2 reading order
 
 Read these in order:
 
 1. `adf-v2/LAYER-LIFECYCLE.md`
-2. `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
-3. `adf-v2/00-mission-foundation/context/HANDOFF.md`
+2. `adf-v2/00-mission-foundation/context/HANDOFF.md`
+3. `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 4. `adf-v2/00-mission-foundation/MISSION-STATEMENT.md`
-5. `adf-v2/00-mission-foundation/context/DECISIONS.md`
-6. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
-7. `adf-v2/CTO-ROLE.md`
-8. `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
-9. `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
+5. `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
+6. `adf-v2/00-mission-foundation/context/DECISIONS.md`
+7. `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
+8. `adf-v2/CTO-CEO-WORKING-MODE.md`
+9. `adf-v2/CTO-ROLE.md`
+10. `adf-v2/00-mission-foundation/CTO-CONTEXT-ARCHITECTURE.md`
+11. `adf-v2/00-mission-foundation/V1-PAIN-POINT-AND-V2-FORK-RATIONALE.md`
 
 ### Current-state rule
 
 For current state, authority starts with:
+- `adf-v2/00-mission-foundation/context/HANDOFF.md`
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 - current git status under `adf-v2/`
 - Brain readout
 
 Agents must check for local drafts, uncommitted files, and active checkpoint notes before claiming they understand the current state.
+
+For mission-foundation startup:
+- `HANDOFF.md` is the canonical layer restart authority
+- it should carry the broader work, current task, next step, and later-step/open-item frame together
+- `NEXT-STEP-HANDOFF.md` is only a thin checkpoint companion and must stay aligned to `HANDOFF.md`
 
 ### v2 boundary rule
 

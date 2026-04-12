@@ -26,18 +26,9 @@ const DOC_MEANINGS = {
   "TRUST-MODEL.md": "freeze the broader trust model",
   "SYSTEM-OBLIGATIONS.md": "define system obligations",
   "BOXED-COMPONENT-MODEL.md": "define the boxed component model",
-  "ROLE-MODEL.md": "define the role model",
-  "WORKFLOW-MODEL.md": "define the workflow model",
   "MISSION-STATEMENT.md": "define the mission foundation",
   "CTO-ROLE.md": "define the CTO role"
 };
-const FOUNDATION_OUTPUT_ORDER = [
-  "DELIVERY-COMPLETION-DEFINITION.md",
-  "SYSTEM-OBLIGATIONS.md",
-  "BOXED-COMPONENT-MODEL.md",
-  "ROLE-MODEL.md",
-  "WORKFLOW-MODEL.md"
-];
 
 if (IS_MAIN) {
   main().catch((error) => {
@@ -152,61 +143,74 @@ async function readOptionalText(filePath) {
 export async function loadMissionFoundationContext(projectRoot) {
   const startedAt = nowIso();
   const missionFoundationRoot = join(projectRoot, "adf-v2", "00-mission-foundation");
+  const handoffPath = join(missionFoundationRoot, "context", "HANDOFF.md");
   const nextStepPath = join(missionFoundationRoot, "context", "NEXT-STEP-HANDOFF.md");
   const openItemsPath = join(missionFoundationRoot, "context", "OPEN-ITEMS.md");
-  const deliveryCompletionLocation = await resolveLayerDocumentPath(missionFoundationRoot, "DELIVERY-COMPLETION-DEFINITION.md");
-  const deliveryCompletionPath = deliveryCompletionLocation.path;
   const trustModelPath = join(missionFoundationRoot, "context", "artifacts", "TRUST-MODEL.md");
   const missionPath = join(missionFoundationRoot, "MISSION-STATEMENT.md");
+  const deliveryCompletionPath = join(missionFoundationRoot, "DELIVERY-COMPLETION-DEFINITION.md");
+  const systemObligationsPath = join(missionFoundationRoot, "SYSTEM-OBLIGATIONS.md");
+  const boxedComponentModelPath = join(missionFoundationRoot, "BOXED-COMPONENT-MODEL.md");
   const ctoRolePath = join(projectRoot, "adf-v2", "CTO-ROLE.md");
   const ceoProtocolPath = join(projectRoot, "adf-v2", "CEO-AGENT-WORKING-PROTOCOL.md");
   const ctoArchitecturePath = join(missionFoundationRoot, "CTO-CONTEXT-ARCHITECTURE.md");
   const ctoCeoWorkingModePath = join(projectRoot, "adf-v2", "CTO-CEO-WORKING-MODE.md");
 
-  const promotedOutputPaths = FOUNDATION_OUTPUT_ORDER.map((fileName) => ({
-    file_name: fileName,
-    path: join(missionFoundationRoot, fileName)
-  }));
-
   const [
+    handoffText,
     nextStepText,
     openItemsText,
-    deliveryCompletionText,
     trustModelText,
     missionText,
     ctoRoleText,
     ceoProtocolText,
     ctoArchitectureText
   ] = await Promise.all([
+    readFile(handoffPath, "utf8"),
     readFile(nextStepPath, "utf8"),
     readFile(openItemsPath, "utf8"),
-    readFile(deliveryCompletionPath, "utf8"),
     readFile(trustModelPath, "utf8"),
     readFile(missionPath, "utf8"),
     readFile(ctoRolePath, "utf8"),
     readFile(ceoProtocolPath, "utf8"),
     readFile(ctoArchitecturePath, "utf8")
   ]);
-  const [ctoCeoWorkingModeText, promotedOutputChecks] = await Promise.all([
-    readOptionalText(ctoCeoWorkingModePath),
-    Promise.all(promotedOutputPaths.map(async (item) => ({
-      ...item,
-      exists: await pathExists(item.path)
-    })))
-  ]);
+  const ctoCeoWorkingModeText = await readOptionalText(ctoCeoWorkingModePath);
 
-  const currentMainTask = extractSingleBulletAfterLabel(nextStepText, "Current main task");
-  const immediateQuestion = extractSingleBulletAfterLabel(nextStepText, "Immediate next unresolved question");
-  const afterThatTasks = extractBulletsAfterPhrase(nextStepText, "Then continue with");
-  const currentTaskDocName = extractFirstMarkdownCode(currentMainTask) ?? extractFileName(currentMainTask);
+  const broaderWorkBullets = extractBulletsFromHeading(handoffText, "### Broader work");
+  const broaderWork = broaderWorkBullets.length > 0
+    ? `finish phase 00 from outside to inside: ${broaderWorkBullets.join(", ")}`
+    : extractSingleBulletAfterLabel(handoffText, "Broader work");
+  const handoffCurrentTask = extractLeadParagraphFromHeading(handoffText, "### Current task");
+  const handoffCurrentTaskPurpose = extractSupportingParagraphFromHeading(handoffText, "### Current task");
+  const handoffNextStep = extractLeadParagraphFromHeading(handoffText, "### Next step");
+  const laterStepBullets = extractBulletsFromHeading(handoffText, "### Later steps and open items").map(humanizeTask);
+  const numberedWorkingSequence = extractNumberedItemsFromHeading(handoffText, "## Current Working Completion Sequence For Phase `00`").map(humanizeTask);
+  const currentTaskRaw = handoffCurrentTask
+    || extractSingleBulletAfterLabel(nextStepText, "Current task")
+    || extractSingleBulletAfterLabel(nextStepText, "Current main task");
+  const currentTaskDocName = extractFirstMarkdownCode(currentTaskRaw) ?? extractFileName(currentTaskRaw);
   const openItems = parseOpenItems(openItemsText);
   const activeTaskItems = openItems["Current Active Task Open Items"] ?? [];
   const broaderTrustItems = openItems["Broader Trust-Model Open Items"] ?? [];
   const laterDocumentItems = openItems["Later-Document Open Items"] ?? [];
-  const activeTaskStateCounts = summarizeStates(activeTaskItems);
-  const activeTaskThemeList = summarizeActiveTaskThemes(activeTaskItems);
-  const currentTaskMeaning = humanizeTask(currentMainTask);
-  const currentTaskPurpose = extractFieldValue(deliveryCompletionText, "Purpose");
+  const currentTaskMeaning = humanizeTask(currentTaskRaw);
+  const phase00WorkingSequence = numberedWorkingSequence.length > 0
+    ? numberedWorkingSequence
+    : uniqueList([currentTaskMeaning, ...laterStepBullets]).filter(Boolean);
+  const currentTaskItems = selectCurrentTaskItems({
+    current_task_meaning: currentTaskMeaning,
+    active_task_items: activeTaskItems,
+    later_document_items: laterDocumentItems
+  });
+  const activeTaskStateCounts = summarizeStates(currentTaskItems);
+  const activeTaskThemeList = summarizeActiveTaskThemes(currentTaskItems);
+  const currentTaskPurpose = extractSingleBulletAfterLabel(nextStepText, "Current task purpose")
+    || handoffCurrentTaskPurpose;
+  const nextStepMeaning = humanizeTask(handoffNextStep || extractSingleBulletAfterLabel(nextStepText, "Next step"));
+  const immediateQuestion = extractSingleBulletAfterLabel(nextStepText, "Immediate next question")
+    || extractSingleBulletAfterLabel(nextStepText, "Immediate next unresolved question");
+  const explicitRecommendation = extractSingleBulletAfterLabel(nextStepText, "Recommendation");
   const trustModelPurpose = extractFieldValue(trustModelText, "Purpose");
   const missionIdentity = extractParagraphAfterHeading(missionText, "## Identity");
   const phaseMission = extractParagraphAfterHeading(missionText, "## Phase 1 mission");
@@ -216,49 +220,37 @@ export async function loadMissionFoundationContext(projectRoot) {
   void ctoArchitectureText;
   void ctoCeoWorkingModeText;
 
-  const promotedOutputs = promotedOutputChecks.filter((item) => item.exists).map((item) => item.file_name);
-  const remainingFoundationOutputs = FOUNDATION_OUTPUT_ORDER.filter((fileName) => !promotedOutputs.includes(fileName));
   const sourceAlignment = buildSourceAlignment({
-    currentTaskDocName,
-    currentTaskMeaning,
-    promotedOutputs,
-    immediateQuestion
+    broader_work_source: normalizeSlashes(handoffPath),
+    current_checkpoint_source: normalizeSlashes(nextStepPath),
+    broader_work: broaderWork,
+    phase00_working_sequence: phase00WorkingSequence,
+    current_task_meaning: currentTaskMeaning,
+    next_step_meaning: nextStepMeaning
   });
   const nextQuestion = buildNextQuestion({
     current_task_meaning: currentTaskMeaning,
-    current_task_doc_name: currentTaskDocName,
     immediate_next_question: immediateQuestion,
-    current_task_items: activeTaskItems,
-    source_alignment: sourceAlignment,
-    remaining_foundation_outputs: remainingFoundationOutputs
+    current_task_items: currentTaskItems
   });
   const nextRecommendation = buildNextRecommendation({
     current_task_meaning: currentTaskMeaning,
-    current_task_items: activeTaskItems,
-    source_alignment: sourceAlignment,
-    remaining_foundation_outputs: remainingFoundationOutputs
+    current_task_items: currentTaskItems,
+    next_step_meaning: nextStepMeaning,
+    explicit_recommendation: explicitRecommendation
   });
 
   const broaderWorkLine = buildBroaderWorkLine({
-    currentTaskMeaning,
-    remainingFoundationOutputs,
-    activeTaskTotal: activeTaskItems.length,
-    broaderTrustTotal: broaderTrustItems.length,
-    afterThatTasks,
-    sourceAlignment
+    broader_work: broaderWork,
+    phase00_working_sequence: phase00WorkingSequence
   });
   const currentTaskLine = buildCurrentTaskLine({
-    currentTaskMeaning,
-    activeTaskTotal: activeTaskItems.length,
-    activeTaskOpen: activeTaskStateCounts.open ?? 0,
-    activeTaskCarryIn: activeTaskStateCounts["frozen-upstream-needs-incorporation"] ?? 0,
-    activeTaskThemes: activeTaskThemeList,
-    sourceAlignment,
-    remainingFoundationOutputs
+    current_task_meaning: currentTaskMeaning
   });
   const nextStepLine = buildNextStepLine({
-    nextQuestion,
-    nextRecommendation
+    next_step_meaning: nextStepMeaning,
+    next_question: nextQuestion,
+    next_recommendation: nextRecommendation
   });
 
   return {
@@ -272,24 +264,24 @@ export async function loadMissionFoundationContext(projectRoot) {
     mission_identity: missionIdentity,
     phase_mission: phaseMission,
     operating_roles: operatingRoles,
-    current_main_task_raw: currentMainTask,
+    broader_work_raw: broaderWork,
+    phase00_working_sequence: phase00WorkingSequence,
+    current_main_task_raw: currentTaskRaw,
     current_task_doc_name: currentTaskDocName,
     current_task_meaning: currentTaskMeaning,
     current_task_purpose: currentTaskPurpose,
+    next_step_meaning: nextStepMeaning,
     immediate_next_question: immediateQuestion,
-    after_that_tasks: afterThatTasks.map(humanizeTask),
-    promoted_outputs: promotedOutputs.map(humanizeTask),
-    remaining_foundation_outputs: remainingFoundationOutputs.map(humanizeTask),
     source_alignment: sourceAlignment,
     counts: {
-      active_task_total: activeTaskItems.length,
+      active_task_total: currentTaskItems.length,
       active_task_open: activeTaskStateCounts.open ?? 0,
       active_task_frozen_upstream_needs_incorporation: activeTaskStateCounts["frozen-upstream-needs-incorporation"] ?? 0,
       active_task_resolved: activeTaskStateCounts.resolved ?? 0,
       broader_trust_total: broaderTrustItems.length,
       later_document_total: laterDocumentItems.length
     },
-    current_task_items: activeTaskItems,
+    current_task_items: currentTaskItems,
     broader_trust_items: broaderTrustItems,
     later_document_items: laterDocumentItems,
     active_task_theme_list: activeTaskThemeList,
@@ -312,22 +304,23 @@ export async function loadMissionFoundationContext(projectRoot) {
       ],
       layer1_sources: [
         normalizeSlashes(missionPath),
+        normalizeSlashes(deliveryCompletionPath),
+        normalizeSlashes(systemObligationsPath),
+        normalizeSlashes(boxedComponentModelPath),
+        normalizeSlashes(handoffPath),
         normalizeSlashes(nextStepPath)
       ],
       layer2_sources: [
         normalizeSlashes(nextStepPath),
-        normalizeSlashes(openItemsPath),
-        normalizeSlashes(deliveryCompletionPath)
+        normalizeSlashes(openItemsPath)
       ],
       layer3_sources: [
         normalizeSlashes(ctoArchitecturePath)
       ]
     },
     resolved_paths: {
-      delivery_completion_definition: {
-        state: deliveryCompletionLocation.state,
-        path: normalizeSlashes(deliveryCompletionLocation.path)
-      }
+      broader_work_source: normalizeSlashes(handoffPath),
+      current_checkpoint_source: normalizeSlashes(nextStepPath)
     }
   };
 }
@@ -453,12 +446,7 @@ export function renderContextPayload(context) {
     current_layer: context.current_layer,
     current_phase_mode: context.current_phase_mode,
     major_remaining_work: buildMajorRemainingWork({
-      currentTaskMeaning: context.current_task_meaning,
-      remainingFoundationOutputs: context.remaining_foundation_outputs,
-      activeTaskTotal: context.counts.active_task_total,
-      broaderTrustTotal: context.counts.broader_trust_total,
-      afterThatTasks: context.after_that_tasks,
-      sourceAlignment: context.source_alignment
+      phase00_working_sequence: context.phase00_working_sequence
     }),
     source_alignment: context.source_alignment,
     source_docs: context.source_context.layer1_sources
@@ -633,48 +621,50 @@ function summarizeStates(items) {
   return counts;
 }
 
+function selectCurrentTaskItems(input) {
+  const activeTaskItems = input.active_task_items ?? [];
+  const laterDocumentItems = input.later_document_items ?? [];
+  const unresolvedActiveItems = activeTaskItems.filter((item) => item.state !== "resolved" && item.state !== "moved");
+  const normalizedCurrentTask = stripTrailingPunctuation(String(input.current_task_meaning ?? "")).toLowerCase();
+
+  if (unresolvedActiveItems.length > 0) {
+    return unresolvedActiveItems;
+  }
+
+  if (normalizedCurrentTask === "define who exists at the top") {
+    return laterDocumentItems.filter((item) => {
+      const haystack = `${item.title} ${item.target_document}`.toLowerCase();
+      return haystack.includes("top-level governing-entity")
+        || haystack.includes("filename")
+        || haystack.includes("final shape");
+    });
+  }
+
+  return unresolvedActiveItems;
+}
+
 function summarizeActiveTaskThemes(items) {
   const themes = [];
   for (const item of items) {
     const lower = item.title.toLowerCase();
-    if (lower.includes("trust wording")) {
-      themes.push("the final trust wording");
+    if (lower.includes("entity set")) {
+      themes.push("the minimum top-level entity set");
       continue;
     }
-    if (lower.includes("final wording of `complete`") || lower.includes("final wording of complete")) {
-      themes.push("the exact definition of complete");
+    if (lower.includes("workflow detail")) {
+      themes.push("the boundary between top entities and later workflow detail");
       continue;
     }
-    if (lower.includes("terminal outcomes")) {
-      themes.push("truthful non-complete terminal outcomes");
+    if (lower.includes("component derivation")) {
+      themes.push("the boundary between top entities and later component derivation");
       continue;
     }
-    if (lower.includes("production tree")) {
-      themes.push("how explicit completion should be about production return");
+    if (lower.includes("durable state")) {
+      themes.push("how Durable state belongs at the top boundary");
       continue;
     }
-    if (lower.includes("certification basis")) {
-      themes.push("the certification basis for CTO signoff");
-      continue;
-    }
-    if (lower.includes("hidden heroics")) {
-      themes.push("whether hidden heroics must be banned explicitly");
-      continue;
-    }
-    if (lower.includes("queryability") || lower.includes("resumability") || lower.includes("fire-and-forget")) {
-      themes.push("how explicitly to name queryability and safe resumability");
-      continue;
-    }
-    if (lower.includes("human testing")) {
-      themes.push("whether required human testing must be named directly");
-      continue;
-    }
-    if (lower.includes("ceo need not understand")) {
-      themes.push("whether the CEO boundary should be stated directly");
-      continue;
-    }
-    if (lower.includes("incorporate")) {
-      themes.push("bringing already-frozen boundary conditions fully into the document");
+    if (lower.includes("naming") || lower.includes("filename") || lower.includes("final shape")) {
+      themes.push("whether naming changes meaning or is only presentation");
     }
   }
 
@@ -683,154 +673,80 @@ function summarizeActiveTaskThemes(items) {
 
 function buildGapQuestion(item) {
   const lower = item.title.toLowerCase();
-  if (lower.includes("trust wording")) {
-    return "What exact minimum trust condition must be true before the CEO can rely on a CTO completion claim without extra checking or rescue";
+  if (lower.includes("entity set")) {
+    return "What is the minimum top-level governing entity set phase 00 must freeze first";
   }
-  if (lower.includes("final wording of `complete`") || lower.includes("final wording of complete")) {
-    return "What exact sentence should define complete";
+  if (lower.includes("workflow detail")) {
+    return "Where is the line between top entities and later workflow detail";
   }
-  if (lower.includes("terminal outcomes")) {
-    return "How should truthful non-complete terminal outcomes be named";
+  if (lower.includes("component derivation")) {
+    return "Where is the line between top entities and later component derivation";
   }
-  if (lower.includes("production tree")) {
-    return "How explicit should the completion definition be about return into the production tree";
+  if (lower.includes("durable state")) {
+    return "How should Durable state appear at the top boundary";
   }
-  if (lower.includes("certification basis")) {
-    return "Should the document say explicitly that certification must rest on governed system truth";
-  }
-  if (lower.includes("hidden heroics")) {
-    return "Should the delivery boundary explicitly ban hidden heroics";
-  }
-  if (lower.includes("queryability") || lower.includes("resumability") || lower.includes("fire-and-forget")) {
-    return "How explicit should the document be about queryability, resumability, and error-only upward surfacing";
-  }
-  if (lower.includes("human testing")) {
-    return "Should required human testing be named explicitly as part of trustworthy approval readiness";
-  }
-  if (lower.includes("ceo need not understand")) {
-    return "Should the completion definition state directly that the CEO need not understand the internal route";
-  }
-  if (lower.includes("incorporate")) {
-    return "Which already-frozen boundary conditions still need to be pulled fully into the completion definition";
+  if (lower.includes("naming") || lower.includes("filename") || lower.includes("final shape")) {
+    return "Does any naming choice here change governing meaning, or is it only presentation";
   }
   return `What decision is still needed for ${item.title.toLowerCase()}`;
 }
 
 function buildGapRecommendation(item) {
   const lower = item.title.toLowerCase();
-  if (lower.includes("trust wording")) {
-    return buildNarrowTrustRecommendation();
+  if (lower.includes("entity set")) {
+    return "freeze only the top-level entities needed to define the governing surface, and leave lower-layer structure for the later passes";
   }
-  if (lower.includes("final wording of `complete`") || lower.includes("final wording of complete")) {
-    return "define complete as a trustworthy return into the production tree that the CTO can certify upward without leaked burden";
+  if (lower.includes("workflow detail")) {
+    return "state the top boundary only, then defer movement and route shape to the workflow pass";
   }
-  if (lower.includes("terminal outcomes")) {
-    return "name truthful non-complete outcomes explicitly, keep them legitimate, and do not let them weaken the meaning of complete";
+  if (lower.includes("component derivation")) {
+    return "name what must exist at the top, but do not derive the component map until the workflow pass is clear";
   }
-  if (lower.includes("production tree")) {
-    return "say it directly so completion cannot be confused with a worktree-only or pre-merge state";
+  if (lower.includes("durable state")) {
+    return "keep Durable state explicit at the top only if it is a true governing entity or boundary, not just an implementation support detail";
   }
-  if (lower.includes("certification basis")) {
-    return "state it explicitly so completion cannot rest on informal belief or manual reconstruction";
-  }
-  if (lower.includes("hidden heroics")) {
-    return "name it explicitly because invisible rescue work breaks trust at the delivery boundary";
-  }
-  if (lower.includes("queryability") || lower.includes("resumability") || lower.includes("fire-and-forget")) {
-    return "name queryability and safe resumability directly, while keeping operational mechanics out of this document";
-  }
-  if (lower.includes("human testing")) {
-    return "state required human testing explicitly whenever approval readiness depends on it";
-  }
-  if (lower.includes("ceo need not understand")) {
-    return "keep the CEO boundary explicit if it helps preserve the meaning of trustworthy completion";
-  }
-  if (lower.includes("incorporate")) {
-    return "pull the already-frozen delivery-boundary conditions into the document before freezing new wording";
+  if (lower.includes("naming") || lower.includes("filename") || lower.includes("final shape")) {
+    return "only freeze a naming choice if it changes boundary or behavior; otherwise keep the task focused on meaning";
   }
   return "resolve the gap explicitly before declaring the definition ready";
 }
 
 function buildSourceAlignment(input) {
-  const currentTaskPromoted = Boolean(
-    input.currentTaskDocName
-    && input.promotedOutputs.includes(input.currentTaskDocName)
-  );
-
-  if (currentTaskPromoted) {
-    return {
-      handoff_needs_refresh: true,
-      reason: `${input.currentTaskDocName} is already promoted in layer-root canon, so the older handoff no longer names the current active output explicitly.`
-    };
-  }
-
   return {
-    handoff_needs_refresh: false,
-    reason: ""
+    mode: "canonical-handoff-plus-checkpoint-companion",
+    canonical_startup_source: input.broader_work_source,
+    checkpoint_companion_source: input.current_checkpoint_source,
+    broader_work_present: Boolean(input.broader_work),
+    current_sequence_present: Array.isArray(input.phase00_working_sequence) && input.phase00_working_sequence.length > 0,
+    current_task_present: Boolean(input.current_task_meaning),
+    next_step_present: Boolean(input.next_step_meaning)
   };
 }
 
 function buildMajorRemainingWork(input) {
-  const work = [];
-
-  if (!input.sourceAlignment.handoff_needs_refresh && input.currentTaskMeaning) {
-    work.push(input.currentTaskMeaning);
-  }
-
-  if (input.broaderTrustTotal > 0) {
-    work.push("settle the broader trust model");
-  }
-
-  for (const output of input.remainingFoundationOutputs) {
-    work.push(humanizeTask(output));
-  }
-
-  for (const task of input.afterThatTasks) {
-    work.push(humanizeTask(task));
-  }
-
-  return uniqueList(work).filter(Boolean);
+  return uniqueList((input.phase00_working_sequence ?? []).map(humanizeTask)).filter(Boolean);
 }
 
 function buildBroaderWorkLine(input) {
-  const majorWorkText = buildExecutiveRemainingWorkText(input);
-
-  if (input.sourceAlignment.handoff_needs_refresh) {
-    return `Broader work: v2 is still in mission-foundation, and canon has advanced past the last recorded handoff. To finish this stage, we still need to close ${majorWorkText}.`;
+  const broaderWork = stripTrailingPunctuation(input.broader_work);
+  if (broaderWork) {
+    return `Broader work: ${broaderWork}.`;
   }
 
-  return `Broader work: v2 is still in mission-foundation. To finish this stage, we still need to close ${majorWorkText}.`;
+  const sequence = joinWithCommasAnd((input.phase00_working_sequence ?? []).map(humanizeTask));
+  return `Broader work: finish phase 00 by moving through ${sequence}.`;
 }
 
 function buildCurrentTaskLine(input) {
-  if (input.sourceAlignment.handoff_needs_refresh) {
-    const nextOutput = input.remainingFoundationOutputs[0]
-      ? humanizeTask(input.remainingFoundationOutputs[0])
-      : "name the next mission-foundation output explicitly";
-    return `Current task: the last handoff still points at ${input.currentTaskMeaning}, but that output is already promoted. The current checkpoint now needs to make ${nextOutput} explicit as the active output.`;
-  }
-
-  const bottleneck = describeTaskBottleneck(input.currentTaskMeaning, input.activeTaskThemes);
-  if (input.activeTaskCarryIn > 0) {
-    return `Current task: we are trying to freeze ${describeTaskAsNoun(input.currentTaskMeaning)}. The active bottleneck is ${bottleneck}, while already-frozen boundary conditions still need to be folded in cleanly.`;
-  }
-  return `Current task: we are trying to freeze ${describeTaskAsNoun(input.currentTaskMeaning)}. The active bottleneck is ${bottleneck}.`;
+  return `Current task: ${lowercaseInitialPhrase(input.current_task_meaning)}.`;
 }
 
 function buildNextStepLine(input) {
-  return `Next step: ${input.nextQuestion}. Recommendation: ${input.nextRecommendation}.`;
-}
-
-function buildNarrowTrustRecommendation() {
-  return "freeze it narrowly: completion is trustworthy only when the CEO can rely on the CTO claim without extra supervision, reconstruction, or rescue, and without silent scope drift. Keep broader trust scoring and governance in the separate trust model";
-}
-
-function buildCheckpointRefreshQuestion(remainingFoundationOutputs) {
-  if (remainingFoundationOutputs.length === 0) {
-    return "refresh the checkpoint so the next active mission-foundation output is explicit";
-  }
-
-  return `refresh the checkpoint so the next active output is ${humanizeTask(remainingFoundationOutputs[0])}`;
+  const nextStep = lowercaseInitialPhrase(input.next_step_meaning);
+  const fallback = stripTrailingPunctuation(input.next_question);
+  const recommendation = stripTrailingPunctuation(input.next_recommendation);
+  const stepText = nextStep || fallback || "take the next explicit checkpoint move";
+  return `Next step: ${stepText}.${recommendation ? ` Recommendation: ${recommendation}.` : ""}`;
 }
 
 function buildGenericRecommendation() {
@@ -838,17 +754,10 @@ function buildGenericRecommendation() {
 }
 
 function buildNextQuestion(context) {
-  const currentTaskMeaning = context.current_task_meaning ?? context.currentTaskMeaning ?? "";
   const immediateQuestion = context.immediate_next_question ?? context.immediateQuestion ?? "";
   const currentTaskItems = context.current_task_items ?? context.currentTaskItems ?? [];
-  const sourceAlignment = context.source_alignment ?? context.sourceAlignment ?? { handoff_needs_refresh: false };
-  const remainingFoundationOutputs = context.remaining_foundation_outputs ?? context.remainingFoundationOutputs ?? [];
-
-  if (sourceAlignment.handoff_needs_refresh) {
-    return buildCheckpointRefreshQuestion(remainingFoundationOutputs);
-  }
-  if (currentTaskMeaning === "define what complete means at the delivery boundary") {
-    return "can the CEO rely on a CTO completion claim without extra checking, supervision, or rescue";
+  if (isFilled(immediateQuestion)) {
+    return humanizeQuestion(immediateQuestion);
   }
   const firstGap = currentTaskItems.find((item) => item.state !== "resolved" && item.state !== "moved");
   if (firstGap) {
@@ -858,19 +767,14 @@ function buildNextQuestion(context) {
 }
 
 function buildNextRecommendation(context) {
-  const currentTaskMeaning = context.current_task_meaning ?? context.currentTaskMeaning ?? "";
+  const currentTaskMeaning = stripTrailingPunctuation(context.current_task_meaning ?? context.currentTaskMeaning ?? "").toLowerCase();
   const currentTaskItems = context.current_task_items ?? context.currentTaskItems ?? [];
-  const sourceAlignment = context.source_alignment ?? context.sourceAlignment ?? { handoff_needs_refresh: false };
-  const remainingFoundationOutputs = context.remaining_foundation_outputs ?? context.remainingFoundationOutputs ?? [];
-
-  if (sourceAlignment.handoff_needs_refresh) {
-    const nextOutput = remainingFoundationOutputs[0]
-      ? humanizeTask(remainingFoundationOutputs[0])
-      : "the next active mission-foundation output";
-    return `save one explicit checkpoint decision that names ${nextOutput} as the next active output, so canon and handoff stop diverging`;
+  const explicitRecommendation = context.explicit_recommendation ?? context.explicitRecommendation ?? "";
+  if (isFilled(explicitRecommendation)) {
+    return humanizeQuestion(explicitRecommendation);
   }
-  if (currentTaskMeaning === "define what complete means at the delivery boundary") {
-    return buildNarrowTrustRecommendation();
+  if (currentTaskMeaning === "define who exists at the top") {
+    return "keep it thin: define only the top-level entities and their high-level boundaries, and leave workflow, component, connection, and trust detail to later passes";
   }
   const firstGap = currentTaskItems.find((item) => item.state !== "resolved" && item.state !== "moved");
   if (firstGap) {
@@ -979,6 +883,80 @@ function extractBulletsAfterLabel(text, label) {
     .map((line) => cleanInlineCode(line.replace(/^-+\s*/, "").trim()));
 }
 
+function extractBulletsFromHeading(text, heading) {
+  const section = extractSectionFromHeadingLine(text, heading);
+  if (!section) {
+    return [];
+  }
+
+  return section
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "))
+    .map((line) => cleanInlineCode(line.replace(/^-+\s*/, "").trim()));
+}
+
+function extractLeadParagraphFromHeading(text, heading) {
+  const section = extractSectionFromHeadingLine(text, heading);
+  if (!section) {
+    return "";
+  }
+
+  const line = section
+    .split(/\r?\n/)
+    .map((part) => part.trim())
+    .find((part) => part.length > 0 && !part.startsWith("-") && !part.startsWith("###"));
+
+  return line ?? "";
+}
+
+function extractSupportingParagraphFromHeading(text, heading) {
+  const section = extractSectionFromHeadingLine(text, heading);
+  if (!section) {
+    return "";
+  }
+
+  const paragraphs = section
+    .split(/\r?\n\r?\n/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0 && !part.startsWith("-") && !part.startsWith("###"));
+
+  return paragraphs[1] ?? "";
+}
+
+function extractNumberedItemsFromHeading(text, heading) {
+  const section = extractSectionFromHeadingLine(text, heading);
+  if (!section) {
+    return [];
+  }
+
+  return section
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .map((line) => /^\d+\.\s+(.+)$/.exec(line)?.[1] ?? null)
+    .filter(Boolean)
+    .map(cleanInlineCode);
+}
+
+function extractSectionFromHeadingLine(text, heading) {
+  const lines = String(text).split(/\r?\n/);
+  const startIndex = lines.findIndex((line) => line.trim() === heading);
+  if (startIndex < 0) {
+    return "";
+  }
+
+  let endIndex = lines.length;
+  for (let index = startIndex + 1; index < lines.length; index += 1) {
+    const trimmed = lines[index].trim();
+    if ((trimmed.startsWith("## ") || trimmed.startsWith("### ")) && trimmed !== heading) {
+      endIndex = index;
+      break;
+    }
+  }
+
+  return lines.slice(startIndex + 1, endIndex).join("\n").trim();
+}
+
 function extractBulletsAfterPhrase(text, phrase) {
   const pattern = new RegExp(`${escapeRegex(phrase)}:\\s*\\r?\\n((?:-\\s+[^\\n]+\\r?\\n?)+)`);
   const match = pattern.exec(text);
@@ -1062,38 +1040,16 @@ function joinWithCommasAnd(items) {
   return `${filtered.slice(0, -1).join(", ")}, and ${filtered[filtered.length - 1]}`;
 }
 
-function buildExecutiveRemainingWorkText(input) {
-  const majorRemainingWork = buildMajorRemainingWork(input);
-  const currentTaskMeaning = input.currentTaskMeaning;
-  const includesCurrentTask = majorRemainingWork.includes(currentTaskMeaning);
-  const otherWork = majorRemainingWork.filter((item) => item !== currentTaskMeaning);
-  const remainingFoundationDefinitions = otherWork.filter((item) =>
-    item === "define system obligations"
-    || item === "define the boxed component model"
-    || item === "define the role model"
-    || item === "define the workflow model"
-  );
-  const otherNamedWork = otherWork.filter((item) => !remainingFoundationDefinitions.includes(item));
-  const parts = [];
+function stripTrailingPunctuation(value) {
+  return String(value ?? "").trim().replace(/[.?!:;]+$/g, "").trim();
+}
 
-  if (includesCurrentTask) {
-    parts.push("what complete means at the delivery boundary");
+function lowercaseInitialPhrase(value) {
+  const cleaned = stripTrailingPunctuation(value);
+  if (!cleaned) {
+    return "";
   }
-
-  if (otherNamedWork.includes("settle the broader trust model")) {
-    parts.push("the broader trust model");
-  }
-
-  if (remainingFoundationDefinitions.length > 0) {
-    parts.push("the remaining foundation documents");
-  }
-
-  const leftoverNamedWork = otherNamedWork.filter((item) => item !== "settle the broader trust model");
-  for (const item of leftoverNamedWork) {
-    parts.push(item);
-  }
-
-  return joinWithCommasAnd(parts);
+  return cleaned.charAt(0).toLowerCase() + cleaned.slice(1);
 }
 
 function cleanInlineCode(value) {

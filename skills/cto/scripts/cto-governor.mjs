@@ -138,7 +138,15 @@ async function emitResult(payload, outputFile) {
 function detectRoute(prompt) {
   const normalized = String(prompt).toLowerCase();
 
-  if (normalized.includes("current status") && normalized.includes("v2")) {
+  if (
+    normalized.includes("v2")
+    && (
+      normalized.includes("current status")
+      || normalized.includes("next step")
+      || normalized.includes("what should we do next")
+      || normalized.includes("where are we")
+    )
+  ) {
     return {
       name: "status",
       helper_action: "status",
@@ -218,6 +226,7 @@ function detectWorkflowMode(normalizedPrompt) {
     normalizedPrompt.includes("status")
     || normalizedPrompt.includes("state")
     || normalizedPrompt.includes("where are we")
+    || normalizedPrompt.includes("next step")
   ) {
     return "executive-status";
   }
