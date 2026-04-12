@@ -65,7 +65,7 @@ That means:
 - upward reporting should surface only the governed state the CEO needs:
   - progress when asked
   - pushback or blockage when a real decision is needed
-  - truthful terminal outcomes such as complete, blocked, or pushback
+  - truthful terminal outcomes such as complete, or blocked with the relevant reason
 
 If the CEO has to understand the internal route just to know whether delivery is safe to rely on, the boundary is not working correctly.
 

@@ -139,9 +139,18 @@ Not every truthful terminal result is completion.
 This document assumes that the delivery service may also end in legitimate non-complete terminal states.
 
 Examples at high level:
-- blocked
-- pushback required
-- other truthful non-complete terminal outcomes
+- blocked with the relevant reason
+
+Examples of blocked reasons at high level:
+- pushback
+- waiting for user verification
+- missing input
+- failed
+- cancelled
+- superseded
+
+Not all components are required to support the same blocked reasons.
+The valid blocked reasons depend on the component and boundary.
 
 The important rule is:
 - a non-complete result must still be truthful
@@ -213,7 +222,7 @@ Examples of later obligation topics:
 This draft still leaves some delivery-specific questions open:
 
 - what exact wording should be used for the final definition of complete
-- how should legitimate non-complete terminal results be named in the final document
+- how should blocked reasons be framed in the final document without inflating the top-level terminal-state model
 - how explicit should the final document be about merge-to-main as the true end of completion
 - whether any additional delivery-boundary trust conditions still need to be named explicitly here
 
