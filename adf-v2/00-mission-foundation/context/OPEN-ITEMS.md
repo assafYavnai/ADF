@@ -18,8 +18,10 @@ Use it when:
 
 Each item should say:
 - current state
-- why it is open
+- rationale
 - target document
+
+For resolved items, the rationale may record the issue the item was tracking rather than restating a still-open problem.
 
 State meanings:
 - `open` = still unresolved
@@ -34,10 +36,10 @@ State meanings:
 ### O-001 - Final narrow trust wording for delivery completion
 
 State:
-- `open`
+- `resolved`
 
-Why it is open:
-- `DELIVERY-COMPLETION-DEFINITION.md` still needs one final freeze-ready statement of delivery-boundary trust
+Rationale:
+- resolved in `DELIVERY-COMPLETION-DEFINITION.md` by making the no-leak rule explicit above governed execution while keeping the trust wording narrow
 
 Target document:
 - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`
@@ -152,7 +154,7 @@ State:
 - `resolved`
 
 Why it is open:
-- the mission material already implies required human testing before approval, but the delivery-completion wording has not yet decided how explicitly to name it as a trust-preservation condition of approval readiness
+- this item tracked whether the delivery-completion wording should name required human testing explicitly before upward `complete` certification
 
 Target document:
 - `context/artifacts/DELIVERY-COMPLETION-DEFINITION.md`

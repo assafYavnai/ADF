@@ -20,9 +20,11 @@ Current branch state:
 - the first draft of `DELIVERY-COMPLETION-DEFINITION.md` now exists
 - delivery-boundary trust decisions `D-037` and `D-038` now exist
 - `context/OPEN-ITEMS.md` now exists as the canonical parking and checklist file for mission-foundation open items
+- later delivery-boundary decisions `D-039` through `D-046` are committed
+- the current pass is aligning the delivery-completion draft, the open-item register, and the handoff files with the latest frozen decisions and review findings
 
 Current main task:
-- refine and freeze `DELIVERY-COMPLETION-DEFINITION.md`
+- close the remaining review-alignment issues on `DELIVERY-COMPLETION-DEFINITION.md` and prepare it for promotion
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -38,12 +40,11 @@ Current decision boundary:
   - `context/artifacts/TRUST-MODEL.md`
   - `context/OPEN-ITEMS.md`
 - still open:
-  - the final freeze wording of `DELIVERY-COMPLETION-DEFINITION.md`
   - the unresolved broader trust-model questions parked in `TRUST-MODEL.md`
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what exact final delivery-boundary definition of trust should appear in `DELIVERY-COMPLETION-DEFINITION.md`, now that justified CEO doubt and scope fidelity are frozen as part of that boundary, without widening back into the full trust model
+- whether `DELIVERY-COMPLETION-DEFINITION.md` should now be promoted after the current review-alignment pass is verified
 
 Do-not-repeat rules for the next agent:
 - do not treat `TRUST-MODEL.md` as frozen canon

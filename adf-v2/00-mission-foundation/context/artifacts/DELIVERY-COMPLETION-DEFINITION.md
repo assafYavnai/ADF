@@ -19,11 +19,13 @@ Its job is to give the next agent a real artifact to refine and freeze, instead 
 
 ## Document Boundary
 
-This document defines the external service meaning of delivery completion for the:
+This document defines the external service meaning of delivery completion for the canonical mission-foundation role set:
 
 - CEO
 - CTO
-- governed development team
+- Scripts
+- Agents
+- Durable state
 
 It is intentionally:
 - high level
@@ -44,7 +46,7 @@ The delivery service begins only after the CTO has shaped a well-defined impleme
 
 ## Core Definition
 
-Delivery is complete when the requested artifact has been returned into the production tree as a truly complete, production-ready result, without leaked operational burden past CTO governance back to the CEO.
+Delivery is complete when the requested artifact has been returned into the production tree as a truly complete, production-ready result, with no leaked operational burden remaining above governed execution after completion is declared upward.
 
 Completion is therefore not defined only by:
 - route closure
@@ -53,6 +55,7 @@ Completion is therefore not defined only by:
 
 Completion is defined by a trustworthy returned result.
 After handoff, the system owns the route until it reaches a truthful terminal result.
+If hidden supervision, repair, or reconstruction would still remain on the CTO after upward declaration, completion is not yet true even if that burden has not reached the CEO.
 
 ---
 
@@ -66,7 +69,7 @@ At high level, `complete` means all of the following are true:
 4. the return is truthful, not merely nominal
 5. the working environment is clean
 6. no delivery-boundary trust condition has failed
-7. the result does not depend on hidden follow-up work from above
+7. no hidden operational burden remains on the CTO, the CEO, or any other layer above governed execution
 8. the CTO can truthfully certify the result upward from governed system truth rather than belief, memory, or manual reconstruction
 
 If any of those are not true, the result is not fully complete.
@@ -95,7 +98,7 @@ It does not mean merely:
 For this document, trust means only the delivery-boundary condition required for completion.
 
 That narrow meaning is:
-- the CEO can rely on the CTO completion claim without needing to supervise, verify, reconstruct, repair, or understand the internal route manually
+- after the CTO declares completion upward, neither the CTO nor the CEO should need to supervise, verify, reconstruct, repair, or understand the internal route manually in order for completion to remain true
 - the returned result stays faithful to the approved implementation request package rather than silently changing its meaning
 - the route remains queryable and safely resumable while it is still in progress
 - internal problems may happen, but they must be contained before completion is declared upward
@@ -113,11 +116,13 @@ Those belong to the separate trust model and later system obligations.
 
 ## What Must Be True Before Completion Can Be Declared
 
+In this document, the relevant upward declaration is the CTO certifying the returned result upward as `complete`.
+
 Before completion can be declared upward, all of the following must be true:
 
 - the requested artifact exists in the production tree
 - the artifact is production-ready at the level promised
-- required human testing has been completed before approval
+- required human testing has been completed before the CTO certifies the result upward as `complete`
 - internal execution pushback has been contained and governed
 - implementation state remained queryable and safely resumable throughout the route
 - no broken status, state, or leftover operational damage remains
@@ -128,7 +133,9 @@ Before completion can be declared upward, all of the following must be true:
 
 ## What Must Not Remain Afterward
 
-Completion must not leave hidden burden for the CEO.
+Completion must not leave hidden burden above governed execution.
+
+After completion is declared upward, no hidden operational burden may remain on the CTO, the CEO, or any other layer above governed execution.
 
 That includes:
 - manual cleanup
@@ -142,7 +149,7 @@ That includes:
 - hidden doubt about whether the return is actually trustworthy
 - invisible person-specific rescue work or hidden heroics that were required to make completion appear true
 
-If those still remain, completion has not really happened.
+If those still remain, completion has not really happened, even if the burden would have stayed only on the CTO.
 
 ---
 
@@ -236,14 +243,6 @@ Examples of later obligation topics:
 
 ---
 
-## Open Questions Still To Freeze
-
-This draft still leaves some delivery-specific questions open:
-
-These should be resolved in the freeze pass for this document.
-
----
-
 ## One-Sentence Draft Summary
 
-In ADF v2, delivery is complete only when the requested artifact has been returned into the production tree as a truly production-ready result that the CTO can certify upward truthfully, with no hidden operational burden leaking past CTO governance back to the CEO.
+In ADF v2, delivery is complete only when the requested artifact has been returned into the production tree as a truly production-ready result that the CTO can certify upward truthfully, with no hidden operational burden remaining above governed execution after that declaration.
