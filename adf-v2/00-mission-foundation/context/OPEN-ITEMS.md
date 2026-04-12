@@ -171,6 +171,19 @@ Why it is open:
 Target document:
 - `DELIVERY-COMPLETION-DEFINITION.md`
 
+### O-011 - Resolve sibling-doc status wording mismatch before freezing the top-level governing-entity document
+
+State:
+- `open`
+
+Why it is open:
+- `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are described in handoff and decisions as frozen promoted outputs, but their own document headers still say `first-draft working artifact`
+- the top-level governing-entity freeze-read should not ignore that sibling-doc state mismatch
+
+Target document:
+- `SYSTEM-OBLIGATIONS.md`
+- `BOXED-COMPONENT-MODEL.md`
+
 ---
 
 ## Broader Trust-Model Open Items
@@ -330,7 +343,8 @@ State:
 - `open`
 
 Why it is open:
-- the current task is to define who exists at the top, but the exact filename and final document-shape wording should not replace that real task in startup answers
+- a first working draft now exists at `context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`, but the final promoted filename and final freeze shape are not yet approved
+- the current task is still the governing meaning, not only the presentation choice
 
 Target document:
-- `TBD thin top-level governing-entity document`
+- `context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`

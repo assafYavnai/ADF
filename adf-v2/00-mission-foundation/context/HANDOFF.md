@@ -107,6 +107,7 @@ The current authoritative foundation package already includes:
 
 The main remaining draft artifacts in this layer are:
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
+- `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 This means the next session should continue from the existing mission-foundation package, not restart mission drafting from scratch.
@@ -153,17 +154,20 @@ Finish phase `00` from outside to inside:
 
 ### Current task
 
-Define who exists at the top.
+Review and freeze the drafted definition of who exists at the top.
 
-This is not yet the workflow model, the component inventory, the connection model, or the trust freeze pass.
-It is the thin top-level governing-entity definition only.
+A first working draft now exists in:
+- `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
+
+This is still not yet the workflow model, the component inventory, the connection model, or the trust freeze pass.
+It remains the thin top-level governing-entity definition only.
 
 ### Next step
 
-Shape and freeze the thin top-level governing-entity document:
-- define the top-level entities for phase `1`
-- define their boundaries at the same high level
-- do not widen into workflows, components, connection topology, or trust mechanics
+Run the freeze-read on the current thin top-level governing-entity draft and freeze it if approved:
+- confirm the phase `1` top-level entities are correct
+- confirm their boundaries stay at the same high level
+- keep workflow, component, connection, and trust detail out of the document
 
 The exact filename is still open and should not replace the real current task in startup answers.
 
@@ -190,7 +194,7 @@ It should do exactly this:
 2. Use `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` in the layer root as frozen mission-foundation source of truth.
 3. Keep broader trust-model questions in `context/artifacts/TRUST-MODEL.md`.
 4. Keep out-of-scope but important items in `context/OPEN-ITEMS.md`.
-5. Use the current working completion sequence below as the restart frame for finishing phase `00`.
+5. Use the current working completion sequence below as the restart frame for finishing phase `00`, starting from the existing top-level governing-entity draft rather than recreating it from scratch.
 
 ## Current Working Completion Sequence For Phase `00`
 
@@ -198,8 +202,8 @@ This is the current recommended list for finishing the mission-foundation layer.
 
 It is a working sequence, not yet a frozen decision.
 
-1. define the top-level governing entities and boundaries
-   this is the thin high-level doc for who exists at the top
+1. define and freeze the top-level governing entities and boundaries
+   the first working draft for this thin high-level doc now exists
 2. define the main workflows
    example: request -> shaping -> execution -> verification -> return as `complete` or `blocked`
 3. derive the needed building blocks from those workflows
@@ -283,6 +287,7 @@ The exact later filenames can still evolve, but the current growth pattern is:
 - `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
+- `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
 - `adf-v2/00-mission-foundation/context/artifacts/SYSTEM-OBLIGATIONS.md`
 - `adf-v2/00-mission-foundation/context/artifacts/BOXED-COMPONENT-MODEL.md`
 - `adf-v2/01-architecture/ARCHITECTURE.md`
@@ -302,4 +307,4 @@ The naming goal is:
 ADF v2 mission foundation is already underway.
 
 Do not restart mission drafting from scratch.
-Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, and use the current working completion sequence to finish phase `00` without reviving the old `ROLE-MODEL.md` assumption.
+Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, start from the current `TOP-LEVEL-GOVERNING-ENTITIES.md` draft, and use the working completion sequence to finish phase `00` without reviving the old `ROLE-MODEL.md` assumption.
