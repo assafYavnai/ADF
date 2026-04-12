@@ -27,6 +27,7 @@ Current branch state:
 - `context/artifacts/BOXED-COMPONENT-MODEL.md` now exists as the first working draft for the shared boxed-component structure
 - decision `D-051` records the approved boxed-component structural baseline
 - decision `D-052` records that all boxes use one universal outer JSON envelope with nested box-specific payload content
+- decision `D-053` records that all boxes inherit one governed shared layout with standard areas for contracts, runtime state, audit history, tests, and internal artifacts
 
 Current main task:
 - shape and freeze `BOXED-COMPONENT-MODEL.md`
@@ -50,7 +51,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what high-level shared layout rules every box must inherit before `BOXED-COMPONENT-MODEL.md` can freeze
+- what standard cross-box field families the universal outer JSON envelope must contain before `BOXED-COMPONENT-MODEL.md` can freeze
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon

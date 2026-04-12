@@ -75,7 +75,7 @@ The current approved structural baseline for boxes is:
 3. every box uses one universal outer JSON envelope with standard fields, and box-specific content lives inside a nested payload section
 4. every box output includes KPI truth for the current invocation
 5. every box preserves durable long-term audit evidence and change history for later inspection
-6. every box follows a shared structural layout so components look and behave consistently at the governance level
+6. every box follows a shared structural layout with standard governed areas for contracts, runtime state, audit history, tests, and internal artifacts
 7. every box is self-contained inside its own governed folder or module boundary
 8. outward interaction happens only through authoritative contracts plus approved shared system tools
 9. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
@@ -161,7 +161,16 @@ The purpose of that layout is:
 - consistent audit access
 - consistent automation and tooling
 
-This document should freeze that a common layout is required.
+Recommendation now approved:
+- every box inherits one governed shared layout
+- that layout must provide standard areas for:
+  - contracts
+  - runtime state
+  - audit history
+  - tests
+  - internal artifacts
+
+This document should freeze that a common layout is required and what high-level areas it must contain.
 The exact folder names, file names, and storage arrangement can be specialized later if needed, as long as the shared governance shape remains consistent.
 
 ---
