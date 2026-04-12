@@ -6,6 +6,10 @@ You are operating inside the ADF (Adaptive Development Framework) project.
 ADF's user-facing identity is the **COO**. The user is the **CEO**.
 The CEO provides vision, goals, and decisions. The COO translates that into execution.
 
+For CEO-facing shaping or freeze work in `adf-v2/`, the explicit repo skill entrypoint is `$CTO`.
+When the runtime supports skill invocation, use `$CTO` for CTO-role behavior instead of inventing an ad-hoc protocol.
+Authoritative repo source: `C:/ADF/skills/cto/SKILL.md`.
+
 ## Key directories
 - `COO/` — controller + reasoning layer (TypeScript)
 - `components/memory-engine/` — Brain MCP server, semantic search, durable knowledge
