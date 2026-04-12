@@ -73,12 +73,13 @@ The current approved structural baseline for boxes is:
    - audit and checkpoint surface
    - KPI and reporting surface
 3. every box uses one universal outer JSON envelope with standard fields, and box-specific content lives inside a nested payload section
-4. every box output includes KPI truth for the current invocation
-5. every box preserves durable long-term audit evidence and change history for later inspection
-6. every box follows a shared structural layout with standard governed areas for contracts, runtime state, audit history, tests, and internal artifacts
-7. every box is self-contained inside its own governed folder or module boundary
-8. outward interaction happens only through authoritative contracts plus approved shared system tools
-9. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
+4. the universal outer envelope must provide standard field families for identity, status, blocked, payload, KPI, audit refs, checkpoint refs, and contract version
+5. every box output includes KPI truth for the current invocation
+6. every box preserves durable long-term audit evidence and change history for later inspection
+7. every box follows a shared structural layout with standard governed areas for contracts, runtime state, audit history, tests, and internal artifacts
+8. every box is self-contained inside its own governed folder or module boundary
+9. outward interaction happens only through authoritative contracts plus approved shared system tools
+10. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
 
 This approved baseline is the working reading guide for the sections below.
 
@@ -109,6 +110,15 @@ Recommendation now approved:
 - the outer envelope is universal across boxes
 - standard cross-box fields live in that envelope
 - box-specific content lives inside a nested payload section
+- the envelope must provide standard field families for:
+  - identity
+  - status
+  - blocked
+  - payload
+  - KPI
+  - audit refs
+  - checkpoint refs
+  - contract version
 
 This means:
 - contract consistency should come from the common outer shape

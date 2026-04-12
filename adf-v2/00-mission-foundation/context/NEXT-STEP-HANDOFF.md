@@ -28,6 +28,7 @@ Current branch state:
 - decision `D-051` records the approved boxed-component structural baseline
 - decision `D-052` records that all boxes use one universal outer JSON envelope with nested box-specific payload content
 - decision `D-053` records that all boxes inherit one governed shared layout with standard areas for contracts, runtime state, audit history, tests, and internal artifacts
+- decision `D-054` records the standard field families the universal outer box envelope must provide
 
 Current main task:
 - shape and freeze `BOXED-COMPONENT-MODEL.md`
@@ -51,7 +52,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what standard cross-box field families the universal outer JSON envelope must contain before `BOXED-COMPONENT-MODEL.md` can freeze
+- what blocked and resolve-package field-family expectations must be universal versus optional before `BOXED-COMPONENT-MODEL.md` can freeze
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
