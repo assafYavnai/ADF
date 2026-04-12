@@ -311,7 +311,7 @@ Why it is open:
 - some trust visibility and escalation questions depend on role boundaries and should be solved where the role model is explicit
 
 Target document:
-- `ROLE-MODEL.md`
+- `TBD after workflow and component inventory sequencing is re-decided`
 
 ### O-204 - Concrete workflow topology for trust edges
 

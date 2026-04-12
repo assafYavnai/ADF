@@ -37,7 +37,7 @@ Current branch state:
 - decisions `D-062` and `D-063` record those freeze approvals and promotions
 
 Current main task:
-- shape and freeze `ROLE-MODEL.md`
+- decide the correct next post-box-model artifact and naming
 
 Current task boundary:
 - only the narrow delivery-boundary meaning of trust belongs inside `DELIVERY-COMPLETION-DEFINITION.md`
@@ -56,7 +56,7 @@ Current decision boundary:
   - the parked later-document items in `OPEN-ITEMS.md`
 
 Immediate next unresolved question:
-- what high-level role-boundary rules must be frozen before `ROLE-MODEL.md` can become the next canonical mission-foundation output
+- what document should come next after `BOXED-COMPONENT-MODEL.md`, at what abstraction level, and with what name
 
 Do-not-repeat rules for the next agent:
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
@@ -183,13 +183,13 @@ It should continue from the current drafts and frozen decisions.
 
 ### Immediate next step
 
-Use the frozen mission-foundation outputs now in the layer root to shape and freeze `ROLE-MODEL.md` as the next canonical mission-foundation output.
+Use the frozen mission-foundation outputs now in the layer root to decide the correct next artifact after `BOXED-COMPONENT-MODEL.md`.
+
+Do not assume `ROLE-MODEL.md` is the next canonical output until that sequencing and naming decision is explicitly reapproved.
 
 ### After that
 
-Then continue with:
-- `ROLE-MODEL.md`
-- `WORKFLOW-MODEL.md`
+Then continue with the next artifact sequence only after that decision is made explicitly.
 
 ---
 
@@ -215,4 +215,4 @@ Do keep doing these:
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, trust is still split between frozen boundary decisions and the broader draft trust model, and the next agent should continue with `ROLE-MODEL.md` without reopening the frozen foundation documents.
+ADF v2 mission foundation is active, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen layer outputs, trust is still split between frozen boundary decisions and the broader draft trust model, and the next agent should first re-decide the correct post-box-model artifact instead of assuming `ROLE-MODEL.md` is next.

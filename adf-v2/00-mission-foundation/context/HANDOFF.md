@@ -141,9 +141,7 @@ It should do exactly this:
 2. Use `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` in the layer root as frozen mission-foundation source of truth.
 3. Keep broader trust-model questions in `context/artifacts/TRUST-MODEL.md`.
 4. Keep out-of-scope but important items in `context/OPEN-ITEMS.md`.
-5. Continue the foundation sequence into:
-   - `ROLE-MODEL.md`
-   - `WORKFLOW-MODEL.md`
+5. Re-decide the correct next post-box-model artifact before continuing the foundation sequence.
 
 ---
 
@@ -187,12 +185,14 @@ For `OPEN-ITEMS.md`:
 
 ## Open Questions Still Outside This Handoff
 
-The biggest remaining open questions are no longer about whether v2 should exist or what the core role model is.
+The biggest remaining open questions are no longer about whether v2 should exist.
 
 They are now mostly about:
+- what the correct post-box-model artifact is
+- what abstraction level that artifact should live at
 - broader trust-model definition
 - trust thresholds and governance mechanics
-- later component, role, and workflow formalization
+- later component and workflow formalization
 
 Those should be resolved in their own artifacts, not by reopening the core mission foundation.
 
@@ -226,4 +226,4 @@ The naming goal is:
 ADF v2 mission foundation is already underway.
 
 Do not restart mission drafting from scratch.
-Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, and move next into `ROLE-MODEL.md` and then `WORKFLOW-MODEL.md`.
+Continue from the current package, treat `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, and first re-decide the correct next artifact instead of assuming `ROLE-MODEL.md`.
