@@ -535,11 +535,14 @@ function renderContextPayload(context) {
 function renderHealthPayload(context, projectRoot) {
   const selfCheck = runJsonHelper(SELF_CHECK_PATH, ["--project-root", projectRoot], projectRoot);
   const preflight = selfCheck.runtime_preflight ?? {};
+  const skillWiring = selfCheck.skill_wiring ?? {};
   const lines = [];
 
   lines.push("Yes. A few reliability issues were worth fixing around `$CTO`.");
 
-  if (selfCheck.ready) {
+  if (skillWiring.state === "pointer") {
+    lines.push("The installed Codex skill is now thin wiring back to the repo skill, so the main logic stays under ADF instead of living as a second active copy under `.codex`.");
+  } else if (selfCheck.ready) {
     lines.push("The main avoidable problem is drift between the repo copy and the installed runtime copy of the skill. Edit `skills/cto` in the repo, reinstall after meaningful changes, and run `cto-self-check` before first use in a fresh checkout.");
   } else {
     lines.push(`There are still runtime setup warnings to clear before trusting a fresh CTO run: ${joinWithCommasAnd(selfCheck.warnings ?? [])}.`);
@@ -547,7 +550,9 @@ function renderHealthPayload(context, projectRoot) {
 
   lines.push("Lifecycle drift was another real risk: governed docs can live either as draft artifacts or promoted layer-root canon. The helper now resolves both so document promotion should not break `$CTO` routes by itself.");
 
-  if (preflight.valid_json) {
+  if (preflight.valid_json && preflight.overall_status === "fail") {
+    lines.push("Runtime preflight itself is working as a truth source here: it returns usable JSON, and it is correctly reporting that the broader runtime still has blocking install or Brain issues.");
+  } else if (preflight.valid_json) {
     lines.push("Runtime preflight itself is not currently broken here. The repo launcher returns usable JSON in this checkout.");
   } else {
     lines.push("Runtime preflight is still a live problem here because the repo launcher did not return usable JSON. Recommendation: make the launcher fail closed on empty or non-JSON preflight output.");

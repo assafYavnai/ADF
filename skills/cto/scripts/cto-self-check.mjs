@@ -2,6 +2,7 @@
 
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { realpath } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -49,6 +50,7 @@ async function main() {
 
   const checkMap = Object.fromEntries(checks.map((item) => [item.name, item]));
   const deliveryResolution = resolveDeliveryState(checkMap);
+  const skillWiring = await resolveSkillWiring(repoSkillDir, installedSkillDir);
   const warnings = [];
 
   if (!checkMap.repo_skill_dir.exists || !checkMap.repo_launcher.exists) {
@@ -56,6 +58,9 @@ async function main() {
   }
   if (!checkMap.installed_skill_dir.exists || !checkMap.installed_launcher.exists) {
     warnings.push("Installed Codex skill copy is missing; `$CTO` autocomplete/runtime may not use this branch until the skill is installed.");
+  }
+  if (skillWiring.state === "separate-copy") {
+    warnings.push("Installed Codex skill is a separate copy instead of a thin pointer to the repo skill.");
   }
   if (!checkMap.working_mode_doc.exists) {
     warnings.push("CTO-CEO-WORKING-MODE.md is missing, so the skill source set is incomplete.");
@@ -72,6 +77,7 @@ async function main() {
     project_root: normalizeSlashes(projectRoot),
     codex_home: normalizeSlashes(CODEX_HOME),
     checks,
+    skill_wiring: skillWiring,
     delivery_definition_resolution: deliveryResolution,
     runtime_preflight: preflight,
     ready: warnings.length === 0,
@@ -106,6 +112,27 @@ function resolveDeliveryState(checkMap) {
   return {
     state: "missing",
     path: null
+  };
+}
+
+async function resolveSkillWiring(repoSkillDir, installedSkillDir) {
+  if (!existsSync(repoSkillDir) || !existsSync(installedSkillDir)) {
+    return {
+      state: "unresolved",
+      repo_realpath: null,
+      installed_realpath: null
+    };
+  }
+
+  const [repoRealPath, installedRealPath] = await Promise.all([
+    realpath(repoSkillDir),
+    realpath(installedSkillDir)
+  ]);
+
+  return {
+    state: normalizeSlashes(repoRealPath) === normalizeSlashes(installedRealPath) ? "pointer" : "separate-copy",
+    repo_realpath: normalizeSlashes(repoRealPath),
+    installed_realpath: normalizeSlashes(installedRealPath)
   };
 }
 

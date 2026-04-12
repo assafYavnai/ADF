@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, realpath, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -127,8 +127,16 @@ function resolveTargetRoot(target, projectRoot, explicitInstallRoot) {
   fail("Unsupported target '" + target + "'.");
 }
 
+function resolveInstallMode(target) {
+  if (target === "codex") {
+    return "pointer";
+  }
+  return "copy";
+}
+
 async function installTarget(input) {
   const { manifest, projectRoot, target, targetRoot } = input;
+  const installMode = resolveInstallMode(target);
   const copiedSkills = [];
   const removedLegacyEntries = [];
   const errors = [];
@@ -136,11 +144,13 @@ async function installTarget(input) {
 
   await mkdir(targetRoot, { recursive: true });
 
-  for (const sharedFile of manifest.data.shared_files) {
-    const sourcePath = join(skillsRoot, sharedFile);
-    const targetPath = join(targetRoot, sharedFile);
-    await ensureExists(sourcePath, "Missing shared source file '" + sourcePath + "'.");
-    await cp(sourcePath, targetPath, { force: true });
+  if (installMode === "copy") {
+    for (const sharedFile of manifest.data.shared_files) {
+      const sourcePath = join(skillsRoot, sharedFile);
+      const targetPath = join(targetRoot, sharedFile);
+      await ensureExists(sourcePath, "Missing shared source file '" + sourcePath + "'.");
+      await cp(sourcePath, targetPath, { force: true });
+    }
   }
 
   for (const skill of manifest.data.skills) {
@@ -150,19 +160,25 @@ async function installTarget(input) {
     try {
       await validateSkillSource(sourceDir, skill);
       await rm(targetDir, { recursive: true, force: true });
-      await cp(sourceDir, targetDir, { recursive: true, force: true });
-      await writeJson(join(targetDir, MARKER_NAME), {
-        target,
-        installed_at: new Date().toISOString(),
-        project_root: normalizeSlashes(projectRoot),
-        source_dir: normalizeSlashes(sourceDir),
-        target_dir: normalizeSlashes(targetDir),
-        manifest_version: manifest.data.version
-      });
+      if (installMode === "pointer") {
+        await createDirectoryPointer(sourceDir, targetDir);
+      } else {
+        await cp(sourceDir, targetDir, { recursive: true, force: true });
+        await writeJson(join(targetDir, MARKER_NAME), {
+          target,
+          installed_at: new Date().toISOString(),
+          project_root: normalizeSlashes(projectRoot),
+          source_dir: normalizeSlashes(sourceDir),
+          target_dir: normalizeSlashes(targetDir),
+          manifest_version: manifest.data.version,
+          install_mode: installMode
+        });
+      }
       copiedSkills.push({
         skill: skill.name,
         source_dir: normalizeSlashes(sourceDir),
-        target_dir: normalizeSlashes(targetDir)
+        target_dir: normalizeSlashes(targetDir),
+        install_mode: installMode
       });
     } catch (error) {
       errors.push("Failed to install '" + skill.name + "': " + describeError(error));
@@ -179,6 +195,7 @@ async function installTarget(input) {
 
   await writeJson(join(targetRoot, ROOT_MARKER_NAME), {
     target,
+    install_mode: installMode,
     installed_at: new Date().toISOString(),
     project_root: normalizeSlashes(projectRoot),
     skills_root: normalizeSlashes(skillsRoot),
@@ -202,6 +219,7 @@ async function installTarget(input) {
 
 async function checkTarget(input) {
   const { manifest, projectRoot, target, targetRoot } = input;
+  const installMode = resolveInstallMode(target);
   const warnings = [];
   const errors = [];
   const checkedSkills = [];
@@ -218,15 +236,17 @@ async function checkTarget(input) {
     };
   }
 
-  for (const sharedFile of manifest.data.shared_files) {
-    const sourcePath = join(skillsRoot, sharedFile);
-    const targetPath = join(targetRoot, sharedFile);
-    if (!(await pathExists(targetPath))) {
-      errors.push("Missing shared installed file: " + normalizeSlashes(targetPath));
-      continue;
-    }
-    if (!(await sameFileContents(sourcePath, targetPath))) {
-      errors.push("Shared file content mismatch: " + normalizeSlashes(targetPath));
+  if (installMode === "copy") {
+    for (const sharedFile of manifest.data.shared_files) {
+      const sourcePath = join(skillsRoot, sharedFile);
+      const targetPath = join(targetRoot, sharedFile);
+      if (!(await pathExists(targetPath))) {
+        errors.push("Missing shared installed file: " + normalizeSlashes(targetPath));
+        continue;
+      }
+      if (!(await sameFileContents(sourcePath, targetPath))) {
+        errors.push("Shared file content mismatch: " + normalizeSlashes(targetPath));
+      }
     }
   }
 
@@ -240,16 +260,26 @@ async function checkTarget(input) {
       if (!(await pathExists(targetDir))) {
         skillErrors.push("Missing installed skill directory.");
       } else {
-        const compare = await compareDirectories(sourceDir, targetDir, new Set([MARKER_NAME]));
-        skillErrors.push(...compare.errors);
-
-        const markerPath = join(targetDir, MARKER_NAME);
-        if (!(await pathExists(markerPath))) {
-          warnings.push("Missing install marker for " + normalizeSlashes(targetDir) + ".");
+        if (installMode === "pointer") {
+          const [sourceRealPath, targetRealPath] = await Promise.all([
+            realpath(sourceDir),
+            realpath(targetDir)
+          ]);
+          if (normalizeSlashes(sourceRealPath) !== normalizeSlashes(targetRealPath)) {
+            skillErrors.push("Installed skill directory is not a pointer to the repo skill source.");
+          }
         } else {
-          const marker = JSON.parse(await readFile(markerPath, "utf8"));
-          if (normalizeSlashes(sourceDir) !== marker.source_dir) {
-            warnings.push("Install marker source mismatch for " + normalizeSlashes(targetDir) + ".");
+          const compare = await compareDirectories(sourceDir, targetDir, new Set([MARKER_NAME]));
+          skillErrors.push(...compare.errors);
+
+          const markerPath = join(targetDir, MARKER_NAME);
+          if (!(await pathExists(markerPath))) {
+            warnings.push("Missing install marker for " + normalizeSlashes(targetDir) + ".");
+          } else {
+            const marker = JSON.parse(await readFile(markerPath, "utf8"));
+            if (normalizeSlashes(sourceDir) !== marker.source_dir) {
+              warnings.push("Install marker source mismatch for " + normalizeSlashes(targetDir) + ".");
+            }
           }
         }
       }
@@ -291,6 +321,11 @@ async function validateSkillSource(sourceDir, skill) {
     const targetPath = join(sourceDir, requiredFile);
     await ensureExists(targetPath, "Missing required source file '" + normalizeSlashes(targetPath) + "'.");
   }
+}
+
+async function createDirectoryPointer(sourceDir, targetDir) {
+  await mkdir(dirname(targetDir), { recursive: true });
+  await symlink(sourceDir, targetDir, process.platform === "win32" ? "junction" : "dir");
 }
 
 async function compareDirectories(sourceDir, targetDir, ignoredNames) {
