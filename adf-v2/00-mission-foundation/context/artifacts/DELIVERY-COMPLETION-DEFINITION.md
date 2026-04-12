@@ -38,6 +38,7 @@ It does not define:
 
 Only the narrow delivery-boundary meaning of trust belongs here.
 At the service boundary, the authoritative input and output package form is JSON payloads with the relevant defined fields.
+The delivery service begins only after the CTO has shaped a well-defined implementation request package that is complete enough for trustworthy handoff into execution.
 
 ---
 
@@ -51,6 +52,7 @@ Completion is therefore not defined only by:
 - functionality merely existing
 
 Completion is defined by a trustworthy returned result.
+After handoff, the system owns the route until it reaches a truthful terminal result.
 
 ---
 
@@ -90,8 +92,11 @@ It does not mean merely:
 For this document, trust means only the delivery-boundary condition required for completion.
 
 That narrow meaning is:
-- the CEO can rely on the CTO completion claim without needing to supervise, verify, reconstruct, or repair the route manually
+- the CEO can rely on the CTO completion claim without needing to supervise, verify, reconstruct, repair, or understand the internal route manually
+- the returned result stays faithful to the approved implementation request package rather than silently changing its meaning
+- the route remains queryable and safely resumable while it is still in progress
 - internal problems may happen, but they must be contained before completion is declared upward
+- justified doubt that such supervision, verification, reconstruction, or repair might still be required is itself part of leaked operational burden
 
 This document does not define:
 - trust scoring
@@ -111,6 +116,7 @@ Before completion can be declared upward, all of the following must be true:
 - the artifact is production-ready at the level promised
 - required human testing has been completed before approval
 - internal execution pushback has been contained and governed
+- implementation state remained queryable and safely resumable throughout the route
 - no broken status, state, or leftover operational damage remains
 - the working environment has not been polluted by implementation activity
 - the CTO can truthfully certify the result upward
@@ -126,6 +132,9 @@ That includes:
 - manual reruns
 - manual state repair
 - manual route repair
+- manual route supervision
+- manual resume driving after interruption
+- manual environment hygiene repair
 - hidden follow-up needed to make the result truly usable
 - hidden doubt about whether the return is actually trustworthy
 
@@ -153,6 +162,8 @@ Examples of blocked reasons at high level:
 Not all components are required to support the same blocked reasons.
 The valid blocked reasons depend on the component and boundary.
 
+When a component returns `blocked(reason=pushback)`, it should return a resolve package that makes clear what must change before the route can continue.
+
 The important rule is:
 - a non-complete result must still be truthful
 - it must not pretend to be completion
@@ -176,6 +187,9 @@ This is the meaning of:
 - no leaked burden upward
 - truthful CTO certification
 - no need for CEO supervision or repair
+- no need for CEO route understanding in order to trust the result
+- scope fidelity to the approved package
+- queryable and resumable in-progress state
 - internal issues contained before completion is claimed
 
 These concerns are related, but they are not the same.
@@ -223,9 +237,8 @@ Examples of later obligation topics:
 This draft still leaves some delivery-specific questions open:
 
 - what exact wording should be used for the final definition of complete
-- how should blocked reasons be framed in the final document without inflating the top-level terminal-state model
-- how explicit should the final document be about merge-to-main as the true end of completion
-- whether any additional delivery-boundary trust conditions still need to be named explicitly here
+- whether CTO certification should be stated explicitly as resting on governed system truth rather than informal belief or manual reconstruction
+- whether the document should explicitly name that completion must not depend on invisible person-specific rescue or hidden heroics
 
 These should be resolved in the freeze pass for this document.
 

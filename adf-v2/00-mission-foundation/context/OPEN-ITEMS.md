@@ -51,7 +51,7 @@ Notes:
 ### O-002 - Incorporate already frozen delivery-boundary trust conditions into the completion document
 
 State:
-- `frozen-upstream-needs-incorporation`
+- `resolved`
 
 Why it is open:
 - several trust conditions are already frozen in decisions but are not yet fully and clearly reflected in `DELIVERY-COMPLETION-DEFINITION.md`
@@ -82,7 +82,7 @@ Target document:
 ### O-004 - Naming and framing of truthful non-complete terminal outcomes
 
 State:
-- `frozen-upstream-needs-incorporation`
+- `resolved`
 
 Why it is open:
 - the state model direction is now frozen, but the delivery-completion draft does not yet fully reflect it
@@ -101,7 +101,7 @@ Notes:
 ### O-005 - How explicit to be about true terminal return into the production tree
 
 State:
-- `frozen-upstream-needs-incorporation`
+- `resolved`
 
 Why it is open:
 - the production-tree rule is now frozen, but the delivery-completion draft does not yet fully reflect it
@@ -137,7 +137,7 @@ Target document:
 ### O-008 - Whether fire-and-forget should explicitly include queryability, resumability, and error-only upward surfacing
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the chat clarified fire-and-forget from the CEO experience, not only from internal route mechanics
@@ -149,7 +149,7 @@ Target document:
 ### O-009 - Whether required human testing should be named explicitly as part of trustworthy approval readiness
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the mission material already implies required human testing before approval, but the delivery-completion wording has not yet decided how explicitly to name it as a trust-preservation condition of approval readiness
@@ -160,7 +160,7 @@ Target document:
 ### O-010 - Whether the completion document should state that the CEO need not understand the internal route
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
 - the chat clarified that the CEO should care about the returned result and whether it is safe to rely on, not about the internal implementation mechanics
