@@ -97,6 +97,7 @@ The current authoritative foundation package already includes:
 - `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
 - `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
+- `adf-v2/00-mission-foundation/DEV-ROLE.md`
 - `adf-v2/CEO-AGENT-WORKING-PROTOCOL.md`
 - `adf-v2/CTO-CEO-WORKING-MODE.md`
 - `adf-v2/CTO-ROLE.md`
@@ -106,7 +107,6 @@ The current authoritative foundation package already includes:
 - `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md`
 
 The main remaining draft artifacts in this layer are:
-- `adf-v2/00-mission-foundation/context/artifacts/DEV-ROLE.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
@@ -153,7 +153,6 @@ It is intentionally not yet defining:
 ### Broader work
 
 Finish phase `00` from outside to inside:
-- review and tighten the first DEV role draft under the corrected ontology
 - define the workflow model
 - derive the component inventory from those workflows
 - define the allowed connection model between those components
@@ -162,31 +161,29 @@ Finish phase `00` from outside to inside:
 
 ### Current task
 
-Review and tighten the first working DEV role draft as the next required artifact-level pass after ontology correction.
+Define the workflow model as the next required artifact-level pass after promoting `DEV-ROLE.md`.
 
-Primary canonical register for that current draft review pass:
+Primary canonical register for that next artifact pass:
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 Required context for starting that task:
 - `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md`
+- `adf-v2/00-mission-foundation/DEV-ROLE.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
-- `adf-v2/00-mission-foundation/context/artifacts/DEV-ROLE.md`
 
 ### Next step
 
-Run the first review pass on `DEV-ROLE.md` at the same high level as the corrected ontology:
-- check whether DEV's accountability boundary under CTO governance is explicit enough
-- check whether the split between CTO ownership and DEV ownership is clear enough
-- keep lower-layer ingredients non-exhaustive and below the ontology layer
-- do not widen yet into workflow topology, component inventory, or the full trust model
-- treat the artifact as draft until a later freeze-read says otherwise
+Create the first workflow-model pass under the now-frozen `CEO / CTO / DEV` and `DEV-ROLE.md` boundaries:
+- define the high-level route shape between CEO, CTO, and DEV
+- define the role-level movement of request, execution, blocked return, and certification-relevant return
+- keep the first workflow pass above detailed component assembly and exact package schemas
+- use `OPEN-ITEMS.md` for the DEV out-of-scope items that were intentionally parked during DEV role promotion
 
 If drift appears between startup docs and task parking, `OPEN-ITEMS.md` is the primary canonical register and `NEXT-STEP-HANDOFF.md` must mirror it.
 
 ### Later steps and open items
 
-After the DEV role or rules artifact:
-- define the workflow model
+After the workflow model:
 - derive the component inventory from those workflows
 - define the allowed connection model between those components
 - finalize the trust model on top of that structure
@@ -205,8 +202,8 @@ It should do exactly this:
 1. Review the corrected mission-foundation package and the reconciliation record.
 2. Use `MISSION-STATEMENT.md`, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` in the layer root as frozen mission-foundation source of truth.
 3. Use `context/ONTOLOGY-RECONCILIATION.md` to understand what was corrected, what was reviewed, and which wording is historical only.
-4. Use `context/OPEN-ITEMS.md` as the primary canonical register for the current DEV role draft and its remaining review work.
-5. Review and tighten `context/artifacts/DEV-ROLE.md` at the same high level before moving deeper into workflow or component definition.
+4. Use `context/OPEN-ITEMS.md` as the primary canonical register for the workflow-model next artifact and the DEV out-of-scope carry-forward items.
+5. Draft the workflow model from the now-promoted `DEV-ROLE.md` before moving deeper into component or connection definition.
 
 ## Current Working Completion Sequence For Phase `00`
 
@@ -214,19 +211,17 @@ This is the current recommended list for finishing the mission-foundation layer.
 
 It is a working sequence, not yet a frozen decision.
 
-1. define DEV role and rules
-2. define the main workflows
+1. define the main workflows
    example: request -> shaping -> execution -> verification -> return as `complete` or `blocked`
-3. derive the needed building blocks from those workflows
+2. derive the needed building blocks from those workflows
    this is the component inventory
-4. define how those building blocks are allowed to connect
+3. define how those building blocks are allowed to connect
    this is the allowed wiring and boundary model
-5. finalize the trust model on top of that real structure
-6. run one final phase-`00` consistency and freeze-read pass across all outputs
+4. finalize the trust model on top of that real structure
+5. run one final phase-`00` consistency and freeze-read pass across all outputs
 
 In plain language:
-- first tighten and freeze-read DEV at the correct high level under the corrected ontology
-- then define how work moves
+- first define how work moves under the now-frozen DEV role boundary
 - then define what lego blocks are needed
 - then define how those blocks may connect
 - then define trust across that real structure
@@ -273,7 +268,7 @@ For `TRUST-MODEL.md`:
 - treat it as draft, not frozen canon
 
 For `OPEN-ITEMS.md`:
-- use it as the primary canonical register for the current DEV role draft and its remaining review work
+- use it as the primary canonical register for the workflow-model next artifact and the parked DEV out-of-scope items
 
 ---
 
@@ -282,11 +277,14 @@ For `OPEN-ITEMS.md`:
 The biggest remaining open questions are no longer about whether v2 should exist or what the top-level ontology is.
 
 They are now mostly about:
-- the DEV role and rules artifact
 - the exact final promoted filename and freeze shape of the current top-level governing-entity draft
 - the workflow model
+- the DEV/CTO handoff and return package shapes
 - the component inventory derived from the workflows
+- the DEV component assembly derived from those workflows
 - the connection model derived from the workflows and components
+- the DEV state, checkpoint, and resumability mechanics below the role boundary
+- the DEV internal verification topology below the role boundary
 - broader trust-model definition
 - trust thresholds and governance mechanics
 - the final phase-`00` closeout pass
@@ -305,8 +303,8 @@ The exact later filenames can still evolve, but the current growth pattern is:
 - `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 - `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
 - `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
+- `adf-v2/00-mission-foundation/DEV-ROLE.md`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
-- `adf-v2/00-mission-foundation/context/artifacts/DEV-ROLE.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
 - `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
 - later workflow, component, and connection docs
@@ -323,4 +321,4 @@ The naming goal is:
 ADF v2 mission foundation is already underway.
 
 Do not restart mission drafting from scratch.
-Continue from the corrected three-entity ontology, treat `MISSION-STATEMENT.md`, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` as frozen layer canon, use `ONTOLOGY-RECONCILIATION.md` to understand the correction pass, and review/tighten `context/artifacts/DEV-ROLE.md` as the current draft using `OPEN-ITEMS.md` as the primary canonical register.
+Continue from the corrected three-entity ontology, treat `MISSION-STATEMENT.md`, `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, `BOXED-COMPONENT-MODEL.md`, and `DEV-ROLE.md` as frozen layer canon, use `ONTOLOGY-RECONCILIATION.md` to understand the correction pass and current restart truth, and make the workflow model the next required artifact using `OPEN-ITEMS.md` as the primary canonical register.

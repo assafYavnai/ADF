@@ -186,16 +186,15 @@ Target document:
 ### O-012 - DEV role or rules is the required next artifact after ontology correction
 
 State:
-- `moved`
+- `resolved`
 
 Why it is open:
 - the ontology correction pass has closed the top-level ontology question cleanly enough that the next required mission-foundation artifact is now DEV role or rules
-- that first working draft now exists at `context/artifacts/DEV-ROLE.md`
-- this item therefore moves from task parking into the active draft itself
-- `context/NEXT-STEP-HANDOFF.md` must track that current draft state without treating the artifact as frozen
+- resolved by approving, freezing, and promoting `DEV-ROLE.md` to the layer root as a canonical mission-foundation output
+- the DEV role boundary is no longer draft-only startup truth
 
 Target document:
-- `context/artifacts/DEV-ROLE.md`
+- `DEV-ROLE.md`
 
 Notes:
 - keep the artifact at the same high level as the corrected `CEO / CTO / DEV` ontology
@@ -205,19 +204,36 @@ Notes:
 ### O-013 - Review and tighten the DEV role draft before freeze-read
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
-- the first working DEV role draft now exists, but it has not yet passed review or freeze-read
-- the next pass should test whether the current wording is explicit enough, boundary-clean enough, and aligned enough with the existing mission-foundation canon to freeze later
+- resolved by the review, tightening, approval, freeze-read, and promotion pass that produced the frozen `DEV-ROLE.md` layer output
 
 Target document:
-- `context/artifacts/DEV-ROLE.md`
+- `DEV-ROLE.md`
 
 Notes:
 - keep the artifact at the same high level as the corrected `CEO / CTO / DEV` ontology
 - do not widen the review into workflow topology, component inventory, or full trust mechanics
 - if gaps remain, tighten the DEV boundary rather than expanding the artifact downward
+
+### O-014 - Workflow model is the required next artifact after DEV role promotion
+
+State:
+- `open`
+
+Why it is open:
+- the promoted `DEV-ROLE.md` now fixes the top-level execution boundary cleanly enough that the next required mission-foundation artifact is the workflow model
+- `context/OPEN-ITEMS.md` is the primary canonical register for that next artifact until its working draft exists
+- `context/NEXT-STEP-HANDOFF.md` must mirror this requirement
+
+Target document:
+- `next WORKFLOW-MODEL artifact`
+
+Notes:
+- derive workflows from the now-frozen `CEO / CTO / DEV` boundary and the promoted `DEV-ROLE.md`
+- keep the first workflow pass above detailed component implementation
+- use the parked DEV out-of-scope items below as explicit carry-forward inputs where relevant
 
 ---
 
@@ -383,3 +399,65 @@ Why it is open:
 
 Target document:
 - `context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
+
+### O-206 - DEV/CTO handoff and return package shapes
+
+State:
+- `open`
+
+Why it is open:
+- promoted `DEV-ROLE.md` intentionally stayed above exact package-shape definition
+- the CTO/DEV boundary is now frozen at role level, but the exact handoff and return package shape still needs later definition
+
+Target document:
+- `WORKFLOW-MODEL.md`
+
+Notes:
+- define the package shape without reopening the promoted DEV role boundary
+- keep `complete` ownership with CTO certification rather than drifting it downward into DEV
+
+### O-207 - DEV component assembly derived from workflows
+
+State:
+- `open`
+
+Why it is open:
+- promoted `DEV-ROLE.md` intentionally did not freeze which boxes assemble DEV
+- that assembly should be derived after workflow definition rather than guessed inside the role document
+
+Target document:
+- `COMPONENT-INVENTORY.md`
+
+Notes:
+- derive the assembly from the workflow model, not directly from role prose
+
+### O-208 - DEV state, checkpoint, and resumability mechanics
+
+State:
+- `open`
+
+Why it is open:
+- promoted `DEV-ROLE.md` intentionally left state, checkpoint, and resumability mechanics out of scope
+- those mechanics must be defined later without being reconstructed from scattered wording
+
+Target document:
+- `WORKFLOW-MODEL.md`
+
+Notes:
+- keep role-boundary meaning separate from workflow-state mechanics
+- align later with the existing system-obligation truth on queryability and resumability
+
+### O-209 - DEV internal verification topology
+
+State:
+- `open`
+
+Why it is open:
+- promoted `DEV-ROLE.md` intentionally did not freeze the internal verification topology inside DEV
+- later workflow and component work must still define where verification sits strongly enough to support truthful CTO certification
+
+Target document:
+- `WORKFLOW-MODEL.md`
+
+Notes:
+- define the topology below the promoted role boundary rather than reopening the role artifact itself

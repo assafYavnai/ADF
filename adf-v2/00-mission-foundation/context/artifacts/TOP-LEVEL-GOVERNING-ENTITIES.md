@@ -37,7 +37,7 @@ The system should not restart from a broad virtual-company model.
 It should first make explicit the minimum top-level governing structure the Phase 1 startup model depends on.
 
 This draft exists to hold the corrected top-level ontology while later work:
-- reviews and tightens the DEV role draft
+- uses the promoted `DEV-ROLE.md` output
 - defines how work moves
 - defines what boxes are required
 - defines how those boxes connect
@@ -224,7 +224,6 @@ This top-level structure exists to make these Phase 1 truths possible:
 
 This draft deliberately leaves these later questions open:
 
-- review and later freeze-read of the DEV role draft at the next artifact level
 - the workflow model
 - the component inventory derived from the workflows
 - the allowed connection model between components

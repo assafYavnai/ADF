@@ -40,8 +40,8 @@ Canonical naming:
 
 Post-pass restart truth:
 - ontology correction is complete
-- the first DEV role draft now exists at `context/artifacts/DEV-ROLE.md`
-- `context/OPEN-ITEMS.md` is the primary canonical register for review and tightening of that draft
+- `DEV-ROLE.md` is now approved, frozen, and promoted as a canonical mission-foundation layer output
+- `context/OPEN-ITEMS.md` is the primary canonical register for the workflow-model next artifact and the DEV out-of-scope carry-forward items
 - `context/NEXT-STEP-HANDOFF.md` is the required mirror
 
 ---
@@ -84,19 +84,19 @@ Post-pass restart truth:
 
 - `adf-v2/00-mission-foundation/context/HANDOFF.md`
   status: `updated`
-  note: restart truth now reflects ontology correction complete, the current DEV role draft, and review or tightening as the active next pass
+  note: restart truth now reflects ontology correction complete, the promoted `DEV-ROLE.md` output, and workflow modeling as the active next pass
 
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
   status: `updated`
-  note: checkpoint truth now mirrors the corrected ontology and the current DEV role draft review state
+  note: checkpoint truth now mirrors the corrected ontology, the promoted `DEV-ROLE.md` output, and the workflow-model next pass
 
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
   status: `updated`
-  note: moves the former next-artifact parking into `DEV-ROLE.md` and opens review or tightening as the current tracked task
+  note: resolves the DEV role artifact task, parks the intentionally out-of-scope DEV follow-up items, and makes workflow modeling the current tracked task
 
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
   status: `updated`
-  note: compact log now carries the ontology correction, the `DEV` naming decision, and the delivery completion re-freeze trail
+  note: compact log now carries the ontology correction decisions, the `DEV` naming decision, the ontology re-freeze trail, and the DEV role freeze-and-promotion decision
 
 - `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
   status: `updated`
@@ -168,15 +168,15 @@ Primary parking register carried forward from correction close:
 Corrected top-level ontology draft:
 - `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
 
-Current DEV role draft:
-- `adf-v2/00-mission-foundation/context/artifacts/DEV-ROLE.md`
+Current DEV role output:
+- `adf-v2/00-mission-foundation/DEV-ROLE.md`
 
 If drift appears between these files during the next pass:
 - `HANDOFF.md` remains the canonical startup authority
-- `OPEN-ITEMS.md` remains the primary register for the DEV role draft review work until freeze
+- `OPEN-ITEMS.md` remains the primary register for the workflow-model next artifact and the parked DEV out-of-scope items
 
 ---
 
 ## One-Sentence Summary
 
-The ontology correction pass moved current mission-foundation canon from the obsolete five-item peer ontology to `CEO / CTO / DEV`, preserved older wording only as traceable historical context, reopened and re-froze delivery completion in place, and now hands restart through the existing DEV role draft with `OPEN-ITEMS.md` as the primary canonical register for its review work.
+The ontology correction pass moved current mission-foundation canon from the obsolete five-item peer ontology to `CEO / CTO / DEV`, preserved older wording only as traceable historical context, reopened and re-froze delivery completion in place, and now hands restart through the promoted `DEV-ROLE.md` output with `OPEN-ITEMS.md` as the primary canonical register for the next workflow pass.

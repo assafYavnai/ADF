@@ -1,6 +1,6 @@
 # ADF v2 - DEV Role
 
-Status: first-draft working artifact  
+Status: frozen layer output  
 Scope: `adf-v2/00-mission-foundation/`  
 Purpose: define the high-level role boundary, responsibilities, and operating rules of DEV as the top-level governed development entity in ADF v2 Phase 1
 
@@ -8,7 +8,7 @@ Purpose: define the high-level role boundary, responsibilities, and operating ru
 
 ## What This Document Is
 
-This document is the first working draft of the DEV role and rules artifact.
+This document is the frozen mission-foundation definition of the DEV role in ADF v2 Phase 1.
 
 Its job is to define, at the same high level as the corrected `CEO / CTO / DEV` ontology:
 - what DEV is
@@ -31,10 +31,9 @@ Those belong in later artifacts.
 
 The ontology correction pass established that `DEV` is a top-level governed entity, not merely a loose bundle of lower-layer ingredients such as scripts, agents, or durable state.
 
-That correction still leaves one important next question open:
-- what DEV actually means as a role boundary
+This document turns that corrected ontology into one explicit frozen role boundary for DEV.
 
-This draft exists to answer that question cleanly enough that later workflow and component work can be derived from a stable high-level DEV definition rather than from ad hoc execution assumptions.
+Its job is to make the execution-side role clear enough that later workflow, component, and trust work can be derived from a stable high-level DEV definition rather than from ad hoc execution assumptions.
 
 ---
 
@@ -100,7 +99,7 @@ At this artifact level, DEV owns:
 - truthful return to CTO when execution reaches either a truthful execution outcome for review or a truthful non-complete outcome
 - use of lower-layer governed ingredients or capabilities needed for execution without elevating those ingredients into peer top-level entities
 
-This draft does not specify the internal workflow, state model, or operational mechanics by which DEV fulfills that responsibility.
+This document does not specify the internal workflow, state model, or operational mechanics by which DEV fulfills that responsibility.
 
 ---
 
@@ -214,9 +213,9 @@ This draft narrows only the DEV side of that already-established frame.
 
 ---
 
-## What This Draft Deliberately Leaves For Later
+## What This Document Deliberately Leaves For Later
 
-This draft deliberately does not yet freeze:
+This document deliberately does not yet freeze:
 
 - the exact workflow sequence inside DEV
 - the exact handoff and return package shapes
@@ -224,12 +223,11 @@ This draft deliberately does not yet freeze:
 - detailed state, checkpoint, or resumability mechanics
 - exact internal verification topology
 - trust scoring or trust-threshold mechanics
-- the exact final promoted filename and freeze shape of this artifact
 
 Those should be derived in later passes after the high-level DEV boundary is accepted.
 
 ---
 
-## Current Draft Summary
+## Current Summary
 
 DEV is the top-level governed development execution entity under CTO governance. DEV owns carrying out the approved implementation request package and returning truthful execution outcomes, but it does not own top-level intent shaping, executive approval, workflow mechanics, or final upward certification. DEV may use lower-layer governed ingredients and boxed components, but it must not collapse back into those ingredients as the ontology itself.
