@@ -1,17 +1,16 @@
 # ADF v2 - Boxed Component Model
 
-Status: first-draft working artifact  
-Scope: `adf-v2/00-mission-foundation/`  
+Status: frozen layer output
+Scope: `adf-v2/00-mission-foundation/`
 Purpose: define the shared structural model that all governed boxed components in ADF v2 must inherit
 
 ---
 
 ## What This Document Is
 
-This document is a first draft.
+This document is the frozen mission-foundation definition of the common structural shape every governed box must follow in ADF v2 Phase 1.
 
-It is not yet a frozen foundation rule.
-It is the current working draft for the common structural shape every governed box must follow in ADF v2 Phase 1.
+It turns the already approved box-model decisions into one canonical layer output.
 
 Its job is to define:
 - what a box is structurally
@@ -31,18 +30,18 @@ Its job is not to define:
 
 ---
 
-## Aligned Foundation Context This Draft Carries
+## Aligned Foundation Context This Document Carries
 
-This draft does not invent a new system promise.
+This document does not invent a new system promise.
 It carries already approved mission-foundation truth from aligned foundation sources:
 
 - `MISSION-STATEMENT.md`
 - `DELIVERY-COMPLETION-DEFINITION.md`
-- `context/artifacts/SYSTEM-OBLIGATIONS.md`
+- `SYSTEM-OBLIGATIONS.md`
 - frozen decisions under `context/decisions/`
 
-`SYSTEM-OBLIGATIONS.md` is not an implementation-upstream dependency of this draft.
-The two drafts must be treated as aligned sibling foundation documents:
+`SYSTEM-OBLIGATIONS.md` is not an implementation-upstream dependency of this document.
+The 2 documents are aligned sibling foundation outputs:
 - `SYSTEM-OBLIGATIONS.md` defines the universal guarantee layer
 - `BOXED-COMPONENT-MODEL.md` defines the logical common box structure that carries those guarantees
 
@@ -72,9 +71,9 @@ Approved shared system tools or substrate may exist as a separate governed class
 
 ---
 
-## Frozen Structural Inputs Carried By This Draft
+## Approved Structural Inputs Carried By This Document
 
-The current frozen structural inputs this draft carries are:
+The current approved structural inputs this document carries are:
 
 1. a box is the common governed component unit all later system parts inherit from
 2. every box exposes the same high-level structural surfaces:
@@ -96,7 +95,7 @@ The current frozen structural inputs this draft carries are:
 11. outward interaction happens only through authoritative contracts plus approved shared system tools
 12. every box is executable and testable as a standalone unit while remaining reusable inside larger workflows
 
-These frozen inputs are the working reading guide for the sections below.
+These approved inputs are the reading guide for the sections below.
 
 ---
 
@@ -123,7 +122,7 @@ This document freezes the existence of these surfaces, not their final schema de
 
 Every box must use one shared outer JSON envelope.
 
-Current frozen direction:
+Approved direction:
 - the outer envelope is universal across boxes
 - standard cross-box fields live in that envelope
 - box-specific content lives inside a nested payload section
@@ -193,7 +192,7 @@ The purpose of that layout is:
 - consistent audit access
 - consistent automation and tooling
 
-Current frozen direction:
+Approved direction:
 - every box inherits one governed shared layout
 - that logical layout must provide standard areas for:
   - contracts
@@ -248,22 +247,22 @@ The full trust scoring, thresholds, and aggregation rules remain outside this do
 
 ## Relationship To Other Documents
 
-This draft aligns directly with:
+This document aligns directly with:
 
-- `context/artifacts/SYSTEM-OBLIGATIONS.md`
+- `SYSTEM-OBLIGATIONS.md`
   because that aligned sibling foundation doc defines the universal guarantees that the box shape must carry logically
 
 - `context/artifacts/TRUST-MODEL.md`
   because trust later needs reporting and audit surfaces to attach to
 
-- later thin top-level governing-entity document
-  because the top-level governing entities must later be expressed as assemblies built from governed boxes
+- the corrected top-level governing-entity draft and the later DEV role/rules artifact
+  because top-level entities must be expressed as assemblies built from governed boxes
 
-- later `WORKFLOW-MODEL.md`
+- later workflow documents
   because workflows must compose boxes without redefining the box contract
 
 ---
 
-## Current Draft Summary
+## Current Summary
 
 ADF v2 must treat the box as the common governed component unit: self-contained, standalone-capable, logically consistent, contract-bound outwardly, and equipped with standard input, output, status, scope-fidelity, KPI, checkpoint, verification, certification, and audit surfaces so larger roles and workflows can be assembled without hidden coupling.

@@ -12,19 +12,19 @@ This document is the frozen mission-foundation definition of delivery completion
 
 It turns the already frozen delivery-completion decisions into one canonical layer output.
 
+This artifact was reopened for ontology correction and re-frozen in place so the delivery boundary now aligns to `CEO -> CTO -> DEV` without widening the underlying completion semantics.
+
 Its job is to give later layers one stable source of truth for what `complete` means at the delivery boundary, without forcing reconstruction from individual decision files.
 
 ---
 
 ## Document Boundary
 
-This document defines the external service meaning of delivery completion for the canonical mission-foundation role set:
+This document defines the external service meaning of delivery completion for the top-level delivery chain:
 
 - CEO
 - CTO
-- Scripts
-- Agents
-- Durable state
+- DEV
 
 It is intentionally:
 - high level
@@ -39,7 +39,9 @@ It does not define:
 
 Only the narrow delivery-boundary meaning of trust belongs here.
 At the service boundary, the authoritative input and output package form is JSON payloads with the relevant defined fields.
-The delivery service begins only after the CTO has shaped a well-defined implementation request package that is complete enough for trustworthy handoff into execution.
+The delivery service begins only after the CTO has shaped a well-defined implementation request package that is complete enough for trustworthy handoff into DEV execution.
+
+Lower-level governed ingredients such as scripts, agents, durable state, and approved shared substrate may participate below this service boundary, but they are not peer top-level service entities in this document.
 
 ---
 
@@ -53,7 +55,7 @@ Completion is therefore not defined only by:
 - functionality merely existing
 
 Completion is defined by a trustworthy returned result.
-After handoff, the system owns the route until it reaches a truthful terminal result.
+After the CTO has handed the approved implementation request package into governed DEV execution, the system owns the route until it reaches a truthful terminal result.
 If hidden supervision, repair, or reconstruction would still remain on the CTO after upward declaration, completion is not yet true even if that burden has not reached the CEO.
 
 ---
@@ -172,7 +174,7 @@ Examples of blocked reasons at high level:
 Not all components are required to support the same blocked reasons.
 The valid blocked reasons depend on the component and boundary.
 
-When a component returns `blocked(reason=pushback)`, it should return a resolve package that makes clear what must change before the route can continue.
+When the governed delivery system returns `blocked(reason=pushback)`, it should return a resolve package that makes clear what must change before the route can continue.
 
 The important rule is:
 - a non-complete result must still be truthful
@@ -182,7 +184,7 @@ The important rule is:
 
 ## Separation Inside The Document
 
-This draft keeps two things separate:
+This draft keeps 2 things separate:
 
 ### Artifact quality
 
@@ -226,8 +228,8 @@ This document should reference that later, not absorb it.
 
 ## Relationship To System Obligations
 
-This draft states what completion means.
-It does not yet define how the system must enforce it operationally.
+This document states what completion means.
+It does not define how the system must enforce it operationally.
 
 Those obligations belong later in:
 - `SYSTEM-OBLIGATIONS.md`

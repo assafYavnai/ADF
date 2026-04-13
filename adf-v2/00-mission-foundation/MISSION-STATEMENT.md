@@ -20,13 +20,13 @@ ADF v2 is defined top-down and built bottom-up. It is built from self-contained 
 
 ## Phase 1 mission
 
-Phase 1 builds the minimum reliable implementation startup for the CEO: CTO-led shaping, contract-based script governance, agentic execution where reasoning is required, and truly complete, production-ready delivery.
+Phase 1 builds the minimum reliable implementation startup for the CEO: CTO-led shaping, DEV execution assembled from boxed components, and truly complete, production-ready delivery.
 
 ## Phase 1 scope
 
 - define the ADF startup model
 - define the boxed component model that all core system functions must follow
-- define the minimum roles and workflows required for the startup model
+- define the minimum top-level entities, role boundaries, and workflows required for the startup model
 - build the minimum set of boxed components required to run that model
 - prove the model with a first complete end-to-end delivery chain
 
@@ -38,26 +38,26 @@ Phase 1 builds the minimum reliable implementation startup for the CEO: CTO-led 
 - rebuilding legacy ADF behavior for compatibility
 - wide feature expansion before the startup model is defined and proven
 
-## Core operating roles
+## Top-Level Entities
 
-- **CEO** — vision, priorities, approval
-- **CTO** — shaping, architecture, sequencing, admission
-- **Scripts** — governance, control, and lifecycle enforcement
-- **Agents** — reasoning-based execution
-- **Durable state** — system memory, audit, and truth continuity
+- **CEO** - vision, priorities, approval, and high-level governing intent
+- **CTO** - the top-level governing delivery entity assembled from boxed components; shapes approved intent into a trustworthy implementation request package, governs admission into execution, and certifies truthful upward return
+- **DEV** - the top-level governed development entity assembled from boxed components; carries out bounded development execution under CTO governance and returns truthful terminal results or truthful pushback
+
+Below that top-level ontology, governed ingredients and capabilities such as scripts, agents, durable state, and approved shared substrate may participate inside boxed components and higher-level assemblies as applicable. They are not peer top-level entities in the mission-foundation model.
 
 ## Success test
 
 - the CEO can stay at vision, priorities, and approval level without managing technical delivery
 - the CTO can turn CEO-approved intent into a well-defined implementation request package and certify delivery truthfully upward
-- after implementation handoff, no manual cleanup, reruns, hidden repair work, or state repair should leak upward to the CEO
+- DEV can execute the approved package under governance without leaking hidden supervision, cleanup, or repair burden upward
 - governance is predictable and deterministic: the same slice may produce different implementations, but the process, states, controls, and KPIs remain consistent
 - slices can be implemented safely in parallel
 - merge handles multiple slice requests through a governed FIFO merge queue
 - local `main` stays clean at all times: no modified or untracked files; implementation runs in isolated worktrees
 - no broken statuses, state, or leftover operational damage remain after execution
 - internal execution pushback is contained and governed before delivery is declared complete
-- every component has full audit trail, KPI visibility, and defined status/error history
+- every component has full audit trail, KPI visibility, and defined status or error history
 - every component passes standalone tests
 - required human testing is completed before approval
 - the first end-to-end delivery chain reaches truly complete, production-ready delivery

@@ -50,6 +50,10 @@ Frozen decision:
 6. Core operating roles
 7. Success test
 
+Current ontology note:
+- this preserved historical structure is superseded at the ontology layer by `D-069`
+- current mission-foundation summary framing is `Top-level entities`, not `Core operating roles`
+
 Why:
 - adds explicit scope, not only out-of-scope
 - keeps the document useful for fast executive review
@@ -663,3 +667,50 @@ Why:
 - current mission-foundation docs still present the obsolete five-item top-level ontology
 - delivery-boundary decisions already imply a thinner `CEO -> CTO -> development team` service boundary
 - the correction should be executed as one governed pass so future agents do not keep inheriting split truth from different abstraction levels
+
+---
+
+## Decision D-069 - Mission-foundation top-level ontology is `CEO / CTO / DEV`
+
+Frozen decision:
+- the corrected mission-foundation top-level ontology is `CEO / CTO / DEV`
+- `CTO` is a top-level entity assembled from boxed components
+- `DEV` is a top-level entity assembled from boxed components
+- `Scripts`, `Agents`, and `Durable state` are lower-level governed ingredients or capabilities and are not peer top-level entities
+- the ontology-layer implications preserved in compact-log `D-003` are superseded where they keep `Core operating roles` as the current top-level framing
+- the top-level reading of decision file `D-011` is superseded
+- after the ontology correction pass closes, the authoritative restart state is: ontology correction complete, `DEV` role or rules is the required next artifact
+
+Why:
+- the previous five-item peer set mixed top-level entities with lower-level governed ingredients
+- the corrected three-entity ontology matches the service boundary and keeps the mission-foundation frame thin
+- the compact decision layer must carry the corrected ontology directly so future agents do not inherit split truth
+
+---
+
+## Decision D-070 - `DEV` is the canonical high-level name
+
+Frozen decision:
+- the canonical high-level term is `DEV`
+- `startup development team` is historical wording kept only for traceability
+- where historical wording remains, it must be marked historical, superseded, or reviewed-no-change with explicit naming-supersession context rather than left as ambiguous current canon
+
+Why:
+- the ontology correction needs one stable top-level name for the execution entity
+- this keeps historical service-boundary wording interpretable without letting it compete with current canon
+- it prevents future restart drift between older phrasing and the corrected ontology
+
+---
+
+## Decision D-071 - Delivery completion definition reopened and re-frozen for ontology correction
+
+Frozen decision:
+- `DELIVERY-COMPLETION-DEFINITION.md` was reopened for ontology correction and re-frozen in place as the current ontology-aligned layer output
+- the service boundary wording is now `CEO -> CTO -> DEV`
+- the underlying completion semantics remain the same unless they depended on the obsolete ontology wording
+- `D-047` remains the historical freeze milestone, while this decision records the current ontology-aligned freeze state
+
+Why:
+- the delivery-completion document is frozen canon and therefore needed an explicit re-freeze trail rather than an untracked wording edit
+- the service boundary needed to align with the corrected ontology without widening the document beyond its approved scope
+- future agents need one clear current freeze state for this artifact

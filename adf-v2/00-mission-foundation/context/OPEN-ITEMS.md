@@ -174,15 +174,32 @@ Target document:
 ### O-011 - Resolve sibling-doc status wording mismatch before freezing the top-level governing-entity document
 
 State:
-- `open`
+- `resolved`
 
 Why it is open:
-- `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` are described in handoff and decisions as frozen promoted outputs, but their own document headers still say `first-draft working artifact`
-- the top-level governing-entity freeze-read should not ignore that sibling-doc state mismatch
+- resolved by aligning `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` to their frozen promoted status and recording that correction in `context/ONTOLOGY-RECONCILIATION.md`
 
 Target document:
 - `SYSTEM-OBLIGATIONS.md`
 - `BOXED-COMPONENT-MODEL.md`
+
+### O-012 - DEV role or rules is the required next artifact after ontology correction
+
+State:
+- `open`
+
+Why it is open:
+- the ontology correction pass has closed the top-level ontology question cleanly enough that the next required mission-foundation artifact is now DEV role or rules
+- `context/OPEN-ITEMS.md` is the primary canonical register for that next artifact until its working draft exists
+- `context/NEXT-STEP-HANDOFF.md` must mirror this requirement, but `OPEN-ITEMS.md` is the primary source if drift appears
+
+Target document:
+- `next DEV role or rules artifact`
+
+Notes:
+- keep the artifact at the same high level as the corrected `CEO / CTO / DEV` ontology
+- define DEV's accountability boundary under CTO governance
+- do not freeze an exhaustive internal recipe for every box
 
 ---
 

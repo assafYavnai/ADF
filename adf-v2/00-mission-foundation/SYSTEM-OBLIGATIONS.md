@@ -1,22 +1,21 @@
 # ADF v2 - System Obligations
 
-Status: first-draft working artifact  
-Scope: `adf-v2/00-mission-foundation/`  
+Status: frozen layer output
+Scope: `adf-v2/00-mission-foundation/`
 Purpose: define the universal operational obligations the ADF v2 system must satisfy so the frozen mission and delivery promises remain true in practice
 
 ---
 
 ## What This Document Is
 
-This document is a first draft.
+This document is the frozen mission-foundation definition of the universal operational obligations that must hold across governed components and governed routes in ADF v2 Phase 1.
 
-It is not yet a frozen foundation rule.
-It is the current working draft for the mandatory system obligations that must hold across governed components and governed routes in ADF v2 Phase 1.
+It turns the already approved obligation decisions into one canonical layer output.
 
 Its job is to define what the system must guarantee operationally so that:
 - the mission promise remains true
 - delivery completion can be truthful
-- lower-level component and workflow docs can inherit one consistent obligation layer
+- lower-layer component and workflow docs can inherit one consistent obligation layer
 
 ---
 
@@ -42,8 +41,8 @@ Those remain split across:
 - `DELIVERY-COMPLETION-DEFINITION.md`
 - `context/artifacts/TRUST-MODEL.md`
 - aligned sibling `BOXED-COMPONENT-MODEL.md`
-- later thin top-level governing-entity document
-- later `WORKFLOW-MODEL.md`
+- the corrected top-level governing-entity draft
+- later workflow documents
 
 This means:
 - this document defines what must be guaranteed
@@ -54,14 +53,14 @@ This means:
 
 ## Upstream Truth This Document Enforces
 
-This draft does not invent a new mission.
+This document does not invent a new mission.
 It operationalizes already frozen or already promoted truth from:
 
 - `MISSION-STATEMENT.md`
 - `DELIVERY-COMPLETION-DEFINITION.md`
 - frozen decisions under `context/decisions/`
 
-In particular, this draft must preserve:
+In particular, this document must preserve:
 - contract-based JSON interaction
 - fidelity to the approved implementation request package
 - truthful status and truthful terminal outcomes
@@ -82,7 +81,7 @@ At high level:
 - if the system cannot satisfy it truthfully, it must not pretend completion
 - failure to meet an obligation must surface as governed truth, not as hidden cleanup
 
-The universal obligation set below is the current draft baseline.
+The universal obligation set below is the approved mission-foundation baseline.
 
 ---
 
@@ -197,8 +196,8 @@ Effort and time visibility must cover both:
 - agentic work
 - script-governed work
 
-This draft does not yet define the shared KPI schema.
-That aligned structural shape must be defined in `BOXED-COMPONENT-MODEL.md`.
+This document does not define the shared KPI schema.
+That aligned structural shape belongs in `BOXED-COMPONENT-MODEL.md`.
 
 ---
 
@@ -280,7 +279,7 @@ At high level, that means:
 - the system must preserve enough governed evidence to support trust-sensitive verification and certification
 - trust degradation must be able to affect operational behavior later without redefining the whole system contract
 
-This draft keeps trust handling high level.
+This document keeps trust handling high level.
 The broader trust scoring, thresholds, and governance mechanics still belong in `context/artifacts/TRUST-MODEL.md`.
 
 ---
@@ -304,7 +303,7 @@ That separate governed class may include assets such as:
 - git
 - other later system-level governed tools explicitly approved by the framework
 
-The aligned `BOXED-COMPONENT-MODEL.md` must define the logical structural shape that carries these obligations.
+The aligned `BOXED-COMPONENT-MODEL.md` defines the logical structural shape that carries these obligations.
 
 ---
 
@@ -333,7 +332,7 @@ At high level, that means:
 - concurrent or overlapping work must not create hidden race-condition burden above governed execution
 - safe parallel operation is a mandatory system property, not optional optimization
 
-This is the operational reading of the requirement that everything be safe to use as lego-like building blocks inside larger governed assemblies.
+This is the operational reading of the requirement that everything be safe to use as reusable building blocks inside larger governed assemblies.
 
 ---
 
@@ -352,15 +351,15 @@ This is how the foundation prevents implementation drift while keeping the CEO a
 
 ## Relationship To Later Documents
 
-This draft aligns directly with:
+This document aligns directly with:
 
 - `BOXED-COMPONENT-MODEL.md`
   because the shared box structure must expose how obligations appear in logical input, output, reporting, KPI, scope-fidelity, and checkpoint surfaces
 
-- later thin top-level governing-entity document
-  because high-level governing-entity boundaries determine who is accountable for satisfying, checking, or acting on obligations
+- the corrected top-level governing-entity draft and the later DEV role/rules artifact
+  because high-level entity boundaries determine who is accountable for satisfying, checking, or acting on obligations
 
-- `WORKFLOW-MODEL.md`
+- later workflow documents
   because workflow topology determines how obligations behave across routes, retries, merge, pushback, and handoff paths
 
 - `context/artifacts/TRUST-MODEL.md`
@@ -368,6 +367,6 @@ This draft aligns directly with:
 
 ---
 
-## Current Draft Summary
+## Current Summary
 
 ADF v2 must treat system obligations as universal mandatory guarantees over governed components and governed routes: truthful contracts, scope fidelity to the approved package, truthful status, durable audit truth, KPI visibility, queryability and recovery, truthful blocked outputs, clean execution, and governed verification strong enough to support truthful upward completion.
