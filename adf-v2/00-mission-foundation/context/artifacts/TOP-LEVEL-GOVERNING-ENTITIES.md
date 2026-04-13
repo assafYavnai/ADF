@@ -36,12 +36,12 @@ ADF v2 is intentionally starting thin.
 The system should not restart from a broad virtual-company model.
 It should first make explicit the minimum top-level governing structure the Phase 1 startup model depends on.
 
-This draft exists to hold the corrected top-level ontology before later work defines:
-- DEV role and rules
-- how work moves
-- what boxes are required
-- how those boxes connect
-- how trust behaves across the real structure
+This draft exists to hold the corrected top-level ontology while later work:
+- reviews and tightens the DEV role draft
+- defines how work moves
+- defines what boxes are required
+- defines how those boxes connect
+- defines how trust behaves across the real structure
 
 ---
 

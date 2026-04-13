@@ -164,7 +164,7 @@ Finish phase `00` from outside to inside:
 
 Review and tighten the first working DEV role draft as the next required artifact-level pass after ontology correction.
 
-Primary canonical register for that next artifact:
+Primary canonical register for that current draft review pass:
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 Required context for starting that task:
@@ -273,7 +273,7 @@ For `TRUST-MODEL.md`:
 - treat it as draft, not frozen canon
 
 For `OPEN-ITEMS.md`:
-- use it as the primary canonical register for the DEV role or rules next artifact
+- use it as the primary canonical register for the current DEV role draft and its remaining review work
 
 ---
 

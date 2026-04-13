@@ -40,8 +40,8 @@ Canonical naming:
 
 Post-pass restart truth:
 - ontology correction is complete
-- `DEV` role or rules is the required next artifact
-- `context/OPEN-ITEMS.md` is the primary canonical register for that next artifact
+- the first DEV role draft now exists at `context/artifacts/DEV-ROLE.md`
+- `context/OPEN-ITEMS.md` is the primary canonical register for review and tightening of that draft
 - `context/NEXT-STEP-HANDOFF.md` is the required mirror
 
 ---
@@ -84,15 +84,15 @@ Post-pass restart truth:
 
 - `adf-v2/00-mission-foundation/context/HANDOFF.md`
   status: `updated`
-  note: restart truth now reflects ontology correction complete and `DEV` role or rules as the required next artifact
+  note: restart truth now reflects ontology correction complete, the current DEV role draft, and review or tightening as the active next pass
 
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
   status: `updated`
-  note: checkpoint truth now mirrors the corrected ontology and points to `OPEN-ITEMS.md` as the primary register for the next artifact
+  note: checkpoint truth now mirrors the corrected ontology and the current DEV role draft review state
 
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
   status: `updated`
-  note: records `DEV` role or rules as the required next artifact and resolves the sibling-doc status mismatch item
+  note: moves the former next-artifact parking into `DEV-ROLE.md` and opens review or tightening as the current tracked task
 
 - `adf-v2/00-mission-foundation/context/DECISIONS.md`
   status: `updated`
@@ -168,6 +168,9 @@ Primary parking register carried forward from correction close:
 Corrected top-level ontology draft:
 - `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
 
+Current DEV role draft:
+- `adf-v2/00-mission-foundation/context/artifacts/DEV-ROLE.md`
+
 If drift appears between these files during the next pass:
 - `HANDOFF.md` remains the canonical startup authority
 - `OPEN-ITEMS.md` remains the primary register for the DEV role draft review work until freeze
@@ -176,4 +179,4 @@ If drift appears between these files during the next pass:
 
 ## One-Sentence Summary
 
-The ontology correction pass moved current mission-foundation canon from the obsolete five-item peer ontology to `CEO / CTO / DEV`, preserved older wording only as traceable historical context, reopened and re-froze delivery completion in place, and handed off DEV role definition as the next artifact-level pass with `OPEN-ITEMS.md` as the primary canonical register.
+The ontology correction pass moved current mission-foundation canon from the obsolete five-item peer ontology to `CEO / CTO / DEV`, preserved older wording only as traceable historical context, reopened and re-froze delivery completion in place, and now hands restart through the existing DEV role draft with `OPEN-ITEMS.md` as the primary canonical register for its review work.

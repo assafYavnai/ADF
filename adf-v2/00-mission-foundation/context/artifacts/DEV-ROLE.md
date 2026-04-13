@@ -58,8 +58,8 @@ DEV is responsible for governed development execution against the approved packa
 At a high level, that means DEV must:
 - execute the requested development work within the approved scope
 - preserve fidelity to the meaning of the approved package rather than silently redefining it
-- do the internal execution, repair, verification, and completion-readiness work needed before a result can be returned upward truthfully
-- return truthful terminal results rather than optimistic or nominal ones
+- carry the execution-side responsibility for turning that package into a truthful terminal result
+- return truthful terminal results rather than optimistic or merely nominal ones
 - surface truthful pushback or blocked output when completion is not yet safe
 
 DEV therefore owns execution truth, not top-level intent truth.
@@ -96,12 +96,11 @@ At this artifact level, DEV owns:
 
 - governed development execution after CTO handoff
 - execution of the approved implementation scope without silent scope drift
-- the internal route needed to turn the package into a truthful terminal outcome
-- internal verification, fix, and completion-readiness work below the CTO boundary
-- truthful status, checkpoint, and execution-state handling needed for governed execution
-- truthful reporting back to CTO when the route reaches `complete` or a truthful non-complete terminal outcome
+- the execution-side responsibility for producing a truthful terminal outcome against the approved package
+- truthful return to CTO when execution reaches either a completion-capable result or a truthful non-complete outcome
+- use of lower-layer governed ingredients or capabilities needed for execution without elevating those ingredients into peer top-level entities
 
-DEV also owns using whatever lower-layer governed ingredients or capabilities are needed for that execution, without elevating those ingredients into peer top-level entities.
+This draft does not specify the internal workflow, state model, or operational mechanics by which DEV fulfills that responsibility.
 
 ---
 
@@ -143,17 +142,14 @@ That means DEV must not:
 
 Any needed scope correction should surface truthfully through the governed boundary.
 
-### 3. Keep execution burden below the CTO boundary
+### 3. Keep the role boundary clean
 
-DEV must absorb and govern its own internal execution turbulence as much as possible inside the governed route.
+DEV is the execution entity under CTO governance, not a second governing layer and not a direct CEO-facing layer.
 
-That includes, at the appropriate high level:
-- internal execution retries
-- internal fix rounds
-- internal verification work
-- internal route repair
-
-Those may happen, but they should not leak upward as hidden manual burden that CTO must discover or reconstruct after the fact.
+That means:
+- DEV should not bypass CTO as the governing boundary
+- DEV should not silently turn execution concerns into top-level intent changes
+- DEV should not depend on hidden upward cleanup to make its return appear acceptable
 
 ### 4. Return only truthful terminal outcomes
 
@@ -165,14 +161,7 @@ DEV should return:
 
 If completion is not yet safe, DEV must not behave as if it is.
 
-### 5. Preserve queryable execution truth
-
-While execution is in progress, DEV must preserve truthful execution state strongly enough that governed oversight, queryability, and safe resumption remain possible.
-
-This document does not yet define the full mechanics for that requirement.
-It defines only that DEV cannot depend on hidden route state that later layers would need to guess.
-
-### 6. Use lower-layer ingredients without collapsing into them
+### 5. Use lower-layer ingredients without collapsing into them
 
 DEV may be assembled from boxed components that use:
 - scripts
@@ -183,30 +172,16 @@ DEV may be assembled from boxed components that use:
 Those are lower-layer governed ingredients or capabilities.
 They are not the DEV role itself.
 
-### 7. Report upward through the governed boundary
+### 6. Report upward through the governed boundary
 
 DEV's relevant upward relationship is to CTO, not directly to CEO.
 
 DEV should therefore return:
-- truthful status to the governed delivery layer as needed
-- truthful completion-ready output when the route is really ready
+- truthful execution outcomes through the governed boundary
+- truthful completion-capable return when the package has really been carried out
 - truthful pushback or blocked output when it is not
 
 This preserves the top-level boundary that keeps CEO burden high-level and controlled.
-
----
-
-## Expected Outputs To CTO
-
-At this level, DEV should be expected to return to CTO:
-
-- truthful in-progress execution state when queried through the governed boundary
-- a truthful completion-ready result when the route has actually reached `complete`
-- a truthful blocked result with the relevant reason when execution cannot yet complete safely
-- truthful pushback when the package, scope, or execution conditions must change before the route can continue
-
-This document does not yet freeze the exact output schemas.
-It freezes only the high-level truth requirement and role boundary.
 
 ---
 
@@ -218,6 +193,8 @@ Later artifacts should define:
 - the workflows that DEV participates in
 - the component inventory that assembles DEV
 - the allowed connection model between those components
+- the handoff and return package shapes
+- the state and checkpoint mechanics
 - the broader trust mechanics that govern those routes
 
 This draft intentionally stays above those layers.
@@ -242,9 +219,10 @@ This draft narrows only the DEV side of that already-established frame.
 This draft deliberately does not yet freeze:
 
 - the exact workflow sequence inside DEV
+- the exact handoff and return package shapes
 - which boxes assemble DEV
+- detailed state, checkpoint, or resumability mechanics
 - exact internal verification topology
-- detailed state-machine definitions
 - trust scoring or trust-threshold mechanics
 - the exact final promoted filename and freeze shape of this artifact
 
@@ -254,4 +232,4 @@ Those should be derived in later passes after the high-level DEV boundary is acc
 
 ## Current Draft Summary
 
-DEV is the top-level governed development execution entity under CTO governance. DEV owns truthful execution of the approved implementation request package, including the internal work needed to reach a truthful terminal outcome, but does not own top-level intent shaping, executive approval, or final upward certification. DEV may use lower-layer governed ingredients and boxed components, but it must not collapse back into those ingredients as the ontology itself.
+DEV is the top-level governed development execution entity under CTO governance. DEV owns carrying out the approved implementation request package and returning truthful execution outcomes, but it does not own top-level intent shaping, executive approval, workflow mechanics, or final upward certification. DEV may use lower-layer governed ingredients and boxed components, but it must not collapse back into those ingredients as the ontology itself.
