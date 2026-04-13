@@ -1,5 +1,9 @@
 # Decision D-022 - System Owns The Route After Handoff
 
+Naming status:
+- `startup development team` below is historical wording retained for traceability
+- current canonical high-level term is `DEV` per `D-070`
+
 Frozen decision:
 - after handoff, the system owns the route until a truthful terminal result is reached
 

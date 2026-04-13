@@ -39,8 +39,8 @@ Implication:
 
 ## Decision D-003 — Mission document structure
 
-Frozen decision:
-`MISSION-STATEMENT.md` will use this structure:
+Historical frozen decision:
+`MISSION-STATEMENT.md` originally used this structure:
 
 1. Identity
 2. Core promise
@@ -50,9 +50,21 @@ Frozen decision:
 6. Core operating roles
 7. Success test
 
-Current ontology note:
-- this preserved historical structure is superseded at the ontology layer by `D-069`
-- current mission-foundation summary framing is `Top-level entities`, not `Core operating roles`
+Current compact-summary reading:
+`MISSION-STATEMENT.md` now uses this current summary shape:
+
+1. Identity
+2. Core promise
+3. Foundational approach
+4. Phase 1 mission
+5. Phase 1 scope
+6. Phase 1 out of scope
+7. Top-level entities
+8. Success test
+
+Ontology status:
+- the historical `Core operating roles` framing above is superseded at the ontology layer by `D-069`
+- the current compact summary layer uses `Top-level entities`, not `Core operating roles`
 
 Why:
 - adds explicit scope, not only out-of-scope
@@ -714,3 +726,48 @@ Why:
 - the delivery-completion document is frozen canon and therefore needed an explicit re-freeze trail rather than an untracked wording edit
 - the service boundary needed to align with the corrected ontology without widening the document beyond its approved scope
 - future agents need one clear current freeze state for this artifact
+
+---
+
+## Decision D-072 - System obligations reopened and re-frozen for ontology correction
+
+Frozen decision:
+- `SYSTEM-OBLIGATIONS.md` was reopened for ontology correction and re-frozen in place as the current ontology-aligned layer output
+- the artifact remains a frozen promoted mission-foundation output
+- the ontology correction did not change the obligation substance, but it did align the file's canonical-state wording, root-path references, and relationship wording to the corrected ontology and current promoted status
+- `D-062` remains the historical freeze milestone, while this decision records the current ontology-aligned freeze state
+
+Why:
+- the approved ontology-correction plan requires an explicit reopen-and-re-freeze trail for touched frozen or promoted artifacts
+- the file was materially touched in the correction pass and therefore needed a linked current-state freeze record
+- future agents need one clear current freeze state rather than inferring it from file edits alone
+
+---
+
+## Decision D-073 - Boxed component model reopened and re-frozen for ontology correction
+
+Frozen decision:
+- `BOXED-COMPONENT-MODEL.md` was reopened for ontology correction and re-frozen in place as the current ontology-aligned layer output
+- the artifact remains a frozen promoted mission-foundation output
+- the ontology correction did not change the box-model substance, but it did align the file's canonical-state wording, root-path references, and relationship wording to the corrected ontology and current promoted status
+- `D-063` remains the historical freeze milestone, while this decision records the current ontology-aligned freeze state
+
+Why:
+- the approved ontology-correction plan requires an explicit reopen-and-re-freeze trail for touched frozen or promoted artifacts
+- the file was materially touched in the correction pass and therefore needed a linked current-state freeze record
+- future agents need one clear current freeze state rather than inferring it from file edits alone
+
+---
+
+## Decision D-074 - Decision D-011 reopened and re-frozen as a historical trace record
+
+Frozen decision:
+- decision file `D-011` was reopened for ontology correction and re-frozen in place as a historical trace record with explicit ontology-status annotation
+- the original wording is preserved for traceability
+- the current top-level reading of that wording is superseded by `D-069`
+- `Scripts`, `Agents`, and `Durable state` are not current peer top-level entities in mission-foundation canon
+
+Why:
+- the approved ontology-correction plan requires an explicit governance trail for touched frozen decision files whose wording is wrong at the ontology layer
+- preserving `D-011` without a current-state trail would leave its status inferential instead of explicit
+- this keeps the decision file usable as history without competing with current canon

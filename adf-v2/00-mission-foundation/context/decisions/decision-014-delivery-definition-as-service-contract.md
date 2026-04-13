@@ -1,5 +1,9 @@
 # Decision D-014 - Delivery Definition As Service Contract
 
+Naming status:
+- `startup development team` below is historical wording retained for traceability
+- current canonical high-level term is `DEV` per `D-070`
+
 Frozen decision:
 - `DELIVERY-COMPLETION-DEFINITION.md` should be written as a high-level service-contract definition for the CEO -> CTO -> startup development team delivery chain
 

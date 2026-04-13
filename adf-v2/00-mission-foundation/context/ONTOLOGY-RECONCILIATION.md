@@ -56,6 +56,9 @@ Post-pass restart truth:
 - the old five-item draft framing in `context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md` is superseded
 - `decision-014` and `decision-022` remain historical service-boundary precedents and were reviewed without text change; their old naming is interpreted through the `DEV` naming decision rather than as competing current canon
 - `D-047` remains the historical freeze milestone for `DELIVERY-COMPLETION-DEFINITION.md`; `D-071` records the ontology-aligned re-freeze in place
+- `D-062` remains the historical freeze milestone for `SYSTEM-OBLIGATIONS.md`; `D-072` records the ontology-aligned re-freeze in place
+- `D-063` remains the historical freeze milestone for `BOXED-COMPONENT-MODEL.md`; `D-073` records the ontology-aligned re-freeze in place
+- `D-011` remains a preserved historical decision file; `D-074` records its ontology-correction reopen-and-re-freeze trail as a historical trace record
 
 ---
 
@@ -115,6 +118,18 @@ Post-pass restart truth:
   status: `updated`
   note: new canonical re-freeze decision for delivery completion
 
+- `adf-v2/00-mission-foundation/context/decisions/decision-072-system-obligations-reopened-and-refrozen-for-ontology-correction.md`
+  status: `updated`
+  note: new canonical re-freeze decision for system obligations
+
+- `adf-v2/00-mission-foundation/context/decisions/decision-073-boxed-component-model-reopened-and-refrozen-for-ontology-correction.md`
+  status: `updated`
+  note: new canonical re-freeze decision for boxed component model
+
+- `adf-v2/00-mission-foundation/context/decisions/decision-074-decision-011-reopened-and-refrozen-as-historical-trace-record.md`
+  status: `updated`
+  note: new canonical historical-trace re-freeze decision for `D-011`
+
 - `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md`
   status: `updated`
   note: canonical reconciliation record and full reviewed source inventory
@@ -123,11 +138,11 @@ Post-pass restart truth:
 
 - `adf-v2/00-mission-foundation/context/decisions/decision-014-delivery-definition-as-service-contract.md`
   status: `reviewed-no-change`
-  note: historical wording `startup development team` is interpreted through `D-070`; file retained for traceability
+  note: historical wording `startup development team` is now explicitly marked inside the file and interpreted through `D-070`; file retained for traceability
 
 - `adf-v2/00-mission-foundation/context/decisions/decision-022-system-owns-the-route-after-handoff.md`
   status: `reviewed-no-change`
-  note: historical wording `startup development team` is interpreted through `D-070`; file retained for traceability
+  note: historical wording `startup development team` is now explicitly marked inside the file and interpreted through `D-070`; file retained for traceability
 
 - `adf-v2/CTO-ROLE.md`
   status: `reviewed-no-change`
