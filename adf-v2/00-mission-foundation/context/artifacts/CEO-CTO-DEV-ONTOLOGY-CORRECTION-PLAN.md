@@ -27,6 +27,7 @@ This pass must also:
 - correct all current canonical ontology wording
 - durably persist a full reviewed source inventory in one canonical place
 - park `DEV role/rules` as the required next artifact with one primary canonical register and one mirror
+- leave the post-pass restart state in one authoritative condition: ontology correction complete, `DEV role/rules` is the required next artifact
 
 ---
 
@@ -130,14 +131,22 @@ Do not use one reopen rule for everything.
 
 For any frozen or promoted artifact touched by this correction:
 
-- explicitly mark it as reopened or superseded for ontology correction
+- explicitly reopen it for ontology correction and re-freeze it in place in the same canonical artifact
 - update linked decision trail in the same pass
 - verify no frozen or promoted artifact still presents the obsolete top-level ontology afterward
+- do not use `supersede-in-place` as the default mutation rule for this pass
+- earlier freeze decisions remain historical milestones, but the new re-freeze decision becomes the current ontology-aligned freeze state for that artifact
 
 This applies at minimum to:
 
 - `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md`
 - any frozen decision files whose wording is now wrong at the ontology layer
+
+Required governance interpretation for this pass:
+
+- use `reopen and re-freeze in place` for every touched frozen or promoted artifact
+- preserve prior freeze records for traceability
+- add explicit decision-trail language when a prior freeze milestone is no longer the current ontology-aligned state
 
 #### Case B: working artifacts
 
@@ -181,7 +190,7 @@ Update `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md` so that:
 - internal lower-layer ingredients remain below the service boundary
 - all existing completion semantics remain intact unless they depend on the obsolete ontology
 
-Because this file is already a frozen layer output, treat the edit as explicit reopen or supersede work with linked decision updates in the same pass.
+Because this file is already a frozen layer output, treat the edit as explicit reopen-and-re-freeze-in-place work with linked decision updates in the same pass.
 
 ### 6. Keep the current top-level artifact filename in this pass
 
@@ -212,10 +221,17 @@ Required changes in both docs:
 
 - rewrite the current ontology to `CEO / CTO / DEV`
 - explicitly demote `Scripts / Agents / Durable state` below the ontology layer
-- update `current task` wording so it refers to reviewing or freezing the corrected three-entity ontology
-- update `next unresolved question` wording so it no longer points a future agent at the rejected five-item model
+- if the pass is still in progress, `current task` may refer to reviewing or freezing the corrected three-entity ontology
+- once the pass is complete, `current task` and `next step` must move to one authoritative post-pass truth: ontology correction is complete and `DEV role/rules` is the required next artifact
+- update `next unresolved question` wording so it no longer points a future agent at the rejected five-item model and instead points to `DEV role/rules` as the next required artifact after ontology correction closes
 - add explicit references to `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md`
 - where DEV role/rules is referenced as the next artifact, point to `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md` as the primary canonical register
+
+Post-pass authority rule:
+
+- `adf-v2/00-mission-foundation/context/HANDOFF.md` and `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md` must converge on the same final state
+- after the pass closes, neither file should still describe ontology review/freeze as the active next step
+- after the pass closes, both files must describe `DEV role/rules` as the required next artifact and point to `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md` as the primary register
 
 ### 8. Keep lower-level composition wording intentionally non-exhaustive
 
@@ -237,7 +253,9 @@ Required changes:
 
 - append the new ontology reconciliation decision
 - append the new DEV naming decision
+- explicitly note that the mission-structure framing preserved in compact-log `D-003` is superseded at the ontology layer where it still implies `Core operating roles` as the current top-level framing
 - explicitly note that the top-level reading of `adf-v2/00-mission-foundation/context/decisions/decision-011-core-operating-roles.md` is superseded at the ontology layer
+- rewrite the compact summary view so it reflects the current `Top-level entities` framing rather than the old `Core operating roles` ontology framing
 - ensure the compact log no longer presents the five-item ontology as current truth
 
 This file is part of the concise authoritative summary layer for future agents, so leaving it unchanged would preserve split truth even if the detailed decision files are correct.
@@ -290,6 +308,7 @@ Required handling for support docs:
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md` must be marked `updated`
 - `adf-v2/00-mission-foundation/context/DECISIONS.md` must be marked `updated`
 - both must be referenced from `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md`
+- the inventory entry for `adf-v2/00-mission-foundation/DELIVERY-COMPLETION-DEFINITION.md` must record that the artifact was reopened and re-frozen in place for ontology correction
 
 ### 11. Decouple DEV role/rules from ontology completion, but park it canonically
 
@@ -312,6 +331,7 @@ Required outcome:
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md` is the authoritative parking register for the DEV role/rules next artifact
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md` mirrors that requirement and points back to `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 - `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md` references both and records that `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md` is the primary source if drift appears
+- `adf-v2/00-mission-foundation/context/HANDOFF.md` and `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md` must both end the pass in the same final state: ontology correction complete, `DEV role/rules` is the next required artifact
 
 Optional:
 
@@ -363,7 +383,9 @@ The new naming decision states exactly:
 - include D-068
 - include the ontology reconciliation decision
 - include the DEV naming decision
+- explicitly state that the ontology-layer implications of compact-log `D-003` are superseded where they preserve `Core operating roles` as current top-level framing
 - explicitly state that the top-level reading of D-011 is superseded
+- reflect the current `Top-level entities` framing in the compact summary layer
 - no longer present the five-item ontology as current truth
 
 ### E. Full durable inventory exists in one canonical place
@@ -405,8 +427,10 @@ Both restart and checkpoint docs must:
 
 - use `CEO / CTO / DEV`
 - demote `Scripts / Agents / Durable state` below the ontology layer
-- point a future agent at the corrected three-entity ontology
+- if the pass is still open, point the agent at the corrected three-entity ontology work
+- if the pass is closed, point the agent at `DEV role/rules` as the required next artifact
 - reference `adf-v2/00-mission-foundation/context/ONTOLOGY-RECONCILIATION.md`
+- converge on the same final post-pass truth
 
 Required docs:
 
@@ -420,6 +444,8 @@ Required docs:
 - `CEO -> CTO -> DEV`
 
 and keep lower-level implementation ingredients below that service boundary.
+
+Because it is frozen, the pass must also leave a clear reopen-and-re-freeze-in-place trail for this artifact.
 
 ### J. Decision-014 and decision-022 were explicitly reviewed
 
