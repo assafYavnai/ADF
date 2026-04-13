@@ -46,7 +46,7 @@ Its purpose is to take the approved implementation request package handed down b
 
 At this level, DEV is not the top strategic governing layer.
 DEV is the governed execution layer that turns the approved package into either:
-- a truthful returned result that is ready for upward certification
+- a truthful execution outcome for CTO review and possible upward certification
 - or a truthful blocked or pushback outcome when completion is not yet safe
 
 ---
@@ -97,7 +97,7 @@ At this artifact level, DEV owns:
 - governed development execution after CTO handoff
 - execution of the approved implementation scope without silent scope drift
 - the execution-side responsibility for producing a truthful terminal outcome against the approved package
-- truthful return to CTO when execution reaches either a completion-capable result or a truthful non-complete outcome
+- truthful return to CTO when execution reaches either a truthful execution outcome for review or a truthful non-complete outcome
 - use of lower-layer governed ingredients or capabilities needed for execution without elevating those ingredients into peer top-level entities
 
 This draft does not specify the internal workflow, state model, or operational mechanics by which DEV fulfills that responsibility.
@@ -178,7 +178,7 @@ DEV's relevant upward relationship is to CTO, not directly to CEO.
 
 DEV should therefore return:
 - truthful execution outcomes through the governed boundary
-- truthful completion-capable return when the package has really been carried out
+- truthful execution outcomes that CTO can review for possible certification
 - truthful pushback or blocked output when it is not
 
 This preserves the top-level boundary that keeps CEO burden high-level and controlled.
