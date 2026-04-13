@@ -25,10 +25,11 @@ Current branch state:
 - `SYSTEM-OBLIGATIONS.md` and `BOXED-COMPONENT-MODEL.md` now have headers aligned to their frozen promoted state
 - `context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md` now carries the corrected three-entity ontology draft
 - `context/ONTOLOGY-RECONCILIATION.md` now exists as the canonical reconciliation record and reviewed source inventory
-- `context/OPEN-ITEMS.md` is now the primary canonical register for the next DEV role or rules artifact
+- `context/artifacts/DEV-ROLE.md` now exists as the first working DEV role draft
+- `context/OPEN-ITEMS.md` is now the primary canonical register for review and tightening of that DEV draft
 
 Current main task:
-- define the DEV role or rules artifact as the next required mission-foundation output
+- review and tighten the DEV role draft as the next required mission-foundation output
 
 Current task boundary:
 - keep the task at the same high level as the corrected ontology
@@ -43,23 +44,24 @@ Current decision boundary:
   - scripts, agents, durable state, and approved shared substrate remain lower-level governed ingredients or capabilities
   - `DELIVERY-COMPLETION-DEFINITION.md` is again frozen after ontology correction
 - drafted only:
+  - `context/artifacts/DEV-ROLE.md`
   - `context/artifacts/TRUST-MODEL.md`
   - `context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
   - `context/OPEN-ITEMS.md`
 - still open:
-  - the DEV role or rules artifact
+  - review and freeze-read of the DEV role draft
   - the final freeze shape and promoted filename of the current top-level governing-entity draft
   - the broader trust-model questions parked in `TRUST-MODEL.md`
 
 Immediate next unresolved question:
-- what high-level DEV role boundary and rules must be frozen next so later workflow and component work can be derived without collapsing DEV back into lower-layer ingredients
+- is the current DEV role draft explicit and boundary-clean enough to freeze later without widening into workflow, component, or trust mechanics
 
 Do-not-repeat rules for the next agent:
 - do not revive the obsolete five-item top-level ontology
 - do not treat lower-layer governed ingredients as peer top-level entities
 - do not treat `context/artifacts/TRUST-MODEL.md` as frozen canon
 - do not widen `DELIVERY-COMPLETION-DEFINITION.md` into the full trust model
-- do not lose that `OPEN-ITEMS.md` is the primary canonical register for the next DEV role or rules artifact
+- do not lose that `OPEN-ITEMS.md` is the primary canonical register for the current DEV role draft and its remaining review work
 
 CEO protocol reminder:
 - stay minimal, decision-shaped, and do not freeze new content without explicit approval
@@ -118,19 +120,21 @@ Read in this order:
 12. `adf-v2/00-mission-foundation/SYSTEM-OBLIGATIONS.md`
 13. `adf-v2/00-mission-foundation/BOXED-COMPONENT-MODEL.md`
 14. `adf-v2/00-mission-foundation/context/artifacts/TOP-LEVEL-GOVERNING-ENTITIES.md`
-15. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
-16. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
-17. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
+15. `adf-v2/00-mission-foundation/context/artifacts/DEV-ROLE.md`
+16. `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
+17. `adf-v2/00-mission-foundation/context/artifacts/TRUST-MODEL.md`
+18. individual decision files under `adf-v2/00-mission-foundation/context/decisions/` only if needed
 
 Reading intent:
 - items `1` through `10` define the corrected governing frame
 - `ONTOLOGY-RECONCILIATION.md` is the canonical record of what changed and what remains historical only
 - `DELIVERY-COMPLETION-DEFINITION.md`, `SYSTEM-OBLIGATIONS.md`, and `BOXED-COMPONENT-MODEL.md` are frozen canonical layer outputs
 - `TOP-LEVEL-GOVERNING-ENTITIES.md` is the corrected ontology draft
-- `OPEN-ITEMS.md` is the primary canonical register for the next DEV role or rules artifact
+- `DEV-ROLE.md` is the current first working DEV role draft
+- `OPEN-ITEMS.md` is the primary canonical register for the current DEV role draft and its review work
 
 ---
 
 ## One-Sentence Restart Summary
 
-ADF v2 mission foundation is active, the ontology correction pass has moved current canon to `CEO / CTO / DEV`, the reconciliation inventory now lives in `context/ONTOLOGY-RECONCILIATION.md`, and the next agent should define the DEV role or rules artifact using `OPEN-ITEMS.md` as the primary canonical register rather than reopening the old five-entity ontology.
+ADF v2 mission foundation is active, the ontology correction pass has moved current canon to `CEO / CTO / DEV`, the reconciliation inventory now lives in `context/ONTOLOGY-RECONCILIATION.md`, the first DEV role draft now lives in `context/artifacts/DEV-ROLE.md`, and the next agent should review and tighten that draft using `OPEN-ITEMS.md` as the primary canonical register rather than reopening the old five-entity ontology.

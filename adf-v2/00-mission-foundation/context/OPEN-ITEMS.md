@@ -186,20 +186,38 @@ Target document:
 ### O-012 - DEV role or rules is the required next artifact after ontology correction
 
 State:
-- `open`
+- `moved`
 
 Why it is open:
 - the ontology correction pass has closed the top-level ontology question cleanly enough that the next required mission-foundation artifact is now DEV role or rules
-- `context/OPEN-ITEMS.md` is the primary canonical register for that next artifact until its working draft exists
-- `context/NEXT-STEP-HANDOFF.md` must mirror this requirement, but `OPEN-ITEMS.md` is the primary source if drift appears
+- that first working draft now exists at `context/artifacts/DEV-ROLE.md`
+- this item therefore moves from task parking into the active draft itself
+- `context/NEXT-STEP-HANDOFF.md` must track that current draft state without treating the artifact as frozen
 
 Target document:
-- `next DEV role or rules artifact`
+- `context/artifacts/DEV-ROLE.md`
 
 Notes:
 - keep the artifact at the same high level as the corrected `CEO / CTO / DEV` ontology
 - define DEV's accountability boundary under CTO governance
 - do not freeze an exhaustive internal recipe for every box
+
+### O-013 - Review and tighten the DEV role draft before freeze-read
+
+State:
+- `open`
+
+Why it is open:
+- the first working DEV role draft now exists, but it has not yet passed review or freeze-read
+- the next pass should test whether the current wording is explicit enough, boundary-clean enough, and aligned enough with the existing mission-foundation canon to freeze later
+
+Target document:
+- `context/artifacts/DEV-ROLE.md`
+
+Notes:
+- keep the artifact at the same high level as the corrected `CEO / CTO / DEV` ontology
+- do not widen the review into workflow topology, component inventory, or full trust mechanics
+- if gaps remain, tighten the DEV boundary rather than expanding the artifact downward
 
 ---
 

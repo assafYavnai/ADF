@@ -162,7 +162,7 @@ Canonical startup authority:
 Checkpoint companion:
 - `adf-v2/00-mission-foundation/context/NEXT-STEP-HANDOFF.md`
 
-Primary parking register for the next artifact:
+Primary parking register carried forward from correction close:
 - `adf-v2/00-mission-foundation/context/OPEN-ITEMS.md`
 
 Corrected top-level ontology draft:
@@ -170,10 +170,10 @@ Corrected top-level ontology draft:
 
 If drift appears between these files during the next pass:
 - `HANDOFF.md` remains the canonical startup authority
-- `OPEN-ITEMS.md` remains the primary register for the next DEV role or rules artifact
+- `OPEN-ITEMS.md` remains the primary register for the DEV role draft review work until freeze
 
 ---
 
 ## One-Sentence Summary
 
-The ontology correction pass moved current mission-foundation canon from the obsolete five-item peer ontology to `CEO / CTO / DEV`, preserved older wording only as traceable historical context, reopened and re-froze delivery completion in place, and left `DEV` role or rules as the required next artifact with `OPEN-ITEMS.md` as the primary canonical register.
+The ontology correction pass moved current mission-foundation canon from the obsolete five-item peer ontology to `CEO / CTO / DEV`, preserved older wording only as traceable historical context, reopened and re-froze delivery completion in place, and handed off DEV role definition as the next artifact-level pass with `OPEN-ITEMS.md` as the primary canonical register.

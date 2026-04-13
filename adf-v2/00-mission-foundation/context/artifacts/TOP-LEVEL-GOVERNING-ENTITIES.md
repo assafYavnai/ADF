@@ -224,7 +224,7 @@ This top-level structure exists to make these Phase 1 truths possible:
 
 This draft deliberately leaves these later questions open:
 
-- DEV role and rules at the next artifact level
+- review and later freeze-read of the DEV role draft at the next artifact level
 - the workflow model
 - the component inventory derived from the workflows
 - the allowed connection model between components
