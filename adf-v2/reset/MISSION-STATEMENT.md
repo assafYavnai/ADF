@@ -1,46 +1,58 @@
-# ADF v2 — Mission Statement
+# ADF v2 Mission Statement
 
-Status: draft scaffold pending Step 1 completion
+Status: first-pass reset charter
+Last updated: 2026-04-14
+Purpose: define the thin executive truth for the v2 restart
 
-## Identity
+## What ADF v2 is
 
-ADF v2 is a clean restart.
+ADF v2 is a clean-restart software-building startup for the CEO.
 
-## Core promise
-
-ADF v2 should help the CEO stay high-level while the startup model is defined and executed through CTO and DEV.
-
-## Phase 1 mission
-
-Freeze the thinnest trustworthy startup foundation around:
-- CEO
-- CTO
-- DEV
-- durable supporting substrate
-
-## Phase 1 scope
-
-In scope:
-- top truth rewrite
-- startup ontology freeze
-- carry-over classification
-- reset of active truth surfaces
-
-## Phase 1 out of scope
-
-Out of scope until explicitly reintroduced:
-- automatic inheritance of legacy/v1 architecture
-- premature company/org-chart expansion
-- destructive cleanup before truth/classification are frozen
-
-## Core operating roles
-
+Its active Phase 1 startup ontology is:
 - CEO
 - CTO
 - DEV
 
-## Success test
+ADF v2 exists to let the CEO stay at the level of intent, priorities, and approvals while CTO shapes the work and DEV delivers the product.
 
-A new session or agent can enter the repo, read repo truth, and understand the approved v2 direction without relying on chat reconstruction.
+## What ADF v2 is not
 
-Note: this file is intentionally a first scaffold and should be refined in the next Step 1 session.
+ADF v2 is not:
+- a continuation of the legacy COO-centered architecture
+- a broad virtual-company rebuild
+- a blind carry-over of existing repo code, docs, or governance layers
+- a cleanup project disguised as product definition
+
+Legacy and v1 material stay reference-only unless explicitly carried over.
+Current CTO code on a branch remains exploratory validation work, not canonical `main` truth.
+
+## Phase 1 promise
+
+Phase 1 establishes the minimum trustworthy startup foundation for v2:
+- the repo states the active truth clearly
+- the startup model is CEO / CTO / DEV
+- likely infrastructure carry-over stays in a support role, not the business ontology
+- later implementation and cleanup can proceed from explicit decisions instead of legacy inference
+
+## In scope now
+
+- rewrite the top truth for the reset
+- define the Phase 1 frame around CEO / CTO / DEV
+- classify likely carry-over from legacy and v1
+- route new agents and sessions into reset truth first
+
+## Out of scope now
+
+- destructive cleanup, archive, or delete work
+- broad architecture implementation
+- reintroducing COO or wider org-chart layers as active v2 truth
+- treating Brain, LangGraph, scripts, or other infrastructure as the startup ontology
+- inheriting legacy behavior for compatibility by default
+
+## Success at this stage
+
+This stage succeeds when:
+- a fresh agent can enter the repo and find reset truth first
+- the top truth is strong enough to stop legacy drift
+- carry-over can be classified deliberately instead of inferred
+- later cleanup can wait for explicit justification instead of guesswork

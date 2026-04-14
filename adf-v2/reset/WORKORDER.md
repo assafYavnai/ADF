@@ -1,4 +1,4 @@
-# ADF v2 Reset — Work Order
+# ADF v2 Reset - Work Order
 
 Status: active
 Owner: reset planning / architecture lane
@@ -11,7 +11,7 @@ Later steps do not start as destructive work until earlier steps are materially 
 
 ---
 
-## Step 1 — Rewrite top truth
+## Step 1 - Rewrite top truth
 
 Goal:
 - rewrite the top truth for v2 so drift stops at the source
@@ -23,17 +23,20 @@ Required outputs:
 
 Must establish:
 - v2 is a clean restart
-- v1/legacy is reference-only unless explicitly carried over
+- legacy and v1 are reference-only unless explicitly carried over
 - active startup ontology is CEO / CTO / DEV
-- current CTO code on branch is exploratory, not main truth
-- Brain/MCP and other substrates are not automatically the business architecture
+- current CTO code on a branch is exploratory, not `main` truth
+- Brain/MCP and other substrates are support layers, not the business ontology
 
 Exit condition:
 - these files exist and are good enough to anchor further work
 
+Status:
+- first-pass completion reached on 2026-04-14
+
 ---
 
-## Step 2 — Freeze carry-over classification
+## Step 2 - Freeze carry-over classification
 
 Goal:
 - classify what carries over from legacy/v1 and what does not
@@ -52,35 +55,38 @@ Must cover at minimum:
 - LangGraph
 - older docs
 - older runtime surfaces
-- old engines / tool stacks / governance stacks
+- old engines, tool stacks, and governance stacks
 
 Exit condition:
-- major repo surfaces are classified well enough to support archive/remove planning
+- major repo surfaces are classified well enough to support archive or remove planning
 
 ---
 
-## Step 3 — Isolate and archive legacy from active truth
+## Step 3 - Isolate and archive legacy from active truth
 
 Goal:
 - stop legacy/v1 from acting like active truth during the reset
 
 Required actions:
-- label historical/legacy surfaces clearly
+- label historical and legacy surfaces clearly
 - separate active reset truth from legacy reference truth
-- decide archive targets before delete/remove work
-- wire agent/session entrypoints toward reset truth first
+- decide archive targets before delete or remove work
+- wire agent and session entrypoints toward reset truth first
 
 Typical outputs:
 - updated routing docs
-- legacy banners / archive notes
+- legacy banners or archive notes
 - reset-aware handoff surfaces
 
 Exit condition:
-- a new agent/session can enter the repo and find reset truth first without accidental legacy drift
+- a new agent or session can enter the repo and find reset truth first without accidental legacy drift
+
+Note:
+- the AGENTS routing patch may land immediately after Step 1 because it is a non-destructive drift-prevention measure
 
 ---
 
-## Step 4 — Run the active-tree reset
+## Step 4 - Run the active-tree reset
 
 Goal:
 - clean the active project tree after truth and classification are frozen
@@ -103,11 +109,11 @@ Exit condition:
 
 ## Immediate next action
 
-The current next action is still Step 1:
-- write or refactor the top truth files first
+The current next action is Step 2:
+- expand and freeze the first real carry-over classification ledger
 
 ## Explicitly not yet started
 
-- legacy archive/delete run
+- legacy archive or delete work
 - project-brain cleanup
-- migration of legacy files into active v2 truth without classification
+- active-tree destructive reset

@@ -1,11 +1,11 @@
-# ADF v2 Reset — Decision Log
+# ADF v2 Reset - Decision Log
 
 Status: active append-only log for frozen reset decisions
-Purpose: preserve durable decisions inside the repo so new agents/sessions do not reconstruct them from chat memory
+Purpose: preserve durable decisions inside the repo so new agents and sessions do not reconstruct them from chat memory
 
 ---
 
-## D-001 — Reset control pack location
+## D-001 - Reset control pack location
 
 Frozen decision:
 - the reset control pack lives under `adf-v2/reset/`
@@ -26,7 +26,7 @@ Implication:
 
 ---
 
-## D-002 — v2 reset framing
+## D-002 - v2 reset framing
 
 Frozen decision:
 - v2 is a clean restart
@@ -34,46 +34,44 @@ Frozen decision:
 
 Why:
 - the repo currently contains accumulated architecture drift, partial experiments, and older truth surfaces
-- the reset must start from explicit v2 truth, not inferred inheritance from existing code/docs
+- the reset must start from explicit v2 truth, not inferred inheritance from existing code or docs
 
 Implication:
-- existing repo code/docs are not automatically canonical for v2
+- existing repo code and docs are not automatically canonical for v2
 - every carry-over must be classified deliberately
 
 ---
 
-## D-003 — Active startup ontology for v2
+## D-003 - Active startup ontology for v2
 
 Frozen decision:
-- active high-level startup ontology is **CEO / CTO / DEV**
+- active high-level startup ontology is CEO / CTO / DEV
 
 Why:
 - that is the approved top-level model for the restart
-- broader company abstractions are premature for the current reset phase
+- broader company abstractions are premature for the current phase
 
 Implication:
-- v2 top truth must be rewritten around CEO / CTO / DEV
+- v2 top truth must be written around CEO / CTO / DEV
 - older COO-centered framing on `main` must not be treated as active v2 truth by default
 
 ---
 
-## D-004 — Current CTO status
+## D-004 - Current CTO status
 
 Frozen decision:
-- current CTO code is a trial to test whether CTO is defined enough for implementation
-- the answer is partially
-- that CTO work is on a branch and is not canonical `main` truth
+- current CTO code is exploratory branch work, not canonical `main` truth
 
 Why:
 - the reset must distinguish branch experimentation from mainline truth
 
 Implication:
 - documentation must state this explicitly
-- agents must not infer that current `main` runtime/tooling surfaces represent approved CTO architecture
+- agents must not infer that current runtime or tooling surfaces on `main` represent approved CTO architecture
 
 ---
 
-## D-005 — Likely and possible carry-over
+## D-005 - Likely and probable carry-over
 
 Frozen decision:
 - MCP Brain is a likely carry-over substrate
@@ -85,28 +83,28 @@ Why:
 - the reset should preserve useful infrastructure without inheriting whole legacy architecture blindly
 
 Implication:
-- a carry-over classification ledger is required before archive/delete work begins
+- a carry-over classification ledger is required before archive or delete work begins
 
 ---
 
-## D-006 — Reset sequencing
+## D-006 - Reset sequencing
 
 Frozen decision:
 - the reset proceeds in this order:
-  1. rewrite top truth (`MISSION-STATEMENT`, `VISION`, `PHASE1`)
+  1. rewrite top truth
   2. classify carry-over from legacy/v1
-  3. isolate/archive legacy from active truth
+  3. isolate or archive legacy from active truth
   4. run active-tree reset and cleanup
 
 Why:
 - destructive cleanup before top-truth freeze would recreate drift and ambiguity
 
 Implication:
-- no archive/delete/reset run should begin before top truth and carry-over classification exist in repo truth
+- no archive, delete, or reset run should begin before top truth and carry-over classification exist in repo truth
 
 ---
 
-## D-007 — Repo-resident context requirement
+## D-007 - Repo-resident context requirement
 
 Frozen decision:
 - the reset must be carried by repo-resident context, not only by chat history
@@ -120,14 +118,75 @@ Implication:
 
 ---
 
-## D-008 — AGENTS routing target
+## D-008 - AGENTS routing target
 
 Frozen decision:
-- `AGENTS.md` should eventually route agents to the reset control pack first
+- `AGENTS.md` must route agents to the reset control pack first
 
 Why:
-- the current bootstrap/router surface does not yet force a new agent to consume active v2 reset truth before reading legacy surfaces
+- the bootstrap surface must force new agents to consume active v2 reset truth before reading older repo surfaces
 
 Implication:
-- AGENTS wiring is part of the reset work order
-- until patched, agents should manually begin at `adf-v2/README.md` and `adf-v2/reset/README.md`
+- AGENTS routing is part of the reset work
+- older visible repo surfaces must not be assumed to be active v2 truth by default
+
+---
+
+## D-009 - Step 1 migration method
+
+Frozen decision:
+- migrate top truth directly into the reset pack first
+- do that as reset-native rewrites, not verbatim carry-over
+- refine those reset-native files in place after they become the active source of truth
+
+Why:
+- Step 1 was blocked because the reset pack existed but the top-truth files were only scaffolds
+- the older documents contain useful intent, but they also carry conflicting ontology and legacy framing
+- direct-first rewrite stops drift faster than refactoring old documents before migration
+
+Rejected alternatives:
+- refactor legacy or older v2 files first and only migrate later
+- wait for full carry-over classification before writing top truth
+
+Implication:
+- old docs are source material only
+- `adf-v2/reset/MISSION-STATEMENT.md`, `VISION.md`, and `PHASE1.md` become the active top truth now
+- refinement continues inside the reset pack instead of in legacy files
+
+---
+
+## D-010 - Infrastructure placement in top truth
+
+Frozen decision:
+- Brain/MCP, LangGraph, scripts, memory, and similar infrastructure are support substrate, not the top-level business ontology
+
+Why:
+- the startup ontology must stay CEO / CTO / DEV
+- infrastructure may carry over, but it should not redefine what the startup is
+- this prevents older scripts, agents, and durable-state framing from silently reasserting itself as top truth
+
+Rejected alternatives:
+- treat scripts, agents, or durable state as co-equal top-level ontology
+- omit infrastructure entirely from the top truth
+
+Implication:
+- top-truth docs may mention infrastructure as enabling support
+- carry-over classification can evaluate infrastructure without promoting it to the startup's public identity
+
+---
+
+## D-011 - AGENTS patch timing
+
+Frozen decision:
+- patch `AGENTS.md` immediately after Step 1 top truth is written
+
+Why:
+- routing drift was still possible while `AGENTS.md` pointed new agents only at the old bootstrap path
+- the router fix is non-destructive and reduces the chance of legacy interpretation during Step 2
+- waiting for later isolation work would keep the reset pack dependent on human memory
+
+Rejected alternative:
+- wait for full Step 3 legacy-isolation work before patching AGENTS
+
+Implication:
+- AGENTS routing is a protective reset entrypoint patch, not evidence that broader legacy isolation is already complete
