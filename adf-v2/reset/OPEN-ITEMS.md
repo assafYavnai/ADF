@@ -3,64 +3,48 @@
 Status: active unresolved-item list
 Purpose: track unresolved questions without letting them silently become assumptions
 
-## O-001 — Migrate top-truth files directly or refactor first?
+## O-001 - Exact LangGraph carry-over status
 
 Question:
-- should `MISSION-STATEMENT`, `VISION`, and `PHASE1` be migrated directly first and then refined, or refactored before they are treated as reset truth?
+- should LangGraph remain a probable carry-over candidate, or is repo evidence now strong enough to classify it as certain carry-over?
 
 Why it matters:
-- this controls how fast Step 1 can move without importing avoidable ambiguity
+- this affects the first real carry-over ledger and later architecture shaping
 
 Owner:
-- CEO / architecture lane
+- CTO / architecture lane
+
+Blocking:
+- no
+
+---
+
+## O-002 - Exact Brain carry-over boundary
+
+Question:
+- which current Brain-related surfaces count as likely carry-over substrate, and which surrounding legacy integration or governance layers remain reference-only?
+
+Why it matters:
+- Step 2 needs a concrete ledger, not only a high-level statement that Brain is likely to carry over
+
+Owner:
+- CTO / architecture lane
 
 Blocking:
 - yes
 
 ---
 
-## O-002 — Exact carry-over status of LangGraph
+## O-003 - Runtime and tooling carry-over boundary
 
 Question:
-- is LangGraph merely a probable candidate, or already preferred enough to be treated as a near-certain carry-over substrate?
+- which runtime wrappers, scripts, engines, and workflow surfaces on `main` are true substrate candidates versus reference-only legacy scaffolding?
 
 Why it matters:
-- affects carry-over classification and later architecture shaping
+- cleanup and isolation work cannot proceed safely until the active-tree support surfaces are classified
 
 Owner:
-- CTO / architecture lane
+- reset architecture lane
 
 Blocking:
-- no
-
----
-
-## O-003 — Exact carry-over boundary for Brain
-
-Question:
-- should MCP Brain be treated as an infrastructure substrate outside the top-level ontology, or formally described as a support component under v2 architecture docs?
-
-Why it matters:
-- affects how top truth and carry-over classification are written
-
-Owner:
-- CTO / architecture lane
-
-Blocking:
-- no
-
----
-
-## O-004 — AGENTS patch timing
-
-Question:
-- should `AGENTS.md` be patched immediately after the reset control pack exists, or only after Step 1 top-truth files are finalized?
-
-Why it matters:
-- affects when new agents are formally routed away from legacy truth
-
-Owner:
-- architecture / tooling lane
-
-Blocking:
-- no
+- yes

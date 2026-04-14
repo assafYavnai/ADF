@@ -5,34 +5,36 @@ Last updated: 2026-04-14
 
 ## Current stage
 
-Stage 1 — reset control pack bootstrapped
+Stage 2 - Step 1 top truth completed, carry-over classification next
 
 ## Current objective
 
-Freeze the repo-resident reset truth so new agents/sessions stop drifting.
+Freeze the first real carry-over classification so the repo can move toward legacy isolation without reopening top truth.
 
 ## Current approved direction
 
 - use `adf-v2/reset/` as the active reset control pack
-- rewrite top truth before destructive cleanup
-- classify carry-over before archive/delete work
-- keep legacy/v1 reference available until classification is frozen
+- treat the reset top truth as canonical v2 truth
+- keep legacy and v1 reference available until classification is frozen
+- evaluate infrastructure as support substrate under CEO / CTO / DEV, not as the top-level ontology
 
 ## Current blocker
 
-Top truth is not yet rewritten.
-The reset pack exists, but `MISSION-STATEMENT.md`, `VISION.md`, and `PHASE1.md` are still scaffolds or pending refactor.
+`CARRY-OVER-CLASSIFICATION.md` is still only a scaffold.
+The repo does not yet have a frozen ledger for the main legacy surfaces that will shape archive, isolation, or reuse work.
 
 ## Current next step
 
-Decide whether to migrate the current top-truth files directly into the reset pack first, or refactor them before migration.
+Expand `CARRY-OVER-CLASSIFICATION.md` into the first real ledger and freeze the major classifications for Brain, LangGraph, older docs, runtime surfaces, and exploratory branch work.
 
 ## Current non-goal
 
-Do not start archive/delete/project-brain cleanup yet.
+Do not start archive, delete, project-brain cleanup, or active-tree reset work yet.
 
-## Current operator note
+## What this session completed
 
-Until `AGENTS.md` is patched, new sessions should manually enter through:
-- `adf-v2/README.md`
-- `adf-v2/reset/README.md`
+- froze the Step 1 migration method as direct-first reset-native rewrite
+- wrote the first real versions of `MISSION-STATEMENT.md`, `VISION.md`, and `PHASE1.md`
+- froze infrastructure as support substrate rather than top-level ontology
+- patched `AGENTS.md` to route new agents through the reset pack first
+- aligned reset state, handoff, and work-order files to the new Step 2 focus

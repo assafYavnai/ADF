@@ -4,39 +4,36 @@ Status: active baton pass
 
 ## Exact next task
 
-Decide and execute one of these two paths for Step 1 top-truth work:
+Turn `adf-v2/reset/CARRY-OVER-CLASSIFICATION.md` from scaffold into the first real ledger for Step 2.
 
-### Option A — migrate directly first
-- create first working versions of `MISSION-STATEMENT.md`, `VISION.md`, and `PHASE1.md` quickly
-- use existing truth from legacy/v1 only as source material
-- refine after the first coherent reset versions exist
+## What to classify next
 
-### Option B — refactor before migration
-- inspect candidate source files first
-- extract only the parts compatible with the approved reset direction
-- then write the first reset-native versions
+At minimum, classify:
+- Brain/MCP surfaces
+- LangGraph surfaces
+- older `adf-v2/00-mission-foundation/` docs
+- legacy runtime and workflow wrappers on `main`
+- exploratory CTO branch work as seen from `main`
+- older governance and engine stacks that still look active to a new reader
 
-## Files to touch next
+## Required outputs in the next session
 
-- `adf-v2/reset/MISSION-STATEMENT.md`
-- `adf-v2/reset/VISION.md`
-- `adf-v2/reset/PHASE1.md`
-- `adf-v2/reset/STATE.md`
-- `adf-v2/reset/DECISIONS.md` if the migrate-vs-refactor choice is frozen
+- update `CARRY-OVER-CLASSIFICATION.md` with concrete rows, reasons, and required actions
+- add new frozen decisions to `DECISIONS.md` for any classification that is now settled
+- update `STATE.md`, `OPEN-ITEMS.md`, and `HANDOFF.md` to reflect the new Step 2 truth
 
-## Files not to touch yet for destructive work
+## Do not do yet
 
-- legacy archive/delete targets
-- project-brain cleanup surfaces
-- broad repo cleanup unrelated to Step 1
+- archive or delete legacy code
+- remove project-brain surfaces
+- widen into full implementation architecture
+- reopen the Step 1 migrate-directly-first decision unless new repo evidence directly contradicts it
 
-## Already frozen
+## Current ready-made assumptions
 
-- reset control pack location
-- v2 clean-restart framing
-- CEO / CTO / DEV ontology direction
-- reset ordering
-
-## Current open question
-
-Should top-truth files be migrated directly first, or refactored before migration?
+These do not need to be reopened before starting Step 2:
+- v2 is a clean restart
+- legacy and v1 are reference-only unless explicitly carried over
+- CEO / CTO / DEV is the active startup ontology
+- infrastructure is support substrate, not top-level ontology
+- top truth is now authored in the reset pack
